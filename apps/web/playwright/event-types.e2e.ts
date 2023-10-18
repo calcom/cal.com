@@ -115,23 +115,24 @@ test.describe("Event Types tests", () => {
 
       const locationData = ["location 1", "location 2", "location 3"];
 
-      const fillLocation = async (inputText: string) => {
-        await page.locator("#location-select").click();
-        await page.locator("text=In Person (Organizer Address)").click();
+      const fillLocation = async (inputText: string, index: number) => {
+        await page.locator("#location-select").last().click();
+        await page.locator("text=In Person (Organizer Address)").last().click();
         // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
-        await page.locator('input[name="locationAddress"]').fill(inputText);
-        await page.locator("[data-testid=display-location]").check();
-        await page.locator("[data-testid=update-location]").click();
+        await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
+        await page.locator("[data-testid=display-location]").last().check();
+        await page.locator("[data-testid=update-eventtype]").click();
+        await page.waitForLoadState("networkidle");
       };
 
-      await fillLocation(locationData[0]);
+      await fillLocation(locationData[0], 0);
 
       await page.locator("[data-testid=add-location]").click();
-      await fillLocation(locationData[1]);
+      await fillLocation(locationData[1], 1);
 
       await page.locator("[data-testid=add-location]").click();
-      await fillLocation(locationData[2]);
+      await fillLocation(locationData[2], 2);
 
       await page.locator("[data-testid=update-eventtype]").click();
 
@@ -176,6 +177,64 @@ test.describe("Event Types tests", () => {
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("text=+19199999999")).toBeVisible();
+      });
+
+      test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Organizer Phone Number"`).click();
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
+        await page.locator('input[name="locations[0].hostPhoneNumber"]').fill("9199999999");
+
+        await saveEventType(page);
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
+      });
+
+      test("Can add Cal video location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Cal Video (Global)"`).click();
+
+        await saveEventType(page);
+        await page.getByTestId("toast-success").waitFor();
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("[data-testid=where] > a")).toBeVisible();
+      });
+
+      test("Can add Link Meeting as location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Link meeting"`).click();
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
+        const testUrl = "https://cal.ai/";
+        await page.locator('input[name="locations[0].link"]').fill(testUrl);
+
+        await saveEventType(page);
+        await page.getByTestId("toast-success").waitFor();
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        const linkElement = await page.locator("[data-testid=where] > a");
+        expect(await linkElement.getAttribute("href")).toBe(testUrl);
       });
     });
   });
