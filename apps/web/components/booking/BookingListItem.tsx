@@ -89,7 +89,9 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const eventLocationType = getEventLocationType(booking.location);
-  const meetingLink = booking.references[0]?.meetingUrl || booking.location;
+  const meetingLink = booking.references[0]?.meetingUrl
+    ? booking.references[0]?.meetingUrl
+    : booking.location;
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -356,7 +358,9 @@ function BookingListItem(booking: BookingItemProps) {
                 />
               </div>
               {!isPending && (eventLocationType || booking.location?.startsWith("https://")) && (
-                <Link href={meetingLink} className="text-sm leading-6 text-blue-400 hover:underline">
+                <Link
+                  href={meetingLink ? meetingLink.toString() : ""}
+                  className="text-sm leading-6 text-blue-400 hover:underline">
                   <div className="flex items-center gap-2">
                     {eventLocationType ? (
                       <>
