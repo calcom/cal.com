@@ -52,6 +52,7 @@
     "@radix-ui/react-id": "^1.0.0",
     "@radix-ui/react-popover": "^1.0.0",
     "@radix-ui/react-radio-group": "^1.0.0",
+    "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-slider": "^1.0.0",
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
