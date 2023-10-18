@@ -117,6 +117,7 @@ const schemaUserCreateParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  hideBranding: z.boolean().optional(),
   timeZone: timeZone.optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
