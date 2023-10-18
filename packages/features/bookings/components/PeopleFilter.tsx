@@ -42,9 +42,9 @@ export const PeopleFilter = () => {
       <ScrollArea.Root className="h-96 w-72">
         <ScrollArea.Viewport className="h-full w-full">
           {data &&
-            data
-              .toSorted((a, b) => a.name?.localeCompare(b.name || "") ?? 0)
-              ?.map((user) => (
+            [...data]
+              .sort((a, b) => a.name?.localeCompare(b.name || "") ?? 0)
+              .map((user) => (
                 <div
                   className="item-center max-w-72 flex px-4 py-[6px] focus-within:bg-gray-100 focus-within:bg-gray-100 hover:cursor-pointer hover:bg-gray-50"
                   key={`${user.id}`}>
