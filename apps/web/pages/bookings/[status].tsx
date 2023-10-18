@@ -95,16 +95,17 @@ export default function Bookings() {
   };
 
   let recurringInfoToday: RecurringInfo | undefined;
-
   const bookingsToday =
-    query.data?.pages.map((page) =>
-      page.bookings.filter((booking: BookingOutput) => {
-        recurringInfoToday = page.recurringInfo.find(
-          (info) => info.recurringEventId === booking.recurringEventId
-        );
-        return new Date(booking.startTime).toDateString() === new Date().toDateString();
-      })
-    )[0] || [];
+    query.data?.pages
+      .map((page) =>
+        page.bookings.filter((booking: BookingOutput) => {
+          recurringInfoToday = page.recurringInfo.find(
+            (info) => info.recurringEventId === booking.recurringEventId
+          );
+          return new Date(booking.startTime).toDateString() === new Date().toDateString();
+        })
+      )
+      .flat() || [];
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
