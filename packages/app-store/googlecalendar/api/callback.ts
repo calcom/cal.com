@@ -60,22 +60,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .then((res) => res.json())
     .then((res) => res.email); // Extract the user's email from the response.
 
-  // Upsert (Insert or Update) a record of primary calendar in the 'selectedCalendar' table in the Prisma database.
-  await prisma.selectedCalendar.upsert({
-    where: {
-      userId_integration_externalId: {
-        userId: req.session.user.id,
-        integration: credentials?.type, // Match the credential type.
-        externalId: userEmail, // Match the user's email.
-      },
-    },
-    create: {
+  await prisma.selectedCalendar.create({
+    data: {
       userId: req.session.user.id,
       integration: credentials?.type, // Set the integration type from the credential.
       externalId: userEmail, // Set the external ID to the user's email.
       credentialId: credentials?.id, // Associate the credential with this record.
     },
-    update: {},
   });
 
   if (state?.installGoogleVideo) {
