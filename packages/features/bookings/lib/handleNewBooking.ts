@@ -99,7 +99,7 @@ const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
   | Awaited<ReturnType<typeof getDefaultEvent>>
   | Awaited<ReturnType<typeof getEventTypesFromDB>>;
