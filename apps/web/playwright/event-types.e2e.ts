@@ -240,17 +240,18 @@ test.describe("Event Types tests", () => {
       test("Can remove location from multiple locations that are saved", async ({ page }) => {
         await gotoFirstEventType(page);
 
+        // Add Attendee Phone Number location
         await selectAttendeePhoneNumber(page);
 
+        // Add Cal Video location
         await page.locator("[data-testid=add-location]").click();
-
         await page.locator("#location-select").last().click();
         await page.locator(`text="Cal Video (Global)"`).click();
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
 
-        // Remove First Location
+        // Remove Attendee Phone Number Location
         await page.getByTestId(`delete-locations.0.type`).click();
 
         await saveEventType(page);
