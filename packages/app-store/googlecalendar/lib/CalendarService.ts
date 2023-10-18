@@ -69,7 +69,7 @@ export default class GoogleCalendarService implements Calendar {
     this.integrationName = "google_calendar";
     this.credential = credential;
     this.auth = this.googleAuth(credential);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.credential = credential;
   }
 
