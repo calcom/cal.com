@@ -11,7 +11,7 @@ import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/ser
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsername } from "@calcom/lib/validateUsername";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
