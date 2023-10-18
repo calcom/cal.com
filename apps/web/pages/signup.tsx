@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
+import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -18,7 +19,7 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -370,7 +371,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               <Link href="/auth/login" className="text-emphasis hover:underline">
                 {t("already_have_account")}
               </Link>
-              {/* <div className="text-subtle">
+              <div className="text-subtle">
                 <Trans i18nKey="signing_up_terms" as="p">
                   By signing up, you agree to our
                   <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
@@ -380,7 +381,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                     Privacy Policy
                   </Link>
                 </Trans>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
