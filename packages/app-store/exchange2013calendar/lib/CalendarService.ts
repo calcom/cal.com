@@ -43,7 +43,7 @@ export default class ExchangeCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "exchange2013_calendar";
 
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
     const decryptedCredential = JSON.parse(
       symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
