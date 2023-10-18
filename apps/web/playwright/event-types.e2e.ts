@@ -236,6 +236,34 @@ test.describe("Event Types tests", () => {
         const linkElement = await page.locator("[data-testid=where] > a");
         expect(await linkElement.getAttribute("href")).toBe(testUrl);
       });
+
+      test("Can remove location from multiple locations that are saved", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await selectAttendeePhoneNumber(page);
+
+        await page.locator("[data-testid=add-location]").click();
+
+        await page.locator("#location-select").last().click();
+        await page.locator(`text="Cal Video (Global)"`).click();
+
+        await saveEventType(page);
+        await page.waitForLoadState("networkidle");
+
+        // Remove First Location
+        await page.getByTestId(`delete-locations.0.type`).click();
+
+        await saveEventType(page);
+        await page.waitForLoadState("networkidle");
+
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("[data-testid=where] > a")).toBeVisible();
+      });
     });
   });
 });

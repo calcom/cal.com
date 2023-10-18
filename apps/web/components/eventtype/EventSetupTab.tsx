@@ -300,7 +300,8 @@ export const EventSetupTab = (
                         }}
                       />
                       <button
-                        className="mx-2"
+                        data-testid={`delete-locations.${index}.type`}
+                        className="min-h-9 block h-9 px-2"
                         type="button"
                         onClick={() => remove(index)}
                         aria-label={t("remove")}>
