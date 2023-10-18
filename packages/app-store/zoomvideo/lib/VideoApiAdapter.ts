@@ -13,6 +13,7 @@ import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshT
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getZoomAppKeys } from "./getZoomAppKeys";
+import metadata from "zoomvideo/_metadata";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
 const zoomEventResultSchema = z.object({
@@ -91,7 +92,7 @@ const zoomAuth = (credential: CredentialPayload) => {
             grant_type: "refresh_token",
           }),
         }),
-      "zoom",
+      metadata.slug,
       credential.userId
     );
 
