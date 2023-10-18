@@ -306,7 +306,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 .object({
                   type: z.string(),
                   address: z.string().optional(),
-                  link: z.string().optional(),
+                  link: z.string().url().optional(),
                   phone: z
                     .string()
                     .refine((val) => isValidPhoneNumber(val))
