@@ -42,7 +42,7 @@ export default class BiginCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     this.auth = this.biginAuth(credential);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   /***
