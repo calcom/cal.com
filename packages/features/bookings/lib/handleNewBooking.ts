@@ -431,7 +431,6 @@ async function ensureAvailableUsers(
 
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    console.log("🚀 ~ file: handleNewBooking.ts:434 ~ user:", user);
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
       {
         userId: user.id,
@@ -595,7 +594,9 @@ async function createBooking({
   evt,
   eventTypeId,
   eventTypeSlug,
-  reqBody,
+  reqBodyUser,
+  reqBodyMetadata,
+  reqBodyRecurringEventId,
   uid,
   responses,
   isConfirmedByDefault,
@@ -611,7 +612,9 @@ async function createBooking({
   eventType: NewBookingEventType;
   eventTypeId: Awaited<ReturnType<typeof getBookingData>>["eventTypeId"];
   eventTypeSlug: Awaited<ReturnType<typeof getBookingData>>["eventTypeSlug"];
-  reqBody: ReqBodyWithEnd;
+  reqBodyUser: ReqBodyWithEnd["user"];
+  reqBodyMetadata: ReqBodyWithEnd["metadata"];
+  reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
   uid: short.SUUID;
   responses: ReqBodyWithEnd["responses"] | null;
   isConfirmedByDefault: ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
@@ -639,7 +642,7 @@ async function createBooking({
       };
 
   const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
-  const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
+  const dynamicGroupSlugRef = !eventTypeId ? (reqBodyUser as string).toLowerCase() : null;
 
   const attendeesData = evt.attendees.map((attendee) => {
     //if attendee is team member, it should fetch their locale not booker's locale
@@ -675,7 +678,7 @@ async function createBooking({
     location: evt.location,
     eventType: eventTypeRel,
     smsReminderNumber,
-    metadata: reqBody.metadata,
+    metadata: reqBodyMetadata,
     attendees: {
       createMany: {
         data: attendeesData,
@@ -696,8 +699,8 @@ async function createBooking({
         : undefined,
   };
 
-  if (reqBody.recurringEventId) {
-    newBookingData.recurringEventId = reqBody.recurringEventId;
+  if (reqBodyRecurringEventId) {
+    newBookingData.recurringEventId = reqBodyRecurringEventId;
   }
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
@@ -2024,7 +2027,9 @@ async function handler(
       evt,
       eventTypeId,
       eventTypeSlug,
-      reqBody,
+      reqBodyUser: reqBody.user,
+      reqBodyMetadata: reqBody.metadata,
+      reqBodyRecurringEventId: reqBody.recurringEventId,
       uid,
       responses,
       isConfirmedByDefault,
