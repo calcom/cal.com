@@ -1,52 +1,78 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { test } from "@calcom/web/playwright/lib/fixtures";
+import { expect } from "@playwright/test";
 
-test.use({ userAgent: "GCal Testing" });
+import prisma from "@calcom/prisma";
+import { test } from "@calcom/web/playwright/lib/fixtures";
+import { bookFirstEvent } from "@calcom/web/playwright/lib/testUtils";
+
+import metadata from "../_metadata";
+import GoogleCalendarService from "../lib/CalendarService";
 
 test.describe("Google Calendar", async () => {
-  let user;
-  // let page: Page;
-  // let browser;
+  let qaUser;
+  let qaGCalCredential;
+  test.beforeAll(async () => {
+    let runIntegrationTest = false;
 
-  // const browser = await chromium.launch();
-  // const context = await browser.newContext();
-  // const page = await context.newPage();
+    // TODO disable if credential syncing is in place
 
-  test.beforeEach(async ({ page, users }) => {
-    user = await users.create();
-    await user.apiLogin();
+    if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
+      qaGCalCredential = await prisma.credential.findFirst({
+        where: {
+          user: {
+            email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
+          },
+          type: metadata.type,
+        },
+      });
 
-    const response = await fetch(`${WEBAPP_URL}/api/integrations/googlecalendar/add`);
+      qaUser = await prisma.user.findFirst({
+        where: {
+          email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
+        },
+      });
 
-    await page.goto((await response.json()).url);
-
-    await page.getByRole("textbox", { name: "Email or phone" }).fill("calcom.test.qa.1@gmail.com");
-    await page.click("text=Next");
-
-    await page.getByRole("textbox", { name: "Enter your password" }).fill("T6tgSc49RCjZ8w");
-    await page.click("text=Next");
-
-    await page.waitForSelector("button:enabled");
-
-    // Need to account for all the different versions of the OAuth screen
-    /* eslint-disable */
-    if (await page.$("text=Continue")) {
-      await page.click("text=Continue");
-    } else if (await page.$("text=Allow")) {
-      await page.waitForSelector("text=Allow");
-      await page.click("id=submit_approve_access");
+      if (qaGCalCredential) runIntegrationTest = true;
     }
 
-    if (await page.$("text=Select all")) {
-      await page.check("text=Select all");
-      await page.click("text=Continue");
-    }
-
-    await page.waitForTimeout(50000);
+    test.skip(!runIntegrationTest, "QA user not found");
   });
 
-  test("Should be able to connect calendar", async ({ page, users }) => {
-    await page.goto("/event-types");
-    await page.waitForTimeout(50000);
+  test("On new booking, event should be created on GCal", async ({ page, users }) => {
+    await page.goto(`/${qaUser.username}`);
+    await bookFirstEvent(page);
+
+    const bookingUrl = await page.url();
+    const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
+
+    const gCalReference = await prisma.bookingReference.findFirst({
+      where: {
+        booking: {
+          uid: bookingUid[1],
+        },
+        type: metadata.type,
+        credentialId: qaGCalCredential.id,
+      },
+    });
+
+    const gCalCredentials = await prisma.credential.findFirst({
+      where: {
+        id: qaGCalCredential.id,
+      },
+      select: {
+        key: true,
+      },
+    });
+
+    const googleCalendarService = new GoogleCalendarService(gCalCredentials);
+
+    const authedCalendar = await googleCalendarService.authedCalendar();
+
+    const gCalEvent = await authedCalendar.events.get({
+      calendarId: "primary",
+      eventId: gCalReference.uid,
+    });
+    console.log("🚀 ~ file: google-calendar.e2e.ts:74 ~ test ~ gCalEvent:", gCalEvent);
+
+    expect(gCalEvent.status).toBe(200);
   });
 });
