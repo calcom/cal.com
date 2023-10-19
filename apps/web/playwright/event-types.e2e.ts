@@ -185,9 +185,10 @@ test.describe("Event Types tests", () => {
 
         await page.locator("#location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(1000);
-        await page.locator('input[name="locations[0].hostPhoneNumber"]').fill("9199999999");
+        const locationInoputName = "locations[0].hostPhoneNumber";
+
+        await page.locator(`input[name=${locationInoputName}]`).waitFor();
+        await page.locator(`input[name=${locationInoputName}]`).fill("9199999999");
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -213,7 +214,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("[data-testid=where] > a")).toBeVisible();
+        await expect(page.locator("[data-testid=where] ")).toHaveText("Cal Video");
       });
 
       test("Can add Link Meeting as location and book with it", async ({ page }) => {
@@ -254,7 +255,8 @@ test.describe("Event Types tests", () => {
         await page.waitForLoadState("networkidle");
 
         // Remove Attendee Phone Number Location
-        await page.getByTestId(`delete-locations.0.type`).click();
+        const removeButtomId = "delete-locations.0.type";
+        await page.getByTestId(removeButtomId).click();
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
@@ -265,7 +267,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("[data-testid=where] > a")).toBeVisible();
+        await expect(page.locator("[data-testid=where]")).toHaveText("Cal Video");
       });
     });
   });
