@@ -1,4 +1,4 @@
-import { TRPCError } from "@calcom/trpc";
+import { TRPCError } from "@calcom/trpc/server";
 
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
