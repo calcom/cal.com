@@ -4,11 +4,6 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { bookingReferenceMiddleware } from "./middleware";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: typeof prismaWithClientExtensions;
-}
-
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
 if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
@@ -57,10 +52,11 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
 
 // const prismaWithClientExtensions = prismaWithoutClientExtensions;
 
-export const prisma = (globalThis.prisma as typeof prismaWithClientExtensions) || prismaWithClientExtensions;
+export const prisma =
+  ((globalThis as any).prisma as typeof prismaWithClientExtensions) || prismaWithClientExtensions;
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+  (globalThis as any).prisma = prisma;
 }
 
 export type PrismaClient = typeof prismaWithClientExtensions;

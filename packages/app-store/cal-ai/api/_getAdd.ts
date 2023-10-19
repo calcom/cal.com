@@ -33,6 +33,19 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
+  await fetch(
+    `${process.env.NODE_ENV === "development" ? "http://localhost:3005" : "https://cal.ai"}/api/onboard`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: session.user.id,
+      }),
+    }
+  );
+
   return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "cal-ai" }) };
 }
 

@@ -8,7 +8,7 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-const log = logger.getChildLogger({ prefix: ["getCalendarsEvents"] });
+const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
