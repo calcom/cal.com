@@ -61,6 +61,15 @@ function handleMinMax(min: string, max: string) {
   return { timeMin: getTimeMin(min), timeMax: getTimeMax(max) };
 }
 
+type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
+function parseArgsForCache(args: FreeBusyArgs): FreeBusyArgs {
+  const { timeMin: _timeMin, timeMax: _timeMax, items: _items } = args;
+  // Sort items by id to make sure the cache key is always the same
+  const items = _items.sort((a, b) => (a.id > b.id ? 1 : -1));
+  const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
+  return { timeMin, timeMax, items };
+}
+
 const watchCalendarSchema = z.object({
   kind: z.literal("api#channel"),
   id: z.string(),
@@ -376,44 +385,57 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async getCacheOrFetchAvailability(args: {
-    timeMin: string;
-    timeMax: string;
-    items: { id: string }[];
-    forceCacheUpdate?: boolean;
-  }): Promise<calendar_v3.Schema$FreeBusyResponse> {
-    const calendar = await this.authedCalendar();
+  async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     const flags = await getFeatureFlagMap(prisma);
     if (!flags["calendar-cache"]) {
       this.log.warn("Calendar Cache is disabled - Skipping");
-      const { timeMin, timeMax, items } = args;
-      const apires = await calendar.freebusy.query({
-        requestBody: { timeMin, timeMax, items },
-      });
-      return apires.data;
+      return await this.fetchAvailability(args);
     }
-    const { timeMin: _timeMin, timeMax: _timeMax, items, forceCacheUpdate } = args;
-    const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
-    const key = JSON.stringify({ timeMin, timeMax, items });
+    const parsedArgs = parseArgsForCache(args);
+    const key = JSON.stringify(parsedArgs);
+    const cached = await this.getAvailabilityFromCache(key);
 
-    if (!forceCacheUpdate) {
-      const cached = await prisma.calendarCache.findUnique({
-        where: {
-          credentialId_key: {
-            credentialId: this.credential.id,
-            key,
-          },
-          expiresAt: { gte: new Date(Date.now()) },
-        },
-      });
+    if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
 
-      if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
-    }
+    const data = await this.fetchAvailability(args);
+    await this.setAvailabilityInCache(key, data);
+    return data;
+  }
 
-    const apires = await calendar.freebusy.query({
-      requestBody: { timeMin, timeMax, items },
+  async fetchAvailabilityAndSetCache(args: {
+    dateFrom: string;
+    dateTo: string;
+    selectedCalendars: IntegrationCalendar[];
+  }) {
+    const parsedArgs = parseArgsForCache({
+      timeMin: args.dateFrom,
+      timeMax: args.dateTo,
+      items: args.selectedCalendars.map((sc) => ({ id: sc.externalId })),
     });
+    const data = await this.fetchAvailability(parsedArgs);
+    const key = JSON.stringify(parsedArgs);
+    await this.setAvailabilityInCache(key, data);
+  }
 
+  async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
+    const calendar = await this.authedCalendar();
+    const apires = await calendar.freebusy.query({ requestBody });
+    return apires.data;
+  }
+
+  async getAvailabilityFromCache(key: string) {
+    return await prisma.calendarCache.findUnique({
+      where: {
+        credentialId_key: {
+          credentialId: this.credential.id,
+          key,
+        },
+        expiresAt: { gte: new Date(Date.now()) },
+      },
+    });
+  }
+
+  async setAvailabilityInCache(key: string, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
     await prisma.calendarCache.upsert({
       where: {
         credentialId_key: {
@@ -422,25 +444,22 @@ export default class GoogleCalendarService implements Calendar {
         },
       },
       update: {
-        value: JSON.parse(JSON.stringify(apires.data)),
+        value: JSON.parse(JSON.stringify(data)),
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
       create: {
-        value: JSON.parse(JSON.stringify(apires.data)),
+        value: JSON.parse(JSON.stringify(data)),
         credentialId: this.credential.id,
         key,
-        expiresAt: new Date(Date.now() + (forceCacheUpdate ? ONE_MONTH_IN_MS : CACHING_TIME)),
+        expiresAt: new Date(Date.now() + ONE_MONTH_IN_MS),
       },
     });
-
-    return apires.data;
   }
 
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    forceCacheUpdate?: boolean
+    selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
@@ -463,7 +482,6 @@ export default class GoogleCalendarService implements Calendar {
         timeMin: dateFrom,
         timeMax: dateTo,
         items: calsIds.map((id) => ({ id })),
-        forceCacheUpdate,
       });
       if (!freeBusyData?.calendars) throw new Error("No response from google calendar");
       const result = Object.values(freeBusyData.calendars).reduce((c, i) => {
@@ -507,16 +525,24 @@ export default class GoogleCalendarService implements Calendar {
   async watchCalendar({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
     await this.unwatchCalendar({ calendarId });
+    console.log(
+      "`${Math.round((Date.now() + ONE_MONTH_IN_MS) / 1000)}`",
+      `${Math.round((Date.now() + ONE_MONTH_IN_MS) / 1000)}`
+    );
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
       calendarId,
       requestBody: {
+        // A UUID or similar unique string that identifies this channel.
         id: uuid(),
         type: "web_hook",
-        address: "https://0241-189-203-86-232.ngrok-free.app/api/integrations/googlecalendar/webhook",
-        // address: "https://cal.dev/api/integrations/googlecalendar/webhook",
+        address: "https://09fa-200-76-22-226.ngrok-free.app/api/integrations/googlecalendar/webhook",
+        // address: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/googlecalendar/webhook`,
         token: process.env.CRON_API_KEY,
-        expiration: null,
+        params: {
+          // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
+          ttl: `${Math.round((Date.now() + ONE_MONTH_IN_MS) / 1000)}`,
+        },
       },
     });
     return res.data;

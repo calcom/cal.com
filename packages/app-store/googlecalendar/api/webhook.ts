@@ -43,13 +43,12 @@ async function postHandler(req: NextApiRequest) {
   const { selectedCalendars } = credential;
   const calendar = await getCalendar(credential);
   const date = new Date();
-  await calendar?.getAvailability(
-    new Date().toISOString(),
-    // Cache 3 months in advance
-    new Date(date.getFullYear(), date.getMonth() + 2, 0, 0, 0, 0, 0).toISOString(),
+  await calendar?.fetchAvailabilityAndSetCache?.({
+    dateFrom: new Date().toISOString(),
+    // Cache 2 months in advance
+    dateTo: new Date(date.getFullYear(), date.getMonth() + 1, 0, 0, 0, 0, 0).toISOString(),
     selectedCalendars,
-    true
-  );
+  });
 
   return { message: "ok" };
 }
