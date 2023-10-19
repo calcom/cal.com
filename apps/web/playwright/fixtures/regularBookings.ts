@@ -13,6 +13,7 @@ type BookingOptions = {
   hasPlaceholder?: boolean;
   isReschedule?: boolean;
   isRequired?: boolean;
+  isMultiSelect?: boolean;
 };
 
 interface QuestionActions {
