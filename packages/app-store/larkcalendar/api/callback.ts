@@ -12,7 +12,7 @@ import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
 import type { LarkAuthCredentials } from "../types/LarkCalendar";
 
-const log = logger.getChildLogger({ prefix: [`[[lark/api/callback]`] });
+const log = logger.getSubLogger({ prefix: [`[[lark/api/callback]`] });
 
 const callbackQuerySchema = z.object({
   code: z.string().min(1),

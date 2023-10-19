@@ -47,10 +47,16 @@ export default function RecurringEventController({
           <Alert severity="warning" title={t("warning_payment_recurring_event")} />
         ) : (
           <>
+            <Alert
+              className="mb-4"
+              severity="warning"
+              title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
+            />
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 recurringEventState !== null && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -73,7 +79,7 @@ export default function RecurringEventController({
                   setRecurringEventState(newVal);
                 }
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 {recurringEventState && (
                   <div data-testid="recurring-event-collapsible" className="text-sm">
                     <div className="flex items-center">

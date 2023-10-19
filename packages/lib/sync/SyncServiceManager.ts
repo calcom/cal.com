@@ -6,7 +6,7 @@ import type { ConsoleUserInfoType, TeamInfoType, WebUserInfoType } from "./ISync
 import services from "./services";
 import CloseComService from "./services/CloseComService";
 
-const log = logger.getChildLogger({ prefix: [`[[SyncServiceManager] `] });
+const log = logger.getSubLogger({ prefix: [`[[SyncServiceManager] `] });
 
 export const createConsoleUser = async (user: ConsoleUserInfoType | null | undefined) => {
   if (user) {
