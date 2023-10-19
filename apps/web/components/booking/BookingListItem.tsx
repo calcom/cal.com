@@ -230,6 +230,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const startTime = dayjs(booking.startTime)
+    .tz(user?.timeZone)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
