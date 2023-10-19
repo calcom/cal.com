@@ -43,7 +43,7 @@ function getTimeMin(timeMin: string) {
 /** Expand the end date to the end of the month */
 function getTimeMax(timeMax: string) {
   const dateMax = new Date(timeMax);
-  return new Date(Date.UTC(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0)).toISOString();
+  return new Date(Date.UTC(dateMax.getFullYear(), dateMax.getMonth() + 2, 0, 0, 0, 0, 0)).toISOString();
 }
 
 /**
@@ -402,15 +402,12 @@ export default class GoogleCalendarService implements Calendar {
     return data;
   }
 
-  async fetchAvailabilityAndSetCache(args: {
-    dateFrom: string;
-    dateTo: string;
-    selectedCalendars: IntegrationCalendar[];
-  }) {
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    const date = new Date();
     const parsedArgs = parseArgsForCache({
-      timeMin: args.dateFrom,
-      timeMax: args.dateTo,
-      items: args.selectedCalendars.map((sc) => ({ id: sc.externalId })),
+      timeMin: new Date().toISOString(),
+      timeMax: new Date(date.getFullYear(), date.getMonth() + 2, 0, 0, 0, 0, 0).toISOString(),
+      items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
     });
     const data = await this.fetchAvailability(parsedArgs);
     const key = JSON.stringify(parsedArgs);

@@ -237,11 +237,7 @@ export interface Calendar {
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]>;
 
-  fetchAvailabilityAndSetCache?(args: {
-    dateFrom: string;
-    dateTo: string;
-    selectedCalendars: IntegrationCalendar[];
-  }): Promise<unknown>;
+  fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
