@@ -138,7 +138,7 @@ const DestinationCalendarSelector = ({
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               <Badge variant="blue">Default</Badge>{" "}
               {queryDestinationCalendar.name &&
-                `${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
+                `${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail}`}
             </span>
           )
         }
