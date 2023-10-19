@@ -58,7 +58,7 @@ const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const teamId = Number(searchParams.get("id"));
+  const teamId = Number(searchParams?.get("id"));
   const session = useSession();
   const utils = trpc.useContext();
   const [offset, setOffset] = useState<number>(1);

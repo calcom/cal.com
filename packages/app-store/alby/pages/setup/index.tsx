@@ -37,8 +37,8 @@ function AlbySetupCallback() {
       return;
     }
 
-    const code = params.get("code");
-    const error = params.get("error");
+    const code = params?.get("code");
+    const error = params?.get("error");
 
     if (!code) {
       setError("declined");

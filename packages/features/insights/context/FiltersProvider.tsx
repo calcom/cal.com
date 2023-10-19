@@ -33,13 +33,13 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
     memberUserIdParsed;
 
   const safe = querySchema.safeParse({
-    startTime: searchParams.get("startTime"),
-    endTime: searchParams.get("endTime"),
-    teamId: searchParams.get("teamId"),
-    userId: searchParams.get("userId"),
-    eventTypeId: searchParams.get("eventTypeId"),
-    filter: searchParams.get("filter"),
-    memberUserId: searchParams.get("memberUserId"),
+    startTime: searchParams?.get("startTime") ?? null,
+    endTime: searchParams?.get("endTime") ?? null,
+    teamId: searchParams?.get("teamId") ?? null,
+    userId: searchParams?.get("userId") ?? null,
+    eventTypeId: searchParams?.get("eventTypeId") ?? null,
+    filter: searchParams?.get("filter") ?? null,
+    memberUserId: searchParams?.get("memberUserId") ?? null,
   });
 
   if (!safe.success) {
@@ -119,7 +119,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
             initialConfig,
           } = newConfigFilters;
           const [startTime, endTime] = dateRange || [null, null];
-          const newSearchParams = new URLSearchParams(searchParams.toString());
+          const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
           function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
             if (value !== undefined && value !== null) newSearchParams.set(key, value.toString());
           }

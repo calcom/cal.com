@@ -153,7 +153,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             location: string;
           } = {
             uid: props.booking.uid,
-            email: searchParams.get("email"),
+            email: searchParams?.get("email") ?? null,
             location: t("web_conferencing_details_to_follow"),
           };
 

@@ -77,7 +77,7 @@ const OtherTeamProfileView = () => {
     resolver: zodResolver(teamProfileFormSchema),
   });
   const searchParams = useSearchParams();
-  const teamId = Number(searchParams.get("id"));
+  const teamId = Number(searchParams?.get("id"));
   const { data: team, isLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId: teamId },
     {
