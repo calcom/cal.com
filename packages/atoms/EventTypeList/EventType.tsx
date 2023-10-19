@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { memo } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
@@ -5,7 +6,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { ArrowButton, AvatarGroup } from "@calcom/ui";
 
-const Item = ({ type, group, readOnly }: { type: any; group: any; readonly: boolean }) => {
+const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: boolean }) => {
   const content = () => (
     <div>
       <span
@@ -22,7 +23,7 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readonly: bool
           }`}
         </small>
       ) : null}
-      {readOnly && <>Return badge from shadcn here</>}
+      {readOnly && <Badge className="ml-2">Readonly</Badge>}
     </div>
   );
 
@@ -46,7 +47,7 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readonly: bool
             {`/${group.profile.slug}/${type.slug}`}
           </small>
         ) : null}
-        {readOnly && <>Return badge from shadcn here</>}
+        {readOnly && <Badge className="ml-2">Readonly</Badge>}
       </div>
       {/* Return EventTypeDescription component here */}
     </a>
@@ -117,7 +118,7 @@ export function EventType({
                 />
               )}
               <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                {isManagedEventType && <>{type.hidden && <>Return badge here </>}</>}
+                {isManagedEventType && <Badge>Hidden</Badge>}
               </div>
             </div>
           </div>
