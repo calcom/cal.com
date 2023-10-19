@@ -16,10 +16,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
-  if (code && typeof code !== "string") {
+  if (typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
   }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
@@ -39,16 +40,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (code) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
-  }
 
-  await prisma.credential.create({
-    data: {
-      type: "google_calendar",
-      key,
-      userId: req.session.user.id,
-      appId: "google-calendar",
-    },
-  });
+    await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key,
+        userId: req.session.user.id,
+        appId: "google-calendar",
+      },
+    });
+  }
 
   if (state?.installGoogleVideo) {
     const existingGoogleMeetCredential = await prisma.credential.findFirst({
