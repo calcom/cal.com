@@ -17,7 +17,7 @@ import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-const log = logger.getChildLogger({ prefix: ["[paymentWebhook]"] });
+const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
 export const config = {
   api: {

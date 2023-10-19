@@ -26,7 +26,7 @@ type AugmentedNextPageContext = Omit<NextPageContext, "err"> & {
   err: AugmentedError;
 };
 
-const log = logger.getChildLogger({ prefix: ["[error]"] });
+const log = logger.getSubLogger({ prefix: ["[error]"] });
 
 const CustomError: NextPage<CustomErrorProps> = (props) => {
   const { statusCode, err, message, hasGetInitialPropsRun } = props;

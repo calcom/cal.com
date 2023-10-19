@@ -9,7 +9,7 @@ import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-const log = logger.getChildLogger({ prefix: ["[node-scheduler]"] });
+const log = logger.getSubLogger({ prefix: ["[node-scheduler]"] });
 
 export async function addSubscription({
   appApiKey,
