@@ -11,13 +11,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
     await bookingPage.goToTab("event_advanced_tab_title");
   });
 
-  test.afterAll(async ({ page, users, bookingPage }) => {
-    await loginUser(users);
-    await page.goto("/event-types");
-    await bookingPage.goToEventType("30 min");
-    await bookingPage.goToTab("event_advanced_tab_title");
-  });
-
   test.describe("Booking With Phone Question and Address Question", () => {
     test("Phone and Address required", async ({ bookingPage }) => {
       await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
