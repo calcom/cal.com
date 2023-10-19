@@ -2,7 +2,7 @@ import { loginUser } from "../fixtures/regularBookings";
 import { test } from "../lib/fixtures";
 
 test.describe("Booking With Long Text Question and Each Other Question", () => {
-const bookingOptions = { hasPlaceholder: true, isRequired: true };
+  const bookingOptions = { hasPlaceholder: true, isRequired: true };
 
   test.beforeEach(async ({ page, users }) => {
     await loginUser(users);
