@@ -130,7 +130,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
        * a team event. Since we don't have logic to handle each attendee calendar (for now).
        * This will fallback to each user selected destination calendar.
        */}
-      <div className="border-subtle space-y-6 rounded-md border p-6">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
         {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
           <div className="flex flex-col">
             <div className="flex justify-between">
@@ -182,9 +182,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         </div>
       </div>
 
-      <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} />
+      <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
 
-      <div className="border-subtle space-y-6 rounded-md border p-6">
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
           description={t("booking_questions_description")}
@@ -213,8 +213,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         defaultValue={eventType.requiresBookerEmailVerification}
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
+            labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
             {...shouldLockDisableProps("requiresBookerEmailVerification")}
             description={t("description_requires_booker_email_verification")}
@@ -230,8 +231,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         defaultValue={eventType.hideCalendarNotes}
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
+            labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("disable_notes")}
             {...shouldLockDisableProps("hideCalendarNotes")}
             description={t("disable_notes_description")}
@@ -247,9 +249,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 redirectUrlVisible && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -261,7 +264,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 setRedirectUrlVisible(e);
                 onChange(e ? value : "");
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <TextField
                   className="w-full"
                   label={t("redirect_success_booking")}
@@ -287,20 +290,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       />
 
       <SettingsToggle
+        labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
         switchContainerClassName={classNames(
-          "border-subtle rounded-md border py-6 px-4 sm:px-6",
+          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
           hashedLinkVisible && "rounded-b-none"
         )}
         childrenClassName="lg:ml-0"
         data-testid="hashedLinkCheck"
-        title={t("private_link")}
+        title={t("enable_private_url")}
         Badge={
           <a
             target="_blank"
             rel="noreferrer"
             href="https://cal.com/docs/core-features/event-types/single-use-private-links">
-            <Info className="mb-2 ml-1.5 h-4 w-4 cursor-pointer" />
+            <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
         {...shouldLockDisableProps("hashedLinkCheck")}
@@ -310,7 +314,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
           setHashedLinkVisible(e);
         }}>
-        <div className="border-subtle rounded-b-md border border-t-0 p-6">
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
           {!IS_VISUAL_REGRESSION_TESTING && (
             <TextField
               disabled
@@ -353,9 +357,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 value && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -379,13 +384,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 }
                 onChange(e);
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <Controller
                   name="seatsPerTimeSlot"
                   control={formMethods.control}
                   defaultValue={eventType.seatsPerTimeSlot}
                   render={({ field: { value, onChange } }) => (
-                    <div className="lg:-ml-2">
+                    <div>
                       <TextField
                         required
                         name="seatsPerTimeSlot"
@@ -395,12 +400,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                         disabled={seatsLocked.disabled}
                         defaultValue={value || 2}
                         min={1}
+                        containerClassName="max-w-80"
                         addOnSuffix={<>{t("seats")}</>}
                         onChange={(e) => {
                           onChange(Math.abs(Number(e.target.value)));
                         }}
                       />
-                      <div className="mt-2">
+                      <div className="mt-4">
                         <CheckboxField
                           description={t("show_attendees")}
                           disabled={seatsLocked.disabled}
@@ -435,8 +441,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
+                  labelClassName="text-sm"
                   toggleSwitchAtTheEnd={true}
-                  switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
                   title={t("disable_attendees_confirmation_emails")}
                   description={t("disable_attendees_confirmation_emails_description")}
                   checked={value || false}
@@ -459,8 +466,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             render={({ field: { value, onChange } }) => (
               <>
                 <SettingsToggle
+                  labelClassName="text-sm"
                   toggleSwitchAtTheEnd={true}
-                  switchContainerClassName="border-subtle rounded-md border py-6 px-4 sm:px-6"
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
                   title={t("disable_host_confirmation_emails")}
                   description={t("disable_host_confirmation_emails_description")}
                   checked={value || false}
