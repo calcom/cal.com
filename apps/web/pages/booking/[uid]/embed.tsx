@@ -1,7 +1,7 @@
 import withEmbedSsr from "@lib/withEmbedSsr";
 
-import { getServerSideProps as _getServerSideProps } from "../[type]";
+import { getServerSideProps as _getServerSideProps } from "../[uid]";
 
-export { default } from "../[type]";
+export { default } from "../[uid]";
 
 export const getServerSideProps = withEmbedSsr(_getServerSideProps);

@@ -206,7 +206,7 @@ describe("handleNewBooking", () => {
           organizer,
           location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+          videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
         });
       },
       timeout
@@ -353,7 +353,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -499,7 +499,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -760,7 +760,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -1447,7 +1447,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl,
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -1883,7 +1883,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             paidEvent: true,
           });
         },
