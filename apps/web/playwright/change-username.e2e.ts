@@ -74,8 +74,7 @@ test.describe("Change username on settings", () => {
 
     // Check if user avatar can be accessed and response headers contain 'image/' in the content type
     const response = await page.goto("/demo.username/avatar.png");
-    const contentType = response.headers()["content-type"];
-    expect(contentType).toContain("image/");
+    expect(response?.headers()?.["content-type"]).toContain("image/");
   });
 
   test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {
