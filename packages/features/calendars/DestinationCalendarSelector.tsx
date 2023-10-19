@@ -29,7 +29,7 @@ const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   const { label, subtitle } = props.data;
   return (
     <components.SingleValue {...props} className="flex space-x-1">
-      <p>{label}</p> <p className=" text-subtle">{subtitle}</p>
+      <p className=" text-subtle">{subtitle}</p>
     </components.SingleValue>
   );
 };
@@ -93,7 +93,7 @@ const DestinationCalendarSelector = ({
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
         label: `${selected.name} ` || "",
-        subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
+        subtitle: `(${selectedIntegration?.integration?.name?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name
         })`,
       });
@@ -106,7 +106,7 @@ const DestinationCalendarSelector = ({
   const options =
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
-      label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
+      label: `${selectedCalendar.integration?.name?.replace(/calendar/i, "")} (${
         selectedCalendar.primary?.integration === "office365_calendar"
           ? selectedCalendar.primary?.email
           : selectedCalendar.primary?.name
@@ -115,7 +115,7 @@ const DestinationCalendarSelector = ({
         .filter((cal) => cal.readOnly === false)
         .map((cal) => ({
           label: ` ${cal.name} `,
-          subtitle: `(${selectedCalendar?.integration.title?.replace(/calendar/i, "")} - ${
+          subtitle: `(${selectedCalendar?.integration?.name?.replace(/calendar/i, "")} - ${
             selectedCalendar?.primary?.name
           })`,
           value: `${cal.integration}:${cal.externalId}`,
@@ -136,7 +136,7 @@ const DestinationCalendarSelector = ({
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               <Badge variant="blue">Default</Badge>{" "}
               {queryDestinationCalendar.name &&
-                `${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
+                `(${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
             </span>
           )
         }
