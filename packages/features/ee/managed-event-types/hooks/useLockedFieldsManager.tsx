@@ -41,6 +41,7 @@ export const LockedIndicator = (
           )}
           {isManagedEventType && (
             <Switch
+              data-testid={`locked-indicator-${fieldName}`}
               onCheckedChange={(enabled) => {
                 setIsLocked(enabled);
                 setUnlockedFields(fieldName, !enabled || undefined);
