@@ -525,10 +525,6 @@ export default class GoogleCalendarService implements Calendar {
   async watchCalendar({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
     await this.unwatchCalendar({ calendarId });
-    console.log(
-      "`${Math.round((Date.now() + ONE_MONTH_IN_MS) / 1000)}`",
-      `${Math.round((Date.now() + ONE_MONTH_IN_MS) / 1000)}`
-    );
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
       calendarId,
