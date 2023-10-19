@@ -239,4 +239,74 @@ test.describe("Google Calendar", async () => {
 
     await page.waitForTimeout(10000);
   });
+
+  test("When canceling the booking, the GCal event should also be deleted", async ({ page }) => {
+    // Book an event
+    await page.goto(`/${qaUser?.username}`);
+    await bookFirstEvent(page);
+
+    const bookingUrl = await page.url();
+    const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
+    // Get the bookingUID and ensure that it exits on GCal
+
+    const gCalReference = await prisma.bookingReference.findFirst({
+      where: {
+        booking: {
+          uid: bookingUid[1],
+        },
+        type: metadata.type,
+        credentialId: qaGCalCredential?.id,
+      },
+      select: {
+        uid: true,
+      },
+    });
+
+    // Need to refresh keys from DB
+    const refreshedCredential = await prisma.credential.findFirst({
+      where: {
+        id: qaGCalCredential?.id,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    expect(refreshedCredential).toBeTruthy();
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const googleCalendarService = new GoogleCalendarService(refreshedCredential);
+
+    const authedCalendar = await googleCalendarService.authedCalendar();
+
+    const gCalEventResponse = await authedCalendar.events.get({
+      calendarId: "primary",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      eventId: gCalReference.uid,
+    });
+
+    expect(gCalEventResponse.status).toBe(200);
+    // Cancel the booking
+
+    await page.locator('[data-testid="cancel"]').click();
+    await page.locator('[data-testid="confirm_cancel"]').click();
+    // Query for the bookingUID and ensure that it doesn't exist on GCal
+
+    await page.waitForSelector('[data-testid="cancelled-headline"]');
+
+    const canceledGCalEventResponse = await authedCalendar.events.get({
+      calendarId: "primary",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      eventId: gCalReference.uid,
+    });
+
+    expect(canceledGCalEventResponse.data.status).toBe("cancelled");
+  });
 });
