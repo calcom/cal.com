@@ -1,6 +1,8 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -73,11 +75,30 @@ test.describe("Managed Event Types tests", () => {
       await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
       await page.getByTestId("toast-success").waitFor();
+    });
 
-      await adminUser.logout();
+    await test.step("Managed event type can use Organizer's default app as location", async () => {
+      await page.getByTestId("vertical-tab-event_setup_tab_title").click();
+      await page.locator('[aria-label="Remove"]').click();
+
+      await page.locator("#location-select").click();
+      await page.locator("text=Organizer's default app").click();
+      await page.locator("[data-testid=update-eventtype]").click();
+      await page.getByTestId("toast-success").waitFor();
+      await page.waitForLoadState("networkidle");
+
+      await page.getByTestId("vertical-tab-assignment").click();
+      await gotoBookingPage(page);
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page);
+
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await expect(page.locator(`[data-testid="where"]`)).not.toContainText("conferencing");
     });
 
     await test.step("Managed event type has locked fields for added member", async () => {
+      await adminUser.logout();
+
       // Coming back as member user to see if there is a managed event present after assignment
       await memberUser.apiLogin();
       await page.goto("/event-types");
@@ -91,3 +112,9 @@ test.describe("Managed Event Types tests", () => {
     });
   });
 });
+
+async function gotoBookingPage(page: Page) {
+  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
+}
