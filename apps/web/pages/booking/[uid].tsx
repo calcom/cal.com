@@ -1042,7 +1042,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const parsedQuery = querySchema.safeParse(context.query);
 
-  if (!parsedQuery.success) return { notFound: true };
+  if (!parsedQuery.success) return { notFound: true } as const;
   const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
   const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
@@ -1100,7 +1100,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!bookingInfoRaw) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -1109,7 +1109,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!eventTypeRaw) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
@@ -1130,7 +1130,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (!eventTypeRaw.owner)
       return {
         notFound: true,
-      };
+      } as const;
     eventTypeRaw.users.push({
       ...eventTypeRaw.owner,
     });
