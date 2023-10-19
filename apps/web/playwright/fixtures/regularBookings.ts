@@ -150,7 +150,7 @@ export function createBookingPageFixture(page: Page) {
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
       await page.getByTestId("preview-button").click();
-      return await eventtypePromise;
+      return eventtypePromise;
     },
     selectTimeSlot: async (eventTypePage: Page) => {
       while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
