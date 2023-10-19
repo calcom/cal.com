@@ -118,8 +118,9 @@ test.describe("Event Types tests", () => {
       const fillLocation = async (inputText: string, index: number) => {
         await page.locator("#location-select").last().click();
         await page.locator("text=In Person (Organizer Address)").last().click();
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(1000);
+
+        const locationInputName = `locations[${index}].address`;
+        await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
         await page.locator("[data-testid=display-location]").last().check();
         await page.locator("[data-testid=update-eventtype]").click();
@@ -220,10 +221,11 @@ test.describe("Event Types tests", () => {
 
         await page.locator("#location-select").click();
         await page.locator(`text="Link meeting"`).click();
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(1000);
+
+        const locationInputName = `locations[0].link`;
+
         const testUrl = "https://cal.ai/";
-        await page.locator('input[name="locations[0].link"]').fill(testUrl);
+        await page.locator(`input[name="${locationInputName}"]`).fill(testUrl);
 
         await saveEventType(page);
         await page.getByTestId("toast-success").waitFor();
