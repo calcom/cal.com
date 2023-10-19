@@ -141,6 +141,18 @@ test.describe("Google Calendar", async () => {
     const bookingAttendee = gCalReference.booking?.attendees[0].email;
     const attendeeInGCalEvent = gCalEvent.attendees?.find((attendee) => attendee.email === bookingAttendee);
     expect(attendeeInGCalEvent).toBeTruthy();
+
+    // After test passes we can delete the booking and GCal event
+    await prisma.booking.delete({
+      where: {
+        uid: bookingUid[1],
+      },
+    });
+
+    await authedCalendar.events.delete({
+      calendarId: "primary",
+      eventId: gCalReference.uid,
+    });
   });
 
   test("On reschedule, event should be updated on GCal", async ({ page }) => {
@@ -153,7 +165,7 @@ test.describe("Google Calendar", async () => {
     const firstBookingUid = firstBookingUrl.match(/booking\/([^\/?]+)/);
 
     // Need to find start and end times to compare with rescheduled GCal event
-    const firstBookingGCalReference = await prisma.bookingReference.findFirst({
+    const gCalReference = await prisma.bookingReference.findFirst({
       where: {
         booking: {
           uid: firstBookingUid[1],
@@ -190,7 +202,7 @@ test.describe("Google Calendar", async () => {
       calendarId: "primary",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
-      eventId: firstBookingGCalReference.uid,
+      eventId: gCalReference.uid,
     });
 
     expect(gCalEventResponse.status).toBe(200);
@@ -221,7 +233,7 @@ test.describe("Google Calendar", async () => {
       calendarId: "primary",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
-      eventId: firstBookingGCalReference.uid,
+      eventId: gCalReference.uid,
     });
 
     expect(gCalRescheduledEventResponse.status).toBe(200);
@@ -237,7 +249,17 @@ test.describe("Google Calendar", async () => {
     );
     expect(rescheduledStartTimeMatches && rescheduledEndTimeMatches).toBe(true);
 
-    await page.waitForTimeout(10000);
+    // After test passes we can delete the booking and GCal event
+    await prisma.booking.delete({
+      where: {
+        uid: rescheduledBookingUid[1],
+      },
+    });
+
+    await authedCalendar.events.delete({
+      calendarId: "primary",
+      eventId: gCalReference.uid,
+    });
   });
 
   test("When canceling the booking, the GCal event should also be deleted", async ({ page }) => {
@@ -308,5 +330,17 @@ test.describe("Google Calendar", async () => {
     });
 
     expect(canceledGCalEventResponse.data.status).toBe("cancelled");
+
+    // After test passes we can delete the booking and GCal event
+    await prisma.booking.delete({
+      where: {
+        uid: bookingUid[1],
+      },
+    });
+
+    await authedCalendar.events.delete({
+      calendarId: "primary",
+      eventId: gCalReference.uid,
+    });
   });
 });
