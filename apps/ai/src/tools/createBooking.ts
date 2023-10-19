@@ -47,7 +47,7 @@ const createBooking = async ({
   }
 
   const responses = {
-    id: invite,
+    id: invite.toString(),
     name: user.username,
     email: user.email,
   };

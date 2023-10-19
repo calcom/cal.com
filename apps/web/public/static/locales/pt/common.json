@@ -682,7 +682,7 @@
   "new_event_type_heading": "Crie o seu primeiro tipo de evento",
   "new_event_type_description": "Os tipos de evento permitem partilhar ligações que mostram os horários disponíveis na sua agenda, e permitem que as pessoas façam reservas consigo.",
   "event_type_created_successfully": "Tipo de evento {{eventTypeTitle}} criado com sucesso",
-  "event_type_updated_successfully": "Tipo de evento atualizado com sucesso",
+  "event_type_updated_successfully": "Tipo de evento {{eventTypeTitle}} atualizado com sucesso",
   "event_type_deleted_successfully": "Tipo de evento eliminado com sucesso",
   "hours": "Horas",
   "people": "Pessoas",

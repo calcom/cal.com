@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Fragment } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Fragment, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,17 +43,35 @@ const SkeletonLoader = () => {
 
 export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModalProps) {
   const utils = trpc.useContext();
+  const [initalised, setInitalised] = useState(false);
+  const searchParams = useSearchParams();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
-    enabled: !!props.open,
+    enabled: !!props.open || !!searchParams.get("overlayCalendar"),
   });
-  const { toggleValue, hasItem } = useLocalSet<{
+  const { toggleValue, hasItem, set } = useLocalSet<{
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
 
   const router = useRouter();
   const { t } = useLocale();
+
+  useEffect(() => {
+    if (data?.connectedCalendars && set.size === 0 && !initalised) {
+      data?.connectedCalendars.forEach((item) => {
+        item.calendars?.forEach((cal) => {
+          const id = { credentialId: item.credentialId, externalId: cal.externalId };
+          if (cal.primary) {
+            toggleValue(id);
+          }
+        });
+      });
+      setInitalised(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, hasItem, set, initalised]);
+
   return (
     <>
       <Dialog open={props.open} onOpenChange={props.onClose}>

@@ -15,7 +15,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
+const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
