@@ -4,15 +4,22 @@ import { test } from "../lib/fixtures";
 test.describe("Booking With Phone Question and Each Other Question", () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
 
-  test.beforeEach(async ({ page, users }) => {
+  test.beforeEach(async ({ page, users, bookingPage }) => {
     await loginUser(users);
     await page.goto("/event-types");
+    await bookingPage.goToEventType("30 min");
+    await bookingPage.goToTab("event_advanced_tab_title");
+  });
+
+  test.afterAll(async ({ page, users, bookingPage }) => {
+    await loginUser(users);
+    await page.goto("/event-types");
+    await bookingPage.goToEventType("30 min");
+    await bookingPage.goToTab("event_advanced_tab_title");
   });
 
   test.describe("Booking With Phone Question and Address Question", () => {
     test("Phone and Address required", async ({ bookingPage }) => {
-      await bookingPage.goToEventType("30 min");
-      await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
       await bookingPage.updateEventType();
@@ -30,8 +37,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
     });
 
     test("Phone and Address not required", async ({ bookingPage }) => {
-      await bookingPage.goToEventType("30 min");
-      await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
       await bookingPage.addQuestion("address", "address-test", "address test", false, "address test");
       await bookingPage.updateEventType();
@@ -51,8 +56,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
     test.describe("Booking With Phone Question and checkbox group Question", () => {
       const bookingOptions = { hasPlaceholder: false, isRequired: true };
       test("Phone and checkbox group required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
         await bookingPage.updateEventType();
@@ -70,8 +73,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and checkbox group not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
         await bookingPage.updateEventType();
@@ -91,8 +92,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
 
     test.describe("Booking With Phone Question and checkbox Question", () => {
       test("Phone and checkbox required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", true);
         await bookingPage.updateEventType();
@@ -109,8 +108,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
         await bookingPage.cancelAndRescheduleBooking(eventTypePage);
       });
       test("Phone and checkbox not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", false);
         await bookingPage.updateEventType();
@@ -130,8 +127,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
 
     test.describe("Booking With Phone Question and Long text Question", () => {
       test("Phone and Long text required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
         await bookingPage.updateEventType();
@@ -149,8 +144,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and Long text not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", false, "textarea test");
         await bookingPage.updateEventType();
@@ -171,8 +164,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
     test.describe("Booking With Phone Question and Multi email Question", () => {
       const bookingOptions = { hasPlaceholder: true, isRequired: true };
       test("Phone and Multi email required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion(
           "multiemail",
@@ -196,8 +187,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and Multi email not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion(
           "multiemail",
@@ -223,8 +212,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
 
     test.describe("Booking With Phone Question and multiselect Question", () => {
       test("Phone and multiselect text required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", true);
         await bookingPage.updateEventType();
@@ -242,8 +229,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and multiselect text not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", false);
         await bookingPage.updateEventType();
@@ -263,8 +248,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
 
     test.describe("Booking With Phone Question and Number Question", () => {
       test("Phone and Number required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("number", "number-test", "number test", true, "number test");
         await bookingPage.updateEventType();
@@ -282,8 +265,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and Number not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("number", "number-test", "number test", false, "number test");
         await bookingPage.updateEventType();
@@ -303,8 +284,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
 
     test.describe("Booking With Phone Question and Radio group Question", () => {
       test("Phone and Radio group required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.updateEventType();
@@ -322,8 +301,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and Radio group not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("radio", "radio-test", "radio test", false);
         await bookingPage.updateEventType();
@@ -343,8 +320,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
 
     test.describe("Booking With Phone Question and select Question", () => {
       test("Phone and select required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("select", "select-test", "select test", true, "select test");
         await bookingPage.updateEventType();
@@ -362,8 +337,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and select not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("select", "select-test", "select test", false, "select test");
         await bookingPage.updateEventType();
@@ -384,8 +357,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
     test.describe("Booking With Phone Question and Short text question", () => {
       const bookingOptions = { hasPlaceholder: true, isRequired: true };
       test("Phone and Short text required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("text", "text-test", "text test", true, "text test");
         await bookingPage.updateEventType();
@@ -403,8 +374,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
       });
 
       test("Phone and Short text not required", async ({ bookingPage }) => {
-        await bookingPage.goToEventType("30 min");
-        await bookingPage.goToTab("event_advanced_tab_title");
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("text", "text-test", "text test", false, "text test");
         await bookingPage.updateEventType();
