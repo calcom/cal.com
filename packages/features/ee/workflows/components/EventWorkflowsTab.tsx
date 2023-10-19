@@ -208,7 +208,6 @@ function EventWorkflowsTab(props: Props) {
     formMethods,
     t
   );
-  const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
@@ -227,6 +226,7 @@ function EventWorkflowsTab(props: Props) {
       });
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
+          (!workflow.teamId || eventType.teamId === workflow.teamId) &&
           !workflows
             .map((workflow) => {
               return workflow.id;
@@ -270,7 +270,7 @@ function EventWorkflowsTab(props: Props) {
               }
             />
           )}
-          {data?.workflows && data?.workflows.length > 0 ? (
+          {data?.workflows && sortedWorkflows.length > 0 ? (
             <div>
               <div className="space-y-4">
                 {sortedWorkflows.map((workflow) => {
@@ -292,19 +292,13 @@ function EventWorkflowsTab(props: Props) {
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={
-                  workflowsDisableProps.disabled ? (
-                    <Button StartIcon={Lock} color="secondary" disabled>
-                      {t("locked_by_team_admin")}
-                    </Button>
-                  ) : (
-                    <Button
-                      target="_blank"
-                      color="secondary"
-                      onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                      loading={createMutation.isLoading}>
-                      {t("create_workflow")}
-                    </Button>
-                  )
+                  <Button
+                    target="_blank"
+                    color="secondary"
+                    onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                    loading={createMutation.isLoading}>
+                    {t("create_workflow")}
+                  </Button>
                 }
               />
             </div>
