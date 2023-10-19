@@ -55,10 +55,10 @@ export default function WorkflowDetailsPage(props: Props) {
         return [
           ...options,
           ...group.eventTypes
-            .filter((evType) =>
-              evType.schedulingType === "MANAGED"
-                ? evType.metadata?.managedEventConfig?.unlockedFields?.workflows !== undefined
-                : true
+            .filter(
+              (evType) =>
+                !evType.metadata?.managedEventConfig ||
+                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows
             )
             .map((eventType) => ({
               value: String(eventType.id),

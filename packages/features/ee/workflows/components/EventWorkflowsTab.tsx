@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { Trans } from "react-i18next";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { isTextMessageToAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
@@ -208,6 +209,11 @@ function EventWorkflowsTab(props: Props) {
     formMethods,
     t
   );
+
+  const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
+
+  const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
+
   const { data, isLoading } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
@@ -260,13 +266,25 @@ function EventWorkflowsTab(props: Props) {
         <>
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity="neutral"
+              severity={workflowsDisableProps.isLocked ? "neutral" : "green"}
               className="mb-2"
-              title={isChildrenManagedEventType ? t("locked_by_team_admin") : t("locked_for_members")}
+              title={
+                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                  {lockedText[0].toUpperCase()}
+                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
+                </Trans>
+              }
+              actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
               message={
-                isChildrenManagedEventType
-                  ? t("workflows_locked_by_team_admins_description")
-                  : t("workflows_locked_for_members_description")
+                <Trans
+                  i18nKey={`workflows_${lockedText}_${
+                    isManagedEventType ? "for_members" : "by_team_admins"
+                  }_description`}>
+                  {isManagedEventType ? "Members" : "You"}{" "}
+                  {workflowsDisableProps.isLocked
+                    ? "will be able to see the active workflows but will not be able to edit any workflow settings"
+                    : "will be able to see the active workflow and will be able to edit any workflow settings"}
+                </Trans>
               }
             />
           )}
