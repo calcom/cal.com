@@ -181,6 +181,7 @@ test.describe("unauthorized user sees correct translations (es-419)", async () =
     await page.goto("/");
     await page.waitForLoadState("load");
 
+    // es-419 is disabled in i18n config, so es should be used as fallback
     await page.locator("html[lang=es]").waitFor({ state: "attached" });
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 

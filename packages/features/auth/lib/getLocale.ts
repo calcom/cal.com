@@ -45,5 +45,8 @@ export const getLocale = async (req: GetTokenParams["req"]): Promise<string> => 
   const testedRegion = /^[a-zA-Z0-9]+$/.test(region) ? region : "";
 
   const requestedLocale = `${testedCode}${testedRegion !== "" ? "-" : ""}${testedRegion}`;
+
+  // use fallback to closest supported locale.
+  // for instance, es-419 will be transformed to es
   return lookup(i18n.locales, requestedLocale) ?? requestedLocale;
 };
