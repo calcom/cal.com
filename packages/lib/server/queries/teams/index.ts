@@ -7,6 +7,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
+import logger from "../../../logger";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -17,6 +18,9 @@ export async function getTeamWithMembers(args: {
   orgSlug?: string | null;
   includeTeamLogo?: boolean;
   isTeamView?: boolean;
+  /**
+   * If true, means that you are fetching an organization and not a team
+   */
   isOrgView?: boolean;
 }) {
   const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
@@ -120,12 +124,30 @@ export async function getTeamWithMembers(args: {
   }
   if (id) where.id = id;
   if (slug) where.slug = slug;
+  if (isOrgView) {
+    // We must fetch only the organization here.
+    // Note that an organization and a team that doesn't belong to an organization, both have parentId null
+    // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
+    // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
+    where.metadata = {
+      path: ["isOrganization"],
+      equals: true,
+    };
+  }
 
-  const team = await prisma.team.findFirst({
+  const teams = await prisma.team.findMany({
     where,
     select: teamSelect,
   });
 
+  if (teams.length > 1) {
+    logger.error("Found more than one team/Org. We should be doing something wrong.", {
+      where,
+      teams: teams.map((team) => ({ id: team.id, slug: team.slug })),
+    });
+  }
+
+  const team = teams[0];
   if (!team) return null;
 
   // This should improve performance saving already app data found.
