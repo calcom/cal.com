@@ -28,6 +28,7 @@ import {
   Input,
   PhoneInput,
   Button,
+  showToast,
 } from "@calcom/ui";
 import { Plus, X, Check } from "@calcom/ui/components/icon";
 import { CornerDownRight } from "@calcom/ui/components/icon";
@@ -254,6 +255,7 @@ export const EventSetupTab = (
     };
 
     const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
+    const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption>(defaultValue);
 
     return (
       <div className="w-full">
@@ -274,44 +276,47 @@ export const EventSetupTab = (
 
             return (
               <li key={field.id}>
-                <Controller
-                  name={`locations.${index}.type`}
-                  control={formMethods.control}
-                  render={({ field: { onChange, value } }) => (
-                    <div className="flex w-full items-center">
-                      <LocationSelect
-                        name={`locations[${index}].type`}
-                        placeholder={t("select")}
-                        options={locationOptions}
-                        isDisabled={shouldLockDisableProps("locations").disabled}
-                        defaultValue={option}
-                        isSearchable={false}
-                        className="block min-w-0 flex-1 rounded-sm text-sm"
-                        menuPlacement="auto"
-                        onChange={(e: SingleValueLocationOption) => {
-                          if (e?.value) {
-                            const newLocationType = e.value;
-                            const eventLocationType = getEventLocationType(newLocationType);
-                            if (!eventLocationType) {
-                              return;
-                            }
-                            updateLocationField(index, { type: newLocationType });
-                          }
-                        }}
-                      />
-                      <button
-                        data-testid={`delete-locations.${index}.type`}
-                        className="min-h-9 block h-9 px-2"
-                        type="button"
-                        onClick={() => remove(index)}
-                        aria-label={t("remove")}>
-                        <div className="h-4 w-4">
-                          <X className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
-                        </div>
-                      </button>
+                <div className="flex w-full items-center">
+                  <LocationSelect
+                    name={`locations[${index}].type`}
+                    placeholder={t("select")}
+                    options={locationOptions}
+                    isDisabled={shouldLockDisableProps("locations").disabled}
+                    defaultValue={option}
+                    isSearchable={false}
+                    className="block min-w-0 flex-1 rounded-sm text-sm"
+                    menuPlacement="auto"
+                    onChange={(e: SingleValueLocationOption) => {
+                      if (e?.value) {
+                        const newLocationType = e.value;
+                        const eventLocationType = getEventLocationType(newLocationType);
+                        if (!eventLocationType) {
+                          return;
+                        }
+                        const canAddLocation =
+                          eventLocationType.organizerInputType ||
+                          !validLocations.find((location) => location.type === newLocationType);
+
+                        if (canAddLocation) {
+                          updateLocationField(index, { type: newLocationType });
+                        } else {
+                          updateLocationField(index, { type: field.type });
+                          showToast(t("location_already_exists"), "warning");
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    data-testid={`delete-locations.${index}.type`}
+                    className="min-h-9 block h-9 px-2"
+                    type="button"
+                    onClick={() => remove(index)}
+                    aria-label={t("remove")}>
+                    <div className="h-4 w-4">
+                      <X className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
                     </div>
-                  )}
-                />
+                  </button>
+                </div>
 
                 {eventLocationType?.organizerInputType && (
                   <div className="mt-2 space-y-2">
@@ -356,6 +361,7 @@ export const EventSetupTab = (
               <LocationSelect
                 placeholder={t("select")}
                 options={locationOptions}
+                value={selectedNewOption}
                 isDisabled={shouldLockDisableProps("locations").disabled}
                 defaultValue={defaultValue}
                 isSearchable={false}
@@ -368,7 +374,18 @@ export const EventSetupTab = (
                     if (!eventLocationType) {
                       return;
                     }
-                    append({ type: newLocationType });
+
+                    const canAppendLocation =
+                      eventLocationType.organizerInputType ||
+                      !validLocations.find((location) => location.type === newLocationType);
+
+                    if (canAppendLocation) {
+                      append({ type: newLocationType });
+                      setSelectedNewOption(e);
+                    } else {
+                      showToast(t("location_already_exists"), "warning");
+                      setSelectedNewOption(null);
+                    }
                   }
                 }}
               />

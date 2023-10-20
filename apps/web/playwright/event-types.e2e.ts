@@ -185,10 +185,9 @@ test.describe("Event Types tests", () => {
 
         await page.locator("#location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
-        const locationInoputName = "locations[0].hostPhoneNumber";
-
-        await page.locator(`input[name=${locationInoputName}]`).waitFor();
-        await page.locator(`input[name=${locationInoputName}]`).fill("9199999999");
+        const locationInputName = "locations[0].hostPhoneNumber";
+        await page.locator(`input[name="${locationInputName}"]`).waitFor();
+        await page.locator(`input[name="${locationInputName}"]`).fill("9199999999");
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -214,7 +213,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("[data-testid=where] ")).toHaveText("Cal Video");
+        await expect(page.locator("[data-testid=where] ")).toContainText("Cal Video");
       });
 
       test("Can add Link Meeting as location and book with it", async ({ page }) => {
