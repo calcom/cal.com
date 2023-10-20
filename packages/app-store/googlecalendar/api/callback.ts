@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let key = { access_token: "" };
   let credentials = { type: "", id: 0 };
 
-    if (code) {
+  if (code) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
 
