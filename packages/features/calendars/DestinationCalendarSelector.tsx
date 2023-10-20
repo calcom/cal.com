@@ -128,7 +128,6 @@ const DestinationCalendarSelector = ({
 
   return (
     <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
-      <p className="text-sm font-medium leading-none">{t("add_events_to")}</p>
       <Select
         name="primarySelectedCalendar"
         placeholder={
@@ -138,7 +137,7 @@ const DestinationCalendarSelector = ({
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               <Badge variant="blue">Default</Badge>{" "}
               {queryDestinationCalendar.name &&
-                `${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail}`}
+                `${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
             </span>
           )
         }
