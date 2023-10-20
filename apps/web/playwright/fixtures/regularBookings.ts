@@ -1,174 +1,328 @@
 import { expect, type Page } from "@playwright/test";
-import type { Fixtures } from "playwright/lib/fixtures";
+
+import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
 export const scheduleSuccessfullyText = "This meeting is scheduled";
 
-/**
- * Logs in a user for testing purposes.
- * @param users - The user fixtures to create and log in a test user.
- */
-export async function loginUser(users: Fixtures["users"]) {
+const EMAIL = "test@test.com";
+const EMAIL2 = "test2@test.com";
+const PHONE = "+55 (32) 983289947";
+
+type BookingOptions = {
+  hasPlaceholder?: boolean;
+  isReschedule?: boolean;
+  isRequired?: boolean;
+  isAllRequired?: boolean;
+};
+
+interface QuestionActions {
+  [key: string]: () => Promise<void>;
+}
+
+type customLocators = {
+  shouldChangeSelectLocator: boolean;
+  shouldUseLastRadioGroupLocator: boolean;
+  shouldUseFirstRadioGroupLocator: boolean;
+  shouldChangeMultiSelectLocator: boolean;
+};
+
+type fillAndConfirmBookingParams = {
+  eventTypePage: Page;
+  placeholderText: string;
+  question: string;
+  fillText: string;
+  secondQuestion: string;
+  options: BookingOptions;
+};
+
+type UserFixture = ReturnType<typeof createUsersFixture>;
+
+const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
+  const questionActions: QuestionActions = {
+    phone: async () => {
+      await eventTypePage.locator('input[name="phone-test"]').clear();
+      await eventTypePage.locator('input[name="phone-test"]').fill(PHONE);
+    },
+    multiemail: async () => {
+      await eventTypePage.getByRole("button", { name: `${questionType} test` }).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill(EMAIL);
+      await eventTypePage.getByTestId("add-another-guest").last().click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).last().fill(EMAIL2);
+    },
+    checkbox: async () => {
+      if (customLocators.shouldUseLastRadioGroupLocator || customLocators.shouldChangeMultiSelectLocator) {
+        await eventTypePage.getByLabel("Option 1").last().click();
+        await eventTypePage.getByLabel("Option 2").last().click();
+      } else if (customLocators.shouldUseFirstRadioGroupLocator) {
+        await eventTypePage.getByLabel("Option 1").first().click();
+        await eventTypePage.getByLabel("Option 2").first().click();
+      } else {
+        await eventTypePage.getByLabel("Option 1").click();
+        await eventTypePage.getByLabel("Option 2").click();
+      }
+    },
+    multiselect: async () => {
+      if (customLocators.shouldChangeMultiSelectLocator) {
+        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      } else {
+        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      }
+    },
+    boolean: async () => {
+      await eventTypePage.getByLabel(`${questionType} test`).check();
+    },
+    radio: async () => {
+      await eventTypePage.locator('[id="radio-test\\.option\\.0\\.radio"]').click();
+    },
+    select: async () => {
+      if (customLocators.shouldChangeSelectLocator) {
+        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      } else {
+        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByTestId("select-option-Option 1").click();
+      }
+    },
+    number: async () => {
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("123");
+    },
+    address: async () => {
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("address test");
+    },
+    textarea: async () => {
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("textarea test");
+    },
+    text: async () => {
+      await eventTypePage.getByPlaceholder(`${questionType} test`).click();
+      await eventTypePage.getByPlaceholder(`${questionType} test`).fill("text test");
+    },
+  };
+
+  if (questionActions[questionType]) {
+    await questionActions[questionType]();
+  }
+};
+
+export async function loginUser(users: UserFixture) {
   const pro = await users.create({ name: "testuser" });
   await pro.apiLogin();
 }
 
-/**
- * Navigates to a specific event type page.
- * @param page - The Playwright page instance.
- * @param eventType - The name of the event type to navigate to.
- */
-export async function goToEventType(page: Page, eventType: string) {
-  await page.getByRole("link", { name: eventType }).click();
-}
+export function createBookingPageFixture(page: Page) {
+  return {
+    goToEventType: async (eventType: string) => {
+      await page.getByRole("link", { name: eventType }).click();
+    },
+    goToTab: async (tabName: string) => {
+      await page.getByTestId(`vertical-tab-${tabName}`).click();
+    },
+    addQuestion: async (
+      questionType: string,
+      identifier: string,
+      label: string,
+      isRequired: boolean,
+      placeholder?: string
+    ) => {
+      await page.getByTestId("add-field").click();
+      await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId(`select-option-${questionType}`).click();
+      await page.getByLabel("Identifier").dblclick();
+      await page.getByLabel("Identifier").fill(identifier);
+      await page.getByLabel("Label").click();
+      await page.getByLabel("Label").fill(label);
+      if (placeholder) {
+        await page.getByLabel("Placeholder").click();
+        await page.getByLabel("Placeholder").fill(placeholder);
+      }
+      if (!isRequired) {
+        await page.getByRole("radio", { name: "No" }).click();
+      }
+      await page.getByTestId("field-add-save").click();
+    },
+    updateEventType: async () => {
+      await page.getByTestId("update-eventtype").click();
+    },
+    previewEventType: async () => {
+      const eventtypePromise = page.waitForEvent("popup");
+      await page.getByTestId("preview-button").click();
+      return eventtypePromise;
+    },
+    selectTimeSlot: async (eventTypePage: Page) => {
+      while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
+        await eventTypePage.getByRole("button", { name: "View next" }).click();
+      }
+      await eventTypePage.getByTestId("time").first().click();
+    },
+    clickReschedule: async () => {
+      await page.getByText("Reschedule").click();
+    },
+    navigateToAvailableTimeSlot: async () => {
+      while (await page.getByRole("button", { name: "View next" }).isVisible()) {
+        await page.getByRole("button", { name: "View next" }).click();
+      }
+    },
+    selectFirstAvailableTime: async () => {
+      await page.getByTestId("time").first().click();
+    },
+    fillRescheduleReasonAndConfirm: async () => {
+      await page.getByPlaceholder(reschedulePlaceholderText).click();
+      await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
+      await page.getByTestId("confirm-reschedule-button").click();
+    },
+    verifyReschedulingSuccess: async () => {
+      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+    cancelBookingWithReason: async () => {
+      await page.getByTestId("cancel").click();
+      await page.getByTestId("cancel_reason").fill("Test cancel");
+      await page.getByTestId("confirm_cancel").click();
+    },
+    verifyBookingCancellation: async () => {
+      await expect(page.getByTestId("cancelled-headline")).toBeVisible();
+    },
+    cancelAndRescheduleBooking: async (eventTypePage: Page) => {
+      await eventTypePage.getByText("Reschedule").click();
+      while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
+        await eventTypePage.getByRole("button", { name: "View next" }).click();
+      }
+      await eventTypePage.getByTestId("time").first().click();
+      await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
+      await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
+      await eventTypePage.getByTestId("confirm-reschedule-button").click();
+      await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
+      await eventTypePage.getByTestId("cancel").click();
+      await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
+      await eventTypePage.getByTestId("confirm_cancel").click();
+      await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
+    },
 
-/**
- * Navigates to a specific tab on the page.
- * @param page - The Playwright page instance.
- * @param tabName - The name (testId) of the tab to navigate to.
- */
-export async function goToTab(page: Page, tabName: string) {
-  await page.getByTestId(`vertical-tab-${tabName}`).click();
-}
+    fillAndConfirmBooking: async ({
+      eventTypePage,
+      placeholderText,
+      question,
+      fillText,
+      secondQuestion,
+      options,
+    }: fillAndConfirmBookingParams) => {
+      const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
 
-/**
- * Adds a question to the event type.
- * @param page - The Playwright page instance.
- * @param questionType - The type of question to add.
- * @param identifier - The identifier for the question.
- * @param label - The label for the question.
- * @param placeholder - (Optional) The placeholder text for the question.
- * @param isRequired - (Optional) Whether the question is required. Default is true.
- */
-export async function addQuestion(
-  page: Page,
-  questionType: string,
-  identifier: string,
-  label: string,
-  placeholder?: string,
-  isRequired = true
-) {
-  await page.getByTestId("add-field").click();
-  await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
-  await page.getByTestId(`select-option-${questionType}`).click();
-  await page.getByLabel("Identifier").dblclick();
-  await page.getByLabel("Identifier").fill(identifier);
-  await page.getByLabel("Label").click();
-  await page.getByLabel("Label").fill(label);
-  if (placeholder) {
-    await page.getByLabel("Placeholder").click();
-    await page.getByLabel("Placeholder").fill(placeholder);
-  }
-  if (!isRequired) {
-    await page.getByRole("radio", { name: "No" }).click();
-  }
-  await page.getByTestId("field-add-save").click();
-}
+      await expect(eventTypePage.getByText(`${secondQuestion} test`).first()).toBeVisible();
+      await eventTypePage.getByPlaceholder(placeholderText).fill(fillText);
 
-/**
- * Updates the current event type.
- * @param page - The Playwright page instance.
- */
-export async function updateEventType(page: Page) {
-  await page.getByTestId("update-eventtype").click();
-}
+      // Change the selector for specifics cases related to select question
+      const shouldChangeSelectLocator = (question: string, secondQuestion: string): boolean =>
+        question === "select" && ["multiemail", "multiselect"].includes(secondQuestion);
 
-/**
- * Opens the preview for the current event type.
- * @param page - The Playwright page instance.
- * @returns A promise that resolves to the new event type page.
- */
-export async function previewEventType(page: Page) {
-  const eventtypePromise = page.waitForEvent("popup");
-  await page.getByTestId("preview-button").click();
-  return await eventtypePromise;
-}
+      const shouldUseLastRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
+        question === "radio" && secondQuestion === "checkbox";
 
-/**
- * Selects an available time slot for booking.
- * @param page - The Playwright page instance.
- */
-export async function selectTimeSlot(page: Page) {
-  while (await page.getByRole("button", { name: "View next" }).isVisible()) {
-    await page.getByRole("button", { name: "View next" }).click();
-  }
-  await page.getByTestId("time").first().click();
-}
+      const shouldUseFirstRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
+        question === "checkbox" && secondQuestion === "radio";
 
-/**
- * Clicks the "Reschedule" button
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-export const clickReschedule = async (eventTypePage: Page) => {
-  await eventTypePage.getByText("Reschedule").click();
-};
+      const shouldChangeMultiSelectLocator = (question: string, secondQuestion: string): boolean =>
+        question === "multiselect" &&
+        ["address", "checkbox", "multiemail", "select"].includes(secondQuestion);
 
-/**
- * Navigates through the available time slots using the "View next" button
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-export const navigateToAvailableTimeSlot = async (eventTypePage: Page) => {
-  while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
-    await eventTypePage.getByRole("button", { name: "View next" }).click();
-  }
-};
+      const customLocators = {
+        shouldChangeSelectLocator: shouldChangeSelectLocator(question, secondQuestion),
+        shouldUseLastRadioGroupLocator: shouldUseLastRadioGroupLocator(question, secondQuestion),
+        shouldUseFirstRadioGroupLocator: shouldUseFirstRadioGroupLocator(question, secondQuestion),
+        shouldChangeMultiSelectLocator: shouldChangeMultiSelectLocator(question, secondQuestion),
+      };
 
-/**
- * Selects the first available time slot
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-export const selectFirstAvailableTime = async (eventTypePage: Page) => {
-  await eventTypePage.getByTestId("time").first().click();
-};
+      // Fill the first question
+      await fillQuestion(eventTypePage, question, customLocators);
 
-/**
- * Fills the reschedule reason and confirms the rescheduling
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-export const fillRescheduleReasonAndConfirm = async (eventTypePage: Page) => {
-  await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
-  await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
-  await eventTypePage.getByTestId("confirm-reschedule-button").click();
-};
+      // Fill the second question if is required
+      options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
-/**
- * Checks if the rescheduling was successful
- * @param eventTypePage - The Playwright page instance for the event type.
- */
+      await eventTypePage.getByTestId(confirmButton).click();
+      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
+      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
+      await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+checkField: async (question: string) => {
+      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
+    },
+    fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
+      const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
 
-export const verifyReschedulingSuccess = async (eventTypePage: Page) => {
-  await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
-};
+      if (options.isAllRequired) {
+        for (const question of questions) {
+          switch (question) {
+            case "email":
+              await eventTypePage.getByPlaceholder("Email").click();
+              await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
+              break;
+            case "phone":
+              await eventTypePage.getByPlaceholder("Phone test").click();
+              await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
+              break;
+            case "address":
+              await eventTypePage.getByPlaceholder("Address test").click();
+              await eventTypePage.getByPlaceholder("Address test").fill("123 Main St, City, Country");
+              break;
+            case "textarea":
+              await eventTypePage.getByPlaceholder("Textarea test").click();
+              await eventTypePage
+                .getByPlaceholder("Textarea test")
+                .fill("This is a sample text for textarea.");
+              break;
+            case "select":
+              await eventTypePage.locator("form svg").last().click();
+              await eventTypePage.getByTestId("select-option-Option 1").click();
+              break;
+            case "multiselect":
+              await eventTypePage.locator("form svg").nth(4).click();
+              await eventTypePage.getByTestId("select-option-Option 1").click();
+              break;
+            case "number":
+              await eventTypePage.getByLabel("number test").click();
+              await eventTypePage.getByLabel("number test").fill("123");
+              break;
+            case "radio":
+              await eventTypePage.getByRole("radiogroup").getByText("Option 1").check();
+              break;
+            case "text":
+              await eventTypePage.getByPlaceholder("Text test").click();
+              await eventTypePage.getByPlaceholder("Text test").fill("Sample text");
+              break;
+            case "checkbox":
+              await eventTypePage.getByLabel("Option 1").first().check();
+              await eventTypePage.getByLabel("Option 2").first().check();
+              break;
+            case "boolean":
+              await eventTypePage.getByLabel(`${question} test`).check();
+              break;
+            case "multiemail":
+              await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+              await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+              break;
+          }
+        }
+      }
 
-/**
- * Cancels the booking and provides a reason
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-
-export const cancelBookingWithReason = async (eventTypePage: Page) => {
-  await eventTypePage.getByTestId("cancel").click();
-  await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
-  await eventTypePage.getByTestId("confirm_cancel").click();
-};
-
-/**
- * Checks if the booking was successfully canceled
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-export const verifyBookingCancellation = async (eventTypePage: Page) => {
-  await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
-};
-
-/**
- * Executes the entire reschedule and cancel workflow.
- * @param eventTypePage - The Playwright page instance for the event type.
- */
-export async function rescheduleAndCancel(eventTypePage: Page) {
-  await clickReschedule(eventTypePage);
-  await navigateToAvailableTimeSlot(eventTypePage);
-  await selectFirstAvailableTime(eventTypePage);
-  await fillRescheduleReasonAndConfirm(eventTypePage);
-  await verifyReschedulingSuccess(eventTypePage);
-  await cancelBookingWithReason(eventTypePage);
-  await verifyBookingCancellation(eventTypePage);
+      await eventTypePage.getByTestId(confirmButton).click();
+      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
+      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
+      await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    fillRequiredQuestions: async (eventTypePage: Page) => {
+      await eventTypePage.getByPlaceholder("Phone test").click();
+      await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
+      await eventTypePage.getByPlaceholder("address test").click();
+      await eventTypePage.getByPlaceholder("address test").fill("address test");
+      await eventTypePage.getByPlaceholder("textarea test").click();
+      await eventTypePage.getByPlaceholder("textarea test").fill("textarea test");
+      await eventTypePage.getByPlaceholder("text test").click();
+      await eventTypePage.getByPlaceholder("text test").fill("text test");
+      await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+    },
+  };
 }
