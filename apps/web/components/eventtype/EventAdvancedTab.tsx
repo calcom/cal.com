@@ -134,7 +134,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
           <div className="flex flex-col">
             <div className="flex justify-between">
-              <Label className="font-medium">{t("add_to_calendar")}</Label>
+              <div>
+                <Label className="font-medium">{t("add_to_calendar")}</Label>
+                <p className="text-subtle -mt-2 text-sm">{t("add_to_calendar_description")}</p>
+              </div>
               <Link
                 href="/apps/categories/calendar"
                 target="_blank"
