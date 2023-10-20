@@ -77,6 +77,13 @@ export const BookingFields = ({
           return null;
         }
 
+        // Attendee location field can be edited during reschedule
+        if (field.name === SystemField.Enum.location) {
+          if (locationResponse?.value === "attendeeInPerson" || "phone") {
+            readOnly = false;
+          }
+        }
+
         // Dynamically populate location field options
         if (field.name === SystemField.Enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
