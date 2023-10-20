@@ -1,11 +1,14 @@
+import type { Prisma } from "@prisma/client";
+import type { TFunction } from "next-i18next";
+
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { refreshCredentials } from "./handleNewBooking";
+import { refreshCredentials, addVideoCallDataToEvt } from "./handleNewBooking";
 import type {
   Booking,
   Invitee,
@@ -13,7 +16,10 @@ import type {
   getAllCredentials,
   OrganizerUser,
   OriginalRescheduledBooking,
+  RescheduleReason,
 } from "./handleNewBooking";
+
+export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 
 const handleSeats = async ({
   rescheduleUid,
@@ -24,6 +30,11 @@ const handleSeats = async ({
   allCredentials,
   organizerUser,
   originalRescheduledBooking,
+  bookerEmail,
+  tAttendees,
+  bookingSeat,
+  reqUserId,
+  rescheduleReason,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
@@ -33,6 +44,11 @@ const handleSeats = async ({
   allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
   organizerUser: OrganizerUser;
   originalRescheduledBooking: OriginalRescheduledBooking;
+  bookerEmail: string;
+  tAttendees: TFunction;
+  bookingSeat: BookingSeat;
+  reqUserId: number | undefined;
+  rescheduleReason: RescheduleReason;
 }) => {
   let resultBooking:
     | (Partial<Booking> & {
@@ -153,7 +169,7 @@ const handleSeats = async ({
     if (!bookingSeat) {
       // if no bookingSeat is given and the userId != owner, 401.
       // TODO: Next step; Evaluate ownership, what about teams?
-      if (booking.user?.id !== req.userId) {
+      if (booking.user?.id !== reqUserId) {
         throw new HttpError({ statusCode: 401 });
       }
 
@@ -189,7 +205,7 @@ const handleSeats = async ({
           },
         });
 
-        addVideoCallDataToEvt(newBooking.references);
+        evt = addVideoCallDataToEvt(newBooking.references, evt);
 
         const copyEvent = cloneDeep(evt);
 
@@ -334,7 +350,7 @@ const handleSeats = async ({
 
         evt.attendees = updatedBookingAttendees;
 
-        addVideoCallDataToEvt(updatedNewBooking.references);
+        evt = addVideoCallDataToEvt(updatedNewBooking.references, evt);
 
         const copyEvent = cloneDeep(evt);
 
@@ -659,3 +675,5 @@ const handleSeats = async ({
 
   return resultBooking;
 };
+
+export default handleSeats;

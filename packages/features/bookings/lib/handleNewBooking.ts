@@ -93,6 +93,7 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingDataSchema from "./getBookingDataSchema";
+import type { BookingSeat } from "./handleSeats";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -124,6 +125,7 @@ export type OrganizerUser = Awaited<ReturnType<typeof loadUsers>>[number] & {
   metadata?: Prisma.JsonValue;
 };
 export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
+export type RescheduleReason = Awaited<ReturnType<typeof getBookingData>>["rescheduleReason"];
 
 interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -639,7 +641,7 @@ async function createBooking({
   isConfirmedByDefault: ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
   smsReminderNumber: Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
   organizerUser: OrganizerUser;
-  rescheduleReason: Awaited<ReturnType<typeof getBookingData>>["rescheduleReason"];
+  rescheduleReason: RescheduleReason;
   bookerEmail: Awaited<ReturnType<typeof getBookingData>>["email"];
   paymentAppData: ReturnType<typeof getPaymentAppData>;
 }) {
@@ -807,6 +809,28 @@ function getCustomInputsResponses(
 
   return customInputsResponses;
 }
+
+/** Updates the evt object with video call data found from booking references
+ *
+ * @param bookingReferences
+ * @param evt
+ *
+ * @returns updated evt with video call data
+ */
+export const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
+  const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
+
+  if (videoCallReference) {
+    evt.videoCallData = {
+      type: videoCallReference.type,
+      id: videoCallReference.meetingId,
+      password: videoCallReference?.meetingPassword,
+      url: videoCallReference.meetingUrl,
+    };
+  }
+
+  return evt;
+};
 
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
@@ -1021,7 +1045,7 @@ async function handler(
   }
 
   let rescheduleUid = reqBody.rescheduleUid;
-  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
+  let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
 
@@ -1272,20 +1296,6 @@ async function handler(
     evt.destinationCalendar?.push(...teamDestinationCalendars);
   }
 
-  /* Used for seats bookings to update evt object with video data */
-  const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
-    const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
-
-    if (videoCallReference) {
-      evt.videoCallData = {
-        type: videoCallReference.type,
-        id: videoCallReference.meetingId,
-        password: videoCallReference?.meetingPassword,
-        url: videoCallReference.meetingUrl,
-      };
-    }
-  };
-
   /* Check if the original booking has no more attendees, if so delete the booking
   and any calendar or video integrations */
   const lastAttendeeDeleteBooking = async (
@@ -1526,7 +1536,7 @@ async function handler(
             },
           });
 
-          addVideoCallDataToEvt(newBooking.references);
+          evt = addVideoCallDataToEvt(newBooking.references, evt);
 
           const copyEvent = cloneDeep(evt);
 
@@ -1671,7 +1681,7 @@ async function handler(
 
           evt.attendees = updatedBookingAttendees;
 
-          addVideoCallDataToEvt(updatedNewBooking.references);
+          evt = addVideoCallDataToEvt(updatedNewBooking.references, evt);
 
           const copyEvent = cloneDeep(evt);
 
@@ -2163,7 +2173,7 @@ async function handler(
     }
 
     // Use EventManager to conditionally use all needed integrations.
-    addVideoCallDataToEvt(originalRescheduledBooking.references);
+    evt = addVideoCallDataToEvt(originalRescheduledBooking.references, evt);
     const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
     //update original rescheduled booking (no seats event)
