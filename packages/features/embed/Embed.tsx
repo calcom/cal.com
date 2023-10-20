@@ -242,7 +242,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
           {selectedDate ? (
-            <div className="flex h-full w-full flex-row gap-4">
+            <div className="flex h-full w-full flex-col gap-4">
               <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
