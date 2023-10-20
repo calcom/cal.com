@@ -5,6 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
+import type { TFunction } from "next-i18next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
@@ -107,6 +108,17 @@ export type NewBookingEventType =
 // Work with Typescript to require reqBody.end
 type ReqBodyWithoutEnd = z.infer<ReturnType<typeof getBookingDataSchema>>;
 type ReqBodyWithEnd = ReqBodyWithoutEnd & { end: string };
+export type Invitee = {
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  timeZone: string;
+  language: {
+    translate: TFunction;
+    locale: string;
+  };
+}[];
 
 interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -1128,7 +1140,7 @@ async function handler(
     }
   }
 
-  const invitee = [
+  const invitee: Invitee = [
     {
       email: bookerEmail,
       name: fullName,
@@ -1153,7 +1165,7 @@ async function handler(
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
-  }, [] as typeof invitee);
+  }, [] as Invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));

@@ -1,8 +1,24 @@
-import type { AppsStatus } from "@calcom/types/Calendar";
+import dayjs from "@calcom/dayjs";
+import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
+import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
-import type { Booking } from "./handleNewBooking";
+import type { Booking, Invitee, NewBookingEventType } from "./handleNewBooking";
 
-const handleSeats = async () => {
+const handleSeats = async ({
+  rescheduleUid,
+  reqBookingUid,
+  eventType,
+  evt,
+  invitee,
+}: {
+  rescheduleUid: string;
+  reqBookingUid: string;
+  eventType: NewBookingEventType;
+  evt: CalendarEvent;
+  invitee: Invitee;
+}) => {
   let resultBooking:
     | (Partial<Booking> & {
         appsStatus?: AppsStatus[];
@@ -17,7 +33,7 @@ const handleSeats = async () => {
     where: {
       OR: [
         {
-          uid: rescheduleUid || reqBody.bookingUid,
+          uid: rescheduleUid || reqBookingUid,
         },
         {
           eventTypeId: eventType.id,
