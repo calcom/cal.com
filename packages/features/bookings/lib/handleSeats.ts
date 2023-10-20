@@ -1,10 +1,19 @@
+import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
-import type { Booking, Invitee, NewBookingEventType } from "./handleNewBooking";
+import { refreshCredentials } from "./handleNewBooking";
+import type {
+  Booking,
+  Invitee,
+  NewBookingEventType,
+  getAllCredentials,
+  OrganizerUser,
+  OriginalRescheduledBooking,
+} from "./handleNewBooking";
 
 const handleSeats = async ({
   rescheduleUid,
@@ -12,12 +21,18 @@ const handleSeats = async ({
   eventType,
   evt,
   invitee,
+  allCredentials,
+  organizerUser,
+  originalRescheduledBooking,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
   eventType: NewBookingEventType;
   evt: CalendarEvent;
   invitee: Invitee;
+  allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
+  organizerUser: OrganizerUser;
+  originalRescheduledBooking: OriginalRescheduledBooking;
 }) => {
   let resultBooking:
     | (Partial<Booking> & {

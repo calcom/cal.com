@@ -119,6 +119,11 @@ export type Invitee = {
     locale: string;
   };
 }[];
+export type OrganizerUser = Awaited<ReturnType<typeof loadUsers>>[number] & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+};
+export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
 
 interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -154,7 +159,9 @@ async function refreshCredential(credential: CredentialPayload): Promise<Credent
  *
  * @param credentials
  */
-async function refreshCredentials(credentials: Array<CredentialPayload>): Promise<Array<CredentialPayload>> {
+export async function refreshCredentials(
+  credentials: Array<CredentialPayload>
+): Promise<Array<CredentialPayload>> {
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
@@ -162,7 +169,7 @@ async function refreshCredentials(credentials: Array<CredentialPayload>): Promis
  * Gets credentials from the user, team, and org if applicable
  *
  */
-const getAllCredentials = async (
+export const getAllCredentials = async (
   user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
@@ -619,7 +626,7 @@ async function createBooking({
   bookerEmail,
   paymentAppData,
 }: {
-  originalRescheduledBooking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
+  originalRescheduledBooking: OriginalRescheduledBooking;
   evt: CalendarEvent;
   eventType: NewBookingEventType;
   eventTypeId: Awaited<ReturnType<typeof getBookingData>>["eventTypeId"];
@@ -631,10 +638,7 @@ async function createBooking({
   responses: ReqBodyWithEnd["responses"] | null;
   isConfirmedByDefault: ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
   smsReminderNumber: Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
-  organizerUser: Awaited<ReturnType<typeof loadUsers>>[number] & {
-    isFixed?: boolean;
-    metadata?: Prisma.JsonValue;
-  };
+  organizerUser: OrganizerUser;
   rescheduleReason: Awaited<ReturnType<typeof getBookingData>>["rescheduleReason"];
   bookerEmail: Awaited<ReturnType<typeof getBookingData>>["email"];
   paymentAppData: ReturnType<typeof getPaymentAppData>;
