@@ -550,7 +550,7 @@ export default class GoogleCalendarService implements Calendar {
         token: process.env.CRON_API_KEY,
         params: {
           // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
-          ttl: `${Math.round((Date.now() + ONE_MONTH_IN_MS) / 1000)}`,
+          ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
         },
       },
     });
