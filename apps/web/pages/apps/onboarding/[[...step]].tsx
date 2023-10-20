@@ -341,6 +341,8 @@ const getEventTypeById = async (eventTypeId: number) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       team: { select: { slug: true } },
+      schedulingType: true,
+      metadata: true,
     },
     where: { id: eventTypeId },
   });

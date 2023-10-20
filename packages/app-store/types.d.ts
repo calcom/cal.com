@@ -71,3 +71,5 @@ export type EventTypeAppSettingsComponentProps = {
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
 
 export type EventTypeAppSettingsComponent = React.FC<EventTypeAppSettingsComponentProps>;
+
+export type EventTypeModel = z.infer<typeof EventTypeModel>;
