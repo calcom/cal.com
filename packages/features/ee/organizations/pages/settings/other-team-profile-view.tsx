@@ -81,7 +81,7 @@ const OtherTeamProfileView = () => {
   const { data: team, isLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId: teamId },
     {
-      enabled: !!teamId,
+      enabled: !Number.isNaN(teamId),
       onError: () => {
         router.push("/settings");
       },
