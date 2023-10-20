@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
@@ -9,19 +10,19 @@ import { selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/l
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
-import { createBookingAndFetchGCalEvent, deleteBookingAndEvent } from "./testUtils";
+import { createBookingAndFetchGCalEvent, deleteBookingAndEvent, assertValueExists } from "./testUtils";
 
 test.describe("Google Calendar", async () => {
   test.describe("Test using the primary calendar", async () => {
-    let qaUser: Prisma.UserGetPayload<{ select: { username: true } }> | null;
-    let qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }> | null;
+    let qaUsername: string;
+    let qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }>;
     test.beforeAll(async () => {
       let runIntegrationTest = false;
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
       if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
-        qaGCalCredential = await prisma.credential.findFirst({
+        qaGCalCredential = await prisma.credential.findFirstOrThrow({
           where: {
             user: {
               email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
@@ -33,7 +34,7 @@ test.describe("Google Calendar", async () => {
           },
         });
 
-        qaUser = await prisma.user.findFirst({
+        const qaUserQuery = await prisma.user.findFirstOrThrow({
           where: {
             email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
           },
@@ -42,16 +43,21 @@ test.describe("Google Calendar", async () => {
           },
         });
 
-        if (qaGCalCredential && qaUser) runIntegrationTest = true;
+        assertValueExists(qaUserQuery.username, "qaUsername");
+        qaUsername = qaUserQuery.username;
+
+        if (qaGCalCredential && qaUsername) runIntegrationTest = true;
       }
 
       test.skip(!runIntegrationTest, "QA user not found");
     });
 
     test.beforeEach(async ({ page, users }) => {
+      assertValueExists(process.env.E2E_TEST_CALCOM_QA_EMAIL, "qaEmail");
+
       const qaUserStore = await users.set(process.env.E2E_TEST_CALCOM_QA_EMAIL);
 
-      const loggedIn = await qaUserStore.apiLogin(process.env.E2E_TEST_CALCOM_QA_PASSWORD);
+      await qaUserStore.apiLogin(process.env.E2E_TEST_CALCOM_QA_PASSWORD);
 
       // Need to refresh keys from DB
       const refreshedCredential = await prisma.credential.findFirst({
@@ -66,12 +72,14 @@ test.describe("Google Calendar", async () => {
           },
         },
       });
+      assertValueExists(refreshedCredential, "refreshedCredential");
 
       const googleCalendarService = new GoogleCalendarService(refreshedCredential);
 
       const calendars = await googleCalendarService.listCalendars();
 
       const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
+      assertValueExists(primaryCalendarName, "primaryCalendarName");
 
       await page.goto("/apps/installed/calendar");
 
@@ -82,22 +90,19 @@ test.describe("Google Calendar", async () => {
 
     test("On new booking, event should be created on GCal", async ({ page }) => {
       const { gCalEvent, gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
-        page,
+        page as Page,
         qaGCalCredential,
-        qaUser?.username
+        qaUsername
       );
 
-      // if (!gCalReference) throw new Error("gCalReference not found");
+      assertValueExists(gCalEvent.start?.timeZone, "gCalEvent");
+      assertValueExists(gCalEvent.end?.timeZone, "gCalEvent");
 
       // Ensure that the start and end times are matching
       const startTimeMatches = dayjs(booking.startTime).isSame(
-        dayjs(gCalEvent.start?.dateTime).tz(gCalEvent.start.timeZone)
+        dayjs(gCalEvent.start.dateTime).tz(gCalEvent.start.timeZone)
       );
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       const endTimeMatches = dayjs(booking.endTime).isSame(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
         dayjs(gCalEvent.end?.dateTime).tz(gCalEvent.end.timeZone)
       );
       expect(startTimeMatches && endTimeMatches).toBe(true);
@@ -105,7 +110,7 @@ test.describe("Google Calendar", async () => {
       // Ensure that the titles are matching
       expect(booking.title).toBe(gCalEvent.summary);
 
-      // TODO ensure that the attendee is on the event
+      // Ensure that the attendee is on the event
       const bookingAttendee = booking?.attendees[0].email;
       const attendeeInGCalEvent = gCalEvent.attendees?.find((attendee) => attendee.email === bookingAttendee);
       expect(attendeeInGCalEvent).toBeTruthy();
@@ -119,7 +124,7 @@ test.describe("Google Calendar", async () => {
       const { gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
         page,
         qaGCalCredential,
-        qaUser?.username
+        qaUsername
       );
 
       await page.locator('[data-testid="reschedule-link"]').click();
@@ -132,6 +137,8 @@ test.describe("Google Calendar", async () => {
       const rescheduledBookingUrl = await page.url();
       const rescheduledBookingUid = rescheduledBookingUrl.match(/booking\/([^\/?]+)/);
 
+      assertValueExists(rescheduledBookingUid, "rescheduledBookingUid");
+
       // Get the rescheduled booking start and end times
       const rescheduledBooking = await prisma.booking.findFirst({
         where: {
@@ -142,6 +149,7 @@ test.describe("Google Calendar", async () => {
           endTime: true,
         },
       });
+      assertValueExists(rescheduledBooking, "rescheduledBooking");
 
       // The GCal event UID persists after reschedule but should get the rescheduled data
       const gCalRescheduledEventResponse = await authedCalendar.events.get({
@@ -154,6 +162,9 @@ test.describe("Google Calendar", async () => {
       expect(gCalRescheduledEventResponse.status).toBe(200);
 
       const rescheduledGCalEvent = gCalRescheduledEventResponse.data;
+
+      assertValueExists(rescheduledGCalEvent.start?.timeZone, "rescheduledGCalEvent");
+      assertValueExists(rescheduledGCalEvent.end?.timeZone, "rescheduledGCalEvent");
 
       // Ensure that the new start and end times are matching
       const rescheduledStartTimeMatches = dayjs(rescheduledBooking.startTime).isSame(
@@ -178,7 +189,7 @@ test.describe("Google Calendar", async () => {
       const { gCalEvent, gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
         page,
         qaGCalCredential,
-        qaUser?.username
+        qaUsername
       );
 
       // Cancel the booking

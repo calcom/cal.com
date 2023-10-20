@@ -25,8 +25,7 @@ export const createBookingAndFetchGCalEvent = async (
 
   const bookingUrl = await page.url();
   const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
-
-  expect(bookingUid).toBeTruthy();
+  assertValueExists(bookingUid, "bookingUid");
 
   const [gCalReference, booking] = await Promise.all([
     prisma.bookingReference.findFirst({
@@ -64,7 +63,8 @@ export const createBookingAndFetchGCalEvent = async (
       },
     }),
   ]);
-  expect(gCalReference).toBeTruthy();
+  assertValueExists(gCalReference, "gCalReference");
+  assertValueExists(booking, "booking");
 
   // Need to refresh keys from DB
   const refreshedCredential = await prisma.credential.findFirst({
@@ -119,3 +119,9 @@ export const deleteBookingAndEvent = async (
     });
   }
 };
+
+export function assertValueExists(value: unknown, variableName?: string): asserts value {
+  if (!value) {
+    throw new Error(`Value is not defined: ${variableName}`);
+  }
+}
