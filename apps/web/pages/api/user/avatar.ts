@@ -34,13 +34,35 @@ async function getIdentityData(req: NextApiRequest) {
     : null;
 
   if (username) {
-    const user = await prisma.user.findFirst({
+    let user = await prisma.user.findFirst({
       where: {
         username,
         organization: orgQuery,
       },
       select: { avatar: true, email: true },
     });
+
+    /**
+     * TEMPORARY CODE STARTS - TO BE REMOVED after mono-user schema is implemented
+     * Try the non-org user temporarily to support users part of a team but not part of the organization
+     * This is needed because of a situation where we migrate a user and the team to ORG but not all the users in the team to the ORG.
+     * Eventually, all users will be migrated to the ORG but this is when user by user migration happens initially.
+     */
+    // No user found in the org, try the non-org user that might be part of the team that's part of an org
+    if (!user && orgQuery) {
+      // The only side effect this code could have is that it could serve the avatar of a non-org member from the org domain but as long as the username isn't taken by an org member.
+      user = await prisma.user.findFirst({
+        where: {
+          username,
+          organization: null,
+        },
+        select: { avatar: true, email: true },
+      });
+    }
+    /**
+     * TEMPORARY CODE ENDS
+     */
+
     return {
       name: username,
       email: user?.email,
@@ -48,6 +70,7 @@ async function getIdentityData(req: NextApiRequest) {
       org,
     };
   }
+
   if (teamname) {
     const team = await prisma.team.findFirst({
       where: {

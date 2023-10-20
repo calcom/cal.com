@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -18,17 +19,15 @@ import { useLocalSet } from "../hooks/useLocalSet";
 import { useOverlayCalendarStore } from "./store";
 
 interface OverlayCalendarSwitchProps {
-  setContinueWithProvider: (val: boolean) => void;
-  setCalendarSettingsOverlay: (val: boolean) => void;
   enabled?: boolean;
 }
 
-function OverlayCalendarSwitch({
-  setCalendarSettingsOverlay,
-  setContinueWithProvider,
-  enabled,
-}: OverlayCalendarSwitchProps) {
+function OverlayCalendarSwitch({ enabled }: OverlayCalendarSwitchProps) {
   const { t } = useLocale();
+  const setContinueWithProvider = useOverlayCalendarStore((state) => state.setContinueWithProviderModal);
+  const setCalendarSettingsOverlay = useOverlayCalendarStore(
+    (state) => state.setCalendarSettingsOverlayModal
+  );
   const layout = useBookerStore((state) => state.layout);
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -39,7 +38,7 @@ function OverlayCalendarSwitch({
   // Toggle query param for overlay calendar
   const toggleOverlayCalendarQueryParam = useCallback(
     (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
       if (state) {
         current.set("overlayCalendar", "true");
         localStorage.setItem("overlayCalendarSwitchDefault", "true");
@@ -110,12 +109,19 @@ function OverlayCalendarSwitch({
 export function OverlayCalendarContainer() {
   const isEmbed = useIsEmbed();
   const searchParams = useSearchParams();
-  const [continueWithProvider, setContinueWithProvider] = useState(false);
-  const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
-  const { data: session } = useSession();
+  const [continueWithProvider, setContinueWithProvider] = useOverlayCalendarStore(
+    (state) => [state.continueWithProviderModal, state.setContinueWithProviderModal],
+    shallow
+  );
+  const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useOverlayCalendarStore(
+    (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
+    shallow
+  );
+
+  const { data: session, status: sessionStatus } = useSession();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const switchEnabled =
-    searchParams.get("overlayCalendar") === "true" ||
+    searchParams?.get("overlayCalendar") === "true" ||
     localStorage.getItem("overlayCalendarSwitchDefault") === "true";
 
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -170,11 +176,7 @@ export function OverlayCalendarContainer() {
 
   return (
     <>
-      <OverlayCalendarSwitch
-        setCalendarSettingsOverlay={setCalendarSettingsOverlay}
-        setContinueWithProvider={setContinueWithProvider}
-        enabled={switchEnabled}
-      />
+      <OverlayCalendarSwitch enabled={switchEnabled} />
       <OverlayCalendarContinueModal
         open={continueWithProvider}
         onClose={(val) => {
