@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "この組織にはまだチームがありません",
   "org_no_teams_yet_description": "管理者である場合には、ここに表示されるチームを必ず作成してください。",
   "set_up": "設定",
-  "set_up_your_profile": "プロフィールを設定する",
-  "set_up_your_profile_description": "{{orgName}} 内で、公開リンクを使用するユーザーにあなたのことを知ってもらいましょう。",
   "my_profile": "プロフィール",
   "my_settings": "設定",
   "crm": "CRM",

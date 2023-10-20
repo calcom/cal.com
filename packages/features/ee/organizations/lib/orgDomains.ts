@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import slugify from "@calcom/lib/slugify";
 
 /**
  * return the org slug
@@ -52,13 +53,14 @@ export function getOrgFullDomain(slug: string, options: { protocol: boolean } = 
 }
 
 export function getSlugOrRequestedSlug(slug: string) {
+  const slugifiedValue = slugify(slug);
   return {
     OR: [
-      { slug },
+      { slug: slugifiedValue },
       {
         metadata: {
           path: ["requestedSlug"],
-          equals: slug,
+          equals: slugifiedValue,
         },
       },
     ],
