@@ -58,8 +58,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm",
-            app.dirName == "caldavcalendar" && "dark:invert" // TODO: Maybe find a better way to handle this @Hariom?
+            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
           )}
         />
       </div>

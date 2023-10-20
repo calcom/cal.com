@@ -65,7 +65,6 @@ import {
   MoreHorizontal,
   Trash,
   Upload,
-  User as UserIcon,
   Users,
 } from "@calcom/ui/components/icon";
 
@@ -821,34 +820,6 @@ const Actions = () => {
   );
 };
 
-const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
-  const { t } = useLocale();
-  const orgBranding = useOrgBranding();
-
-  return (
-    <Alert
-      className="my-4"
-      severity="info"
-      title={t("set_up_your_profile")}
-      message={t("set_up_your_profile_description", { orgName: orgBranding?.name })}
-      CustomIcon={UserIcon}
-      actions={
-        <div className="flex gap-1">
-          <Button color="minimal" className="text-sky-700 hover:bg-sky-100" onClick={closeAction}>
-            {t("dismiss")}
-          </Button>
-          <Button
-            color="secondary"
-            className="border-sky-700 bg-sky-50 text-sky-700 hover:border-sky-900 hover:bg-sky-200"
-            href="/getting-started">
-            {t("set_up")}
-          </Button>
-        </div>
-      }
-    />
-  );
-};
-
 const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
   const { t } = useLocale();
   return (
@@ -984,7 +955,6 @@ const EventTypesPage = () => {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
       beforeCTAactions={<Actions />}
       CTA={<CTA data={data} />}>
       <HeadSeo
