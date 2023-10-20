@@ -61,7 +61,11 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams ?? undefined);
+    if (pathname === null || router === null || searchParams === null) {
+      return;
+    }
+
+    const newQuery = new URLSearchParams(searchParams);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
     });
@@ -70,7 +74,11 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams ?? undefined);
+    if (pathname === null || router === null || searchParams === null) {
+      return;
+    }
+
+    const params = new URLSearchParams(searchParams);
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -521,18 +529,20 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     shallow
   );
   const eventId = searchParams?.get("eventId");
+  const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
-    { id: parseInt(eventId as string) },
-    { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
+    { id: parsedEventId },
+    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
 
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams ?? undefined);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
-    return `${pathname?.split("?")[0]}?${_searchParams?.toString() ?? ""}`;
+    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
   };
+
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs

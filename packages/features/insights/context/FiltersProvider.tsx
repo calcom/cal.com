@@ -8,21 +8,22 @@ import { trpc } from "@calcom/trpc";
 import type { FilterContextType } from "./provider";
 import { FilterProvider } from "./provider";
 
+const querySchema = z.object({
+  startTime: z.string().nullable(),
+  endTime: z.string().nullable(),
+  teamId: z.coerce.number().nullable(),
+  userId: z.coerce.number().nullable(),
+  memberUserId: z.coerce.number().nullable(),
+  eventTypeId: z.coerce.number().nullable(),
+  filter: z.enum(["event-type", "user"]).nullable(),
+});
+
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
   const utils = trpc.useContext();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const querySchema = z.object({
-    startTime: z.string().nullable(),
-    endTime: z.string().nullable(),
-    teamId: z.coerce.number().nullable(),
-    userId: z.coerce.number().nullable(),
-    memberUserId: z.coerce.number().nullable(),
-    eventTypeId: z.coerce.number().nullable(),
-    filter: z.enum(["event-type", "user"]).nullable(),
-  });
 
   let startTimeParsed,
     endTimeParsed,
