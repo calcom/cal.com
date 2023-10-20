@@ -1972,8 +1972,6 @@
   "org_no_teams_yet": "This organization has no teams yet",
   "org_no_teams_yet_description": "If you are an administrator, be sure to create teams to be shown here.",
   "set_up": "Set up",
-  "set_up_your_profile": "Set up your profile",
-  "set_up_your_profile_description": "Let people know who you are within {{orgName}}, and when they engage with your public link.",
   "my_profile": "My Profile",
   "my_settings": "My Settings",
   "crm": "CRM",
@@ -2095,7 +2093,5 @@
   "overlay_my_calendar":"Overlay my calendar",
   "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
-  "join_event_location": "Join  {{eventLocationType}}",
-  "join_meeting": "Join Meeting",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
