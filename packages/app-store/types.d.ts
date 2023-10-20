@@ -8,6 +8,7 @@ export type IntegrationOAuthCallbackState = {
   returnTo: string;
   installGoogleVideo?: boolean;
   teamId?: number;
+  returnToOnboarding?: boolean;
 };
 
 export type CredentialOwner = {
@@ -66,6 +67,7 @@ export type EventTypeAppSettingsComponentProps = {
   disabled?: boolean;
   slug: string;
 };
+
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
 
 export type EventTypeAppSettingsComponent = React.FC<EventTypeAppSettingsComponentProps>;
