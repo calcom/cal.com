@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
@@ -120,9 +122,16 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     limit,
   });
 
+  // Get total team count across all teams the user is in (for pagination)
+
+  const totalTeamMembers =
+    await prisma.$queryRaw<number>`SELECT COUNT(DISTINCT "userId")::integer from "Membership" WHERE "teamId" IN (${Prisma.join(
+      teamIds
+    )})`;
+
   return {
     teamMembers,
-    totalTeamMembers: teamMembers.length,
+    totalTeamMembers,
   };
 }
 

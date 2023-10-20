@@ -235,7 +235,7 @@ const nextConfig = {
         ? [
             {
               ...matcherConfigRootPath,
-              destination: "/team/:orgSlug",
+              destination: "/team/:orgSlug?isOrgProfile=1",
             },
             {
               ...matcherConfigUserRoute,
