@@ -12,9 +12,10 @@ services:
     environment:
       POSTGRES_DB: "cal-saml"
       POSTGRES_PASSWORD: ""
+      POSTGRES_USER: "postgres"
       POSTGRES_HOST_AUTH_METHOD: trust
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: pg_isready -U $$POSTGRES_USER
       interval: 10s
       timeout: 5s
       retries: 5
