@@ -35,39 +35,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
   let key = { access_token: "" };
+  let credentials = { type: "", id: 0 };
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
+
+    credentials = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key,
+        userId: req.session.user.id,
+        appId: "google-calendar",
+      },
+    });
+
+    // Fetch the user's email from the Google OAuth2 userinfo endpoint using the access token in 'key'.
+    const userEmail = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${key?.access_token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => res.email); // Extract the user's email from the response.
+
+    await prisma.selectedCalendar.create({
+      data: {
+        userId: req.session.user.id,
+        integration: credentials?.type, // Set the integration type from the credential.
+        externalId: userEmail, // Set the external ID to the user's email.
+        credentialId: credentials?.id, // Associate the credential with this record.
+      },
+    });
   }
-
-  const credentials = await prisma.credential.create({
-    data: {
-      type: "google_calendar",
-      key,
-      userId: req.session.user.id,
-      appId: "google-calendar",
-    },
-  });
-
-  // Fetch the user's email from the Google OAuth2 userinfo endpoint using the access token in 'key'.
-  const userEmail = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${key?.access_token}`,
-    },
-  })
-    .then((res) => res.json())
-    .then((res) => res.email); // Extract the user's email from the response.
-
-  await prisma.selectedCalendar.create({
-    data: {
-      userId: req.session.user.id,
-      integration: credentials?.type, // Set the integration type from the credential.
-      externalId: userEmail, // Set the external ID to the user's email.
-      credentialId: credentials?.id, // Associate the credential with this record.
-    },
-  });
 
   if (state?.installGoogleVideo) {
     const existingGoogleMeetCredential = await prisma.credential.findFirst({
