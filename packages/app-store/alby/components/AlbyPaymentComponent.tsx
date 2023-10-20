@@ -136,9 +136,12 @@ function PaymentChecker(props: PaymentCheckerProps) {
   const { t } = useLocale();
 
   useEffect(() => {
-    if (searchParams !== null) {
+    if (searchParams === null) {
       return;
     }
+
+    // use closure to ensure non-nullability
+    const sp = searchParams;
 
     const interval = setInterval(() => {
       (async () => {
@@ -158,7 +161,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             location: string;
           } = {
             uid: props.booking.uid,
-            email: searchParams.get("email"),
+            email: sp.get("email"),
             location: t("web_conferencing_details_to_follow"),
           };
 
