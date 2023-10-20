@@ -1,10 +1,13 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { memo } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { ArrowButton, AvatarGroup } from "@calcom/ui";
+import { ArrowButton, AvatarGroup, ButtonGroup } from "@calcom/ui";
 
 const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: boolean }) => {
   const content = () => (
@@ -63,6 +66,7 @@ export function EventType({
   firstItem,
   lastItem,
   moveEventType,
+  setHiddenMutation,
 }: {
   event: any;
   type: any;
@@ -70,6 +74,7 @@ export function EventType({
   firstItem: { id: string };
   lastItem: { id: string };
   moveEventType: (index: number, increment: 1 | -1) => void;
+  setHiddenMutation: () => void;
 }) {
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
   const orgBranding = useOrgBranding();
@@ -118,7 +123,66 @@ export function EventType({
                 />
               )}
               <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                {isManagedEventType && <Badge>Hidden</Badge>}
+                {isManagedEventType && (
+                  <>
+                    {type.hidden && <Badge>Hidden</Badge>}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="self-center rounded-md p-2">
+                            <Switch
+                              name="hidden"
+                              checked={!type.hidden}
+                              onClick={() => {
+                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                              }}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {type.hidden ? "Show on profile" : "Hide from profile"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </>
+                )}
+                <ButtonGroup combined>
+                  {!isManagedEventType && (
+                    <>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            {/* TODO: add ExternalLink icon and toast */}
+                            <Button
+                              data-testid="preview-link-button"
+                              target="_blank"
+                              className="bg-secondary color-secondary"
+                              // TODO: calLink to be created
+                              href={calLink}>
+                              Show icon
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Preview</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Button
+                              className="bg-secondary color-secondary"
+                              onClick={() => {
+                                // TOOD: show toast, icon and calLink
+                                navigator.clipboard.writeText(calLink);
+                              }}>
+                              Show icon here
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Copy link to event</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </>
+                  )}
+                </ButtonGroup>
               </div>
             </div>
           </div>
