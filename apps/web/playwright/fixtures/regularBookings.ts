@@ -247,7 +247,7 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-checkField: async (question: string) => {
+    checkField: async (question: string) => {
       await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
     },
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
