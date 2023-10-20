@@ -61,10 +61,6 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    if (pathname === null || router === null || searchParams === null) {
-      return;
-    }
-
     const newQuery = new URLSearchParams(searchParams);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
@@ -74,10 +70,6 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    if (pathname === null || router === null || searchParams === null) {
-      return;
-    }
-
     const params = new URLSearchParams(searchParams);
 
     queryParams.forEach((param) => {
@@ -537,12 +529,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+    const _searchParams = new URLSearchParams(searchParams);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
-    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
+    return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
-
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
