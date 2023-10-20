@@ -52,4 +52,20 @@ export type EventTypeAppCardComponentProps = {
   disabled?: boolean;
   LockedIcon?: JSX.Element | false;
 };
+
+export type EventTypeAppSettingsComponentProps = {
+  // Limit what data should be accessible to apps\
+  eventType: Pick<
+    z.infer<typeof EventTypeModel>,
+    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "team"
+  > & {
+    URL: string;
+  };
+  getAppData: GetAppData;
+  setAppData: SetAppData;
+  disabled?: boolean;
+  slug: string;
+};
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
+
+export type EventTypeAppSettingsComponent = React.FC<EventTypeAppSettingsComponentProps>;
