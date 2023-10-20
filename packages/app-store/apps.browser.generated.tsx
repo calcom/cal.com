@@ -39,3 +39,6 @@ export const EventTypeAddonMap = {
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
 };
+export const EventTypeSettingsMap = {
+  qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
+};

@@ -13,5 +13,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "dirName": "intercom"
+  "dirName": "intercom",
+  "isOAuth": true
 }

@@ -14,5 +14,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "dirName": "cal-ai"
+  "dirName": "cal-ai",
+  "isOAuth": false
 }

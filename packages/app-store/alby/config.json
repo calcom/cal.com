@@ -14,5 +14,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-app-card",
-  "dirName": "alby"
+  "dirName": "alby",
+  "isOAuth": false
 }
