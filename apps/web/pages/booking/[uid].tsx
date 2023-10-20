@@ -155,7 +155,7 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const { requiresLoginToUpdate } = props;
   function setIsCancellationMode(value: boolean) {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
 
     if (value) {
       _searchParams.set("cancel", "true");
