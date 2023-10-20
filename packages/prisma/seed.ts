@@ -457,8 +457,8 @@ async function main() {
 
   await createUserAndEventType({
     user: {
-      email: process.env.CALCOM_QA_EMAIL || "qa@example.com",
-      password: process.env.CALCOM_QA_PASSWORD || "qa",
+      email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
+      password: process.env.E2E_TEST_CALCOM_QA_PASSWORD || "qa",
       username: "qa",
       name: "QA Example",
     },
