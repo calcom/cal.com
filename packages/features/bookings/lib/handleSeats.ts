@@ -1,4 +1,6 @@
 import type { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
 import EventManager from "@calcom/core/EventManager";
@@ -8,7 +10,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { refreshCredentials, addVideoCallDataToEvt } from "./handleNewBooking";
+import { refreshCredentials, addVideoCallDataToEvt, createLoggerWithEventDetails } from "./handleNewBooking";
 import type {
   Booking,
   Invitee,
@@ -35,6 +37,7 @@ const handleSeats = async ({
   bookingSeat,
   reqUserId,
   rescheduleReason,
+  reqBodyUser,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
@@ -49,6 +52,7 @@ const handleSeats = async ({
   bookingSeat: BookingSeat;
   reqUserId: number | undefined;
   rescheduleReason: RescheduleReason;
+  reqBodyUser: string | string[] | undefined;
 }) => {
   let resultBooking:
     | (Partial<Booking> & {
@@ -221,6 +225,12 @@ const handleSeats = async ({
         const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
         evt.iCalUID = calendarResult?.updatedEvent.iCalUID || undefined;
+
+        const loggerWithEventDetails = createLoggerWithEventDetails(
+          eventType.id,
+          reqBodyUser,
+          eventType.slug
+        );
 
         if (results.length > 0 && results.some((res) => !res.success)) {
           const error = {

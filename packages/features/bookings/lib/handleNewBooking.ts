@@ -832,6 +832,16 @@ export const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt
   return evt;
 };
 
+export const createLoggerWithEventDetails = (
+  eventTypeId: number,
+  reqBodyUser: string | string[] | undefined,
+  eventTypeSlug: string | undefined
+) => {
+  return logger.getSubLogger({
+    prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
+  });
+};
+
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
@@ -884,9 +894,7 @@ async function handler(
     eventType,
   });
 
-  const loggerWithEventDetails = logger.getSubLogger({
-    prefix: ["book:user", `${eventTypeId}:${reqBody.user}/${eventTypeSlug}`],
-  });
+  const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
