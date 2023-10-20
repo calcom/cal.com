@@ -255,7 +255,9 @@ export const EventSetupTab = (
     };
 
     const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
-    const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption>(defaultValue);
+    const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption | undefined>(
+      defaultValue
+    );
 
     return (
       <div className="w-full">
