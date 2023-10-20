@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { avatarSchema } from "@calcom/features/profile/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
@@ -100,6 +101,7 @@ const schemaUserEditParams = z.object({
   timeZone: timeZone.optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
+  avatar: avatarSchema.optional(),
   defaultScheduleId: z
     .number()
     .refine((id: number) => id > 0)

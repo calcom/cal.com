@@ -1,5 +1,7 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { uploadAvatar } from "@calcom/features/profile/server/avatar";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
@@ -56,6 +58,9 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *               hideBranding:
  *                 description: Remove branding from the user's calendar page
  *                 type: boolean
+ *               avatar:
+ *                 desciption: Set the users' profile avatar
+ *                 type: string
  *               theme:
  *                 description: Default theme for the user. Acceptable values are one of [DARK, LIGHT]
  *                 type: string
@@ -75,6 +80,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *                  brandColor: #555555
  *                  darkBrandColor: #111111
  *                  timeZone: EUROPE/PARIS
+ *                  avatar: data:image/png:base64,...
  *                  theme: LIGHT
  *                  timeFormat: TWELVE
  *                  locale: FR
@@ -114,11 +120,25 @@ export async function patchHandler(req: NextApiRequest) {
       message: "Bad request: Invalid default schedule id",
     });
   }
-  const data = await prisma.user.update({
+
+  const data: Prisma.UserUpdateInput = body;
+
+  const avatarUploadResult = await uploadAvatar(query.userId, body.avatar);
+  if (avatarUploadResult) {
+    data.avatarUrl = avatarUploadResult[0];
+    data.avatar = avatarUploadResult[1];
+  }
+  // if the body.avatar is not uploaded, write it to avatarUrl
+  else if (typeof body.avatar !== "undefined") {
+    // either null or a URL
+    data.avatarUrl = body.avatar;
+  }
+
+  const userCreatedResult = await prisma.user.update({
     where: { id: query.userId },
-    data: body,
+    data,
   });
-  const user = schemaUserReadPublic.parse(data);
+  const user = schemaUserReadPublic.parse(userCreatedResult);
   return { user };
 }
 

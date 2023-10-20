@@ -4,11 +4,11 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
+import { uploadAvatar } from "@calcom/features/profile/server/avatar";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
-import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -61,12 +61,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       }
     }
   }
-  if (input.avatar) {
-    data.avatar = await resizeBase64Image(input.avatar);
-  }
-  if (input.avatar === null) {
-    data.avatar = null;
-  }
+
+  const avatarUploadResult = await uploadAvatar(user.id, input.avatar);
+  data.avatarUrl = avatarUploadResult?.[0];
+  data.avatar = avatarUploadResult?.[1];
 
   if (isPremiumUsername) {
     const stripeCustomerId = userMetadata?.stripeCustomerId;
