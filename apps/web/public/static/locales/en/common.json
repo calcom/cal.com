@@ -2093,7 +2093,5 @@
   "overlay_my_calendar":"Overlay my calendar",
   "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
-  "join_event_location": "Join  {{eventLocationType}}",
-  "join_meeting": "Join Meeting",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
