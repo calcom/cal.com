@@ -599,9 +599,7 @@ class MyGoogleAuth extends google.auth.OAuth2 {
 
 async function handleCacheClear(credentialId?: number | null) {
   if (!credentialId) {
-    logger.info(
-      `Skipped unwatchCalendar due to missing credentialId in selectedCalendar: '${JSON.stringify(sc)}'`
-    );
+    logger.info(`Skipped unwatchCalendar due to missing credentialId in selectedCalendar`);
     return;
   }
   // Delete the cache for this calendar to force a fresh cache
