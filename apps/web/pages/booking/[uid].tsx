@@ -115,6 +115,13 @@ export default function Success(props: SuccessProps) {
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
+  let rescheduleLocation: string | undefined;
+  if (
+    typeof props.bookingInfo.responses.location === "object" &&
+    "optionValue" in props.bookingInfo.responses.location
+  ) {
+    rescheduleLocation = props.bookingInfo.responses.location.optionValue;
+  }
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
@@ -295,7 +302,14 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
+  const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
+    rescheduleLocation ?? "",
+    t,
+    bookingInfo.status
+  );
+
   const providerName = guessEventLocationType(location)?.label;
+  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -467,18 +481,50 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
-                          {locationToDisplay.startsWith("http") ? (
-                            <a
-                              href={locationToDisplay}
-                              target="_blank"
-                              title={locationToDisplay}
-                              className="text-default flex items-center gap-2 underline"
-                              rel="noreferrer">
-                              {providerName || "Link"}
-                              <ExternalLink className="text-default inline h-4 w-4" />
-                            </a>
+                          {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
+                            locationToDisplay.startsWith("http") ? (
+                              <a
+                                href={locationToDisplay}
+                                target="_blank"
+                                title={locationToDisplay}
+                                className="text-default flex items-center gap-2"
+                                rel="noreferrer">
+                                {providerName || "Link"}
+                                <ExternalLink className="text-default inline h-4 w-4" />
+                              </a>
+                            ) : (
+                              locationToDisplay
+                            )
                           ) : (
-                            locationToDisplay
+                            <>
+                              {!!formerTime &&
+                                (locationToDisplay.startsWith("http") ? (
+                                  <a
+                                    href={locationToDisplay}
+                                    target="_blank"
+                                    title={locationToDisplay}
+                                    className="text-default flex items-center gap-2 line-through"
+                                    rel="noreferrer">
+                                    {providerName || "Link"}
+                                    <ExternalLink className="text-default inline h-4 w-4" />
+                                  </a>
+                                ) : (
+                                  <p className="line-through">{locationToDisplay}</p>
+                                ))}
+                              {rescheduleLocationToDisplay.startsWith("http") ? (
+                                <a
+                                  href={rescheduleLocationToDisplay}
+                                  target="_blank"
+                                  title={rescheduleLocationToDisplay}
+                                  className="text-default flex items-center gap-2"
+                                  rel="noreferrer">
+                                  {rescheduleProviderName || "Link"}
+                                  <ExternalLink className="text-default inline h-4 w-4" />
+                                </a>
+                              ) : (
+                                rescheduleLocationToDisplay
+                              )}
+                            </>
                           )}
                         </div>
                       </>
