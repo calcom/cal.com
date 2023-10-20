@@ -375,10 +375,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
         where: { email },
         include: userIncludes,
       });
-      const userFixture = createUserFixture(
-        { ...user, password: process.env.E2E_TEST_CALCOM_QA_PASSWORD },
-        store.page
-      );
+      const userFixture = createUserFixture(user, store.page);
       store.users.push(userFixture);
       return userFixture;
     },
