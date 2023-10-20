@@ -557,13 +557,15 @@ export default class GoogleCalendarService implements Calendar {
     return res.data;
   }
   async unwatchCalendar({ calendarId }: { calendarId: string }) {
+    const credentialId = this.credential.id;
     const sc = await prisma.selectedCalendar.findFirst({
       where: {
-        credentialId: this.credential.id,
+        credentialId,
         externalId: calendarId,
       },
     });
-    await handleCacheClear(sc?.credentialId);
+    // Delete the calendar cache to force a fresh cache
+    await prisma.calendarCache.deleteMany({ where: { credentialId } });
     const parsedData = watchCalendarSchema.safeParse(sc?.metadata);
     if (!parsedData.success) {
       logger.info("Skipped unwatchCalendar due to missing metadata");
@@ -595,13 +597,4 @@ class MyGoogleAuth extends google.auth.OAuth2 {
   async refreshToken(token: string | null | undefined) {
     return super.refreshToken(token);
   }
-}
-
-async function handleCacheClear(credentialId?: number | null) {
-  if (!credentialId) {
-    logger.info(`Skipped unwatchCalendar due to missing credentialId in selectedCalendar`);
-    return;
-  }
-  // Delete the cache for this calendar to force a fresh cache
-  await prisma.calendarCache.deleteMany({ where: { credentialId } });
 }
