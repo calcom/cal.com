@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -235,7 +235,7 @@ const ProfileView = () => {
                       value={value}
                       addOnLeading={
                         team.parent && orgBranding
-                          ? `${getOrgFullDomain(orgBranding?.slug, { protocol: false })}/`
+                          ? `${getOrgFullOrigin(orgBranding?.slug, { protocol: false })}/`
                           : `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {
