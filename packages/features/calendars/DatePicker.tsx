@@ -122,20 +122,19 @@ const Days = ({
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
   const currentDate = minDate.utcOffset(browsingDate.utcOffset());
+
   const availableDates = (includedDates: string[] | undefined) => {
     const dates = [];
     const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
-    for (
-      let date = currentDate;
-      date.isBefore(lastDateOfMonth) || date.isSame(lastDateOfMonth, "day");
-      date = date.add(1, "day")
-    ) {
+    let date = currentDate;
+    do {
+      date = date.date(date.date() + 1);
       // even if availableDates is given, filter out the passed included dates
       if (includedDates && !includedDates.includes(yyyymmdd(date))) {
         continue;
       }
       dates.push(yyyymmdd(date));
-    }
+    } while (date.isBefore(lastDateOfMonth) || date.isSame(lastDateOfMonth, "day"));
     return dates;
   };
 
