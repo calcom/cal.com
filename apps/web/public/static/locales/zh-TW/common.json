@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "此組織尚無團隊",
   "org_no_teams_yet_description": "若您是管理員，請務必建立團隊，才會顯示在這裡。",
   "set_up": "設定",
-  "set_up_your_profile": "設定個人資料",
-  "set_up_your_profile_description": "向大家介紹您在 {{orgName}} 擔任的職務，以及他們何時可以使用您的公開連結。",
   "my_profile": "我的個人資料",
   "my_settings": "我的設定",
   "crm": "CRM",
