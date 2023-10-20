@@ -199,6 +199,24 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         />
       </div>
 
+      <Controller
+        name="lockTimeZoneToggleOnBookingPage"
+        control={formMethods.control}
+        defaultValue={eventType.lockTimeZoneToggleOnBookingPage}
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("lock_timezone_toggle_on_booking_page")}
+            {...shouldLockDisableProps("lockTimeZoneToggleOnBookingPage")}
+            description={t("description_lock_timezone_toggle_on_booking_page")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}

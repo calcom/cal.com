@@ -33,6 +33,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   customInputs: true,
   disableGuests: true,
   metadata: true,
+  lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   recurringEvent: true,

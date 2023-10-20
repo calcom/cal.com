@@ -248,6 +248,7 @@ export type UserPageProps = {
     | "slug"
     | "length"
     | "hidden"
+    | "lockTimeZoneToggleOnBookingPage"
     | "requiresConfirmation"
     | "requiresBookerEmailVerification"
     | "price"
