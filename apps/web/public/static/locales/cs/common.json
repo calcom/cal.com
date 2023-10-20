@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Tato organizace zatím neobsahuje žádné týmy",
   "org_no_teams_yet_description": "Pokud jste správce, nezapomeňte vytvořit týmy, které se zde budou zobrazovat.",
   "set_up": "Nastavení",
-  "set_up_your_profile": "Nastavení profilu",
-  "set_up_your_profile_description": "Dejte lidem vědět, co v rámci organizace {{orgName}} děláte, pokud si otevřou váš veřejný odkaz.",
   "my_profile": "Můj profil",
   "my_settings": "Moje nastavení",
   "crm": "CRM",
