@@ -36,14 +36,31 @@ const ONE_MONTH_IN_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Expand the start date to the start of the month */
 function getTimeMin(timeMin: string) {
+  const date = new Date();
+  const dateMonth = date.getMonth();
   const dateMin = new Date(timeMin);
-  return new Date(Date.UTC(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0)).toISOString();
+  const dateMinMonth = dateMin.getMonth();
+  // If we browser the next month, return the start of the previous month to guarantee a cache hit
+  if (date.getFullYear() === dateMin.getFullYear() && dateMinMonth - dateMonth === 1) {
+    return new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0).toISOString();
+  }
+  return new Date(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0).toISOString();
 }
 
 /** Expand the end date to the end of the month */
 function getTimeMax(timeMax: string) {
+  const date = new Date();
+  const dateMonth = date.getMonth();
   const dateMax = new Date(timeMax);
-  return new Date(Date.UTC(dateMax.getFullYear(), dateMax.getMonth() + 2, 0, 0, 0, 0, 0)).toISOString();
+  const dateMaxMonth = dateMax.getMonth();
+  if (
+    // Normalize the next two months requests to guarantee a cache hit
+    date.getFullYear() === dateMax.getFullYear() &&
+    (dateMaxMonth - dateMonth === 1 || dateMaxMonth - dateMonth === 2)
+  ) {
+    return new Date(date.getFullYear(), date.getMonth() + 2, 1, 0, 0, 0, 0).toISOString();
+  }
+  return new Date(dateMax.getFullYear(), dateMax.getMonth(), 1, 0, 0, 0, 0).toISOString();
 }
 
 /**
@@ -63,10 +80,9 @@ function handleMinMax(min: string, max: string) {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 function parseArgsForCache(args: FreeBusyArgs): FreeBusyArgs {
-  const { timeMin: _timeMin, timeMax: _timeMax, items: _items } = args;
   // Sort items by id to make sure the cache key is always the same
-  const items = _items.sort((a, b) => (a.id > b.id ? 1 : -1));
-  const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
+  const items = args.items.sort((a, b) => (a.id > b.id ? 1 : -1));
+  const { timeMin, timeMax } = handleMinMax(args.timeMin, args.timeMax);
   return { timeMin, timeMax, items };
 }
 
