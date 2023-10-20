@@ -358,7 +358,7 @@ const getEventTypeById = async (eventTypeId: number) => {
   } as ConfigureEventTypeProp;
 };
 
-const getAppInstallsBySlug = async (appSlug: string, userId: number, teamId?: number) => {
+const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: number[]) => {
   const appInstalls = await prisma.credential.findMany({
     where: {
       OR: [
@@ -366,10 +366,10 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamId?: nu
           appId: appSlug,
           userId: userId,
         },
-        teamId
+        teamIds && Boolean(teamIds.length)
           ? {
               appId: appSlug,
-              teamId: 5,
+              teamId: { in: teamIds },
             }
           : {},
       ],
@@ -404,7 +404,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       .map((team) => ({ ...team.team, accepted: team.accepted }));
     const hasTeams = Boolean(userAcceptedTeams.length);
 
-    const appInstalls = await getAppInstallsBySlug(parsedAppSlug, user.id, parsedTeamIdParam);
+    const appInstalls = await getAppInstallsBySlug(
+      parsedAppSlug,
+      user.id,
+      userAcceptedTeams.map(({ id }) => id)
+    );
 
     if (parsedTeamIdParam) {
       const isUserMemberOfTeam = userAcceptedTeams.some((team) => team.id === parsedTeamIdParam);
