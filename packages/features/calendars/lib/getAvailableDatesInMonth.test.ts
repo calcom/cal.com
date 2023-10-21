@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { getAvailableDatesInMonth } from "@calcom/features/calendars/DatePicker";
+import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 
 describe("Test Suite: Date Picker", () => {

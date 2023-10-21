@@ -5,6 +5,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -100,40 +101,6 @@ const NoAvailabilityOverlay = ({
     </div>
   );
 };
-
-export const getLastDateOfMonth = (browsingDate: Dayjs) =>
-  browsingDate.date(daysInMonth(browsingDate)).toDate();
-
-// calculate the available dates in the month:
-// *) Intersect with included dates.
-// *) Dates in the past are not available.
-// *) Use right amount of days in given month. (28, 30, 31)
-export function getAvailableDatesInMonth({
-  browsingDate, // pass as UTC
-  minDate = new Date(),
-  includedDates,
-}: {
-  browsingDate: Date;
-  minDate?: Date;
-  includedDates?: string[];
-}) {
-  const dates = [];
-  const lastDateOfMonth = new Date(
-    Date.UTC(browsingDate.getFullYear(), browsingDate.getMonth(), daysInMonth(browsingDate))
-  );
-  for (
-    let date = browsingDate > minDate ? browsingDate : minDate;
-    date <= lastDateOfMonth;
-    date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 1))
-  ) {
-    // intersect included dates
-    if (includedDates && !includedDates.includes(yyyymmdd(date))) {
-      continue;
-    }
-    dates.push(yyyymmdd(date));
-  }
-  return dates;
-}
 
 const Days = ({
   minDate,
