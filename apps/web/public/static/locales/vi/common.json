@@ -1971,8 +1971,6 @@
   "org_no_teams_yet": "Tổ chức này chưa có nhóm nào",
   "org_no_teams_yet_description": "Nếu bạn là một quản trị viên, hãy bảo đảm tạo nhóm các nhóm cần được hiển thị tại đây.",
   "set_up": "Thiết lập",
-  "set_up_your_profile": "Thiết lập hồ sơ của bạn",
-  "set_up_your_profile_description": "Hãy để mọi người biết bạn là ai trong {{orgName}}, và cho họ biết khi nhấp vào liên kết công cộng của bạn.",
   "my_profile": "Hồ sơ của tôi",
   "my_settings": "Cài đặt của tôi",
   "crm": "CRM",

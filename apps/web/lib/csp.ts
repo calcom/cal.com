@@ -1,9 +1,10 @@
-import crypto from "crypto";
 import type { IncomingMessage, OutgoingMessage } from "http";
 import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+
+import { buildNonce } from "@lib/buildNonce";
 
 function getCspPolicy(nonce: string) {
   //TODO: Do we need to explicitly define it in turbo.json
@@ -59,7 +60,7 @@ export function csp(req: IncomingMessage | null, res: OutgoingMessage | null) {
   }
   const CSP_POLICY = process.env.CSP_POLICY;
   const cspEnabledForInstance = CSP_POLICY;
-  const nonce = crypto.randomBytes(16).toString("base64");
+  const nonce = buildNonce(crypto.getRandomValues(new Uint8Array(22)));
 
   const parsedUrl = new URL(req.url, "http://base_url");
   const cspEnabledForPage = cspEnabledForInstance && isPagePathRequest(parsedUrl);
