@@ -62,7 +62,7 @@ export const useScheduleForEvent = ({
     shallow
   );
   const searchParams = useSearchParams();
-  const rescheduleUid = searchParams.get("rescheduleUid");
+  const rescheduleUid = searchParams?.get("rescheduleUid");
 
   const pathname = usePathname();
 
@@ -78,6 +78,6 @@ export const useScheduleForEvent = ({
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
-    isTeamEvent: pathname.indexOf("/team/") !== -1 || isTeam,
+    isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
   });
 };
