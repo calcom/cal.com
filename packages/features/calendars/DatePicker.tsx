@@ -23,9 +23,9 @@ export type DatePickerProps = {
   /** which date or dates are currently selected (not tracked from here) */
   selected?: Dayjs | Dayjs[] | null;
   /** defaults to current date. */
-  minDate?: Dayjs;
+  minDate?: Date;
   /** Furthest date selectable in the future, default = UNLIMITED */
-  maxDate?: Dayjs;
+  maxDate?: Date;
   /** locale, any IETF language tag, e.g. "hu-HU" - defaults to Browser settings */
   locale: string;
   /** Defaults to [], which dates are not bookable. Array of valid dates like: ["2022-04-23", "2022-04-24"] */
@@ -101,8 +101,42 @@ const NoAvailabilityOverlay = ({
   );
 };
 
+export const getLastDateOfMonth = (browsingDate: Dayjs) =>
+  browsingDate.date(daysInMonth(browsingDate)).toDate();
+
+// calculate the available dates in the month:
+// *) Intersect with included dates.
+// *) Dates in the past are not available.
+// *) Use right amount of days in given month. (28, 30, 31)
+export function getAvailableDatesInMonth({
+  browsingDate, // pass as UTC
+  minDate = new Date(),
+  includedDates,
+}: {
+  browsingDate: Date;
+  minDate?: Date;
+  includedDates?: string[];
+}) {
+  const dates = [];
+  const lastDateOfMonth = new Date(
+    Date.UTC(browsingDate.getFullYear(), browsingDate.getMonth(), daysInMonth(browsingDate))
+  );
+  for (
+    let date = browsingDate > minDate ? browsingDate : minDate;
+    date <= lastDateOfMonth;
+    date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 1))
+  ) {
+    // intersect included dates
+    if (includedDates && !includedDates.includes(yyyymmdd(date))) {
+      continue;
+    }
+    dates.push(yyyymmdd(date));
+  }
+  return dates;
+}
+
 const Days = ({
-  minDate = dayjs.utc(),
+  minDate,
   excludedDates = [],
   browsingDate,
   weekStart,
@@ -121,29 +155,12 @@ const Days = ({
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
-  const currentDate = minDate.utcOffset(browsingDate.utcOffset());
 
-  const availableDates = (includedDates: string[] | undefined) => {
-    const dates = [];
-    const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
-    let date = currentDate;
-    do {
-      date = date.date(date.date() + 1);
-      // even if availableDates is given, filter out the passed included dates
-      if (includedDates && !includedDates.includes(yyyymmdd(date))) {
-        continue;
-      }
-      dates.push(yyyymmdd(date));
-    } while (date.isBefore(lastDateOfMonth) || date.isSame(lastDateOfMonth, "day"));
-    return dates;
-  };
-
-  const utcBrowsingDateWithOffset = browsingDate.utc().add(browsingDate.utcOffset(), "minute");
-  const utcCurrentDateWithOffset = currentDate.utc().add(browsingDate.utcOffset(), "minute");
-
-  const includedDates = utcCurrentDateWithOffset.isSame(utcBrowsingDateWithOffset, "month")
-    ? availableDates(props.includedDates)
-    : props.includedDates;
+  const includedDates = getAvailableDatesInMonth({
+    browsingDate: browsingDate.toDate(),
+    minDate,
+    includedDates: props.includedDates,
+  });
 
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
