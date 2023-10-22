@@ -38,7 +38,7 @@ function OverlayCalendarSwitch({ enabled }: OverlayCalendarSwitchProps) {
   // Toggle query param for overlay calendar
   const toggleOverlayCalendarQueryParam = useCallback(
     (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
       if (state) {
         current.set("overlayCalendar", "true");
         localStorage.setItem("overlayCalendarSwitchDefault", "true");
@@ -121,7 +121,7 @@ export function OverlayCalendarContainer() {
   const { data: session, status: sessionStatus } = useSession();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const switchEnabled =
-    searchParams.get("overlayCalendar") === "true" ||
+    searchParams?.get("overlayCalendar") === "true" ||
     localStorage.getItem("overlayCalendarSwitchDefault") === "true";
 
   const selectedDate = useBookerStore((state) => state.selectedDate);
