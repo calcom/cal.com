@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Prisma } from "@prisma/client";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
@@ -70,11 +71,14 @@ interface DeleteAccountValues {
 }
 
 type FormValues = {
+  metadata: object;
   username: string;
   avatar: string | null;
   name: string;
   email: string;
   bio: string;
+  linkedinLink: string;
+  XLink: string;
 };
 
 const checkIfItFallbackImage = (fetchedImgSrc: string) => {
@@ -236,6 +240,9 @@ const ProfileView = () => {
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
+    linkedinLink: ((user?.metadata as Prisma.JsonObject)?.linkedinLink as string) || "",
+    XLink: ((user?.metadata as Prisma.JsonObject)?.XLink as string) || "",
+    metadata: { linkedinLink: "", XLink: "" },
   };
 
   return (
@@ -261,6 +268,11 @@ const ProfileView = () => {
             // Opens a dialog warning the change
             setConfirmAuthEmailChangeWarningDialogOpen(true);
           } else {
+            values.metadata = {
+              linkedinLink: values.linkedinLink,
+              XLink: values.XLink,
+            };
+
             updateProfileMutation.mutate(values);
           }
         }}
@@ -421,6 +433,8 @@ const ProfileForm = ({
       }),
     email: z.string().email(),
     bio: z.string(),
+    linkedinLink: z.string(),
+    XLink: z.string(),
   });
 
   const formMethods = useForm<FormValues>({
@@ -487,6 +501,12 @@ const ProfileForm = ({
         </div>
         <div className="mt-6">
           <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+        </div>
+        <div className="mt-6">
+          <TextField label="Linkedin Link" {...formMethods.register("linkedinLink")} />
+        </div>
+        <div className="mt-6">
+          <TextField label="X Link" {...formMethods.register("XLink")} />
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>

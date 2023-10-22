@@ -27,7 +27,7 @@ import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
-import { Verified, ArrowRight } from "@calcom/ui/components/icon";
+import { Verified, ArrowRight, Linkedin, Twitter } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -43,6 +43,10 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
+
+  const linkedinLink = (user?.metadata as Prisma.JsonObject)?.linkedinLink as string;
+  const Xlink = (user?.metadata as Prisma.JsonObject)?.XLink as string;
+  const showSocial = Xlink || linkedinLink;
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
@@ -117,6 +121,26 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
+              </>
+            )}
+            {showSocial && (
+              <>
+                <div className="flex items-center justify-center space-x-4 py-4">
+                  {linkedinLink && (
+                    <div>
+                      <Link href={linkedinLink} target="_blank">
+                        <Linkedin />
+                      </Link>
+                    </div>
+                  )}
+                  {Xlink && (
+                    <div>
+                      <Link href={Xlink} target="_blank">
+                        <Twitter />
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </div>
@@ -229,7 +253,7 @@ export type UserPageProps = {
     organizationSlug: string | null;
     allowSEOIndexing: boolean;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "metadata">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -374,6 +398,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         bio: user.bio,
         away: user.away,
         verified: user.verified,
+        metadata: user.metadata,
       })),
       entity: {
         isUnpublished: org?.slug === null,

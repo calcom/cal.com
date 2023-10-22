@@ -315,6 +315,8 @@ export const userMetadata = z
         appLink: z.string().optional(),
       })
       .optional(),
+    linkedinLink: z.string().optional(),
+    XLink: z.string().optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
