@@ -503,7 +503,7 @@ const ProfileForm = ({
           <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
         </div>
         <div className="mt-6">
-          <TextField label="Linkedin Link" {...formMethods.register("linkedinLink")} />
+          <TextField label="LinkedIn Link" {...formMethods.register("linkedinLink")} />
         </div>
         <div className="mt-6">
           <TextField label="X Link" {...formMethods.register("XLink")} />
