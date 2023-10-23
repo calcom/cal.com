@@ -130,8 +130,12 @@ export type NoEmail = Awaited<ReturnType<typeof getBookingData>>["noEmail"];
 export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
 export type AdditionalNotes = Awaited<ReturnType<typeof getBookingData>>["notes"];
 export type ReqAppsStatus = Awaited<ReturnType<typeof getBookingData>>["appsStatus"];
+export type PaymentAppData = ReturnType<typeof getPaymentAppData>;
+export type SmsReminderNumber = Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
+export type EventTypeId = Awaited<ReturnType<typeof getBookingData>>["eventTypeId"];
+export type ReqBodyMetadata = ReqBodyWithEnd["metadata"];
 
-interface IEventTypePaymentCredentialType {
+export interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
   app: {
     categories: App["categories"];
@@ -635,10 +639,10 @@ async function createBooking({
   originalRescheduledBooking: OriginalRescheduledBooking;
   evt: CalendarEvent;
   eventType: NewBookingEventType;
-  eventTypeId: Awaited<ReturnType<typeof getBookingData>>["eventTypeId"];
+  eventTypeId: EventTypeId;
   eventTypeSlug: Awaited<ReturnType<typeof getBookingData>>["eventTypeSlug"];
   reqBodyUser: ReqBodyWithEnd["user"];
-  reqBodyMetadata: ReqBodyWithEnd["metadata"];
+  reqBodyMetadata: ReqBodyMetadata;
   reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
   uid: short.SUUID;
   responses: ReqBodyWithEnd["responses"] | null;

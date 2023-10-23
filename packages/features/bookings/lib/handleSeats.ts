@@ -2,6 +2,7 @@ import type { Prisma, Attendee } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
+import type short from "short-uuid";
 import { uuid } from "short-uuid";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -9,12 +10,23 @@ import EventManager from "@calcom/core/EventManager";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRescheduledEmails, sendRescheduledSeatEmail, sendScheduledSeatsEmails } from "@calcom/emails";
+import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { getFullName } from "@calcom/features/form-builder/utils";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import { HttpError } from "@calcom/lib/http-error";
+import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 
+import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import {
   refreshCredentials,
   addVideoCallDataToEvt,
@@ -34,6 +46,11 @@ import type {
   IsConfirmedByDefault,
   AdditionalNotes,
   ReqAppsStatus,
+  PaymentAppData,
+  IEventTypePaymentCredentialType,
+  SmsReminderNumber,
+  EventTypeId,
+  ReqBodyMetadata,
 } from "./handleNewBooking";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
@@ -109,6 +126,15 @@ const handleSeats = async ({
   additionalNotes,
   reqAppsStatus,
   attendeeLanguage,
+  paymentAppData,
+  fullName,
+  smsReminderNumber,
+  eventTypeInfo,
+  uid,
+  eventTypeId,
+  reqBodyMetadata,
+  subscriberOptions,
+  eventTrigger,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
@@ -129,6 +155,15 @@ const handleSeats = async ({
   additionalNotes: AdditionalNotes;
   reqAppsStatus: ReqAppsStatus;
   attendeeLanguage: string | null;
+  paymentAppData: PaymentAppData;
+  fullName: ReturnType<typeof getFullName>;
+  smsReminderNumber: SmsReminderNumber;
+  eventTypeInfo: EventTypeInfo;
+  uid: short.SUUID;
+  eventTypeId: EventTypeId;
+  reqBodyMetadata: ReqBodyMetadata;
+  subscriberOptions: GetSubscriberOptions;
+  eventTrigger: WebhookTriggerEvents;
 }) => {
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
@@ -580,7 +615,7 @@ const handleSeats = async ({
 
     await prisma.booking.update({
       where: {
-        uid: reqBody.bookingUid,
+        uid: reqBookingUid,
       },
       include: {
         attendees: true,
@@ -747,7 +782,7 @@ const handleSeats = async ({
     rescheduleEndTime: originalRescheduledBooking?.endTime
       ? dayjs(originalRescheduledBooking?.endTime).utc().format()
       : undefined,
-    metadata: { ...metadata, ...reqBody.metadata },
+    metadata: { ...metadata, ...reqBodyMetadata },
     eventTypeId,
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
