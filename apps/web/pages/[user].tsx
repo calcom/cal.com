@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
