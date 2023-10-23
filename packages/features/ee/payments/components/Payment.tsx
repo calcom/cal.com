@@ -81,12 +81,17 @@ const PaymentForm = (props: Props) => {
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || searchParams === null) {
+      return;
+    }
+
     setState({ status: "processing" });
 
     let payload;
     const params: {
-      [k: string]: any;
+      uid: string;
+      email: string | null;
+      location?: string;
     } = {
       uid: props.booking.uid,
       email: searchParams.get("email"),

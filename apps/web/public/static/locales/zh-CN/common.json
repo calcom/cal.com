@@ -1958,8 +1958,6 @@
   "org_no_teams_yet": "此组织尚无团队",
   "org_no_teams_yet_description": "如果您是管理员，请务必创建要在此处显示的团队。",
   "set_up": "设置",
-  "set_up_your_profile": "设置您的个人资料",
-  "set_up_your_profile_description": "让人们知道您在 {{orgName}} 中的身份，以及他们何时可与您的公共链接互动。",
   "my_profile": "我的个人资料",
   "my_settings": "我的设置",
   "crm": "CRM",
