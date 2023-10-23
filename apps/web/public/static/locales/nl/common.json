@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Deze organisatie heeft nog geen teams",
   "org_no_teams_yet_description": "Als u een beheerder bent, zorg er dan voor dat u teams maakt die hier weergegeven worden.",
   "set_up": "Instellen",
-  "set_up_your_profile": "Stel uw profiel in",
-  "set_up_your_profile_description": "Laat mensen weten wie u bent binnen {{orgName}} en wanneer ze uw openbare link gebruiken.",
   "my_profile": "Mijn profiel",
   "my_settings": "Mijn instellingen",
   "crm": "CRM",

@@ -1,5 +1,6 @@
 import type { Frame, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
@@ -35,7 +36,27 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
       res.end();
     },
   } = opts;
+  const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
+
+  const waitForRequestCount = (count: number) =>
+    new Promise<void>((resolve) => {
+      if (requestList.length === count) {
+        resolve();
+        return;
+      }
+
+      const pushHandler = () => {
+        if (requestList.length !== count) {
+          return;
+        }
+        eventEmitter.off("push", pushHandler);
+        resolve();
+      };
+
+      eventEmitter.on("push", pushHandler);
+    });
+
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
 
@@ -49,6 +70,7 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
 
       _req.body = json;
       requestList.push(_req);
+      eventEmitter.emit("push");
       requestHandler({ req: _req, res });
     });
   });
@@ -58,32 +80,14 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const port: number = (server.address() as any).port;
   const url = `http://localhost:${port}`;
+
   return {
     port,
     close: () => server.close(),
     requestList,
     url,
+    waitForRequestCount,
   };
-}
-
-/**
- * When in need to wait for any period of time you can use waitFor, to wait for your expectations to pass.
- */
-export async function waitFor(fn: () => Promise<unknown> | unknown, opts: { timeout?: number } = {}) {
-  let finished = false;
-  const timeout = opts.timeout ?? 5000; // 5s
-  const timeStart = Date.now();
-  while (!finished) {
-    try {
-      await fn();
-      finished = true;
-    } catch {
-      if (Date.now() - timeStart >= timeout) {
-        throw new Error("waitFor timed out");
-      }
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
-  }
 }
 
 export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) {
