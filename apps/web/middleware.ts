@@ -90,10 +90,6 @@ export const config = {
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
-
-    // middleware should be executed on each page request, in order to set x-url correctly
-    // matchers above, can be removed
-    "/:path*/",
   ],
 };
 
