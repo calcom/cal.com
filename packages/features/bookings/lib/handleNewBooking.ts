@@ -126,6 +126,8 @@ export type OrganizerUser = Awaited<ReturnType<typeof loadUsers>>[number] & {
 };
 export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
 export type RescheduleReason = Awaited<ReturnType<typeof getBookingData>>["rescheduleReason"];
+export type NoEmail = Awaited<ReturnType<typeof getBookingData>>["noEmail"];
+export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
 
 interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -638,7 +640,7 @@ async function createBooking({
   reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
   uid: short.SUUID;
   responses: ReqBodyWithEnd["responses"] | null;
-  isConfirmedByDefault: ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
+  isConfirmedByDefault: IsConfirmedByDefault;
   smsReminderNumber: Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
   organizerUser: OrganizerUser;
   rescheduleReason: RescheduleReason;
@@ -841,6 +843,43 @@ export const createLoggerWithEventDetails = (
     prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
   });
 };
+
+export function handleAppsStatus(
+  results: EventResult<AdditionalInformation>[],
+  booking: (Booking & { appsStatus?: AppsStatus[] }) | null
+) {
+  // Taking care of apps status
+  let resultStatus: AppsStatus[] = results.map((app) => ({
+    appName: app.appName,
+    type: app.type,
+    success: app.success ? 1 : 0,
+    failures: !app.success ? 1 : 0,
+    errors: app.calError ? [app.calError] : [],
+    warnings: app.calWarnings,
+  }));
+
+  if (reqAppsStatus === undefined) {
+    if (booking !== null) {
+      booking.appsStatus = resultStatus;
+    }
+    return resultStatus;
+  }
+  // From down here we can assume reqAppsStatus is not undefined anymore
+  // Other status exist, so this is the last booking of a series,
+  // proceeding to prepare the info for the event
+  const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
+    if (prev[curr.type]) {
+      prev[curr.type].success += curr.success;
+      prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
+      prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
+    } else {
+      prev[curr.type] = curr;
+    }
+    return prev;
+  }, {} as { [key: string]: AppsStatus });
+  resultStatus = Object.values(calcAppsStatus);
+  return resultStatus;
+}
 
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
@@ -2128,43 +2167,6 @@ async function handler(
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(allCredentials);
   const eventManager = new EventManager({ ...organizerUser, credentials });
-
-  function handleAppsStatus(
-    results: EventResult<AdditionalInformation>[],
-    booking: (Booking & { appsStatus?: AppsStatus[] }) | null
-  ) {
-    // Taking care of apps status
-    let resultStatus: AppsStatus[] = results.map((app) => ({
-      appName: app.appName,
-      type: app.type,
-      success: app.success ? 1 : 0,
-      failures: !app.success ? 1 : 0,
-      errors: app.calError ? [app.calError] : [],
-      warnings: app.calWarnings,
-    }));
-
-    if (reqAppsStatus === undefined) {
-      if (booking !== null) {
-        booking.appsStatus = resultStatus;
-      }
-      return resultStatus;
-    }
-    // From down here we can assume reqAppsStatus is not undefined anymore
-    // Other status exist, so this is the last booking of a series,
-    // proceeding to prepare the info for the event
-    const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
-      if (prev[curr.type]) {
-        prev[curr.type].success += curr.success;
-        prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
-        prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
-      } else {
-        prev[curr.type] = curr;
-      }
-      return prev;
-    }, {} as { [key: string]: AppsStatus });
-    resultStatus = Object.values(calcAppsStatus);
-    return resultStatus;
-  }
 
   let videoCallUrl;
 

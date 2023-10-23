@@ -10,7 +10,12 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { refreshCredentials, addVideoCallDataToEvt, createLoggerWithEventDetails } from "./handleNewBooking";
+import {
+  refreshCredentials,
+  addVideoCallDataToEvt,
+  createLoggerWithEventDetails,
+  handleAppsStatus,
+} from "./handleNewBooking";
 import type {
   Booking,
   Invitee,
@@ -19,6 +24,8 @@ import type {
   OrganizerUser,
   OriginalRescheduledBooking,
   RescheduleReason,
+  NoEmail,
+  IsConfirmedByDefault,
 } from "./handleNewBooking";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
@@ -38,6 +45,8 @@ const handleSeats = async ({
   reqUserId,
   rescheduleReason,
   reqBodyUser,
+  noEmail,
+  isConfirmedByDefault,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
@@ -53,6 +62,8 @@ const handleSeats = async ({
   reqUserId: number | undefined;
   rescheduleReason: RescheduleReason;
   reqBodyUser: string | string[] | undefined;
+  noEmail: NoEmail;
+  isConfirmedByDefault: IsConfirmedByDefault;
 }) => {
   let resultBooking:
     | (Partial<Booking> & {
