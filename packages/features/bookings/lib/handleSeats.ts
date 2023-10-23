@@ -5,6 +5,7 @@ import type { TFunction } from "next-i18next";
 
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
+import { sendRescheduledEmails, sendRescheduledSeatEmail, sendScheduledSeatsEmails } from "@calcom/emails";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -26,6 +27,8 @@ import type {
   RescheduleReason,
   NoEmail,
   IsConfirmedByDefault,
+  AdditionalNotes,
+  ReqAppsStatus,
 } from "./handleNewBooking";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
@@ -47,6 +50,8 @@ const handleSeats = async ({
   reqBodyUser,
   noEmail,
   isConfirmedByDefault,
+  additionalNotes,
+  reqAppsStatus,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
@@ -64,6 +69,8 @@ const handleSeats = async ({
   reqBodyUser: string | string[] | undefined;
   noEmail: NoEmail;
   isConfirmedByDefault: IsConfirmedByDefault;
+  additionalNotes: AdditionalNotes;
+  reqAppsStatus: ReqAppsStatus;
 }) => {
   let resultBooking:
     | (Partial<Booking> & {
@@ -263,7 +270,7 @@ const handleSeats = async ({
               metadata.hangoutLink = updatedEvent.hangoutLink;
               metadata.conferenceData = updatedEvent.conferenceData;
               metadata.entryPoints = updatedEvent.entryPoints;
-              evt.appsStatus = handleAppsStatus(results, newBooking);
+              evt.appsStatus = handleAppsStatus(results, newBooking, reqAppsStatus);
             }
           }
         }

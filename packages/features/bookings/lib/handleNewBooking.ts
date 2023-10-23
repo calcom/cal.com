@@ -128,6 +128,8 @@ export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRe
 export type RescheduleReason = Awaited<ReturnType<typeof getBookingData>>["rescheduleReason"];
 export type NoEmail = Awaited<ReturnType<typeof getBookingData>>["noEmail"];
 export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
+export type AdditionalNotes = Awaited<ReturnType<typeof getBookingData>>["notes"];
+export type ReqAppsStatus = Awaited<ReturnType<typeof getBookingData>>["appsStatus"];
 
 interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -846,7 +848,8 @@ export const createLoggerWithEventDetails = (
 
 export function handleAppsStatus(
   results: EventResult<AdditionalInformation>[],
-  booking: (Booking & { appsStatus?: AppsStatus[] }) | null
+  booking: (Booking & { appsStatus?: AppsStatus[] }) | null,
+  reqAppsStatus: ReqAppsStatus
 ) {
   // Taking care of apps status
   let resultStatus: AppsStatus[] = results.map((app) => ({
@@ -1620,7 +1623,7 @@ async function handler(
                 metadata.hangoutLink = updatedEvent.hangoutLink;
                 metadata.conferenceData = updatedEvent.conferenceData;
                 metadata.entryPoints = updatedEvent.entryPoints;
-                evt.appsStatus = handleAppsStatus(results, newBooking);
+                evt.appsStatus = handleAppsStatus(results, newBooking, reqAppsStatus);
               }
             }
           }
@@ -2229,7 +2232,7 @@ async function handler(
     });
 
     videoCallUrl = _videoCallUrl;
-    evt.appsStatus = handleAppsStatus(results, booking);
+    evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
     // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
     if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
@@ -2325,7 +2328,7 @@ async function handler(
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking);
+        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
       }
