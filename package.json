@@ -107,7 +107,8 @@
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/node": "16.9.1",
     "@types/react": "18.0.26",
-    "@types/react-dom": "^18.0.9"
+    "@types/react-dom": "^18.0.9",
+    "libphonenumber-js@^1.10.12": "patch:libphonenumber-js@npm%3A1.10.12#./.yarn/patches/libphonenumber-js-npm-1.10.12-51c84f8bf1.patch"
   },
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
