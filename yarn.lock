@@ -3550,7 +3550,7 @@ __metadata:
     postcss: ^8.4.18
     react: ^18.2.0
     react-dom: ^18.2.0
-    tailwindcss: ^3.3.1
+    tailwindcss: ^3.3.3
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -3644,7 +3644,7 @@ __metadata:
     "@calcom/ui": "*"
     "@headlessui/react": ^1.5.0
     "@heroicons/react": ^1.0.6
-    "@prisma/client": ^5.3.0
+    "@prisma/client": ^5.4.2
     "@tailwindcss/forms": ^0.5.2
     "@types/node": 16.9.1
     "@types/react": 18.0.26
@@ -8245,7 +8245,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/client@npm:^5.3.0, @prisma/client@npm:^5.4.2":
+"@prisma/client@npm:^5.4.2":
   version: 5.4.2
   resolution: "@prisma/client@npm:5.4.2"
   dependencies:
@@ -26866,10 +26866,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libphonenumber-js@npm:^1.10.12":
+"libphonenumber-js@npm:1.10.12":
   version: 1.10.12
   resolution: "libphonenumber-js@npm:1.10.12"
   checksum: 8b8789b8b46f59e540108cdd3b925990e722a52134e03ab78a360312b7a001ab7f8211320338ddd60b8c68dd49d56075e16567f68aa22698e2218b69300fad42
+  languageName: node
+  linkType: hard
+
+"libphonenumber-js@patch:libphonenumber-js@npm%3A1.10.12#./.yarn/patches/libphonenumber-js-npm-1.10.12-51c84f8bf1.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 1.10.12
+  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.10.12#./.yarn/patches/libphonenumber-js-npm-1.10.12-51c84f8bf1.patch::version=1.10.12&hash=1f76a8&locator=calcom-monorepo%40workspace%3A."
+  checksum: 9c0940ae91f19a6b69c42f685af0584b273bf7f96984ee9d7a26ec945b0473fb03546638a442cbb3ee1c76ad78801b57bec9d737b6b59ab681a909bec1edfbba
   languageName: node
   linkType: hard
 
