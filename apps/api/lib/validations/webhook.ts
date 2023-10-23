@@ -20,6 +20,7 @@ export const schemaWebhookCreateParams = z
     payloadTemplate: z.string().optional().nullable(),
     eventTypeId: z.number().optional(),
     userId: z.number().optional(),
+    secret: z.string().optional().nullable(),
     // API shouldn't mess with Apps webhooks yet (ie. Zapier)
     // appId: z.string().optional().nullable(),
   })
@@ -31,6 +32,7 @@ export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams
   .merge(
     z.object({
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
+      secret: z.string().optional().nullable(),
     })
   )
   .partial()
