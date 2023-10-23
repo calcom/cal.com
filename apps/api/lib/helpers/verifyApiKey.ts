@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { NextMiddleware } from "next-api-middleware";
 
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
@@ -39,6 +40,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
     return res.status(401).json({ error: "This apiKey is expired" });
   }
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
+  await hardRateLimit(apiKey)(req, res, next);
   // save the user id in the request for later use
   req.userId = apiKey.userId;
   // save the isAdmin boolean here for later use
@@ -46,3 +48,20 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   req.isCustomPrisma = false;
   await next();
 };
+
+const hardRateLimit =
+  (apiKey: Prisma.ApiKeyGetPayload<true>): NextMiddleware =>
+  async (req, res) => {
+    const { prisma } = req;
+    if (!IS_PRODUCTION) return;
+    if (apiKey.remainingCalls < 1) {
+      return res.status(429).json({
+        error: "API_CALLS_LIMIT_REACHED",
+        message: "You have reached your daily limit of API calls. Book cal.com/sales to increase your limit",
+      });
+    }
+    await prisma.apiKey.update({
+      where: { id: apiKey.id },
+      data: { lastUsedAt: new Date(), remainingCalls: apiKey.remainingCalls - 1 },
+    });
+  };
