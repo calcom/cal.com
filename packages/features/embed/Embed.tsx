@@ -520,18 +520,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
-  const eventId = searchParams.get("eventId");
+  const eventId = searchParams?.get("eventId");
+  const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
-    { id: parseInt(eventId as string) },
-    { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
+    { id: parsedEventId },
+    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
 
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
-    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
+    return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
