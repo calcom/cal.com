@@ -2690,7 +2690,7 @@ function handleCustomInputs(
   });
 }
 
-const findBookingQuery = async (bookingId: number) => {
+export const findBookingQuery = async (bookingId: number) => {
   const foundBooking = await prisma.booking.findUnique({
     where: {
       id: bookingId,

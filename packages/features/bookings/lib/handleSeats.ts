@@ -1,14 +1,18 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Attendee } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
+import { uuid } from "short-uuid";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import EventManager from "@calcom/core/EventManager";
+import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRescheduledEmails, sendRescheduledSeatEmail, sendScheduledSeatsEmails } from "@calcom/emails";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
@@ -16,6 +20,7 @@ import {
   addVideoCallDataToEvt,
   createLoggerWithEventDetails,
   handleAppsStatus,
+  findBookingQuery,
 } from "./handleNewBooking";
 import type {
   Booking,
@@ -32,6 +37,57 @@ import type {
 } from "./handleNewBooking";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
+
+/* Check if the original booking has no more attendees, if so delete the booking
+  and any calendar or video integrations */
+const lastAttendeeDeleteBooking = async (
+  originalRescheduledBooking: OriginalRescheduledBooking,
+  filteredAttendees: Partial<Attendee>[],
+  originalBookingEvt?: CalendarEvent
+) => {
+  let deletedReferences = false;
+  if (filteredAttendees && filteredAttendees.length === 0 && originalRescheduledBooking) {
+    const integrationsToDelete = [];
+
+    for (const reference of originalRescheduledBooking.references) {
+      if (reference.credentialId) {
+        const credential = await prisma.credential.findUnique({
+          where: {
+            id: reference.credentialId,
+          },
+          select: credentialForCalendarServiceSelect,
+        });
+
+        if (credential) {
+          if (reference.type.includes("_video")) {
+            integrationsToDelete.push(deleteMeeting(credential, reference.uid));
+          }
+          if (reference.type.includes("_calendar") && originalBookingEvt) {
+            const calendar = await getCalendar(credential);
+            if (calendar) {
+              integrationsToDelete.push(
+                calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)
+              );
+            }
+          }
+        }
+      }
+    }
+
+    await Promise.all(integrationsToDelete).then(async () => {
+      await prisma.booking.update({
+        where: {
+          id: originalRescheduledBooking.id,
+        },
+        data: {
+          status: BookingStatus.CANCELLED,
+        },
+      });
+    });
+    deletedReferences = true;
+  }
+  return deletedReferences;
+};
 
 const handleSeats = async ({
   rescheduleUid,
@@ -52,6 +108,7 @@ const handleSeats = async ({
   isConfirmedByDefault,
   additionalNotes,
   reqAppsStatus,
+  attendeeLanguage,
 }: {
   rescheduleUid: string;
   reqBookingUid: string;
@@ -71,7 +128,10 @@ const handleSeats = async ({
   isConfirmedByDefault: IsConfirmedByDefault;
   additionalNotes: AdditionalNotes;
   reqAppsStatus: ReqAppsStatus;
+  attendeeLanguage: string | null;
 }) => {
+  const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
+
   let resultBooking:
     | (Partial<Booking> & {
         appsStatus?: AppsStatus[];
@@ -243,12 +303,6 @@ const handleSeats = async ({
         const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
         evt.iCalUID = calendarResult?.updatedEvent.iCalUID || undefined;
-
-        const loggerWithEventDetails = createLoggerWithEventDetails(
-          eventType.id,
-          reqBodyUser,
-          eventType.slug
-        );
 
         if (results.length > 0 && results.some((res) => !res.success)) {
           const error = {
