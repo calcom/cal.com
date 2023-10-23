@@ -186,7 +186,7 @@ test.describe("Google Calendar", async () => {
     });
 
     test("When canceling the booking, the GCal event should also be deleted", async ({ page }) => {
-      const { gCalEvent, gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
+      const { gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
         page,
         qaGCalCredential,
         qaUsername
