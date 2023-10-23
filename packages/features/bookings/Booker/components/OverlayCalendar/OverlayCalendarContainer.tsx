@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useCallback, useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -17,19 +18,113 @@ import { OverlayCalendarSettingsModal } from "../OverlayCalendar/OverlayCalendar
 import { useLocalSet } from "../hooks/useLocalSet";
 import { useOverlayCalendarStore } from "./store";
 
-export function OverlayCalendarContainer() {
-  const { t } = useLocale();
-  const isEmbed = useIsEmbed();
-  const [continueWithProvider, setContinueWithProvider] = useState(false);
-  const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useState(false);
-  const { data: session } = useSession();
-  const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
+interface OverlayCalendarSwitchProps {
+  enabled?: boolean;
+}
 
+function OverlayCalendarSwitch({ enabled }: OverlayCalendarSwitchProps) {
+  const { t } = useLocale();
+  const setContinueWithProvider = useOverlayCalendarStore((state) => state.setContinueWithProviderModal);
+  const setCalendarSettingsOverlay = useOverlayCalendarStore(
+    (state) => state.setCalendarSettingsOverlayModal
+  );
   const layout = useBookerStore((state) => state.layout);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const switchEnabled = enabled;
+
+  // Toggle query param for overlay calendar
+  const toggleOverlayCalendarQueryParam = useCallback(
+    (state: boolean) => {
+      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+      if (state) {
+        current.set("overlayCalendar", "true");
+        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+      } else {
+        current.delete("overlayCalendar");
+        localStorage.removeItem("overlayCalendarSwitchDefault");
+      }
+      // cast to string
+      const value = current.toString();
+      const query = value ? `?${value}` : "";
+      router.push(`${pathname}${query}`);
+    },
+    [searchParams, pathname, router]
+  );
+
+  /**
+   * If a user is not logged in and the overlay calendar query param is true,
+   * show the continue modal so they can login / create an account
+   */
+  useEffect(() => {
+    if (!session && switchEnabled) {
+      toggleOverlayCalendarQueryParam(false);
+      setContinueWithProvider(true);
+    }
+  }, [session, switchEnabled, setContinueWithProvider, toggleOverlayCalendarQueryParam]);
+
+  return (
+    <div
+      className={classNames(
+        "hidden gap-2",
+        layout === "week_view" || layout === "column_view" ? "xl:flex" : "md:flex"
+      )}>
+      <div className="flex items-center gap-2 pr-2">
+        <Switch
+          data-testid="overlay-calendar-switch"
+          checked={switchEnabled}
+          id="overlayCalendar"
+          onCheckedChange={(state) => {
+            if (!session) {
+              setContinueWithProvider(state);
+            } else {
+              toggleOverlayCalendarQueryParam(state);
+            }
+          }}
+        />
+        <label
+          htmlFor="overlayCalendar"
+          className="text-emphasis text-sm font-medium leading-none hover:cursor-pointer">
+          {t("overlay_my_calendar")}
+        </label>
+      </div>
+      {session && (
+        <Button
+          size="base"
+          data-testid="overlay-calendar-settings-button"
+          variant="icon"
+          color="secondary"
+          StartIcon={Settings}
+          onClick={() => {
+            setCalendarSettingsOverlay(true);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+export function OverlayCalendarContainer() {
+  const isEmbed = useIsEmbed();
   const searchParams = useSearchParams();
+  const [continueWithProvider, setContinueWithProvider] = useOverlayCalendarStore(
+    (state) => [state.continueWithProviderModal, state.setContinueWithProviderModal],
+    shallow
+  );
+  const [calendarSettingsOverlay, setCalendarSettingsOverlay] = useOverlayCalendarStore(
+    (state) => [state.calendarSettingsOverlayModal, state.setCalendarSettingsOverlayModal],
+    shallow
+  );
+
+  const { data: session, status: sessionStatus } = useSession();
+  const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
+  const switchEnabled =
+    searchParams?.get("overlayCalendar") === "true" ||
+    localStorage.getItem("overlayCalendarSwitchDefault") === "true";
+
+  const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
 
   // Move this to a hook
@@ -37,7 +132,6 @@ export function OverlayCalendarContainer() {
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
-  const overlayCalendarQueryParam = searchParams.get("overlayCalendar");
 
   const { data: overlayBusyDates } = trpc.viewer.availability.calendarOverlay.useQuery(
     {
@@ -50,7 +144,7 @@ export function OverlayCalendarContainer() {
       })),
     },
     {
-      enabled: !!session && set.size > 0 && overlayCalendarQueryParam === "true",
+      enabled: !!session && set.size > 0 && switchEnabled,
       onError: () => {
         clearSet();
       },
@@ -76,77 +170,13 @@ export function OverlayCalendarContainer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlayBusyDates]);
 
-  // Toggle query param for overlay calendar
-  const toggleOverlayCalendarQueryParam = useCallback(
-    (state: boolean) => {
-      const current = new URLSearchParams(Array.from(searchParams.entries()));
-      if (state) {
-        current.set("overlayCalendar", "true");
-      } else {
-        current.delete("overlayCalendar");
-      }
-      // cast to string
-      const value = current.toString();
-      const query = value ? `?${value}` : "";
-      router.push(`${pathname}${query}`);
-    },
-    [searchParams, pathname, router]
-  );
-
-  /**
-   * If a user is not logged in and the overlay calendar query param is true,
-   * show the continue modal so they can login / create an account
-   */
-  useEffect(() => {
-    if (!session && overlayCalendarQueryParam === "true") {
-      toggleOverlayCalendarQueryParam(false);
-      setContinueWithProvider(true);
-    }
-  }, [session, overlayCalendarQueryParam, toggleOverlayCalendarQueryParam]);
-
   if (isEmbed) {
     return null;
   }
 
   return (
     <>
-      <div
-        className={classNames(
-          "hidden gap-2",
-          layout === "week_view" || layout === "column_view" ? "xl:flex" : "md:flex"
-        )}>
-        <div className="flex items-center gap-2 pr-2">
-          <Switch
-            data-testid="overlay-calendar-switch"
-            checked={overlayCalendarQueryParam === "true"}
-            id="overlayCalendar"
-            onCheckedChange={(state) => {
-              if (!session) {
-                setContinueWithProvider(state);
-              } else {
-                toggleOverlayCalendarQueryParam(state);
-              }
-            }}
-          />
-          <label
-            htmlFor="overlayCalendar"
-            className="text-emphasis text-sm font-medium leading-none hover:cursor-pointer">
-            {t("overlay_my_calendar")}
-          </label>
-        </div>
-        {session && (
-          <Button
-            size="base"
-            data-testid="overlay-calendar-settings-button"
-            variant="icon"
-            color="secondary"
-            StartIcon={Settings}
-            onClick={() => {
-              setCalendarSettingsOverlay(true);
-            }}
-          />
-        )}
-      </div>
+      <OverlayCalendarSwitch enabled={switchEnabled} />
       <OverlayCalendarContinueModal
         open={continueWithProvider}
         onClose={(val) => {

@@ -2,7 +2,7 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee } from "@prisma/client";
+import type { BookingReference, Attendee, Booking } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
@@ -24,8 +24,8 @@ import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
-logger.setSettings({ minLevel: "silly" });
-const log = logger.getChildLogger({ prefix: ["[bookingScenario]"] });
+logger.settings.minLevel = 0;
+const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
   appId: string | null;
@@ -106,7 +106,7 @@ export type InputEventType = {
   durationLimits?: IntervalLimit;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
-type InputBooking = {
+type WhiteListedBookingProps = {
   id?: number;
   uid?: string;
   userId?: number;
@@ -121,6 +121,8 @@ type InputBooking = {
     credentialId?: number | null;
   })[];
 };
+
+type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
 
 export const Timezones = {
   "+5:30": "Asia/Kolkata",
@@ -671,7 +673,7 @@ export const TestData = {
     example: {
       name: "Example",
       email: "example@example.com",
-      username: "example",
+      username: "example.username",
       defaultScheduleId: 1,
       timeZone: Timezones["+5:30"],
     },
@@ -1244,3 +1246,35 @@ export const enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
 }
+
+const getMockAppStatus = ({
+  slug,
+  failures,
+  success,
+}: {
+  slug: string;
+  failures: number;
+  success: number;
+}) => {
+  const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
+    return app.slug === slug;
+  });
+  if (!foundEntry) {
+    throw new Error("App not found for the slug");
+  }
+  const foundApp = foundEntry[1];
+  return {
+    appName: foundApp.slug,
+    type: foundApp.type,
+    failures,
+    success,
+    errors: [],
+  };
+};
+export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
+  return getMockAppStatus({ slug, failures: 1, success: 0 });
+};
+
+export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
+  return getMockAppStatus({ slug, failures: 0, success: 1 });
+};
