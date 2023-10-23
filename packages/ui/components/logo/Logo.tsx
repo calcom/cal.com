@@ -1,4 +1,5 @@
 import classNames from "@calcom/lib/classNames";
+import "@calcom/lib/logoPointer.css";
 
 export default function Logo({
   small,
@@ -14,7 +15,7 @@ export default function Logo({
   src?: string;
 }) {
   return (
-    <h3 className={classNames("logo", inline && "inline", className)}>
+    <h3 className={classNames("logo", inline && "inline", className, "no-pointer-cursor")}>
       <strong>
         {icon ? (
           <img className="mx-auto w-9 dark:invert" alt="Cal" title="Cal" src={`${src}?type=icon`} />
