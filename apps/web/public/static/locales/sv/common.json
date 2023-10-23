@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Denna organisation har inga team än",
   "org_no_teams_yet_description": "Om du är administratör ska du skapa team som visas här.",
   "set_up": "Konfigurera",
-  "set_up_your_profile": "Konfigurera din profil",
-  "set_up_your_profile_description": "Meddela andra vem du är inom {{orgName}} och när de engagerar sig i din offentliga länk.",
   "my_profile": "Min profil",
   "my_settings": "Mina inställningar",
   "crm": "CRM",
