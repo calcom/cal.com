@@ -1,4 +1,4 @@
-import { getAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { AvatarGroup } from "@calcom/ui";
 
@@ -13,7 +13,7 @@ export function UserAvatarGroup(props: UserAvatarProps) {
       items={users.map((user) => ({
         alt: user.name || "",
         title: user.name || "",
-        image: getAvatarUrl(user),
+        image: getUserAvatarUrl(user),
       }))}
     />
   );

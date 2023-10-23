@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 
 /**
@@ -18,6 +19,12 @@ export function getOrgSlug(hostname: string) {
     const testHostname = `${url.hostname}${url.port ? `:${url.port}` : ""}`;
     return testHostname.endsWith(`.${ahn}`);
   });
+  logger.debug(`getOrgSlug: ${hostname} ${currentHostname}`, {
+    ALLOWED_HOSTNAMES,
+    WEBAPP_URL,
+    currentHostname,
+    hostname,
+  });
   if (currentHostname) {
     // Define which is the current domain/subdomain
     const slug = hostname.replace(`.${currentHostname}` ?? "", "");
@@ -29,6 +36,7 @@ export function getOrgSlug(hostname: string) {
 export function orgDomainConfig(hostname: string, fallback?: string | string[]) {
   const currentOrgDomain = getOrgSlug(hostname);
   const isValidOrgDomain = currentOrgDomain !== null && !RESERVED_SUBDOMAINS.includes(currentOrgDomain);
+  logger.debug(`orgDomainConfig: ${hostname} ${currentOrgDomain} ${isValidOrgDomain}`);
   if (isValidOrgDomain || !fallback) {
     return {
       currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
@@ -53,6 +61,9 @@ export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = 
   return `${options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""}${slug}.${subdomainSuffix()}`;
 }
 
+/**
+ * @deprecated You most probably intend to query for an organization only, use `whereClauseForOrgWithSlugOrRequestedSlug` instead which will only return the organization and not a team accidentally.
+ */
 export function getSlugOrRequestedSlug(slug: string) {
   const slugifiedValue = slugify(slug);
   return {
@@ -65,6 +76,26 @@ export function getSlugOrRequestedSlug(slug: string) {
         },
       },
     ],
+  } satisfies Prisma.TeamWhereInput;
+}
+
+export function whereClauseForOrgWithSlugOrRequestedSlug(slug: string) {
+  const slugifiedValue = slugify(slug);
+
+  return {
+    OR: [
+      { slug: slugifiedValue },
+      {
+        metadata: {
+          path: ["requestedSlug"],
+          equals: slug,
+        },
+      },
+    ],
+    metadata: {
+      path: ["isOrganization"],
+      equals: true,
+    },
   } satisfies Prisma.TeamWhereInput;
 }
 

@@ -1,5 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { Team, User } from "@calcom/prisma/client";
 import { AvatarGroup } from "@calcom/ui";
 
@@ -19,7 +19,7 @@ export function UserAvatarGroupWithOrg(props: UserAvatarProps) {
   ].concat(
     users.map((user) => {
       return {
-        image: getAvatarUrl(user),
+        image: getUserAvatarUrl(user),
         alt: user.name || undefined,
         title: user.name || user.username || "",
       };

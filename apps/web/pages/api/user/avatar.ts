@@ -1,15 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  orgDomainConfig,
+  whereClauseForOrgWithSlugOrRequestedSlug,
+} from "@calcom/features/ee/organizations/lib/orgDomains";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
+const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 const querySchema = z
   .object({
     username: z.string(),
     teamname: z.string(),
+    /**
+     * Passed when we want to fetch avatar of a particular organization
+     */
     orgSlug: z.string(),
     /**
      * Allow fetching avatar of a particular organization
@@ -30,7 +38,7 @@ async function getIdentityData(req: NextApiRequest) {
         id: orgId,
       }
     : org
-    ? getSlugOrRequestedSlug(org)
+    ? whereClauseForOrgWithSlugOrRequestedSlug(org)
     : null;
 
   if (username) {
@@ -58,6 +66,7 @@ async function getIdentityData(req: NextApiRequest) {
       },
       select: { logo: true },
     });
+
     return {
       org,
       name: teamname,
@@ -65,15 +74,25 @@ async function getIdentityData(req: NextApiRequest) {
       avatar: getPlaceholderAvatar(team?.logo, teamname),
     };
   }
+
   if (orgSlug) {
-    const org = await prisma.team.findFirst({
-      where: getSlugOrRequestedSlug(orgSlug),
+    const orgs = await prisma.team.findMany({
+      where: {
+        ...whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+      },
       select: {
         slug: true,
         logo: true,
         name: true,
       },
     });
+
+    if (orgs.length > 1) {
+      // This should never happen, but instead of throwing error, we are just logging to be able to observe when it happens.
+      log.error("More than one organization found for slug", orgSlug);
+    }
+
+    const org = orgs[0];
     return {
       org: org?.slug,
       name: org?.name,
