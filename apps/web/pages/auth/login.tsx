@@ -83,7 +83,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
