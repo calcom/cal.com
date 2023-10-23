@@ -252,11 +252,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           profile: {
             name: membership.team.name,
             image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-            slug: membership.team.slug
-              ? !membership.team.parentId
-                ? `team/${membership.team.slug}`
-                : `${membership.team.slug}`
-              : null,
+            slug: membership.team.slug ? `team/${membership.team.slug}` : null,
           },
           metadata: {
             membershipCount: membership.team.members.length,
