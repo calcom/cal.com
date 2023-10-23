@@ -268,7 +268,7 @@ interface EditModalState extends Pick<App, "keys"> {
 const AdminAppsListContainer = () => {
   const searchParams = useSearchParams();
   const { t } = useLocale();
-  const category = searchParams.get("category") || AppCategories.calendar;
+  const category = searchParams?.get("category") || AppCategories.calendar;
 
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
