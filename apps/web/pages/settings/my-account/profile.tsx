@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
+import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -19,6 +19,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { Ensure } from "@calcom/types/utils";
 import {
   Alert,
   Button,
@@ -251,6 +252,7 @@ const ProfileView = () => {
         isLoading={updateProfileMutation.isLoading}
         isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
         userAvatar={user.avatar}
+        user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
@@ -396,6 +398,7 @@ const ProfileForm = ({
   isLoading = false,
   isFallbackImg,
   userAvatar,
+  user,
   userOrganization,
 }: {
   defaultValues: FormValues;
@@ -404,6 +407,7 @@ const ProfileForm = ({
   isLoading: boolean;
   isFallbackImg: boolean;
   userAvatar: string;
+  user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
   const { t } = useLocale();
@@ -443,13 +447,21 @@ const ProfileForm = ({
             name="avatar"
             render={({ field: { value } }) => {
               const showRemoveAvatarButton = !isFallbackImg || (value && userAvatar !== value);
+              const organization =
+                userOrganization && userOrganization.id
+                  ? {
+                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      slug: userOrganization.slug || null,
+                      requestedSlug: userOrganization.metadata?.requestedSlug || null,
+                    }
+                  : null;
               return (
                 <>
-                  <OrganizationAvatar
-                    alt={formMethods.getValues("username")}
-                    imageSrc={value}
+                  <OrganizationMemberAvatar
+                    previewSrc={value}
                     size="lg"
-                    organizationSlug={userOrganization.slug}
+                    user={user}
+                    organization={organization}
                   />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
