@@ -94,7 +94,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2",
+        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
       },
       {
         variant: "icon",
