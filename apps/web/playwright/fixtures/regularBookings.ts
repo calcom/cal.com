@@ -318,16 +318,5 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    fillRequiredQuestions: async (eventTypePage: Page) => {
-      await eventTypePage.getByPlaceholder("Phone test").click();
-      await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
-      await eventTypePage.getByPlaceholder("address test").click();
-      await eventTypePage.getByPlaceholder("address test").fill("address test");
-      await eventTypePage.getByPlaceholder("textarea test").click();
-      await eventTypePage.getByPlaceholder("textarea test").fill("textarea test");
-      await eventTypePage.getByPlaceholder("text test").click();
-      await eventTypePage.getByPlaceholder("text test").fill("text test");
-      await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
-    },
   };
 }

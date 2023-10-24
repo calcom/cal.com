@@ -27,29 +27,25 @@ test.describe("Booking With All Questions", () => {
       "text",
     ];
     for (const question of allQuestions) {
-      // Check if all questions have isRequired set to true
-      if (bookingOptions.isAllRequired) {
-        if (
-          question !== "number" &&
-          question !== "multiemail" &&
-          question !== "select" &&
-          question !== "checkbox" &&
-          question !== "boolean" &&
-          question !== "multiselect" &&
-          question !== "radio"
-        ) {
-          await bookingPage.addQuestion(
-            question,
-            `${question}-test`,
-            `${question} test`,
-            true,
-            `${question} test`
-          );
-        } else {
-          await bookingPage.addQuestion(question, `${question}-test`, `${question} test`, false);
-        }
-        await bookingPage.checkField(question);
+      if (
+        question !== "number" &&
+        question !== "select" &&
+        question !== "checkbox" &&
+        question !== "boolean" &&
+        question !== "multiselect" &&
+        question !== "radio"
+      ) {
+        await bookingPage.addQuestion(
+          question,
+          `${question}-test`,
+          `${question} test`,
+          true,
+          `${question} test`
+        );
+      } else {
+        await bookingPage.addQuestion(question, `${question}-test`, `${question} test`, true);
       }
+      await bookingPage.checkField(question);
     }
 
     await bookingPage.updateEventType();
@@ -77,34 +73,35 @@ test.describe("Booking With All Questions", () => {
       "text",
     ];
     for (const question of allQuestions) {
-      if (bookingOptions.isAllRequired) {
-        if (
-          question !== "number" &&
-          question !== "multiemail" &&
-          question !== "select" &&
-          question !== "checkbox" &&
-          question !== "boolean" &&
-          question !== "multiselect" &&
-          question !== "radio"
-        ) {
-          await bookingPage.addQuestion(
-            question,
-            `${question}-test`,
-            `${question} test`,
-            true,
-            `${question} test`
-          );
-        } else {
-          await bookingPage.addQuestion(question, `${question}-test`, `${question} test`, false);
-        }
-        await bookingPage.checkField(question);
+      if (
+        question !== "number" &&
+        question !== "select" &&
+        question !== "checkbox" &&
+        question !== "boolean" &&
+        question !== "multiselect" &&
+        question !== "radio"
+      ) {
+        await bookingPage.addQuestion(
+          question,
+          `${question}-test`,
+          `${question} test`,
+          false,
+          `${question} test`
+        );
+      } else {
+        await bookingPage.addQuestion(question, `${question}-test`, `${question} test`, false);
       }
+      await bookingPage.checkField(question);
     }
 
     await bookingPage.updateEventType();
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
-    await bookingPage.fillRequiredQuestions(eventTypePage);
+    await bookingPage.fillAllQuestions(eventTypePage, allQuestions, {
+      ...bookingOptions,
+      isAllRequired: false,
+    });
+
     await bookingPage.rescheduleBooking(eventTypePage);
     await bookingPage.assertBookingRescheduled(eventTypePage);
     await bookingPage.cancelBooking(eventTypePage);
