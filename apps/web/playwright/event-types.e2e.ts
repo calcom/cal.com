@@ -115,25 +115,13 @@ test.describe("Event Types tests", () => {
 
       const locationData = ["location 1", "location 2", "location 3"];
 
-      const fillLocation = async (inputText: string, index: number) => {
-        await page.locator("#location-select").last().click();
-        await page.locator("text=In Person (Organizer Address)").last().click();
-
-        const locationInputName = `locations[${index}].address`;
-        await page.locator(`input[name="${locationInputName}"]`).waitFor();
-        await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
-        await page.locator("[data-testid=display-location]").last().check();
-        await page.locator("[data-testid=update-eventtype]").click();
-        await page.waitForLoadState("networkidle");
-      };
-
-      await fillLocation(locationData[0], 0);
+      await fillLocation(page, locationData[0], 0);
 
       await page.locator("[data-testid=add-location]").click();
-      await fillLocation(locationData[1], 1);
+      await fillLocation(page, locationData[1], 1);
 
       await page.locator("[data-testid=add-location]").click();
-      await fillLocation(locationData[2], 2);
+      await fillLocation(page, locationData[2], 2);
 
       await page.locator("[data-testid=update-eventtype]").click();
 
@@ -304,3 +292,18 @@ async function addAnotherLocation(page: Page, locationOptionText: string) {
   //
   await page.locator(`text="${locationOptionText}"`).click();
 }
+
+const fillLocation = async (page: Page, inputText: string, index: number) => {
+  // Except the first location, dropdown automatically opens when adding another location
+  if (index == 0) {
+    await page.locator("#location-select").last().click();
+  }
+  await page.locator("text=In Person (Organizer Address)").last().click();
+
+  const locationInputName = `locations[${index}].address`;
+  await page.locator(`input[name="${locationInputName}"]`).waitFor();
+  await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
+  await page.locator("[data-testid=display-location]").last().check();
+  await page.locator("[data-testid=update-eventtype]").click();
+  await page.waitForLoadState("networkidle");
+};
