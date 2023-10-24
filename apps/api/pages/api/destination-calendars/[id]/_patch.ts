@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import {
@@ -57,9 +58,31 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Destination calendar not found
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, body } = req;
+  const { userId, isAdmin, prisma, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
+
+  const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
+
+  if (parsedBody.integration && !parsedBody.externalId) {
+    throw new HttpError({ statusCode: 400, message: "External Id is required with integration value" });
+  }
+  if (!parsedBody.integration && parsedBody.externalId) {
+    throw new HttpError({ statusCode: 400, message: "Integration value is required with external ID" });
+  }
+
+  if (parsedBody.integration && parsedBody.externalId) {
+    /* Check if credentialId data matches the ownership and integration passed in */
+    const credential = await prisma.credential.findFirst({
+      where: { type: parsedBody.integration, userId: assignedUserId },
+      select: { id: true, type: true, userId: true },
+    });
+    if (!credential)
+      throw new HttpError({
+        statusCode: 400,
+        message: "Bad request, invalid externalId or integration value",
+      });
+  }
 
   const destinationCalendar = await prisma.destinationCalendar.update({
     where: { id },
