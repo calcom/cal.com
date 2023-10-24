@@ -106,8 +106,6 @@ export async function patchHandler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 400, message: "Integration value is required with external ID" });
   }
 
-  console.log("So far so good");
-
   if (parsedBody.integration && parsedBody.externalId) {
     const userCredentials = await prisma.credential.findMany({
       where: {
