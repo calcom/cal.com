@@ -48,7 +48,7 @@ export const useOpenModal = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const openModal = (option: z.infer<typeof newFormModalQuerySchema>) => {
-    const newQuery = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(searchParams ?? undefined);
     newQuery.set("dialog", "new-form");
     Object.keys(option).forEach((key) => {
       newQuery.set(key, option[key as keyof typeof option] || "");
