@@ -56,7 +56,10 @@ test.describe("Booking With All Questions", () => {
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
     await bookingPage.fillAllQuestions(eventTypePage, allQuestions, bookingOptions);
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+    await bookingPage.rescheduleBooking(eventTypePage);
+    await bookingPage.assertBookingRescheduled(eventTypePage);
+    await bookingPage.cancelBooking(eventTypePage);
+    await bookingPage.assertBookingCanceled(eventTypePage);
   });
 
   test("Selecting and filling all questions as optional", async ({ bookingPage }) => {
@@ -102,6 +105,9 @@ test.describe("Booking With All Questions", () => {
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
     await bookingPage.fillRequiredQuestions(eventTypePage);
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+    await bookingPage.rescheduleBooking(eventTypePage);
+    await bookingPage.assertBookingRescheduled(eventTypePage);
+    await bookingPage.cancelBooking(eventTypePage);
+    await bookingPage.assertBookingCanceled(eventTypePage);
   });
 });
