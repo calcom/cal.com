@@ -49,7 +49,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>
           <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
-            <div className="max-w-screen flex w-full flex-col [grid-area:meta] md:w-[var(--booker-meta-width)]">
+            <div className="max-w-screen flex w-full flex-col [grid-area:meta] md:w-[var(--troubleshooter-meta-width)]">
               <TroubleshooterSidebar />
             </div>
           </StickyOnDesktop>

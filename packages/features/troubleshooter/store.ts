@@ -15,6 +15,7 @@ type StoreInitializeType = {
 
 export type TroubleshooterStore = {
   eventSlug: string | null;
+  setEventSlug: (eventSlug: string | null) => void;
   month: string | null;
   setMonth: (month: string | null) => void;
   selectedDate: string | null;
@@ -64,6 +65,10 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
     updateQueryParam("date", newSelectionFormatted);
   },
   eventSlug: null,
+  setEventSlug: (eventSlug: string | null) => {
+    set({ eventSlug });
+    updateQueryParam("eventType", eventSlug ?? "");
+  },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     set({ month });

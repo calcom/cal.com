@@ -5,14 +5,14 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, ButtonGroup } from "@calcom/ui";
 
-import { useBookerStore } from "../store";
+import { useTroubleshooterStore } from "../store";
 
 export function TroubleshooterHeader({ extraDays, isMobile }: { extraDays: number; isMobile: boolean }) {
   const { t, i18n } = useLocale();
-  const selectedDateString = useBookerStore((state) => state.selectedDate);
-  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
-  const addToSelectedDate = useBookerStore((state) => state.addToSelectedDate);
-  const selectedDate = dayjs(selectedDateString);
+  const selectedDateString = useTroubleshooterStore((state) => state.selectedDate);
+  const setSelectedDate = useTroubleshooterStore((state) => state.setSelectedDate);
+  const addToSelectedDate = useTroubleshooterStore((state) => state.addToSelectedDate);
+  const selectedDate = selectedDateString ? dayjs(selectedDateString) : dayjs();
   const today = dayjs();
   const selectedDateMin3DaysDifference = useMemo(() => {
     const diff = today.diff(selectedDate, "days");
