@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
@@ -34,6 +34,31 @@ describe("Test Suite: Date Picker", () => {
       });
 
       expect(result).toHaveLength(1);
+    });
+
+    test("it translates correctly regardless of system time", () => {
+      {
+        // test a date in negative UTC offset
+        vi.useFakeTimers().setSystemTime(new Date("2023-10-24T13:27:00.000-07:00"));
+
+        const currentDate = new Date();
+        const result = getAvailableDatesInMonth({
+          browsingDate: currentDate,
+        });
+
+        expect(result).toHaveLength(daysInMonth(currentDate) - currentDate.getDate() + 1);
+      }
+      {
+        // test a date in negative UTC offset
+        vi.useFakeTimers().setSystemTime(new Date("2023-10-24T13:27:00.000+07:00"));
+
+        const currentDate = new Date();
+        const result = getAvailableDatesInMonth({
+          browsingDate: currentDate,
+        });
+
+        expect(result).toHaveLength(daysInMonth(currentDate) - currentDate.getDate() + 1);
+      }
     });
   });
 });
