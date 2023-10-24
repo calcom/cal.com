@@ -386,6 +386,19 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
           </div>
         </div>
         <div className="bg-subtle border-subtle hidden w-full flex-col justify-between rounded-l-2xl py-12 pl-12 lg:flex">
+          {IS_CALCOM && (
+            <div className="mb-12 mr-12 grid h-full w-full grid-cols-4 gap-4 ">
+              <div className="">
+                <img src="/product-cards/trustpilot.svg" className="h-[54px] w-full" alt="#" />
+              </div>
+              <div>
+                <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="#" />
+              </div>
+              <div>
+                <img src="/product-cards/producthunt.svg" className="h-[54px] w-full" alt="#" />
+              </div>
+            </div>
+          )}
           <div
             className="rounded-2xl border-y border-l border-dashed border-[#D1D5DB5A] py-[6px] pl-[6px]"
             style={{
@@ -394,26 +407,27 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
             <img src="/mock-event-type-list.svg" alt="#" className="" />
           </div>
           <div className="mr-12 mt-8 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
-            {FEATURES.map((feature) => (
-              <>
-                <div className="flex flex-col leading-none">
-                  <div className="text-emphasis items-center">
-                    <feature.icon className="mb-1 h-4 w-4" />
-                    <span className="text-sm font-medium">{t(feature.title)}</span>
+            {!IS_CALCOM &&
+              FEATURES.map((feature) => (
+                <>
+                  <div className="flex flex-col leading-none">
+                    <div className="text-emphasis items-center">
+                      <feature.icon className="mb-1 h-4 w-4" />
+                      <span className="text-sm font-medium">{t(feature.title)}</span>
+                    </div>
+                    <div className="text-subtle text-sm">
+                      <p>
+                        {t(
+                          feature.description,
+                          feature.i18nOptions && {
+                            ...feature.i18nOptions,
+                          }
+                        )}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-subtle text-sm">
-                    <p>
-                      {t(
-                        feature.description,
-                        feature.i18nOptions && {
-                          ...feature.i18nOptions,
-                        }
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </>
-            ))}
+                </>
+              ))}
           </div>
         </div>
       </div>
