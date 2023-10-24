@@ -26,10 +26,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
         secondQuestion: "address",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Phone and Address not required", async ({ bookingPage }) => {
+    test("Phone required and Address not required", async ({ bookingPage }) => {
       await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
       await bookingPage.addQuestion("address", "address-test", "address test", false, "address test");
       await bookingPage.updateEventType();
@@ -43,7 +46,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
         secondQuestion: "address",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test.describe("Booking With Phone Question and checkbox group Question", () => {
@@ -62,10 +68,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "checkbox",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and checkbox group not required", async ({ bookingPage }) => {
+      test("Phone required and checkbox group not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
         await bookingPage.updateEventType();
@@ -79,7 +88,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "checkbox",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -98,9 +110,12 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "boolean",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
-      test("Phone and checkbox not required", async ({ bookingPage }) => {
+      test("Phone required and checkbox not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", false);
         await bookingPage.updateEventType();
@@ -114,7 +129,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "boolean",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -133,10 +151,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "textarea",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and Long text not required", async ({ bookingPage }) => {
+      test("Phone required and Long text not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", false, "textarea test");
         await bookingPage.updateEventType();
@@ -150,7 +171,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "textarea",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -176,10 +200,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "multiemail",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and Multi email not required", async ({ bookingPage }) => {
+      test("Phone required and Multi email not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion(
           "multiemail",
@@ -199,7 +226,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "multiemail",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -218,10 +248,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "multiselect",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and multiselect text not required", async ({ bookingPage }) => {
+      test("Phone required and multiselect text not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", false);
         await bookingPage.updateEventType();
@@ -235,7 +268,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "multiselect",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -254,10 +290,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "number",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and Number not required", async ({ bookingPage }) => {
+      test("Phone required and Number not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("number", "number-test", "number test", false, "number test");
         await bookingPage.updateEventType();
@@ -271,7 +310,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "number",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -290,10 +332,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "radio",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and Radio group not required", async ({ bookingPage }) => {
+      test("Phone required and Radio group not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("radio", "radio-test", "radio test", false);
         await bookingPage.updateEventType();
@@ -307,7 +352,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "radio",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -326,10 +374,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "select",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and select not required", async ({ bookingPage }) => {
+      test("Phone required and select not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("select", "select-test", "select test", false, "select test");
         await bookingPage.updateEventType();
@@ -343,7 +394,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "select",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
@@ -363,10 +417,13 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "text",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Phone and Short text not required", async ({ bookingPage }) => {
+      test("Phone required and Short text not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("text", "text-test", "text test", false, "text test");
         await bookingPage.updateEventType();
@@ -380,7 +437,10 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
           secondQuestion: "text",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
   });
