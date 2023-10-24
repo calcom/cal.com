@@ -1,6 +1,5 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -37,13 +36,6 @@ export const EventMeta = () => {
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
-
-  useEffect(() => {
-    if (!selectedDuration && event?.length) {
-      setSelectedDuration(event.length);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.length, selectedDuration]);
 
   if (hideEventTypeDetails) {
     return null;

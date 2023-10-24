@@ -6,9 +6,16 @@ import { bookingReferenceMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
+const globalForPrisma = global as unknown as {
+  prismaWithoutClientExtensions: PrismaClientWithoutExtension;
+  prismaWithClientExtensions: PrismaClientWithExtensions;
+};
+
 if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "warn"];
 
-const prismaWithoutClientExtensions = new PrismaClientWithoutExtension(prismaOptions);
+// Prevents flooding with idle connections
+const prismaWithoutClientExtensions =
+  globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
   new PrismaClientWithoutExtension({ ...prismaOptions, ...options }).$extends(withAccelerate());
@@ -50,16 +57,15 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
 //   },
 // })
 
-// const prismaWithClientExtensions = prismaWithoutClientExtensions;
-
-export const prisma =
-  ((globalThis as any).prisma as typeof prismaWithClientExtensions) || prismaWithClientExtensions;
+export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
 if (process.env.NODE_ENV !== "production") {
-  (globalThis as any).prisma = prisma;
+  globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
+  globalForPrisma.prismaWithClientExtensions = prisma;
 }
 
-export type PrismaClient = typeof prismaWithClientExtensions;
+type PrismaClientWithExtensions = typeof prismaWithClientExtensions;
+export type PrismaClient = PrismaClientWithExtensions;
 export default prisma;
 
 export * from "./selects";
