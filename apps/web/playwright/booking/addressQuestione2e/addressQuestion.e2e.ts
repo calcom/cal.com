@@ -1,7 +1,7 @@
 import { loginUser } from "../../fixtures/regularBookings";
 import { test } from "../../lib/fixtures";
 
-test.describe("Booking With Address Question and Checkbox Group Question", () => {
+test.describe("Booking With Address Question and Each Other Question", () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
 
   test.beforeEach(async ({ page, users }) => {
@@ -9,46 +9,54 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
     await page.goto("/event-types");
   });
 
-  test("Address and checkbox group required", async ({ bookingPage }) => {
-    await bookingPage.goToEventType("30 min");
-    await bookingPage.goToTab("event_advanced_tab_title");
-    await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
-    await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
-    await bookingPage.updateEventType();
-    const eventTypePage = await bookingPage.previewEventType();
-    await bookingPage.selectTimeSlot(eventTypePage);
-    await bookingPage.fillAndConfirmBooking({
-      eventTypePage,
-      placeholderText: "Please share anything that will help prepare for our meeting.",
-      question: "address",
-      fillText: "Test Address question and Checkbox Group question (both required)",
-      secondQuestion: "checkbox",
-      options: bookingOptions,
+  test.describe("Booking With Address Question and Checkbox Group Question", () => {
+    test("Address required and checkbox group required", async ({ bookingPage }) => {
+      await bookingPage.goToEventType("30 min");
+      await bookingPage.goToTab("event_advanced_tab_title");
+      await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
+      await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
+      await bookingPage.updateEventType();
+      const eventTypePage = await bookingPage.previewEventType();
+      await bookingPage.selectTimeSlot(eventTypePage);
+      await bookingPage.fillAndConfirmBooking({
+        eventTypePage,
+        placeholderText: "Please share anything that will help prepare for our meeting.",
+        question: "address",
+        fillText: "Test Address question and Checkbox Group question (both required)",
+        secondQuestion: "checkbox",
+        options: bookingOptions,
+      });
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
-  });
 
-  test("Address and checkbox group not required", async ({ bookingPage }) => {
-    await bookingPage.goToEventType("30 min");
-    await bookingPage.goToTab("event_advanced_tab_title");
-    await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
-    await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
-    await bookingPage.updateEventType();
-    const eventTypePage = await bookingPage.previewEventType();
-    await bookingPage.selectTimeSlot(eventTypePage);
-    await bookingPage.fillAndConfirmBooking({
-      eventTypePage,
-      placeholderText: "Please share anything that will help prepare for our meeting.",
-      question: "address",
-      fillText: "Test Address question and Checkbox Group question (only address required)",
-      secondQuestion: "checkbox",
-      options: { ...bookingOptions, isRequired: false },
+    test("Address and checkbox group not required", async ({ bookingPage }) => {
+      await bookingPage.goToEventType("30 min");
+      await bookingPage.goToTab("event_advanced_tab_title");
+      await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
+      await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
+      await bookingPage.updateEventType();
+      const eventTypePage = await bookingPage.previewEventType();
+      await bookingPage.selectTimeSlot(eventTypePage);
+      await bookingPage.fillAndConfirmBooking({
+        eventTypePage,
+        placeholderText: "Please share anything that will help prepare for our meeting.",
+        question: "address",
+        fillText: "Test Address question and Checkbox Group question (only address required)",
+        secondQuestion: "checkbox",
+        options: { ...bookingOptions, isRequired: false },
+      });
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
   });
 
   test.describe("Booking With Address Question and Checkbox Question", () => {
-    test("Address and checkbox required", async ({ bookingPage }) => {
+    test("Address required and checkbox required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -64,7 +72,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "boolean",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Addres and checkbox not required", async ({ bookingPage }) => {
@@ -83,12 +94,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "boolean",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and Long text Question", () => {
-    test("Addres and Long Text required", async ({ bookingPage }) => {
+    test("Addres required and Long Text required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -104,7 +118,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "textarea",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and Long Text not required", async ({ bookingPage }) => {
@@ -123,12 +140,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "textarea",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and Multi email Question", () => {
-    test("Address and Multi email required", async ({ bookingPage }) => {
+    test("Address required and Multi email required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -150,7 +170,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "multiemail",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and Multi email not required", async ({ bookingPage }) => {
@@ -175,12 +198,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "multiemail",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and multiselect Question", () => {
-    test("Address and multiselect text required", async ({ bookingPage }) => {
+    test("Address required and multiselect text required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -196,7 +222,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "multiselect",
         options: { ...bookingOptions, isMultiSelect: true },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and multiselect text not required", async ({ bookingPage }) => {
@@ -215,12 +244,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "multiselect",
         options: { ...bookingOptions, isMultiSelect: true, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and Number Question", () => {
-    test("Address and Number required", async ({ bookingPage }) => {
+    test("Address required and Number required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -236,7 +268,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "number",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and Number not required", async ({ bookingPage }) => {
@@ -255,12 +290,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "number",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and Phone Question", () => {
-    test("Address and Phone required", async ({ bookingPage }) => {
+    test("Address required and Phone required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -276,7 +314,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "phone",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and Phone not required", async ({ bookingPage }) => {
@@ -295,13 +336,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "phone",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and Radio group Question", () => {
-    const bookingOptions = { hasPlaceholder: false, isRequired: true };
-    test("Address and Radio group required", async ({ bookingPage }) => {
+    test("Address required and Radio group required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -317,7 +360,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "radio",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and Radio group not required", async ({ bookingPage }) => {
@@ -336,12 +382,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "radio",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and select Question", () => {
-    test("Address and select required", async ({ bookingPage }) => {
+    test("Address required and select required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -357,7 +406,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "select",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and select not required", async ({ bookingPage }) => {
@@ -376,13 +428,15 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "select",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Address Question and Short text question", () => {
-    const bookingOptions = { hasPlaceholder: true, isRequired: true };
-    test("Address and Short text required", async ({ bookingPage }) => {
+    test("Address required and Short text required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
@@ -398,7 +452,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "text",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Address and Short text not required", async ({ bookingPage }) => {
@@ -417,7 +474,10 @@ test.describe("Booking With Address Question and Checkbox Group Question", () =>
         secondQuestion: "text",
         options: { ...bookingOptions, isRequired: true },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 });
