@@ -115,8 +115,11 @@ export async function loginUser(users: UserFixture) {
 
 export function createBookingPageFixture(page: Page) {
   return {
-    goToEventType: async (eventType: string) => {
-      await page.getByRole("link", { name: eventType }).click();
+    goToEventTypePage: async (page?: Page) => {
+      page?.goto("/event-types");
+    },
+    goToEventType: async (eventType: string, page?: Page) => {
+      await page?.getByRole("link", { name: eventType }).first().click();
     },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
@@ -166,8 +169,8 @@ export function createBookingPageFixture(page: Page) {
         await page.getByRole("button", { name: "View next" }).click();
       }
     },
-    selectFirstAvailableTime: async () => {
-      await page.getByTestId("time").first().click();
+    selectFirstAvailableTime: async (page?: Page) => {
+      await page?.getByTestId("time").first().click();
     },
     fillRescheduleReasonAndConfirm: async () => {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
@@ -250,6 +253,81 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    selectTimezoneInSettings: async (name: string, settingsPage: Page) => {
+      await settingsPage.locator("#timezone svg").click();
+      name.includes(" ") && (name = name.replace(" ", "_"));
+      await settingsPage.getByTestId(`select-option-${name}`).click();
+      await settingsPage.getByRole("button", { name: "Update" }).click();
+      await settingsPage.getByRole("button", { name: "Don't update" }).click();
+    },
+    assertRightTimezone: async (
+      timezone: string,
+      bookingSchedulingPage: Page,
+      options?: { inConfirmationPage: boolean; shouldConfirmBooking?: boolean }
+    ) => {
+      if (options?.inConfirmationPage) {
+        await expect(bookingSchedulingPage.getByText("America/New_York")).toBeVisible();
+        if (options.shouldConfirmBooking) {
+          await bookingSchedulingPage.getByTestId("confirm-book-button").click();
+          await expect(bookingSchedulingPage.getByText("This meeting is scheduled")).toBeVisible();
+        }
+      } else {
+        await expect(
+          bookingSchedulingPage
+            .locator("div")
+            .filter({ hasText: `${timezone}` })
+            .nth(1)
+        ).toBeVisible();
+      }
+    },
+    checkUpdateTimezone: async () => {
+      if (await page.getByRole("button", { name: "Update timezone" }).isVisible()) {
+        page.getByRole("button", { name: "Update timezone" }).click();
+      }
+    },
+    createRegularEventType: async (name: string) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByPlaceholder("Quick Chat").click();
+      await page.getByPlaceholder("Quick Chat").fill(`${name}`);
+      await page.getByRole("button", { name: "Continue" }).dblclick();
+      await page.getByTestId("update-eventtype").click();
+    },
+    selectTimezone: async (timezone: string, bookingSchedulingPage: Page) => {
+      await bookingSchedulingPage.locator("span").filter({ hasText: "/" }).locator("svg").first().click();
+      timezone.includes(" ") && (timezone = timezone.replace(" ", "_"));
+      await bookingSchedulingPage.getByTestId(`select-option-${timezone}`).click();
+    },
+    assertCorrectTimezoneInGlobeButton: async (timezone: string, page?: Page) => {
+      await page?.getByRole("link", { name: "m - " }).first().hover();
+      await page?.getByRole("link", { name: "m - " }).first().getByRole("button").click();
+      timezone.includes(" ") && (timezone = timezone.replace(" ", "_"));
+      page !== undefined && (await expect(page?.getByText("timezone").first()).toBeVisible());
+    },
+    deleteEventType: async (bookingName: string, page?: Page) => {
+      await page
+        ?.getByRole("link", { name: `${bookingName}` })
+        .first()
+        .click();
+      await page
+        ?.locator("header")
+        .filter({ hasText: `${bookingName}Save` })
+        .getByRole("button")
+        .nth(2)
+        .click();
+      await page?.getByRole("button", { name: "Yes, delete" }).click();
+      page !== undefined && (await expect(page?.getByText("Event type deleted successfully")).toBeVisible());
+    },
+    cancelUpcomingBooking: async (bookingName: string, page?: Page) => {
+      await page?.getByRole("link", { name: "Bookings" }).click();
+      await page
+        ?.getByRole("row", {
+          name: ` ${bookingName} between Pro Example and Pro Example You and Pro Example Cancel Edit`,
+        })
+        .getByTestId("cancel")
+        .first()
+        .click();
+      await page?.getByTestId("confirm_cancel").click();
     },
   };
 }
