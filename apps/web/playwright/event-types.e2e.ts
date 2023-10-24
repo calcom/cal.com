@@ -304,6 +304,4 @@ const fillLocation = async (page: Page, inputText: string, index: number) => {
   await page.locator(`input[name="${locationInputName}"]`).waitFor();
   await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
   await page.locator("[data-testid=display-location]").last().check();
-  await page.locator("[data-testid=update-eventtype]").click();
-  await page.waitForLoadState("networkidle");
 };
