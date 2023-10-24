@@ -53,6 +53,9 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *               timeZone:
  *                 description: The user's time zone
  *                 type: string
+ *               hideBranding:
+ *                 description: Remove branding from the user's calendar page
+ *                 type: boolean
  *               theme:
  *                 description: Default theme for the user. Acceptable values are one of [DARK, LIGHT]
  *                 type: string
@@ -79,7 +82,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *       - users
  *     responses:
  *       200:
- *         description: OK, user edited successfuly
+ *         description: OK, user edited successfully
  *       400:
  *         description: Bad request. User body is invalid.
  *       401:
@@ -94,9 +97,10 @@ export async function patchHandler(req: NextApiRequest) {
   if (!isAdmin && query.userId !== req.userId) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
   const body = await schemaUserEditBodyParams.parseAsync(req.body);
-  // disable role changes unless admin.
-  if (!isAdmin && body.role) {
-    body.role = undefined;
+  // disable role or branding changes unless admin.
+  if (!isAdmin) {
+    if (body.role) body.role = undefined;
+    if (body.hideBranding) body.hideBranding = undefined;
   }
 
   const userSchedules = await prisma.schedule.findMany({
