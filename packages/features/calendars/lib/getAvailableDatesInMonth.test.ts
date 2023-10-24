@@ -59,6 +59,9 @@ describe("Test Suite: Date Picker", () => {
 
         expect(result).toHaveLength(daysInMonth(currentDate) - currentDate.getDate() + 1);
       }
+      // Undo the forced time we applied earlier, reset to system default.
+      vi.setSystemTime(vi.getRealSystemTime());
+      vi.useRealTimers();
     });
   });
 });
