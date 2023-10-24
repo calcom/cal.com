@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import type { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
@@ -299,6 +300,28 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
+          locations: z
+            .array(
+              z
+                .object({
+                  type: z.string(),
+                  address: z.string().optional(),
+                  link: z.string().url().optional(),
+                  phone: z
+                    .string()
+                    .refine((val) => isValidPhoneNumber(val))
+                    .optional(),
+                  hostPhoneNumber: z
+                    .string()
+                    .refine((val) => isValidPhoneNumber(val))
+                    .optional(),
+                  displayLocationPublicly: z.boolean().optional(),
+                  credentialId: z.number().optional(),
+                  teamName: z.string().optional(),
+                })
+                .passthrough()
+            )
+            .optional(),
         })
         // TODO: Add schema for other fields later.
         .passthrough()
