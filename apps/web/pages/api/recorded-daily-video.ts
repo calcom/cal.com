@@ -113,7 +113,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!booking || booking.location !== DailyLocationType) {
+    if (!booking || booking.location !== DailyLocationType || !booking.user) {
       return res.status(404).send({
         message: `Booking of uid ${bookingUID} does not exist or does not contain daily video as location`,
       });
@@ -154,6 +154,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    const aiAppInstalled = await prisma.credential.findFirst({
+      where: {
+        appId: "cal-ai",
+        userId: booking.user.id,
+      },
+    });
+    if (aiAppInstalled) {
+      console.log(`calAIKey ${process.env.CAL_AI_PARSE_KEY}`);
+      const transcribeData = {
+        recordingId: recordingId,
+        attendeesList: attendeesList,
+        organiserEmail: booking.user.email,
+      };
+      const calAiUrl = process.env.CAL_AI_URL;
+      //TODO replace with CAL_AI URL
+      await fetch(`${calAiUrl}/api/transcribe?parseKey=${process.env.CAL_AI_PARSE_KEY}`, {
+        method: "POST",
+        body: JSON.stringify(transcribeData),
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
     const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
     const downloadLinkResponse = downloadLinkSchema.parse(response);
     const downloadLink = downloadLinkResponse.download_link;

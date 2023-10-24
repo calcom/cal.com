@@ -10,7 +10,7 @@ import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import showToast, { toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import z from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -21,7 +21,6 @@ import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-f
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
@@ -39,22 +38,13 @@ export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function JoinCall(props: JoinCallPageProps) {
-  const utils = trpc.useContext();
   const { t } = useLocale();
   const router = useRouter();
   const { meetingUrl, meetingPassword, booking } = props;
   const recordingId = useRef<string | null>(null);
   const isTranscribing = useRef<boolean>(false);
   const transcript = useRef<string>("");
-  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
-    async onSuccess() {
-      await utils.viewer.webhook.list.invalidate();
-      router.back();
-    },
-    onError(error) {
-      showToast(`${error.message}`);
-    },
-  });
+
   useEffect(() => {
     /** adding a custom tray button @link https://docs.daily.co/reference/daily-js/daily-iframe-class/properties#customTrayButtons* */
     const callFrame = DailyIframe.createFrame({
@@ -89,7 +79,7 @@ export default function JoinCall(props: JoinCallPageProps) {
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
-    //TODO - add handlers for `transcription-started` and `transcription-ended` @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events
+    /** API reference @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events */
     /** handling custom-button-click @link  https://docs.daily.co/reference/daily-js/events/meeting-events#custom-button-click */
     const onCustomButtonClick = async (event?: DailyEventObjectCustomButtonClick | undefined) => {
       if (!props.calAiCredential) {
@@ -111,7 +101,7 @@ export default function JoinCall(props: JoinCallPageProps) {
       if (!!isTranscribing.current) {
         return;
       }
-      console.log("starting tradncription");
+      console.log("starting transcription");
       isTranscribing.current = true;
       await callFrame.startTranscription(transcriptionOptions);
     }
@@ -154,7 +144,7 @@ export default function JoinCall(props: JoinCallPageProps) {
 
   const onRecordingStopped = () => {
     const data = { recordingId: recordingId.current, bookingUID: booking.uid };
-
+    console.log(`data when recording stopped ${JSON.stringify(data)}`);
     fetch("/api/recorded-daily-video", {
       method: "POST",
       body: JSON.stringify(data),
@@ -175,16 +165,22 @@ export default function JoinCall(props: JoinCallPageProps) {
   const handleTranscriptionStopped = async () => {
     //
   };
-  const handleLeftMeeting = () => {
-    //TODO send transcript by email
-    console.log(`Full Transcript: ${transcript.current}`);
-    createWebhookMutation.mutate({
-      subscriberUrl: "",
-      eventTriggers: ["MEETING_ENDED"],
-      active: true,
-      payloadTemplate: "",
-      secret: "",
-    });
+  const handleLeftMeeting = async () => {
+    if (props.calAiCredential) {
+      console.log(`Full Transcript: ${transcript.current}`);
+      const transcribeData = {
+        recordingId: recordingId,
+        bookingL: booking,
+        organiserEmail: booking.user?.email,
+      };
+      //TODO need to replace the `CAL_AI_PARSE_KEY` with a key that can be exposed to client or bypass this altogether
+      await fetch(`${calAiUrl}/api/transcribe?parseKey=${process.env.CAL_AI_PARSE_KEY}`, {
+        method: "POST",
+        body: JSON.stringify(transcribeData),
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
   };
   const handleTranscriptionError = () => {
     toast.error("Could not run transcription service for this meeting");

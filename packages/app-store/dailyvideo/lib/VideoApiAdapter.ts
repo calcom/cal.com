@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
@@ -92,6 +93,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
     const body = await translateEvent(event);
+    console.log(`meeting body: ${JSON.stringify(body)}`);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
@@ -116,6 +118,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         userId: event.organizer.id,
       },
     });
+    logger.log(0, `checkCalAiInstalled: ${JSON.stringify(checkCalAiInstalled)}`);
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
@@ -161,6 +164,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         privacy: "public",
         properties: {
           ...options,
+          enable_recording: "cloud",
           enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
           permissions: { canAdmin: ["transcription"] },
         },
