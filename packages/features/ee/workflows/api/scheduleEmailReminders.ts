@@ -14,6 +14,7 @@ import { parseRecurringEvent } from "@calcom/lib";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -29,14 +30,14 @@ sgMail.setApiKey(sendgridAPIKey);
 type Booking = Prisma.BookingGetPayload<{
   include: {
     eventType: true;
-    user: true;
     attendees: true;
   };
 }>;
 
 function getiCalEventAsString(
-  booking: Pick<Booking, "startTime" | "endTime" | "description" | "location" | "user" | "attendees"> & {
+  booking: Pick<Booking, "startTime" | "endTime" | "description" | "location" | "attendees"> & {
     eventType: { recurringEvent?: Prisma.JsonValue; title?: string } | null;
+    user: Partial<User> | null;
   }
 ) {
   let recurrenceRule: string | undefined = undefined;
@@ -234,7 +235,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             endTime: true,
             location: true,
             description: true,
-            user: true,
+            user: {
+              select: {
+                email: true,
+                name: true,
+                timeZone: true,
+                locale: true,
+                username: true,
+                timeFormat: true,
+                hideBranding: true,
+              },
+            },
             metadata: true,
             uid: true,
             customInputs: true,
