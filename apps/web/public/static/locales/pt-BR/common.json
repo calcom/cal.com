@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Esta organização ainda não tem nenhuma equipe",
   "org_no_teams_yet_description": "Se você for administrador, não se esqueça de criar equipes para mostrar aqui.",
   "set_up": "Configurar",
-  "set_up_your_profile": "Configurar seu perfil",
-  "set_up_your_profile_description": "Deixe que as pessoas saibam quem você é em {{orgName}} e quando interagirem com seu link público.",
   "my_profile": "Meu perfil",
   "my_settings": "Minhas configurações",
   "crm": "CRM",
