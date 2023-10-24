@@ -49,7 +49,7 @@ describe("Test Suite: Date Picker", () => {
         expect(result).toHaveLength(daysInMonth(currentDate) - currentDate.getDate() + 1);
       }
       {
-        // test a date in negative UTC offset
+        // test a date in positive UTC offset
         vi.useFakeTimers().setSystemTime(new Date("2023-10-24T13:27:00.000+07:00"));
 
         const currentDate = new Date();
