@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
@@ -49,6 +49,9 @@ describe("processWorkingHours", () => {
   });
 
   it("should return the correct working hours in the month were DST ends", () => {
+    // test a date in positive UTC offset
+    vi.useFakeTimers().setSystemTime(new Date("2023-11-05T00:00:00.000+07:00"));
+
     const item = {
       days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
       startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
@@ -58,26 +61,23 @@ describe("processWorkingHours", () => {
     // in America/New_York DST ends on first Sunday of November
     const timeZone = "America/New_York";
 
-    let firstSundayOfNovember = dayjs().startOf("day").month(10).date(1);
-    while (firstSundayOfNovember.day() !== 0) {
-      firstSundayOfNovember = firstSundayOfNovember.add(1, "day");
-    }
-
-    const dateFrom = dayjs().month(10).date(1).startOf("day");
-    const dateTo = dayjs().month(10).endOf("month");
-
+    const firstSundayOfNovember = dayjs();
+    const dateFrom = dayjs().date(1).startOf("day");
+    const dateTo = dayjs().endOf("month");
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
-    const allDSTStartAt12 = results
-      .filter((res) => res.start.isBefore(firstSundayOfNovember))
-      .every((result) => result.start.utc().hour() === 12);
-    const allNotDSTStartAt13 = results
-      .filter((res) => res.start.isAfter(firstSundayOfNovember))
-      .every((result) => result.start.utc().hour() === 13);
-
+    const allDSTResults = results.filter((res) => res.start.isBefore(firstSundayOfNovember, "day"));
+    console.log("allDSTResults", JSON.stringify(allDSTResults));
+    const allDSTStartAt12 = allDSTResults.every((result) => result.start.utc().hour() === 12);
+    const allNotDSTResults = results.filter((res) => res.start.isAfter(firstSundayOfNovember, "day"));
+    console.log("allNotDSTResults", JSON.stringify(allNotDSTResults));
+    const allNotDSTStartAt13 = allNotDSTResults.every((result) => result.start.utc().hour() === 13);
     expect(allDSTStartAt12).toBeTruthy();
     expect(allNotDSTStartAt13).toBeTruthy();
   });
+  // Undo the forced time we applied earlier, reset to system default.
+  vi.setSystemTime(vi.getRealSystemTime());
+  vi.useRealTimers();
 });
 
 describe("processDateOverrides", () => {
