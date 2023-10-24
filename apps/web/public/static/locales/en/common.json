@@ -347,7 +347,7 @@
   "error_end_time_next_day": "End time cannot be greater than 24 hours",
   "back_to_bookings": "Back to bookings",
   "free_to_pick_another_event_type": "Feel free to pick another event anytime.",
-  "cancelled": "Canceled",
+  "cancelled": "Cancelled",
   "cancellation_successful": "Cancellation successful",
   "really_cancel_booking": "Really cancel your booking?",
   "cannot_cancel_booking": "You cannot cancel this booking",
