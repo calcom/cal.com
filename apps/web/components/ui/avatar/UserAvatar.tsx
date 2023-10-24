@@ -7,13 +7,13 @@ type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageS
   /**
    * Useful when allowing the user to upload their own avatar and showing the avatar before it's uploaded
    */
-  imageSrc?: string | null;
+  previewSrc?: string | null;
 };
 
 /**
  * It is aware of the user's organization to correctly show the avatar from the correct URL
  */
 export function UserAvatar(props: UserAvatarProps) {
-  const { user, imageSrc, ...rest } = props;
-  return <Avatar {...rest} alt={user.name || ""} imageSrc={imageSrc ?? getUserAvatarUrl(user)} />;
+  const { user, previewSrc, ...rest } = props;
+  return <Avatar {...rest} alt={user.name || ""} imageSrc={previewSrc ?? getUserAvatarUrl(user)} />;
 }

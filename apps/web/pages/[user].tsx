@@ -100,7 +100,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           )}>
           <div className="mb-8 text-center">
             <OrganizationMemberAvatar
-              imageSrc={profile.image}
               size="xl"
               user={{
                 organizationId: profile.organization?.id,

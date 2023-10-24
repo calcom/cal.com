@@ -18,7 +18,7 @@ const OrganizationMemberAvatar = ({
   size,
   user,
   organization,
-  imageSrc,
+  previewSrc,
   ...rest
 }: OrganizationMemberAvatarProps) => {
   return (
@@ -26,7 +26,7 @@ const OrganizationMemberAvatar = ({
       data-testid="organization-avatar"
       size={size}
       user={user}
-      imageSrc={imageSrc}
+      previewSrc={previewSrc}
       indicator={
         organization ? (
           <div

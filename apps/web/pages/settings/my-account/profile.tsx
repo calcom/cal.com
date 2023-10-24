@@ -458,7 +458,7 @@ const ProfileForm = ({
               return (
                 <>
                   <OrganizationMemberAvatar
-                    imageSrc={value}
+                    previewSrc={value}
                     size="lg"
                     user={user}
                     organization={organization}
