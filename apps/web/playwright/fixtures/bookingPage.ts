@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { randomString } from "@calcom/lib/random";
+
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -115,8 +117,21 @@ export async function loginUser(users: UserFixture) {
 
 export function createBookingPageFixture(page: Page) {
   return {
-    goToEventType: async (eventType: string) => {
-      await page.getByRole("link", { name: eventType }).click();
+    goToEventType: async (
+      eventType: string,
+      options?: {
+        clickOnFirst?: boolean;
+        clickOnLast?: boolean;
+      }
+    ) => {
+      if (options?.clickOnFirst) {
+        await page.getByRole("link", { name: eventType }).first().click();
+      }
+      if (options?.clickOnLast) {
+        await page.getByRole("link", { name: eventType }).last().click();
+      } else {
+        await page.getByRole("link", { name: eventType }).click();
+      }
     },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
@@ -250,6 +265,64 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    createTeam: async (name: string) => {
+      await page.getByRole("link", { name: "Teams" }).click();
+      await page.getByTestId("new-team-btn").click();
+      await page.getByPlaceholder("Acme Inc.").click();
+      await page.getByPlaceholder("Acme Inc.").fill(`${name}-${randomString(3)}`);
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByRole("button", { name: "Publish team" }).click();
+
+      await page.getByTestId("vertical-tab-Back").click();
+    },
+    createManagedEventType: async (name: string) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-0").click();
+      await page.getByTestId("dialog-rejection").click();
+
+      // We first simulate to creste a default event type to check if managed option is not available
+      await expect(
+        page
+          .locator("div")
+          .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
+      ).toBeHidden();
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-team-1").click();
+      await page.getByPlaceholder("Quick Chat").fill(name);
+      await page
+        .locator("div")
+        .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
+        .getByRole("radio")
+        .last()
+        .click();
+      await expect(
+        page.getByText('"username" will be filled by the username of the members assigned')
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByTestId("update-eventtype").click();
+    },
+    removeManagedEventType: async () => {
+      await page.getByRole("main").getByRole("button").nth(1).click();
+      await page
+        .locator("header")
+        .filter({ hasText: "Test Managed Event TypeSave" })
+        .getByRole("button")
+        .first()
+        .click();
+      await page.getByRole("button", { name: "Yes, delete" }).click();
+      // Check if the correct image is showed when there is no event type
+
+      await expect(page.getByTestId("empty-screen")).toBeVisible();
+    },
+    deleteTeam: async () => {
+      await page.getByRole("link", { name: "Teams" }).click();
+      await page.getByRole("link", { name: "Team Logo Test Team" }).click();
+      await page.getByRole("button", { name: "Disband Team" }).click();
+      await page.getByRole("button", { name: "Yes, disband team" }).click();
+
+      // Check if the correct image is showed when there is no team
+      await expect(page.getByRole("img", { name: "Cal.com is better with teams" })).toBeVisible();
     },
   };
 }

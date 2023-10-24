@@ -7,10 +7,10 @@ import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
+import { createBookingPageFixture } from "../fixtures/bookingPage";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture } from "../fixtures/embeds";
 import { createPaymentsFixture } from "../fixtures/payments";
-import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";

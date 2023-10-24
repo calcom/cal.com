@@ -1,4 +1,4 @@
-import { loginUser } from "../fixtures/regularBookings";
+import { loginUser } from "../fixtures/bookingPage";
 import { test } from "../lib/fixtures";
 
 test.describe("Booking With Phone Question and Each Other Question", () => {
