@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -27,7 +27,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, AvatarGroup, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
@@ -35,6 +35,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
+import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -111,15 +112,11 @@ function TeamPage({
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
-                <AvatarGroup
+                <UserAvatarGroup
                   truncateAfter={4}
                   className="flex flex-shrink-0"
                   size="sm"
-                  items={type.users.map((user) => ({
-                    alt: user.name || "",
-                    title: user.name || "",
-                    image: `/${user.username}/avatar.png` || "",
-                  }))}
+                  users={type.users}
                 />
               </div>
             </Link>
@@ -149,17 +146,11 @@ function TeamPage({
                     </span>
                   </div>
                 </div>
-                <AvatarGroup
+                <UserAvatarGroup
                   className="mr-6"
                   size="sm"
                   truncateAfter={4}
-                  items={team.members
-                    .filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)
-                    .map((member) => ({
-                      alt: member.name || "",
-                      image: `/${member.username}/avatar.png`,
-                      title: member.name || "",
-                    }))}
+                  users={team.members.filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)}
                 />
               </Link>
             </li>
@@ -373,7 +364,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           subteams: member.subteams,
           username: member.username,
           accepted: member.accepted,
+          organizationId: member.organizationId,
           safeBio: markdownToSafeHTML(member.bio || ""),
+          orgOrigin: getOrgFullOrigin(member.organization?.slug || ""),
         };
       })
     : [];

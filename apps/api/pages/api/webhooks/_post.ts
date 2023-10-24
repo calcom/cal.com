@@ -49,6 +49,9 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  *               eventTypeId:
  *                 type: number
  *                 description: The event type ID if this webhook should be associated with only that event type
+ *               secret:
+ *                 type: string
+ *                 description: The secret to verify the authenticity of the received payload
  *     tags:
  *     - webhooks
  *     externalDocs:
