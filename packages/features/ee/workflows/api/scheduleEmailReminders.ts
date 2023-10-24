@@ -30,7 +30,6 @@ sgMail.setApiKey(sendgridAPIKey);
 type Booking = Prisma.BookingGetPayload<{
   include: {
     eventType: true;
-    user: true;
     attendees: true;
   };
 }>;
