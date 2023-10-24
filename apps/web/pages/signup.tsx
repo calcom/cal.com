@@ -8,7 +8,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -159,7 +159,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                     <TextField
                       addOnLeading={
                         orgSlug
-                          ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
+                          ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
                           : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                       }
                       {...register("username")}

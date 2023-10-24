@@ -174,18 +174,17 @@ export function createBookingPageFixture(page: Page) {
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await page.getByTestId("confirm-reschedule-button").click();
     },
-    verifyReschedulingSuccess: async () => {
-      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
-    },
-    cancelBookingWithReason: async () => {
+
+    cancelBookingWithReason: async (page: Page) => {
       await page.getByTestId("cancel").click();
       await page.getByTestId("cancel_reason").fill("Test cancel");
       await page.getByTestId("confirm_cancel").click();
     },
-    verifyBookingCancellation: async () => {
+    assertBookingCanceled: async (page: Page) => {
       await expect(page.getByTestId("cancelled-headline")).toBeVisible();
     },
-    cancelAndRescheduleBooking: async (eventTypePage: Page) => {
+
+    rescheduleBooking: async (eventTypePage: Page) => {
       await eventTypePage.getByText("Reschedule").click();
       while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
         await eventTypePage.getByRole("button", { name: "View next" }).click();
@@ -194,7 +193,13 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+
+    assertBookingRescheduled: async (page: Page) => {
+      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+
+    cancelBooking: async (eventTypePage: Page) => {
       await eventTypePage.getByTestId("cancel").click();
       await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
       await eventTypePage.getByTestId("confirm_cancel").click();
