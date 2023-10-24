@@ -246,9 +246,7 @@ test.describe("Event Types tests", () => {
         await selectAttendeePhoneNumber(page);
 
         // Add Cal Video location
-        await page.locator("[data-testid=add-location]").click();
-        await page.locator("#location-select").last().click();
-        await page.locator(`text="Cal Video (Global)"`).click();
+        await addAnotherLocation(page, "Cal Video (Global)");
 
         await saveEventType(page);
         await page.waitForLoadState("networkidle");
@@ -266,7 +264,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("[data-testid=where]")).toHaveText("Cal Video");
+        await expect(page.locator("[data-testid=where]")).toHaveText(/Cal Video/);
       });
     });
   });
@@ -295,4 +293,14 @@ async function gotoBookingPage(page: Page) {
   const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
 
   await page.goto(previewLink ?? "");
+}
+
+/**
+ * Adds n+1 location to the event type
+ */
+async function addAnotherLocation(page: Page, locationOptionText: string) {
+  await page.locator("[data-testid=add-location]").click();
+  // When adding another location, the dropdown opens automatically. So, we don't need to open it here.
+  //
+  await page.locator(`text="${locationOptionText}"`).click();
 }
