@@ -12,7 +12,7 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
   });
 
   test.describe("Booking With Multiple Email Question and Address Question", () => {
-    test("Multiple Email and Address required", async ({ bookingPage }) => {
+    test("Multiple Email required and Address required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -32,7 +32,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "address",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and Address not required", async ({ bookingPage }) => {
@@ -55,12 +58,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "address",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple Email Question and checkbox group Question", () => {
-    test("Multiple Email and checkbox group required", async ({ bookingPage }) => {
+    test("Multiple Email required and checkbox group required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -80,7 +86,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "checkbox",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and checkbox group not required", async ({ bookingPage }) => {
@@ -103,12 +112,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "checkbox",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple Email Question and checkbox Question", () => {
-    test("Multiple Email and checkbox required", async ({ bookingPage }) => {
+    test("Multiple Email required and checkbox required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -128,7 +140,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "boolean",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and checkbox not required", async ({ bookingPage }) => {
@@ -151,12 +166,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "boolean",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple Email Question and Long text Question", () => {
-    test("Multiple Email and Long text required", async ({ bookingPage }) => {
+    test("Multiple Email required and Long text required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -176,7 +194,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "textarea",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and Long text not required", async ({ bookingPage }) => {
@@ -199,13 +220,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "textarea",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple Email Question and multiselect Question", () => {
-    const bookingOptions = { hasPlaceholder: false, isRequired: true, isSelect: true };
-    test("Multiple Email and multiselect text required", async ({ bookingPage }) => {
+    test("Multiple Email required and multiselect text required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -225,7 +248,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "multiselect",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and multiselect text not required", async ({ bookingPage }) => {
@@ -248,12 +274,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "multiselect",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple Email Question and Number Question", () => {
-    test("Multiple Email and Number required", async ({ bookingPage }) => {
+    test("Multiple Email required and Number required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -273,7 +302,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "number",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and Number not required", async ({ bookingPage }) => {
@@ -296,12 +328,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "number",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple email Question and phone Question", () => {
-    test("Multiple email and Phone required", async ({ bookingPage }) => {
+    test("Multiple email required and Phone required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -321,7 +356,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "phone",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple email and Phone not required", async ({ bookingPage }) => {
@@ -344,12 +382,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "phone",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
   test.describe("Booking With Multiple Email Question and Radio group Question", () => {
-    test("Multiple Email and Radio group required", async ({ bookingPage }) => {
+    test("Multiple Email required and Radio group required", async ({ bookingPage }) => {
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -369,7 +410,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "radio",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test("Multiple Email and Radio group not required", async ({ bookingPage }) => {
@@ -392,11 +436,14 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
         secondQuestion: "radio",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
     test.describe("Booking With Multiple Email Question and select Question", () => {
-      test("Multiple Email and select required", async ({ bookingPage }) => {
+      test("Multiple Email required and select required", async ({ bookingPage }) => {
         await bookingPage.addQuestion(
           "multiemail",
           "multiemail-test",
@@ -416,7 +463,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
           secondQuestion: "select",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
       test("Multiple Email and select not required", async ({ bookingPage }) => {
@@ -439,12 +489,15 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
           secondQuestion: "select",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
 
     test.describe("Booking With Multiple Email Question and Short text question", () => {
-      test("Multiple Email and Short text required", async ({ bookingPage }) => {
+      test("Multiple Email required and Short text required", async ({ bookingPage }) => {
         await bookingPage.addQuestion(
           "multiemail",
           "multiemail-test",
@@ -464,7 +517,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
           secondQuestion: "text",
           options: bookingOptions,
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
       test("Multiple Email and Short text not required", async ({ bookingPage }) => {
@@ -487,7 +543,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", ()
           secondQuestion: "text",
           options: { ...bookingOptions, isRequired: false },
         });
-        await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
       });
     });
   });
