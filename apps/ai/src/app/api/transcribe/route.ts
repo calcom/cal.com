@@ -44,6 +44,7 @@ const submitJob = async (
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "*",
 };
 
 export const POST = async (request: NextRequest) => {
@@ -67,7 +68,7 @@ export const POST = async (request: NextRequest) => {
       await request.json();
 
     if (!transcriptBody || !booking || !organizerEmail) {
-      return new NextResponse("No data received", { status: 400 });
+      return new NextResponse("No data received", { status: 400, headers: corsHeaders });
     }
     //Approach 1 - send Transcript directly
     if (transcriptBody) {
@@ -87,8 +88,8 @@ export const POST = async (request: NextRequest) => {
       //TODO add cron to check for job status
       /** API reference @link https://docs.daily.co/private/batch-processor/reference/get-job-access-link */
     }
-    return new NextResponse("ok");
+    return new NextResponse("ok", { headers: corsHeaders, status: 200 });
   } catch {
-    return new NextResponse("Could not process the request", { status: 500 });
+    return new NextResponse("Could not process the request", { status: 500, headers: corsHeaders });
   }
 };
