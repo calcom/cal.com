@@ -1,15 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  orgDomainConfig,
+  whereClauseForOrgWithSlugOrRequestedSlug,
+} from "@calcom/features/ee/organizations/lib/orgDomains";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
+const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 const querySchema = z
   .object({
     username: z.string(),
     teamname: z.string(),
+    /**
+     * Passed when we want to fetch avatar of a particular organization
+     */
     orgSlug: z.string(),
     /**
      * Allow fetching avatar of a particular organization
@@ -30,38 +38,17 @@ async function getIdentityData(req: NextApiRequest) {
         id: orgId,
       }
     : org
-    ? getSlugOrRequestedSlug(org)
+    ? whereClauseForOrgWithSlugOrRequestedSlug(org)
     : null;
 
   if (username) {
-    let user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         username,
         organization: orgQuery,
       },
       select: { avatar: true, email: true },
     });
-
-    /**
-     * TEMPORARY CODE STARTS - TO BE REMOVED after mono-user schema is implemented
-     * Try the non-org user temporarily to support users part of a team but not part of the organization
-     * This is needed because of a situation where we migrate a user and the team to ORG but not all the users in the team to the ORG.
-     * Eventually, all users will be migrated to the ORG but this is when user by user migration happens initially.
-     */
-    // No user found in the org, try the non-org user that might be part of the team that's part of an org
-    if (!user && orgQuery) {
-      // The only side effect this code could have is that it could serve the avatar of a non-org member from the org domain but as long as the username isn't taken by an org member.
-      user = await prisma.user.findFirst({
-        where: {
-          username,
-          organization: null,
-        },
-        select: { avatar: true, email: true },
-      });
-    }
-    /**
-     * TEMPORARY CODE ENDS
-     */
 
     return {
       name: username,
@@ -79,6 +66,7 @@ async function getIdentityData(req: NextApiRequest) {
       },
       select: { logo: true },
     });
+
     return {
       org,
       name: teamname,
@@ -86,15 +74,25 @@ async function getIdentityData(req: NextApiRequest) {
       avatar: getPlaceholderAvatar(team?.logo, teamname),
     };
   }
+
   if (orgSlug) {
-    const org = await prisma.team.findFirst({
-      where: getSlugOrRequestedSlug(orgSlug),
+    const orgs = await prisma.team.findMany({
+      where: {
+        ...whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+      },
       select: {
         slug: true,
         logo: true,
         name: true,
       },
     });
+
+    if (orgs.length > 1) {
+      // This should never happen, but instead of throwing error, we are just logging to be able to observe when it happens.
+      log.error("More than one organization found for slug", orgSlug);
+    }
+
+    const org = orgs[0];
     return {
       org: org?.slug,
       name: org?.name,
