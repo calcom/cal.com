@@ -25,10 +25,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
       secondQuestion: "address",
       options: bookingOptions,
     });
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+    await bookingPage.rescheduleBooking(eventTypePage);
+    await bookingPage.assertBookingRescheduled(eventTypePage);
+    await bookingPage.cancelBooking(eventTypePage);
+    await bookingPage.assertBookingCanceled(eventTypePage);
   });
 
-  test("Long Text and Address not required", async ({ bookingPage }) => {
+  test("Long Text required and Address not required", async ({ bookingPage }) => {
     await bookingPage.goToEventType("30 min");
     await bookingPage.goToTab("event_advanced_tab_title");
     await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -44,7 +47,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
       secondQuestion: "address",
       options: { ...bookingOptions, isRequired: false },
     });
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+    await bookingPage.rescheduleBooking(eventTypePage);
+    await bookingPage.assertBookingRescheduled(eventTypePage);
+    await bookingPage.cancelBooking(eventTypePage);
+    await bookingPage.assertBookingCanceled(eventTypePage);
   });
 
   test.describe("Booking With Long Text Question and Checkbox Group Question", () => {
@@ -64,10 +70,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "checkbox",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and Checkbox Group not required", async ({ bookingPage }) => {
+    test("Long Text required and Checkbox Group not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -83,7 +92,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "checkbox",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -104,10 +116,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "boolean",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and checkbox not required", async ({ bookingPage }) => {
+    test("Long Text required and checkbox not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -123,7 +138,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "boolean",
         options: { ...bookingOptions, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -151,10 +169,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "multiemail",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and Multiple email not required", async ({ bookingPage }) => {
+    test("Long Text required and Multiple email not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -176,7 +197,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "multiemail",
         options: { hasPlaceholder: true, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -197,10 +221,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "multiselect",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and multiselect text not required", async ({ bookingPage }) => {
+    test("Long Text required and multiselect text not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -216,7 +243,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "multiselect",
         options: { hasPlaceholder: false, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -237,11 +267,14 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "multiselect",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
-  test("Long Text and Number not required", async ({ bookingPage }) => {
+  test("Long Text required and Number not required", async ({ bookingPage }) => {
     await bookingPage.goToEventType("30 min");
     await bookingPage.goToTab("event_advanced_tab_title");
     await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -257,7 +290,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
       secondQuestion: "multiselect",
       options: { hasPlaceholder: false, isRequired: false },
     });
-    await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+    await bookingPage.rescheduleBooking(eventTypePage);
+    await bookingPage.assertBookingRescheduled(eventTypePage);
+    await bookingPage.cancelBooking(eventTypePage);
+    await bookingPage.assertBookingCanceled(eventTypePage);
   });
 
   test.describe("Booking With Long Text Question and Phone Question", () => {
@@ -277,10 +313,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "phone",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and Phone not required", async ({ bookingPage }) => {
+    test("Long Text required and Phone not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -296,7 +335,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "phone",
         options: { hasPlaceholder: false, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -317,10 +359,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "radio",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and Radio group not required", async ({ bookingPage }) => {
+    test("Long Text required and Radio group not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -336,7 +381,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "radio",
         options: { hasPlaceholder: false, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -357,10 +405,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "select",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and select not required", async ({ bookingPage }) => {
+    test("Long Text required and select not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -376,7 +427,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "select",
         options: { hasPlaceholder: false, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 
@@ -398,10 +452,13 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "text",
         options: bookingOptions,
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Long Text and Short text not required", async ({ bookingPage }) => {
+    test("Long Text required and Short text not required", async ({ bookingPage }) => {
       await bookingPage.goToEventType("30 min");
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
@@ -417,7 +474,10 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
         secondQuestion: "text",
         options: { hasPlaceholder: false, isRequired: false },
       });
-      await bookingPage.cancelAndRescheduleBooking(eventTypePage);
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
 });
