@@ -4,7 +4,7 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -298,7 +298,7 @@ export default async function getEventTypeById({
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
     (user) => ({
       ...user,
-      avatar: `${eventType.team?.parent?.slug ? getOrgFullDomain(eventType.team?.parent?.slug) : CAL_URL}/${
+      avatar: `${eventType.team?.parent?.slug ? getOrgFullOrigin(eventType.team?.parent?.slug) : CAL_URL}/${
         user.username
       }/avatar.png`,
     })
@@ -348,7 +348,7 @@ export default async function getEventTypeById({
             ...member.user,
             avatar: `${
               eventTypeObject.team?.parent?.slug
-                ? getOrgFullDomain(eventTypeObject.team?.parent?.slug)
+                ? getOrgFullOrigin(eventTypeObject.team?.parent?.slug)
                 : CAL_URL
             }/${member.user.username}/avatar.png`,
           };
