@@ -103,7 +103,6 @@ describe("handleChildrenEventTypes", () => {
         id,
         teamId,
         timeZone,
-        users,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         ...evType
@@ -244,7 +243,6 @@ describe("handleChildrenEventTypes", () => {
         id,
         teamId,
         timeZone,
-        users,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         ...evType
