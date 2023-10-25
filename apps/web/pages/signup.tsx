@@ -235,9 +235,9 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
               {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
             </h1>
             {IS_CALCOM ? (
-              <p className="text-subtle text-base font-medium leading-none">{t("cal_signup_description")}</p>
+              <p className="text-subtle text-base font-medium leading-6">{t("cal_signup_description")}</p>
             ) : (
-              <p className="text-subtle text-base font-medium leading-none">
+              <p className="text-subtle text-base font-medium leading-6">
                 {t("calcom_explained", {
                   appName: APP_NAME,
                 })}
