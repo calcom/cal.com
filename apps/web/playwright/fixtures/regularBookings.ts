@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { randomString } from "@calcom/lib/random";
+
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -13,6 +15,7 @@ type BookingOptions = {
   hasPlaceholder?: boolean;
   isReschedule?: boolean;
   isRequired?: boolean;
+  isAllRequired?: boolean;
 };
 
 interface QuestionActions {
@@ -115,8 +118,21 @@ export async function loginUser(users: UserFixture) {
 
 export function createBookingPageFixture(page: Page) {
   return {
-    goToEventType: async (eventType: string) => {
-      await page.getByRole("link", { name: eventType }).click();
+    goToEventType: async (
+      eventType: string,
+      options?: {
+        clickOnFirst?: boolean;
+        clickOnLast?: boolean;
+      }
+    ) => {
+      if (options?.clickOnFirst) {
+        await page.getByRole("link", { name: eventType }).first().click();
+      }
+      if (options?.clickOnLast) {
+        await page.getByRole("link", { name: eventType }).last().click();
+      } else {
+        await page.getByRole("link", { name: eventType }).click();
+      }
     },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
@@ -144,8 +160,12 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
-    updateEventType: async () => {
+    updateEventType: async (options: { shouldCheck?: boolean }) => {
       await page.getByTestId("update-eventtype").click();
+      options.shouldCheck &&
+        (await expect(
+          page.getByRole("button", { name: "Test Managed Event Type event type updated successfully" })
+        ).toBeVisible());
     },
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
@@ -245,6 +265,150 @@ export function createBookingPageFixture(page: Page) {
 
       // Fill the second question if is required
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
+
+      await eventTypePage.getByTestId(confirmButton).click();
+      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
+      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
+      await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    createTeam: async (name: string) => {
+      await page.getByRole("link", { name: "Teams" }).click();
+      await page.getByTestId("new-team-btn").click();
+      await page.getByPlaceholder("Acme Inc.").click();
+      await page.getByPlaceholder("Acme Inc.").fill(`${name}-${randomString(3)}`);
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByRole("button", { name: "Publish team" }).click();
+
+      await page.getByTestId("vertical-tab-Back").click();
+    },
+    createManagedEventType: async (name: string) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-0").click();
+      await page.getByTestId("dialog-rejection").click();
+
+      // We first simulate to creste a default event type to check if managed option is not available
+      await expect(
+        page
+          .locator("div")
+          .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
+      ).toBeHidden();
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-team-1").click();
+      await page.getByPlaceholder("Quick Chat").fill(name);
+      await page
+        .locator("div")
+        .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
+        .getByRole("radio")
+        .last()
+        .click();
+      await expect(
+        page.getByText('"username" will be filled by the username of the members assigned')
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByTestId("update-eventtype").click();
+    },
+    removeManagedEventType: async () => {
+      await page
+        .locator("header")
+        .filter({ hasText: "Test Managed Event TypeSave" })
+        .getByRole("button")
+        .first()
+        .click();
+
+      // Check if the correct messages is showed in the dialog
+      await expect(
+        page.getByText("Members assigned to this event type will also have their event types deleted.")
+      ).toBeVisible();
+      await expect(
+        page.getByText("Anyone who they've shared their link with will no longer be able to book using it")
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Yes, delete" }).click();
+
+      // Check if the correct image is showed when there is no event type
+      await expect(page.getByTestId("empty-screen")).toBeVisible();
+    },
+    assertManagedEventTypeDeleted: async () => {
+      await expect(page.getByRole("button", { name: "Event type deleted successfully" })).toBeVisible();
+    },
+    deleteTeam: async () => {
+      await page.getByRole("link", { name: "Teams" }).click();
+      await page.getByRole("link", { name: "Team Logo Test Team" }).click();
+      await page.getByRole("button", { name: "Disband Team" }).click();
+      await page.getByRole("button", { name: "Yes, disband team" }).click();
+
+      // Check if the correct image is showed when there is no team
+      await expect(page.getByRole("img", { name: "Cal.com is better with teams" })).toBeVisible();
+    },
+    assertTeamDeleted: async () => {
+      await expect(
+        page.getByRole("button", { name: "Your team has been disbanded successfully" })
+      ).toBeVisible();
+    },
+    checkField: async (question: string, options?: { isOptional: boolean }) => {
+      if (options?.isOptional) {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Optional")).toBeVisible();
+      } else {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Required")).toBeVisible();
+      }
+      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
+    },
+    fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
+      const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
+
+      if (options.isAllRequired) {
+        for (const question of questions) {
+          switch (question) {
+            case "email":
+              await eventTypePage.getByPlaceholder("Email").click();
+              await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
+              break;
+            case "phone":
+              await eventTypePage.getByPlaceholder("Phone test").click();
+              await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
+              break;
+            case "address":
+              await eventTypePage.getByPlaceholder("Address test").click();
+              await eventTypePage.getByPlaceholder("Address test").fill("123 Main St, City, Country");
+              break;
+            case "textarea":
+              await eventTypePage.getByPlaceholder("Textarea test").click();
+              await eventTypePage
+                .getByPlaceholder("Textarea test")
+                .fill("This is a sample text for textarea.");
+              break;
+            case "select":
+              await eventTypePage.locator("form svg").last().click();
+              await eventTypePage.getByTestId("select-option-Option 1").click();
+              break;
+            case "multiselect":
+              await eventTypePage.locator("form svg").nth(4).click();
+              await eventTypePage.getByTestId("select-option-Option 1").click();
+              break;
+            case "number":
+              await eventTypePage.getByLabel("number test").click();
+              await eventTypePage.getByLabel("number test").fill("123");
+              break;
+            case "radio":
+              await eventTypePage.getByRole("radiogroup").getByText("Option 1").check();
+              break;
+            case "text":
+              await eventTypePage.getByPlaceholder("Text test").click();
+              await eventTypePage.getByPlaceholder("Text test").fill("Sample text");
+              break;
+            case "checkbox":
+              await eventTypePage.getByLabel("Option 1").first().check();
+              await eventTypePage.getByLabel("Option 2").first().check();
+              break;
+            case "boolean":
+              await eventTypePage.getByLabel(`${question} test`).check();
+              break;
+            case "multiemail":
+              await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+              await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+              break;
+          }
+        }
+      }
 
       await eventTypePage.getByTestId(confirmButton).click();
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
