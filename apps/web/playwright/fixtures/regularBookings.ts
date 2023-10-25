@@ -160,9 +160,9 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
-    updateEventType: async (options: { shouldCheck?: boolean }) => {
+    updateEventType: async (options?: { shouldCheck: boolean }) => {
       await page.getByTestId("update-eventtype").click();
-      options.shouldCheck &&
+      options?.shouldCheck &&
         (await expect(
           page.getByRole("button", { name: "Test Managed Event Type event type updated successfully" })
         ).toBeVisible());
