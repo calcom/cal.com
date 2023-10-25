@@ -312,7 +312,7 @@ export const ComponentForField = ({
       throw new Error("Field optionsInputs is not defined");
     }
     const options = field.options.map((field) => {
-      return { ...field, value: field.value === "inPerson" ? field.label : field.value };
+      return { ...field, value: field.value };
     });
 
     return field.options.length ? (
