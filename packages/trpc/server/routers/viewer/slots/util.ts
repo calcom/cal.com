@@ -9,6 +9,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import db from "@calcom/kysely";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -88,8 +89,9 @@ async function getEventTypeId({
 }) {
   if (!eventTypeSlug || !slug) return null;
 
-  let teamId;
-  let userId;
+  let teamId: number | undefined;
+  let userId: number | undefined;
+
   if (isTeamEvent) {
     teamId = await getTeamIdFromSlug(
       slug,
@@ -101,19 +103,23 @@ async function getEventTypeId({
       organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
     );
   }
-  const eventType = await prisma.eventType.findFirst({
-    where: {
-      slug: eventTypeSlug,
-      ...(teamId ? { teamId } : {}),
-      ...(userId ? { userId } : {}),
-    },
-    select: {
-      id: true,
-    },
-  });
+
+  const eventType = await db
+    .selectFrom("EventType")
+    .where((eb) =>
+      eb.and({
+        slug: eventTypeSlug,
+        ...(teamId ? { teamId } : {}),
+        ...(userId ? { userId } : {}),
+      })
+    )
+    .select("id")
+    .executeTakeFirst();
+
   if (!eventType) {
     throw new TRPCError({ code: "NOT_FOUND" });
   }
+
   return eventType?.id;
 }
 
