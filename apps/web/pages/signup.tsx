@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -372,15 +371,14 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 {t("already_have_account")}
               </Link>
               <div className="text-subtle">
-                <Trans i18nKey="signing_up_terms" as="p">
-                  By signing up, you agree to our
-                  <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
-                    Terms of Service
-                  </Link>
-                  <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
-                    Privacy Policy
-                  </Link>
-                </Trans>
+                By signing up, you agree to our{" "}
+                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
+                  Terms of Service{" "}
+                </Link>
+                <span>and</span>{" "}
+                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
+                  Privacy Policy.
+                </Link>
               </div>
             </div>
           </div>
