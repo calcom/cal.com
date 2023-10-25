@@ -15,14 +15,14 @@ export function getAvailableDatesInMonth({
 }) {
   const dates = [];
   const lastDateOfMonth = new Date(
-    browsingDate.getUTCFullYear(),
-    browsingDate.getUTCMonth(),
+    browsingDate.getFullYear(),
+    browsingDate.getMonth(),
     daysInMonth(browsingDate)
   );
   for (
     let date = browsingDate > minDate ? browsingDate : minDate;
     date <= lastDateOfMonth;
-    date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1)
+    date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
   ) {
     // intersect included dates
     if (includedDates && !includedDates.includes(yyyymmdd(date))) {
