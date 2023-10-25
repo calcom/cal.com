@@ -24,7 +24,7 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           name: `TimezoneDependentTests:${envTZ}`,
-          include: ["packages/**/*.test.timezone.ts", "apps/**/*.test.timezone.ts"],
+          include: ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"],
           // TODO: Ignore the api until tests are fixed
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           setupFiles: ["setupVitest.ts"],
