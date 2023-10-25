@@ -5,7 +5,7 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 // *) Dates in the past are not available.
 // *) Use right amount of days in given month. (28, 30, 31)
 export function getAvailableDatesInMonth({
-  browsingDate, // pass as UTC
+  browsingDate,
   minDate = new Date(),
   includedDates,
 }: {
@@ -15,12 +15,14 @@ export function getAvailableDatesInMonth({
 }) {
   const dates = [];
   const lastDateOfMonth = new Date(
-    Date.UTC(browsingDate.getFullYear(), browsingDate.getMonth(), daysInMonth(browsingDate))
+    browsingDate.getFullYear(),
+    browsingDate.getMonth(),
+    daysInMonth(browsingDate)
   );
   for (
     let date = browsingDate > minDate ? browsingDate : minDate;
     date <= lastDateOfMonth;
-    date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 1))
+    date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
   ) {
     // intersect included dates
     if (includedDates && !includedDates.includes(yyyymmdd(date))) {
