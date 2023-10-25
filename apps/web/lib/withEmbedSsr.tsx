@@ -15,6 +15,8 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
     if ("redirect" in ssrResponse) {
       const destinationUrl = ssrResponse.redirect.destination;
       let urlPrefix = "";
+
+      // Get the URL parsed from URL so that we can reliably read pathname and searchParams from it.
       const destinationUrlObj = new URL(ssrResponse.redirect.destination, WEBAPP_URL);
 
       // If it's a complete URL, use the origin as the prefix to ensure we redirect to the same domain.
@@ -25,10 +27,11 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
         urlPrefix = "";
       }
 
+      const destinationQueryStr = destinationUrlObj.searchParams.toString();
       // Make sure that redirect happens to /embed page and pass on embed query param as is for preserving Cal JS API namespace
-      const newDestinationUrl = `${urlPrefix}${
-        destinationUrlObj.pathname
-      }/embed?${destinationUrlObj.searchParams.toString()}&layout=${layout}&embed=${embed}`;
+      const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}/embed?${
+        destinationQueryStr ? `${destinationQueryStr}&` : ""
+      }layout=${layout}&embed=${embed}`;
       return {
         ...ssrResponse,
         redirect: {

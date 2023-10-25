@@ -15,7 +15,6 @@ function mockARedirectInDB({
   slug: string;
   redirectType: RedirectType;
 }) {
-  // TODO: Improve it to return the value only if correct params are passed
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   prismaMock.tempOrgRedirect.findUnique.mockImplementation(({ where }) => {
