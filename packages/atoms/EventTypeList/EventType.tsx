@@ -1,12 +1,19 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ExternalLink, LinkIcon, Edit2, Copy, Trash, Code } from "lucide-react";
 import { memo } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
+import { EventTypeEmbedButton } from "@calcom/features/embed/EventTypeEmbed";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { ArrowButton, AvatarGroup, ButtonGroup } from "@calcom/ui";
@@ -63,22 +70,37 @@ const MemoizedItem = memo(Item);
 
 export function EventType({
   event,
+  group,
   type,
+  readOnly,
   index,
   firstItem,
   lastItem,
   moveEventType,
-  setHiddenMutation,
+  onMutate,
+  onCopy,
+  onEdit,
+  onDuplicate,
+  onPreview,
 }: {
   event: any;
+  group: any;
   type: any;
+  readOnly: boolean;
   index: number;
   firstItem: { id: string };
   lastItem: { id: string };
   moveEventType: (index: number, increment: 1 | -1) => void;
-  setHiddenMutation: () => void;
+  onMutate: ({ hidden, id }: { hidden: boolean; id: string }) => void;
+  onCopy: (linnk: string) => void;
+  onEdit: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  onPreview: (link: string) => void;
 }) {
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
+  const embedLink = `${group.profile.slug}/${type.slug}`;
+  const isChildrenManagedEventType =
+    type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
   const orgBranding = useOrgBranding();
 
   return (
@@ -136,7 +158,7 @@ export function EventType({
                               name="hidden"
                               checked={!type.hidden}
                               onClick={() => {
-                                setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                                onMutate({ id: type.id, hidden: !type.hidden });
                               }}
                             />
                           </div>
@@ -154,14 +176,14 @@ export function EventType({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
-                            {/* TODO: add ExternalLink icon and toast */}
+                            {/* TODO: add toast */}
                             <Button
                               data-testid="preview-link-button"
-                              target="_blank"
                               className="bg-secondary color-secondary"
-                              // TODO: calLink to be created
-                              href={calLink}>
-                              Show icon
+                              onClick={() => {
+                                onPreview(calLink);
+                              }}>
+                              <ExternalLink />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>Preview</TooltipContent>
@@ -173,10 +195,9 @@ export function EventType({
                             <Button
                               className="bg-secondary color-secondary"
                               onClick={() => {
-                                // TOOD: show toast, icon and calLink
-                                navigator.clipboard.writeText(calLink);
+                                onCopy(calLink);
                               }}>
-                              Show icon here
+                              <LinkIcon />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>Copy link to event</TooltipContent>
@@ -184,19 +205,79 @@ export function EventType({
                       </TooltipProvider>
                     </>
                   )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        className="bg-secondary text-secondary ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md">
+                        <MoreHorizontal />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {!readOnly && (
+                        <DropdownMenuItem>
+                          <Button
+                            type="button"
+                            data-testid={`event-type-edit-${type.id}`}
+                            onClick={() => {
+                              onEdit(type.id);
+                            }}>
+                            <Edit2 />
+                            Edit
+                          </Button>
+                        </DropdownMenuItem>
+                      )}
+                      {!isManagedEventType && !isChildrenManagedEventType && (
+                        <>
+                          <DropdownMenuItem className="outline-none">
+                            <Button
+                              type="button"
+                              data-testid={`event-type-duplicate-${type.id}`}
+                              onClick={() => {
+                                onDuplicate(type.id);
+                              }}>
+                              <Copy />
+                              Duplicate
+                            </Button>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {!isManagedEventType && (
+                        <DropdownMenuItem>
+                          <EventTypeEmbedButton
+                            // Add embedLink here
+                            className="w-full rounded-none"
+                            eventId={type.id}
+                            type="button"
+                            StartIcon={Code}
+                            embedUrl={encodeURIComponent(embedLink)}>
+                            Embed
+                          </EventTypeEmbedButton>
+                        </DropdownMenuItem>
+                      )}
+                      {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                        !isChildrenManagedEventType && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              {/* Button type should be destructive here */}
+                              <Button
+                                onClick={() => {
+                                  // Add handler for destruction
+                                  console.log("Hi");
+                                }}
+                                className="w-full rounded-none">
+                                <Trash /> Delete
+                              </Button>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </ButtonGroup>
               </div>
             </div>
           </div>
-        </div>
-        <div className="min-w-9 mx-5 flex sm:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" className="bg-secondary text-secondary">
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-          </DropdownMenu>
         </div>
       </div>
     </li>
