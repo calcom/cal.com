@@ -22,6 +22,12 @@ generator enums {
   provider = "ts-node --transpile-only ./enum-generator"
 }
 
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../kysely"
+  fileName = "types.ts"
+}
+
 enum SchedulingType {
   ROUND_ROBIN @map("roundRobin")
   COLLECTIVE  @map("collective")

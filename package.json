@@ -37,7 +37,7 @@
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
     "dev:swagger": "turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
-    "dev": "turbo run dev --scope=\"@calcom/web\"",
+    "dev": "yarn workspace @calcom/prisma generate-schemas && turbo run dev --scope=\"@calcom/web\"",
     "build-storybook": "turbo run build --scope=\"@calcom/storybook\"",
     "dx": "turbo run dx",
     "i-dev": "infisical run -- turbo run dev --scope=\"@calcom/web\"",
