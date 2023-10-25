@@ -254,6 +254,35 @@ test.describe("Event Types tests", () => {
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("[data-testid=where]")).toHaveText(/Cal Video/);
       });
+
+      test("can add single organizer address location without display location public option", async ({
+        page,
+      }) => {
+        const $eventTypes = page.locator("[data-testid=event-types] > li a");
+        const firstEventTypeElement = $eventTypes.first();
+        await firstEventTypeElement.click();
+        await page.waitForURL((url) => {
+          return !!url.pathname.match(/\/event-types\/.+/);
+        });
+
+        const locationAddress = "New Delhi";
+
+        await fillLocation(page, locationAddress, 0, false);
+        await page.locator("[data-testid=update-eventtype]").click();
+
+        await page.goto("/event-types");
+
+        const previewLink = await page
+          .locator("[data-testid=preview-link-button]")
+          .first()
+          .getAttribute("href");
+
+        await page.goto(previewLink ?? "");
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page);
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator(`[data-testid="where"]`)).toHaveText(locationAddress);
+      });
     });
   });
 });
@@ -293,7 +322,7 @@ async function addAnotherLocation(page: Page, locationOptionText: string) {
   await page.locator(`text="${locationOptionText}"`).click();
 }
 
-const fillLocation = async (page: Page, inputText: string, index: number) => {
+const fillLocation = async (page: Page, inputText: string, index: number, selectDisplayLocation = true) => {
   // Except the first location, dropdown automatically opens when adding another location
   if (index == 0) {
     await page.locator("#location-select").last().click();
@@ -303,5 +332,7 @@ const fillLocation = async (page: Page, inputText: string, index: number) => {
   const locationInputName = `locations[${index}].address`;
   await page.locator(`input[name="${locationInputName}"]`).waitFor();
   await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
-  await page.locator("[data-testid=display-location]").last().check();
+  if (selectDisplayLocation) {
+    await page.locator("[data-testid=display-location]").last().check();
+  }
 };
