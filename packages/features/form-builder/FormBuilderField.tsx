@@ -311,8 +311,17 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
+    const moreThanOneInPersonOptions = !!(
+      field.options.filter((field) => {
+        return field.value === "inPerson";
+      }).length > 1
+    );
+
     const options = field.options.map((field) => {
-      return { ...field, value: field.value };
+      return {
+        ...field,
+        value: field.value === "inPerson" && moreThanOneInPersonOptions ? field.label : field.value,
+      };
     });
 
     return field.options.length ? (
