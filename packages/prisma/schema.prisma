@@ -423,6 +423,7 @@ model Booking {
   @@index([recurringEventId])
   @@index([uid])
   @@index([status])
+  @@index([startTime, endTime, status])
 }
 
 model Schedule {
