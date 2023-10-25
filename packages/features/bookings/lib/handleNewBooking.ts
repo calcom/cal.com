@@ -1851,6 +1851,7 @@ async function handler(
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
+      rescheduleId: originalRescheduledBooking?.id || undefined,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2377,8 +2378,8 @@ async function handler(
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
+    rescheduleId: originalRescheduledBooking?.id || undefined,
     rescheduleUid,
-    oldBookingId: originalRescheduledBooking?.id || undefined,
     rescheduleStartTime: originalRescheduledBooking?.startTime
       ? dayjs(originalRescheduledBooking?.startTime).utc().format()
       : undefined,
