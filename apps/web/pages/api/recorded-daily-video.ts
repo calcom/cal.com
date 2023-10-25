@@ -107,7 +107,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
   const response = schema.safeParse(JSON.parse(req.body));
-  console.log("handler.response", response);
 
   if (!response.success) {
     return res.status(400).send({
@@ -117,7 +116,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { recordingId, bookingUID } = response.data;
   const session = await getServerSession({ req, res });
-  console.log("session", session);
 
   if (!session?.user) {
     return res.status(401).send({
@@ -155,8 +153,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    console.log("recording.booking", booking);
-
     if (!booking || booking.location !== DailyLocationType) {
       return res.status(404).send({
         message: `Booking of uid ${bookingUID} does not exist or does not contain daily video as location`,
@@ -179,20 +175,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
-    console.log("AttendeesList", attendeesList);
-
     const isUserAttendeeOrOrganiser =
       booking?.user?.id === session.user.id ||
       attendeesList.find(
         (attendee) => attendee.id === session.user.id || attendee.email === session.user.email
       );
-
-    console.log(
-      "isUserAttendeeOrOrganiser",
-      isUserAttendeeOrOrganiser,
-      booking?.user?.id === session.user.id,
-      attendeesList.find((attendee) => attendee.id === session.user.id)
-    );
 
     if (!isUserAttendeeOrOrganiser) {
       const isUserMemberOfTheTeam = checkIfUserIsPartOfTheSameTeam(
