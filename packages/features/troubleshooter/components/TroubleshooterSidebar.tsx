@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Skeleton } from "@calcom/ui";
 
+import { CalendarToggleContainer } from "./CalendarToggleContainer";
+import { EventScheduleItem } from "./EventScheduleItem";
 import { EventTypeSelect } from "./EventTypeSelect";
 
 const BackButtonInSidebar = ({ name }: { name: string }) => {
@@ -30,6 +32,8 @@ export const TroubleshooterSidebar = () => {
     <div className="relative z-10 flex w-full flex-col gap-6 py-6 pr-6">
       <BackButtonInSidebar name={t("troubleshooter")} />
       <EventTypeSelect />
+      <EventScheduleItem />
+      <CalendarToggleContainer />
     </div>
   );
 };

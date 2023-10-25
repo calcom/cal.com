@@ -28,6 +28,24 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
   try {
     // This looks kinda weird that we throw straight in the catch - its so that we can return a default schedule if the user has not completed onboarding @shiraz will loveme for this
     if (!foundScheduleForSlug?.scheduleId) {
+      const foundUserDefaultId = await ctx.prisma.user.findUnique({
+        where: {
+          id: ctx.user.id,
+        },
+        select: {
+          defaultScheduleId: true,
+        },
+      });
+
+      if (foundUserDefaultId?.defaultScheduleId) {
+        return await getHandler({
+          ctx,
+          input: {
+            scheduleId: foundUserDefaultId?.defaultScheduleId,
+          },
+        });
+      }
+
       throw new Error("NOT_FOUND");
     }
     return await getHandler({
@@ -37,6 +55,7 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
       },
     });
   } catch (e) {
+    console.log(e);
     return {
       id: -1,
       name: "No schedules found",
@@ -45,7 +64,6 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
       timeZone: ctx.user.timeZone || "Europe/London",
       workingHours: [],
       isDefault: true,
-      hasDefaultSchedule: false, // This is the path that we take if the user has not completed onboarding
     };
   }
 };
