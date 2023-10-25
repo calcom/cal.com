@@ -1,3 +1,4 @@
+import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
@@ -142,69 +143,189 @@ export async function getEventType(
     return null;
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      minimumBookingNotice: true,
-      length: true,
-      offsetStart: true,
-      seatsPerTimeSlot: true,
-      timeZone: true,
-      slotInterval: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      bookingLimits: true,
-      durationLimits: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      periodDays: true,
-      metadata: true,
-      schedule: {
-        select: {
-          availability: {
-            select: {
-              date: true,
-              startTime: true,
-              endTime: true,
-              days: true,
-            },
-          },
-          timeZone: true,
-        },
-      },
-      availability: {
-        select: {
-          date: true,
-          startTime: true,
-          endTime: true,
-          days: true,
-        },
-      },
-      hosts: {
-        select: {
-          isFixed: true,
-          user: {
-            select: {
-              credentials: { select: credentialForCalendarServiceSelect },
-              ...availabilityUserSelect,
-            },
-          },
-        },
-      },
-      users: {
-        select: {
-          credentials: { select: credentialForCalendarServiceSelect },
-          ...availabilityUserSelect,
-        },
-      },
-    },
+  const eventType = await db
+    .selectFrom("EventType")
+    .where("id", "=", eventTypeId)
+    .select((eb) => [
+      "EventType.id",
+      "EventType.slug",
+      "EventType.minimumBookingNotice",
+      "EventType.length",
+      "EventType.offsetStart",
+      "EventType.seatsPerTimeSlot",
+      "EventType.timeZone",
+      "EventType.slotInterval",
+      "EventType.beforeEventBuffer",
+      "EventType.afterEventBuffer",
+      "EventType.bookingLimits",
+      "EventType.durationLimits",
+      "EventType.schedulingType",
+      "EventType.periodType",
+      "EventType.periodStartDate",
+      "EventType.periodEndDate",
+      "EventType.periodCountCalendarDays",
+      "EventType.periodDays",
+      "EventType.metadata",
+      jsonObjectFrom(
+        eb
+          .selectFrom("Schedule")
+          .whereRef("Schedule.id", "=", "EventType.scheduleId")
+          .select((eb) => [
+            "Schedule.timeZone",
+            jsonArrayFrom(
+              eb
+                .selectFrom("Availability")
+                .whereRef("Availability.scheduleId", "=", "Schedule.id")
+                .select(["date", "startTime", "endTime", "days"])
+            ).as("availability"),
+          ])
+      ).as("schedule"),
+      jsonArrayFrom(
+        eb
+          .selectFrom("Availability")
+          .whereRef("Availability.eventTypeId", "=", "EventType.id")
+          .select(["date", "startTime", "endTime", "days"])
+      ).as("availability"),
+      jsonArrayFrom(
+        eb
+          .selectFrom("Host")
+          .leftJoin("users", "users.id", "Host.userId")
+          .leftJoin("Credential", "Credential.userId", "users.id")
+          .whereRef("Host.eventTypeId", "=", "EventType.id")
+          .select((eb) => [
+            "isFixed",
+            jsonObjectFrom(
+              eb
+                .selectFrom("users")
+                .whereRef("users.id", "=", "Host.userId")
+                .select((eb) => [
+                  jsonArrayFrom(
+                    eb
+                      .selectFrom("Credential")
+                      .whereRef("Credential.userId", "=", "users.id")
+                      .select([
+                        "id",
+                        "appId",
+                        "type",
+                        "userId",
+                        "teamId",
+                        "key",
+                        "invalid",
+                        jsonObjectFrom(
+                          eb
+                            .selectFrom("users")
+                            .whereRef("users.id", "=", "Credential.userId")
+                            .select("email")
+                        ).as("user"),
+                      ])
+                  ).as("credentials"),
+                  "id",
+                  "timeZone",
+                  "email",
+                  "bufferTime",
+                  "startTime",
+                  "username",
+                  "endTime",
+                  "timeFormat",
+                  "defaultScheduleId",
+                  jsonArrayFrom(
+                    eb
+                      .selectFrom("Schedule")
+                      .whereRef("Schedule.userId", "=", "users.id")
+                      .select((eb) => [
+                        "id",
+                        "timeZone",
+                        jsonArrayFrom(
+                          eb
+                            .selectFrom("Availability")
+                            .select(["date", "startTime", "endTime", "days"])
+                            .whereRef("Availability.scheduleId", "=", "Schedule.id")
+                        ).as("availability"),
+                      ])
+                  ).as("schedules"),
+                  jsonArrayFrom(
+                    eb.selectFrom("Availability").selectAll().whereRef("Availability.userId", "=", "users.id")
+                  ).as("availability"),
+                  jsonArrayFrom(
+                    eb
+                      .selectFrom("SelectedCalendar")
+                      .selectAll()
+                      .whereRef("SelectedCalendar.userId", "=", "users.id")
+                  ).as("selectedCalendars"),
+                ])
+            ).as("user"),
+          ])
+      ).as("hosts"),
+      jsonArrayFrom(
+        eb
+          .selectFrom("users")
+          .leftJoin("Credential", "Credential.userId", "users.id")
+          .whereRef("users.id", "=", "EventType.userId")
+          .select((eb) => [
+            jsonArrayFrom(
+              eb
+                .selectFrom("Credential")
+                .whereRef("Credential.userId", "=", "users.id")
+                .select([
+                  "id",
+                  "appId",
+                  "type",
+                  "userId",
+                  "teamId",
+                  "key",
+                  "invalid",
+                  jsonObjectFrom(
+                    eb.selectFrom("users").whereRef("users.id", "=", "Credential.userId").select("email")
+                  ).as("user"),
+                ])
+            ).as("credentials"),
+            "users.id",
+            "users.timeZone",
+            "users.email",
+            "users.bufferTime",
+            "users.startTime",
+            "users.username",
+            "users.endTime",
+            "users.timeFormat",
+            "users.defaultScheduleId",
+            jsonArrayFrom(
+              eb
+                .selectFrom("Schedule")
+                .whereRef("Schedule.userId", "=", "users.id")
+                .select((eb) => [
+                  "id",
+                  "timeZone",
+                  jsonArrayFrom(
+                    eb
+                      .selectFrom("Availability")
+                      .select(["date", "startTime", "endTime", "days"])
+                      .whereRef("Availability.scheduleId", "=", "Schedule.id")
+                  ).as("availability"),
+                ])
+            ).as("schedules"),
+            jsonArrayFrom(
+              eb.selectFrom("Availability").selectAll().whereRef("Availability.userId", "=", "users.id")
+            ).as("availability"),
+            jsonArrayFrom(
+              eb
+                .selectFrom("SelectedCalendar")
+                .selectAll()
+                .whereRef("SelectedCalendar.userId", "=", "users.id")
+            ).as("selectedCalendars"),
+          ])
+      ).as("users"),
+    ])
+    .executeTakeFirst();
+
+  // note(Lauris): Availability startTime and endTime have DateTime in Prisma schema,
+  // but in DB only hh:mm:ss are stored e.g. "09:00:00". Prisma transforms data as follows:
+  eventType?.users.forEach((user) => {
+    user.schedules.forEach((schedule) => {
+      schedule.availability.forEach((availability) => {
+        availability.startTime = new Date(`1970-01-01T${availability.startTime}.000Z`);
+        availability.endTime = new Date(`1970-01-01T${availability.endTime}.000Z`);
+      });
+    });
   });
 
   if (!eventType) {
