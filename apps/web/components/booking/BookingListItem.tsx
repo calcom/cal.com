@@ -269,11 +269,10 @@ function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
-  // To be used after we run query on legacy bookings
-  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
 
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+  const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
+  const checkForRecordingButton =
+    !showRecordingsButtons && (booking.location === "integrations:daily" || booking?.location?.trim() === "");
 
   return (
     <>

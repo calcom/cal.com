@@ -62,11 +62,52 @@ const triggerWebhook = async ({
   await Promise.all(promises);
 };
 
+const checkIfUserIsPartOfTheSameTeam = async (
+  teamId: number | undefined | null,
+  userId: number,
+  userEmail: string | undefined | null
+) => {
+  if (!teamId) return false;
+
+  const getUserQuery = () => {
+    if (!!userEmail) {
+      return {
+        OR: [
+          {
+            id: userId,
+          },
+          {
+            email: userEmail,
+          },
+        ],
+      };
+    } else {
+      return {
+        id: userId,
+      };
+    }
+  };
+
+  const team = await prisma.team.findFirst({
+    where: {
+      id: teamId,
+      members: {
+        some: {
+          user: getUserQuery(),
+        },
+      },
+    },
+  });
+
+  return !!team;
+};
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
   const response = schema.safeParse(JSON.parse(req.body));
+  console.log("handler.response", response);
 
   if (!response.success) {
     return res.status(400).send({
@@ -76,6 +117,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { recordingId, bookingUID } = response.data;
   const session = await getServerSession({ req, res });
+  console.log("session", session);
 
   if (!session?.user) {
     return res.status(401).send({
@@ -113,6 +155,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    console.log("recording.booking", booking);
+
     if (!booking || booking.location !== DailyLocationType) {
       return res.status(404).send({
         message: `Booking of uid ${bookingUID} does not exist or does not contain daily video as location`,
@@ -135,14 +179,33 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
+    console.log("AttendeesList", attendeesList);
+
     const isUserAttendeeOrOrganiser =
       booking?.user?.id === session.user.id ||
-      attendeesList.find((attendee) => attendee.id === session.user.id);
+      attendeesList.find(
+        (attendee) => attendee.id === session.user.id || attendee.email === session.user.email
+      );
+
+    console.log(
+      "isUserAttendeeOrOrganiser",
+      isUserAttendeeOrOrganiser,
+      booking?.user?.id === session.user.id,
+      attendeesList.find((attendee) => attendee.id === session.user.id)
+    );
 
     if (!isUserAttendeeOrOrganiser) {
-      return res.status(403).send({
-        message: "Unauthorised",
-      });
+      const isUserMemberOfTheTeam = checkIfUserIsPartOfTheSameTeam(
+        booking?.eventType?.teamId,
+        session.user.id,
+        session.user.email
+      );
+
+      if (!isUserMemberOfTheTeam) {
+        return res.status(403).send({
+          message: "Unauthorised",
+        });
+      }
     }
 
     await prisma.booking.update({
@@ -202,7 +265,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     return res.status(403).json({ message: "User does not have team plan to send out emails" });
   } catch (err) {
-    console.warn("something_went_wrong", err);
+    console.warn("recorded daily video", err);
     return res.status(500).json({ message: "something went wrong" });
   }
 }
