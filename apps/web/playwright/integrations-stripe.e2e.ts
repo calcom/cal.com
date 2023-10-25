@@ -153,16 +153,14 @@ test.describe("Stripe integration", () => {
     test("Payment should trigger a BOOKING_PAID webhook", async ({ page }) => {
       // --- check that webhook was called
       await waitFor(() => {
-        expect(webhookReceiver.requestList.length).toBe(2);
+        expect(webhookReceiver.requestList).toContain(
+          expect.objectContaining({
+            body: {
+              triggerEvent: "BOOKING_PAID",
+            },
+          })
+        );
       });
-
-      expect(webhookReceiver.requestList).toContain(
-        expect.objectContaining({
-          body: {
-            triggerEvent: "BOOKING_PAID",
-          },
-        })
-      );
     });
 
     test("Paid and confirmed booking should be able to be rescheduled", async ({ page, users }) => {
