@@ -29419,7 +29419,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-i18next@npm:^13.2.2":
+"next-i18next@npm:13.3.0":
   version: 13.3.0
   resolution: "next-i18next@npm:13.3.0"
   dependencies:
@@ -29434,6 +29434,24 @@ __metadata:
     react: ">= 17.0.2"
     react-i18next: ^12.2.0
   checksum: 4c3aa5bbbc12964ed6f61f37d33f4319abd04932d6871baba9f209183952b286470fff80f90a94ccddba736c8fb13a9238effa1e8247dfb08e2239cbdc4fb769
+  languageName: node
+  linkType: hard
+
+"next-i18next@patch:next-i18next@npm%3A13.3.0#./.yarn/patches/next-i18next-npm-13.3.0-bf25b0943c.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 13.3.0
+  resolution: "next-i18next@patch:next-i18next@npm%3A13.3.0#./.yarn/patches/next-i18next-npm-13.3.0-bf25b0943c.patch::version=13.3.0&hash=bcbde7&locator=calcom-monorepo%40workspace%3A."
+  dependencies:
+    "@babel/runtime": ^7.20.13
+    "@types/hoist-non-react-statics": ^3.3.1
+    core-js: ^3
+    hoist-non-react-statics: ^3.3.2
+    i18next-fs-backend: ^2.1.1
+  peerDependencies:
+    i18next: ^22.0.6
+    next: ">= 12.0.0"
+    react: ">= 17.0.2"
+    react-i18next: ^12.2.0
+  checksum: 7dcb7e2ec14a0164e2c803b5eb4be3d3198ff0db266fecd6225dfa99ec53bf923fe50230c413f2e9b9a795266fb4e31f129572865181df1eadcf8721ad138b3e
   languageName: node
   linkType: hard
 
