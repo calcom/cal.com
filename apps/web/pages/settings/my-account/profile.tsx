@@ -227,7 +227,6 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user) {
-
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
