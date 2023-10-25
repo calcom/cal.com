@@ -27,8 +27,6 @@ export function EventTypeSelect() {
     }
   }, [selectedEventQueryParam, selectedEventType, setSelectedEventType]);
 
-  console.log({ options, eventTypes });
-
   return (
     <SelectField
       label="Event Type"
