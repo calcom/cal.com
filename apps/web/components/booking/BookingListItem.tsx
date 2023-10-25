@@ -141,17 +141,6 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  const showRecordingActions: ActionType[] = [
-    {
-      id: "view_recordings",
-      label: t("view_recordings"),
-      onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
-      },
-      disabled: mutation.isLoading,
-    },
-  ];
-
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -271,8 +260,19 @@ function BookingListItem(booking: BookingItemProps) {
   const title = booking.title;
 
   const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
-  const checkForRecordingButton =
+  const checkForRecordingsButton =
     !showRecordingsButtons && (booking.location === "integrations:daily" || booking?.location?.trim() === "");
+
+  const showRecordingActions: ActionType[] = [
+    {
+      id: checkForRecordingsButton ? "check_for_recordings" : "view_recordings",
+      label: checkForRecordingsButton ? t("check_for_recordings") : t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      disabled: mutation.isLoading,
+    },
+  ];
 
   return (
     <>
@@ -297,7 +297,7 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {showRecordingsButtons && (
+      {(showRecordingsButtons || checkForRecordingsButton) && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
@@ -467,7 +467,9 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
+          {(showRecordingsButtons || checkForRecordingsButton) && (
+            <TableActions actions={showRecordingActions} />
+          )}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />

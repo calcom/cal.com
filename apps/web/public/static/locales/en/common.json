@@ -1296,6 +1296,7 @@
   "select_calendars": "Select which calendars you want to check for conflicts to prevent double bookings.",
   "check_for_conflicts": "Check for conflicts",
   "view_recordings": "View recordings",
+  "check_for_recordings":"Check for recordings",
   "adding_events_to": "Adding events to",
   "follow_system_preferences": "Follow system preferences",
   "custom_brand_colors": "Custom brand colors",
