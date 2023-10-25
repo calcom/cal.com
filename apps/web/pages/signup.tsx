@@ -225,7 +225,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
       }>
       <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-lg 2xl:border ">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-4 py-6 md:px-16 2xl:px-28">
+        <div className="flex w-full flex-col px-4 py-6 sm:px-16 md:px-24 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
