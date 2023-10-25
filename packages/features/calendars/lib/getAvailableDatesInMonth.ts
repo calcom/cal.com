@@ -5,7 +5,7 @@ import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 // *) Dates in the past are not available.
 // *) Use right amount of days in given month. (28, 30, 31)
 export function getAvailableDatesInMonth({
-  browsingDate, // pass as UTC
+  browsingDate,
   minDate = new Date(),
   includedDates,
 }: {
