@@ -8,7 +8,7 @@ describe("Test Suite: Date Picker", () => {
     // *) Use right amount of days in given month. (28, 30, 31)
     test("it returns the right amount of days in a given month", () => {
       const currentDate = new Date();
-      const nextMonthDate = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth() + 1));
+      const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
 
       const result = getAvailableDatesInMonth({
         browsingDate: nextMonthDate,
