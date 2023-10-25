@@ -3,6 +3,7 @@ import type { TFunction } from "next-i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui";
@@ -313,14 +314,17 @@ export const ComponentForField = ({
     }
     const moreThanOneInPersonOptions = !!(
       field.options.filter((field) => {
-        return field.value === "inPerson";
+        return field.value === DefaultEventLocationTypeEnum.InPerson;
       }).length > 1
     );
 
     const options = field.options.map((field) => {
       return {
         ...field,
-        value: field.value === "inPerson" && moreThanOneInPersonOptions ? field.label : field.value,
+        value:
+          field.value === DefaultEventLocationTypeEnum.InPerson && moreThanOneInPersonOptions
+            ? field.label
+            : field.value,
       };
     });
 
