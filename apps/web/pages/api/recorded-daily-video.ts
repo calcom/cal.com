@@ -252,7 +252,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     return res.status(403).json({ message: "User does not have team plan to send out emails" });
   } catch (err) {
-    console.warn("recorded daily video", err);
+    console.warn("Error in /recorded-daily-video", err);
     return res.status(500).json({ message: "something went wrong" });
   }
 }
