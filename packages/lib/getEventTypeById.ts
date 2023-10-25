@@ -4,10 +4,9 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
@@ -36,6 +35,7 @@ export default async function getEventTypeById({
     username: true,
     id: true,
     email: true,
+    organizationId: true,
     locale: true,
     defaultScheduleId: true,
   });
@@ -298,9 +298,7 @@ export default async function getEventTypeById({
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
     (user) => ({
       ...user,
-      avatar: `${eventType.team?.parent?.slug ? getOrgFullOrigin(eventType.team?.parent?.slug) : CAL_URL}/${
-        user.username
-      }/avatar.png`,
+      avatar: getUserAvatarUrl(user),
     })
   );
 
@@ -346,11 +344,7 @@ export default async function getEventTypeById({
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {
             ...member.user,
-            avatar: `${
-              eventTypeObject.team?.parent?.slug
-                ? getOrgFullOrigin(eventTypeObject.team?.parent?.slug)
-                : CAL_URL
-            }/${member.user.username}/avatar.png`,
+            avatar: getUserAvatarUrl(member.user),
           };
           return {
             ...user,
