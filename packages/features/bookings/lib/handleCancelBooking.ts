@@ -129,7 +129,8 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
   }
 
-  if (userId !== bookingToDelete.user?.id && bookingToDelete.startTime < new Date()) {
+  if (userId !== bookingToDelete.user?.id && !allRemainingBookings) {
+    // Allow cancellation for past time slots when allRemainingBookings is true
     throw new HttpError({ statusCode: 400, message: "Cannot cancel past events" });
   }
 
