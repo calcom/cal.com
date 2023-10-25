@@ -2379,6 +2379,7 @@ async function handler(
     ...eventTypeInfo,
     bookingId: booking?.id,
     rescheduleUid,
+    oldBookingId: originalRescheduledBooking?.id || undefined,
     rescheduleStartTime: originalRescheduledBooking?.startTime
       ? dayjs(originalRescheduledBooking?.startTime).utc().format()
       : undefined,
