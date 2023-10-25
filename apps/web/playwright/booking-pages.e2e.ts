@@ -53,7 +53,7 @@ test.describe("free user", () => {
     // book same time spot again
     await bookTimeSlot(page);
 
-    await expect(page.locator("[data-testid=booking-fail]")).toBeVisible({ timeout: 1000 });
+    await page.locator("[data-testid=booking-fail]").waitFor({ state: "visible" });
   });
 });
 

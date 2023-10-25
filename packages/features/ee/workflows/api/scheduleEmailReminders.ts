@@ -14,6 +14,7 @@ import { parseRecurringEvent } from "@calcom/lib";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -29,12 +30,16 @@ sgMail.setApiKey(sendgridAPIKey);
 type Booking = Prisma.BookingGetPayload<{
   include: {
     eventType: true;
-    user: true;
     attendees: true;
   };
 }>;
 
-function getiCalEventAsString(booking: Booking) {
+function getiCalEventAsString(
+  booking: Pick<Booking, "startTime" | "endTime" | "description" | "location" | "attendees"> & {
+    eventType: { recurringEvent?: Prisma.JsonValue; title?: string } | null;
+    user: Partial<User> | null;
+  }
+) {
   let recurrenceRule: string | undefined = undefined;
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEvent?.count) {
@@ -114,6 +119,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
       skip: pageNumber * pageSize,
       take: pageSize,
+      select: {
+        referenceId: true,
+      },
     });
 
     if (remindersToDelete.length === 0) {
@@ -156,6 +164,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
       skip: pageNumber * pageSize,
       take: pageSize,
+      select: {
+        referenceId: true,
+        id: true,
+      },
     });
 
     if (remindersToCancel.length === 0) {
@@ -203,13 +215,50 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
       skip: pageNumber * pageSize,
       take: pageSize,
-      include: {
-        workflowStep: true,
+      select: {
+        id: true,
+        scheduledDate: true,
+        workflowStep: {
+          select: {
+            action: true,
+            sendTo: true,
+            reminderBody: true,
+            emailSubject: true,
+            template: true,
+            sender: true,
+            includeCalendarEvent: true,
+          },
+        },
         booking: {
-          include: {
-            eventType: true,
-            user: true,
+          select: {
+            startTime: true,
+            endTime: true,
+            location: true,
+            description: true,
+            user: {
+              select: {
+                email: true,
+                name: true,
+                timeZone: true,
+                locale: true,
+                username: true,
+                timeFormat: true,
+                hideBranding: true,
+              },
+            },
+            metadata: true,
+            uid: true,
+            customInputs: true,
+            responses: true,
             attendees: true,
+            eventType: {
+              select: {
+                bookingFields: true,
+                title: true,
+                slug: true,
+                recurringEvent: true,
+              },
+            },
           },
         },
       },

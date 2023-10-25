@@ -1605,6 +1605,7 @@
   "options": "Options",
   "enter_option": "Enter Option {{index}}",
   "add_an_option": "Add an option",
+  "location_already_exists": "This Location already exists. Please select a new location",
   "radio": "Radio",
   "google_meet_warning": "In order to use Google Meet you must set your destination calendar to a Google Calendar",
   "individual": "Individual",
@@ -1972,8 +1973,6 @@
   "org_no_teams_yet": "This organization has no teams yet",
   "org_no_teams_yet_description": "If you are an administrator, be sure to create teams to be shown here.",
   "set_up": "Set up",
-  "set_up_your_profile": "Set up your profile",
-  "set_up_your_profile_description": "Let people know who you are within {{orgName}}, and when they engage with your public link.",
   "my_profile": "My Profile",
   "my_settings": "My Settings",
   "crm": "CRM",
@@ -2095,5 +2094,7 @@
   "overlay_my_calendar":"Overlay my calendar",
   "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
+  "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
+  "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
