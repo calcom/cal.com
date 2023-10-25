@@ -1,7 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MoreHorizontal } from "lucide-react";
 import { memo } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
@@ -187,7 +189,15 @@ export function EventType({
             </div>
           </div>
         </div>
-        <div className="min-w-9 mx-5 flex sm:hidden" />
+        <div className="min-w-9 mx-5 flex sm:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" className="bg-secondary text-secondary">
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+          </DropdownMenu>
+        </div>
       </div>
     </li>
   );
