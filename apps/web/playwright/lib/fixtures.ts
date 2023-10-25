@@ -8,8 +8,9 @@ import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
-import { createEmbedsFixture, createGetActionFiredDetails } from "../fixtures/embeds";
+import { createEmbedsFixture } from "../fixtures/embeds";
 import { createPaymentsFixture } from "../fixtures/payments";
+import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
@@ -19,12 +20,12 @@ export interface Fixtures {
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
-  addEmbedListeners: ReturnType<typeof createEmbedsFixture>;
-  getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
+  embeds: ReturnType<typeof createEmbedsFixture>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
+  bookingPage: ReturnType<typeof createBookingPageFixture>;
 }
 
 declare global {
@@ -36,7 +37,8 @@ declare global {
         calNamespace: string,
         // eslint-disable-next-line
         getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
-        expectedUrlDetails?: ExpectedUrlDetails
+        expectedUrlDetails?: ExpectedUrlDetails,
+        isPrendered?: boolean
       ): Promise<R>;
     }
   }
@@ -58,13 +60,9 @@ export const test = base.extend<Fixtures>({
     const payemntsFixture = createPaymentsFixture(page);
     await use(payemntsFixture);
   },
-  addEmbedListeners: async ({ page }, use) => {
+  embeds: async ({ page }, use) => {
     const embedsFixture = createEmbedsFixture(page);
     await use(embedsFixture);
-  },
-  getActionFiredDetails: async ({ page }, use) => {
-    const getActionFiredDetailsFixture = createGetActionFiredDetails(page);
-    await use(getActionFiredDetailsFixture);
   },
   servers: async ({}, use) => {
     const servers = createServersFixture();
@@ -83,5 +81,9 @@ export const test = base.extend<Fixtures>({
     } else {
       await use(undefined);
     }
+  },
+  bookingPage: async ({ page }, use) => {
+    const bookingPage = createBookingPageFixture(page);
+    await use(bookingPage);
   },
 });

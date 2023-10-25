@@ -22,6 +22,7 @@ const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.Time
 export const EventMeta = () => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);

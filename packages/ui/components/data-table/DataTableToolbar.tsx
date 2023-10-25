@@ -36,7 +36,7 @@ export function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="bg-default sticky top-[3rem] z-10 flex items-center justify-end space-x-2 py-4 md:top-0">
+    <div className="bg-default sticky top-[3rem] z-10 flex items-center justify-end space-x-2 py-[2.15rem] md:top-0">
       {searchKey && (
         <Input
           className="max-w-64 mb-0 mr-auto rounded-md"
