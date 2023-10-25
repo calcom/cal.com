@@ -298,7 +298,7 @@ export const EventSetupTab = (
                           !validLocations.find((location) => location.type === newLocationType);
 
                         if (canAddLocation) {
-                          updateLocationField(index, { type: newLocationType });
+                          updateLocationField(index, { type: newLocationType, credentialId: e.credentialId });
                         } else {
                           updateLocationField(index, { type: field.type });
                           showToast(t("location_already_exists"), "warning");
@@ -382,7 +382,7 @@ export const EventSetupTab = (
                       !validLocations.find((location) => location.type === newLocationType);
 
                     if (canAppendLocation) {
-                      append({ type: newLocationType });
+                      append({ type: newLocationType, credentialId: e.credentialId });
                       setSelectedNewOption(e);
                     } else {
                       showToast(t("location_already_exists"), "warning");
