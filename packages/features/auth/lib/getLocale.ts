@@ -4,7 +4,7 @@ import type { GetTokenParams } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
 
 //@ts-expect-error no type definitions
-import { i18n } from "@calcom/web/next-i18next.config";
+import { i18n } from "@calcom/config/next-i18next.config";
 
 /**
  * This is a slimmed down version of the `getServerSession` function from

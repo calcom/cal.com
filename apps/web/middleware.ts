@@ -8,6 +8,8 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 
 import { csp } from "@lib/csp";
 
+import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
@@ -86,27 +88,12 @@ const routingForms = {
 };
 
 export const config = {
-  // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
-  // https://github.com/vercel/next.js/discussions/42458
-  matcher: [
-    "/:path*/embed",
-    "/api/trpc/:path*",
-    "/login",
-    "/auth/login",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
-    // middleware should be executed on each page request, in order to set x-url correctly
-    // matchers above, can be removed
-    "/:path*/",
-    "/event-types-1",
-  ],
+  // middleware should be executed on each page request to set headers required by RootLayout
+  matcher: "/((?!_next|static|public|favicon.ico).*)",
 };
 
 export default collectEvents({
-  middleware,
+  middleware: abTestMiddlewareFactory(middleware),
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,

@@ -9,12 +9,32 @@ import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth
 
 test.describe.configure({ mode: "parallel" });
 
+test.describe("Event Types A/B tests", () => {
+  test("should point to a non-existing page", async ({ page, users, context }) => {
+    await context.addCookies([
+      {
+        name: "x-calcom-future-routes-override",
+        value: "1",
+        url: "http://localhost:3000",
+      },
+    ]);
+    const user = await users.create();
+    await user.apiLogin();
+    await page.goto("/event-types");
+
+    const locator = page.getByRole("heading", { name: "This page does not exist." });
+
+    await expect(locator).toBeVisible();
+  });
+});
+
 test.describe("Event Types tests", () => {
   test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       await page.goto("/event-types");
+
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
     });
