@@ -200,6 +200,7 @@ export default class GoogleCalendarService implements Calendar {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
+      iCalUID: calEventRaw.iCalUID,
     };
 
     if (calEventRaw.location) {
@@ -248,7 +249,6 @@ export default class GoogleCalendarService implements Calendar {
         type: "google_calendar",
         password: "",
         url: "",
-        iCalUID: event.data.iCalUID,
       };
     } catch (error) {
       console.error("There was an error contacting google calendar service: ", error);
