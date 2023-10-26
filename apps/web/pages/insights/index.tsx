@@ -1,3 +1,5 @@
+"use client";
+
 import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
