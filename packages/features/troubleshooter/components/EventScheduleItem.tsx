@@ -1,18 +1,22 @@
+import Link from "next/link";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Label } from "@calcom/ui";
+import { Badge, Label } from "@calcom/ui";
 
 import { useTroubleshooterStore } from "../store";
 import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer";
 
 export function EventScheduleItem() {
-  const selectedEventType = useTroubleshooterStore((state) => state.eventSlug);
+  const { t } = useLocale();
+  const selectedEventType = useTroubleshooterStore((state) => state.event);
 
-  const { data: schedule, isLoading } = trpc.viewer.availability.schedule.getScheduleByEventSlug.useQuery(
+  const { data: schedule } = trpc.viewer.availability.schedule.getScheduleByEventSlug.useQuery(
     {
-      eventSlug: selectedEventType as string, // Only enabled when selectedEventType is not null
+      eventSlug: selectedEventType?.slug as string,
     },
     {
-      enabled: !!selectedEventType,
+      enabled: !!selectedEventType?.slug,
     }
   );
 
@@ -20,9 +24,18 @@ export function EventScheduleItem() {
     <div>
       <Label>Availability Schedule</Label>
       <TroubleshooterListItemHeader
-        className="rounded-md border-b " // Target paragraph inside nested children to make medium (saves us from creating a new component)
+        className="group rounded-md border-b"
         prefixSlot={<div className="w-4 rounded-[4px] bg-black" />}
         title={schedule?.name ?? "Loading"}
+        suffixSlot={
+          schedule && (
+            <Link href={`/availability/${schedule.id}`} className="inline-flex">
+              <Badge color="orange" size="sm" className="hidden hover:cursor-pointer group-hover:inline-flex">
+                {t("edit")}
+              </Badge>
+            </Link>
+          )
+        }
       />
     </div>
   );
