@@ -1,7 +1,5 @@
 import { expect } from "@playwright/test";
 
-import dayjs from "@calcom/dayjs";
-
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -19,7 +17,7 @@ test.describe("Availablity tests", () => {
     await users.deleteAll();
   });
 
-  test("Date Overrides", async ({ page }) => {
+  test("Date Overrides", async ({ page, dayjs }) => {
     await test.step("Can add a date override", async () => {
       await page.locator('[data-testid="schedules"] > li a').click();
       await page.locator('[data-testid="add-override"]').click();

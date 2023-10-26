@@ -3,6 +3,8 @@ import { test as base } from "@playwright/test";
 import type { API } from "mailhog";
 import mailhog from "mailhog";
 
+import type { Dayjs } from "@calcom/dayjs";
+import _dayjs from "@calcom/dayjs";
 import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -26,6 +28,7 @@ export interface Fixtures {
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
+  dayjs: (...args: Parameters<typeof _dayjs>) => Dayjs;
 }
 
 declare global {
@@ -52,8 +55,8 @@ export const test = base.extend<Fixtures>({
     const usersFixture = createUsersFixture(page, emails, workerInfo);
     await use(usersFixture);
   },
-  bookings: async ({ page }, use) => {
-    const bookingsFixture = createBookingsFixture(page);
+  bookings: async ({ page, dayjs }, use) => {
+    const bookingsFixture = createBookingsFixture({ page, dayjs });
     await use(bookingsFixture);
   },
   payments: async ({ page }, use) => {
@@ -85,5 +88,10 @@ export const test = base.extend<Fixtures>({
   bookingPage: async ({ page }, use) => {
     const bookingPage = createBookingPageFixture(page);
     await use(bookingPage);
+  },
+  dayjs: async ({ timezoneId }, use) => {
+    // We default all dayjs calls to use Europe/London timezone
+    const dayjs = (...args: Parameters<typeof _dayjs>) => _dayjs(...args).tz(timezoneId);
+    await use(dayjs);
   },
 });

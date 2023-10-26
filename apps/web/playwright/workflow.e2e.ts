@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 
-import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
@@ -14,7 +13,7 @@ test.describe("Workflow tests", () => {
     // Fixme: This test is failing because the listing isn't immediately updated after the workflow is created
     test.fixme(
       "Create default reminder workflow & trigger when event type is booked",
-      async ({ page, users }) => {
+      async ({ page, users, dayjs }) => {
         const user = await users.create();
         const [eventType] = user.eventTypes;
         await user.login();

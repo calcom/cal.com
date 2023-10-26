@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 
-import _dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
@@ -9,14 +8,12 @@ test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-// We default all dayjs calls to use Europe/London timezone
-const dayjs = (...args: Parameters<typeof _dayjs>) => _dayjs(...args).tz("Europe/London");
-
 test.describe("Wipe my Cal App Test", () => {
   test("Browse upcoming bookings and validate button shows and triggering wipe my cal button", async ({
     page,
     users,
     bookings,
+    dayjs,
   }) => {
     const pro = await users.create();
     const [eventType] = pro.eventTypes;

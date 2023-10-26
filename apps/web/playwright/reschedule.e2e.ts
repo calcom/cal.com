@@ -1,6 +1,5 @@
 import { expect } from "@playwright/test";
 
-import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -245,6 +244,7 @@ test.describe("Reschedule Tests", async () => {
     page,
     users,
     bookings,
+    dayjs,
   }) => {
     const user = await users.create();
     const eventType = user.eventTypes[0];

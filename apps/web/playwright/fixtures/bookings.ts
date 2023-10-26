@@ -3,18 +3,17 @@ import type { Booking, Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import _dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
+
+import type { Fixtures } from "../lib/fixtures";
 
 const translator = short();
 
 type BookingFixture = ReturnType<typeof createBookingFixture>;
 
-// We default all dayjs calls to use Europe/London timezone
-const dayjs = (...args: Parameters<typeof _dayjs>) => _dayjs(...args).tz("Europe/London");
-
 // creates a user fixture instance and stores the collection
-export const createBookingsFixture = (page: Page) => {
+export const createBookingsFixture = (args: { page: Page; dayjs: Fixtures["dayjs"] }) => {
+  const { page, dayjs } = args;
   const store = { bookings: [], page } as { bookings: BookingFixture[]; page: typeof page };
   return {
     create: async (
