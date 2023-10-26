@@ -9,7 +9,15 @@ function getCurrentTime(date: Date) {
   return `${hours}:${minutes}`;
 }
 
-export function useCheckOverlapWithOverlay(start: Dayjs, selectedDuration: number | null, offset: number) {
+export function useCheckOverlapWithOverlay({
+  start,
+  selectedDuration,
+  offset,
+}: {
+  start: Dayjs;
+  selectedDuration: number | null;
+  offset: number;
+}) {
   const overlayBusyDates = useOverlayCalendarStore((state) => state.overlayBusyDates);
 
   let overlappingTimeStart: string | null = null;

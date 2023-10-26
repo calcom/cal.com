@@ -85,6 +85,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: teamSlug,
       redirectType: RedirectType.Team,
       eventTypeSlug: meetingSlug,
+      currentQuery: context.query,
     });
 
     if (redirect) {
