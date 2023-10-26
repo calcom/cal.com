@@ -10,6 +10,11 @@ export type DateRange = {
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
+/*
+ * Description:
+ * - Converts dateFrom,dateTo to the given timeZone
+ * -
+ */
 export function processWorkingHours({
   item,
   timeZone,
@@ -22,39 +27,48 @@ export function processWorkingHours({
   dateTo: Dayjs;
 }) {
   const results = [];
-  for (let date = dateFrom.tz(timeZone).startOf("day"); dateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.tz(timeZone).utcOffset();
-    const offset = date.tz(timeZone).utcOffset();
+  for (
+    let date = dateFrom.tz(timeZone).startOf("day").toDate();
+    dateTo.toDate() > date;
+    date = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate() + 1,
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds()
+    )
+  ) {
+    // date is timeZone unaware.
+    const utcOffset = dayjs(date).tz(timeZone).utcOffset();
 
-    // it always has to be start of the day (midnight) even when DST changes
-    const dateInTz = date.add(fromOffset - offset, "minutes").tz(timeZone);
-    if (!item.days.includes(dateInTz.day())) {
+    const dateInTz = new Date(date.valueOf() + utcOffset * 60 * 1000);
+
+    if (!item.days.includes(dateInTz.getUTCDay())) {
       continue;
     }
 
-    let start = dateInTz
-      .add(item.startTime.getUTCHours(), "hours")
-      .add(item.startTime.getUTCMinutes(), "minutes");
+    const start = new Date(
+      date.valueOf() +
+        item.startTime.getUTCHours() * 60 * 60 * 1000 +
+        item.startTime.getUTCMinutes() * 60 * 1000
+    );
 
-    let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
+    const end = new Date(
+      date.valueOf() + item.endTime.getUTCHours() * 60 * 60 * 1000 + item.endTime.getUTCMinutes() * 60 * 1000
+    );
 
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(timeZone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
+    const startResult = start.valueOf() > dateFrom.valueOf() ? start : dateFrom;
+    const endResult = end.valueOf() < dateTo.valueOf() ? end : dateTo;
 
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
-
-    const startResult = dayjs.max(start, dateFrom.tz(timeZone));
-    const endResult = dayjs.min(end, dateTo.tz(timeZone));
-
-    if (startResult.isAfter(endResult)) {
+    if (startResult > endResult) {
       // if an event ends before start, it's not a result.
       continue;
     }
 
     results.push({
-      start: startResult,
-      end: endResult,
+      start: dayjs(startResult).tz(timeZone),
+      end: dayjs(endResult).tz(timeZone),
     });
   }
   return results;
