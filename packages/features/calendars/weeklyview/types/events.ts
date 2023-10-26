@@ -10,5 +10,6 @@ export interface CalendarEvent {
     status?: BookingStatus;
     allDay?: boolean;
     borderColor?: string;
+    className?: string;
   };
 }
