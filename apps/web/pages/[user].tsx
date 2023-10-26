@@ -343,6 +343,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       slug: usernameList[0],
       redirectType: RedirectType.User,
       eventTypeSlug: null,
+      currentQuery: context.query,
     });
 
     if (redirect) {
