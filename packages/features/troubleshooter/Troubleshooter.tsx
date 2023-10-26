@@ -28,7 +28,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
     <>
       <div
         className={classNames(
-          "text-default flex min-h-full w-full flex-col items-center overflow-clip [--troubleshooter-meta-width:430px]"
+          "text-default flex min-h-full w-full flex-col items-center overflow-clip [--troublehooster-meta-width:350px] lg:[--troubleshooter-meta-width:430px]"
         )}>
         <div
           style={{
