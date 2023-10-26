@@ -4,7 +4,7 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
 
-import { isValidBase64 } from "~/lib/utils/isValidBase64";
+import { isValidBase64Image } from "~/lib/utils/isValidBase64";
 import { timeZone } from "~/lib/validations/shared/timeZone";
 
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
@@ -105,7 +105,7 @@ const schemaUserEditParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional().nullable(),
-  avatar: z.string().refine(isValidBase64).optional(),
+  avatar: z.string().refine(isValidBase64Image).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -127,7 +127,7 @@ const schemaUserCreateParams = z.object({
     .nullable(),
   locale: z.nativeEnum(locales).optional(),
   createdDate: iso8601.optional(),
-  avatar: z.string().refine(isValidBase64).optional(),
+  avatar: z.string().refine(isValidBase64Image).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
