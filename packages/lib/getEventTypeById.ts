@@ -89,6 +89,7 @@ export default async function getEventTypeById({
       periodStartDate: true,
       periodEndDate: true,
       periodCountCalendarDays: true,
+      lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
       recurringEvent: true,
