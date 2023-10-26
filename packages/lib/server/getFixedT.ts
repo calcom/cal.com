@@ -1,6 +1,5 @@
 import i18next from "i18next";
-
-import { serverSideTranslations } from "../../../apps/web/server/lib/serverSideTranslations";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export const create = async (locale: string, ns: string) => {
   const { _nextI18Next } = await serverSideTranslations(locale, [ns]);
