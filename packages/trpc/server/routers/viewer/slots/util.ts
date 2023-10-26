@@ -319,7 +319,11 @@ export async function getEventType(
 
   // note(Lauris): Availability startTime and endTime have DateTime in Prisma schema,
   // but in DB only hh:mm:ss are stored e.g. "09:00:00". Prisma transforms data as follows:
-  eventType?.users.forEach((user) => {
+  if (!eventType) {
+    return null;
+  }
+
+  eventType.users.forEach((user) => {
     user.schedules.forEach((schedule) => {
       schedule.availability.forEach((availability) => {
         availability.startTime = new Date(`1970-01-01T${availability.startTime}.000Z`);
@@ -328,9 +332,19 @@ export async function getEventType(
     });
   });
 
-  if (!eventType) {
-    return null;
-  }
+  eventType.hosts.forEach((host) => {
+    host.user?.schedules.forEach((schedule) => {
+      schedule.availability.forEach((availability) => {
+        availability.startTime = new Date(`1970-01-01T${availability.startTime}.000Z`);
+        availability.endTime = new Date(`1970-01-01T${availability.endTime}.000Z`);
+      });
+    });
+  });
+
+  eventType.schedule?.availability.forEach((entry) => {
+    entry.startTime = new Date(`1970-01-01T${entry.startTime}.000Z`);
+    entry.endTime = new Date(`1970-01-01T${entry.endTime}.000Z`);
+  });
 
   return {
     ...eventType,
