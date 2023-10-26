@@ -87,6 +87,7 @@ export type FormValues = {
   offsetStart: number;
   description: string;
   disableGuests: boolean;
+  lockTimeZoneToggleOnBookingPage: boolean;
   requiresConfirmation: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
