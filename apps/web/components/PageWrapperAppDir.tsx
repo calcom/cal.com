@@ -28,7 +28,7 @@ const calFont = localFont({
 });
 
 export type PageWrapperProps = Readonly<{
-  getLayout: (page: React.ReactElement) => ReactNode;
+  getLayout: ((page: React.ReactElement) => ReactNode) | null;
   children: React.ReactElement;
   requiresLicense: boolean;
   nonce: string | undefined;
@@ -36,6 +36,7 @@ export type PageWrapperProps = Readonly<{
   isThemeSupported?: boolean;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
+  notFound?: boolean;
 }>;
 
 function PageWrapper(props: PageWrapperProps) {
