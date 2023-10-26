@@ -42,6 +42,7 @@ export type AppPageProps = {
   disableInstall?: boolean;
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
+  paid?: AppType["paid"];
 };
 
 export const AppPage = ({
@@ -67,6 +68,7 @@ export const AppPage = ({
   isTemplate,
   dependencies,
   concurrentMeetings,
+  paid,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
@@ -206,6 +208,7 @@ export const AppPage = ({
                         addAppMutationInput={{ type, variant, slug }}
                         multiInstall
                         concurrentMeetings={concurrentMeetings}
+                        paid={paid}
                         {...props}
                       />
                     );
@@ -244,6 +247,7 @@ export const AppPage = ({
                     addAppMutationInput={{ type, variant, slug }}
                     credentials={appDbQuery.data?.credentials}
                     concurrentMeetings={concurrentMeetings}
+                    paid={paid}
                     {...props}
                   />
                 );

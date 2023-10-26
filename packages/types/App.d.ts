@@ -30,6 +30,12 @@ type DynamicLinkBasedEventLocation = {
 
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
+type PaidAppData = {
+  price: number;
+  priceId: string;
+  hasTrial?: boolean;
+};
+
 type AppData = {
   /**
    * TODO: We must assert that if `location` is set in App config.json, then it must have atleast Messaging or Conferencing as a category.
@@ -142,6 +148,9 @@ export interface App {
     upgradeUrl: string;
   };
   appData?: AppData;
+  /** Represents paid app data, such as price, trials, etc */
+  paid?: PaidAppData;
+
   /**
    * @deprecated
    * Used only by legacy apps which had slug different from their directory name.

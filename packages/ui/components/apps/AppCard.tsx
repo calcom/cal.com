@@ -120,6 +120,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
                       concurrentMeetings={app.concurrentMeetings}
+                      paid={app.paid}
                     />
                   );
                 }}
@@ -146,6 +147,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       appCategories={app.categories}
                       credentials={credentials}
                       concurrentMeetings={app.concurrentMeetings}
+                      paid={app.paid}
                       {...props}
                     />
                   );
@@ -174,6 +176,7 @@ const InstallAppButtonChild = ({
   appCategories,
   credentials,
   concurrentMeetings,
+  paid,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -181,6 +184,7 @@ const InstallAppButtonChild = ({
   appCategories: string[];
   credentials?: Credential[];
   concurrentMeetings?: boolean;
+  paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -201,6 +205,19 @@ const InstallAppButtonChild = ({
   });
 
   if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
+    if (paid) {
+      return (
+        <Button
+          color="secondary"
+          className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+          StartIcon={Plus}
+          data-testid="install-app-button"
+          {...props}>
+          {t("install_paid")}
+        </Button>
+      );
+    }
+
     return (
       <Button
         color="secondary"

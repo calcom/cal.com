@@ -26,6 +26,7 @@ export const InstallAppButtonChild = ({
   multiInstall,
   credentials,
   concurrentMeetings,
+  paid,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -34,6 +35,7 @@ export const InstallAppButtonChild = ({
   multiInstall?: boolean;
   credentials?: RouterOutputs["viewer"]["appCredentialsByType"]["credentials"];
   concurrentMeetings?: boolean;
+  paid?: AppFrontendPayload["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
 
@@ -48,6 +50,14 @@ export const InstallAppButtonChild = ({
   });
 
   if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
+    if (paid) {
+      return (
+        <Button data-testid="install-app-button" {...props} color="primary" size="base">
+          {t("install_paid_app")}
+        </Button>
+      );
+    }
+
     return (
       <Button
         data-testid="install-app-button"
