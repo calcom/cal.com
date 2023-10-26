@@ -299,6 +299,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: slug,
       redirectType: RedirectType.Team,
       eventTypeSlug: null,
+      currentQuery: context.query,
     });
 
     if (redirect) {

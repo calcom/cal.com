@@ -1600,6 +1600,7 @@
   "options": "Options",
   "enter_option": "Entrer l'option {{index}}",
   "add_an_option": "Ajouter une option",
+  "location_already_exists": "Ce lieu existe déjà. Veuillez en sélectionner un nouveau.",
   "radio": "Radio",
   "google_meet_warning": "Pour utiliser Google Meet, vous devez définir votre calendrier de destination sur un calendrier Google",
   "individual": "Particulier",
