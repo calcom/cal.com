@@ -1,6 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
@@ -103,6 +104,24 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
+        }
+
+        if (field?.options) {
+          const moreThanOneInPersonOptions = !!(
+            field.options.filter((field) => {
+              return field.value === DefaultEventLocationTypeEnum.InPerson;
+            }).length > 1
+          );
+
+          field.options = field.options.map((field) => {
+            return {
+              ...field,
+              value:
+                field.value === DefaultEventLocationTypeEnum.InPerson && moreThanOneInPersonOptions
+                  ? field.label
+                  : field.value,
+            };
+          });
         }
 
         return (

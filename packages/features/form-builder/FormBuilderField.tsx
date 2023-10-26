@@ -3,7 +3,6 @@ import type { TFunction } from "next-i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui";
@@ -312,21 +311,8 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
-    const moreThanOneInPersonOptions = !!(
-      field.options.filter((field) => {
-        return field.value === DefaultEventLocationTypeEnum.InPerson;
-      }).length > 1
-    );
 
-    const options = field.options.map((field) => {
-      return {
-        ...field,
-        value:
-          field.value === DefaultEventLocationTypeEnum.InPerson && moreThanOneInPersonOptions
-            ? field.label
-            : field.value,
-      };
-    });
+    const options = field.options;
 
     return field.options.length ? (
       <WithLabel field={field} readOnly={readOnly}>
