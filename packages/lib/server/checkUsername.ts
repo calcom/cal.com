@@ -1,6 +1,6 @@
 import { IS_CALCOM } from "@calcom/lib/constants";
 
 import { checkRegularUsername } from "./checkRegularUsername";
-import { usernameCheck } from "./username";
+import { usernameCheck as checkPremiumUsername } from "./username";
 
-export const checkUsername = !IS_CALCOM ? checkRegularUsername : usernameCheck;
+export const checkUsername = !IS_CALCOM ? checkRegularUsername : checkPremiumUsername;
