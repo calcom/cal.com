@@ -79,6 +79,8 @@ test("Calendar Cache is being called", async () => {
   // prismaMock.calendarCache.create.mock.
   const calendarService = new CalendarService(testCredential);
   vi.spyOn(calendarService, "authedCalendar").mockReturnValue({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore - Mocking the authedCalendar so can't return the actual response
     freebusy: {
       query: vi.fn().mockReturnValue({
         data: testFreeBusyResponse,
