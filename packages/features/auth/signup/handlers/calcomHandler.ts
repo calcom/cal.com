@@ -124,6 +124,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
         },
       });
 
+      // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
       const membership = await prisma.$transaction(async (tx) => {
         if (teamMetadata?.isOrganization) {
           await tx.user.update({
