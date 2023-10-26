@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +11,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MoreHorizontal, ExternalLink, LinkIcon, Edit2, Copy, Trash, Code } from "lucide-react";
-import { memo } from "react";
+import { memo, useState } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { EventTypeEmbedButton } from "@calcom/features/embed/EventTypeEmbed";
@@ -102,6 +103,7 @@ export function EventType({
   const isChildrenManagedEventType =
     type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
   const orgBranding = useOrgBranding();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   return (
     <li>
@@ -280,6 +282,32 @@ export function EventType({
           </div>
         </div>
       </div>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete event type?</DialogTitle>
+            <DialogDescription>
+              Anyone who you&apos;ve shared this link with will no longer be able to book using it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-end">
+            <Button
+              onClick={() => {
+                setDeleteDialogOpen(false);
+              }}
+              variant="outline"
+              className="border-none">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Add appropriate event handler to delete given event type
+              }}>
+              Yes, delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </li>
   );
 }
