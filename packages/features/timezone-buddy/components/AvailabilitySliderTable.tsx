@@ -193,6 +193,7 @@ export function AvailabilitySliderTable() {
       <>
         <div className="relative">
           <DataTable
+            searchKey="member"
             tableContainerRef={tableContainerRef}
             columns={memorisedColumns}
             onRowMouseclick={(row) => {
