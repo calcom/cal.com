@@ -32,7 +32,8 @@ interface GoogleCalError extends Error {
 
 const ONE_MINUTE_MS = 60 * 1000;
 const CACHING_TIME = ONE_MINUTE_MS;
-const ONE_MONTH_IN_MS = 30 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 
 /** Expand the start date to the start of the month */
 function getTimeMin(timeMin: string) {
@@ -63,19 +64,33 @@ function getTimeMax(timeMax: string) {
   return new Date(dateMax.getFullYear(), dateMax.getMonth(), 1, 0, 0, 0, 0).toISOString();
 }
 
-/**
- * Enable or disable the expanded cache
- * TODO: Make this configurable
- * */
-const ENABLE_EXPANDED_CACHE = true;
+function treatAsUTC(date: string | Date) {
+  const result = new Date(date);
+  result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
+  return result;
+}
+
+function daysBetween(startDate: string | Date, endDate: string | Date) {
+  return (treatAsUTC(endDate).getTime() - treatAsUTC(startDate).getTime()) / MS_PER_DAY;
+}
+
+function addDays(startDate: string | Date, numberOfDays = 90) {
+  return new Date(treatAsUTC(startDate).getTime() + numberOfDays * MS_PER_DAY).toISOString();
+}
 
 /**
  * By expanding the cache to whole months, we can save round trips to the third party APIs.
  * In this case we already have the data in the database, so we can just return it.
  */
 function handleMinMax(min: string, max: string) {
-  if (!ENABLE_EXPANDED_CACHE) return { timeMin: min, timeMax: max };
-  return { timeMin: getTimeMin(min), timeMax: getTimeMax(max) };
+  const timeMin = getTimeMin(min);
+  const timeMax = getTimeMax(max);
+  /**
+   * Prevents quering more that 90 days
+   * @see https://github.com/calcom/cal.com/pull/11962
+   */
+  if (daysBetween(timeMin, timeMax) > 90) return { timeMin, timeMax: addDays(timeMin, 90) };
+  return { timeMin, timeMax };
 }
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
@@ -545,7 +560,7 @@ export default class GoogleCalendarService implements Calendar {
         // A UUID or similar unique string that identifies this channel.
         id: uuid(),
         type: "web_hook",
-        address: "https://09fa-200-76-22-226.ngrok-free.app/api/integrations/googlecalendar/webhook",
+        address: "https://bf4d-200-76-22-226.ngrok-free.app/api/integrations/googlecalendar/webhook",
         // address: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/googlecalendar/webhook`,
         token: process.env.CRON_API_KEY,
         params: {
