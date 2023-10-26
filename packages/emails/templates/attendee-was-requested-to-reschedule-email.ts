@@ -23,6 +23,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
       icalEvent: {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
+        method: "request",
       },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
@@ -42,6 +43,8 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
   // @OVERRIDE
   protected getiCalEventAsString(): string | undefined {
     const icsEvent = createEvent({
+      uid: this.calEvent.iCalUID || this.calEvent.uid!,
+      sequence: 100,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()
@@ -61,7 +64,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
         email: attendee.email,
       })),
       status: "CANCELLED",
-      method: "CANCEL",
+      method: "REQUEST",
     });
     if (icsEvent.error) {
       throw icsEvent.error;

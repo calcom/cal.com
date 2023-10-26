@@ -62,6 +62,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       scheduledJobs: true,
       workflowReminders: true,
       responses: true,
+      iCalUID: true,
     },
     where: {
       uid: bookingId,
@@ -176,6 +177,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       tAttendees
     ),
     organizer: userAsPeopleType,
+    iCalUID: bookingToReschedule.iCalUID,
   });
 
   const director = new CalendarEventDirector();
@@ -246,6 +248,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       ? [bookingToReschedule?.destinationCalendar]
       : [],
     cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+    iCalUID: bookingToReschedule?.iCalUID,
   };
 
   // Send webhook
