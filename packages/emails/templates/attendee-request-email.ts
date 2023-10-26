@@ -4,7 +4,7 @@ import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = this.calEvent.attendees.map((attendee) => attendee.email);
 
     return {
@@ -15,7 +15,7 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("AttendeeRequestEmail", {
+      html: await renderEmail("AttendeeRequestEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
       }),

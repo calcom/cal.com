@@ -4,7 +4,7 @@ import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
@@ -12,7 +12,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
       subject: `${this.t("awaiting_approval")}: ${this.calEvent.title}`,
-      html: renderEmail("OrganizerRequestEmail", {
+      html: await renderEmail("OrganizerRequestEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
       }),

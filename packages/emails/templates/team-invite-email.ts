@@ -24,7 +24,7 @@ export default class TeamInviteEmail extends BaseEmail {
     this.teamInviteEvent = teamInviteEvent;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: this.teamInviteEvent.to,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
@@ -36,7 +36,7 @@ export default class TeamInviteEmail extends BaseEmail {
           .language(this.teamInviteEvent.isOrg ? "organization" : "team")
           .toLowerCase(),
       }),
-      html: renderEmail("TeamInviteEmail", this.teamInviteEvent),
+      html: await renderEmail("TeamInviteEmail", this.teamInviteEvent),
       text: "",
     };
   }

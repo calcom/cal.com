@@ -23,14 +23,14 @@ export default class AttendeeVerifyEmail extends BaseEmail {
     this.verifyAccountInput = passwordEvent;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       subject: this.verifyAccountInput.language("verify_email_subject", {
         appName: APP_NAME,
       }),
-      html: renderEmail("VerifyEmailByCode", this.verifyAccountInput),
+      html: await renderEmail("VerifyEmailByCode", this.verifyAccountInput),
       text: this.getTextBody(),
     };
   }

@@ -21,7 +21,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
     this.type = type;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.organizer.email];
 
     return {
@@ -32,7 +32,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("BrokenIntegrationEmail", {
+      html: await renderEmail("BrokenIntegrationEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
         type: this.type,

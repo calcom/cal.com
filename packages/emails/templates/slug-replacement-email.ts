@@ -19,12 +19,12 @@ export default class SlugReplacementEmail extends BaseEmail {
     this.t = t;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.email,
       subject: this.t("email_subject_slug_replacement", { slug: this.slug }),
-      html: renderEmail("SlugReplacementEmail", {
+      html: await renderEmail("SlugReplacementEmail", {
         slug: this.slug,
         name: this.name,
         teamName: this.teamName || "",

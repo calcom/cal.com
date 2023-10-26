@@ -16,7 +16,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
     this.metadata = metadata;
     this.t = this.calEvent.attendees[0].language.translate;
   }
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.attendees[0].email];
 
     return {
@@ -30,7 +30,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       })}`,
-      html: renderEmail("AttendeeWasRequestedToRescheduleEmail", {
+      html: await renderEmail("AttendeeWasRequestedToRescheduleEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.attendees[0],
         metadata: this.metadata,
