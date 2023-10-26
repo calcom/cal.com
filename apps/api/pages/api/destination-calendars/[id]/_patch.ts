@@ -79,7 +79,7 @@ export async function patchHandler(req: NextApiRequest) {
     parsedBody.userId = undefined;
   }
 
-  const { userCredentials } = await findUserCredentials(req, assignedUserId);
+  const { userCredentials } = await findUserCredentials(req);
 
   if (parsedBody.integration && !parsedBody.externalId) {
     throw new HttpError({ statusCode: 400, message: "External Id is required with integration value" });
@@ -117,10 +117,11 @@ export async function patchHandler(req: NextApiRequest) {
   return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
 }
 
-async function findUserCredentials(req: NextApiRequest, userId?: number) {
-  const prisma = req.prisma;
+async function findUserCredentials(req: NextApiRequest) {
+  const { userId: requestUserId, prisma, isAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
   const body = schemaDestinationCalendarEditBodyParams.parse(req.body);
+  const userId = isAdmin ? body.userId || requestUserId : requestUserId;
   const destinationCalendarObject = await prisma.destinationCalendar.findFirst({
     where: {
       id,
