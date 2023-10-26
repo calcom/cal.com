@@ -10,11 +10,6 @@ export type DateRange = {
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
-/*
- * Description:
- * - Converts dateFrom,dateTo to the given timeZone
- * -
- */
 export function processWorkingHours({
   item,
   timeZone,
@@ -28,6 +23,7 @@ export function processWorkingHours({
 }) {
   const results = [];
   for (
+    // Cast dateFrom from booker TZ -> organizer TZ
     let date = dateFrom.tz(timeZone).startOf("day").toDate();
     dateTo.toDate() > date;
     date = new Date(
@@ -39,7 +35,7 @@ export function processWorkingHours({
       date.getSeconds()
     )
   ) {
-    // date is timeZone unaware.
+    // Checking the date has to be timeZone aware.
     const utcOffset = dayjs(date).tz(timeZone).utcOffset();
 
     const dateInTz = new Date(date.valueOf() + utcOffset * 60 * 1000);
@@ -47,7 +43,7 @@ export function processWorkingHours({
     if (!item.days.includes(dateInTz.getUTCDay())) {
       continue;
     }
-
+    // Date (start of day) in organizer TZ is then added the start and end times.
     const start = new Date(
       date.valueOf() +
         item.startTime.getUTCHours() * 60 * 60 * 1000 +
