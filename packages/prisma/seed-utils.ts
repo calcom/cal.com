@@ -133,6 +133,7 @@ export async function createUserAndEventType({
             },
           },
           status: bookingInput.status,
+          iCalUID: "",
         },
       });
       console.log(
