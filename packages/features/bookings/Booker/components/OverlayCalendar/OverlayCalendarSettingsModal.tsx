@@ -47,7 +47,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
   const searchParams = useSearchParams();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
-    enabled: !!props.open || !!searchParams.get("overlayCalendar"),
+    enabled: !!props.open || Boolean(searchParams?.get("overlayCalendar")),
   });
   const { toggleValue, hasItem, set } = useLocalSet<{
     credentialId: number;
