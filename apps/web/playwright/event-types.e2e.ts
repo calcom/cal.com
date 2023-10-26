@@ -300,16 +300,18 @@ test.describe("Event Types tests", () => {
         await checkDisplayLocation(page);
         await unCheckDisplayLocation(page);
 
+        await page.locator("[data-testid=add-location]").click();
+
         const testUrl2 = "https://cal.com/ai";
         await page.locator(`text="Link meeting"`).last().click();
+        await page.locator(`input[name="${locationInputName(1)}"]`).waitFor();
         await page.locator(`input[name="${locationInputName(1)}"]`).fill(testUrl2);
         await checkDisplayLocation(page);
         await unCheckDisplayLocation(page);
 
-        // Remove both of the locations
+        // Remove Both of the locations
         const removeButtomId = "delete-locations.0.type";
         await page.getByTestId(removeButtomId).click();
-
         await page.getByTestId(removeButtomId).click();
 
         // Add Multiple Organizer Phone Number options
@@ -324,6 +326,7 @@ test.describe("Event Types tests", () => {
         await page.locator("[data-testid=display-location]").last().check();
         await checkDisplayLocation(page);
         await unCheckDisplayLocation(page);
+        await page.locator("[data-testid=add-location]").click();
 
         const testPhoneInputValue2 = "9188888888";
         await page.locator(`text="Organizer Phone Number"`).last().click();
