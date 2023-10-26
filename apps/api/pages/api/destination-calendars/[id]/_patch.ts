@@ -156,7 +156,20 @@ async function findUserCredentials(req: NextApiRequest) {
   }
 
   if (body.eventTypeId) {
-    if (destinationCalendarObject.eventTypeId) return { userCredentials: credentials };
+    if (destinationCalendarObject.eventTypeId) {
+      const userEventType = await prisma.eventType.findFirst({
+        where: { id: body.eventTypeId },
+        select: { userId: true },
+      });
+
+      if (!userEventType || userEventType.userId !== userId) {
+        throw new HttpError({
+          statusCode: 404,
+          message: `Event type with ID ${body.eventTypeId} not found`,
+        });
+      }
+      return { userCredentials: credentials };
+    }
     throw new HttpError({
       statusCode: 400,
       message: `The provided destination calendar can not be linked to an event type`,
@@ -168,18 +181,6 @@ async function findUserCredentials(req: NextApiRequest) {
     throw new HttpError({
       statusCode: 400,
       message: `The provided destination calendar can only be linked to an event type`,
-    });
-  }
-
-  const userEventType = await prisma.eventType.findFirst({
-    where: { id: body.eventTypeId },
-    select: { userId: true },
-  });
-
-  if (!userEventType || userEventType.userId !== userId) {
-    throw new HttpError({
-      statusCode: 404,
-      message: `Event type with ID ${body.eventTypeId} not found`,
     });
   }
 
