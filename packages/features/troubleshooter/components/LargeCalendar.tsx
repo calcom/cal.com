@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 import { useTroubleshooterStore } from "../store";
@@ -11,6 +12,14 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const { data: session } = useSession();
   const date = selectedDate ? dayjs(selectedDate) : dayjs();
+
+  const { data: schedule } = useSchedule({
+    username: session?.user.username || "",
+    eventSlug: eventSlug,
+    eventId: event.data?.id ?? eventId,
+    monthCount,
+    rescheduleUid,
+  });
 
   const { data, isLoading } = trpc.viewer.availability.user.useQuery(
     {
@@ -30,17 +39,15 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
 
   const events = useMemo(() => {
     if (!data?.busy) return [];
-    return data?.busy.map((event) => {
-      const id = typeof event.start === "string" ? event.start : event.start.toISOString();
-
+    return data?.busy.map((event, idx) => {
       return {
-        id,
+        id: idx,
         title: event.title ?? "Busy",
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
           borderColor: "#F97417",
-          status: "ACCEPTED",
+          status: BookingStatus.ACCEPTED,
         },
       };
     });
