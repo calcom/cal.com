@@ -1,8 +1,8 @@
 import NotFoundPage from "@pages/404";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { cookies, headers } from "next/headers";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { serverSideTranslations } from "@calcom/web/server/lib/serverSideTranslations";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 

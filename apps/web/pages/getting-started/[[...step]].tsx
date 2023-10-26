@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -14,7 +15,6 @@ import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
-import { serverSideTranslations } from "@calcom/web/server/lib/serverSideTranslations";
 
 import PageWrapper from "@components/PageWrapper";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
