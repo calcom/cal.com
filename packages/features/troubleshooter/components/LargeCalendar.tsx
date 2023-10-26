@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc";
 
 import { useTimePreferences } from "../../bookings/lib/timePreferences";
 import { useSchedule } from "../../schedules/lib/use-schedule";
@@ -15,6 +17,18 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const event = useTroubleshooterStore((state) => state.event);
   const { data: session } = useSession();
   const date = selectedDate ? dayjs(selectedDate) : dayjs();
+
+  const { data: busyEvents, isLoading } = trpc.viewer.availability.user.useQuery(
+    {
+      username: session?.user?.username || "",
+      dateFrom: date.startOf("day").utc().format(),
+      dateTo: date.endOf("day").utc().format(),
+      withSource: true,
+    },
+    {
+      enabled: !!session?.user?.username,
+    }
+  );
 
   const { data: schedule } = useSchedule({
     username: session?.user.username || "",
@@ -46,28 +60,47 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     return availableTimeslots;
   }, [schedule, event]);
 
-  // const events = useMemo(() => {
-  //   if (!data?.busy) return [];
-  //   return data?.busy.map((event, idx) => {
-  //     return {
-  //       id: idx,
-  //       title: event.title ?? "Busy",
-  //       start: new Date(event.start),
-  //       end: new Date(event.end),
-  //       options: {
-  //         borderColor: "#F97417",
-  //         status: BookingStatus.ACCEPTED,
-  //       },
-  //     };
-  //   });
-  // }, [data]);
+  const events = useMemo(() => {
+    if (!busyEvents?.busy) return [];
+
+    const calendarEvents = busyEvents?.busy.map((event, idx) => {
+      return {
+        id: idx,
+        title: event.title ?? "Busy",
+        start: new Date(event.start),
+        end: new Date(event.end),
+        options: {
+          borderColor: "#F97417",
+          status: BookingStatus.ACCEPTED,
+        },
+      };
+    });
+
+    if (busyEvents.dateOverrides) {
+      for (const date in busyEvents.dateOverrides) {
+        const dateOverride = busyEvents.dateOverrides[date];
+        calendarEvents.push({
+          id: calendarEvents.length,
+          title: "Date Override",
+          start: new Date(dateOverride.start),
+          end: new Date(dateOverride.end),
+          options: {
+            borderColor: "black",
+            status: BookingStatus.ACCEPTED,
+          },
+        });
+      }
+    }
+
+    return calendarEvents;
+  }, [busyEvents]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
         startHour={0}
         endHour={23}
-        events={[]}
+        events={events}
         availableTimeslots={availableSlots}
         startDate={startDate}
         endDate={endDate}
