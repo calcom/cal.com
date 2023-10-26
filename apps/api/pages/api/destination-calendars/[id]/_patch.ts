@@ -79,12 +79,7 @@ export async function patchHandler(req: NextApiRequest) {
     parsedBody.userId = undefined;
   }
 
-  const { destinationCalendarObject, userCredentials } = await findDestinationCalendar(
-    id,
-    req,
-    assignedUserId,
-    parsedBody.eventTypeId
-  );
+  const { userCredentials } = await findUserCredentials(req, assignedUserId);
 
   if (parsedBody.integration && !parsedBody.externalId) {
     throw new HttpError({ statusCode: 400, message: "External Id is required with integration value" });
@@ -122,14 +117,10 @@ export async function patchHandler(req: NextApiRequest) {
   return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
 }
 
-async function findDestinationCalendar(
-  id: number,
-  req: NextApiRequest,
-  userId?: number,
-  eventTypeId?: number
-) {
+async function findUserCredentials(req: NextApiRequest, userId?: number) {
   const prisma = req.prisma;
-
+  const { id } = schemaQueryIdParseInt.parse(req.query);
+  const body = schemaDestinationCalendarEditBodyParams.parse(req.body);
   const destinationCalendarObject = await prisma.destinationCalendar.findFirst({
     where: {
       id,
@@ -163,18 +154,16 @@ async function findDestinationCalendar(
     });
   }
 
-  if (eventTypeId) {
-    if (destinationCalendarObject.eventTypeId)
-      return { destinationCalendarObject, userCredentials: credentials };
+  if (body.eventTypeId) {
+    if (destinationCalendarObject.eventTypeId) return { userCredentials: credentials };
     throw new HttpError({
       statusCode: 400,
       message: `The provided destination calendar can not be linked to an event type`,
     });
   }
 
-  if (!eventTypeId) {
-    if (!destinationCalendarObject.eventTypeId)
-      return { destinationCalendarObject, userCredentials: credentials };
+  if (!body.eventTypeId) {
+    if (!destinationCalendarObject.eventTypeId) return { userCredentials: credentials };
     throw new HttpError({
       statusCode: 400,
       message: `The provided destination calendar can only be linked to an event type`,
@@ -182,18 +171,18 @@ async function findDestinationCalendar(
   }
 
   const userEventType = await prisma.eventType.findFirst({
-    where: { id: eventTypeId },
+    where: { id: body.eventTypeId },
     select: { userId: true },
   });
 
   if (!userEventType || userEventType.userId !== userId) {
     throw new HttpError({
       statusCode: 404,
-      message: `Event type with ID ${eventTypeId} not found`,
+      message: `Event type with ID ${body.eventTypeId} not found`,
     });
   }
 
-  return { destinationCalendarObject, userCredentials: credentials };
+  return { userCredentials: credentials };
 }
 
 export default defaultResponder(patchHandler);
