@@ -31,10 +31,10 @@ export type PageWrapperProps = Readonly<{
   getLayout: (page: React.ReactElement) => ReactNode;
   children: React.ReactElement;
   requiresLicense: boolean;
-  isThemeSupported: boolean;
-  isBookingPage: boolean;
   nonce: string | undefined;
   themeBasis: string | null;
+  isThemeSupported?: boolean;
+  isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;
 
