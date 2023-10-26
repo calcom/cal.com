@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { headers as nextHeaders, cookies as nextCookies } from "next/headers";
 import Script from "next/script";
 import React from "react";
@@ -6,40 +5,19 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
+import { prepareMetadata } from "@lib/metadata";
+
 import "../styles/globals.css";
 
-export const metadata: Metadata = {
-  icons: {
-    icon: [
-      {
-        sizes: "32x32",
-        url: "/api/logo?type=favicon-32",
-      },
-      {
-        sizes: "16x16",
-        url: "/api/logo?type=favicon-16",
-      },
-    ],
-    apple: {
-      sizes: "180x180",
-      url: "/api/logo?type=apple-touch-icon",
+export const generateMetadata = () =>
+  prepareMetadata({
+    twitterCreator: "@calcom",
+    twitterSite: "@calcom",
+    robots: {
+      index: false,
+      follow: false,
     },
-    other: [
-      {
-        url: "/safari-pinned-tab.svg",
-        rel: "mask-icon",
-      },
-    ],
-  },
-  manifest: "/site.webmanifest",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f9fafb" },
-    { media: "(prefers-color-scheme: dark)", color: "#1C1C1C" },
-  ],
-  other: {
-    "msapplication-TileColor": "#000000",
-  },
-};
+  });
 
 const getInitialProps = async (
   url: string,

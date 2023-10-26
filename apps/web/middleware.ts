@@ -3,6 +3,7 @@ import { collectEvents } from "next-collect/server";
 import type { NextMiddleware } from "next/server";
 import { NextResponse } from "next/server";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "@lib/csp";
@@ -61,6 +62,12 @@ const middleware: NextMiddleware = async (req) => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
+  requestHeaders.set("x-pathname", url.pathname);
+
+  const locale = await getLocale(req);
+
+  requestHeaders.set("x-locale", locale);
+
   return NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -94,6 +101,7 @@ export const config = {
     // middleware should be executed on each page request, in order to set x-url correctly
     // matchers above, can be removed
     "/:path*/",
+    "/event-types-1",
   ],
 };
 
