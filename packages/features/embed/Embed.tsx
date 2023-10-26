@@ -61,7 +61,7 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(searchParams ?? undefined);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
     });
@@ -70,7 +70,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams ?? undefined);
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -242,7 +242,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
           {selectedDate ? (
-            <div className="flex h-full w-full flex-row gap-4">
+            <div className="flex h-full w-full flex-col gap-4">
               <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
@@ -520,18 +520,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
-  const eventId = searchParams.get("eventId");
+  const eventId = searchParams?.get("eventId");
+  const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
-    { id: parseInt(eventId as string) },
-    { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
+    { id: parsedEventId },
+    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
-    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
+    return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
