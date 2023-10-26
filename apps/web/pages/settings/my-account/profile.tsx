@@ -78,8 +78,8 @@ type FormValues = {
   bio: string;
 };
 
-const checkIfItFallbackImage = (fetchedImgSrc: string) => {
-  return fetchedImgSrc.endsWith(AVATAR_FALLBACK);
+const checkIfItFallbackImage = (fetchedImgSrc?: string) => {
+  return !fetchedImgSrc || fetchedImgSrc.endsWith(AVATAR_FALLBACK);
 };
 
 const ProfileView = () => {
@@ -226,10 +226,11 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || fetchedImgSrc === undefined)
+  if (isLoading || !user) {
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
+  }
 
   const defaultValues = {
     username: user.username || "",
