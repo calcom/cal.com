@@ -90,7 +90,7 @@ export const test = base.extend<Fixtures>({
     await use(bookingPage);
   },
   dayjs: async ({ timezoneId }, use) => {
-    // We default all dayjs calls to use Europe/London timezone
+    // We default all dayjs calls to use the  browser configured timezone
     const dayjs = (...args: Parameters<typeof _dayjs>) => _dayjs(...args).tz(timezoneId);
     await use(dayjs);
   },
