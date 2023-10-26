@@ -257,9 +257,10 @@ export async function getEventType(
       ).as("hosts"),
       jsonArrayFrom(
         eb
-          .selectFrom("users")
+          .selectFrom("_user_eventtype")
+          .leftJoin("users", "users.id", "_user_eventtype.B")
+          .whereRef("_user_eventtype.A", "=", "EventType.id")
           .leftJoin("Credential", "Credential.userId", "users.id")
-          .whereRef("users.id", "=", "EventType.userId")
           .select((eb) => [
             jsonArrayFrom(
               eb
