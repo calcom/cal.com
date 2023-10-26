@@ -1099,6 +1099,8 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
+  const iCalUID = `${uid}@cal.com`;
+
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.title,
@@ -1135,6 +1137,7 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
+    iCalUID,
   };
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
@@ -1963,6 +1966,7 @@ async function handler(
               connect: { id: evt.destinationCalendar[0].id },
             }
           : undefined,
+      iCalUID: evt.iCalUID,
     };
 
     if (reqBody.recurringEventId) {
@@ -2189,6 +2193,7 @@ async function handler(
       );
     } else {
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
+      console.log("🚀 ~ file: handleNewBooking.ts:2195 ~ calendarResult:", calendarResult);
 
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID
@@ -2299,6 +2304,16 @@ async function handler(
         evt.appsStatus = handleAppsStatus(results, booking);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+
+        if (evt.iCalUID !== booking.iCalUID) {
+          // The eventManager and handleAppsStatus could change the iCalUID. At this point we can update the DB record
+          await prisma.booking.update({
+            where: {
+              booking: booking.id,
+            },
+            iCalUID: evt.iCalUID,
+          });
+        }
       }
       if (noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;
