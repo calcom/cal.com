@@ -61,7 +61,7 @@ export function processWorkingHours({
     const startResult = start.valueOf() > dateFrom.valueOf() ? start : dateFrom;
     const endResult = end.valueOf() < dateTo.valueOf() ? end : dateTo;
 
-    if (startResult > endResult) {
+    if (startResult >= endResult) {
       // if an event ends before start, it's not a result.
       continue;
     }
