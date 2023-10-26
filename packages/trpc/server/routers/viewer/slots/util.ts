@@ -16,9 +16,10 @@ import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
-import prisma from "@calcom/prisma";
+import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
@@ -365,81 +366,25 @@ export async function getDynamicEventType(
     });
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
-
-  const usernameList = Array.isArray(input.usernameList)
-    ? input.usernameList
-    : input.usernameList
-    ? [input.usernameList]
-    : [];
-
-  const slugifiedValue = slugify(currentOrgDomain);
-
-  const users = await db
-    .selectFrom("user")
-    .innerJoin("organization as org", "org.id", "user.organizationId")
-    .where((eb) =>
-      eb.and([
-        usernameList.length > 0 ? eb("username", "in", usernameList) : undefined,
-        isValidOrgDomain && currentOrgDomain
-          ? eb.or([
-              eb("org.slug", "=", slugifiedValue),
-              eb.raw(`metadata->>'requestedSlug' = ?`, slugifiedValue),
-            ])
-          : undefined,
-      ])
-    )
-    .select((eb) => [
-      "allowDynamicBooking",
-      "id",
-      "timeZone",
-      "email",
-      "bufferTime",
-      "startTime",
-      "username",
-      "endTime",
-      "timeFormat",
-      "defaultScheduleId",
-      jsonArrayFrom(
-        eb
-          .selectFrom("Schedule")
-          .whereRef("Schedule.userId", "=", "users.id")
-          .select((eb) => [
-            "id",
-            "timeZone",
-            jsonArrayFrom(
-              eb
-                .selectFrom("Availability")
-                .select(["date", "startTime", "endTime", "days"])
-                .whereRef("Availability.scheduleId", "=", "Schedule.id")
-            ).as("availability"),
-          ])
-      ).as("schedules"),
-      jsonArrayFrom(
-        eb.selectFrom("Availability").selectAll().whereRef("Availability.userId", "=", "users.id")
-      ).as("availability"),
-      jsonArrayFrom(
-        eb.selectFrom("SelectedCalendar").selectAll().whereRef("SelectedCalendar.userId", "=", "users.id")
-      ).as("selectedCalendars"),
-      jsonArrayFrom(
-        eb
-          .selectFrom("Credential")
-          .whereRef("Credential.userId", "=", "users.id")
-          .select([
-            "id",
-            "appId",
-            "type",
-            "userId",
-            "teamId",
-            "key",
-            "invalid",
-            jsonObjectFrom(
-              eb.selectFrom("users").whereRef("users.id", "=", "Credential.userId").select("email")
-            ).as("user"),
-          ])
-      ).as("credentials"),
-    ])
-    .execute();
-
+  const users = await prisma.user.findMany({
+    where: {
+      username: {
+        in: Array.isArray(input.usernameList)
+          ? input.usernameList
+          : input.usernameList
+          ? [input.usernameList]
+          : [],
+      },
+      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+    },
+    select: {
+      allowDynamicBooking: true,
+      ...availabilityUserSelect,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
+    },
+  });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({
