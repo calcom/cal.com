@@ -227,6 +227,14 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        /**
+         * Needed due to the introduction of dotted usernames
+         * @see https://github.com/calcom/cal.com/pull/11706
+         */
+        source: "/embed.js",
+        destination: "/embed/embed.js",
+      },
+      {
         source: "/login",
         destination: "/auth/login",
       },

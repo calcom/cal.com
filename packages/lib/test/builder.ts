@@ -85,6 +85,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     periodDays: null,
     periodCountCalendarDays: null,
     recurringEvent: null,
+    lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
     disableGuests: false,
     hideCalendarNotes: false,
