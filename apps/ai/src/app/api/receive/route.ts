@@ -88,7 +88,7 @@ export const POST = async (request: NextRequest) => {
   // User is not a cal.com user or is using an unverified email.
   if (!signature || !user) {
     await sendEmail({
-      html: `Thanks for your interest in Cal.ai! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
+      html: `Thanks for your interest in Cal.ai! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address and then install Cal.ai here: <a href="https://go.cal.com/ai" target="_blank">go.cal.com/ai</a>.`,
       subject: `Re: ${subject}`,
       text: `Thanks for your interest in Cal.ai! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
       to: envelope.from,
