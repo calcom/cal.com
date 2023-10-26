@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -64,7 +64,7 @@ async function postHandler(req: NextApiRequest) {
   const parsedBody = schemaDestinationCalendarCreateBodyParams.parse(body);
   await checkPermissions(req, userId);
 
-  const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
+  const assignedUserId = isAdmin && parsedBody.userId ? parsedBody.userId : userId;
 
   /* Check if credentialId data matches the ownership and integration passed in */
   const userCredentials = await prisma.credential.findMany({
@@ -75,7 +75,7 @@ async function postHandler(req: NextApiRequest) {
     select: credentialForCalendarServiceSelect,
   });
 
-  if (!userCredentials)
+  if (userCredentials.length === 0)
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, credential id invalid",
@@ -84,18 +84,18 @@ async function postHandler(req: NextApiRequest) {
   const calendarCredentials = getCalendarCredentials(userCredentials);
 
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, [], parsedBody.externalId);
-  const filteredCalendars = connectedCalendars.filter(
+  const calendar = connectedCalendars.find(
     (c) =>
       c?.primary?.externalId === parsedBody.externalId && c?.primary?.integration === parsedBody.integration
   );
 
-  if (filteredCalendars.length === 0)
+  if (!calendar || !calendar.primary?.credentialId)
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, credential id invalid",
     });
 
-  const credentialId = filteredCalendars[0].primary?.credentialId;
+  const credentialId = calendar.primary.credentialId;
 
   if (parsedBody.eventTypeId) {
     const eventType = await prisma.eventType.findFirst({
