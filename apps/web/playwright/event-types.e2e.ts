@@ -283,6 +283,55 @@ test.describe("Event Types tests", () => {
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator(`[data-testid="where"]`)).toHaveText(locationAddress);
       });
+
+      test("can select 'display on booking page' option when multiple organizer input type are present", async ({
+        page,
+      }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Link meeting"`).click();
+
+        const locationInputName = (idx: number) => `locations[${idx}].link`;
+
+        const testUrl1 = "https://cal.ai/";
+        await page.locator(`input[name="${locationInputName(0)}"]`).fill(testUrl1);
+        await page.locator("[data-testid=display-location]").last().check();
+        await checkDisplayLocation(page);
+        await unCheckDisplayLocation(page);
+
+        const testUrl2 = "https://cal.com/ai";
+        await page.locator(`text="Link meeting"`).last().click();
+        await page.locator(`input[name="${locationInputName(1)}"]`).fill(testUrl2);
+        await checkDisplayLocation(page);
+        await unCheckDisplayLocation(page);
+
+        // Remove both of the locations
+        const removeButtomId = "delete-locations.0.type";
+        await page.getByTestId(removeButtomId).click();
+
+        await page.getByTestId(removeButtomId).click();
+
+        // Add Multiple Organizer Phone Number options
+        await page.locator("#location-select").click();
+        await page.locator(`text="Organizer Phone Number"`).click();
+
+        const organizerPhoneNumberInputName = (idx: number) => `locations[${idx}].hostPhoneNumber`;
+
+        const testPhoneInputValue1 = "9199999999";
+        await page.locator(`input[name="${organizerPhoneNumberInputName(0)}"]`).waitFor();
+        await page.locator(`input[name="${organizerPhoneNumberInputName(0)}"]`).fill(testPhoneInputValue1);
+        await page.locator("[data-testid=display-location]").last().check();
+        await checkDisplayLocation(page);
+        await unCheckDisplayLocation(page);
+
+        const testPhoneInputValue2 = "9188888888";
+        await page.locator(`text="Organizer Phone Number"`).last().click();
+        await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).waitFor();
+        await page.locator(`input[name="${organizerPhoneNumberInputName(1)}"]`).fill(testPhoneInputValue2);
+        await checkDisplayLocation(page);
+        await unCheckDisplayLocation(page);
+      });
     });
   });
 });
@@ -335,4 +384,14 @@ const fillLocation = async (page: Page, inputText: string, index: number, select
   if (selectDisplayLocation) {
     await page.locator("[data-testid=display-location]").last().check();
   }
+};
+
+const checkDisplayLocation = async (page: Page) => {
+  await page.locator("[data-testid=display-location]").last().check();
+  await expect(page.locator("[data-testid=display-location]").last()).toBeChecked();
+};
+
+const unCheckDisplayLocation = async (page: Page) => {
+  await page.locator("[data-testid=display-location]").last().uncheck();
+  await expect(page.locator("[data-testid=display-location]").last()).toBeChecked({ checked: false });
 };
