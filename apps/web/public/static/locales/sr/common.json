@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Ova organizacija još uvek nema timove",
   "org_no_teams_yet_description": "Ako ste administrator, obavezno kreirajte timove koji će ovde biti prikazani.",
   "set_up": "Podesi",
-  "set_up_your_profile": "Podesite svoj profil",
-  "set_up_your_profile_description": "Unesite informacije o svojoj ulozi u organizaciji {{orgName}}. Te informacije će videti osobe koje kliknu na vaš javni link.",
   "my_profile": "Moj profil",
   "my_settings": "Moja podešavanja",
   "crm": "CRM",

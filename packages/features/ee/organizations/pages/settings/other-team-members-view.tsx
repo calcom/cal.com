@@ -58,7 +58,7 @@ const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const teamId = Number(searchParams.get("id"));
+  const teamId = Number(searchParams?.get("id"));
   const session = useSession();
   const utils = trpc.useContext();
   const [offset, setOffset] = useState<number>(1);
@@ -74,6 +74,7 @@ const MembersView = () => {
   const { data: team, isLoading: isTeamLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId },
     {
+      enabled: !Number.isNaN(teamId),
       onError: () => {
         router.push("/settings");
       },
@@ -86,13 +87,14 @@ const MembersView = () => {
         distinctUser: true,
       },
       {
-        enabled: searchParams !== null,
+        enabled: !Number.isNaN(teamId),
       }
     );
   const { data: membersFetch, isLoading: isLoadingMembers } =
     trpc.viewer.organizations.listOtherTeamMembers.useQuery(
       { teamId, limit, offset: (offset - 1) * limit },
       {
+        enabled: !Number.isNaN(teamId),
         onError: () => {
           router.push("/settings");
         },
@@ -101,12 +103,8 @@ const MembersView = () => {
 
   useEffect(() => {
     if (membersFetch) {
-      if (membersFetch.length < limit) {
-        setLoadMore(false);
-      } else {
-        setLoadMore(true);
-      }
-      setMembers(members.concat(membersFetch));
+      setLoadMore(membersFetch.length >= limit);
+      setMembers((m) => m.concat(membersFetch));
     }
   }, [membersFetch]);
 
