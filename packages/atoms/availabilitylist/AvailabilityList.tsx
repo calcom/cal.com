@@ -3,8 +3,8 @@ import { NewScheduleButton } from "availabilitylist/NewScheduleButton";
 import type { HttpError } from "@calcom/lib/http-error";
 import { Clock } from "@calcom/ui/components/icon";
 
+import { Availability } from "./Availability";
 import { EmptyScreen } from "./EmptyScreen";
-import { Availability } from "./ScheduleListItem";
 
 export type Schedule = {
   isDefault: boolean;

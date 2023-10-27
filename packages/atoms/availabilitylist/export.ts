@@ -1,3 +1,3 @@
 export { AvailabilityList } from "./AvailabilityList";
-export { Availability } from "./ScheduleListItem";
+export { Availability } from "./Availability";
 export * from "../types";
