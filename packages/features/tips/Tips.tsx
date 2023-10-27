@@ -100,7 +100,7 @@ export const tips = [
     title: "Cal.ai",
     description: "Your personal AI scheduling assistant",
     href: "https://go.cal.com/cal-ai",
-  },
+  }
 ];
 
 const reversedTips = tips.slice(0).reverse();
