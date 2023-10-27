@@ -6,7 +6,7 @@ import { Clock } from "@calcom/ui/components/icon";
 import { EmptyScreen } from "./EmptyScreen";
 import { Availability } from "./ScheduleListItem";
 
-type Schedule = {
+export type Schedule = {
   isDefault: boolean;
   id: number;
   name: string;
@@ -14,13 +14,13 @@ type Schedule = {
     id: number;
     startTime: Date;
     endTime: Date;
-    userId: number | null;
-    eventTypeId: number | null;
-    date: Date | null;
+    userId?: number;
+    eventTypeId?: number;
+    date?: Date;
     days: number[];
-    scheduleId: number | null;
+    scheduleId?: number;
   }[];
-  timezone: string | null;
+  timezone?: string;
 };
 
 export function AvailabilityList({
@@ -39,34 +39,34 @@ export function AvailabilityList({
   duplicateMutation: ({ scheduleId }: { scheduleId: number }) => void;
   deleteMutation: ({ scheduleId }: { scheduleId: number }) => void;
 }) {
+  if (schedules.length === 0) {
+    return (
+      <div className="flex justify-center">
+        <EmptyScreen
+          Icon={Clock}
+          headline="Create an availability schedule"
+          subtitle="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
+          className="w-full"
+          buttonRaw={<NewScheduleButton createMutation={onCreateMutation} />}
+        />
+      </div>
+    );
+  }
+
   return (
-    <>
-      {schedules.length === 0 ? (
-        <div className="flex justify-center">
-          <EmptyScreen
-            Icon={Clock}
-            headline="Create an availability schedule"
-            subtitle="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
-            className="w-full"
-            buttonRaw={<NewScheduleButton createMutation={onCreateMutation} />}
+    <div className="border-subtle bg-default mb-16 overflow-hidden rounded-md border">
+      <ul className="divide-subtle divide-y" data-testid="schedules">
+        {schedules.map((schedule) => (
+          <Availability
+            key={schedule.id}
+            schedule={schedule}
+            isDeletable={schedules.length !== 1}
+            updateDefault={updateMutation}
+            deleteFunction={deleteMutation}
+            duplicateFunction={duplicateMutation}
           />
-        </div>
-      ) : (
-        <div className="border-subtle bg-default mb-16 overflow-hidden rounded-md border">
-          <ul className="divide-subtle divide-y" data-testid="schedules">
-            {schedules.map((schedule) => (
-              <Availability
-                key={schedule.id}
-                schedule={schedule}
-                isDeletable={schedules.length !== 1}
-                updateDefault={updateMutation}
-                deleteFunction={deleteMutation}
-                duplicateFunction={duplicateMutation}
-              />
-            ))}
-          </ul>
-        </div>
-      )}
-    </>
+        ))}
+      </ul>
+    </div>
   );
 }
