@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
@@ -85,6 +86,26 @@ const ImpersonationProvider = CredentialsProvider({
     checkUserIdentifier(creds);
     checkPermission(session);
 
+    let TeamWhereClause: Prisma.MembershipWhereInput = {
+      disableImpersonation: false, // Ensure they have impersonation enabled
+      accepted: true, // Ensure they are apart of the team and not just invited.
+      team: {
+        id: teamId, // Bring back only the right team
+      },
+    };
+
+    // If you are an admin we dont need to follow this flow -> We can just follow the usual flow
+    // If orgId and teamId are the same we can follow the same flow
+    if (session?.user.org?.id && session.user.org.id !== teamId && session?.user.role !== "ADMIN") {
+      TeamWhereClause = {
+        disableImpersonation: false,
+        accepted: true,
+        team: {
+          id: session.user.org.id,
+        },
+      };
+    }
+
     // Get user who is being impersonated
     const impersonatedUser = await prisma.user.findFirst({
       where: {
@@ -100,13 +121,7 @@ const ImpersonationProvider = CredentialsProvider({
         disableImpersonation: true,
         locale: true,
         teams: {
-          where: {
-            disableImpersonation: false, // Ensure they have impersonation enabled
-            accepted: true, // Ensure they are apart of the team and not just invited.
-            team: {
-              id: teamId, // Bring back only the right team
-            },
-          },
+          where: TeamWhereClause,
           select: {
             teamId: true,
             disableImpersonation: true,
