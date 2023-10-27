@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "هذه المنظمة ليس لديها فرق بعد",
   "org_no_teams_yet_description": "إذا كنت مسؤول، تأكد من إنشاء فرق لعرضها هنا.",
   "set_up": "الإعداد",
-  "set_up_your_profile": "إعداد ملفك الشخصي",
-  "set_up_your_profile_description": "دع الناس يعرفون من أنت داخل {{orgName}}، ومتى يتعاملون مع الرابط العام الخاص بك.",
   "my_profile": "الملف الشخصي",
   "my_settings": "الإعدادات",
   "crm": "CRM",

@@ -65,7 +65,6 @@ import {
   MoreHorizontal,
   Trash,
   Upload,
-  User as UserIcon,
   Users,
 } from "@calcom/ui/components/icon";
 
@@ -73,6 +72,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
+import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -299,7 +299,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams);
+    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
@@ -399,23 +399,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
-                        <AvatarGroup
+                        <UserAvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={
-                            type?.users
-                              ? type.users.map(
-                                  (organizer: { name: string | null; username: string | null }) => ({
-                                    alt: organizer.name || "",
-                                    image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                      organizer.username
-                                    }/avatar.png`,
-                                    title: organizer.name || "",
-                                  })
-                                )
-                              : []
-                          }
+                          users={type?.users ?? []}
                         />
                       )}
                       {isManagedEventType && type?.children && type.children?.length > 0 && (
@@ -821,34 +809,6 @@ const Actions = () => {
   );
 };
 
-const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
-  const { t } = useLocale();
-  const orgBranding = useOrgBranding();
-
-  return (
-    <Alert
-      className="my-4"
-      severity="info"
-      title={t("set_up_your_profile")}
-      message={t("set_up_your_profile_description", { orgName: orgBranding?.name })}
-      CustomIcon={UserIcon}
-      actions={
-        <div className="flex gap-1">
-          <Button color="minimal" className="text-sky-700 hover:bg-sky-100" onClick={closeAction}>
-            {t("dismiss")}
-          </Button>
-          <Button
-            color="secondary"
-            className="border-sky-700 bg-sky-50 text-sky-700 hover:border-sky-900 hover:bg-sky-200"
-            href="/getting-started">
-            {t("set_up")}
-          </Button>
-        </div>
-      }
-    />
-  );
-};
-
 const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
   const { t } = useLocale();
   return (
@@ -984,7 +944,6 @@ const EventTypesPage = () => {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
       beforeCTAactions={<Actions />}
       CTA={<CTA data={data} />}>
       <HeadSeo

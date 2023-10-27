@@ -160,6 +160,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       slug: usernames[0],
       redirectType: RedirectType.User,
       eventTypeSlug: slug,
+      currentQuery: context.query,
     });
 
     if (redirect) {

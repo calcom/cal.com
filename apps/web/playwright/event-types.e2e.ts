@@ -115,23 +115,13 @@ test.describe("Event Types tests", () => {
 
       const locationData = ["location 1", "location 2", "location 3"];
 
-      const fillLocation = async (inputText: string) => {
-        await page.locator("#location-select").click();
-        await page.locator("text=In Person (Organizer Address)").click();
-        // eslint-disable-next-line playwright/no-wait-for-timeout
-        await page.waitForTimeout(1000);
-        await page.locator('input[name="locationAddress"]').fill(inputText);
-        await page.locator("[data-testid=display-location]").check();
-        await page.locator("[data-testid=update-location]").click();
-      };
-
-      await fillLocation(locationData[0]);
+      await fillLocation(page, locationData[0], 0);
 
       await page.locator("[data-testid=add-location]").click();
-      await fillLocation(locationData[1]);
+      await fillLocation(page, locationData[1], 1);
 
       await page.locator("[data-testid=add-location]").click();
-      await fillLocation(locationData[2]);
+      await fillLocation(page, locationData[2], 2);
 
       await page.locator("[data-testid=update-eventtype]").click();
 
@@ -177,6 +167,93 @@ test.describe("Event Types tests", () => {
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("text=+19199999999")).toBeVisible();
       });
+
+      test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Organizer Phone Number"`).click();
+        const locationInputName = "locations[0].hostPhoneNumber";
+        await page.locator(`input[name="${locationInputName}"]`).waitFor();
+        await page.locator(`input[name="${locationInputName}"]`).fill("9199999999");
+
+        await saveEventType(page);
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
+      });
+
+      test("Can add Cal video location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Cal Video (Global)"`).click();
+
+        await saveEventType(page);
+        await page.getByTestId("toast-success").waitFor();
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("[data-testid=where] ")).toContainText("Cal Video");
+      });
+
+      test("Can add Link Meeting as location and book with it", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        await page.locator("#location-select").click();
+        await page.locator(`text="Link meeting"`).click();
+
+        const locationInputName = `locations[0].link`;
+
+        const testUrl = "https://cal.ai/";
+        await page.locator(`input[name="${locationInputName}"]`).fill(testUrl);
+
+        await saveEventType(page);
+        await page.getByTestId("toast-success").waitFor();
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        const linkElement = await page.locator("[data-testid=where] > a");
+        expect(await linkElement.getAttribute("href")).toBe(testUrl);
+      });
+
+      test("Can remove location from multiple locations that are saved", async ({ page }) => {
+        await gotoFirstEventType(page);
+
+        // Add Attendee Phone Number location
+        await selectAttendeePhoneNumber(page);
+
+        // Add Cal Video location
+        await addAnotherLocation(page, "Cal Video (Global)");
+
+        await saveEventType(page);
+        await page.waitForLoadState("networkidle");
+
+        // Remove Attendee Phone Number Location
+        const removeButtomId = "delete-locations.0.type";
+        await page.getByTestId(removeButtomId).click();
+
+        await saveEventType(page);
+        await page.waitForLoadState("networkidle");
+
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+
+        await bookTimeSlot(page);
+
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("[data-testid=where]")).toHaveText(/Cal Video/);
+      });
     });
   });
 });
@@ -205,3 +282,26 @@ async function gotoBookingPage(page: Page) {
 
   await page.goto(previewLink ?? "");
 }
+
+/**
+ * Adds n+1 location to the event type
+ */
+async function addAnotherLocation(page: Page, locationOptionText: string) {
+  await page.locator("[data-testid=add-location]").click();
+  // When adding another location, the dropdown opens automatically. So, we don't need to open it here.
+  //
+  await page.locator(`text="${locationOptionText}"`).click();
+}
+
+const fillLocation = async (page: Page, inputText: string, index: number) => {
+  // Except the first location, dropdown automatically opens when adding another location
+  if (index == 0) {
+    await page.locator("#location-select").last().click();
+  }
+  await page.locator("text=In Person (Organizer Address)").last().click();
+
+  const locationInputName = `locations[${index}].address`;
+  await page.locator(`input[name="${locationInputName}"]`).waitFor();
+  await page.locator(`input[name="locations[${index}].address"]`).fill(inputText);
+  await page.locator("[data-testid=display-location]").last().check();
+};

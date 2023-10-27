@@ -15,7 +15,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
+const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
