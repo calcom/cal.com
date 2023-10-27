@@ -1,3 +1,5 @@
+"use client";
+
 import dayjs from "@calcom/dayjs";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
