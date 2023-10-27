@@ -1,4 +1,6 @@
-import { useRouter, useSearchParams } from "next/navigation";
+"use client";
+
+import { useRouter, useParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -83,13 +85,13 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
 };
 
 export default function Availability() {
-  const searchParams = useSearchParams();
+  const params = useParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
-  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
-  const fromEventType = searchParams?.get("fromEventType");
+  const scheduleId = params?.["schedule"] ? Number(params["schedule"]) : -1;
+  const fromEventType = params?.["fromEventType"];
   const { timeFormat } = me.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
   const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
