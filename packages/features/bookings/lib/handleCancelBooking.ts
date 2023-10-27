@@ -110,6 +110,8 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       scheduledJobs: true,
       seatsReferences: true,
       responses: true,
+      iCalUID: true,
+      iCalSequence: true,
     },
   });
 }
@@ -261,6 +263,8 @@ async function handler(req: CustomRequest) {
     ...(teamMembers && { team: { name: "", members: teamMembers } }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
+    iCalUID: bookingToDelete.iCalUID,
+    iCalSequence: bookingToDelete.iCalSequence + 1,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -387,6 +391,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        iCalSequence: evt.iCalSequence,
       },
       select: {
         startTime: true,
