@@ -505,11 +505,14 @@ function FieldEditDialog({
                         </Link>
                         {!identifierFieldVisible && identifierBadge !== "" && (
                           <Badge variant="grayWithoutHover" className="text-subtle">
-                            {identifierBadge?.replaceAll(" ", "-")}
+                            {identifierBadge?.replaceAll(".", "-").replaceAll(" ", "-")}
                             <Tooltip content="Edit identifier" side="top">
                               <div
                                 onClick={() => {
-                                  fieldForm.setValue("name", identifierBadge?.replaceAll(" ", "-"));
+                                  fieldForm.setValue(
+                                    "name",
+                                    identifierBadge?.replaceAll(".", "-").replaceAll(" ", "-")
+                                  );
                                   setIdentifierFieldVisible(true);
                                 }}>
                                 <Edit className=" hover:text-emphasis h-4 w-4 cursor-pointer" />
