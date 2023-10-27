@@ -14,6 +14,7 @@ export function UserAvatarGroup(props: UserAvatarProps) {
         alt: user.name || "",
         title: user.name || "",
         image: getUserAvatarUrl(user),
+        href: "/settings/my-account/profile",
       }))}
     />
   );
