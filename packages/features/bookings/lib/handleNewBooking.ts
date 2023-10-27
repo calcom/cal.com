@@ -1099,7 +1099,7 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
-  const iCalUID = `${uid}@cal.com`;
+  const iCalUID = rescheduleUid ? originalRescheduledBooking?.iCalUID : `${uid}@cal.com`;
 
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
