@@ -257,7 +257,7 @@ const nextConfig = {
             },
             {
               ...matcherConfigRootPathEmbed,
-              destination: "/team/:orgSlug?isOrgProfile=1",
+              destination: "/team/:orgSlug/embed?isOrgProfile=1",
             },
             {
               ...matcherConfigUserRoute,
