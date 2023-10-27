@@ -381,6 +381,20 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   }
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
+  if (eventTypesRaw.length === 1) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `${user.username}/${eventTypesRaw[0].slug}`,
+      },
+    } as {
+      redirect: {
+        permanent: false;
+        destination: string;
+      };
+    };
+  }
+
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
