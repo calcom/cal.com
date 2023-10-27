@@ -991,6 +991,7 @@ model TempOrgRedirect {
   // 0 would mean it is non org
   fromOrgId Int
   type      RedirectType
+  // It doesn't have any query params
   toUrl     String
   enabled   Boolean      @default(true)
   createdAt DateTime     @default(now())
