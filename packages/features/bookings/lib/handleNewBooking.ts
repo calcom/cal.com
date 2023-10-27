@@ -2319,9 +2319,11 @@ async function handler(
           // The eventManager and handleAppsStatus could change the iCalUID. At this point we can update the DB record
           await prisma.booking.update({
             where: {
-              booking: booking.id,
+              id: booking.id,
             },
-            iCalUID: evt.iCalUID,
+            data: {
+              iCalUID: evt.iCalUID,
+            },
           });
         }
       }
