@@ -313,7 +313,7 @@ test.describe("Teams - Org", () => {
     });
 
     await test.step("Can disband team", async () => {
-      await page.locator(`text=${user.username}'s Team`).first().click();
+      await page.locator('[data-testid="team-list-item-link"]').click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
       await page.locator("text=Disband Team").click();
       await page.locator("text=Yes, disband team").click();
