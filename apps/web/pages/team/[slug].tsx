@@ -269,10 +269,7 @@ function TeamPage({
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
-    context.req.headers.host ?? "",
-    context.params?.orgSlug
-  );
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js
