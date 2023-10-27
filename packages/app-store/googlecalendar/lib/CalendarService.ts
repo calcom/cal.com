@@ -94,6 +94,12 @@ function handleMinMax(min: string, max: string) {
 }
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
+/**
+ * We need to parse the passed arguments in order to comply with some requirements:
+ * 1. Items should be sorted in order to guarantee the cache key is always the same
+ * 2. timeMin and timeMax should be expanded to maximize cache hits
+ * 3. timeMin and timeMax should not be more than 90 days apart (handled in handleMinMax)
+ */
 function parseArgsForCache(args: FreeBusyArgs): FreeBusyArgs {
   // Sort items by id to make sure the cache key is always the same
   const items = args.items.sort((a, b) => (a.id > b.id ? 1 : -1));
@@ -418,17 +424,17 @@ export default class GoogleCalendarService implements Calendar {
 
   async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     const flags = await getFeatureFlagMap(prisma);
+    const parsedArgs = parseArgsForCache(args);
     if (!flags["calendar-cache"]) {
       this.log.warn("Calendar Cache is disabled - Skipping");
-      return await this.fetchAvailability(args);
+      return await this.fetchAvailability(parsedArgs);
     }
-    const parsedArgs = parseArgsForCache(args);
     const key = JSON.stringify(parsedArgs);
     const cached = await this.getAvailabilityFromCache(key);
 
     if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
 
-    const data = await this.fetchAvailability(args);
+    const data = await this.fetchAvailability(parsedArgs);
     await this.setAvailabilityInCache(key, data);
     return data;
   }
