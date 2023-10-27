@@ -494,7 +494,7 @@ function FieldEditDialog({
                       }}
                     />
                     <div className="mt-6">
-                      <div className="mb-2 flex items-center gap-1">
+                      <div className="flex items-center gap-1">
                         <label className="text-emphasis block text-sm font-medium">Identifier</label>
                         <Link
                           href="https://cal.com/docs/core-features/event-types/booking-questions#booking-field-identifier"
@@ -508,6 +508,7 @@ function FieldEditDialog({
                             {identifierBadge?.replaceAll(".", "-").replaceAll(" ", "-")}
                             <Tooltip content="Edit identifier" side="top">
                               <div
+                                data-testid="edit-identifier"
                                 onClick={() => {
                                   fieldForm.setValue(
                                     "name",
@@ -515,7 +516,7 @@ function FieldEditDialog({
                                   );
                                   setIdentifierFieldVisible(true);
                                 }}>
-                                <Edit className=" hover:text-emphasis h-4 w-4 cursor-pointer" />
+                                <Edit className="hover:text-emphasis h-4 w-4 cursor-pointer" />
                               </div>
                             </Tooltip>
                           </Badge>
@@ -523,7 +524,7 @@ function FieldEditDialog({
                       </div>
                       {identifierFieldVisible && (
                         <>
-                          <Input
+                          <InputField
                             required
                             {...fieldForm.register("name")}
                             onChange={(e) => {
@@ -533,6 +534,8 @@ function FieldEditDialog({
                               fieldForm.getValues("editable") === "system" ||
                               fieldForm.getValues("editable") === "system-but-optional"
                             }
+                            label={t("identifier")}
+                            labelClassName="invisible -mb-2"
                           />
                           <p className="text-subtle text-sm">
                             You will not be able to edit these later. Letters, numbers & hyphens only.

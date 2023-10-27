@@ -132,10 +132,11 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId("add-field").click();
       await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
       await page.getByTestId(`select-option-${questionType}`).click();
-      await page.getByLabel("Identifier").dblclick();
-      await page.getByLabel("Identifier").fill(identifier);
       await page.getByLabel("Label").click();
       await page.getByLabel("Label").fill(label);
+      await page.getByTestId("edit-identifier").click();
+      await page.getByLabel("Identifier").dblclick();
+      await page.getByLabel("Identifier").fill(identifier);
       if (placeholder) {
         await page.getByLabel("Placeholder").click();
         await page.getByLabel("Placeholder").fill(placeholder);

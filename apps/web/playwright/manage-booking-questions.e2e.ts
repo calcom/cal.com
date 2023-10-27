@@ -493,12 +493,13 @@ async function addQuestionAndSave({
     });
   }
 
-  if (question.name !== undefined) {
-    await page.fill('[name="name"]', question.name);
-  }
-
   if (question.label !== undefined) {
     await page.fill('[name="label"]', question.label);
+  }
+
+  if (question.name !== undefined) {
+    await page.getByTestId("edit-identifier").click();
+    await page.fill('[name="name"]', question.name);
   }
 
   if (question.placeholder !== undefined) {
