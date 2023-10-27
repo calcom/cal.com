@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +18,7 @@ import { ssrInit } from "@server/lib/ssr";
 type Props = inferSSRProps<typeof getServerSideProps>;
 
 export function Logout(props: Props) {
+  const [btnLoading, setBtnLoading] = useState<boolean>(false);
   const { status } = useSession();
   if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
@@ -35,6 +36,11 @@ export function Logout(props: Props) {
     return "hope_to_see_you_soon";
   };
 
+  const navigateToLogin = () => {
+    setBtnLoading(true);
+    router.push("/auth/login");
+  };
+
   return (
     <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
       <div className="mb-4">
@@ -50,14 +56,17 @@ export function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Button href="/auth/login" className="flex w-full justify-center">
+      <Button
+        data-testid="logout-btn"
+        onClick={navigateToLogin}
+        className="flex w-full justify-center"
+        loading={btnLoading}>
         {t("go_back_login")}
       </Button>
     </AuthContainer>
   );
 }
 
-Logout.isThemeSupported = false;
 Logout.PageWrapper = PageWrapper;
 export default Logout;
 

@@ -70,7 +70,7 @@ export default class Office365CalendarService implements Calendar {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
     this.credential = credential;
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
@@ -343,7 +343,7 @@ export default class Office365CalendarService implements Calendar {
     return fetch(`${this.apiGraphUrl}${endpoint}`, {
       method: "get",
       headers: {
-        Authorization: "Bearer " + this.accessToken,
+        Authorization: `Bearer ${this.accessToken}`,
         "Content-Type": "application/json",
       },
       ...init,
@@ -479,8 +479,8 @@ export default class Office365CalendarService implements Calendar {
           subResponse.body.value.reduce((acc: BufferedBusyTime[], evt: BodyValue) => {
             if (evt.showAs === "free" || evt.showAs === "workingElsewhere") return acc;
             return acc.concat({
-              start: evt.start.dateTime + "Z",
-              end: evt.end.dateTime + "Z",
+              start: `${evt.start.dateTime}Z`,
+              end: `${evt.end.dateTime}Z`,
             });
           }, [])
         );

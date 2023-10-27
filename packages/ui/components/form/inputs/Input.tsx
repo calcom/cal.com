@@ -126,8 +126,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     label = t(props.name as string),
     labelProps,
     /** Prevents displaying untranslated placeholder keys */
-    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
-      ? t(props.name + "_placeholder")
+    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+      ? `${props.name}_placeholder`
       : "",
     ...passThrough
   } = props;

@@ -23,6 +23,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -93,7 +94,7 @@ const querySchema = z.object({
 });
 
 export default function Success(props: SuccessProps) {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
@@ -114,6 +115,13 @@ export default function Success(props: SuccessProps) {
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
+  let rescheduleLocation: string | undefined;
+  if (
+    typeof props.bookingInfo.responses.location === "object" &&
+    "optionValue" in props.bookingInfo.responses.location
+  ) {
+    rescheduleLocation = props.bookingInfo.responses.location.optionValue;
+  }
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
@@ -145,9 +153,9 @@ export default function Success(props: SuccessProps) {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
-
+  const { requiresLoginToUpdate } = props;
   function setIsCancellationMode(value: boolean) {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
 
     if (value) {
       _searchParams.set("cancel", "true");
@@ -216,7 +224,9 @@ export default function Success(props: SuccessProps) {
       confirmed: !needsConfirmation,
       // TODO: Add payment details
     });
-    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
+    setDate(
+      date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London")
+    );
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
@@ -266,13 +276,13 @@ export default function Success(props: SuccessProps) {
     }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
-        return t("user_needs_to_confirm_or_reject_booking" + titleSuffix, {
+        return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
           user: props.profile.name,
         });
       }
-      return t("needs_to_be_confirmed_or_rejected" + titleSuffix);
+      return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
-    return t("emailed_you_and_attendees" + titleSuffix);
+    return t(`emailed_you_and_attendees${titleSuffix}`);
   }
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
@@ -292,7 +302,14 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
+  const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
+    rescheduleLocation ?? "",
+    t,
+    bookingInfo.status
+  );
+
   const providerName = guessEventLocationType(location)?.label;
+  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -355,10 +372,10 @@ export default function Success(props: SuccessProps) {
                     <img src={giphyImage} alt="Gif from Giphy" />
                   )}
                   {!giphyImage && !needsConfirmation && !isCancelled && (
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                   )}
                   {needsConfirmation && !isCancelled && <Calendar className="text-emphasis h-5 w-5" />}
-                  {isCancelled && <X className="h-5 w-5 text-red-600" />}
+                  {isCancelled && <X className="h-5 w-5 text-red-600 dark:text-red-200" />}
                 </div>
                 <div className="mb-8 mt-6 text-center last:mb-0">
                   <h3
@@ -464,18 +481,50 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
-                          {locationToDisplay.startsWith("http") ? (
-                            <a
-                              href={locationToDisplay}
-                              target="_blank"
-                              title={locationToDisplay}
-                              className="text-default flex items-center gap-2 underline"
-                              rel="noreferrer">
-                              {providerName || "Link"}
-                              <ExternalLink className="text-default inline h-4 w-4" />
-                            </a>
+                          {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
+                            locationToDisplay.startsWith("http") ? (
+                              <a
+                                href={locationToDisplay}
+                                target="_blank"
+                                title={locationToDisplay}
+                                className="text-default flex items-center gap-2"
+                                rel="noreferrer">
+                                {providerName || "Link"}
+                                <ExternalLink className="text-default inline h-4 w-4" />
+                              </a>
+                            ) : (
+                              locationToDisplay
+                            )
                           ) : (
-                            locationToDisplay
+                            <>
+                              {!!formerTime &&
+                                (locationToDisplay.startsWith("http") ? (
+                                  <a
+                                    href={locationToDisplay}
+                                    target="_blank"
+                                    title={locationToDisplay}
+                                    className="text-default flex items-center gap-2 line-through"
+                                    rel="noreferrer">
+                                    {providerName || "Link"}
+                                    <ExternalLink className="text-default inline h-4 w-4" />
+                                  </a>
+                                ) : (
+                                  <p className="line-through">{locationToDisplay}</p>
+                                ))}
+                              {rescheduleLocationToDisplay.startsWith("http") ? (
+                                <a
+                                  href={rescheduleLocationToDisplay}
+                                  target="_blank"
+                                  title={rescheduleLocationToDisplay}
+                                  className="text-default flex items-center gap-2"
+                                  rel="noreferrer">
+                                  {rescheduleProviderName || "Link"}
+                                  <ExternalLink className="text-default inline h-4 w-4" />
+                                </a>
+                              ) : (
+                                rescheduleLocationToDisplay
+                              )}
+                            </>
                           )}
                         </div>
                       </>
@@ -488,10 +537,7 @@ export default function Success(props: SuccessProps) {
                             : t("payment")}
                         </div>
                         <div className="col-span-2 mb-2 mt-3">
-                          {new Intl.NumberFormat(i18n.language, {
-                            style: "currency",
-                            currency: props.paymentStatus.currency,
-                          }).format(props.paymentStatus.amount / 100.0)}
+                          <Price currency={props.paymentStatus.currency} price={props.paymentStatus.amount} />
                         </div>
                       </>
                     )}
@@ -532,7 +578,28 @@ export default function Success(props: SuccessProps) {
                     })}
                   </div>
                 </div>
-                {(!needsConfirmation || !userIsOwner) &&
+                {requiresLoginToUpdate && (
+                  <>
+                    <hr className="border-subtle mb-8" />
+                    <div className="text-center">
+                      <span className="text-emphasis ltr:mr-2 rtl:ml-2">{t("need_to_make_a_change")}</span>
+                      {/* Login button but redirect to here */}
+                      <span className="text-default inline">
+                        <span className="underline" data-testid="reschedule-link">
+                          <Link
+                            href={`/auth/login?callbackUrl=${encodeURIComponent(
+                              `/booking/${bookingInfo?.uid}`
+                            )}`}
+                            legacyBehavior>
+                            {t("login")}
+                          </Link>
+                        </span>
+                      </span>
+                    </div>
+                  </>
+                )}
+                {!requiresLoginToUpdate &&
+                  (!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
@@ -540,28 +607,30 @@ export default function Success(props: SuccessProps) {
                       <div className="text-center last:pb-0">
                         <span className="text-emphasis ltr:mr-2 rtl:ml-2">{t("need_to_make_a_change")}</span>
 
-                        {!props.recurringBookings && (
-                          <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link">
-                              <Link
-                                href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
-                                legacyBehavior>
-                                {t("reschedule")}
-                              </Link>
+                        <>
+                          {!props.recurringBookings && (
+                            <span className="text-default inline">
+                              <span className="underline" data-testid="reschedule-link">
+                                <Link
+                                  href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                  legacyBehavior>
+                                  {t("reschedule")}
+                                </Link>
+                              </span>
+                              <span className="mx-2">{t("or_lowercase")}</span>
                             </span>
-                            <span className="mx-2">{t("or_lowercase")}</span>
-                          </span>
-                        )}
-
-                        <button
-                          data-testid="cancel"
-                          className={classNames(
-                            "text-default underline",
-                            props.recurringBookings && "ltr:mr-2 rtl:ml-2"
                           )}
-                          onClick={() => setIsCancellationMode(true)}>
-                          {t("cancel")}
-                        </button>
+
+                          <button
+                            data-testid="cancel"
+                            className={classNames(
+                              "text-default underline",
+                              props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                            )}
+                            onClick={() => setIsCancellationMode(true)}>
+                            {t("cancel")}
+                          </button>
+                        </>
                       </div>
                     </>
                   ) : (
@@ -592,23 +661,24 @@ export default function Success(props: SuccessProps) {
                         </span>
                         <div className="justify-left mt-1 flex text-left sm:mt-0">
                           <Link
-                            href={
-                              `https://calendar.google.com/calendar/r/eventedit?dates=${date
-                                .utc()
-                                .format("YYYYMMDDTHHmmss[Z]")}/${date
-                                .add(calculatedDuration, "minute")
-                                .utc()
-                                .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
-                                props.eventType.description
-                              }` +
-                              (typeof locationVideoCallUrl === "string"
-                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
-                                : "") +
-                              (props.eventType.recurringEvent
-                                ? "&recur=" +
-                                  encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
-                                : "")
-                            }
+                            href={`https://calendar.google.com/calendar/r/eventedit?dates=${date
+                              .utc()
+                              .format("YYYYMMDDTHHmmss[Z]")}/${date
+                              .add(calculatedDuration, "minute")
+                              .utc()
+                              .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
+                              props.eventType.description
+                            }${
+                              typeof locationVideoCallUrl === "string"
+                                ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
+                                : ""
+                            }${
+                              props.eventType.recurringEvent
+                                ? `&recur=${encodeURIComponent(
+                                    new RRule(props.eventType.recurringEvent).toString()
+                                  )}`
+                                : ""
+                            }`}
                             className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
                             <svg
                               className="-mt-1.5 inline-block h-4 w-4"
@@ -622,17 +692,17 @@ export default function Success(props: SuccessProps) {
                           <Link
                             href={
                               encodeURI(
-                                "https://outlook.live.com/calendar/0/deeplink/compose?body=" +
-                                  props.eventType.description +
-                                  "&enddt=" +
-                                  date.add(calculatedDuration, "minute").utc().format() +
-                                  "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                  date.utc().format() +
-                                  "&subject=" +
-                                  eventName
+                                `https://outlook.live.com/calendar/0/deeplink/compose?body=${
+                                  props.eventType.description
+                                }&enddt=${date
+                                  .add(calculatedDuration, "minute")
+                                  .utc()
+                                  .format()}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${date
+                                  .utc()
+                                  .format()}&subject=${eventName}`
                               ) +
                               (locationVideoCallUrl
-                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
+                                ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
                                 : "")
                             }
                             className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
@@ -649,17 +719,17 @@ export default function Success(props: SuccessProps) {
                           <Link
                             href={
                               encodeURI(
-                                "https://outlook.office.com/calendar/0/deeplink/compose?body=" +
-                                  props.eventType.description +
-                                  "&enddt=" +
-                                  date.add(calculatedDuration, "minute").utc().format() +
-                                  "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
-                                  date.utc().format() +
-                                  "&subject=" +
-                                  eventName
+                                `https://outlook.office.com/calendar/0/deeplink/compose?body=${
+                                  props.eventType.description
+                                }&enddt=${date
+                                  .add(calculatedDuration, "minute")
+                                  .utc()
+                                  .format()}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${date
+                                  .utc()
+                                  .format()}&subject=${eventName}`
                               ) +
                               (locationVideoCallUrl
-                                ? "&location=" + encodeURIComponent(locationVideoCallUrl)
+                                ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
                                 : "")
                             }
                             className="text-default border-subtle mx-2 h-10 w-10 rounded-sm border px-3 py-2"
@@ -674,9 +744,9 @@ export default function Success(props: SuccessProps) {
                             </svg>
                           </Link>
                           <Link
-                            href={"data:text/calendar," + eventLink()}
+                            href={`data:text/calendar,${eventLink()}`}
                             className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
-                            download={props.eventType.title + ".ics"}>
+                            download={`${props.eventType.title}.ics`}>
                             <svg
                               version="1.1"
                               fill="currentColor"
@@ -1009,7 +1079,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
-
+  let requiresLoginToUpdate = false;
   if (session) {
     const user = await ssr.viewer.me.fetch();
     tz = user.timeZone;
@@ -1018,12 +1088,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const parsedQuery = querySchema.safeParse(context.query);
 
-  if (!parsedQuery.success) return { notFound: true };
+  if (!parsedQuery.success) return { notFound: true } as const;
   const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
+  const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
-      uid: await maybeGetBookingUidFromSeat(prisma, uid),
+      uid: maybeUid,
     },
     select: {
       title: true,
@@ -1075,7 +1146,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!bookingInfoRaw) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -1084,7 +1155,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!eventTypeRaw) {
     return {
       notFound: true,
-    };
+    } as const;
+  }
+
+  if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
+    requiresLoginToUpdate = true;
   }
 
   const bookingInfo = getBookingWithResponses(bookingInfoRaw);
@@ -1101,7 +1176,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (!eventTypeRaw.owner)
       return {
         notFound: true,
-      };
+      } as const;
     eventTypeRaw.users.push({
       ...eventTypeRaw.owner,
     });
@@ -1155,6 +1230,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       paymentStatus: payment,
       ...(tz && { tz }),
       userTimeFormat,
+      requiresLoginToUpdate,
     },
   };
 }

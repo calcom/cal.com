@@ -208,7 +208,7 @@ export const AppForm = ({
             </Text>
             <Text>
               Tip : Go and change the logo of your {isTemplate ? "template" : "app"} by replacing{" "}
-              {getAppDirPath(slug, isTemplate) + "/static/icon.svg"}
+              {`${getAppDirPath(slug, isTemplate)}/static/icon.svg`}
             </Text>
             <Newline />
             <Text bold underline color="blue">

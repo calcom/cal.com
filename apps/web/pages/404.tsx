@@ -51,8 +51,8 @@ export default function Custom404() {
   const [url, setUrl] = useState(`${WEBSITE_URL}/signup`);
   useEffect(() => {
     const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(window.location.host);
-    const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/);
-    if (!isValidOrgDomain || !currentOrgDomain) {
+    const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
+    if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
       const splitPath = routerUsername.split("/");
       if (splitPath[1] === "team" && splitPath.length === 3) {
         // Accessing a non-existent team
@@ -66,13 +66,12 @@ export default function Custom404() {
         setUrl(`${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`);
       }
     } else {
-      setUsername(currentOrgDomain);
+      setUsername(currentOrgDomain ?? "");
       setCurrentPageType(pageType.ORG);
       setUrl(
-        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${currentOrgDomain.replace(
-          "/",
-          ""
-        )}`
+        `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${
+          currentOrgDomain?.replace("/", "") ?? ""
+        }`
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -250,11 +249,8 @@ export default function Custom404() {
                 ) : IS_CALCOM ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
                     {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
-                    <strong className="text-blue-500">
-                      {new URL(WEBSITE_URL).hostname}
-                      {username}
-                    </strong>{" "}
-                    {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
+                    <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                    <span className="text-blue-500">{t("register_now")}</span>.
                   </a>
                 ) : (
                   <span className="mt-2 inline-block text-lg">

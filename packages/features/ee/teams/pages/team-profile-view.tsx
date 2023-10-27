@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks";
@@ -177,30 +177,37 @@ const ProfileView = () => {
                   mutation.mutate({ id: team.id, ...variables });
                 }
               }}>
-              <div className="flex items-center">
-                <Controller
-                  control={form.control}
-                  name="logo"
-                  render={({ field: { value } }) => (
-                    <>
-                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
-                      <div className="ms-4">
-                        <ImageUploader
-                          target="avatar"
-                          id="avatar-upload"
-                          buttonMsg={t("update")}
-                          handleAvatarChange={(newLogo) => {
-                            form.setValue("logo", newLogo);
-                          }}
-                          imageSrc={value}
-                        />
-                      </div>
-                    </>
-                  )}
-                />
-              </div>
-
-              <hr className="border-subtle my-8" />
+              {!team.parent && (
+                <>
+                  <div className="flex items-center">
+                    <Controller
+                      control={form.control}
+                      name="logo"
+                      render={({ field: { value } }) => (
+                        <>
+                          <Avatar
+                            alt=""
+                            imageSrc={getPlaceholderAvatar(value, team?.name as string)}
+                            size="lg"
+                          />
+                          <div className="ms-4">
+                            <ImageUploader
+                              target="avatar"
+                              id="avatar-upload"
+                              buttonMsg={t("update")}
+                              handleAvatarChange={(newLogo) => {
+                                form.setValue("logo", newLogo);
+                              }}
+                              imageSrc={value}
+                            />
+                          </div>
+                        </>
+                      )}
+                    />
+                  </div>
+                  <hr className="border-subtle my-8" />
+                </>
+              )}
 
               <Controller
                 control={form.control}
@@ -229,7 +236,7 @@ const ProfileView = () => {
                       value={value}
                       addOnLeading={
                         team.parent && orgBranding
-                          ? getOrgFullDomain(orgBranding?.slug, { protocol: false }) + "/"
+                          ? `${getOrgFullOrigin(orgBranding?.slug, { protocol: false })}/`
                           : `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {

@@ -60,10 +60,16 @@ export default function Verify() {
   const routerQuery = useRouterQuery();
   const { t, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
   const [secondsLeft, setSecondsLeft] = useState(30);
-  const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery({
-    stripeCustomerId,
-    checkoutSessionId: sessionId,
-  });
+  const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery(
+    {
+      stripeCustomerId,
+      checkoutSessionId: sessionId,
+    },
+    {
+      enabled: !!stripeCustomerId || !!sessionId,
+      staleTime: Infinity,
+    }
+  );
   useSendFirstVerificationLogin({ email: data?.customer?.email, username: data?.customer?.username });
   // @note: check for t=timestamp and apply disabled state and secondsLeft accordingly
   // to avoid refresh to skip waiting 30 seconds to re-send email
@@ -114,7 +120,7 @@ export default function Verify() {
             ? "Your payment failed"
             : sessionId
             ? "Payment successful!"
-            : "Verify your email" + " | " + APP_NAME}
+            : `Verify your email | ${APP_NAME}`}
         </title>
       </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
@@ -123,12 +129,12 @@ export default function Verify() {
             {hasPaymentFailed ? (
               <AlertTriangle className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             ) : sessionId ? (
-              <Check className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+              <Check className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight dark:text-white" />
             ) : (
               <MailOpen className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
             )}
           </div>
-          <h3 className="font-cal my-6 text-3xl font-normal">
+          <h3 className="font-cal text-inverted my-6 text-3xl font-normal dark:text-white">
             {hasPaymentFailed
               ? "Your payment failed"
               : sessionId
@@ -138,7 +144,7 @@ export default function Verify() {
           {hasPaymentFailed && (
             <p className="my-6">Your account has been created, but your premium has not been reserved.</p>
           )}
-          <p>
+          <p className="text-inverted dark:text-white">
             We have sent an email to <b>{customer?.email} </b>with a link to activate your account.{" "}
             {hasPaymentFailed &&
               "Once you activate your account you will be able to try purchase your premium username again or select a different one."}
@@ -158,7 +164,7 @@ export default function Verify() {
                 e.preventDefault();
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page
-                const _searchParams = new URLSearchParams(searchParams);
+                const _searchParams = new URLSearchParams(searchParams?.toString());
                 _searchParams.set("t", `${Date.now()}`);
                 router.replace(`${pathname}?${_searchParams.toString()}`);
                 return await sendVerificationLogin(customer.email, customer.username);

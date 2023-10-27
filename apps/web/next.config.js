@@ -21,11 +21,11 @@ process.env.NEXT_PUBLIC_CALCOM_VERSION = version;
 
 // So we can test deploy previews preview
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
+  process.env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
 }
 // Check for configuration of NEXTAUTH_URL before overriding
 if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
-  process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
+  process.env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
@@ -227,6 +227,14 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        /**
+         * Needed due to the introduction of dotted usernames
+         * @see https://github.com/calcom/cal.com/pull/11706
+         */
+        source: "/embed.js",
+        destination: "/embed/embed.js",
+      },
+      {
         source: "/login",
         destination: "/auth/login",
       },
@@ -235,7 +243,7 @@ const nextConfig = {
         ? [
             {
               ...matcherConfigRootPath,
-              destination: "/team/:orgSlug",
+              destination: "/team/:orgSlug?isOrgProfile=1",
             },
             {
               ...matcherConfigUserRoute,
