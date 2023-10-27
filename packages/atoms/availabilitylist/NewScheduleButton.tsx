@@ -21,16 +21,15 @@ import type { Schedule } from ".prisma/client";
 // then passed in as a prop
 // TODO: translations can be taken care of later
 
-export function NewScheduleButton({
-  name = "new-schedule",
-  createMutation,
-}: {
+type NewScheduleButtonProps = {
   name?: string;
   createMutation: (values: {
     onSucess: (schedule: Schedule) => void;
     onError: (err: HttpError) => void;
   }) => void;
-}) {
+};
+
+export function NewScheduleButton({ name = "new-schedule", createMutation }: NewScheduleButtonProps) {
   const form = useForm<{
     name: string;
   }>();

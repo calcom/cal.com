@@ -14,14 +14,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 
-export function Availability({
-  schedule,
-  isDeletable,
-  displayOptions,
-  updateDefault,
-  duplicateFunction,
-  deleteFunction,
-}: {
+type AvailabilityProps = {
   schedule: Schedule;
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
@@ -31,7 +24,16 @@ export function Availability({
     timeZone?: string;
     hour12?: boolean;
   };
-}) {
+};
+
+export function Availability({
+  schedule,
+  isDeletable,
+  displayOptions,
+  updateDefault,
+  duplicateFunction,
+  deleteFunction,
+}: AvailabilityProps) {
   const { toast } = useToast();
 
   return (

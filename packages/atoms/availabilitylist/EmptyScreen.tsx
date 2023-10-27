@@ -6,6 +6,18 @@ import React from "react";
 import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
+type EmptyScreenProps = {
+  Icon?: SVGComponent | IconType;
+  avatar?: React.ReactElement;
+  headline: string | React.ReactElement;
+  description?: string | React.ReactElement;
+  buttonText?: string;
+  buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  buttonRaw?: ReactNode; // Used incase you want to provide your own button.
+  border?: boolean;
+  dashedBorder?: boolean;
+};
+
 export function EmptyScreen({
   Icon,
   avatar,
@@ -17,17 +29,7 @@ export function EmptyScreen({
   border = true,
   dashedBorder = true,
   className,
-}: {
-  Icon?: SVGComponent | IconType;
-  avatar?: React.ReactElement;
-  headline: string | React.ReactElement;
-  description?: string | React.ReactElement;
-  buttonText?: string;
-  buttonOnClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  buttonRaw?: ReactNode; // Used incase you want to provide your own button.
-  border?: boolean;
-  dashedBorder?: boolean;
-} & React.HTMLAttributes<HTMLDivElement>) {
+}: EmptyScreenProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <>
       <div

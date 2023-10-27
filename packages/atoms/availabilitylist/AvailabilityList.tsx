@@ -23,13 +23,7 @@ export type Schedule = {
   timezone?: string;
 };
 
-export function AvailabilityList({
-  schedules,
-  onCreateMutation,
-  updateMutation,
-  duplicateMutation,
-  deleteMutation,
-}: {
+type AvailabilityListProps = {
   schedules: Schedule[] | [];
   onCreateMutation: (values: {
     onSucess: (schedule: Schedule) => void;
@@ -38,7 +32,15 @@ export function AvailabilityList({
   updateMutation: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateMutation: ({ scheduleId }: { scheduleId: number }) => void;
   deleteMutation: ({ scheduleId }: { scheduleId: number }) => void;
-}) {
+};
+
+export function AvailabilityList({
+  schedules,
+  onCreateMutation,
+  updateMutation,
+  duplicateMutation,
+  deleteMutation,
+}: AvailabilityListProps) {
   if (schedules.length === 0) {
     return (
       <div className="flex justify-center">
