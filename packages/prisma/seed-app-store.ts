@@ -283,6 +283,12 @@ export default async function main() {
       scale_plan: process.env.DAILY_SCALE_PLAN,
     });
   }
+  if (process.env.SHIMMER_API_KEY) {
+    await createApp("shimmer-video", "shimmer-video", ["conferencing"], "shimmer_video", {
+      api_key: process.env.SHIMMER_API_KEY,
+      api_route: process.env.SHIMMER_API_ROUTE,
+    });
+  }
   if (process.env.TANDEM_CLIENT_ID && process.env.TANDEM_CLIENT_SECRET) {
     await createApp("tandem", "tandemvideo", ["conferencing"], "tandem_video", {
       client_id: process.env.TANDEM_CLIENT_ID as string,

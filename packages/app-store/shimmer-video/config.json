@@ -13,5 +13,12 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "dirName": "shimmer-video"
+  "dirName": "shimmer-video",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:shimmer_video",
+      "label": "Shimmer Video"
+    }
+  }
 }
