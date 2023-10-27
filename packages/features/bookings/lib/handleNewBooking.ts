@@ -1099,7 +1099,15 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
-  const iCalUID = rescheduleUid ? originalRescheduledBooking?.iCalUID : `${uid}@cal.com`;
+  const iCalUID = originalRescheduledBooking?.iCalUID ?? `${uid}@cal.com`;
+  // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
+  const iCalSequence = originalRescheduledBooking?.iCalSequence
+    ? originalRescheduledBooking.iCalSequence + 1
+    : originalRescheduledBooking
+    ? 1
+    : 0;
+
+  console.log("🚀 ~ file: handleNewBooking.ts:1105 ~ iCalSequence:", iCalSequence);
 
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
@@ -1138,6 +1146,7 @@ async function handler(
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
     iCalUID,
+    iCalSequence,
   };
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
@@ -1966,7 +1975,8 @@ async function handler(
               connect: { id: evt.destinationCalendar[0].id },
             }
           : undefined,
-      iCalUID: evt.iCalUID,
+      iCalUID: evt.iCalUID ?? "",
+      iCalSequence: evt.iCalSequence ?? 0,
     };
 
     if (reqBody.recurringEventId) {
