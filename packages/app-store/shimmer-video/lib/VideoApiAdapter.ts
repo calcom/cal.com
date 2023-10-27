@@ -9,6 +9,10 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 
 import { getShimmerAppKeys } from "./getShimmerAppKeys";
 
+/** Shimmer Video app type in the config.json
+ *  changed to 'shimmer_video' to support video conferencing
+ */
+
 /** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
 const dailyReturnTypeSchema = z.object({
   /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
