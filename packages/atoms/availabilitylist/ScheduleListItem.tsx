@@ -8,27 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
+import type { Schedule } from "availabilitylist/AvailabilityList";
 import { Globe, MoreHorizontal, Star, Copy, Trash } from "lucide-react";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
-
-type Schedule = {
-  isDefault: boolean;
-  id: number;
-  name: string;
-  availability: {
-    id: number;
-    startTime: Date;
-    endTime: Date;
-    userId: number | null;
-    eventTypeId: number | null;
-    date: Date | null;
-    days: number[];
-    scheduleId: number | null;
-  }[];
-  timezone: string | null;
-};
 
 export function Availability({
   schedule,
