@@ -20,7 +20,7 @@ export type PageMetadataRecipe = Readonly<{
   metadataBase: URL;
 }>;
 
-export const prepareMetadata = (recipe: RootMetadataRecipe): Metadata => ({
+export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
   icons: {
     icon: "/favicon.icon",
     apple: "/api/logo?type=apple-touch-icon",
