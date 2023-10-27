@@ -8,14 +8,13 @@ import type { AtomsGlobalConfigProps } from "../types";
 interface ConnectButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   buttonText?: string;
   icon?: JSX.Element;
-  handleClick: () => void;
   onSuccess?: () => void;
   onError: () => void;
 }
 
 export function ConnectButton({
   buttonText,
-  handleClick,
+  onClick,
   onSuccess,
   onError,
   className,
@@ -29,7 +28,7 @@ export function ConnectButton({
 
     try {
       setIsProcessing(true);
-      handleClick && handleClick();
+      onClick && onClick(e);
 
       // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
       // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
