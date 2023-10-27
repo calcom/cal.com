@@ -63,6 +63,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Destination calendar not found
  */
 type DestinationCalendarType = {
+  userId?: number | null;
   eventTypeId?: number | null;
   credentialId: number | null;
 };
@@ -88,11 +89,11 @@ export async function patchHandler(req: NextApiRequest) {
 
   validateIntegrationInput(parsedBody);
   const destinationCalendarObject: DestinationCalendarType = await getDestinationCalendar(id, prisma);
-  await validateRequest({ destinationCalendarObject, parsedBody, assignedUserId, prisma });
+  await validateRequestAndOwnership({ destinationCalendarObject, parsedBody, assignedUserId, prisma });
   if (parsedBody.eventTypeId) parsedBody.userId = undefined;
   const userCredentials = await getUserCredentials({
     credentialId: destinationCalendarObject.credentialId,
-    userId,
+    userId: assignedUserId,
     prisma,
   });
   const credentialId = await verifyCredentialsAndGetId({
@@ -107,6 +108,17 @@ export async function patchHandler(req: NextApiRequest) {
   return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
 }
 
+/**
+ * Retrieves user credentials associated with a given credential ID and user ID and validates if the credentials belong to this user
+ *
+ * @param credentialId - The ID of the credential to fetch. If not provided, an error is thrown.
+ * @param userId - The user ID against which the credentials need to be verified.
+ * @param prisma - An instance of PrismaClient for database operations.
+ *
+ * @returns - An array containing the matching user credentials.
+ *
+ * @throws HttpError - If `credentialId` is not provided or no associated credentials are found in the database.
+ */
 async function getUserCredentials({
   credentialId,
   userId,
@@ -136,6 +148,30 @@ async function getUserCredentials({
   return userCredentials;
 }
 
+/**
+ * Verifies the provided credentials and retrieves the associated credential ID.
+ *
+ * This function checks if the `integration` and `externalId` properties from the parsed body are present.
+ * If both properties exist, it fetches the connected calendar credentials using the provided user credentials
+ * and checks for a matching external ID and integration from the list of connected calendars.
+ *
+ * If a match is found, it updates the `credentialId` with the one from the connected calendar.
+ * Otherwise, it throws an HTTP error with a 400 status indicating an invalid credential ID.
+ *
+ * If the parsed body does not contain the necessary properties, the function
+ * returns the `credentialId` from the destination calendar object.
+ *
+ * @param parsedBody - The parsed body from the incoming request, validated against a predefined schema.
+ *                     Checked if it contain properties like `integration` and `externalId`.
+ * @param userCredentials - An array of user credentials used to fetch the connected calendar credentials.
+ * @param destinationCalendarObject - An object representing the destination calendar. Primarily used
+ *                                    to fetch the default `credentialId`.
+ *
+ * @returns - The verified `credentialId` either from the matched connected calendar in case of updating the destination calendar,
+ *            or the provided destination calendar object in other cases.
+ *
+ * @throws HttpError - If no matching connected calendar is found for the given `integration` and `externalId`.
+ */
 async function verifyCredentialsAndGetId({
   parsedBody,
   userCredentials,
@@ -145,7 +181,7 @@ async function verifyCredentialsAndGetId({
   userCredentials: UserCredentialType[];
   destinationCalendarObject: DestinationCalendarType;
 }) {
-  let credentialId = destinationCalendarObject.credentialId;
+  const credentialId = destinationCalendarObject.credentialId;
 
   if (parsedBody.integration && parsedBody.externalId) {
     const calendarCredentials = getCalendarCredentials(userCredentials);
@@ -160,18 +196,31 @@ async function verifyCredentialsAndGetId({
         c?.primary?.externalId === parsedBody.externalId && c?.primary?.integration === parsedBody.integration
     );
 
-    if (!connectedCalendar)
+    if (!connectedCalendar || !connectedCalendar.primary?.credentialId)
       throw new HttpError({
         statusCode: 400,
         message: "Bad request, credential id invalid",
       });
-
-    credentialId = connectedCalendar.primary?.credentialId || null;
   }
   return credentialId;
 }
 
-async function validateRequest({
+/**
+ * Validates the request for updating a destination calendar.
+ *
+ * This function checks the validity of the provided eventTypeId against the existing destination calendar object
+ * in the sense that if the destination calendar is not linked to an event type, the eventTypeId can not be provided.
+ *
+ * It also ensures that the eventTypeId, if provided, belongs to the assigned user.
+ *
+ * @param destinationCalendarObject - An object representing the destination calendar.
+ * @param parsedBody - The parsed body from the incoming request, validated against a predefined schema.
+ * @param assignedUserId - The user ID assigned for the operation, which might be an admin or a regular user.
+ * @param prisma - An instance of PrismaClient for database operations.
+ *
+ * @throws HttpError - If the validation fails or inconsistencies are detected in the request data.
+ */
+async function validateRequestAndOwnership({
   destinationCalendarObject,
   parsedBody,
   assignedUserId,
@@ -203,7 +252,6 @@ async function validateRequest({
     }
   }
 
-  // Now we know eventType belongs to this user
   if (!parsedBody.eventTypeId) {
     if (destinationCalendarObject.eventTypeId) {
       throw new HttpError({
@@ -211,15 +259,34 @@ async function validateRequest({
         message: `The provided destination calendar can only be linked to an event type`,
       });
     }
+    if (destinationCalendarObject.userId !== assignedUserId) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Forbidden`,
+      });
+    }
   }
 }
 
+/**
+ * Fetches the destination calendar based on the provided ID as the path parameter, specifically `credentialId` and `eventTypeId`.
+ *
+ * If no matching destination calendar is found for the provided ID, an HTTP error with a 404 status
+ * indicating that the desired destination calendar was not found is thrown.
+ *
+ * @param id - The ID of the destination calendar to be retrieved.
+ * @param prisma - An instance of PrismaClient for database operations.
+ *
+ * @returns - An object containing details of the matching destination calendar, specifically `credentialId` and `eventTypeId`.
+ *
+ * @throws HttpError - If no destination calendar matches the provided ID.
+ */
 async function getDestinationCalendar(id: number, prisma: PrismaClient) {
   const destinationCalendarObject = await prisma.destinationCalendar.findFirst({
     where: {
       id,
     },
-    select: { eventTypeId: true, credentialId: true },
+    select: { userId: true, eventTypeId: true, credentialId: true },
   });
 
   if (!destinationCalendarObject) {
