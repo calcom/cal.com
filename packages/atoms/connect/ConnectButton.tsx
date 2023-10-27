@@ -5,21 +5,17 @@ import * as React from "react";
 import { Button } from "../src/components/ui/button";
 import type { AtomsGlobalConfigProps } from "../types";
 
-// we accept two props: buttonText & onButtonClick
-// buttonText is for displaying buttonText
-// onButtonClick is a a method to handle onClick for button
-// it accepts another object which contains a callback in case of any error
-
 interface ConnectButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   buttonText?: string;
   icon?: JSX.Element;
+  handleClick: () => void;
   onSuccess?: () => void;
   onError: () => void;
 }
 
 export function ConnectButton({
   buttonText,
-  onClick,
+  handleClick,
   onSuccess,
   onError,
   className,
@@ -33,7 +29,7 @@ export function ConnectButton({
 
     try {
       setIsProcessing(true);
-      onClick && onClick(e);
+      handleClick && handleClick();
 
       // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
       // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
@@ -59,7 +55,7 @@ export function ConnectButton({
         type="button"
         disabled={!isProcessing}
         onClick={(event) => handleSubmit(event)}>
-        {icon && icon}
+        {!!icon && icon}
         {buttonText || "Install App"}
       </Button>
       {!!errMsg && <span>{errMsg}</span>}
