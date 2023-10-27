@@ -418,6 +418,7 @@ model Booking {
   metadata              Json?
   isRecorded            Boolean              @default(false)
   iCalUID               String
+  iCalSequence          Int                  @default(0)
 
   @@index([eventTypeId])
   @@index([userId])
