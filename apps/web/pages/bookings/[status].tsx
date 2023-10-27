@@ -176,6 +176,12 @@ export default function Bookings() {
                             {bookingsToday.map((booking: BookingOutput) => (
                               <BookingListItem
                                 key={booking.id}
+                                loggedInUser={{
+                                  userId: user?.id,
+                                  userTimeZone: user?.timeZone,
+                                  userTimeFormat: user?.timeFormat,
+                                  userEmail: user?.email,
+                                }}
                                 listingStatus={status}
                                 recurringInfo={recurringInfoToday}
                                 {...booking}
@@ -200,6 +206,12 @@ export default function Bookings() {
                               return (
                                 <BookingListItem
                                   key={booking.id}
+                                  loggedInUser={{
+                                    userId: user?.id,
+                                    userTimeZone: user?.timeZone,
+                                    userTimeFormat: user?.timeFormat,
+                                    userEmail: user?.email,
+                                  }}
                                   listingStatus={status}
                                   recurringInfo={recurringInfo}
                                   {...booking}
