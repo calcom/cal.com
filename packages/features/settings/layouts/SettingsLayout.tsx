@@ -144,10 +144,12 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${session?.data?.user?.username}/avatar.png`;
+      tab.avatar = `${WEBAPP_URL}/${session?.data?.user?.username}/avatar.png${
+        orgBranding ? `?orgId=${orgBranding?.id}` : ""
+      }`;
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
-      tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
+      tab.avatar = `${WEBAPP_URL}/org/${orgBranding?.slug}/avatar.png`;
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&

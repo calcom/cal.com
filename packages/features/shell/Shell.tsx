@@ -301,9 +301,10 @@ export default function Shell(props: LayoutProps) {
 
 interface UserDropdownProps {
   small?: boolean;
+  orgId?: number;
 }
 
-function UserDropdown({ small }: UserDropdownProps) {
+function UserDropdown({ small, orgId }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const utils = trpc.useContext();
@@ -372,7 +373,7 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
+              imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png${orgId ? `?orgId=${orgId}` : ""}`}
               alt={user.username || "Nameless User"}
               className="overflow-hidden"
             />
@@ -836,7 +837,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
-                    imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
+                    imageSrc={`${WEBAPP_URL}/org/${orgBranding.slug}/avatar.png`}
                     size="xsm"
                   />
                   <p className="text line-clamp-1 text-sm">
@@ -869,7 +870,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               </button>
               {!!orgBranding && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
-                  <UserDropdown small />
+                  <UserDropdown small orgId={orgBranding?.id} />
                 </div>
               )}
               <KBarTrigger />
@@ -1031,6 +1032,7 @@ function TopNavContainer() {
 function TopNav() {
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
+  const orgBranding = useOrgBranding();
   return (
     <>
       <nav
@@ -1049,7 +1051,7 @@ function TopNav() {
               <Settings className="text-default h-4 w-4" aria-hidden="true" />
             </Link>
           </button>
-          <UserDropdown small />
+          <UserDropdown small orgId={orgBranding?.id} />
         </div>
       </nav>
     </>
