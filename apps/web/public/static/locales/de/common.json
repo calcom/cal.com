@@ -1965,8 +1965,6 @@
   "org_no_teams_yet": "Diese Organization hat noch keine Teams",
   "org_no_teams_yet_description": "Falls Sie ein Administrator sind, sollten Sie unbedingt Teams erstellen, welche hier angezeigt werden können.",
   "set_up": "Einrichten",
-  "set_up_your_profile": "Richten Sie Ihr Profil ein",
-  "set_up_your_profile_description": "Lassen Sie Leute beim Klicken auf Ihren öffentlichen Link wissen, welche Funktion Sie innerhalb von {{orgName}} haben.",
   "my_profile": "Mein Profil",
   "my_settings": "Meine Einstellungen",
   "crm": "CRM",
