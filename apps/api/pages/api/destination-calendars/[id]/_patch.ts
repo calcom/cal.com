@@ -1,8 +1,11 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
+import type { z } from "zod";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import type { PrismaClient } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import {
@@ -59,34 +62,90 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *       404:
  *        description: Destination calendar not found
  */
+type DestinationCalendarType = {
+  eventTypeId?: number | null;
+  credentialId: number | null;
+};
+
+type UserCredentialType = {
+  id: number;
+  appId: string | null;
+  type: string;
+  userId: number | null;
+  user: {
+    email: string;
+  } | null;
+  teamId: number | null;
+  key: Prisma.JsonValue;
+  invalid: boolean | null;
+};
+
 export async function patchHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
-  let credentialId: number | undefined = undefined;
   const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
 
-  // when linked with eventTypeId, we need to fetch the userId from the eventTypeId
-  if (parsedBody.eventTypeId) {
-    const eventType = await prisma.eventType.findFirst({
-      where: { id: parsedBody.eventTypeId, userId: assignedUserId },
+  validateIntegrationInput(parsedBody);
+  const destinationCalendarObject: DestinationCalendarType = await getDestinationCalendar(id, prisma);
+  await validateRequest({ destinationCalendarObject, parsedBody, assignedUserId, prisma });
+  if (parsedBody.eventTypeId) parsedBody.userId = undefined;
+  const userCredentials = await getUserCredentials({
+    credentialId: destinationCalendarObject.credentialId,
+    userId,
+    prisma,
+  });
+  const credentialId = await verifyCredentialsAndGetId({
+    parsedBody,
+    userCredentials,
+    destinationCalendarObject,
+  });
+  const destinationCalendar = await prisma.destinationCalendar.update({
+    where: { id },
+    data: { ...parsedBody, credentialId },
+  });
+  return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
+}
+
+async function getUserCredentials({
+  credentialId,
+  userId,
+  prisma,
+}: {
+  credentialId: number | null;
+  userId: number;
+  prisma: PrismaClient;
+}) {
+  if (!credentialId) {
+    throw new HttpError({
+      statusCode: 404,
+      message: `Destination calendar missing credential id`,
     });
-    if (!eventType)
-      throw new HttpError({
-        statusCode: 400,
-        message: "Bad request, eventTypeId invalid",
-      });
-    parsedBody.userId = undefined;
   }
+  const userCredentials = await prisma.credential.findMany({
+    where: { id: credentialId, userId },
+    select: credentialForCalendarServiceSelect,
+  });
 
-  const { userCredentials } = await findUserCredentials(req);
+  if (!userCredentials || userCredentials.length === 0) {
+    throw new HttpError({
+      statusCode: 400,
+      message: `Bad request, no associated credentials found`,
+    });
+  }
+  return userCredentials;
+}
 
-  if (parsedBody.integration && !parsedBody.externalId) {
-    throw new HttpError({ statusCode: 400, message: "External Id is required with integration value" });
-  }
-  if (!parsedBody.integration && parsedBody.externalId) {
-    throw new HttpError({ statusCode: 400, message: "Integration value is required with external ID" });
-  }
+async function verifyCredentialsAndGetId({
+  parsedBody,
+  userCredentials,
+  destinationCalendarObject,
+}: {
+  parsedBody: z.infer<typeof schemaDestinationCalendarEditBodyParams>;
+  userCredentials: UserCredentialType[];
+  destinationCalendarObject: DestinationCalendarType;
+}) {
+  let credentialId = destinationCalendarObject.credentialId;
 
   if (parsedBody.integration && parsedBody.externalId) {
     const calendarCredentials = getCalendarCredentials(userCredentials);
@@ -107,21 +166,55 @@ export async function patchHandler(req: NextApiRequest) {
         message: "Bad request, credential id invalid",
       });
 
-    credentialId = connectedCalendar.primary?.credentialId;
+    credentialId = connectedCalendar.primary?.credentialId || null;
   }
-
-  const destinationCalendar = await prisma.destinationCalendar.update({
-    where: { id },
-    data: { ...parsedBody, credentialId },
-  });
-  return { destinationCalendar: schemaDestinationCalendarReadPublic.parse(destinationCalendar) };
+  return credentialId;
 }
 
-async function findUserCredentials(req: NextApiRequest) {
-  const { userId: requestUserId, prisma, isAdmin } = req;
-  const { id } = schemaQueryIdParseInt.parse(req.query);
-  const body = schemaDestinationCalendarEditBodyParams.parse(req.body);
-  const userId = isAdmin ? body.userId || requestUserId : requestUserId;
+async function validateRequest({
+  destinationCalendarObject,
+  parsedBody,
+  assignedUserId,
+  prisma,
+}: {
+  destinationCalendarObject: DestinationCalendarType;
+  parsedBody: z.infer<typeof schemaDestinationCalendarEditBodyParams>;
+  assignedUserId: number;
+  prisma: PrismaClient;
+}) {
+  if (parsedBody.eventTypeId) {
+    if (!destinationCalendarObject.eventTypeId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `The provided destination calendar can not be linked to an event type`,
+      });
+    }
+
+    const userEventType = await prisma.eventType.findFirst({
+      where: { id: parsedBody.eventTypeId },
+      select: { userId: true },
+    });
+
+    if (!userEventType || userEventType.userId !== assignedUserId) {
+      throw new HttpError({
+        statusCode: 404,
+        message: `Event type with ID ${parsedBody.eventTypeId} not found`,
+      });
+    }
+  }
+
+  // Now we know eventType belongs to this user
+  if (!parsedBody.eventTypeId) {
+    if (destinationCalendarObject.eventTypeId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `The provided destination calendar can only be linked to an event type`,
+      });
+    }
+  }
+}
+
+async function getDestinationCalendar(id: number, prisma: PrismaClient) {
   const destinationCalendarObject = await prisma.destinationCalendar.findFirst({
     where: {
       id,
@@ -136,55 +229,16 @@ async function findUserCredentials(req: NextApiRequest) {
     });
   }
 
-  if (!destinationCalendarObject.credentialId) {
-    throw new HttpError({
-      statusCode: 404,
-      message: `Destination calendar missing credential id`,
-    });
+  return destinationCalendarObject;
+}
+
+function validateIntegrationInput(parsedBody: z.infer<typeof schemaDestinationCalendarEditBodyParams>) {
+  if (parsedBody.integration && !parsedBody.externalId) {
+    throw new HttpError({ statusCode: 400, message: "External Id is required with integration value" });
   }
-
-  const credentials = await prisma.credential.findMany({
-    where: { id: destinationCalendarObject.credentialId, userId },
-    select: credentialForCalendarServiceSelect,
-  });
-
-  if (!credentials || credentials.length === 0) {
-    throw new HttpError({
-      statusCode: 400,
-      message: `Bad request, no associated credentials found`,
-    });
+  if (!parsedBody.integration && parsedBody.externalId) {
+    throw new HttpError({ statusCode: 400, message: "Integration value is required with external ID" });
   }
-
-  if (body.eventTypeId) {
-    if (destinationCalendarObject.eventTypeId) {
-      const userEventType = await prisma.eventType.findFirst({
-        where: { id: body.eventTypeId },
-        select: { userId: true },
-      });
-
-      if (!userEventType || userEventType.userId !== userId) {
-        throw new HttpError({
-          statusCode: 404,
-          message: `Event type with ID ${body.eventTypeId} not found`,
-        });
-      }
-      return { userCredentials: credentials };
-    }
-    throw new HttpError({
-      statusCode: 400,
-      message: `The provided destination calendar can not be linked to an event type`,
-    });
-  }
-
-  if (!body.eventTypeId) {
-    if (!destinationCalendarObject.eventTypeId) return { userCredentials: credentials };
-    throw new HttpError({
-      statusCode: 400,
-      message: `The provided destination calendar can only be linked to an event type`,
-    });
-  }
-
-  return { userCredentials: credentials };
 }
 
 export default defaultResponder(patchHandler);
