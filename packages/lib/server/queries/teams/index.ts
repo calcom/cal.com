@@ -41,6 +41,7 @@ export async function getTeamWithMembers(args: {
         team: {
           select: {
             slug: true,
+            id: true,
           },
         },
       },
@@ -153,12 +154,12 @@ export async function getTeamWithMembers(args: {
     });
   }
 
-  const team = teams[0];
-  if (!team) return null;
+  const orgOrTeam = teams[0];
+  if (!orgOrTeam) return null;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-  const members = team.members.map((obj) => {
+  const members = orgOrTeam.members.map((obj) => {
     const { credentials, ...restUser } = obj.user;
     return {
       ...restUser,
@@ -166,7 +167,7 @@ export async function getTeamWithMembers(args: {
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
       subteams: orgSlug
-        ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
+        ? obj.user.teams.filter((obj) => obj.team.id !== orgOrTeam.id).map((obj) => obj.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
       orgOrigin: getOrgFullOrigin(obj.user.organization?.slug || ""),
@@ -193,15 +194,15 @@ export async function getTeamWithMembers(args: {
     };
   });
 
-  const eventTypes = team.eventTypes.map((eventType) => ({
+  const eventTypes = orgOrTeam.eventTypes.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
   // Don't leak invite tokens to the frontend
-  const { inviteTokens, ...teamWithoutInviteTokens } = team;
+  const { inviteTokens, ...teamWithoutInviteTokens } = orgOrTeam;
 
   // Don't leak stripe payment ids
-  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const teamMetadata = teamMetadataSchema.parse(orgOrTeam.metadata);
   const {
     paymentId: _,
     subscriptionId: __,
@@ -214,7 +215,7 @@ export async function getTeamWithMembers(args: {
     /** To prevent breaking we only return non-email attached token here, if we have one */
     inviteToken: inviteTokens.find(
       (token) =>
-        token.identifier === `invite-link-for-teamId-${team.id}` &&
+        token.identifier === `invite-link-for-teamId-${orgOrTeam.id}` &&
         token.expires > new Date(new Date().setHours(24))
     ),
     metadata: restTeamMetadata,
