@@ -4,7 +4,16 @@ import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, Label, Input } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Label,
+  Input,
+} from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
@@ -22,6 +31,7 @@ export const VerifyCodeDialog = ({
 }) => {
   const { t } = useLocale();
   // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [value, onChange] = useState("");
 
@@ -29,40 +39,16 @@ export const VerifyCodeDialog = ({
     acceptedCharacters: /^[0-9]$/,
     length: 6,
     value,
-    onChange: (newValue) => {
-      onChange(newValue);
-
-      // Check if all digits are filled and trigger verification if they are
-      if (newValue.replace(/\D/g, "").length === 6) {
-        handleVerification(newValue); // Call the verification function
-      }
-    },
+    onChange,
   });
-
-  const handleVerification = (value: number) => {
-    setError("");
-    if (value === "") {
-      setError("The code is a required field");
-    } else {
-      if (isUserSessionRequiredToVerify) {
-        verifyCodeMutationUserSessionRequired.mutate({
-          code: value,
-          email,
-        });
-      } else {
-        verifyCodeMutationUserSessionNotRequired.mutate({
-          code: value,
-          email,
-        });
-      }
-    }
-  };
 
   const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
     onSuccess: (data) => {
+      setIsLoading(false);
       onSuccess(data);
     },
     onError: (err) => {
+      setIsLoading(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
       }
@@ -71,9 +57,11 @@ export const VerifyCodeDialog = ({
 
   const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
     onSuccess: (data) => {
+      setIsLoading(false);
       onSuccess(data);
     },
     onError: (err) => {
+      setIsLoading(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
       }
@@ -122,6 +110,30 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
+              <Button
+                loading={isLoading}
+                disabled={isLoading}
+                onClick={() => {
+                  setError("");
+                  if (value === "") {
+                    setError("The code is a required field");
+                  } else {
+                    setIsLoading(true);
+                    if (isUserSessionRequiredToVerify) {
+                      verifyCodeMutationUserSessionRequired.mutate({
+                        code: value,
+                        email,
+                      });
+                    } else {
+                      verifyCodeMutationUserSessionNotRequired.mutate({
+                        code: value,
+                        email,
+                      });
+                    }
+                  }
+                }}>
+                {t("verify")}
+              </Button>
             </DialogFooter>
           </div>
         </div>
