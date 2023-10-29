@@ -85,7 +85,7 @@ export function FiltersContainer() {
   const isFiltersVisible = useBookingMultiFilterStore((state) => state.isFiltersVisible, shallow);
 
   return isFiltersVisible ? (
-    <div className="flex w-full space-x-2 rtl:space-x-reverse">
+    <div className="no-scrollbar flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
       <PeopleFilter />
       <EventTypeFilter />
       <TeamsFilter />
@@ -106,7 +106,7 @@ export function FilterToggleCta() {
   return (
     <button
       onClick={toggleFiltersVisibility}
-      className="hover:border-emphasis border-default text-default hover:text-emphasis flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
+      className="hover:border-emphasis border-default text-default hover:text-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
       <Filter className="h-4 w-4" />
       <Tooltip content={t("filters")}>
         <div className="mx-2">{t("filters")}</div>

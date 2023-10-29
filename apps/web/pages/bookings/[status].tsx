@@ -141,13 +141,11 @@ export default function Bookings() {
   return (
     <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex flex-col">
-        <div className="flex flex-col flex-wrap lg:flex-row">
+        <div className="flex flex-row flex-wrap items-center justify-between">
           <HorizontalTabs tabs={tabs} />
-          <div className="max-w-full overflow-x-auto xl:ml-auto">
-            <FilterToggleCta />
-          </div>
+          <FilterToggleCta />
+          <FiltersContainer />
         </div>
-        <FiltersContainer />
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
             {query.status === "error" && (
