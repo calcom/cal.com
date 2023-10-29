@@ -11,18 +11,8 @@ import {
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuTrigger,
-  AnimatedPopover,
-  Avatar,
-  FilterSearchField,
-  Tooltip,
-} from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { AnimatedPopover, Avatar, FilterSearchField, Tooltip, Badge } from "@calcom/ui";
+import { Filter } from "@calcom/ui/components/icon";
 
 import { useBookingMultiFilterStore } from "../BookingMultiFiltersStore";
 import { EventTypeFilter } from "./EventTypeFilter";
@@ -31,7 +21,7 @@ const PeopleFilter = () => {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
 
-  const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
+  const { data: query, pushItemToKey, removeItemByKeyAndValue } = useFilterQuery();
   const [searchText, setSearchText] = useState("");
 
   const members = trpc.viewer.teams.listMembers.useQuery({});
@@ -92,51 +82,40 @@ const PeopleFilter = () => {
 };
 
 export function FiltersContainer() {
-  const { t } = useLocale();
+  const isFiltersVisible = useBookingMultiFilterStore((state) => state.isFiltersVisible, shallow);
 
-  const [addFilterOptions, toggleOption, isFilterActive] = useBookingMultiFilterStore((state) => [
-    state.addFilterOptions,
-    state.toggleOption,
-    state.isFilterActive,
-    shallow,
-  ]);
-
-  const isPeopleFilterActive = isFilterActive("people");
-  const isEventTypeFilterActive = isFilterActive("event_type");
-
-  return (
+  return isFiltersVisible ? (
     <div className="flex w-full space-x-2 rtl:space-x-reverse">
-      {addFilterOptions.length > 0 && (
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <div className="hover:border-emphasis border-default text-default hover:text-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
-              <Plus className="mr-2 h-4 w-4" />
-              <Tooltip content={t("add_filter")}>
-                <div>{t("add_filter")}</div>
-              </Tooltip>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            {addFilterOptions?.map((option) => (
-              <DropdownMenuItem key={option.label}>
-                <DropdownItem
-                  type="button"
-                  StartIcon={option.StartIcon}
-                  onClick={() => {
-                    toggleOption(option);
-                  }}>
-                  {t(option.label)}
-                </DropdownItem>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </Dropdown>
-      )}
-
-      {isPeopleFilterActive && <PeopleFilter />}
-      {isEventTypeFilterActive && <EventTypeFilter />}
-
+      <PeopleFilter />
+      <EventTypeFilter />
       <TeamsFilter />
     </div>
+  ) : null;
+}
+
+export function FilterToggleCta() {
+  const {
+    data: { teamIds, userIds, eventTypeIds },
+  } = useFilterQuery();
+  const { t } = useLocale();
+  const toggleFiltersVisibility = useBookingMultiFilterStore(
+    (state) => state.toggleFiltersVisibility,
+    shallow
+  );
+
+  return (
+    <button
+      onClick={toggleFiltersVisibility}
+      className="hover:border-emphasis border-default text-default hover:text-emphasis flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
+      <Filter className="h-4 w-4" />
+      <Tooltip content={t("filters")}>
+        <div className="mx-2">{t("filters")}</div>
+      </Tooltip>
+      {(teamIds || userIds || eventTypeIds) && (
+        <Badge variant="gray" rounded>
+          {(teamIds ? 1 : 0) + (userIds ? 1 : 0) + (eventTypeIds ? 1 : 0)}
+        </Badge>
+      )}
+    </button>
   );
 }

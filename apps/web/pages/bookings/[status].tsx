@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { getLayout } from "@calcom/features/MainLayout";
-import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
+import { FiltersContainer, FilterToggleCta } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -144,9 +144,10 @@ export default function Bookings() {
         <div className="flex flex-col flex-wrap lg:flex-row">
           <HorizontalTabs tabs={tabs} />
           <div className="max-w-full overflow-x-auto xl:ml-auto">
-            <FiltersContainer />
+            <FilterToggleCta />
           </div>
         </div>
+        <FiltersContainer />
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
             {query.status === "error" && (
