@@ -112,5 +112,17 @@
   "upcoming": "Gaidāms",
   "recurring": "Atkārtots",
   "past": "Pagātne",
-  "booker_event_not_found": "Mēs nevarējām atrast notikumu, kuru mēģināt rezervēt."
+  "booker_event_not_found": "Mēs nevarējām atrast notikumu, kuru mēģināt rezervēt.",
+  "getting_started": "Darba sākšana",
+  "15min_meeting": "15 Min Tikšanās",
+  "30min_meeting": "30 Min Tikšanās",
+  "secret": "Noslēpums",
+  "leave_blank_to_remove_secret": "Atstājiet tukšu, lai noņemtu noslēpumu",
+  "webhook_secret_key_description": "Pārliecinieties, ka jūsu serveris saņem tikai paredzētos {{appName}} pieprasījumus, drošības apsvērumu dēļ",
+  "secret_meeting": "Slepenā Tikšanās",
+  "login_instead": "Tā vietā Autorizēties",
+  "already_have_an_account": "Vai jums jau ir konts?",
+  "create_account": "Izveidot Kontu",
+  "confirm_password": "Apstiprināt paroli",
+  "confirm_auth_change": "Šis mainīs veidu, kā jūs autorizējaties"
 }

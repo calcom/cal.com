@@ -9,6 +9,7 @@ import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_TIMEZONE_BOOKER } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -38,6 +39,7 @@ type ExpectedEmail = {
    * Checks the main heading of the email - Also referred to as title in code at some places
    */
   heading?: string;
+  links?: { text: string; href: string }[];
   /**
    * Checks the sub heading of the email - Also referred to as subTitle in code
    */
@@ -113,6 +115,10 @@ expect.extend({
       heading: emailDom.querySelector('[data-testid="heading"]')?.innerText,
       subHeading: emailDom.querySelector('[data-testid="subHeading"]')?.innerText,
       when: emailDom.querySelector('[data-testid="when"]')?.innerText,
+      links: emailDom.querySelectorAll("a[href]").map((link) => ({
+        text: link.innerText,
+        href: link.getAttribute("href"),
+      })),
     };
 
     const expectedEmailContent = getExpectedEmailContent(expectedEmail);
@@ -215,6 +221,7 @@ expect.extend({
         heading: expectedEmail.heading,
         subHeading: expectedEmail.subHeading,
         when: when ? (expectedEmail.ics?.recurrence ? `starting ${when}` : `${when}`) : undefined,
+        links: expect.arrayContaining(expectedEmail.links || []),
       };
       // Remove undefined props so that they aren't matched, they are intentionally left undefined because we don't want to match them
       Object.keys(expectedEmailContent).filter((key) => {
@@ -322,6 +329,7 @@ export function expectSuccessfulBookingCreationEmails({
   iCalUID,
   recurrence,
   bookingTimeRange,
+  booking,
 }: {
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
@@ -330,13 +338,26 @@ export function expectSuccessfulBookingCreationEmails({
   otherTeamMembers?: { email: string; name: string; timeZone?: string }[];
   iCalUID: string;
   recurrence?: Recurrence;
+  eventDomain?: string;
   bookingTimeRange?: { start: Date; end: Date };
+  booking: { uid: string; urlOrigin?: string };
 }) {
+  const bookingUrlOrigin = booking.urlOrigin || WEBAPP_URL;
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
       heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
       subHeading: "",
+      links: [
+        {
+          href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+          text: "reschedule",
+        },
+        {
+          href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
+          text: "cancel",
+        },
+      ],
       ...(bookingTimeRange
         ? {
             bookingTimeRange: {
@@ -375,6 +396,16 @@ export function expectSuccessfulBookingCreationEmails({
         iCalUID: iCalUID,
         recurrence,
       },
+      links: [
+        {
+          href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+          text: "reschedule",
+        },
+        {
+          href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
+          text: "cancel",
+        },
+      ],
     },
     `${booker.name} <${booker.email}>`
   );
@@ -400,6 +431,16 @@ export function expectSuccessfulBookingCreationEmails({
             filename: "event.ics",
             iCalUID: iCalUID,
           },
+          links: [
+            {
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              text: "reschedule",
+            },
+            {
+              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
+              text: "cancel",
+            },
+          ],
         },
         `${otherTeamMember.email}`
       );

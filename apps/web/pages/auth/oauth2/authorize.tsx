@@ -22,7 +22,7 @@ export default function Authorize() {
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
 
-  const queryString = searchParams.toString();
+  const queryString = searchParams?.toString();
 
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];

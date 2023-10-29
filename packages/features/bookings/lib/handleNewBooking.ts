@@ -96,7 +96,7 @@ import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
 
 const translator = short();
-const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
+const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
@@ -276,6 +276,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       periodEndDate: true,
       periodDays: true,
       periodCountCalendarDays: true,
+      lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
       userId: true,
@@ -669,12 +670,12 @@ async function handler(
     eventType,
   });
 
-  const loggerWithEventDetails = logger.getChildLogger({
+  const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["book:user", `${eventTypeId}:${reqBody.user}/${eventTypeSlug}`],
   });
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
-    logger.setSettings({ minLevel: "silly" });
+    logger.settings.minLevel = 0;
   }
 
   const fullName = getFullName(bookerName);
@@ -1832,6 +1833,7 @@ async function handler(
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
+      rescheduleId: originalRescheduledBooking?.id || undefined,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2358,6 +2360,7 @@ async function handler(
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
+    rescheduleId: originalRescheduledBooking?.id || undefined,
     rescheduleUid,
     rescheduleStartTime: originalRescheduledBooking?.startTime
       ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2665,6 +2668,7 @@ const findBookingQuery = async (bookingId: number) => {
           description: true,
           currency: true,
           length: true,
+          lockTimeZoneToggleOnBookingPage: true,
           requiresConfirmation: true,
           requiresBookerEmailVerification: true,
           price: true,

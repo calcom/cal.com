@@ -195,6 +195,9 @@ describe("handleNewBooking", () => {
         });
 
         expectSuccessfulBookingCreationEmails({
+          booking: {
+            uid: createdBooking.uid!,
+          },
           booker,
           organizer,
           emails,
@@ -343,6 +346,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -488,6 +494,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -749,6 +758,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -834,11 +846,14 @@ describe("handleNewBooking", () => {
           const createdBooking = await handleNewBooking(req);
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
             // Because no calendar was involved, we don't have an ics UID
-            iCalUID: createdBooking.uid,
+            iCalUID: createdBooking.uid!,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1436,6 +1451,9 @@ describe("handleNewBooking", () => {
           expectWorkflowToBeTriggered();
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -1730,6 +1748,9 @@ describe("handleNewBooking", () => {
         expectWorkflowToBeTriggered();
 
         expectSuccessfulBookingCreationEmails({
+          booking: {
+            uid: createdBooking.uid!,
+          },
           booker,
           organizer,
           emails,

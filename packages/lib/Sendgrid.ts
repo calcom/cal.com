@@ -52,7 +52,7 @@ export default class Sendgrid {
   private log: typeof logger;
 
   constructor(providedApiKey = "") {
-    this.log = logger.getChildLogger({ prefix: [`[[lib] sendgrid`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] sendgrid`] });
     if (!providedApiKey && !environmentApiKey) throw Error("Sendgrid Api Key not present");
     client.setApiKey(providedApiKey || environmentApiKey);
   }

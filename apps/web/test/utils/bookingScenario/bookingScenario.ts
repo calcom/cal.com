@@ -23,8 +23,8 @@ import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
-logger.setSettings({ minLevel: "silly" });
-const log = logger.getChildLogger({ prefix: ["[bookingScenario]"] });
+logger.settings.minLevel = 0;
+const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
   appId: string | null;
@@ -648,7 +648,7 @@ export const TestData = {
     example: {
       name: "Example",
       email: "example@example.com",
-      username: "example",
+      username: "example.username",
       defaultScheduleId: 1,
       timeZone: Timezones["+5:30"],
     },
