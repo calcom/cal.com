@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -321,6 +322,45 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                   teamName: z.string().optional(),
                 })
                 .passthrough()
+                .superRefine((val, ctx) => {
+                  if (val?.link) {
+                    const link = val.link;
+                    const eventLocationType = getEventLocationType(val.type);
+                    if (
+                      eventLocationType &&
+                      !eventLocationType.default &&
+                      eventLocationType.linkType === "static" &&
+                      eventLocationType.urlRegExp
+                    ) {
+                      const valid = z
+                        .string()
+                        .regex(new RegExp(eventLocationType.urlRegExp))
+                        .safeParse(link).success;
+
+                      if (!valid) {
+                        const sampleUrl = eventLocationType.organizerInputPlaceholder;
+                        ctx.addIssue({
+                          code: z.ZodIssueCode.custom,
+                          path: [eventLocationType.defaultValueVariable],
+                          message: `Invalid URL for ${eventLocationType.label}. ${
+                            sampleUrl ? `Sample URL: ${sampleUrl}` : ""
+                          }`,
+                        });
+                      }
+                      return;
+                    }
+
+                    const valid = z.string().url().optional().safeParse(val).success;
+                    if (!valid) {
+                      ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: [eventLocationType.defaultValueVariable],
+                        message: `Invalid URL`,
+                      });
+                    }
+                  }
+                  return;
+                })
             )
             .optional(),
         })
