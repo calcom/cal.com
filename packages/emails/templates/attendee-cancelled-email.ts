@@ -1,9 +1,20 @@
 import { renderEmail } from "../";
+import generateIcsString from "../lib/generateIcsString";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
+      icalEvent: {
+        filename: "event.ics",
+        content: generateIcsString({
+          event: this.calEvent,
+          t: this.t,
+          role: "organizer",
+          status: "CANCELLED",
+        }),
+        method: "request",
+      },
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
       replyTo: this.calEvent.organizer.email,
