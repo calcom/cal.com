@@ -605,7 +605,7 @@
   "hide_book_a_team_member": "Hide Book a Team Member Button",
   "hide_book_a_team_member_description": "Hide Book a Team Member Button from your public pages.",
   "danger_zone": "Danger zone",
-  "account_deletion_cannot_be_undone":"Careful. Account deletion cannot be undone.",
+  "account_deletion_cannot_be_undone":"Be Careful. Account deletion cannot be undone.",
   "back": "Back",
   "cancel": "Cancel",
   "cancel_all_remaining": "Cancel all remaining",
@@ -2094,5 +2094,7 @@
   "overlay_my_calendar":"Overlay my calendar",
   "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
+  "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
+  "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
