@@ -99,7 +99,7 @@ export async function patchHandler(req: NextApiRequest) {
   const credentialId = await verifyCredentialsAndGetId({
     parsedBody,
     userCredentials,
-    currentCredentialId: destinationCalendarObject.credentialid,
+    currentCredentialId: destinationCalendarObject.credentialId,
   });
   // If the user has passed eventTypeId, we need to remove userId from the update data to make sure we don't link it to user as well
   if (parsedBody.eventTypeId) parsedBody.userId = undefined;
@@ -181,10 +181,9 @@ async function verifyCredentialsAndGetId({
 }: {
   parsedBody: z.infer<typeof schemaDestinationCalendarEditBodyParams>;
   userCredentials: UserCredentialType[];
-  currentCredentialId: number;
+  currentCredentialId: number | null;
 }) {
-  const credentialId = currentCredentialId;
-
+  let connectedCalendar;
   if (parsedBody.integration && parsedBody.externalId) {
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
@@ -193,18 +192,18 @@ async function verifyCredentialsAndGetId({
       [],
       parsedBody.externalId
     );
-    const connectedCalendar = connectedCalendars.find(
+    connectedCalendar = connectedCalendars.find(
       (c) =>
         c?.primary?.externalId === parsedBody.externalId && c?.primary?.integration === parsedBody.integration
     );
 
-    if (!connectedCalendar || !connectedCalendar.primary?.credentialId)
+    if (!connectedCalendar?.primary?.credentialId)
       throw new HttpError({
         statusCode: 400,
         message: "Bad request, credential id invalid",
       });
   }
-  return credentialId;
+  return connectedCalendar?.primary?.credentialId || currentCredentialId;
 }
 
 /**
