@@ -1107,8 +1107,6 @@ async function handler(
     ? 1
     : 0;
 
-  console.log("🚀 ~ file: handleNewBooking.ts:1105 ~ iCalSequence:", iCalSequence);
-
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.title,
@@ -2203,7 +2201,6 @@ async function handler(
       );
     } else {
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
-      console.log("🚀 ~ file: handleNewBooking.ts:2195 ~ calendarResult:", calendarResult);
 
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID
