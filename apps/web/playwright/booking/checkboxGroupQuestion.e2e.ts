@@ -73,9 +73,9 @@ test.describe("Booking With Checkbox Group Question and Each Other Question", ()
         await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Checkbox Group and checkbox group not required", async ({ bookingPage }) => {
+      test("Checkbox Group and Phone not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
-        await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
+        await bookingPage.addQuestion("phone", "phone-test", "phone test", false, "phone test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
         await bookingPage.selectTimeSlot(eventTypePage);
@@ -83,8 +83,8 @@ test.describe("Booking With Checkbox Group Question and Each Other Question", ()
           eventTypePage,
           placeholderText: "Please share anything that will help prepare for our meeting.",
           question: "checkbox",
-          fillText: "Test Checkbox Group question and checkbox group question (only checkbox required)",
-          secondQuestion: "checkbox",
+          fillText: "Test Checkbox Group question and Phone question (only checkbox required)",
+          secondQuestion: "phone",
           options: { ...bookingOptions, isRequired: false },
         });
         await bookingPage.rescheduleBooking(eventTypePage);
@@ -114,6 +114,7 @@ test.describe("Booking With Checkbox Group Question and Each Other Question", ()
         await bookingPage.cancelBooking(eventTypePage);
         await bookingPage.assertBookingCanceled(eventTypePage);
       });
+
       test("Checkbox Group and checkbox not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", false);
