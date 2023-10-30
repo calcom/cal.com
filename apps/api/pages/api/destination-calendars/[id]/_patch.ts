@@ -90,7 +90,7 @@ export async function patchHandler(req: NextApiRequest) {
   validateIntegrationInput(parsedBody);
   const destinationCalendarObject: DestinationCalendarType = await getDestinationCalendar(id, prisma);
   await validateRequestAndOwnership({ destinationCalendarObject, parsedBody, assignedUserId, prisma });
-  if (parsedBody.eventTypeId) parsedBody.userId = undefined;
+
   const userCredentials = await getUserCredentials({
     credentialId: destinationCalendarObject.credentialId,
     userId: assignedUserId,
@@ -99,8 +99,10 @@ export async function patchHandler(req: NextApiRequest) {
   const credentialId = await verifyCredentialsAndGetId({
     parsedBody,
     userCredentials,
-    destinationCalendarObject,
+    currentCredentialId: destinationCalendarObject.credentialid,
   });
+  // If the user has passed eventTypeId, we need to remove userId from the update data to make sure we don't link it to user as well
+  if (parsedBody.eventTypeId) parsedBody.userId = undefined;
   const destinationCalendar = await prisma.destinationCalendar.update({
     where: { id },
     data: { ...parsedBody, credentialId },
@@ -175,13 +177,13 @@ async function getUserCredentials({
 async function verifyCredentialsAndGetId({
   parsedBody,
   userCredentials,
-  destinationCalendarObject,
+  currentCredentialId,
 }: {
   parsedBody: z.infer<typeof schemaDestinationCalendarEditBodyParams>;
   userCredentials: UserCredentialType[];
-  destinationCalendarObject: DestinationCalendarType;
+  currentCredentialId: number;
 }) {
-  const credentialId = destinationCalendarObject.credentialId;
+  const credentialId = currentCredentialId;
 
   if (parsedBody.integration && parsedBody.externalId) {
     const calendarCredentials = getCalendarCredentials(userCredentials);
