@@ -1,3 +1,6 @@
+import type { ParsedUrlQuery } from "querystring";
+import { stringify } from "querystring";
+
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RedirectType } from "@calcom/prisma/client";
@@ -7,10 +10,12 @@ export const getTemporaryOrgRedirect = async ({
   slug,
   redirectType,
   eventTypeSlug,
+  currentQuery,
 }: {
   slug: string;
   redirectType: RedirectType;
   eventTypeSlug: string | null;
+  currentQuery: ParsedUrlQuery;
 }) => {
   const prisma = (await import("@calcom/prisma")).default;
   log.debug(
@@ -33,10 +38,12 @@ export const getTemporaryOrgRedirect = async ({
 
   if (redirect) {
     log.debug(`Redirecting ${slug} to ${redirect.toUrl}`);
+    const newDestinationWithoutQuery = eventTypeSlug ? `${redirect.toUrl}/${eventTypeSlug}` : redirect.toUrl;
+    const currentQueryString = stringify(currentQuery);
     return {
       redirect: {
         permanent: false,
-        destination: eventTypeSlug ? `${redirect.toUrl}/${eventTypeSlug}` : redirect.toUrl,
+        destination: `${newDestinationWithoutQuery}${currentQueryString ? `?${currentQueryString}` : ""}`,
       },
     } as const;
   }

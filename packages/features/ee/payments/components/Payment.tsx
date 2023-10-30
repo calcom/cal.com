@@ -94,7 +94,7 @@ const PaymentForm = (props: Props) => {
       location?: string;
     } = {
       uid: props.booking.uid,
-      email: searchParams.get("email"),
+      email: searchParams?.get("email"),
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
