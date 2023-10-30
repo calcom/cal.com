@@ -66,6 +66,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
   defaultScheduleId?: number | null;
   credentials?: InputCredential[];
+  organizationId?: number | null;
   selectedCalendars?: InputSelectedCalendar[];
   schedules: {
     // Allows giving id in the input directly so that it can be referenced somewhere else as well
@@ -264,8 +265,21 @@ async function addBookingsToDb(
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+
+  function getDateObj(time: string | Date) {
+    return time instanceof Date ? time : new Date(time);
+  }
+
+  // Make sure that we store the date in Date object always. This is to ensure consistency which Prisma does but not prismock
+  log.silly("Handling Prismock bug-3");
+  const fixedBookings = bookings.map((booking) => {
+    const startTime = getDateObj(booking.startTime);
+    const endTime = getDateObj(booking.endTime);
+    return { ...booking, startTime, endTime };
+  });
+
   await prismock.booking.createMany({
-    data: bookings,
+    data: fixedBookings,
   });
   log.silly(
     "TestData: Bookings as in DB",
@@ -406,6 +420,7 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+
     return newUser;
   });
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -444,6 +459,16 @@ export async function createBookingScenario(data: ScenarioData) {
   return {
     eventTypes,
   };
+}
+
+export async function createOrganization(orgData: { name: string; slug: string }) {
+  const org = await prismock.team.create({
+    data: {
+      name: orgData.name,
+      slug: orgData.slug,
+    },
+  });
+  return org;
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
@@ -722,6 +747,7 @@ export function getOrganizer({
 }) {
   return {
     ...TestData.users.example,
+    organizationId: null as null | number,
     name,
     email,
     id,
@@ -733,24 +759,33 @@ export function getOrganizer({
   };
 }
 
-export function getScenarioData({
-  organizer,
-  eventTypes,
-  usersApartFromOrganizer = [],
-  apps = [],
-  webhooks,
-  bookings,
-}: // hosts = [],
-{
-  organizer: ReturnType<typeof getOrganizer>;
-  eventTypes: ScenarioData["eventTypes"];
-  apps?: ScenarioData["apps"];
-  usersApartFromOrganizer?: ScenarioData["users"];
-  webhooks?: ScenarioData["webhooks"];
-  bookings?: ScenarioData["bookings"];
-  // hosts?: ScenarioData["hosts"];
-}) {
+export function getScenarioData(
+  {
+    organizer,
+    eventTypes,
+    usersApartFromOrganizer = [],
+    apps = [],
+    webhooks,
+    bookings,
+  }: // hosts = [],
+  {
+    organizer: ReturnType<typeof getOrganizer>;
+    eventTypes: ScenarioData["eventTypes"];
+    apps?: ScenarioData["apps"];
+    usersApartFromOrganizer?: ScenarioData["users"];
+    webhooks?: ScenarioData["webhooks"];
+    bookings?: ScenarioData["bookings"];
+    // hosts?: ScenarioData["hosts"];
+  },
+  org?: { id: number | null } | undefined | null
+) {
   const users = [organizer, ...usersApartFromOrganizer];
+  if (org) {
+    users.forEach((user) => {
+      user.organizationId = org.id;
+    });
+  }
+
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -897,6 +932,7 @@ export function mockCalendar(
               url: "https://UNUSED_URL",
             });
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           deleteEvent: async (...rest: any[]) => {
             log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
             // eslint-disable-next-line prefer-rest-params
@@ -1021,6 +1057,7 @@ export function mockVideoApp({
                   ...videoMeetingData,
                 });
               },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               deleteMeeting: async (...rest: any[]) => {
                 log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
                 deleteMeetingCalls.push({
@@ -1153,7 +1190,6 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
     await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
