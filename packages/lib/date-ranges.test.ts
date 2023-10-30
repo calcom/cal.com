@@ -5,12 +5,11 @@ import dayjs from "@calcom/dayjs";
 import { buildDateRanges, processDateOverride, processWorkingHours, subtract } from "./date-ranges";
 
 describe("processWorkingHours", () => {
-  // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
-  it.skip("should return the correct working hours given a specific availability, timezone, and date range", () => {
+  it("should return the correct working hours given a specific availability, timezone, and date range", () => {
     const item = {
       days: [1, 2, 3, 4, 5], // Monday to Friday
-      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
-      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+      startTime: new Date(2023, 5, 12, 8, 0), // 8 AM
+      endTime: new Date(2023, 5, 12, 17, 0), // 5 PM
     };
 
     const timeZone = "America/New_York";
@@ -33,8 +32,8 @@ describe("processWorkingHours", () => {
   it("should have availability on last day of month in the month were DST starts", () => {
     const item = {
       days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
-      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
-      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+      startTime: new Date(2023, 5, 12, 8, 0), // 8 AM
+      endTime: new Date(2023, 5, 12, 17, 0), // 5 PM
     };
 
     const timeZone = "Europe/London";
@@ -48,33 +47,32 @@ describe("processWorkingHours", () => {
 
     expect(lastAvailableSlot.start.date()).toBe(31);
   });
-  // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
-  it.skip("should return the correct working hours in the month were DST ends", () => {
+  it("should return the correct working hours in the month were DST ends", () => {
     const item = {
       days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
-      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
-      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+      startTime: new Date(2023, 5, 12, 8, 0), // 8 AM
+      endTime: new Date(2023, 5, 12, 17, 0), // 5 PM
     };
 
     // in America/New_York DST ends on first Sunday of November
     const timeZone = "America/New_York";
 
-    let firstSundayOfNovember = dayjs().startOf("day").month(10).date(1);
+    let firstSundayOfNovember = dayjs.utc().startOf("day").month(10).date(1);
     while (firstSundayOfNovember.day() !== 0) {
       firstSundayOfNovember = firstSundayOfNovember.add(1, "day");
     }
 
-    const dateFrom = dayjs().month(10).date(1).startOf("day");
-    const dateTo = dayjs().month(10).endOf("month");
+    const dateFrom = dayjs.utc().month(10).date(1).startOf("day");
+    const dateTo = dayjs.utc().month(10).endOf("month");
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
     const allDSTStartAt12 = results
       .filter((res) => res.start.isBefore(firstSundayOfNovember))
-      .every((result) => result.start.utc().hour() === 12);
+      .every((result) => result.start.utc().hour() === 11);
     const allNotDSTStartAt13 = results
       .filter((res) => res.start.isAfter(firstSundayOfNovember))
-      .every((result) => result.start.utc().hour() === 13);
+      .every((result) => result.start.utc().hour() === 12);
 
     expect(allDSTStartAt12).toBeTruthy();
     expect(allNotDSTStartAt13).toBeTruthy();
