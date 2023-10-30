@@ -808,14 +808,26 @@ async function getTeamIdFromSlug(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-  const team = await prisma.team.findFirst({
-    where: {
-      slug,
-      parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const team = await db
+    .selectFrom("Team")
+    .innerJoin("Team as Parent", "Parent.id", "Team.parentId")
+    .where((eb) => {
+      const and: Expression<SqlBool>[] = [];
+      and.push(eb("Team.slug", "=", slug));
+
+      if (isValidOrgDomain && currentOrgDomain) {
+        const slugifiedValue = slugify(currentOrgDomain);
+        and.push(
+          eb.or([
+            eb("Parent.slug", "=", slugifiedValue),
+            eb(traverseJSON(eb, "Parent.metadata", "requestedSlug"), "=", slugifiedValue),
+          ])
+        );
+      }
+      return eb.and(and);
+    })
+    .select("Team.id")
+    .executeTakeFirst();
+
   return team?.id;
 }
