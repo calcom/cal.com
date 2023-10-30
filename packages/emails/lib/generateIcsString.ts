@@ -1,5 +1,6 @@
-import type { DateArray } from "ics";
+import type { DateArray, ParticipationStatus, ParticipationRole } from "ics";
 import { createEvent } from "ics";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
@@ -8,16 +9,17 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const generateIcsString = ({
   event,
-  recipient,
+  t,
   role,
 }: {
   event: CalendarEvent;
-  recipient: Person;
+  t: TFunction;
   role: "attendee" | "organizer";
 }) => {
-  const t = recipient.language.translate;
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
+  const partstat: ParticipationStatus = "ACCEPTED";
+  const icsRole: ParticipationRole = "REQ-PARTICIPANT";
   if (event.recurringEvent?.count) {
     // ics appends "RRULE:" already, so removing it from RRule generated string
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
@@ -62,14 +64,21 @@ ${getRichDescription(event, t)}
       ...event.attendees.map((attendee: Person) => ({
         name: attendee.name,
         email: attendee.email,
+        partstat,
+        role: icsRole,
+        rsvp: true,
       })),
       ...(event.team?.members
         ? event.team?.members.map((member: Person) => ({
             name: member.name,
             email: member.email,
+            partstat,
+            role: icsRole,
+            rsvp: true,
           }))
         : []),
     ],
+    method: "REQUEST",
     status: "CONFIRMED",
   });
   if (icsEvent.error) {
