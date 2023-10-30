@@ -86,7 +86,9 @@ async function postHandler(req: NextApiRequest) {
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, [], parsedBody.externalId);
 
   const eligibleCalendars = connectedCalendars[0]?.calendars.filter((calendar) => !calendar.readOnly);
-  const calendar = eligibleCalendars.find((c) => c.externalId === parsedBody.externalId);
+  const calendar = eligibleCalendars.find(
+    (c) => c.externalId === parsedBody.externalId && c.integration === parsedBody.integration
+  );
   if (!calendar?.credentialId)
     throw new HttpError({
       statusCode: 400,
