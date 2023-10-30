@@ -102,6 +102,16 @@ const matcherConfigRootPath = {
   source: "/",
 };
 
+const matcherConfigRootPathEmbed = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: "/embed",
+};
+
 const matcherConfigUserRoute = {
   has: [
     {
@@ -244,6 +254,10 @@ const nextConfig = {
             {
               ...matcherConfigRootPath,
               destination: "/team/:orgSlug?isOrgProfile=1",
+            },
+            {
+              ...matcherConfigRootPathEmbed,
+              destination: "/team/:orgSlug/embed?isOrgProfile=1",
             },
             {
               ...matcherConfigUserRoute,
