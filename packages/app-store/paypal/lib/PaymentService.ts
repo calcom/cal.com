@@ -5,7 +5,6 @@ import z from "zod";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
@@ -170,10 +169,7 @@ export class PaymentService implements IAbstractPaymentService {
       throw new Error("Payment could not be created");
     }
   }
-  chargeCard(
-    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: number
-  ): Promise<Payment> {
+  chargeCard(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
   getPaymentPaidStatus(): Promise<string> {
@@ -182,19 +178,10 @@ export class PaymentService implements IAbstractPaymentService {
   getPaymentDetails(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  afterPayment(
-    event: CalendarEvent,
-    booking: {
-      user: { email: string | null; name: string | null; timeZone: string } | null;
-      id: number;
-      startTime: { toISOString: () => string };
-      uid: string;
-    },
-    paymentData: Payment
-  ): Promise<void> {
+  afterPayment(): Promise<void> {
     return Promise.resolve();
   }
-  deletePayment(paymentId: number): Promise<boolean> {
+  deletePayment(): Promise<boolean> {
     return Promise.resolve(false);
   }
 

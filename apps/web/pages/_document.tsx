@@ -32,7 +32,8 @@ class MyDocument extends Document<Props> {
 
     const newLocale =
       ctx.req && getLocaleModule
-        ? await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
         : "en";
 
     const asPath = ctx.asPath || "";

@@ -18,9 +18,11 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   useEffect(() => {
     setSelectedProject({
       value: data?.projects.currentProject,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       label: data?.projects?.find((project: any) => project.id === data?.currentProject)?.name,
     });
     setProjects(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data?.projects?.map((project: any) => {
         return {
           value: project.id,

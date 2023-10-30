@@ -897,6 +897,7 @@ export function mockCalendar(
               url: "https://UNUSED_URL",
             });
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           deleteEvent: async (...rest: any[]) => {
             log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
             // eslint-disable-next-line prefer-rest-params
@@ -984,8 +985,7 @@ export function mockVideoApp({
           //@ts-ignore
           VideoApiAdapter: (credential) => {
             return {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              createMeeting: (...rest: any[]) => {
+              createMeeting: (...rest: unknown[]) => {
                 if (creationCrash) {
                   throw new Error("MockVideoApiAdapter.createMeeting fake error");
                 }
@@ -1021,7 +1021,7 @@ export function mockVideoApp({
                   ...videoMeetingData,
                 });
               },
-              deleteMeeting: async (...rest: any[]) => {
+              deleteMeeting: async (...rest: unknown[]) => {
                 log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
                 deleteMeetingCalls.push({
                   credential,
