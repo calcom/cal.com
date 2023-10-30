@@ -21,7 +21,14 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+  CAL_URL,
+} from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
@@ -794,12 +801,29 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
+  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const publicPageUrl = useMemo(() => {
+    const uniqueEventType = data?.eventTypeGroups[0].eventTypes.length === 1;
+
+    if (uniqueEventType) {
+      const typeSlug = data?.eventTypeGroups[0].eventTypes[0].slug;
+      const profileSlug = data?.profiles[0].slug;
+      const embedLink = `${profileSlug}/${typeSlug}`;
+      return `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
+    }
+
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
     const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
     return publicPageUrl;
-  }, [orgBranding?.slug, user?.username, user?.org?.id]);
+  }, [
+    data?.eventTypeGroups,
+    data?.profiles,
+    user?.org?.id,
+    user?.username,
+    orgBranding?.slug,
+    orgBranding?.fullDomain,
+  ]);
 
   const bottomNavItems: NavigationItemType[] = [
     {
