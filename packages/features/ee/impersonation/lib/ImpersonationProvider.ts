@@ -64,7 +64,10 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 }
 
 export function checkPermission(session: Session | null) {
-  if (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") {
+  if (
+    (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
+    !session?.user
+  ) {
     throw new Error("You do not have permission to do this.");
   }
 }
