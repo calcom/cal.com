@@ -52,7 +52,7 @@ test.describe("Booking With Checkbox Group Question and Each Other Question", ()
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test.describe("Booking With Checkbox Group Question and checkbox group Question", () => {
+    test.describe("Booking With Checkbox Group Question and Phone Question", () => {
       test("Checkbox Group required and Phone required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
