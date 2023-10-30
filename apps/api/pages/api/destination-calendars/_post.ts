@@ -84,18 +84,15 @@ async function postHandler(req: NextApiRequest) {
   const calendarCredentials = getCalendarCredentials(userCredentials);
 
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, [], parsedBody.externalId);
-  const calendar = connectedCalendars.find(
-    (c) =>
-      c?.primary?.externalId === parsedBody.externalId && c?.primary?.integration === parsedBody.integration
-  );
 
-  if (!calendar || !calendar.primary?.credentialId)
+  const eligibleCalendars = connectedCalendars[0]?.calendars.filter((calendar) => !calendar.readOnly);
+  const calendar = eligibleCalendars.find((c) => c.externalId === parsedBody.externalId);
+  if (!calendar?.credentialId)
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, credential id invalid",
     });
-
-  const credentialId = calendar.primary.credentialId;
+  const credentialId = calendar.credentialId;
 
   if (parsedBody.eventTypeId) {
     const eventType = await prisma.eventType.findFirst({

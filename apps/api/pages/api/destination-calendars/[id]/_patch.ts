@@ -183,7 +183,6 @@ async function verifyCredentialsAndGetId({
   userCredentials: UserCredentialType[];
   currentCredentialId: number | null;
 }) {
-  let connectedCalendar;
   if (parsedBody.integration && parsedBody.externalId) {
     const calendarCredentials = getCalendarCredentials(userCredentials);
 
@@ -192,18 +191,17 @@ async function verifyCredentialsAndGetId({
       [],
       parsedBody.externalId
     );
-    connectedCalendar = connectedCalendars.find(
-      (c) =>
-        c?.primary?.externalId === parsedBody.externalId && c?.primary?.integration === parsedBody.integration
-    );
+    const eligibleCalendars = connectedCalendars[0]?.calendars.filter((calendar) => !calendar.readOnly);
+    const calendar = eligibleCalendars.find((c) => c.externalId === parsedBody.externalId);
 
-    if (!connectedCalendar?.primary?.credentialId)
+    if (!calendar?.credentialId)
       throw new HttpError({
         statusCode: 400,
         message: "Bad request, credential id invalid",
       });
+    return calendar?.credentialId;
   }
-  return connectedCalendar?.primary?.credentialId || currentCredentialId;
+  return currentCredentialId;
 }
 
 /**
