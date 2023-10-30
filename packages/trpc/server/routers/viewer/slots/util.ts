@@ -12,11 +12,13 @@ import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import db from "@calcom/kysely";
+import { traverseJSON } from "@calcom/kysely/utils/json/traverse";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getSlots from "@calcom/lib/slots";
+import slugify from "@calcom/lib/slugify";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -774,15 +776,30 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-  const user = await prisma.user.findFirst({
-    where: {
-      username,
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-    },
-  });
+
+  const user = await db
+    .selectFrom("users")
+    .innerJoin("Team", "Team.id", "users.organizationId")
+    .where((eb) => {
+      const and: Expression<SqlBool>[] = [];
+
+      and.push(eb("username", "=", username));
+
+      if (isValidOrgDomain && currentOrgDomain) {
+        const slugifiedValue = slugify(currentOrgDomain);
+        and.push(
+          eb.or([
+            eb("Team.slug", "=", slugifiedValue),
+            eb(traverseJSON(eb, "metadata", "requestedSlug"), "=", slugifiedValue),
+          ])
+        );
+      }
+
+      return eb.and(and);
+    })
+    .select("users.id")
+    .executeTakeFirst();
+
   return user?.id;
 }
 
