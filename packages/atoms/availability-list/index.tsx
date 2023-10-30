@@ -14,13 +14,13 @@ export type Schedule = {
     id: number;
     startTime: Date;
     endTime: Date;
-    userId?: number;
-    eventTypeId?: number;
-    date?: Date;
+    userId: number | null;
+    eventTypeId: number | null;
+    date: Date | null;
     days: number[];
-    scheduleId?: number;
+    scheduleId: number | null;
   }[];
-  timeZone?: string;
+  timeZone: string | null;
 };
 
 type AvailabilityListProps = {
