@@ -183,6 +183,7 @@ export default function TeamListItem(props: Props) {
       <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
           <Link
+            data-testid="team-list-item-link"
             href={`/settings/teams/${team.id}/profile`}
             className="flex-grow cursor-pointer truncate text-sm"
             title={`${team.name}`}>
