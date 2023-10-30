@@ -5,12 +5,12 @@ import React from "react";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { prepareMetadata } from "@lib/metadata";
+import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
 
 export const generateMetadata = () =>
-  prepareMetadata({
+  prepareRootMetadata({
     twitterCreator: "@calcom",
     twitterSite: "@calcom",
     robots: {
