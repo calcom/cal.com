@@ -88,7 +88,7 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
 ${this.t(title)}
 ${this.t(subtitle)}
 ${extraInfo}
-${getRichDescription(this.calEvent)}
+${getRichDescription(this.calEvent, this.t, true)}
 ${callToAction}
 `.trim();
   }
