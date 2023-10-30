@@ -86,13 +86,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const hasOrgsPlan = IS_SELF_HOSTED || ctx.user.organizationId;
 
+  const where: Prisma.EventTypeWhereInput = {};
+  where.id = {
+    in: activeOn,
+  };
+  if (userWorkflow.teamId) {
+    //all children managed event types are added after
+    where.parentId = null;
+  }
   const activeOnEventTypes = await ctx.prisma.eventType.findMany({
-    where: {
-      id: {
-        in: activeOn,
-      },
-      parentId: null,
-    },
+    where,
     select: {
       id: true,
       children: {
