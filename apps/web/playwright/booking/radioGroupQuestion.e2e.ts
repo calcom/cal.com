@@ -13,7 +13,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
   test.describe("Booking With Radio Question and Address Question", () => {
     test("Radio required and Address required", async ({ bookingPage }) => {
-      await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+      await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
       await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
@@ -33,7 +33,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
     });
 
     test("Radio and Address not required", async ({ bookingPage }) => {
-      await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+      await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
       await bookingPage.addQuestion("address", "address-test", "address test", false, "address test");
       await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
@@ -54,7 +54,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and checkbox group Question", () => {
       test("Radio required and checkbox group required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -74,7 +74,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and checkbox group not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -96,7 +96,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and checkbox Question", () => {
       test("Radio required and checkbox required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", true);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -115,7 +115,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
         await bookingPage.assertBookingCanceled(eventTypePage);
       });
       test("Radio and checkbox not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", false);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -137,7 +137,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and Long text Question", () => {
       test("Radio required and Long text required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -157,7 +157,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and Long text not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", false, "textarea test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -179,7 +179,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and Multi email Question", () => {
       test("Radio required and Multi email required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion(
           "multiemail",
           "multiemail-test",
@@ -205,7 +205,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and Multi email not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion(
           "multiemail",
           "multiemail-test",
@@ -233,7 +233,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and multiselect Question", () => {
       test("Radio required and multiselect text required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", true);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -253,7 +253,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and multiselect text not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", false);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -275,7 +275,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and Number Question", () => {
       test("Radio required and Number required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("number", "number-test", "number test", true, "number test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -295,7 +295,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and Number not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("number", "number-test", "number test", false, "number test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -317,7 +317,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and Radio group Question", () => {
       test("Radio required and Radio group required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -337,7 +337,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and Radio group not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("radio", "radio-test", "radio test", false);
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -359,7 +359,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and select Question", () => {
       test("Radio required and select required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("select", "select-test", "select test", true, "select test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -379,7 +379,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and select not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("select", "select-test", "select test", false, "select test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -401,7 +401,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
 
     test.describe("Booking With Radio Question and Short text question", () => {
       test("Radio required and Short text required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("text", "text-test", "text test", true, "text test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
@@ -421,7 +421,7 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
 
       test("Radio and Short text not required", async ({ bookingPage }) => {
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true, "radio test");
+        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
         await bookingPage.addQuestion("text", "text-test", "text test", false, "text test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
