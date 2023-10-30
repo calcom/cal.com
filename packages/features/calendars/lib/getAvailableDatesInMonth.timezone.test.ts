@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
@@ -8,7 +8,7 @@ describe("Test Suite: Date Picker", () => {
     // *) Use right amount of days in given month. (28, 30, 31)
     test("it returns the right amount of days in a given month", () => {
       const currentDate = new Date();
-      const nextMonthDate = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth() + 1));
+      const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
 
       const result = getAvailableDatesInMonth({
         browsingDate: nextMonthDate,
@@ -34,6 +34,34 @@ describe("Test Suite: Date Picker", () => {
       });
 
       expect(result).toHaveLength(1);
+    });
+
+    test("it translates correctly regardless of system time", () => {
+      {
+        // test a date in negative UTC offset
+        vi.useFakeTimers().setSystemTime(new Date("2023-10-24T13:27:00.000-07:00"));
+
+        const currentDate = new Date();
+        const result = getAvailableDatesInMonth({
+          browsingDate: currentDate,
+        });
+
+        expect(result).toHaveLength(daysInMonth(currentDate) - currentDate.getDate() + 1);
+      }
+      {
+        // test a date in positive UTC offset
+        vi.useFakeTimers().setSystemTime(new Date("2023-10-24T13:27:00.000+07:00"));
+
+        const currentDate = new Date();
+        const result = getAvailableDatesInMonth({
+          browsingDate: currentDate,
+        });
+
+        expect(result).toHaveLength(daysInMonth(currentDate) - currentDate.getDate() + 1);
+      }
+      // Undo the forced time we applied earlier, reset to system default.
+      vi.setSystemTime(vi.getRealSystemTime());
+      vi.useRealTimers();
     });
   });
 });
