@@ -1,15 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
 import type { Schedule } from "availability-list";
-import { Globe, MoreHorizontal, Star, Copy, Trash } from "lucide-react";
+import { Controls } from "availability-list/components/controls";
+import { Globe } from "lucide-react";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -35,6 +28,31 @@ export function Availability({
   deleteFunction,
 }: AvailabilityProps) {
   const { toast } = useToast();
+
+  function handleDelete() {
+    if (!isDeletable) {
+      toast({
+        description: "You are required to have at least one schedule",
+      });
+    } else {
+      deleteFunction({
+        scheduleId: schedule.id,
+      });
+    }
+  }
+
+  function handleSetDefault() {
+    updateDefault({
+      scheduleId: schedule.id,
+      isDefault: true,
+    });
+  }
+
+  function handleDuplicate() {
+    duplicateFunction({
+      scheduleId: schedule.id,
+    });
+  }
 
   return (
     <li key={schedule.id}>
@@ -65,55 +83,12 @@ export function Availability({
             </p>
           </a>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button type="button" className="mx-5" color="secondary">
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {!schedule.isDefault && (
-              <DropdownMenuItem
-                onClick={() => {
-                  updateDefault({
-                    scheduleId: schedule.id,
-                    isDefault: true,
-                  });
-                }}
-                className="min-w-40 focus:ring-mute min-w-40 focus:ring-muted">
-                <Star />
-                Set as default
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              className="outline-none"
-              onClick={() => {
-                duplicateFunction({
-                  scheduleId: schedule.id,
-                });
-              }}>
-              <Copy />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="min-w-40 focus:ring-muted"
-              onClick={() => {
-                if (!isDeletable) {
-                  toast({
-                    description: "You are required to have at least one schedule",
-                  });
-                } else {
-                  deleteFunction({
-                    scheduleId: schedule.id,
-                  });
-                }
-              }}>
-              <Trash />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Toaster />
+        <Controls
+          schedule={schedule}
+          handleDelete={handleDelete}
+          handleDuplicate={handleDuplicate}
+          handleSetDefault={handleSetDefault}
+        />
       </div>
     </li>
   );
