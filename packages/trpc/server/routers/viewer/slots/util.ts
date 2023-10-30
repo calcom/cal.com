@@ -1,3 +1,4 @@
+import type { Expression, SqlBool } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
@@ -617,9 +618,25 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       .select(["id", "slotUtcStartDate", "slotUtcEndDate", "userId", "isSeat", "eventTypeId"])
       .execute()) || [];
 
-  await prisma.selectedSlots.deleteMany({
-    where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
-  });
+  await db
+    .deleteFrom("SelectedSlots")
+    .where((eb) => {
+      const and: Expression<SqlBool>[] = [];
+
+      and.push(eb("eventTypeId", "=", eventType.id));
+
+      if (selectedSlots.length) {
+        and.push(
+          eb(
+            "id",
+            "not in",
+            selectedSlots.map((item) => item.id)
+          )
+        );
+      }
+      return eb.and(and);
+    })
+    .execute();
 
   availableTimeSlots = timeSlots;
 
