@@ -201,6 +201,7 @@ export const EventSetupTab = (
               return (
                 <Input
                   name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                   type="text"
                   required
                   onChange={onChange}
@@ -224,6 +225,7 @@ export const EventSetupTab = (
               return (
                 <PhoneInput
                   required
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                   name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
                   value={value}
                   onChange={onChange}
