@@ -1,3 +1,3 @@
 export { Booker } from "./booker/Booker";
-export { AvailabilityList } from "./availabilitylist/AvailabilityList";
-export { Availability } from "./availabilitylist/Availability";
+export { AvailabilityList } from "./availability-list";
+export { Availability } from "./availability-list/components/availability";
