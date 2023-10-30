@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import * as React from "react";
 
@@ -52,10 +53,16 @@ export function ConnectButton({
           className
         )}
         type="button"
-        disabled={!isProcessing}
+        disabled={isProcessing}
         onClick={(event) => handleSubmit(event)}>
-        {!!icon && icon}
-        {buttonText || "Install App"}
+        {isProcessing ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <>
+            {!!icon && icon}
+            {buttonText || "Install App"}
+          </>
+        )}
       </Button>
       {!!errMsg && <span>{errMsg}</span>}
     </div>
