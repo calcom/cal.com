@@ -315,10 +315,10 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
       });
     });
 
-    test.describe("Booking With Radio Question and Radio group Question", () => {
-      test("Radio required and Radio group required", async ({ bookingPage }) => {
+    test.describe("Booking With Radio Question and Phone Question", () => {
+      test("Radio required and Phone required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
+        await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
         await bookingPage.selectTimeSlot(eventTypePage);
@@ -326,8 +326,8 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
           eventTypePage,
           placeholderText: "Please share anything that will help prepare for our meeting.",
           question: "radio",
-          fillText: "Test Radio question and Radio question (both required)",
-          secondQuestion: "radio",
+          fillText: "Test Radio question and Phone question (both required)",
+          secondQuestion: "phone",
           options: bookingOptions,
         });
         await bookingPage.rescheduleBooking(eventTypePage);
@@ -336,9 +336,9 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
         await bookingPage.assertBookingCanceled(eventTypePage);
       });
 
-      test("Radio and Radio group not required", async ({ bookingPage }) => {
+      test("Radio and Phone not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
-        await bookingPage.addQuestion("radio", "radio-test", "radio test", false);
+        await bookingPage.addQuestion("phone", "phone-test", "phone test", false, "phone test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
         await bookingPage.selectTimeSlot(eventTypePage);
@@ -346,8 +346,8 @@ test.describe("Booking With Radio Question and Each Other Question", () => {
           eventTypePage,
           placeholderText: "Please share anything that will help prepare for our meeting.",
           question: "radio",
-          fillText: "Test Radio question and Radio question (only radio required)",
-          secondQuestion: "radio",
+          fillText: "Test Radio question and Phone question (only radio required)",
+          secondQuestion: "phone",
           options: { ...bookingOptions, isRequired: false },
         });
         await bookingPage.rescheduleBooking(eventTypePage);
