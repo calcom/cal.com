@@ -1,4 +1,4 @@
-import { NewScheduleButton } from "availability-list/components/new-schedule-button/NewScheduleButton";
+import { NewScheduleButton } from "availability-list/components/new-schedule-button";
 
 import type { HttpError } from "@calcom/lib/http-error";
 import { Clock } from "@calcom/ui/components/icon";
@@ -20,7 +20,7 @@ export type Schedule = {
     days: number[];
     scheduleId?: number;
   }[];
-  timezone?: string;
+  timeZone?: string;
 };
 
 type AvailabilityListProps = {
