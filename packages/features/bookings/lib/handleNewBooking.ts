@@ -2199,12 +2199,6 @@ async function handler(
         `EventManager.create failure in some of the integrations ${organizerUser.username}`,
         safeStringify({ error, results })
       );
-    } else {
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
     }
 
     const { metadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
