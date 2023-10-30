@@ -232,19 +232,15 @@ const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
 };
 
 async function getAvatarToSet(avatar: string | null | undefined) {
-  if (avatar) {
-    if (avatar.startsWith("data:image")) {
-      return await resizeBase64Image(avatar);
-    } else {
-      // Non Base64 avatar currently could only be the dynamic avatar URL(i.e. /{USER}/avatar.png). If we allow setting that URL, we would get infinite redirects on /user/avatar.ts endpoint
-      log.warn("Non Base64 avatar, ignored it", { avatar });
-      // `undefined` would not ignore the avatar, but `null` would remove it. So, we return `undefined` here.
-      return undefined;
-    }
+  if (avatar === null || avatar === undefined) {
+    return avatar;
   }
 
-  if (avatar === null) {
-    return null;
+  if (!avatar.startsWith("data:image")) {
+    // Non Base64 avatar currently could only be the dynamic avatar URL(i.e. /{USER}/avatar.png). If we allow setting that URL, we would get infinite redirects on /user/avatar.ts endpoint
+    log.warn("Non Base64 avatar, ignored it", { avatar });
+    // `undefined` would not ignore the avatar, but `null` would remove it. So, we return `undefined` here.
+    return undefined;
   }
-  return avatar;
+  return await resizeBase64Image(avatar);
 }
