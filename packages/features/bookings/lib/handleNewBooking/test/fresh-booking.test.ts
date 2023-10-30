@@ -65,7 +65,7 @@ describe("handleNewBooking", () => {
   setupAndTeardown();
 
   describe("Fresh/New Booking:", () => {
-    testWithAndWithoutOrg.only(
+    testWithAndWithoutOrg(
       `should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
           1. Should create a booking in the database
           2. Should send emails to the booker as well as organizer
