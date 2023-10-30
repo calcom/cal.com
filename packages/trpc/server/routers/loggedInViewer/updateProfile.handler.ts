@@ -238,6 +238,7 @@ async function getAvatarToSet(avatar: string | null | undefined) {
     } else {
       // Non Base64 avatar currently could only be the dynamic avatar URL(i.e. /{USER}/avatar.png). If we allow setting that URL, we would get infinite redirects on /user/avatar.ts endpoint
       log.warn("Non Base64 avatar, ignored it", { avatar });
+      // `undefined` would not ignore the avatar, but `null` would remove it. So, we return `undefined` here.
       return undefined;
     }
   }
