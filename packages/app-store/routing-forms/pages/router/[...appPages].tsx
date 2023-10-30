@@ -54,7 +54,7 @@ export const getServerSideProps = async function getServerSideProps(
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {

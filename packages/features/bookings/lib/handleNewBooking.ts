@@ -276,6 +276,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       periodEndDate: true,
       periodDays: true,
       periodCountCalendarDays: true,
+      lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
       userId: true,
@@ -1851,6 +1852,7 @@ async function handler(
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
+      rescheduleId: originalRescheduledBooking?.id || undefined,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2377,6 +2379,7 @@ async function handler(
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
+    rescheduleId: originalRescheduledBooking?.id || undefined,
     rescheduleUid,
     rescheduleStartTime: originalRescheduledBooking?.startTime
       ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2684,6 +2687,7 @@ const findBookingQuery = async (bookingId: number) => {
           description: true,
           currency: true,
           length: true,
+          lockTimeZoneToggleOnBookingPage: true,
           requiresConfirmation: true,
           requiresBookerEmailVerification: true,
           price: true,
