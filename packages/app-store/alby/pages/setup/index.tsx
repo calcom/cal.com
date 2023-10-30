@@ -30,15 +30,20 @@ export default function AlbySetup(props: IAlbySetupProps) {
 
 function AlbySetupCallback() {
   const [error, setError] = useState<string | null>(null);
-  const params = useSearchParams();
+  const searchParams = useSearchParams();
+
   useEffect(() => {
+    if (!searchParams) {
+      return;
+    }
+
     if (!window.opener) {
       setError("Something went wrong. Opener not available. Please contact support@getalby.com");
       return;
     }
 
-    const code = params.get("code");
-    const error = params.get("error");
+    const code = searchParams?.get("code");
+    const error = searchParams?.get("error");
 
     if (!code) {
       setError("declined");
@@ -54,7 +59,7 @@ function AlbySetupCallback() {
       payload: { code },
     });
     window.close();
-  }, []);
+  }, [searchParams]);
 
   return (
     <div>
@@ -122,9 +127,9 @@ function AlbySetupPage(props: IAlbySetupProps) {
 
   const albyIcon = (
     <>
-      <img className="h-16 w-16 dark:hidden" src="/api/app-store/alby/icon-borderless.svg" alt="Alby Icon" />
+      <img className="h-12 w-12 dark:hidden" src="/api/app-store/alby/icon-borderless.svg" alt="Alby Icon" />
       <img
-        className="hidden h-16 w-16 dark:block"
+        className="hidden h-12 w-12 dark:block"
         src="/api/app-store/alby/icon-borderless-dark.svg"
         alt="Alby Icon"
       />

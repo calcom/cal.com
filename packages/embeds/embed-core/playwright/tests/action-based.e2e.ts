@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   todo,
@@ -18,9 +19,9 @@ async function bookFirstFreeUserEventThroughEmbed({
   page,
   getActionFiredDetails,
 }: {
-  addEmbedListeners: Fixtures["addEmbedListeners"];
+  addEmbedListeners: Fixtures["embeds"]["addEmbedListeners"];
   page: Page;
-  getActionFiredDetails: Fixtures["getActionFiredDetails"];
+  getActionFiredDetails: Fixtures["embeds"]["getActionFiredDetails"];
 }) {
   const embedButtonLocator = page.locator('[data-cal-link="free"]').first();
   await page.goto("/");
@@ -50,24 +51,16 @@ test.describe("Popup Tests", () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
 
-  test("should open embed iframe on click - Configured with light theme", async ({
-    page,
-    addEmbedListeners,
-    getActionFiredDetails,
-  }) => {
+  test("should open embed iframe on click - Configured with light theme", async ({ page, embeds }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
+    const calNamespace = "e2ePopupLightTheme";
+    await embeds.gotoPlayground({ calNamespace, url: "/" });
 
-    const calNamespace = "prerendertestLightTheme";
-    await addEmbedListeners(calNamespace);
-    await page.goto("/?only=prerender-test");
-    let embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
-    expect(embedIframe).toBeFalsy();
+    await page.click(`[data-cal-namespace="${calNamespace}"]`);
 
-    await page.click('[data-cal-link="free?light&popup"]');
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
 
-    embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free" });
-
-    await expect(embedIframe).toBeEmbedCalLink(calNamespace, getActionFiredDetails, {
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       pathname: "/free",
     });
     // expect(await page.screenshot()).toMatchSnapshot("event-types-list.png");
@@ -82,7 +75,10 @@ test.describe("Popup Tests", () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
 
-  test("should be able to reschedule", async ({ page, addEmbedListeners, getActionFiredDetails }) => {
+  test("should be able to reschedule", async ({
+    page,
+    embeds: { addEmbedListeners, getActionFiredDetails },
+  }) => {
     const booking = await test.step("Create a booking", async () => {
       return await bookFirstFreeUserEventThroughEmbed({
         page,
@@ -108,8 +104,7 @@ test.describe("Popup Tests", () => {
 
   test("should open Routing Forms embed on click", async ({
     page,
-    addEmbedListeners,
-    getActionFiredDetails,
+    embeds: { addEmbedListeners, getActionFiredDetails },
   }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
 
@@ -143,8 +138,7 @@ test.describe("Popup Tests", () => {
     test.describe("Pro User - Configured in App with default setting of system theme", () => {
       test("should open embed iframe according to system theme when no theme is configured through Embed API", async ({
         page,
-        addEmbedListeners,
-        getActionFiredDetails,
+        embeds: { addEmbedListeners, getActionFiredDetails },
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
@@ -175,8 +169,7 @@ test.describe("Popup Tests", () => {
 
       test("should open embed iframe according to system theme when configured with 'auto' theme using Embed API", async ({
         page,
-        addEmbedListeners,
-        getActionFiredDetails,
+        embeds: { addEmbedListeners, getActionFiredDetails },
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
@@ -203,8 +196,7 @@ test.describe("Popup Tests", () => {
 
       test("should open embed iframe(Booker Profile Page) with dark theme when configured with dark theme using Embed API", async ({
         page,
-        addEmbedListeners,
-        getActionFiredDetails,
+        embeds: { addEmbedListeners, getActionFiredDetails },
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
@@ -227,8 +219,7 @@ test.describe("Popup Tests", () => {
 
       test("should open embed iframe(Event Booking Page) with dark theme when configured with dark theme using Embed API", async ({
         page,
-        addEmbedListeners,
-        getActionFiredDetails,
+        embeds: { addEmbedListeners, getActionFiredDetails },
       }) => {
         const calNamespace = "floatingButton";
         await addEmbedListeners(calNamespace);
@@ -250,4 +241,52 @@ test.describe("Popup Tests", () => {
       });
     });
   });
+
+  test("prendered embed should be loaded and apply the config given to it", async ({ page, embeds }) => {
+    const calNamespace = "e2ePrerenderLightTheme";
+    const calLink = "/free/30min";
+    await embeds.gotoPlayground({ calNamespace, url: "/?only=prerender-test" });
+    await expectPrerenderedIframe({ calNamespace, calLink, embeds, page });
+
+    await page.click(`[data-cal-namespace="${calNamespace}"]`);
+
+    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: calLink });
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+    await selectFirstAvailableTimeSlotNextMonth(embedIframe);
+    await expect(embedIframe.locator('[name="name"]')).toHaveValue("Preloaded Prefilled");
+    await expect(embedIframe.locator('[name="email"]')).toHaveValue("preloaded-prefilled@example.com");
+
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+      pathname: calLink,
+    });
+  });
 });
+
+async function expectPrerenderedIframe({
+  page,
+  calNamespace,
+  calLink,
+  embeds,
+}: {
+  page: Page;
+  calNamespace: string;
+  calLink: string;
+  embeds: Fixtures["embeds"];
+}) {
+  const prerenderedIframe = await getEmbedIframe({ calNamespace, page, pathname: calLink });
+
+  if (!prerenderedIframe) {
+    throw new Error("Prerendered iframe not found");
+  }
+  await expect(prerenderedIframe).toBeEmbedCalLink(
+    calNamespace,
+    embeds.getActionFiredDetails,
+    {
+      pathname: calLink,
+    },
+    true
+  );
+}

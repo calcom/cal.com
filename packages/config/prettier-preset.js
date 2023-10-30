@@ -7,6 +7,7 @@ module.exports = {
   semi: true,
   printWidth: 110,
   arrowParens: "always",
+  endOfLine: "auto",
   importOrder: [
     // Mocks must be at the top as they contain vi.mock calls
     "(.*)/__mocks__/(.*)",

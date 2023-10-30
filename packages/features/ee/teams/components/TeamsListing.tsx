@@ -133,6 +133,7 @@ export function TeamsListing() {
             buttonRaw={
               <Button
                 color="secondary"
+                data-testid="create-team-btn"
                 disabled={!!isCreateTeamButtonDisabled}
                 tooltip={
                   isCreateTeamButtonDisabled ? t("org_admins_can_create_new_teams") : t("create_new_team")

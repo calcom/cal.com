@@ -15,7 +15,7 @@ import { processRoute } from "../../lib/processRoute";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 
-const log = logger.getChildLogger({ prefix: ["[routing-forms]", "[router]"] });
+const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
@@ -54,7 +54,7 @@ export const getServerSideProps = async function getServerSideProps(
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
