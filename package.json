@@ -81,6 +81,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@types/jsonwebtoken": "^9.0.3",
     "c8": "^7.13.0",
+    "checkly": "latest",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
