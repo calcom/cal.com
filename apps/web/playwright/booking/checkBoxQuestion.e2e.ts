@@ -94,7 +94,7 @@ test.describe("Booking With Checkbox Question and Each Other Question", () => {
       });
     });
 
-    test.describe("Booking With checkbox Question and checkbox Question", () => {
+    test.describe("Booking With checkbox Question and Phone Question", () => {
       test("Checkbox required and checkbox required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", true);
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
