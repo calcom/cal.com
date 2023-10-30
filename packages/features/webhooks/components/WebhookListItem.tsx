@@ -73,7 +73,11 @@ export default function WebhookListItem(props: {
       )}>
       <div className="w-full truncate">
         <div className="flex">
-          <p className="text-emphasis truncate text-sm font-medium">{webhook.subscriberUrl}</p>
+          <Tooltip content={webhook.subscriberUrl}>
+            <p className="text-emphasis max-w-[600px] truncate text-sm font-medium">
+              {webhook.subscriberUrl}
+            </p>
+          </Tooltip>
           {!!props.readOnly && (
             <Badge variant="gray" className="ml-2 ">
               {t("readonly")}
