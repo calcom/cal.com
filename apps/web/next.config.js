@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
@@ -92,6 +93,11 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
+if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  plugins.push(withSentryConfig);
+}
+
 const matcherConfigRootPath = {
   has: [
     {
@@ -149,6 +155,10 @@ const nextConfig = {
     localeDetection: false,
   },
   productionBrowserSourceMaps: true,
+  sentry: {
+    autoInstrumentServerFunctions: true,
+    hideSourceMaps: true,
+  },
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
