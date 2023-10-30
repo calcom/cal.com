@@ -74,10 +74,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
-    context.req.headers.host ?? "",
-    context.params?.orgSlug
-  );
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {
