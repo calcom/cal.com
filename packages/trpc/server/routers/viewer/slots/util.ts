@@ -600,22 +600,23 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
+
   const selectedSlots =
-    /* FIXME: For some reason this returns undefined while testing in Jest */
-    (await prisma.selectedSlots.findMany({
-      where: {
-        userId: { in: usersWithCredentials.map((user) => user.id) },
-        releaseAt: { gt: dayjs.utc().format() },
-      },
-      select: {
-        id: true,
-        slotUtcStartDate: true,
-        slotUtcEndDate: true,
-        userId: true,
-        isSeat: true,
-        eventTypeId: true,
-      },
-    })) || [];
+    (await db
+      .selectFrom("SelectedSlots")
+      .where((eb) =>
+        eb.and([
+          eb(
+            "userId",
+            "in",
+            usersWithCredentials.map((user) => user.id)
+          ),
+          eb("releaseAt", ">", new Date(dayjs.utc().format())),
+        ])
+      )
+      .select(["id", "slotUtcStartDate", "slotUtcEndDate", "userId", "isSeat", "eventTypeId"])
+      .execute()) || [];
+
   await prisma.selectedSlots.deleteMany({
     where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
   });
