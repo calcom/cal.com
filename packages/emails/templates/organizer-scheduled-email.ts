@@ -33,7 +33,12 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     return {
       icalEvent: {
         filename: "event.ics",
-        content: generateIcsString({ event: this.calEvent, t: this.t, role: "organizer" }),
+        content: generateIcsString({
+          event: this.calEvent,
+          t: this.t,
+          role: "organizer",
+          status: "CONFIRMED",
+        }),
         method: "REQUEST",
       },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,

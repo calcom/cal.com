@@ -1,4 +1,4 @@
-import type { DateArray, ParticipationStatus, ParticipationRole } from "ics";
+import type { DateArray, ParticipationStatus, ParticipationRole, EventStatus } from "ics";
 import { createEvent } from "ics";
 import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
@@ -11,10 +11,12 @@ const generateIcsString = ({
   event,
   t,
   role,
+  status,
 }: {
   event: CalendarEvent;
   t: TFunction;
   role: "attendee" | "organizer";
+  status: EventStatus;
 }) => {
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
@@ -79,7 +81,7 @@ ${getRichDescription(event, t)}
         : []),
     ],
     method: "REQUEST",
-    status: "CONFIRMED",
+    status,
   });
   if (icsEvent.error) {
     throw icsEvent.error;

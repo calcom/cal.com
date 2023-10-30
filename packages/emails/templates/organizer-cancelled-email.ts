@@ -1,6 +1,7 @@
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
+import generateIcsString from "../lib/generateIcsString";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
@@ -8,6 +9,16 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
+      icalEvent: {
+        filename: "event.ics",
+        content: generateIcsString({
+          event: this.calEvent,
+          t: this.t,
+          role: "organizer",
+          status: "CANCELLED",
+        }),
+        method: "request",
+      },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("event_cancelled_subject", {

@@ -7,7 +7,12 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
     return {
       icalEvent: {
         filename: "event.ics",
-        content: generateIcsString({ event: this.calEvent, t: this.t, role: "attendee" }),
+        content: generateIcsString({
+          event: this.calEvent,
+          t: this.t,
+          role: "attendee",
+          status: "CONFIRMED",
+        }),
       },
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
