@@ -15,3 +15,5 @@ jobs:
       - uses: ./.github/actions/yarn-install
       # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
       - run: yarn test
+      # We could add different timezones here that we need to run our tests in
+      - run: TZ=America/Los_Angeles yarn test -- --timeZoneDependentTestsOnly

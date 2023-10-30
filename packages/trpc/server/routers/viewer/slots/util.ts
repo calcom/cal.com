@@ -266,9 +266,9 @@ export function getRegularOrDynamicEventType(
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
-  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
+  const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
-    logger.setSettings({ minLevel: "silly" });
+    logger.settings.minLevel = 2;
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
@@ -279,10 +279,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
-    logger.setSettings({ minLevel: "debug" });
+    logger.settings.minLevel = 2;
   }
 
-  const loggerWithEventDetails = logger.getChildLogger({
+  const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
@@ -567,7 +567,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
+      r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
       { time, ...passThroughProps }
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
@@ -580,13 +580,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: (eventType.hosts
-          ? eventType.hosts.map((hostUserWithCredentials) => {
-              const { user } = hostUserWithCredentials;
-              return user;
-            })
-          : eventType.users
-        ).map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:

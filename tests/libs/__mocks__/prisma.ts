@@ -13,7 +13,6 @@ vi.mock("@calcom/prisma", () => ({
 const handlePrismockBugs = () => {
   const __updateBooking = prismock.booking.update;
   const __findManyWebhook = prismock.webhook.findMany;
-  const __findManyBooking = prismock.booking.findMany;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.booking.update = (...rest: any[]) => {
     // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
@@ -45,35 +44,6 @@ const handlePrismockBugs = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return __findManyWebhook(...rest);
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prismock.booking.findMany = (...rest: any[]) => {
-    // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
-    // In booking flows, we encounter such scenario, so let's fix that here directly till it's fixed in prismock
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const where = rest[0]?.where;
-    if (where?.OR) {
-      logger.silly("Fixed Prismock bug-3");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where.OR.forEach((or: any) => {
-        if (or.startTime?.gte) {
-          or.startTime.gte = or.startTime.gte.toISOString ? or.startTime.gte.toISOString() : or.startTime.gte;
-        }
-        if (or.startTime?.lte) {
-          or.startTime.lte = or.startTime.lte.toISOString ? or.startTime.lte.toISOString() : or.startTime.lte;
-        }
-        if (or.endTime?.gte) {
-          or.endTime.lte = or.endTime.gte.toISOString ? or.endTime.gte.toISOString() : or.endTime.gte;
-        }
-        if (or.endTime?.lte) {
-          or.endTime.lte = or.endTime.lte.toISOString ? or.endTime.lte.toISOString() : or.endTime.lte;
-        }
-      });
-    }
-    return __findManyBooking(...rest);
   };
 };
 

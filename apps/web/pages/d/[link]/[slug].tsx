@@ -61,7 +61,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
   const { ssrInit } = await import("@server/lib/ssr");
