@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 
 import { buildDateRanges, processDateOverride, processWorkingHours, subtract } from "./date-ranges";
@@ -8,8 +9,8 @@ describe("processWorkingHours", () => {
   it("should return the correct working hours given a specific availability, timezone, and date range", () => {
     const item = {
       days: [1, 2, 3, 4, 5], // Monday to Friday
-      startTime: new Date(2023, 5, 12, 8, 0), // 8 AM
-      endTime: new Date(2023, 5, 12, 17, 0), // 5 PM
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
     };
 
     const timeZone = "America/New_York";
@@ -19,21 +20,27 @@ describe("processWorkingHours", () => {
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
 
     expect(results.length).toBe(2); // There should be two working days between the range
-    // "America/New_York" day shifts -1, so we need to add a day to correct this shift.
-    expect(results[0]).toEqual({
-      start: dayjs(`${dateFrom.tz(timeZone).add(1, "day").format("YYYY-MM-DD")}T12:00:00Z`).tz(timeZone),
-      end: dayjs(`${dateFrom.tz(timeZone).add(1, "day").format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
-    });
-    expect(results[1]).toEqual({
-      start: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T12:00:00Z`).tz(timeZone),
-      end: dayjs(`${dateTo.tz(timeZone).format("YYYY-MM-DD")}T21:00:00Z`).tz(timeZone),
-    });
+
+    const computeTimes = (date: Dayjs) => {
+      const baseTime = dayjs.tz(`${date.format("YYYY-MM-DD")}T00:00:00Z`, timeZone);
+      const offset = -baseTime.utcOffset() / 60;
+      return {
+        start: date.add(8 + offset, "hours").tz(timeZone),
+        end: date.add(17 + offset, "hours").tz(timeZone),
+      };
+    };
+
+    const dateFromTimes = computeTimes(dateFrom);
+    const dateToTimes = computeTimes(dateTo.startOf("day"));
+
+    expect(results[0]).toEqual(dateFromTimes);
+    expect(results[1]).toEqual(dateToTimes);
   });
   it("should have availability on last day of month in the month were DST starts", () => {
     const item = {
       days: [0, 1, 2, 3, 4, 5, 6], // Monday to Sunday
-      startTime: new Date(2023, 5, 12, 8, 0), // 8 AM
-      endTime: new Date(2023, 5, 12, 17, 0), // 5 PM
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)), // 8 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
     };
 
     const timeZone = "Europe/London";
@@ -53,6 +60,8 @@ describe("processWorkingHours", () => {
       startTime: new Date(2023, 5, 12, 8, 0), // 8 AM
       endTime: new Date(2023, 5, 12, 17, 0), // 5 PM
     };
+
+    console.log(item);
 
     // in America/New_York DST ends on first Sunday of November
     const timeZone = "America/New_York";
