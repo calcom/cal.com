@@ -1,6 +1,7 @@
 import InsightsPage from "@pages/insights";
 import { headers } from "next/headers";
 
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { constructGenericImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { getFixedT } from "@calcom/lib/server/getFixedT";
@@ -34,6 +35,22 @@ export const generateMetadata = async () => {
     siteName: APP_NAME,
     metadataBase,
   });
+};
+
+// If feature flag is disabled, return not found on getServerSideProps
+export const getProps = async () => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
+
+  if (flags.insights === false) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {},
+  };
 };
 
 export default InsightsPage;
