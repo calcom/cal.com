@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import dayjs from "@calcom/dayjs";
+
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -37,6 +39,12 @@ type fillAndConfirmBookingParams = {
 };
 
 type UserFixture = ReturnType<typeof createUsersFixture>;
+
+function isLastDayOfMonth(): boolean {
+  const today = dayjs();
+  const endOfMonth = today.endOf("month");
+  return today.isSame(endOfMonth, "day");
+}
 
 const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
   const questionActions: QuestionActions = {
@@ -114,6 +122,17 @@ export async function loginUser(users: UserFixture) {
   await pro.apiLogin();
 }
 
+const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
+  try {
+    if (isLastDayOfMonth()) {
+      await eventTypePage.getByTestId("view_next_month").waitFor({ timeout: 6000 });
+      await eventTypePage.getByTestId("view_next_month").click();
+    }
+  } catch (err) {
+    console.info("No need to click on view next month button");
+  }
+};
+
 export function createBookingPageFixture(page: Page) {
   return {
     goToEventType: async (eventType: string) => {
@@ -154,19 +173,13 @@ export function createBookingPageFixture(page: Page) {
       return eventtypePromise;
     },
     selectTimeSlot: async (eventTypePage: Page) => {
-      while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
-        await eventTypePage.getByRole("button", { name: "View next" }).click();
-      }
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByTestId("time").first().click();
     },
     clickReschedule: async () => {
       await page.getByText("Reschedule").click();
     },
-    navigateToAvailableTimeSlot: async () => {
-      while (await page.getByRole("button", { name: "View next" }).isVisible()) {
-        await page.getByRole("button", { name: "View next" }).click();
-      }
-    },
+
     selectFirstAvailableTime: async () => {
       await page.getByTestId("time").first().click();
     },
@@ -186,6 +199,7 @@ export function createBookingPageFixture(page: Page) {
     },
 
     rescheduleBooking: async (eventTypePage: Page) => {
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByText("Reschedule").click();
       while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
         await eventTypePage.getByRole("button", { name: "View next" }).click();
