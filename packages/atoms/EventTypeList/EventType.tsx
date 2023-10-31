@@ -108,7 +108,7 @@ export function EventType({
           {!(lastItem && lastItem.id === type.id) && (
             <ArrowButton arrowDirection="down" onClick={() => moveEventType(index, 1)} />
           )}
-          <MemoizedItem />
+          <MemoizedItem type={type} group={group} readOnly={readOnly} />
           <div className="mt-4 hidden sm:mt-0 sm:flex">
             <div className="flex justify-between space-x-2 rtl:space-x-reverse">
               {type.team && !isManagedEventType && (
