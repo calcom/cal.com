@@ -277,7 +277,7 @@ const Hosts = (
               <TextField
                 required
                 type="number"
-                label={t("round_robin_hosts_count")}
+                label="How many Round Robin hosts should participate?"
                 defaultValue={roundRobinHostCount}
                 {...register("roundRobinHostCount")}
                 min={1}
