@@ -7,7 +7,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsString, { BookingAction } from "../lib/generateIcsString";
 import BaseEmail from "./_base-email";
 
 export default class AttendeeScheduledEmail extends BaseEmail {
@@ -39,7 +39,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
           event: this.calEvent,
           t: this.t,
           role: "attendee",
-          status: "CONFIRMED",
+          bookingAction: BookingAction.Create,
         }),
         method: "REQUEST",
       },

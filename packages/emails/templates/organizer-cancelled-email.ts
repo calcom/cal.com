@@ -1,7 +1,7 @@
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
-import generateIcsString from "../lib/generateIcsString";
+import generateIcsString, { BookingAction } from "../lib/generateIcsString";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
@@ -15,9 +15,9 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
           event: this.calEvent,
           t: this.t,
           role: "organizer",
-          status: "CANCELLED",
+          bookingAction: BookingAction.Cancel,
         }),
-        method: "request",
+        method: "REQUEST",
       },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),

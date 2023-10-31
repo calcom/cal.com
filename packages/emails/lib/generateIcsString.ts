@@ -8,7 +8,7 @@ import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getWhen } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-enum BookingAction {
+export enum BookingAction {
   Create = "create",
   Cancel = "cancel",
   Reschedule = "reschedule",
