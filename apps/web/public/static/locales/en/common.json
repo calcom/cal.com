@@ -1222,6 +1222,7 @@
   "organizer_name_variable": "Organizer name",
   "app_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "invalid_number": "Invalid phone number",
+  "invalid_url_error_message": "Invalid URL for {{label}}. Sample URL: {{sampleUrl}}",
   "navigate": "Navigate",
   "open": "Open",
   "close": "Close",
