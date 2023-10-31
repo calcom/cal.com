@@ -111,7 +111,6 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
       await eventTypePage.getByPlaceholder(`${questionType} test`).fill("text test");
     },
   };
-
   if (questionActions[questionType]) {
     await questionActions[questionType]();
   }
@@ -236,7 +235,7 @@ export function createBookingPageFixture(page: Page) {
 
       // Change the selector for specifics cases related to select question
       const shouldChangeSelectLocator = (question: string, secondQuestion: string): boolean =>
-        question === "select" && ["multiemail", "multiselect"].includes(secondQuestion);
+        question === "select" && ["multiemail", "multiselect", "address"].includes(secondQuestion);
 
       const shouldUseLastRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
         question === "radio" && secondQuestion === "checkbox";
