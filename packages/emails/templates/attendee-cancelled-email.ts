@@ -10,7 +10,7 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
         content: generateIcsString({
           event: this.calEvent,
           t: this.t,
-          role: "organizer",
+          role: "attendee",
           bookingAction: BookingAction.Cancel,
         }),
         method: "REQUEST",
