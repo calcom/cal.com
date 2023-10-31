@@ -2307,7 +2307,7 @@ async function handler(
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
 
         if (evt.iCalUID !== booking.iCalUID) {
-          // The eventManager and handleAppsStatus could change the iCalUID. At this point we can update the DB record
+          // The eventManager could change the iCalUID. At this point we can update the DB record
           await prisma.booking.update({
             where: {
               id: booking.id,
