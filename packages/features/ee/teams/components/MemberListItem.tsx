@@ -321,7 +321,7 @@ export default function MemberListItem(props: Props) {
               onSubmit={async (e) => {
                 e.preventDefault();
                 await signIn("impersonation-auth", {
-                  username: props.member.username || props.member.email,
+                  username: props.member.email,
                   teamId: props.team.id,
                 });
                 setShowImpersonateModal(false);

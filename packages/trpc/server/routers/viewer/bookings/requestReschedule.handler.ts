@@ -17,6 +17,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -167,6 +168,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const builder = new CalendarEventBuilder();
   builder.init({
     title: bookingToReschedule.title,
+    bookerUrl: await getBookerUrl(user),
     type: event && event.title ? event.title : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
