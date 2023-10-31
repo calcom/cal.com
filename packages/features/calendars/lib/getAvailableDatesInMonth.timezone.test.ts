@@ -1,5 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 
@@ -66,7 +67,8 @@ describe("Test Suite: Date Picker", () => {
 
     test("it returns the correct responses end of month", () => {
       // test a date at one minute past midnight, end of month.
-      vi.useFakeTimers().setSystemTime(new Date("2023-10-31T00:00:01.000Z"));
+      // we use dayjs() as the system timezone can still modify the Date.
+      vi.useFakeTimers().setSystemTime(dayjs().endOf("month").startOf("day").add(1, "second").toDate());
 
       const currentDate = new Date();
       const result = getAvailableDatesInMonth({
