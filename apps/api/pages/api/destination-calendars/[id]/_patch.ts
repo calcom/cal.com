@@ -191,8 +191,8 @@ async function verifyCredentialsAndGetId({
       [],
       parsedBody.externalId
     );
-    const eligibleCalendars = connectedCalendars[0]?.calendars.filter((calendar) => !calendar.readOnly);
-    const calendar = eligibleCalendars.find(
+    const eligibleCalendars = connectedCalendars[0]?.calendars?.filter((calendar) => !calendar.readOnly);
+    const calendar = eligibleCalendars?.find(
       (c) => c.externalId === parsedBody.externalId && c.integration === parsedBody.integration
     );
 
