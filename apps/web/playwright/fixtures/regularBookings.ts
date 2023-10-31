@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import dayjs from "@calcom/dayjs";
+
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -37,6 +39,12 @@ type fillAndConfirmBookingParams = {
 };
 
 type UserFixture = ReturnType<typeof createUsersFixture>;
+
+function isLastDayOfMonth(): boolean {
+  const today = dayjs();
+  const endOfMonth = today.endOf("month");
+  return today.isSame(endOfMonth, "day");
+}
 
 const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
   const questionActions: QuestionActions = {
@@ -103,7 +111,6 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
       await eventTypePage.getByPlaceholder(`${questionType} test`).fill("text test");
     },
   };
-
   if (questionActions[questionType]) {
     await questionActions[questionType]();
   }
@@ -113,6 +120,17 @@ export async function loginUser(users: UserFixture) {
   const pro = await users.create({ name: "testuser" });
   await pro.apiLogin();
 }
+
+const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
+  try {
+    if (isLastDayOfMonth()) {
+      await eventTypePage.getByTestId("view_next_month").waitFor({ timeout: 6000 });
+      await eventTypePage.getByTestId("view_next_month").click();
+    }
+  } catch (err) {
+    console.info("No need to click on view next month button");
+  }
+};
 
 export function createBookingPageFixture(page: Page) {
   return {
@@ -157,9 +175,7 @@ export function createBookingPageFixture(page: Page) {
       return eventtypePromise;
     },
     selectTimeSlot: async (eventTypePage: Page) => {
-      while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
-        await eventTypePage.getByRole("button", { name: "View next" }).click();
-      }
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByTestId("time").first().click();
     },
     clickReschedule: async () => {
@@ -189,6 +205,7 @@ export function createBookingPageFixture(page: Page) {
     },
 
     rescheduleBooking: async (eventTypePage: Page) => {
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByText("Reschedule").click();
       while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
         await eventTypePage.getByRole("button", { name: "View next" }).click();
@@ -225,7 +242,7 @@ export function createBookingPageFixture(page: Page) {
 
       // Change the selector for specifics cases related to select question
       const shouldChangeSelectLocator = (question: string, secondQuestion: string): boolean =>
-        question === "select" && ["multiemail", "multiselect"].includes(secondQuestion);
+        question === "select" && ["multiemail", "multiselect", "address"].includes(secondQuestion);
 
       const shouldUseLastRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
         question === "radio" && secondQuestion === "checkbox";
