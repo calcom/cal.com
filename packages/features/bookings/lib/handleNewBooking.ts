@@ -1099,7 +1099,7 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
-  const iCalUID = originalRescheduledBooking?.iCalUID ?? `${uid}@cal.com`;
+  const iCalUID = originalRescheduledBooking?.iCalUID ?? `${uid}@${process.env.ICAL_UID_DOMAIN}`;
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = originalRescheduledBooking?.iCalSequence
     ? originalRescheduledBooking.iCalSequence + 1
