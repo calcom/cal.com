@@ -342,9 +342,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                         ctx.addIssue({
                           code: z.ZodIssueCode.custom,
                           path: [eventLocationType?.defaultValueVariable ?? "link"],
-                          message: `Invalid URL for ${eventLocationType.label}. ${
-                            sampleUrl ? `Sample URL: ${sampleUrl}` : ""
-                          }`,
+                          message: t("invalid_url_error_message", {
+                            label: eventLocationType.label,
+                            sampleUrl: sampleUrl ?? "https://cal.com",
+                          }),
                         });
                       }
                       return;
