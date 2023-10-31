@@ -192,6 +192,7 @@ export async function getEventType(
           },
         },
       },
+      roundRobinHostCount: true,
       users: {
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
@@ -450,7 +451,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
-    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
+    dateRanges: getAggregatedAvailability(
+      userAvailability,
+      eventType.schedulingType,
+      eventType.roundRobinHostCount
+    ),
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,

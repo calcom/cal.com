@@ -4,7 +4,8 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 export const getAggregatedAvailability = (
   userAvailability: { dateRanges: DateRange[]; user?: { isFixed?: boolean } }[],
-  schedulingType: SchedulingType | null
+  schedulingType: SchedulingType | null,
+  roundRobinHostCount: number
 ): DateRange[] => {
   const fixedHosts = userAvailability.filter(
     ({ user }) => !schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
@@ -14,13 +15,55 @@ export const getAggregatedAvailability = (
 
   const unfixedHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (unfixedHosts.length) {
-    dateRangesToIntersect.push(unfixedHosts.flatMap((s) => s.dateRanges));
+    dateRangesToIntersect.push(getUnfixedHostsDateRanges(unfixedHosts, roundRobinHostCount));
   }
 
   const availability = intersect(dateRangesToIntersect);
 
   return mergeOverlappingDateRanges(availability);
 };
+
+function getUnfixedHostsDateRanges(
+  unfixedHosts: { dateRanges: DateRange[]; user?: { isFixed?: boolean } }[],
+  roundRobinHostCount: number
+): DateRange[] {
+  if (unfixedHosts.length == 0 || roundRobinHostCount == 0) return [];
+
+  if (unfixedHosts.length == 1 || roundRobinHostCount == 1) {
+    return unfixedHosts.flatMap((s) => s.dateRanges);
+  }
+
+  // this is the multi-host round robin case
+  const hostDates = unfixedHosts.map((s) => s.dateRanges);
+  const dateCombinations = getDateRangeCombinations(hostDates, roundRobinHostCount);
+  // intesect all combinations
+  const collectiveAvailability: DateRange[] = [];
+  dateCombinations.forEach((elem) => collectiveAvailability.push(...intersect(elem)));
+
+  return collectiveAvailability;
+}
+
+// for rund robin with multiple hosts we need to look at all possible combinations
+// with 'hostnum' elements
+function getDateRangeCombinations(hostDates: DateRange[][], roundRobinHostCount: number): DateRange[][] {
+  const result: DateRange[][] = [];
+
+  function combine(current: DateRange[][], start) {
+    if (current.length === roundRobinHostCount) {
+      result.push([...current]);
+      return;
+    }
+
+    for (let i = start; i < hostDates.length; i++) {
+      current.push(hostDates[i]);
+      combine(current, i + 1);
+      current.pop();
+    }
+  }
+
+  combine([], 0);
+  return result;
+}
 
 function isSameDay(date1: Date, date2: Date) {
   return (

@@ -61,6 +61,7 @@ model EventType {
   offsetStart                     Int                     @default(0)
   hidden                          Boolean                 @default(false)
   hosts                           Host[]
+  roundRobinHostCount             Int                     @default(1)
   users                           User[]                  @relation("user_eventtype")
   owner                           User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                          Int?
@@ -246,11 +247,11 @@ model User {
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
-  // Linking account code for orgs v2
-  //linkedByUserId       Int?
-  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
-  //linkedUsers          User[]                  @relation("linked_account")*/
 
+  // Linking account code for orgs v2
+  // linkedByUserId       Int?
+  // linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
+  // linkedUsers          User[]                  @relation("linked_account")*/
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])

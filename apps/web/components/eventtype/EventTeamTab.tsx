@@ -11,7 +11,7 @@ import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTea
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select } from "@calcom/ui";
+import { Label, Select, TextField } from "@calcom/ui";
 
 interface IUserToValue {
   id: number | null;
@@ -214,22 +214,26 @@ const ChildrenEventTypes = ({
   );
 };
 
-const Hosts = ({
-  teamMembers,
-}: {
-  teamMembers: {
-    value: string;
-    label: string;
-    avatar: string;
-    email: string;
-  }[];
-}) => {
+const Hosts = (
+  {
+    teamMembers,
+  }: {
+    teamMembers: {
+      value: string;
+      label: string;
+      avatar: string;
+      email: string;
+    }[];
+  },
+  roundRobinHostCount: number
+) => {
   const { t } = useLocale();
   const {
     control,
     resetField,
     getValues,
     formState: { submitCount },
+    register,
   } = useFormContext<FormValues>();
   const schedulingType = useWatch({
     control,
@@ -270,14 +274,19 @@ const Hosts = ({
           ROUND_ROBIN: (
             <>
               <RoundRobinHosts teamMembers={teamMembers} onChange={onChange} value={value} />
-              {/*<TextField
-        required
-        type="number"
-        label={t("minimum_round_robin_hosts_count")}
-        defaultValue={1}
-        {...formMethods.register("minimumHostCount")}
-        addOnSuffix={<>{t("hosts")}</>}
-                />*/}
+              <TextField
+                required
+                type="number"
+                label={t("round_robin_hosts_count")}
+                defaultValue={roundRobinHostCount}
+                {...register("roundRobinHostCount")}
+                min={1}
+                max={value.reduce((rrHostCount, val) => {
+                  if (!val.isFixed) rrHostCount++;
+                  return rrHostCount;
+                }, 0)}
+                addOnSuffix={<>{t("round robin hosts")}</>}
+              />
             </>
           ),
           MANAGED: <></>,
@@ -340,7 +349,7 @@ export const EventTeamTab = ({
               )}
             />
           </div>
-          <Hosts teamMembers={teamMembersOptions} />
+          <Hosts teamMembers={teamMembersOptions} roundRobinHostCount={eventType.roundRobinHostCount} />
         </div>
       )}
       {team && isManagedEventType && (

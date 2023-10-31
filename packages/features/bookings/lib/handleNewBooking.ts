@@ -332,6 +332,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
           },
         },
       },
+      roundRobinHostCount: true,
       availability: {
         select: {
           date: true,
@@ -951,7 +952,7 @@ async function handler(
       })
     );
     // loop through all non-fixed hosts and get the lucky users
-    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+    while (luckyUserPool.length > 0 && luckyUsers.length < eventType.roundRobinHostCount) {
       const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
         // find a lucky user that is not already in the luckyUsers array
         availableUsers: luckyUserPool.filter(

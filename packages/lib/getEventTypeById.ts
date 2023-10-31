@@ -156,6 +156,7 @@ export default async function getEventTypeById({
           userId: true,
         },
       },
+      roundRobinHostCount: true,
       userId: true,
       price: true,
       children: {
