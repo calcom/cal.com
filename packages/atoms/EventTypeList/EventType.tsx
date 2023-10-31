@@ -1,20 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MoreHorizontal, ExternalLink, LinkIcon, Edit2, Copy, Trash, Code } from "lucide-react";
+import { EventTypeDialog } from "EventTypeList/components/controls/Dialog";
+import { EventTypeDropdown } from "EventTypeList/components/controls/Dropdown";
+import { EventTypeTooltip } from "EventTypeList/components/controls/Tooltip";
+import { ExternalLink, LinkIcon } from "lucide-react";
 import { memo, useState } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
-import { EventTypeEmbedButton } from "@calcom/features/embed/EventTypeEmbed";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { ArrowButton, AvatarGroup, ButtonGroup } from "@calcom/ui";
@@ -152,144 +145,74 @@ export function EventType({
                 {isManagedEventType && (
                   <>
                     {type.hidden && <Badge>Hidden</Badge>}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="self-center rounded-md p-2">
-                            <Switch
-                              name="hidden"
-                              checked={!type.hidden}
-                              onClick={() => {
-                                onMutate({ id: type.id, hidden: !type.hidden });
-                              }}
-                            />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {type.hidden ? "Show on profile" : "Hide from profile"}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <EventTypeTooltip
+                      trigger={
+                        <div className="self-center rounded-md p-2">
+                          <Switch
+                            name="hidden"
+                            checked={!type.hidden}
+                            onClick={() => {
+                              onMutate({ id: type.id, hidden: !type.hidden });
+                            }}
+                          />
+                        </div>
+                      }
+                      content={type.hidden ? "Show on profile" : "Hide from profile"}
+                    />
                   </>
                 )}
                 <ButtonGroup combined>
                   {!isManagedEventType && (
                     <>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            {/* TODO: add toast */}
-                            <Button
-                              data-testid="preview-link-button"
-                              className="bg-secondary color-secondary"
-                              onClick={() => {
-                                onPreview(calLink);
-                              }}>
-                              <ExternalLink />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Preview</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Button
-                              className="bg-secondary color-secondary"
-                              onClick={() => {
-                                onCopy(calLink);
-                              }}>
-                              <LinkIcon />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Copy link to event</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <EventTypeTooltip
+                        trigger={
+                          <Button
+                            data-testid="preview-link-button"
+                            className="bg-secondary color-secondary"
+                            onClick={() => {
+                              onPreview(calLink);
+                            }}>
+                            <ExternalLink />
+                          </Button>
+                        }
+                        content="Preview"
+                      />
+                      <EventTypeTooltip
+                        trigger={
+                          <Button
+                            className="bg-secondary color-secondary"
+                            onClick={() => {
+                              onCopy(calLink);
+                            }}>
+                            <LinkIcon />
+                          </Button>
+                        }
+                        content="Copy link to event"
+                      />
                     </>
                   )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        className="bg-secondary text-secondary ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md">
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {!readOnly && (
-                        <DropdownMenuItem>
-                          <Button
-                            type="button"
-                            data-testid={`event-type-edit-${type.id}`}
-                            onClick={() => {
-                              onEdit(type.id);
-                            }}>
-                            <Edit2 />
-                            Edit
-                          </Button>
-                        </DropdownMenuItem>
-                      )}
-                      {!isManagedEventType && !isChildrenManagedEventType && (
-                        <>
-                          <DropdownMenuItem className="outline-none">
-                            <Button
-                              type="button"
-                              data-testid={`event-type-duplicate-${type.id}`}
-                              onClick={() => {
-                                onDuplicate(type.id);
-                              }}>
-                              <Copy />
-                              Duplicate
-                            </Button>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {!isManagedEventType && (
-                        <DropdownMenuItem>
-                          <EventTypeEmbedButton
-                            // Add embedLink here
-                            className="w-full rounded-none"
-                            eventId={type.id}
-                            type="button"
-                            StartIcon={Code}
-                            embedUrl={encodeURIComponent(embedLink)}>
-                            Embed
-                          </EventTypeEmbedButton>
-                        </DropdownMenuItem>
-                      )}
-                      {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
-                        !isChildrenManagedEventType && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              {/* Button type should be destructive here */}
-                              <Button
-                                onClick={() => {
-                                  // Add handler for destruction
-                                  console.log("Hi");
-                                }}
-                                className="w-full rounded-none">
-                                <Trash /> Delete
-                              </Button>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <EventTypeDropdown
+                    group={group}
+                    isReadOnly={readOnly}
+                    isManagedEventType={isManagedEventType}
+                    isChildrenManagedEventType={isChildrenManagedEventType}
+                    embedLink={embedLink}
+                    id={type.id}
+                    onEdit={onEdit}
+                    onDuplicate={onDuplicate}
+                  />
                 </ButtonGroup>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete event type?</DialogTitle>
-            <DialogDescription>
-              Anyone who you&apos;ve shared this link with will no longer be able to book using it.
-            </DialogDescription>
-          </DialogHeader>
+      <EventTypeDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete event type?"
+        description="Anyone who you've shared this link with will no longer be able to book using it."
+        content={
           <div className="flex items-center justify-end">
             <Button
               onClick={() => {
@@ -306,8 +229,8 @@ export function EventType({
               Yes, delete
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        }
+      />
     </li>
   );
 }
