@@ -205,7 +205,10 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => dayjs(val).utcOffset(val.slice(-6)));
+export const stringToDayjs = z.string().transform((val) => {
+  const timezone = val.match(/([+-]\d{2}:\d{2})$/)[1];
+  return dayjs(val).utcOffset(timezone);
+});
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
