@@ -147,7 +147,7 @@ const PaymentForm = (props: Props) => {
               formatParams: { amount: { currency: props.payment.currency } },
             })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
-            descriptionClassName="text-blue-900 font-semibold"
+            descriptionClassName="text-info font-semibold"
           />
         </div>
       )}
