@@ -205,7 +205,7 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => dayjs(val));
+export const stringToDayjs = z.string().transform((val) => dayjs(val).utcOffset(val.slice(-6)));
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
