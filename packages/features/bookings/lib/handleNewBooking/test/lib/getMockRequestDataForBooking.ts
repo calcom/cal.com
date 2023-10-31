@@ -1,11 +1,12 @@
 import { getDate } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
+export const DEFAULT_TIMEZONE_BOOKER = "Asia/Kolkata";
 export function getBasicMockRequestDataForBooking() {
   return {
     start: `${getDate({ dateIncrement: 1 }).dateString}T04:00:00.000Z`,
     end: `${getDate({ dateIncrement: 1 }).dateString}T04:30:00.000Z`,
     eventTypeSlug: "no-confirmation",
-    timeZone: "Asia/Calcutta",
+    timeZone: DEFAULT_TIMEZONE_BOOKER,
     language: "en",
     user: "teampro",
     metadata: {},
@@ -20,6 +21,8 @@ export function getMockRequestDataForBooking({
     eventTypeId: number;
     rescheduleUid?: string;
     bookingUid?: string;
+    recurringEventId?: string;
+    recurringCount?: number;
     responses: {
       email: string;
       name: string;
