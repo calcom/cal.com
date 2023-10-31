@@ -6,11 +6,18 @@ import PageWrapper from "@components/PageWrapperAppDir";
 
 type WrapperWithoutLayoutProps = {
   children: ReactElement;
+  params: { [key: string]: any };
 };
 
-export default async function WrapperWithoutLayout({ children }: WrapperWithoutLayoutProps) {
+const handleGetProps = async (relativePath: string) => {
+  const props = await import(`./${relativePath}`).then((mod) => mod.getProps?.() ?? null);
+  return props;
+};
+
+export default async function WrapperWithoutLayout({ children, params }: WrapperWithoutLayoutProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
+  const props = await handleGetProps(params.relativePath);
 
   return (
     <PageWrapper
@@ -18,7 +25,7 @@ export default async function WrapperWithoutLayout({ children }: WrapperWithoutL
       requiresLicense={false}
       nonce={nonce}
       themeBasis={null}
-      {...children.props}>
+      {...props}>
       {children}
     </PageWrapper>
   );

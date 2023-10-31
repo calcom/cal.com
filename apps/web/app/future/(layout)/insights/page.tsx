@@ -53,4 +53,7 @@ export const getProps = async () => {
   };
 };
 
-export default InsightsPage;
+export default function Insights(props: any) {
+  props.params.relativePath = "insights/page.tsx";
+  return <InsightsPage />;
+}

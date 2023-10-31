@@ -8,19 +8,18 @@ import PageWrapper from "@components/PageWrapperAppDir";
 
 type WrapperWithLayoutProps = {
   children: ReactElement;
+  params: { [key: string]: any };
 };
 
-const handleGetProps = async (children: ReactElement) => {
-  const props = await import(`./${children.props.childProp.segment}/page.tsx`).then(
-    (mod) => mod.getProps?.() ?? null
-  );
+const handleGetProps = async (relativePath: string) => {
+  const props = await import(`./${relativePath}`).then((mod) => mod.getProps?.() ?? null);
   return props;
 };
 
-export default async function WrapperWithLayout({ children }: WrapperWithLayoutProps) {
+export default async function WrapperWithLayout({ children, params }: WrapperWithLayoutProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
-  const props = await handleGetProps(children);
+  const props = await handleGetProps(params.relativePath);
 
   return (
     <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
