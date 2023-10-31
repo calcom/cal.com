@@ -206,7 +206,7 @@ export const stringOrNumber = z.union([
 ]);
 
 export const stringToDayjs = z.string().transform((val) => {
-  const timezone = val.match(/([+-]\d{2}:\d{2})$/)[1];
+  const timezone = val.match(/([+-]\d{2}:\d{2})$/)[1] || "+00:00";
   return dayjs(val).utcOffset(timezone);
 });
 
