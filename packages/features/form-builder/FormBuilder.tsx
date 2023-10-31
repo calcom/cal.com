@@ -416,8 +416,10 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
-  const [identifierBadge, setIdentifierBadge] = useState<string>(fieldForm.getValues("label") || "");
-  const [identifierFieldVisible, setIdentifierFieldVisible] = useState<boolean>(false);
+  const [identifier, setIdentifier] = useState({
+    badge: fieldForm.getValues("name") || fieldForm.getValues("label") || "",
+    fieldVisible: false,
+  });
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
@@ -455,7 +457,13 @@ function FieldEditDialog({
                       }
                       placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                       onChange={(e) => {
-                        setIdentifierBadge(e.target.value);
+                        if (!identifier.fieldVisible) {
+                          setIdentifier({
+                            ...identifier,
+                            badge: getFieldIdentifier(e.target.value),
+                          });
+                          fieldForm.setValue("name", getFieldIdentifier(e.target.value));
+                        }
                       }}
                       containerClassName="mt-6"
                       label={t("label")}
@@ -499,22 +507,19 @@ function FieldEditDialog({
                         <Link
                           href="https://cal.com/docs/core-features/event-types/booking-questions#booking-field-identifier"
                           target="_blank">
-                          <Tooltip content="Click to learn more ↗" side="top">
+                          <Tooltip content={`${t("click_to_learn_more")}` + " ↗"} side="top">
                             <Info className="hover:bg-emphasis h-5 w-5 cursor-pointer rounded p-0.5" />
                           </Tooltip>
                         </Link>
-                        {!identifierFieldVisible && identifierBadge !== "" && (
+                        {!identifier.fieldVisible && identifier.badge !== "" && (
                           <Badge variant="grayWithoutHover" className="text-subtle">
-                            {identifierBadge?.replaceAll(".", "-").replaceAll(" ", "-")}
-                            <Tooltip content="Edit identifier" side="top">
+                            {getFieldIdentifier(identifier.badge)}
+                            <Tooltip content={`${t("edit_identifier")}`} side="top">
                               <div
                                 data-testid="edit-identifier"
                                 onClick={() => {
-                                  fieldForm.setValue(
-                                    "name",
-                                    identifierBadge?.replaceAll(".", "-").replaceAll(" ", "-")
-                                  );
-                                  setIdentifierFieldVisible(true);
+                                  fieldForm.setValue("name", getFieldIdentifier(identifier.badge));
+                                  setIdentifier({ ...identifier, fieldVisible: true });
                                 }}>
                                 <Edit className="hover:text-emphasis h-4 w-4 cursor-pointer" />
                               </div>
@@ -522,12 +527,16 @@ function FieldEditDialog({
                           </Badge>
                         )}
                       </div>
-                      {identifierFieldVisible && (
+                      {identifier.fieldVisible && (
                         <>
                           <InputField
                             required
                             {...fieldForm.register("name")}
                             onChange={(e) => {
+                              setIdentifier({
+                                ...identifier,
+                                badge: getFieldIdentifier(e.target.value || ""),
+                              });
                               fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
                             }}
                             disabled={
@@ -537,9 +546,7 @@ function FieldEditDialog({
                             label={t("identifier")}
                             labelClassName="invisible -mb-2"
                           />
-                          <p className="text-subtle text-sm">
-                            You will not be able to edit these later. Letters, numbers & hyphens only.
-                          </p>
+                          <p className="text-subtle text-sm">{t("identifier_change_not_suggested")}</p>
                         </>
                       )}
                     </div>

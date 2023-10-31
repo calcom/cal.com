@@ -2097,5 +2097,8 @@
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
   "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
   "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",
+  "click_to_learn_more" : "Click to learn more",
+  "edit_identifier" : "Edit identifier",
+  "identifier_change_not_suggested" : "It is not recommended to change the identifier. Letters, numbers & hyphens only.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
