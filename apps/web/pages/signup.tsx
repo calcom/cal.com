@@ -150,6 +150,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues satisfies FormValues,
+    mode: "onChange",
   });
   const {
     register,
