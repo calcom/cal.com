@@ -63,5 +63,21 @@ describe("Test Suite: Date Picker", () => {
       vi.setSystemTime(vi.getRealSystemTime());
       vi.useRealTimers();
     });
+
+    test("it returns the correct responses end of month", () => {
+      // test a date at one minute past midnight, end of month.
+      vi.useFakeTimers().setSystemTime(new Date("2023-10-31T00:00:01.000Z"));
+
+      const currentDate = new Date();
+      const result = getAvailableDatesInMonth({
+        browsingDate: currentDate,
+      });
+
+      expect(result).toHaveLength(1);
+
+      // Undo the forced time we applied earlier, reset to system default.
+      vi.setSystemTime(vi.getRealSystemTime());
+      vi.useRealTimers();
+    });
   });
 });
