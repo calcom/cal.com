@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 
 // calculate the available dates in the month:
@@ -21,7 +22,9 @@ export function getAvailableDatesInMonth({
   );
   for (
     let date = browsingDate > minDate ? browsingDate : minDate;
-    date <= lastDateOfMonth;
+    // Check if date is before the last date of the month
+    // or is the same day, in the same month, in the same year.
+    date < lastDateOfMonth || dayjs(date).isSame(lastDateOfMonth, "day");
     date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
   ) {
     // intersect included dates

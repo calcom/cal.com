@@ -50,8 +50,13 @@ export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail
     return this.getFormattedRecipientTime({ time: this.calEvent.endTime, format });
   }
 
+  protected getLocale(): string {
+    return this.calEvent.organizer.language.locale;
+  }
+
   protected getFormattedDate() {
     const organizerTimeFormat = this.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+
     return `${this.getOrganizerStart(organizerTimeFormat)} - ${this.getOrganizerEnd(
       organizerTimeFormat
     )}, ${this.t(this.getOrganizerStart("dddd").toLowerCase())}, ${this.t(
