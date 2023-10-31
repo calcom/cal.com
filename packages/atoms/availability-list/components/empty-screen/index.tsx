@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { LucideIcon as IconType } from "lucide-react";
 import type { ReactNode } from "react";
 import React from "react";
 
-import { classNames } from "@calcom/lib";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
 type EmptyScreenProps = {
@@ -34,7 +34,7 @@ export function EmptyScreen({
     <>
       <div
         data-testid="empty-screen"
-        className={classNames(
+        className={cn(
           "flex w-full select-none flex-col items-center justify-center rounded-lg p-7 lg:p-20",
           border && "border-subtle border",
           dashedBorder && "border-dashed",
@@ -49,19 +49,15 @@ export function EmptyScreen({
           </div>
         )}
         <div className="flex max-w-[420px] flex-col items-center">
-          <h2
-            className={classNames(
-              "text-semibold font-cal text-emphasis text-center text-xl",
-              Icon && "mt-6"
-            )}>
+          <h2 className={cn("text-semibold font-cal text-emphasis text-center text-xl", Icon && "mt-6")}>
             {headline}
           </h2>
-          {description && (
+          {!!description && (
             <div className="text-default mb-8 mt-3 text-center text-sm font-normal leading-6">
               {description}
             </div>
           )}
-          {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
+          {!!buttonOnClick && !!buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
           {buttonRaw}
         </div>
       </div>
