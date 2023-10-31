@@ -5,19 +5,28 @@ import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { getWhen } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
+enum BookingAction {
+  Create = "create",
+  Cancel = "cancel",
+  Reschedule = "reschedule",
+  RequestReschedule = "request_reschedule",
+}
 
 const generateIcsString = ({
   event,
   t,
   role,
-  status,
+  bookingAction,
 }: {
   event: CalendarEvent;
   t: TFunction;
   role: "attendee" | "organizer";
-  status: EventStatus;
+  bookingAction: BookingAction;
 }) => {
+  let title: string, subtitle: string, status: EventStatus;
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
   const partstat: ParticipationStatus = "ACCEPTED";
@@ -27,24 +36,55 @@ const generateIcsString = ({
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
 
-  const getTextBody = (title = "", subtitle = "emailed_you_and_any_other_attendees"): string => {
-    if (!title) {
+  switch (bookingAction) {
+    case BookingAction.Create:
       if (role === "organizer") {
         title = event.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled";
-      }
-      if (role === "attendee") {
+      } else if (role === "attendee") {
         title = event.recurringEvent?.count
           ? "your_event_has_been_scheduled_recurring"
           : "your_event_has_been_scheduled";
       }
+      status = "CONFIRMED";
+      break;
+    case BookingAction.Cancel:
+      title = "event_request_cancelled";
+      status = "CANCELLED";
+      break;
+    case BookingAction.Reschedule:
+      title = "event_has_been_rescheduled";
+      status = "CONFIRMED";
+      break;
+    case BookingAction.RequestReschedule:
+      if (role === "organizer") {
+        title = t("request_reschedule_title_organizer", {
+          attendee: event.attendees[0].name,
+        });
+        subtitle = t("request_reschedule_subtitle_organizer", {
+          attendee: event.attendees[0].name,
+        });
+      } else if (role === "attendee") {
+        title = "request_reschedule_booking";
+        subtitle = t("request_reschedule_subtitle", {
+          organizer: event.organizer.name,
+        });
+      }
+      status = "CANCELLED";
+  }
+
+  const getTextBody = (title = "", subtitle = "emailed_you_and_any_other_attendees"): string => {
+    if (BookingAction.RequestReschedule && role === "attendee") {
+      return `
+      ${t(title)}
+      ${getWhen(event, t)}
+      ${t(subtitle)}`;
     }
-
     return `
-${t(title)}
-${t(subtitle)}
+    ${t(title)}
+    ${t(subtitle)}
 
-${getRichDescription(event, t)}
-`.trim();
+    ${getRichDescription(event, t)}
+    `.trim();
   };
 
   const icsEvent = createEvent({
@@ -58,7 +98,7 @@ ${getRichDescription(event, t)}
     startInputType: "utc",
     productId: "calcom/ics",
     title: event.title,
-    description: getTextBody(),
+    description: getTextBody(title, subtitle),
     duration: { minutes: dayjs(event.endTime).diff(dayjs(event.startTime), "minute") },
     organizer: { name: event.organizer.name, email: event.organizer.email },
     ...{ recurrenceRule },
