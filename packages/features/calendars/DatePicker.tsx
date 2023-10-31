@@ -95,7 +95,7 @@ const NoAvailabilityOverlay = ({
   return (
     <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
       <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight}>
+      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight} data-testid="view_next_month">
         {t("view_next_month")}
       </Button>
     </div>
