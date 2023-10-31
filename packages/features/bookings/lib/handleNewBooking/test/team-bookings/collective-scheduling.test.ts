@@ -213,6 +213,9 @@ describe("handleNewBooking", () => {
             });
 
             expectSuccessfulBookingCreationEmails({
+              booking: {
+                uid: createdBooking.uid!,
+              },
               booker,
               organizer,
               otherTeamMembers,
@@ -525,6 +528,9 @@ describe("handleNewBooking", () => {
             });
 
             expectSuccessfulBookingCreationEmails({
+              booking: {
+                uid: createdBooking.uid!,
+              },
               booker,
               organizer,
               otherTeamMembers,
@@ -842,6 +848,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             otherTeamMembers,
@@ -1056,6 +1065,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             otherTeamMembers,

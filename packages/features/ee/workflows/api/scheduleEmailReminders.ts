@@ -26,6 +26,7 @@ const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
 const senderEmail = process.env.SENDGRID_EMAIL as string;
 
 sgMail.setApiKey(sendgridAPIKey);
+client.setApiKey(sendgridAPIKey);
 
 type Booking = Prisma.BookingGetPayload<{
   include: {
@@ -106,6 +107,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const pageSize = 90;
   let pageNumber = 0;
+  const deletePromises = [];
 
   //delete batch_ids with already past scheduled date from scheduled_sends
   while (true) {
@@ -128,18 +130,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       break;
     }
 
-    for (const reminder of remindersToDelete) {
-      try {
-        await client.request({
+    deletePromises.push(
+      remindersToDelete.map((reminder) =>
+        client.request({
           url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
           method: "DELETE",
-        });
-      } catch (error) {
-        console.log(`Error deleting batch id from scheduled_sends: ${error}`);
-      }
-    }
+        })
+      )
+    );
     pageNumber++;
   }
+
+  Promise.allSettled(deletePromises).then((results) => {
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        console.log(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+      }
+    });
+  });
 
   await prisma.workflowReminder.deleteMany({
     where: {
@@ -153,6 +161,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
 
   pageNumber = 0;
+
+  const allPromisesCancelReminders = [];
+
   while (true) {
     const remindersToCancel = await prisma.workflowReminder.findMany({
       where: {
@@ -175,32 +186,39 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     for (const reminder of remindersToCancel) {
-      try {
-        await client.request({
-          url: "/v3/user/scheduled_sends",
-          method: "POST",
-          body: {
-            batch_id: reminder.referenceId,
-            status: "cancel",
-          },
-        });
+      const cancelPromise = client.request({
+        url: "/v3/user/scheduled_sends",
+        method: "POST",
+        body: {
+          batch_id: reminder.referenceId,
+          status: "cancel",
+        },
+      });
 
-        await prisma.workflowReminder.update({
-          where: {
-            id: reminder.id,
-          },
-          data: {
-            scheduled: false, // to know which reminder already got cancelled (to avoid error from cancelling the same reminders again)
-          },
-        });
-      } catch (error) {
-        console.log(`Error cancelling scheduled Emails: ${error}`);
-      }
+      const updatePromise = prisma.workflowReminder.update({
+        where: {
+          id: reminder.id,
+        },
+        data: {
+          scheduled: false, // to know which reminder already got cancelled (to avoid error from cancelling the same reminders again)
+        },
+      });
+
+      allPromisesCancelReminders.push(cancelPromise, updatePromise);
     }
     pageNumber++;
   }
 
+  Promise.allSettled(allPromisesCancelReminders).then((results) => {
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        console.log(`Error cancelling scheduled_sends: ${result.reason}`);
+      }
+    });
+  });
+
   pageNumber = 0;
+  const sendEmailPromises = [];
 
   while (true) {
     //find all unscheduled Email reminders
@@ -390,34 +408,36 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const batchId = batchIdResponse[1].batch_id;
 
           if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
-            await sgMail.send({
-              to: sendTo,
-              from: {
-                email: senderEmail,
-                name: reminder.workflowStep.sender || "Cal.com",
-              },
-              subject: emailContent.emailSubject,
-              html: emailContent.emailBody,
-              batchId: batchId,
-              sendAt: dayjs(reminder.scheduledDate).unix(),
-              replyTo: reminder.booking.user?.email || senderEmail,
-              mailSettings: {
-                sandboxMode: {
-                  enable: sandboxMode,
+            sendEmailPromises.push(
+              sgMail.send({
+                to: sendTo,
+                from: {
+                  email: senderEmail,
+                  name: reminder.workflowStep.sender || "Cal.com",
                 },
-              },
-              attachments: reminder.workflowStep.includeCalendarEvent
-                ? [
-                    {
-                      content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
-                      filename: "event.ics",
-                      type: "text/calendar; method=REQUEST",
-                      disposition: "attachment",
-                      contentId: uuidv4(),
-                    },
-                  ]
-                : undefined,
-            });
+                subject: emailContent.emailSubject,
+                html: emailContent.emailBody,
+                batchId: batchId,
+                sendAt: dayjs(reminder.scheduledDate).unix(),
+                replyTo: reminder.booking.user?.email || senderEmail,
+                mailSettings: {
+                  sandboxMode: {
+                    enable: sandboxMode,
+                  },
+                },
+                attachments: reminder.workflowStep.includeCalendarEvent
+                  ? [
+                      {
+                        content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
+                        filename: "event.ics",
+                        type: "text/calendar; method=REQUEST",
+                        disposition: "attachment",
+                        contentId: uuidv4(),
+                      },
+                    ]
+                  : undefined,
+              })
+            );
           }
 
           await prisma.workflowReminder.update({
@@ -436,6 +456,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     pageNumber++;
   }
+
+  Promise.allSettled(sendEmailPromises).then((results) => {
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        console.log("Email sending failed", result.reason);
+      }
+    });
+  });
+
   res.status(200).json({ message: "Emails scheduled" });
 }
 
