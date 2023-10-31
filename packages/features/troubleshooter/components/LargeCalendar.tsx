@@ -16,13 +16,17 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const event = useTroubleshooterStore((state) => state.event);
   const { data: session } = useSession();
-  const date = selectedDate ? dayjs(selectedDate) : dayjs();
+  const startDate = selectedDate ? dayjs(selectedDate) : dayjs();
 
   const { data: busyEvents, isLoading } = trpc.viewer.availability.user.useQuery(
     {
       username: session?.user?.username || "",
-      dateFrom: date.startOf("day").utc().format(),
-      dateTo: date.endOf("day").utc().format(),
+      dateFrom: startDate.startOf("day").utc().format(),
+      dateTo: startDate
+        .endOf("day")
+        .add(extraDays - 1, "day")
+        .utc()
+        .format(),
       withSource: true,
     },
     {
@@ -35,10 +39,9 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     eventSlug: event?.slug,
     eventId: event?.id,
     timezone,
-    month: date.format("YYYY-MM"),
+    month: startDate.format("YYYY-MM"),
   });
 
-  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
   const endDate = dayjs(startDate)
     .add(extraDays - 1, "day")
     .toDate();
@@ -102,7 +105,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         endHour={23}
         events={events}
         availableTimeslots={availableSlots}
-        startDate={startDate}
+        startDate={startDate.toDate()}
         endDate={endDate}
         gridCellsPerHour={60 / 15}
         hoverEventDuration={30}

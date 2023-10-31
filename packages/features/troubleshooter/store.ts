@@ -58,7 +58,8 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
     }
   },
   addToSelectedDate: (days: number) => {
-    const currentSelection = dayjs(get().selectedDate);
+    const selectedDate = get().selectedDate;
+    const currentSelection = selectedDate ? dayjs(get().selectedDate) : dayjs();
     const newSelection = currentSelection.add(days, "day");
     const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
 
@@ -82,7 +83,10 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
     get().setSelectedDate(null);
   },
   initialize: ({ month }: StoreInitializeType) => {
-    if (month) set({ month });
+    if (month) {
+      set({ month });
+      updateQueryParam("month", month);
+    }
     //removeQueryParam("layout");
   },
 }));
