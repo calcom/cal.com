@@ -23,6 +23,14 @@ export const getAggregatedAvailability = (
   return mergeOverlappingDateRanges(availability);
 };
 
+/**
+ * handles the availability of the unfixed hosts, by deciding whether the
+ * multi-round-robin-hosts special case is present
+ *
+ * @param unfixedHosts availabilities of the unfixed hosts
+ * @param roundRobinHostCount this is the number of hosts who need to participate,
+ * @return only those DateRanges at which at least roundRobinHostCount many hosts are available
+ */
 function getUnfixedHostsDateRanges(
   unfixedHosts: { dateRanges: DateRange[]; user?: { isFixed?: boolean } }[],
   roundRobinHostCount: number
@@ -36,15 +44,23 @@ function getUnfixedHostsDateRanges(
   // this is the multi-host round robin case
   const hostDates = unfixedHosts.map((s) => s.dateRanges);
   const dateCombinations = getDateRangeCombinations(hostDates, roundRobinHostCount);
-  // intesect all combinations
+  // intersect all combinations
   const collectiveAvailability: DateRange[] = [];
   dateCombinations.forEach((elem) => collectiveAvailability.push(...intersect(elem)));
 
   return collectiveAvailability;
 }
 
-// for rund robin with multiple hosts we need to look at all possible combinations
-// with 'hostnum' elements
+/**
+ * for round robin with multiple hosts we need to look at all possible combinations
+ * with 'hostnum' elements
+ * This is just a simple: Create all k-element combinations of the items in an array
+ *
+ * @param hostDates the DateRanges of each provided host which need to be combined
+ * @param roundRobinHostCount this is the number of hosts who need to participate,
+ *                            for the algorithm it's the k, as in k-element combinations
+ * @return all combinations of DateRanges (with roundRobinHostCount-elements) of the provided hosts
+ */
 function getDateRangeCombinations(hostDates: DateRange[][], roundRobinHostCount: number): DateRange[][] {
   const result: DateRange[][] = [];
 
