@@ -341,7 +341,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                         const sampleUrl = eventLocationType.organizerInputPlaceholder;
                         ctx.addIssue({
                           code: z.ZodIssueCode.custom,
-                          path: [eventLocationType.defaultValueVariable],
+                          path: [eventLocationType?.defaultValueVariable ?? "link"],
                           message: `Invalid URL for ${eventLocationType.label}. ${
                             sampleUrl ? `Sample URL: ${sampleUrl}` : ""
                           }`,
@@ -350,11 +350,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                       return;
                     }
 
-                    const valid = z.string().url().optional().safeParse(val).success;
+                    const valid = z.string().url().optional().safeParse(link).success;
+
                     if (!valid) {
                       ctx.addIssue({
                         code: z.ZodIssueCode.custom,
-                        path: [eventLocationType.defaultValueVariable],
+                        path: [eventLocationType?.defaultValueVariable ?? "link"],
                         message: `Invalid URL`,
                       });
                     }
