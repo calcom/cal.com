@@ -44,7 +44,6 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
   protected getiCalEventAsString(): string | undefined {
     const icsEvent = createEvent({
       uid: this.calEvent.iCalUID || this.calEvent.uid!,
-      sequence: 100,
       start: dayjs(this.calEvent.startTime)
         .utc()
         .toArray()
