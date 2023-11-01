@@ -68,6 +68,7 @@ type ExpectedEmail = {
     filename: string;
     iCalUID: string;
     recurrence?: Recurrence;
+    method: string;
   };
   /**
    * Checks that there is no
@@ -371,6 +372,7 @@ export function expectSuccessfulBookingCreationEmails({
         filename: "event.ics",
         iCalUID: `${iCalUID}`,
         recurrence,
+        method: "REQUEST",
       },
     },
     `${organizer.email}`
@@ -395,6 +397,7 @@ export function expectSuccessfulBookingCreationEmails({
         filename: "event.ics",
         iCalUID: iCalUID,
         recurrence,
+        method: "REQUEST",
       },
       links: [
         {
