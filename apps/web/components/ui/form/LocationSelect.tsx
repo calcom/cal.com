@@ -2,6 +2,7 @@ import type { GroupBase, Props, SingleValue } from "react-select";
 import { components } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
+import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import { classNames } from "@calcom/lib";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select } from "@calcom/ui";
@@ -12,7 +13,7 @@ export type LocationOption = {
   icon?: string;
   disabled?: boolean;
   address?: string;
-  credentialId?: number;
+  credential?: CredentialDataWithTeamName;
 };
 
 export type SingleValueLocationOption = SingleValue<LocationOption>;
