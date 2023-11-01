@@ -52,6 +52,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { ICAL_UID_DOMAIN } from "@calcom/lib/constants";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getIP from "@calcom/lib/getIP";
@@ -1099,7 +1100,7 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
-  const iCalUID = originalRescheduledBooking?.iCalUID ?? `${uid}@${process.env.ICAL_UID_DOMAIN}`;
+  const iCalUID = originalRescheduledBooking?.iCalUID ?? `${uid}@${ICAL_UID_DOMAIN}`;
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = originalRescheduledBooking?.iCalSequence
     ? originalRescheduledBooking.iCalSequence + 1

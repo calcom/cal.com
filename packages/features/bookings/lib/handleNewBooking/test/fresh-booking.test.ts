@@ -12,7 +12,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, ICAL_UID_DOMAIN } from "@calcom/lib/constants";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -140,7 +140,6 @@ describe("handleNewBooking", () => {
         const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           },
         });
 
@@ -192,6 +191,7 @@ describe("handleNewBooking", () => {
               meetingUrl: "https://UNUSED_URL",
             },
           ],
+          iCalUID: `${createdBooking.uid}@${ICAL_UID_DOMAIN}`,
         });
 
         expectWorkflowToBeTriggered();
@@ -199,6 +199,11 @@ describe("handleNewBooking", () => {
           calendarId: "event-type-1@google-calendar.com",
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
         });
+
+        console.log(
+          "🚀 ~ file: fresh-booking.test.ts:202 ~ MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          "MOCKED_GOOGLE_CALENDAR_ICS_ID"
+        );
 
         expectSuccessfulBookingCreationEmails({
           booking: {
@@ -208,7 +213,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          // iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
