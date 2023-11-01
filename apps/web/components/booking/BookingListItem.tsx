@@ -262,7 +262,10 @@ function BookingListItem(booking: BookingItemProps) {
 
   const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
   const checkForRecordingsButton =
-    !showRecordingsButtons && (booking.location === "integrations:daily" || booking?.location?.trim() === "");
+    !showRecordingsButtons &&
+    (booking.location === "integrations:daily" || booking?.location?.trim() === "") &&
+    isPast &&
+    isConfirmed;
 
   const showRecordingActions: ActionType[] = [
     {
