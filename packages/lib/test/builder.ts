@@ -31,9 +31,10 @@ export const buildPerson = (person?: Partial<Person>): Person => {
 };
 
 export const buildBooking = (booking?: Partial<Booking>): Booking => {
+  const uid = faker.datatype.uuid();
   return {
     id: faker.datatype.number(),
-    uid: faker.datatype.uuid(),
+    uid,
     userId: null,
     eventTypeId: null,
     title: faker.lorem.sentence(),
@@ -59,6 +60,8 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     metadata: null,
     responses: null,
     isRecorded: false,
+    iCalUID: `${uid}@${process.env.ICAL_UID_DOMAIN}`,
+    iCalSequence: 0,
     ...booking,
   };
 };
@@ -154,8 +157,10 @@ export const buildSubscriberEvent = (booking?: Partial<Booking>) => {
 };
 
 export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEvent => {
+  const uid = faker.datatype.uuid();
   return {
-    uid: faker.datatype.uuid(),
+    uid,
+    iCalUID: `${uid}@${process.env.ICAL_UID_DOMAIN}`,
     type: faker.helpers.arrayElement(["event", "meeting"]),
     title: faker.lorem.sentence(),
     startTime: faker.date.future().toISOString(),
