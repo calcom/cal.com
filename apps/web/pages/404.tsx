@@ -3,7 +3,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { orgDomainConfig, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  getOrgDomainConfigFromHostname,
+  subdomainSuffix,
+} from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HeadSeo } from "@calcom/ui";
@@ -50,7 +53,10 @@ export default function Custom404() {
 
   const [url, setUrl] = useState(`${WEBSITE_URL}/signup`);
   useEffect(() => {
-    const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(window.location.host);
+    const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({
+      hostname: window.location.host,
+    });
+
     const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
     if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
       const splitPath = routerUsername.split("/");
