@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
 type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
@@ -15,10 +14,7 @@ export function defaultResponder<T>(f: Handle<T>) {
       ok = true;
       if (result) res.json(result);
     } catch (err) {
-      console.error(err);
-      const error = getServerErrorFromUnknown(err);
-      res.statusCode = error.statusCode;
-      res.json({ message: error.message });
+      throw err;
     } finally {
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");

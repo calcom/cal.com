@@ -1,4 +1,4 @@
-import { HttpError } from "./http-error";
+import { createFromRequest } from "./http-error";
 
 async function http<T>(path: string, config: RequestInit): Promise<T> {
   const request = new Request(path, config);
@@ -6,7 +6,7 @@ async function http<T>(path: string, config: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const errJson = await response.json();
-    const err = HttpError.fromRequest(request, {
+    const err = createFromRequest(request, {
       ...response,
       statusText: errJson.message || response.statusText,
     });

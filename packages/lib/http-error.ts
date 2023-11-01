@@ -1,3 +1,11 @@
+type HttpErrorOptions<TCode extends number = number> = {
+  url?: string;
+  method?: string;
+  message?: string;
+  statusCode: TCode;
+  cause?: Error;
+};
+
 export class HttpError<TCode extends number = number> extends Error {
   public readonly cause?: Error;
   public readonly statusCode: TCode;
@@ -5,7 +13,7 @@ export class HttpError<TCode extends number = number> extends Error {
   public readonly url: string | undefined;
   public readonly method: string | undefined;
 
-  constructor(opts: { url?: string; method?: string; message?: string; statusCode: TCode; cause?: Error }) {
+  constructor(opts: HttpErrorOptions<TCode>) {
     super(opts.message ?? `HTTP Error ${opts.statusCode} `);
 
     Object.setPrototypeOf(this, HttpError.prototype);
@@ -21,13 +29,14 @@ export class HttpError<TCode extends number = number> extends Error {
       this.stack = opts.cause.stack;
     }
   }
-
-  public static fromRequest(request: Request, response: Response) {
-    return new HttpError({
-      message: response.statusText,
-      url: response.url,
-      method: request.method,
-      statusCode: response.status,
-    });
-  }
 }
+
+export const createFromRequest = (request: Request, response: Response) =>
+  new HttpError({
+    message: response.statusText,
+    url: response.url,
+    method: request.method,
+    statusCode: response.status,
+  });
+
+export const httpError = (props: HttpErrorOptions) => new HttpError(props);

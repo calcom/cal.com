@@ -34,17 +34,18 @@ const middleware = {
 
 type Middleware = keyof typeof middleware;
 
-const middlewareOrder =
-  // The order here, determines the order of execution
-  [
-    "extendRequest",
-    "captureErrors",
-    // - Put customPrismaClient before verifyApiKey always.
-    "customPrismaClient",
-    "verifyApiKey",
-    "rateLimitApiKey",
-    "addRequestId",
-  ] as Middleware[]; // <-- Provide a list of middleware to call automatically
+// The order here, determines the order of execution
+const middlewareOrder = [
+  // register captureErrors first, most important.
+  "captureErrors",
+  "extendRequest",
+  // Rate limit api key without verification
+  "rateLimitApiKey",
+  // - Put customPrismaClient before verifyApiKey always.
+  "customPrismaClient",
+  "verifyApiKey",
+  "addRequestId",
+] satisfies Middleware[];
 
 const withMiddleware = label(middleware, middlewareOrder);
 

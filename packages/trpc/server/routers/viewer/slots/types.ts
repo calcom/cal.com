@@ -1,11 +1,29 @@
 import { z } from "zod";
 
+const iso8601Schema = z.string().refine(
+  (value) => {
+    // Attempt to parse the string as a date
+    const date = new Date(value);
+    // Check if the date is valid and the string is in ISO 8601 format
+    return !isNaN(date.getTime()) && value === date.toISOString();
+  },
+  {
+    message: "The string must be a valid ISO 8601 date string",
+  }
+);
+
+const isStartTimeBeforeEndTime = (startTime: string, endTime: string) => {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  return start < end;
+};
+
 export const getScheduleSchema = z
   .object({
-    // startTime ISOString
-    startTime: z.string(),
-    // endTime ISOString
-    endTime: z.string(),
+    // startTime as ISO 8601 string
+    startTime: iso8601Schema,
+    // endTime as ISO 8601 string
+    endTime: iso8601Schema,
     // Event type ID
     eventTypeId: z.coerce.number().int().optional(),
     // Event type slug
@@ -34,6 +52,10 @@ export const getScheduleSchema = z
   .refine(
     (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
     "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
+  )
+  .refine(
+    (data) => isStartTimeBeforeEndTime(data.startTime, data.endTime),
+    "Start time must be before end time."
   );
 
 export const reserveSlotSchema = z

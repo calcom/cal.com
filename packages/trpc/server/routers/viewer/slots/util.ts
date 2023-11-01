@@ -302,9 +302,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
-  if (!startTime.isValid() || !endTime.isValid()) {
-    throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
-  }
   let currentSeats: CurrentSeats | undefined;
 
   let usersWithCredentials = eventType.users.map((user) => ({

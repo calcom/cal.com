@@ -1,9 +1,8 @@
 import { PrismaClientKnownRequestError, NotFoundError } from "@prisma/client/runtime/library";
-import Stripe from "stripe";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
-import { HttpError } from "../http-error";
+import { HttpError, httpError } from "../http-error";
 import { redactError } from "../redactError";
 
 function hasName(cause: unknown): cause is { name: string } {
@@ -28,54 +27,45 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (isZodError(cause)) {
-    console.log("cause", cause);
-    return new HttpError({
+    return httpError({
       statusCode: 400,
       message: parseZodErrorIssues(cause.issues),
       cause,
     });
   }
+
   if (cause instanceof SyntaxError) {
-    return new HttpError({
+    return httpError({
       statusCode: 500,
       message: "Unexpected error, please reach out for our customer support.",
     });
   }
 
   if (cause instanceof PrismaClientKnownRequestError) {
-    return getHttpError({ statusCode: 400, cause });
+    return createHttpError({ statusCode: 400, cause });
   }
   if (cause instanceof NotFoundError) {
-    return getHttpError({ statusCode: 404, cause });
+    return createHttpError({ statusCode: 404, cause });
   }
-  if (cause instanceof Stripe.errors.StripeInvalidRequestError) {
-    return getHttpError({ statusCode: 400, cause });
-  }
+
   if (cause instanceof HttpError) {
-    const redactedCause = redactError(cause);
-    return {
-      ...redactedCause,
-      cause: cause.cause,
-      url: cause.url,
-      statusCode: cause.statusCode,
-      method: cause.method,
-    };
+    return createHttpError({ statusCode: cause.statusCode, cause });
   }
   if (cause instanceof Error) {
-    return getHttpError({ statusCode: 500, cause });
+    return createHttpError({ statusCode: 500, cause });
   }
   if (typeof cause === "string") {
     // @ts-expect-error https://github.com/tc39/proposal-error-cause
     return new Error(cause, { cause });
   }
 
-  return new HttpError({
+  return httpError({
     statusCode: 500,
     message: `Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`,
   });
 }
 
-function getHttpError<T extends Error>({ statusCode, cause }: { statusCode: number; cause: T }) {
+function createHttpError<T extends Error>({ statusCode, cause }: { statusCode: number; cause: T }) {
   const redacted = redactError(cause);
-  return new HttpError({ statusCode, message: redacted.message, cause: redacted });
+  return httpError({ statusCode, message: redacted.message, cause: redacted });
 }

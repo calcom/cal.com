@@ -39,7 +39,8 @@ const availabilitySchema = z
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
   })
-  .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
+  .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.")
+  .refine((data) => data.dateFrom.isValid() && data.dateTo.isValid(), "Invalid time range given.");
 
 const getEventType = async (id: number) => {
   const eventType = await prisma.eventType.findUnique({
@@ -153,10 +154,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
     availabilitySchema.parse(query);
-
-  if (!dateFrom.isValid() || !dateTo.isValid()) {
-    throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
-  }
 
   const where: Prisma.UserWhereInput = {};
   if (username) where.username = username;
