@@ -23,6 +23,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();
@@ -44,7 +45,7 @@ export default class HubspotCalendarService implements Calendar {
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private hubspotContactCreate = async (attendees: Person[]) => {
@@ -173,13 +174,18 @@ export default class HubspotCalendarService implements Calendar {
 
     const refreshAccessToken = async (refreshToken: string) => {
       try {
-        const hubspotRefreshToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
-          "refresh_token",
-          undefined,
-          WEBAPP_URL + "/api/integrations/hubspot/callback",
-          this.client_id,
-          this.client_secret,
-          refreshToken
+        const hubspotRefreshToken: HubspotToken = await refreshOAuthTokens(
+          async () =>
+            await hubspotClient.oauth.tokensApi.createToken(
+              "refresh_token",
+              undefined,
+              `${WEBAPP_URL}/api/integrations/hubspot/callback`,
+              this.client_id,
+              this.client_secret,
+              refreshToken
+            ),
+          "hubspot",
+          credential.userId
         );
 
         // set expiry date as offset from current time.

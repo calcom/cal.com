@@ -14,6 +14,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -71,17 +72,17 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  const slugCollisions = await prisma.team.findFirst({
+  // An org doesn't have a parentId. A team that isn't part of an org also doesn't have a parentId.
+  // So, an org can't have the same slug as a non-org team.
+  // There is a unique index on [slug, parentId] in Team because we don't add the slug to the team always. We only add metadata.requestedSlug in some cases. So, DB won't prevent creation of such an organization.
+  const hasANonOrgTeamOrOrgWithSameSlug = await prisma.team.findFirst({
     where: {
       slug: slug,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      parentId: null,
     },
   });
 
-  if (slugCollisions || RESERVED_SUBDOMAINS.includes(slug))
+  if (hasANonOrgTeamOrOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
@@ -126,7 +127,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     const createOwnerOrg = await prisma.user.create({
       data: {
-        username: adminUsername,
+        username: slugify(adminUsername),
         email: adminEmail,
         emailVerified: new Date(),
         password: hashedPassword,
@@ -148,7 +149,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         organization: {
           create: {
             name,
-            ...(IS_TEAM_BILLING_ENABLED ? { slug } : {}),
+            ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
             metadata: {
               ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
               isOrganization: true,

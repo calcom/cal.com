@@ -77,11 +77,11 @@ const OtherTeamProfileView = () => {
     resolver: zodResolver(teamProfileFormSchema),
   });
   const searchParams = useSearchParams();
-  const teamId = Number(searchParams.get("id"));
+  const teamId = Number(searchParams?.get("id"));
   const { data: team, isLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId: teamId },
     {
-      enabled: !!teamId,
+      enabled: !Number.isNaN(teamId),
       onError: () => {
         router.push("/settings");
       },
@@ -106,9 +106,9 @@ const OtherTeamProfileView = () => {
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
-  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
+  const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
     async onSuccess() {
-      await utils.viewer.teams.list.invalidate();
+      await utils.viewer.organizations.listOtherTeams.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
     },

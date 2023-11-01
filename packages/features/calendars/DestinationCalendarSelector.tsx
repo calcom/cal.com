@@ -6,7 +6,7 @@ import { components } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Select } from "@calcom/ui";
+import { Select, Badge } from "@calcom/ui";
 import { Check } from "@calcom/ui/components/icon";
 
 interface Props {
@@ -126,6 +126,7 @@ const DestinationCalendarSelector = ({
 
   return (
     <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
+      <p className="text-sm font-medium leading-none">{t("add_events_to")}</p>
       <Select
         name="primarySelectedCalendar"
         placeholder={
@@ -133,9 +134,9 @@ const DestinationCalendarSelector = ({
             `${t("create_events_on")}`
           ) : (
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-              {t("default_calendar_selected")}{" "}
+              <Badge variant="blue">Default</Badge>{" "}
               {queryDestinationCalendar.name &&
-                `| ${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
+                `${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
             </span>
           )
         }
@@ -155,7 +156,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "border-default mb-2 mt-1 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);
@@ -176,6 +177,7 @@ const DestinationCalendarSelector = ({
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}
       />
+      <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
     </div>
   );
 };

@@ -1,3 +1,5 @@
+import type { IncomingMessage } from "http";
+import { dir } from "i18next";
 import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
@@ -7,7 +9,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 
 import { csp } from "@lib/csp";
 
-type Props = Record<string, unknown> & DocumentProps;
+type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 function setHeader(ctx: NextPageContext, name: string, value: string) {
   try {
     ctx.res?.setHeader(name, value);
@@ -26,23 +28,47 @@ class MyDocument extends Document<Props> {
       setHeader(ctx, "x-csp", "initialPropsOnly");
     }
 
+    const getLocaleModule = ctx.req ? await import("@calcom/features/auth/lib/getLocale") : null;
+
+    const newLocale =
+      ctx.req && getLocaleModule
+        ? await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        : "en";
+
     const asPath = ctx.asPath || "";
     // Use a dummy URL as default so that URL parsing works for relative URLs as well. We care about searchParams and pathname only
     const parsedUrl = new URL(asPath, "https://dummyurl");
-    const isEmbed = parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null;
+    const isEmbedSnippetGeneratorPath = parsedUrl.pathname.startsWith("/event-types");
+    // FIXME: Revisit this logic to remove embedType query param check completely. Ideally, /embed should always be there at the end of the URL. Test properly and then remove it.
+    const isEmbed =
+      (parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null) &&
+      !isEmbedSnippetGeneratorPath;
     const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, embedColorScheme, nonce, ...initialProps };
+    return { isEmbed, embedColorScheme, nonce, ...initialProps, newLocale };
   }
 
   render() {
-    const { locale } = this.props.__NEXT_DATA__;
     const { isEmbed, embedColorScheme } = this.props;
+    const newLocale = this.props.newLocale || "en";
+    const newDir = dir(newLocale);
+
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
+
     return (
-      <Html lang={locale} style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
+      <Html
+        lang={newLocale}
+        dir={newDir}
+        style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
+          <script
+            nonce={nonce}
+            id="newLocale"
+            dangerouslySetInnerHTML={{
+              __html: `window.calNewLocale = "${newLocale}";`,
+            }}
+          />
           <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
           <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
           <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />

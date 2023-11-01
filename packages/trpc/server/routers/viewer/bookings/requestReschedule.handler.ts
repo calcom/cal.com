@@ -17,6 +17,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -167,6 +168,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const builder = new CalendarEventBuilder();
   builder.init({
     title: bookingToReschedule.title,
+    bookerUrl: await getBookerUrl(user),
     type: event && event.title ? event.title : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
@@ -205,10 +207,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        const calendar = await getCalendar(
+          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+        );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+        return deleteMeeting(
+          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          bookingRef.uid
+        );
       }
     })
   );

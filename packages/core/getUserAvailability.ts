@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Booking, Prisma, EventType as PrismaEventType } from "@prisma/client";
 import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -9,11 +9,13 @@ import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { HttpError } from "@calcom/lib/http-error";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import type {
   EventBusyDate,
@@ -24,6 +26,7 @@ import type {
 
 import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
 
+const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
   .object({
     dateFrom: stringToDayjs,
@@ -51,7 +54,14 @@ const getEventType = async (id: number) => {
       metadata: true,
       schedule: {
         select: {
-          availability: true,
+          availability: {
+            select: {
+              days: true,
+              date: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
           timeZone: true,
         },
       },
@@ -81,7 +91,9 @@ const getUser = (where: Prisma.UserWhereInput) =>
     where,
     select: {
       ...availabilityUserSelect,
-      credentials: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   });
 
@@ -128,6 +140,15 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     eventType?: EventType;
     currentSeats?: CurrentSeats;
     rescheduleUid?: string | null;
+    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      eventType: Pick<
+        PrismaEventType,
+        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      > | null;
+      _count?: {
+        seatsReferences: number;
+      };
+    })[];
   }
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
@@ -142,7 +163,12 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   if (userId) where.id = userId;
 
   const user = initialData?.user || (await getUser(where));
+
   if (!user) throw new HttpError({ statusCode: 404, message: "No user found" });
+  log.debug(
+    "getUserAvailability for user",
+    safeStringify({ user: { id: user.id }, slot: { dateFrom, dateTo } })
+  );
 
   let eventType: EventType | null = initialData?.eventType || null;
   if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
@@ -188,6 +214,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     seatedEvent: !!eventType?.seatsPerTimeSlot,
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
+    currentBookings: initialData?.currentBookings,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -205,10 +232,17 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
-  const schedule =
-    !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
-      ? eventType.schedule
-      : userSchedule;
+  const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
+  const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+  log.debug(
+    "Using schedule:",
+    safeStringify({
+      chosenSchedule: schedule,
+      eventTypeSchedule: eventType?.schedule,
+      userSchedule: userSchedule,
+      useHostSchedulesForTeamEvent: eventType?.metadata?.config?.useHostSchedulesForTeamEvent,
+    })
+  );
 
   const startGetWorkingHours = performance.now();
 
@@ -224,7 +258,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   const workingHours = getWorkingHours({ timeZone }, availability);
 
   const endGetWorkingHours = performance.now();
-  logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
 
   const dateOverrides = availability
     .filter((availability) => !!availability.date)
@@ -249,10 +282,23 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     end: dayjs(busy.end),
   }));
 
+  const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+
+  log.debug(
+    `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
+    JSON.stringify({
+      workingHoursInUtc: workingHours,
+      dateOverrides,
+      dateRangesAsPerAvailability: dateRanges,
+      dateRangesInWhichUserIsAvailable,
+      detailedBusyTimes,
+    })
+  );
+
   return {
     busy: detailedBusyTimes,
     timeZone,
-    dateRanges: subtract(dateRanges, formattedBusyTimes),
+    dateRanges: dateRangesInWhichUserIsAvailable,
     workingHours,
     dateOverrides,
     currentSeats,

@@ -6,13 +6,13 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
 import type { LarkAuthCredentials } from "../types/LarkCalendar";
 
-const log = logger.getChildLogger({ prefix: [`[[lark/api/callback]`] });
+const log = logger.getSubLogger({ prefix: [`[[lark/api/callback]`] });
 
 const callbackQuerySchema = z.object({
   code: z.string().min(1),
@@ -28,7 +28,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const response = await fetch(`https://${LARK_HOST}/open-apis/authen/v1/access_token`, {
       method: "POST",
       headers: {
-        Authorization: "Bearer " + appAccessToken,
+        Authorization: `Bearer ${appAccessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -41,7 +41,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!response.ok || responseBody.code !== 0) {
       log.error("get user_access_token failed with none 0 code", responseBody);
-      return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+      return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
     }
 
     const key: LarkAuthCredentials = {

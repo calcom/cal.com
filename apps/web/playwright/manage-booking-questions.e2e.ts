@@ -8,7 +8,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
@@ -135,6 +135,43 @@ test.describe("Manage Booking Questions", () => {
           });
         });
       });
+
+      await test.step("Verify that we can prefill name field with no lastname", async () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append("name", "FirstName");
+        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await expectSystemFieldsToBeThereOnBookingPage({
+            page,
+            isFirstAndLastNameVariant: true,
+            values: {
+              name: {
+                firstName: "FirstName",
+                lastName: "",
+              },
+            },
+          });
+        });
+      });
+
+      await test.step("Verify that we can prefill name field with firstName,lastName query params", async () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append("firstName", "John");
+        searchParams.append("lastName", "Doe");
+        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
+          await selectFirstAvailableTimeSlotNextMonth(page);
+          await expectSystemFieldsToBeThereOnBookingPage({
+            page,
+            isFirstAndLastNameVariant: true,
+            values: {
+              name: {
+                firstName: "John",
+                lastName: "Doe",
+              },
+            },
+          });
+        });
+      });
     });
   });
 
@@ -178,13 +215,7 @@ test.describe("Manage Booking Questions", () => {
 async function runTestStepsCommonForTeamAndUserEventType(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  webhookReceiver: {
-    port: number;
-    close: () => import("http").Server;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    requestList: (import("http").IncomingMessage & { body?: any })[];
-    url: string;
-  }
+  webhookReceiver: Awaited<ReturnType<typeof addWebhook>>
 ) {
   await page.click('[href$="tabName=advanced"]');
 
@@ -274,12 +305,11 @@ async function runTestStepsCommonForTeamAndUserEventType(
             await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
 
-          await waitFor(() => {
-            expect(webhookReceiver.requestList.length).toBe(1);
-          });
+          await webhookReceiver.waitForRequestCount(1);
 
           const [request] = webhookReceiver.requestList;
 
+          // @ts-expect-error body is unknown
           const payload = request.body.payload;
 
           expect(payload.responses).toMatchObject({
@@ -506,6 +536,27 @@ async function doOnFreshPreview(
   return previewTabPage;
 }
 
+async function doOnFreshPreviewWithSearchParams(
+  searchParams: URLSearchParams,
+  page: Page,
+  context: PlaywrightTestArgs["context"],
+  callback: (page: Page) => Promise<void>,
+  persistTab = false
+) {
+  const previewUrl = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
+  const previewUrlObj = new URL(previewUrl);
+  searchParams.forEach((value, key) => {
+    previewUrlObj.searchParams.append(key, value);
+  });
+  const previewTabPage = await context.newPage();
+  await previewTabPage.goto(previewUrlObj.toString());
+  await callback(previewTabPage);
+  if (!persistTab) {
+    await previewTabPage.close();
+  }
+  return previewTabPage;
+}
+
 async function toggleQuestionAndSave({ name, page }: { name: string; page: Page }) {
   await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="toggle-field"]').click();
   await saveEventType(page);
@@ -609,9 +660,7 @@ async function expectWebhookToBeCalled(
     };
   }
 ) {
-  await waitFor(() => {
-    expect(webhookReceiver.requestList.length).toBe(1);
-  });
+  await webhookReceiver.waitForRequestCount(1);
   const [request] = webhookReceiver.requestList;
 
   const body = request.body;

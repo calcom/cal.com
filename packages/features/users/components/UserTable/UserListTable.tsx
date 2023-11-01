@@ -132,6 +132,7 @@ export function UserListTable() {
     const permissions = {
       canEdit: adminOrOwner,
       canRemove: adminOrOwner,
+      canResendInvitation: adminOrOwner,
       canImpersonate: false,
     };
     const cols: ColumnDef<User>[] = [
@@ -163,12 +164,12 @@ export function UserListTable() {
           const { username, email } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={domain + "/" + username + "/avatar.png"} />
+              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
               <div className="">
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
                 </div>
-                <div className="text-subtle text-sm leading-none">{email}</div>
+                <div className="text-subtle mt-1 text-sm leading-none">{email}</div>
               </div>
             </div>
           );
@@ -189,7 +190,7 @@ export function UserListTable() {
             <Badge
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
-                table.getColumn("role")?.setFilterValue(role);
+                table.getColumn("role")?.setFilterValue([role]);
               }}>
               {role}
             </Badge>
@@ -233,6 +234,7 @@ export function UserListTable() {
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate: user.accepted && !user.disableImpersonation && !isSelf,
             canLeave: user.accepted && isSelf,
+            canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
 
           return (

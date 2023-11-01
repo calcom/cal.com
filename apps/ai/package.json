@@ -1,6 +1,6 @@
 {
   "name": "@calcom/ai",
-  "version": "1.0.1",
+  "version": "1.2.1",
   "private": true,
   "author": "Cal.com Inc.",
   "dependencies": {
@@ -8,7 +8,7 @@
     "@t3-oss/env-nextjs": "^0.6.1",
     "langchain": "^0.0.131",
     "mailparser": "^3.6.5",
-    "next": "^13.4.6",
+    "next": "^13.5.4",
     "supports-color": "8.1.1",
     "zod": "^3.22.2"
   },

@@ -6,14 +6,16 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
+const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
@@ -23,6 +25,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
+    log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
     const appImportFn = appStore[appName as keyof typeof appStore];
 
     // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
@@ -37,6 +40,8 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
       const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
       const videoAdapter = makeVideoApiAdapter(cred);
       videoAdapters.push(videoAdapter);
+    } else {
+      log.error(`App ${appName} doesn't have 'lib.VideoApiAdapter' defined`);
     }
   }
 
@@ -48,9 +53,16 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: CredentialWithAppName, calEvent: CalendarEvent) => {
+const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
-
+  log.debug(
+    "createMeeting",
+    safeStringify({
+      credential: getPiiFreeCredential(credential),
+      uid,
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+    })
+  );
   if (!credential || !credential.appId) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
@@ -69,7 +81,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     createdEvent: VideoCallData | undefined;
     credentialId: number;
   } = {
-    appName: credential.appName,
+    appName: credential.appId || "",
     type: credential.type,
     uid,
     originalEvent: calEvent,
@@ -88,14 +100,16 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
       },
     });
 
-    if (!enabledApp?.enabled) throw "Current location app is not enabled";
+    if (!enabledApp?.enabled)
+      throw `Location app ${credential.appId} is either disabled or not seeded at all`;
 
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
+    log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
-    console.error("createMeeting failed", err, calEvent);
+    log.error("createMeeting failed", safeStringify({ err, calEvent: getPiiFreeCalendarEvent(calEvent) }));
 
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
@@ -110,28 +124,30 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
 };
 
 const updateMeeting = async (
-  credential: CredentialWithAppName,
+  credential: CredentialPayload,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
   const uid = translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
-
   let success = true;
-
   const [firstVideoAdapter] = await getVideoAdapters([credential]);
-  const updatedMeeting =
-    credential && bookingRef
-      ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
-          await sendBrokenIntegrationEmail(calEvent, "video");
-          log.error("updateMeeting failed", e, calEvent);
-          success = false;
-          return undefined;
-        })
-      : undefined;
+  const canCallUpdateMeeting = !!(credential && bookingRef);
+  const updatedMeeting = canCallUpdateMeeting
+    ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
+        await sendBrokenIntegrationEmail(calEvent, "video");
+        log.error("updateMeeting failed", e, calEvent);
+        success = false;
+        return undefined;
+      })
+    : undefined;
 
   if (!updatedMeeting) {
+    log.error(
+      "updateMeeting failed",
+      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+    );
     return {
-      appName: credential.appName,
+      appName: credential.appId || "",
       type: credential.type,
       success,
       uid,
@@ -140,7 +156,7 @@ const updateMeeting = async (
   }
 
   return {
-    appName: credential.appName,
+    appName: credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -149,10 +165,13 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = async (credential: CredentialPayload, uid: string): Promise<unknown> => {
+const deleteMeeting = async (credential: CredentialPayload | null, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
-    logger.debug("videoAdapter inside deleteMeeting", { credential, uid });
+    log.debug(
+      "Calling deleteMeeting for",
+      safeStringify({ credential: getPiiFreeCredential(credential), uid })
+    );
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);
@@ -176,6 +195,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
@@ -200,6 +220,7 @@ const getRecordingsOfCalVideoByRoomName = async (
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
@@ -222,6 +243,7 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       appId: "daily-video",
       type: "daily_video",
       userId: null,
+      user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
       invalid: false,

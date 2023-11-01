@@ -5,7 +5,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -27,6 +26,7 @@ function Teams() {
       CTA={
         (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
+            data-testid="new-team-btn"
             variant="fab"
             StartIcon={Plus}
             type="button"
@@ -44,15 +44,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   await ssr.viewer.me.prefetch();
   const session = await getServerSession({ req: context.req, res: context.res });
-  const token = context.query?.token;
-  const resolvedUrl = context.resolvedUrl;
+  const token = Array.isArray(context.query?.token) ? context.query.token[0] : context.query?.token;
 
-  const callbackUrl = token ? getSafeRedirectUrl(`${WEBAPP_URL}${resolvedUrl}`) : null;
+  const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;
 
   if (!session) {
     return {
       redirect: {
-        destination: callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}&teamInvite=true` : "/auth/login",
+        destination: callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login",
         permanent: false,
       },
       props: {},

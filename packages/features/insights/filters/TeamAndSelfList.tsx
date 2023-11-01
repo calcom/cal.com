@@ -22,9 +22,20 @@ export const TeamAndSelfList = () => {
   const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
   });
 
   useEffect(() => {
+    const isInitialSetupAlready = !!(
+      filter.initialConfig?.teamId ||
+      filter.initialConfig?.userId ||
+      filter.initialConfig?.isAll
+    );
+    if (isInitialSetupAlready) return;
     if (isSuccess && session.data?.user.id) {
       // We have a team?
       if (data[0]?.id && data && data?.length > 0) {
@@ -42,6 +53,7 @@ export const TeamAndSelfList = () => {
       } else if (session.data?.user.id) {
         // default to user
         setConfigFilters({
+          selectedUserId: session.data?.user.id,
           initialConfig: {
             teamId: null,
             userId: session.data?.user.id,
@@ -49,19 +61,8 @@ export const TeamAndSelfList = () => {
           },
         });
       }
-    } else if (session.data?.user.id) {
-      setConfigFilters({
-        selectedUserId: session.data?.user.id,
-        selectedTeamId: null,
-        isAll: false,
-        initialConfig: {
-          teamId: null,
-          userId: session.data?.user.id,
-          isAll: false,
-        },
-      });
     }
-  }, [data, session.data?.user.id]);
+  }, [data, session.data?.user.id, filter.initialConfig, isSuccess, setConfigFilters]);
 
   const getTextPopover = () => {
     if (isAll) {

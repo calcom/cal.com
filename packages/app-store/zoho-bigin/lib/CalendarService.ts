@@ -15,6 +15,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { appKeysSchema } from "../zod";
 
 export type BiginToken = {
@@ -41,7 +42,7 @@ export default class BiginCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     this.auth = this.biginAuth(credential);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   /***
@@ -81,11 +82,16 @@ export default class BiginCalendarService implements Calendar {
       refresh_token: credentialKey.refresh_token,
     };
 
-    const tokenInfo = await axios.post(accountsUrl, qs.stringify(formData), {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-      },
-    });
+    const tokenInfo = await refreshOAuthTokens(
+      async () =>
+        await axios.post(accountsUrl, qs.stringify(formData), {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+          },
+        }),
+      "zoho-bigin",
+      credentialId
+    );
 
     if (!tokenInfo.data.error) {
       // set expiry date as offset from current time.
@@ -142,8 +148,9 @@ export default class BiginCalendarService implements Calendar {
    */
   private async contactSearch(event: CalendarEvent) {
     const token = await this.auth.getToken();
-    const searchCriteria =
-      "(" + event.attendees.map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`).join("or") + ")";
+    const searchCriteria = `(${event.attendees
+      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
+      .join("or")})`;
 
     return await axios({
       method: "get",
@@ -292,21 +299,9 @@ const toISO8601String = (date: Date) => {
       return (num < 10 ? "0" : "") + num;
     };
 
-  return (
-    date.getFullYear() +
-    "-" +
-    pad(date.getMonth() + 1) +
-    "-" +
-    pad(date.getDate()) +
-    "T" +
-    pad(date.getHours()) +
-    ":" +
-    pad(date.getMinutes()) +
-    ":" +
-    pad(date.getSeconds()) +
-    dif +
-    pad(Math.floor(Math.abs(tzo) / 60)) +
-    ":" +
-    pad(Math.abs(tzo) % 60)
-  );
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${dif}${pad(Math.floor(Math.abs(tzo) / 60))}:${pad(
+    Math.abs(tzo) % 60
+  )}`;
 };

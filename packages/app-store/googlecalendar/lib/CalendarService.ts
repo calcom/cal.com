@@ -4,6 +4,8 @@ import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
@@ -17,6 +19,9 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
+import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
 
@@ -24,15 +29,48 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
+const ONE_MINUTE_MS = 60 * 1000;
+const CACHING_TIME = ONE_MINUTE_MS;
+
+/** Expand the start date to the start of the month */
+function getTimeMin(timeMin: string) {
+  const dateMin = new Date(timeMin);
+  return new Date(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0).toISOString();
+}
+
+/** Expand the end date to the end of the month */
+function getTimeMax(timeMax: string) {
+  const dateMax = new Date(timeMax);
+  return new Date(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0).toISOString();
+}
+
+/**
+ * Enable or disable the expanded cache
+ * TODO: Make this configurable
+ * */
+const ENABLE_EXPANDED_CACHE = true;
+
+/**
+ * By expanding the cache to whole months, we can save round trips to the third party APIs.
+ * In this case we already have the data in the database, so we can just return it.
+ */
+function handleMinMax(min: string, max: string) {
+  if (!ENABLE_EXPANDED_CACHE) return { timeMin: min, timeMax: max };
+  return { timeMin: getTimeMin(min), timeMax: getTimeMax(max) };
+}
+
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
+  private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
+    this.credential = credential;
     this.auth = this.googleAuth(credential);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.credential = credential;
   }
 
   private googleAuth = (credential: CredentialPayload) => {
@@ -47,14 +85,24 @@ export default class GoogleCalendarService implements Calendar {
 
     const refreshAccessToken = async (myGoogleAuth: Awaited<ReturnType<typeof getGoogleAuth>>) => {
       try {
-        const { res } = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
+        const res = await refreshOAuthTokens(
+          async () => {
+            const fetchTokens = await myGoogleAuth.refreshToken(googleCredentials.refresh_token);
+            return fetchTokens.res;
+          },
+          "google-calendar",
+          credential.userId
+        );
         const token = res?.data;
         googleCredentials.access_token = token.access_token;
         googleCredentials.expiry_date = token.expiry_date;
-        const key = googleCredentialSchema.parse(googleCredentials);
+        const parsedKey: ParseRefreshTokenResponse<typeof googleCredentialSchema> = parseRefreshTokenResponse(
+          googleCredentials,
+          googleCredentialSchema
+        );
         await prisma.credential.update({
           where: { id: credential.id },
-          data: { key },
+          data: { key: { ...parsedKey } as Prisma.InputJsonValue },
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
@@ -84,260 +132,313 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
-    const eventAttendees = calEventRaw.attendees.map(({ id: _id, ...rest }) => ({
+  private authedCalendar = async () => {
+    const myGoogleAuth = await this.auth.getToken();
+    const calendar = google.calendar({
+      version: "v3",
+      auth: myGoogleAuth,
+    });
+    return calendar;
+  };
+
+  private getAttendees = (event: CalendarEvent) => {
+    // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
+    const selectedHostDestinationCalendar = event.destinationCalendar?.find(
+      (cal) => cal.credentialId === this.credential.id
+    );
+    const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
     }));
-    // TODO: Check every other CalendarService for team members
-    const teamMembers =
-      calEventRaw.team?.members.map((m) => ({
-        email: m.email,
-        displayName: m.name,
+    const attendees: calendar_v3.Schema$EventAttendee[] = [
+      {
+        ...event.organizer,
+        id: String(event.organizer.id),
         responseStatus: "accepted",
-      })) || [];
-    return new Promise(async (resolve, reject) => {
-      const selectedHostDestinationCalendar = calEventRaw.destinationCalendar?.find(
-        (cal) => cal.credentialId === credentialId
-      );
-      const myGoogleAuth = await this.auth.getToken();
-      const payload: calendar_v3.Schema$Event = {
-        summary: calEventRaw.title,
-        description: getRichDescription(calEventRaw),
-        start: {
-          dateTime: calEventRaw.startTime,
-          timeZone: calEventRaw.organizer.timeZone,
-        },
-        end: {
-          dateTime: calEventRaw.endTime,
-          timeZone: calEventRaw.organizer.timeZone,
-        },
-        attendees: [
-          {
-            ...calEventRaw.organizer,
-            id: String(calEventRaw.organizer.id),
+        organizer: true,
+        // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
+        displayName: event.organizer.name,
+        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+      },
+      ...eventAttendees,
+    ];
+
+    if (event.team?.members) {
+      // TODO: Check every other CalendarService for team members
+      const teamAttendeesWithoutCurrentUser = event.team.members
+        .filter((member) => member.email !== this.credential.user?.email)
+        .map((m) => {
+          const teamMemberDestinationCalendar = event.destinationCalendar?.find(
+            (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
+          );
+          return {
+            email: teamMemberDestinationCalendar?.externalId ?? m.email,
+            displayName: m.name,
             responseStatus: "accepted",
-            organizer: true,
-            email: selectedHostDestinationCalendar?.externalId
-              ? selectedHostDestinationCalendar.externalId
-              : calEventRaw.organizer.email,
-          },
-          ...eventAttendees,
-          ...teamMembers,
-        ],
-        reminders: {
-          useDefault: true,
-        },
-        guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
-      };
+          };
+        });
+      attendees.push(...teamAttendeesWithoutCurrentUser);
+    }
 
-      if (calEventRaw.location) {
-        payload["location"] = getLocation(calEventRaw);
-      }
+    return attendees;
+  };
 
-      if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
-        payload["conferenceData"] = calEventRaw.conferenceData;
-      }
-      const calendar = google.calendar({
-        version: "v3",
+  async createEvent(calEventRaw: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
+    const payload: calendar_v3.Schema$Event = {
+      summary: calEventRaw.title,
+      description: getRichDescription(calEventRaw),
+      start: {
+        dateTime: calEventRaw.startTime,
+        timeZone: calEventRaw.organizer.timeZone,
+      },
+      end: {
+        dateTime: calEventRaw.endTime,
+        timeZone: calEventRaw.organizer.timeZone,
+      },
+      attendees: this.getAttendees(calEventRaw),
+      reminders: {
+        useDefault: true,
+      },
+      guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
+    };
+
+    if (calEventRaw.location) {
+      payload["location"] = getLocation(calEventRaw);
+    }
+
+    if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
+      payload["conferenceData"] = calEventRaw.conferenceData;
+    }
+    const calendar = await this.authedCalendar();
+    // Find in calEventRaw.destinationCalendar the one with the same credentialId
+
+    const selectedCalendar =
+      calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+      "primary";
+
+    try {
+      const event = await calendar.events.insert({
+        calendarId: selectedCalendar,
+        requestBody: payload,
+        conferenceDataVersion: 1,
+        sendUpdates: "none",
       });
-      // Find in calEventRaw.destinationCalendar the one with the same credentialId
 
-      const selectedCalendar =
-        calEventRaw.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
-        "primary";
-
-      calendar.events.insert(
-        {
-          auth: myGoogleAuth,
+      if (event && event.data.id && event.data.hangoutLink) {
+        await calendar.events.patch({
+          // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
-          requestBody: payload,
-          conferenceDataVersion: 1,
-          sendUpdates: "none",
-        },
-        function (error, event) {
-          if (error || !event?.data) {
-            console.error("There was an error contacting google calendar service: ", error);
-            return reject(error);
-          }
+          eventId: event.data.id || "",
+          requestBody: {
+            description: getRichDescription({
+              ...calEventRaw,
+              additionalInformation: { hangoutLink: event.data.hangoutLink },
+            }),
+          },
+        });
+      }
 
-          if (event && event.data.id && event.data.hangoutLink) {
-            calendar.events.patch({
-              // Update the same event but this time we know the hangout link
-              calendarId: selectedCalendar,
-              auth: myGoogleAuth,
-              eventId: event.data.id || "",
-              requestBody: {
-                description: getRichDescription({
-                  ...calEventRaw,
-                  additionalInformation: { hangoutLink: event.data.hangoutLink },
-                }),
-              },
-            });
-          }
-          return resolve({
-            uid: "",
-            ...event.data,
-            id: event.data.id || "",
-            additionalInfo: {
-              hangoutLink: event.data.hangoutLink || "",
-            },
-            type: "google_calendar",
-            password: "",
-            url: "",
-            iCalUID: event.data.iCalUID,
-          });
-        }
-      );
-    });
+      return {
+        uid: "",
+        ...event.data,
+        id: event.data.id || "",
+        additionalInfo: {
+          hangoutLink: event.data.hangoutLink || "",
+        },
+        type: "google_calendar",
+        password: "",
+        url: "",
+        iCalUID: event.data.iCalUID,
+      };
+    } catch (error) {
+      console.error("There was an error contacting google calendar service: ", error);
+      throw error;
+    }
   }
 
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const [mainHostDestinationCalendar] =
-        event?.destinationCalendar && event?.destinationCalendar.length > 0 ? event.destinationCalendar : [];
-      const myGoogleAuth = await this.auth.getToken();
-      const eventAttendees = event.attendees.map(({ ...rest }) => ({
-        ...rest,
-        responseStatus: "accepted",
-      }));
-      const teamMembers =
-        event.team?.members.map((m) => ({
-          email: m.email,
-          displayName: m.name,
-          responseStatus: "accepted",
-        })) || [];
-      const payload: calendar_v3.Schema$Event = {
-        summary: event.title,
-        description: getRichDescription(event),
-        start: {
-          dateTime: event.startTime,
-          timeZone: event.organizer.timeZone,
-        },
-        end: {
-          dateTime: event.endTime,
-          timeZone: event.organizer.timeZone,
-        },
-        attendees: [
-          {
-            ...event.organizer,
-            id: String(event.organizer.id),
-            organizer: true,
-            responseStatus: "accepted",
-            email: mainHostDestinationCalendar?.externalId
-              ? mainHostDestinationCalendar.externalId
-              : event.organizer.email,
-          },
-          ...(eventAttendees as any),
-          ...(teamMembers as any),
-        ],
-        reminders: {
-          useDefault: true,
-        },
-        guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
-      };
+    const payload: calendar_v3.Schema$Event = {
+      summary: event.title,
+      description: getRichDescription(event),
+      start: {
+        dateTime: event.startTime,
+        timeZone: event.organizer.timeZone,
+      },
+      end: {
+        dateTime: event.endTime,
+        timeZone: event.organizer.timeZone,
+      },
+      attendees: this.getAttendees(event),
+      reminders: {
+        useDefault: true,
+      },
+      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+    };
 
-      if (event.location) {
-        payload["location"] = getLocation(event);
-      }
+    if (event.location) {
+      payload["location"] = getLocation(event);
+    }
 
-      if (event.conferenceData && event.location === MeetLocationType) {
-        payload["conferenceData"] = event.conferenceData;
-      }
+    if (event.conferenceData && event.location === MeetLocationType) {
+      payload["conferenceData"] = event.conferenceData;
+    }
 
-      const calendar = google.calendar({
-        version: "v3",
-        auth: myGoogleAuth,
+    const calendar = await this.authedCalendar();
+
+    const selectedCalendar =
+      (externalCalendarId
+        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        : undefined) || "primary";
+
+    try {
+      const evt = await calendar.events.update({
+        calendarId: selectedCalendar,
+        eventId: uid,
+        sendNotifications: true,
+        sendUpdates: "none",
+        requestBody: payload,
+        conferenceDataVersion: 1,
       });
 
-      const selectedCalendar = externalCalendarId
-        ? externalCalendarId
-        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
+      this.log.debug("Updated Google Calendar Event", {
+        startTime: evt?.data.start,
+        endTime: evt?.data.end,
+      });
 
-      calendar.events.update(
-        {
-          auth: myGoogleAuth,
+      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+        calendar.events.patch({
+          // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
-          eventId: uid,
-          sendNotifications: true,
-          sendUpdates: "none",
-          requestBody: payload,
-          conferenceDataVersion: 1,
-        },
-        function (err, evt) {
-          if (err) {
-            console.error("There was an error contacting google calendar service: ", err);
-            return reject(err);
-          }
-
-          if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-            calendar.events.patch({
-              // Update the same event but this time we know the hangout link
-              calendarId: selectedCalendar,
-              auth: myGoogleAuth,
-              eventId: evt.data.id || "",
-              requestBody: {
-                description: getRichDescription({
-                  ...event,
-                  additionalInformation: { hangoutLink: evt.data.hangoutLink },
-                }),
-              },
-            });
-            return resolve({
-              uid: "",
-              ...evt.data,
-              id: evt.data.id || "",
-              additionalInfo: {
-                hangoutLink: evt.data.hangoutLink || "",
-              },
-              type: "google_calendar",
-              password: "",
-              url: "",
-              iCalUID: evt.data.iCalUID,
-            });
-          }
-          return resolve(evt?.data);
-        }
-      );
-    });
+          eventId: evt.data.id || "",
+          requestBody: {
+            description: getRichDescription({
+              ...event,
+              additionalInformation: { hangoutLink: evt.data.hangoutLink },
+            }),
+          },
+        });
+        return {
+          uid: "",
+          ...evt.data,
+          id: evt.data.id || "",
+          additionalInfo: {
+            hangoutLink: evt.data.hangoutLink || "",
+          },
+          type: "google_calendar",
+          password: "",
+          url: "",
+          iCalUID: evt.data.iCalUID,
+        };
+      }
+      return evt?.data;
+    } catch (error) {
+      console.error("There was an error contacting google calendar service: ", error);
+      throw error;
+    }
   }
 
   async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      const myGoogleAuth = await this.auth.getToken();
-      const calendar = google.calendar({
-        version: "v3",
-        auth: myGoogleAuth,
+    const calendar = await this.authedCalendar();
+
+    const selectedCalendar =
+      (externalCalendarId
+        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        : undefined) || "primary";
+
+    try {
+      const event = await calendar.events.delete({
+        calendarId: selectedCalendar,
+        eventId: uid,
+        sendNotifications: false,
+        sendUpdates: "none",
+      });
+      return event?.data;
+    } catch (error) {
+      const err = error as GoogleCalError;
+      /**
+       *  410 is when an event is already deleted on the Google cal before on cal.com
+       *  404 is when the event is on a different calendar
+       */
+      if (err.code === 410) return;
+      console.error("There was an error contacting google calendar service: ", err);
+      if (err.code === 404) return;
+      throw err;
+    }
+  }
+
+  async getCacheOrFetchAvailability(args: {
+    timeMin: string;
+    timeMax: string;
+    items: { id: string }[];
+  }): Promise<EventBusyDate[] | null> {
+    const calendar = await this.authedCalendar();
+    const flags = await getFeatureFlagMap(prisma);
+
+    let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
+    if (!flags["calendar-cache"]) {
+      this.log.warn("Calendar Cache is disabled - Skipping");
+      const { timeMin, timeMax, items } = args;
+      const apires = await calendar.freebusy.query({
+        requestBody: { timeMin, timeMax, items },
       });
 
-      const defaultCalendarId = "primary";
-      const calendarId = externalCalendarId
-        ? externalCalendarId
-        : event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId;
-
-      calendar.events.delete(
-        {
-          auth: myGoogleAuth,
-          calendarId: calendarId ? calendarId : defaultCalendarId,
-          eventId: uid,
-          sendNotifications: false,
-          sendUpdates: "none",
+      freeBusyResult = apires.data;
+    } else {
+      const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
+      const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
+      const key = JSON.stringify({ timeMin, timeMax, items });
+      const cached = await prisma.calendarCache.findUnique({
+        where: {
+          credentialId_key: {
+            credentialId: this.credential.id,
+            key,
+          },
+          expiresAt: { gte: new Date(Date.now()) },
         },
-        function (err: GoogleCalError | null, event) {
-          if (err) {
-            /**
-             *  410 is when an event is already deleted on the Google cal before on cal.com
-             *  404 is when the event is on a different calendar
-             */
-            if (err.code === 410) return resolve();
-            console.error("There was an error contacting google calendar service: ", err);
-            if (err.code === 404) return resolve();
-            return reject(err);
-          }
-          return resolve(event?.data);
-        }
-      );
-    });
+      });
+
+      if (cached) {
+        freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+      } else {
+        const apires = await calendar.freebusy.query({
+          requestBody: { timeMin, timeMax, items },
+        });
+
+        // Skipping await to respond faster
+        await prisma.calendarCache.upsert({
+          where: {
+            credentialId_key: {
+              credentialId: this.credential.id,
+              key,
+            },
+          },
+          update: {
+            value: JSON.parse(JSON.stringify(apires.data)),
+            expiresAt: new Date(Date.now() + CACHING_TIME),
+          },
+          create: {
+            value: JSON.parse(JSON.stringify(apires.data)),
+            credentialId: this.credential.id,
+            key,
+            expiresAt: new Date(Date.now() + CACHING_TIME),
+          },
+        });
+
+        freeBusyResult = apires.data;
+      }
+    }
+    if (!freeBusyResult.calendars) return null;
+
+    const result = Object.values(freeBusyResult.calendars).reduce((c, i) => {
+      i.busy?.forEach((busyTime) => {
+        c.push({
+          start: busyTime.start || "",
+          end: busyTime.end || "",
+        });
+      });
+      return c;
+    }, [] as Prisma.PromiseReturnType<CalendarService["getAvailability"]>);
+    return result;
   }
 
   async getAvailability(
@@ -345,96 +446,87 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    return new Promise(async (resolve, reject) => {
-      const myGoogleAuth = await this.auth.getToken();
-      const calendar = google.calendar({
-        version: "v3",
-        auth: myGoogleAuth,
-      });
-      const selectedCalendarIds = selectedCalendars
-        .filter((e) => e.integration === this.integrationName)
-        .map((e) => e.externalId);
-      if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-        // Only calendars of other integrations selected
-        resolve([]);
-        return;
-      }
+    const calendar = await this.authedCalendar();
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId);
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return [];
+    }
+    async function getCalIds() {
+      if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
+      const cals = await calendar.calendarList.list({ fields: "items(id)" });
+      if (!cals.data.items) return [];
+      return cals.data.items.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
+    }
 
-      (selectedCalendarIds.length === 0
-        ? calendar.calendarList
-            .list({
-              fields: "items(id)",
-            })
-            .then((cals) => cals.data.items?.map((cal) => cal.id).filter(Boolean) || [])
-        : Promise.resolve(selectedCalendarIds)
-      )
-        .then((calsIds) => {
-          calendar.freebusy.query(
-            {
-              requestBody: {
-                timeMin: dateFrom,
-                timeMax: dateTo,
-                items: calsIds.map((id) => ({ id: id })),
-              },
-            },
-            (err, apires) => {
-              if (err) return reject(err);
-              // If there's no calendar we just skip
-              if (!apires?.data.calendars) return resolve([]);
-              const result = Object.values(apires.data.calendars).reduce((c, i) => {
-                i.busy?.forEach((busyTime) => {
-                  c.push({
-                    start: busyTime.start || "",
-                    end: busyTime.end || "",
-                  });
-                });
-                return c;
-              }, [] as Prisma.PromiseReturnType<CalendarService["getAvailability"]>);
-              resolve(result);
-            }
-          );
-        })
-        .catch((err) => {
-          this.log.error("There was an error contacting google calendar service: ", err);
+    try {
+      const calsIds = await getCalIds();
+      const originalStartDate = dayjs(dateFrom);
+      const originalEndDate = dayjs(dateTo);
+      const diff = originalEndDate.diff(originalStartDate, "days");
 
-          reject(err);
+      // /freebusy from google api only allows a date range of 90 days
+      if (diff <= 90) {
+        const freeBusyData = await this.getCacheOrFetchAvailability({
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calsIds.map((id) => ({ id })),
         });
-    });
+        if (!freeBusyData) throw new Error("No response from google calendar");
+
+        return freeBusyData;
+      } else {
+        const busyData = [];
+
+        const loopsNumber = Math.ceil(diff / 90);
+
+        let startDate = originalStartDate;
+        let endDate = originalStartDate.add(90, "days");
+
+        for (let i = 0; i < loopsNumber; i++) {
+          if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+
+          busyData.push(
+            ...((await this.getCacheOrFetchAvailability({
+              timeMin: startDate.format(),
+              timeMax: endDate.format(),
+              items: calsIds.map((id) => ({ id })),
+            })) || [])
+          );
+
+          startDate = endDate.add(1, "minutes");
+          endDate = startDate.add(90, "days");
+        }
+        return busyData;
+      }
+    } catch (error) {
+      this.log.error("There was an error contacting google calendar service: ", error);
+      throw error;
+    }
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    return new Promise(async (resolve, reject) => {
-      const myGoogleAuth = await this.auth.getToken();
-      const calendar = google.calendar({
-        version: "v3",
-        auth: myGoogleAuth,
-      });
-
-      calendar.calendarList
-        .list({
-          fields: "items(id,summary,primary,accessRole)",
-        })
-        .then((cals) => {
-          resolve(
-            cals.data.items?.map((cal) => {
-              const calendar: IntegrationCalendar = {
-                externalId: cal.id ?? "No id",
-                integration: this.integrationName,
-                name: cal.summary ?? "No name",
-                primary: cal.primary ?? false,
-                readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
-                email: cal.id ?? "",
-              };
-              return calendar;
-            }) || []
-          );
-        })
-        .catch((err: Error) => {
-          this.log.error("There was an error contacting google calendar service: ", err);
-
-          reject(err);
-        });
-    });
+    const calendar = await this.authedCalendar();
+    try {
+      const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
+      if (!cals.data.items) return [];
+      return cals.data.items.map(
+        (cal) =>
+          ({
+            externalId: cal.id ?? "No id",
+            integration: this.integrationName,
+            name: cal.summary ?? "No name",
+            primary: cal.primary ?? false,
+            readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
+            email: cal.id ?? "",
+          } satisfies IntegrationCalendar)
+      );
+    } catch (error) {
+      this.log.error("There was an error contacting google calendar service: ", error);
+      throw error;
+    }
   }
 }
 

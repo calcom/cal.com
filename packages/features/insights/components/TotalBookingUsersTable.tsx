@@ -21,7 +21,7 @@ export const TotalBookingUsersTable = ({
                   <Avatar
                     alt={item.user.name || ""}
                     size="sm"
-                    imageSrc={item.user.avatar}
+                    imageSrc={`/${item.user.username}/avatar.png`}
                     title={item.user.name || ""}
                     className="m-2"
                   />

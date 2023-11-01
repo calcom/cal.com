@@ -55,6 +55,14 @@ if (IS_EMBED_REACT_TEST) {
   });
 }
 
+const DEFAULT_CHROMIUM = {
+  ...devices["Desktop Chrome"],
+  timezoneId: "Europe/London",
+  locale: "en-US",
+  /** If navigation takes more than this, then something's wrong, let's fail fast. */
+  navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
+};
+
 const config: PlaywrightTestConfig = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -86,12 +94,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: {
-        ...devices["Desktop Chrome"],
-        locale: "en-US",
-        /** If navigation takes more than this, then something's wrong, let's fail fast. */
-        navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
-      },
+      use: DEFAULT_CHROMIUM,
     },
     {
       name: "@calcom/app-store",
@@ -100,12 +103,7 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: {
-        ...devices["Desktop Chrome"],
-        locale: "en-US",
-        /** If navigation takes more than this, then something's wrong, let's fail fast. */
-        navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
-      },
+      use: DEFAULT_CHROMIUM,
     },
     {
       name: "@calcom/embed-core",
@@ -114,7 +112,11 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
-      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3100/" },
+      use: {
+        ...devices["Desktop Chrome"],
+        locale: "en-US",
+        baseURL: "http://localhost:3100/",
+      },
     },
     {
       name: "@calcom/embed-react",
@@ -123,7 +125,10 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       testMatch: /.*\.e2e\.tsx?/,
-      use: { ...devices["Desktop Chrome"], locale: "en-US", baseURL: "http://localhost:3101/" },
+      use: {
+        ...DEFAULT_CHROMIUM,
+        baseURL: "http://localhost:3101/",
+      },
     },
     {
       name: "@calcom/embed-core--firefox",
@@ -159,7 +164,8 @@ expect.extend({
     //TODO: Move it to testUtil, so that it doesn't need to be passed
     // eslint-disable-next-line
     getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
-    expectedUrlDetails: ExpectedUrlDetails = {}
+    expectedUrlDetails: ExpectedUrlDetails = {},
+    isPrerendered?: boolean
   ) {
     if (!iframe || !iframe.url) {
       return {
@@ -169,16 +175,9 @@ expect.extend({
     }
 
     const u = new URL(iframe.url());
-    const frameElement = await iframe.frameElement();
 
-    if (!(await frameElement.isVisible())) {
-      return {
-        pass: false,
-        message: () => `Expected iframe to be visible`,
-      };
-    }
     const pathname = u.pathname;
-    const expectedPathname = expectedUrlDetails.pathname + "/embed";
+    const expectedPathname = `${expectedUrlDetails.pathname}/embed`;
     if (expectedPathname && expectedPathname !== pathname) {
       return {
         pass: false,
@@ -206,20 +205,41 @@ expect.extend({
         };
       }
     }
-    let iframeReadyCheckInterval;
+
+    const frameElement = await iframe.frameElement();
+
+    if (isPrerendered) {
+      if (await frameElement.isVisible()) {
+        return {
+          pass: false,
+          message: () => `Expected prerender iframe to be not visible`,
+        };
+      }
+      return {
+        pass: true,
+        message: () => `is prerendered`,
+      };
+    }
+
     const iframeReadyEventDetail = await new Promise(async (resolve) => {
-      iframeReadyCheckInterval = setInterval(async () => {
+      const iframeReadyCheckInterval = setInterval(async () => {
         const iframeReadyEventDetail = await getActionFiredDetails({
           calNamespace,
           actionType: "linkReady",
         });
         if (iframeReadyEventDetail) {
+          clearInterval(iframeReadyCheckInterval);
           resolve(iframeReadyEventDetail);
         }
       }, 500);
     });
 
-    clearInterval(iframeReadyCheckInterval);
+    if (!(await frameElement.isVisible())) {
+      return {
+        pass: false,
+        message: () => `Expected iframe to be visible`,
+      };
+    }
 
     //At this point we know that window.initialBodyVisibility would be set as DOM would already have been ready(because linkReady event can only fire after that)
     const {

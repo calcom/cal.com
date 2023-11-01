@@ -1,9 +1,11 @@
 import Head from "next/head";
+import { stringify } from "querystring";
 import z from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
+import { TRPCError } from "@calcom/trpc";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
@@ -13,7 +15,7 @@ import { processRoute } from "../../lib/processRoute";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 
-const log = logger.getChildLogger({ prefix: ["[routing-forms]", "[router]"] });
+const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
@@ -52,7 +54,7 @@ export const getServerSideProps = async function getServerSideProps(
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
@@ -92,11 +94,22 @@ export const getServerSideProps = async function getServerSideProps(
   const { default: trpcRouter } = await import("@calcom/app-store/routing-forms/trpc/_router");
   const caller = trpcRouter.createCaller(ctx);
   const { v4: uuidv4 } = await import("uuid");
-  await caller.public.response({
-    formId: form.id,
-    formFillerId: uuidv4(),
-    response: response,
-  });
+  try {
+    await caller.public.response({
+      formId: form.id,
+      formFillerId: uuidv4(),
+      response: response,
+    });
+  } catch (e) {
+    if (e instanceof TRPCError) {
+      return {
+        props: {
+          form: serializableForm,
+          message: e.message,
+        },
+      };
+    }
+  }
 
   //TODO: Maybe take action after successful mutation
   if (decidedAction.type === "customPageMessage") {
@@ -109,14 +122,14 @@ export const getServerSideProps = async function getServerSideProps(
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
     return {
       redirect: {
-        destination: `/${decidedAction.value}`,
+        destination: `/${decidedAction.value}?${stringify(context.query)}`,
         permanent: false,
       },
     };
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}`,
+        destination: `${decidedAction.value}?${stringify(context.query)}`,
         permanent: false,
       },
     };

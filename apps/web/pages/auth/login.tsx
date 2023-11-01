@@ -15,11 +15,12 @@ import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
-import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 import { ArrowLeft, Lock } from "@calcom/ui/components/icon";
 
@@ -50,10 +51,9 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
+}: // eslint-disable-next-line @typescript-eslint/ban-types
+inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
   const searchParams = useSearchParams();
-  const isTeamInvite = searchParams.get("teamInvite");
-
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z
@@ -83,7 +83,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
@@ -97,9 +97,7 @@ export default function Login({
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <a
-      href={callbackUrl !== "" ? `${WEBSITE_URL}/signup?callbackUrl=${callbackUrl}` : `${WEBSITE_URL}/signup`}
-      className="text-brand-500 font-medium">
+    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
     </a>
   );
@@ -164,6 +162,16 @@ export default function Login({
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
+  const { data, isLoading } = trpc.viewer.public.ssoConnections.useQuery(undefined, {
+    onError: (err) => {
+      setErrorMessage(err.message);
+    },
+  });
+
+  const displaySSOLogin = HOSTED_CAL_FEATURES
+    ? true
+    : isSAMLLoginEnabled && !isLoading && data?.connectionExists;
+
   return (
     <div
       style={
@@ -188,9 +196,6 @@ export default function Login({
             ? LoginFooter
             : null
         }>
-        {isTeamInvite && (
-          <Alert severity="info" message={t("signin_or_signup_to_accept_invite")} className="mb-4 mt-4" />
-        )}
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
             <div>
@@ -232,14 +237,14 @@ export default function Login({
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="w-full justify-center dark:bg-white dark:text-black">
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
             </div>
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="border-subtle my-8" />}
+              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -254,7 +259,7 @@ export default function Login({
                     {t("signin_with_google")}
                   </Button>
                 )}
-                {isSAMLLoginEnabled && (
+                {displaySSOLogin && (
                   <SAMLLogin
                     samlTenantID={samlTenantID}
                     samlProductID={samlProductID}
@@ -344,7 +349,6 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   };
 };
 
-Login.isThemeSupported = false;
 Login.PageWrapper = PageWrapper;
 
 export const getServerSideProps = withNonce(_getServerSideProps);

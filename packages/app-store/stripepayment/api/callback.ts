@@ -2,8 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import type { StripeData } from "../lib/server";
 import stripe from "../lib/server";
 
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (error) {
     const query = stringify({ error, error_description });
-    res.redirect("/apps/installed?" + query);
+    res.redirect(`/apps/installed?${query}`);
     return;
   }
 

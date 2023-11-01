@@ -1,9 +1,10 @@
-import crypto from "crypto";
 import type { IncomingMessage, OutgoingMessage } from "http";
 import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+
+import { buildNonce } from "@lib/buildNonce";
 
 function getCspPolicy(nonce: string) {
   //TODO: Do we need to explicitly define it in turbo.json
@@ -21,7 +22,7 @@ function getCspPolicy(nonce: string) {
 	  script-src ${
       IS_PRODUCTION
         ? // 'self' 'unsafe-inline' https: added for Browsers not supporting strict-dynamic not supporting strict-dynamic
-          "'nonce-" + nonce + "' 'strict-dynamic' 'self' 'unsafe-inline' https:"
+          `'nonce-${nonce}' 'strict-dynamic' 'self' 'unsafe-inline' https:`
         : // Note: We could use 'strict-dynamic' with 'nonce-..' instead of unsafe-inline but there are some streaming related scripts that get blocked(because they don't have nonce on them). It causes a really frustrating full page error model by Next.js to show up sometimes
           "'unsafe-inline' 'unsafe-eval' https: http:"
     };
@@ -59,7 +60,7 @@ export function csp(req: IncomingMessage | null, res: OutgoingMessage | null) {
   }
   const CSP_POLICY = process.env.CSP_POLICY;
   const cspEnabledForInstance = CSP_POLICY;
-  const nonce = crypto.randomBytes(16).toString("base64");
+  const nonce = buildNonce(crypto.getRandomValues(new Uint8Array(22)));
 
   const parsedUrl = new URL(req.url, "http://base_url");
   const cspEnabledForPage = cspEnabledForInstance && isPagePathRequest(parsedUrl);

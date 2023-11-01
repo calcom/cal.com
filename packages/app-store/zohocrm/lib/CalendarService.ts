@@ -16,6 +16,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 
 export type ZohoToken = {
   scope: string;
@@ -43,23 +44,11 @@ const toISO8601String = (date: Date) => {
       return (num < 10 ? "0" : "") + num;
     };
 
-  return (
-    date.getFullYear() +
-    "-" +
-    pad(date.getMonth() + 1) +
-    "-" +
-    pad(date.getDate()) +
-    "T" +
-    pad(date.getHours()) +
-    ":" +
-    pad(date.getMinutes()) +
-    ":" +
-    pad(date.getSeconds()) +
-    dif +
-    pad(Math.floor(Math.abs(tzo) / 60)) +
-    ":" +
-    pad(Math.abs(tzo) % 60)
-  );
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${dif}${pad(Math.floor(Math.abs(tzo) / 60))}:${pad(
+    Math.abs(tzo) % 60
+  )}`;
 };
 export default class ZohoCrmCalendarService implements Calendar {
   private integrationName = "";
@@ -72,7 +61,7 @@ export default class ZohoCrmCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "zohocrm_other_calendar";
     this.auth = this.zohoCrmAuth(credential).then((r) => r);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private createContacts = async (attendees: Person[]) => {
@@ -96,8 +85,9 @@ export default class ZohoCrmCalendarService implements Calendar {
   };
 
   private contactSearch = async (event: CalendarEvent) => {
-    const searchCriteria =
-      "(" + event.attendees.map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`).join("or") + ")";
+    const searchCriteria = `(${event.attendees
+      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
+      .join("or")})`;
 
     return await axios({
       method: "get",
@@ -200,14 +190,19 @@ export default class ZohoCrmCalendarService implements Calendar {
           client_secret: this.client_secret,
           refresh_token: credentialKey.refresh_token,
         };
-        const zohoCrmTokenInfo = await axios({
-          method: "post",
-          url: url,
-          data: qs.stringify(formData),
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-          },
-        });
+        const zohoCrmTokenInfo = await refreshOAuthTokens(
+          async () =>
+            await axios({
+              method: "post",
+              url: url,
+              data: qs.stringify(formData),
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+              },
+            }),
+          "zohocrm",
+          credential.userId
+        );
         if (!zohoCrmTokenInfo.data.error) {
           // set expiry date as offset from current time.
           zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);

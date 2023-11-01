@@ -42,6 +42,7 @@ type MemberInvitationModalProps = {
   token?: string;
   isLoading?: boolean;
   disableCopyLink?: boolean;
+  isOrg?: boolean;
 };
 
 type MembershipRoleOption = {
@@ -68,7 +69,7 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
-  const { disableCopyLink = false } = props;
+  const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useContext();
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
@@ -87,7 +88,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   });
 
   const copyInviteLinkToClipboard = async (token: string) => {
-    const inviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    const isOrgInvite = isOrg;
+    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+
+    const inviteLink =
+      isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;
     await navigator.clipboard.writeText(inviteLink);
     showToast(t("invite_link_copied"), "success");
   };
@@ -137,11 +143,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     if (file) {
       const reader = new FileReader();
-
+      const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
       reader.onload = (e) => {
         const contents = e?.target?.result as string;
-        const values = contents?.split(",").map((email) => email.trim().toLocaleLowerCase());
-        newMemberFormMethods.setValue("emailOrUsername", values);
+        const lines = contents.split("\n");
+        const validEmails = [];
+        for (const line of lines) {
+          const columns = line.split(/,|;|\|| /);
+          for (const column of columns) {
+            const email = column.trim().toLowerCase();
+
+            if (emailRegex.test(email)) {
+              validEmails.push(email);
+              break; // Stop checking columns if a valid email is found in this line
+            }
+          }
+        }
+
+        newMemberFormMethods.setValue("emailOrUsername", validEmails);
       };
 
       reader.readAsText(file);
@@ -233,7 +252,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       {/* TODO: Make this a fancy email input that styles on a successful email. */}
                       <TextAreaField
                         name="emails"
-                        label="Invite via email"
+                        label={t("invite_via_email")}
                         rows={4}
                         autoCorrect="off"
                         placeholder="john@doe.com, alex@smith.com"
@@ -269,7 +288,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                   StartIcon={PaperclipIcon}
                   className="mt-3 justify-center stroke-2">
-                  Upload a .csv file
+                  {t("upload_csv_file")}
                 </Button>
                 <input
                   ref={importRef}

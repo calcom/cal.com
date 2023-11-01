@@ -1,5 +1,6 @@
 const appStore = {
   // example: () => import("./example"),
+  alby: () => import("./alby"),
   applecalendar: () => import("./applecalendar"),
   aroundvideo: () => import("./around"),
   caldavcalendar: () => import("./caldavcalendar"),
@@ -33,6 +34,7 @@ const appStore = {
   exchangecalendar: () => import("./exchangecalendar"),
   facetime: () => import("./facetime"),
   sylapsvideo: () => import("./sylapsvideo"),
+  zohocalendar: () => import("./zohocalendar"),
   "zoho-bigin": () => import("./zoho-bigin"),
   basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),

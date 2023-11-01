@@ -55,11 +55,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <div className="flex">
         <img
           src={app.logo}
-          alt={app.name + " Logo"}
+          alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm",
-            app.dirName == "caldavcalendar" && "dark:invert" // TODO: Maybe find a better way to handle this @Hariom?
+            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
           )}
         />
       </div>
@@ -68,7 +67,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}
-              <span className="bg-yellow-300">
+              <span className="bg-yellow-300" data-testid="highlighted-text">
                 {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
               </span>
               {app.name.substring(searchTextIndex + searchText.length)}
@@ -190,7 +189,9 @@ const InstallAppButtonChild = ({
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
-      router.replace(pathname);
+      if (pathname !== null) {
+        router.replace(pathname);
+      }
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },

@@ -9,7 +9,6 @@ import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
@@ -26,7 +25,8 @@ import { handleRefundError } from "@calcom/lib/payment/handleRefundError";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, WorkflowMethods, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
@@ -44,7 +44,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       user: {
         select: {
           id: true,
-          credentials: true, // Not leaking at the moment, be careful with
+          credentials: { select: credentialForCalendarServiceSelect }, // Not leaking at the moment, be careful with
           email: true,
           timeZone: true,
           timeFormat: true,
@@ -70,17 +70,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             select: {
               id: true,
               hideBranding: true,
-              metadata: true,
-              teams: {
-                select: {
-                  accepted: true,
-                  team: {
-                    select: {
-                      metadata: true,
-                    },
-                  },
-                },
-              },
             },
           },
           teamId: true,
@@ -113,6 +102,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
         },
       },
       uid: true,
+      id: true,
       eventTypeId: true,
       destinationCalendar: true,
       smsReminderNumber: true,
@@ -145,6 +135,19 @@ async function handler(req: CustomRequest) {
 
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
+  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
+    const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
+      if (host.user.id === userId) return true;
+    });
+
+    const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
+
+    if (!userIsHost && !userIsOwnerOfEventType) {
+      throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
+    }
   }
 
   // get webhooks
@@ -243,6 +246,7 @@ async function handler(req: CustomRequest) {
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
+    bookingId: bookingToDelete?.id,
     /* Include recurringEvent information only when cancelling all bookings */
     recurringEvent: allRemainingBookings
       ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
@@ -298,8 +302,6 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  const isKYCVerified = isEventTypeOwnerKYCVerified(bookingToDelete.eventType);
-
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
     await sendCancelledReminders({
@@ -310,7 +312,7 @@ async function handler(req: CustomRequest) {
         ...{ eventType: { slug: bookingToDelete.eventType.slug } },
       },
       hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
-      isKYCVerified,
+      eventTypeRequiresConfirmation: bookingToDelete.eventType.requiresConfirmation,
     });
   }
 
@@ -434,6 +436,7 @@ async function handler(req: CustomRequest) {
             where: {
               id: credentialId,
             },
+            select: credentialForCalendarServiceSelect,
           });
           if (foundCalendarCredential) {
             calendarCredential = foundCalendarCredential;
@@ -725,6 +728,7 @@ async function handleSeatedEventCancellation(
           where: {
             id: reference.credentialId,
           },
+          select: credentialForCalendarServiceSelect,
         });
 
         if (credential) {
@@ -733,13 +737,7 @@ async function handleSeatedEventCancellation(
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
           };
           if (reference.type.includes("_video")) {
-            integrationsToUpdate.push(
-              updateMeeting(
-                { ...credential, appName: evt.location?.replace("integrations:", "") || "" },
-                updatedEvt,
-                reference
-              )
-            );
+            integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
             const calendar = await getCalendar(credential);

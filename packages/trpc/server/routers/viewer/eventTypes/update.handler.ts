@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
-import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
@@ -241,36 +240,35 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (input.metadata?.apps) {
-    // TODO: This could be a function to abstract the payment setters in the eventType as only one is allowed.
-    const paymentAppIds = ["stripe", "paypal", "mercadopago"];
-    const paymentCredentials = await ctx.prisma.credential.findMany({
-      where: {
-        userId: ctx.user.id,
-        appId: {
-          in: paymentAppIds,
-        },
-      },
-      select: {
-        type: true,
-        appId: true,
-        key: true,
-      },
-    });
+  /**
+   * Since you can have multiple payment apps we will honor the first one to save in eventType
+   * but the real detail will be inside app metadata, so with this you can have different prices in different apps
+   * So the price and currency inside eventType will be deprecated soon or just keep as reference.
+   */
+  if (
+    input.metadata?.apps?.alby?.price ||
+    input?.metadata?.apps?.paypal?.price ||
+    input?.metadata?.apps?.stripe?.price ||
+    input?.metadata?.apps?.mercadopago?.price
+  ) {
+    data.price =
+      input.metadata?.apps?.alby?.price ||
+      input.metadata.apps.paypal?.price ||
+      input.metadata.apps.stripe?.price ||
+      input.metadata.apps.mercadopago?.price;
+  }
 
-    paymentCredentials.forEach((paymentCredential) => {
-      const appId = paymentCredential.appId! as keyof typeof input.metadata.apps;
-      const appMetadata = input.metadata?.apps ? input.metadata?.apps[appId] : null;
-      if (appMetadata?.enabled) {
-        data.price = input.price || appMetadata.price;
-        if (appId === "stripe") {
-          const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-          data.currency = default_currency;
-        } else {
-          data.currency = appMetadata.currency.toLowerCase();
-        }
-      }
-    });
+  if (
+    input.metadata?.apps?.alby?.currency ||
+    input?.metadata?.apps?.paypal?.currency ||
+    input?.metadata?.apps?.stripe?.currency ||
+    input?.metadata?.apps?.mercadopago?.currency
+  ) {
+    data.currency =
+      input.metadata?.apps?.alby?.currency ||
+      input.metadata.apps.paypal?.currency ||
+      input.metadata.apps.stripe?.currency ||
+      input.metadata.apps.mercadopago?.currency;
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({

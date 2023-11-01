@@ -23,7 +23,7 @@ const wrongUrl = (
   </>
 );
 
-export default function MercadoPagoPaymentComponent({ payment }: Props) {
+export function MercadoPagoPaymentComponent({ payment }: Props) {
   const parsedData = PaymentMercadoPagoDataSchema.safeParse(payment.data);
   if (!parsedData.success) {
     return wrongUrl;

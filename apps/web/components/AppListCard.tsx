@@ -60,14 +60,18 @@ export default function AppListCard(props: AppListCardProps) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (shouldHighlight && highlight) {
-      const timer = setTimeout(() => {
-        setHighlight(false);
+    if (shouldHighlight && highlight && searchParams !== null && pathname !== null) {
+      timeoutRef.current = setTimeout(() => {
         const _searchParams = new URLSearchParams(searchParams);
         _searchParams.delete("hl");
-        router.replace(`${pathname}?${_searchParams.toString()}`);
+        _searchParams.delete("category"); // this comes from params, not from search params
+
+        setHighlight(false);
+
+        const stringifiedSearchParams = _searchParams.toString();
+
+        router.replace(`${pathname}${stringifiedSearchParams !== "" ? `?${stringifiedSearchParams}` : ""}`);
       }, 3000);
-      timeoutRef.current = timer;
     }
     return () => {
       if (timeoutRef.current) {
@@ -75,12 +79,11 @@ export default function AppListCard(props: AppListCardProps) {
         timeoutRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [highlight, pathname, router, searchParams, shouldHighlight]);
 
   return (
-    <div className={`${highlight ? "dark:bg-muted bg-yellow-100" : ""}`}>
-      <div className="flex items-center gap-x-3 px-5 py-4">
+    <div className={classNames(highlight && "dark:bg-muted bg-yellow-100")}>
+      <div className="flex items-center gap-x-3 px-4 py-4 sm:px-6">
         {logo ? (
           <img
             className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10")}
