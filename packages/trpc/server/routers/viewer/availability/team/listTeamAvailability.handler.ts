@@ -130,14 +130,15 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
 
   // Get total team count across all teams the user is in (for pagination)
 
-  const totalTeamMembers =
-    await prisma.$queryRaw<number>`SELECT COUNT(DISTINCT "userId")::integer from "Membership" WHERE "teamId" IN (${Prisma.join(
-      teamIds
-    )})`;
+  const totalTeamMembers = await prisma.$queryRaw<
+    {
+      count: number;
+    }[]
+  >`SELECT COUNT(DISTINCT "userId")::integer from "Membership" WHERE "teamId" IN (${Prisma.join(teamIds)})`;
 
   return {
     teamMembers,
-    totalTeamMembers,
+    totalTeamMembers: totalTeamMembers[0].count,
   };
 }
 
