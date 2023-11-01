@@ -208,7 +208,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          // iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
