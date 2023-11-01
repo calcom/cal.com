@@ -457,7 +457,7 @@ function FieldEditDialog({
                       }
                       placeholder={t(fieldForm.getValues("defaultLabel") || "")}
                       onChange={(e) => {
-                        if (!identifier.fieldVisible) {
+                        if (!identifier.fieldVisible && !isFieldEditMode) {
                           setIdentifier({
                             ...identifier,
                             badge: getFieldIdentifier(e.target.value),
