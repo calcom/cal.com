@@ -1,4 +1,5 @@
 import { renderEmail } from "../";
+import generateIcsString, { BookingAction } from "../lib/generateIcsString";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeLocationChangeEmail extends AttendeeScheduledEmail {
@@ -6,7 +7,13 @@ export default class AttendeeLocationChangeEmail extends AttendeeScheduledEmail 
     return {
       icalEvent: {
         filename: "event.ics",
-        content: this.getiCalEventAsString(),
+        content: generateIcsString({
+          event: this.calEvent,
+          t: this.t,
+          role: "attendee",
+          bookingAction: BookingAction.LocationChange,
+        }),
+        method: "REQUEST",
       },
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,

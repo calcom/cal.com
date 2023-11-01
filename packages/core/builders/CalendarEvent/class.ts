@@ -30,6 +30,7 @@ class CalendarEventClass implements CalendarEvent {
   hideCalendarNotes?: boolean;
   additionalNotes?: string | null | undefined;
   recurrence?: string;
+  iCalUID?: string;
 
   constructor(initProps?: CalendarEvent) {
     // If more parameters are given we update this

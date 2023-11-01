@@ -13,6 +13,7 @@ export enum BookingAction {
   Cancel = "cancel",
   Reschedule = "reschedule",
   RequestReschedule = "request_reschedule",
+  LocationChange = "location_change",
 }
 
 const generateIcsString = ({

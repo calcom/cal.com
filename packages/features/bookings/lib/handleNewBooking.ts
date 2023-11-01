@@ -2314,7 +2314,7 @@ async function handler(
               id: booking.id,
             },
             data: {
-              iCalUID: evt.iCalUID,
+              iCalUID: evt.iCalUID || booking.iCalUID,
             },
           });
         }
