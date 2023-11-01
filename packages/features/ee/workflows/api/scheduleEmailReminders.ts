@@ -37,11 +37,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
+  // delete batch_ids with already past scheduled date from scheduled_sends
   const pageSize = 90;
   let pageNumber = 0;
   const deletePromises: Promise<any>[] = [];
 
-  //delete batch_ids with already past scheduled date from scheduled_sends
   while (true) {
     const remindersToDelete = await prisma.workflowReminder.findMany({
       where: {
@@ -62,14 +62,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       break;
     }
 
-    deletePromises.concat(
-      remindersToDelete.map((reminder) =>
-        client.request({
-          url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
-          method: "DELETE",
-        })
-      )
-    );
+    for (const reminder of remindersToDelete) {
+      const deletePromise = client.request({
+        url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
+        method: "DELETE",
+      });
+
+      deletePromises.push(deletePromise);
+    }
     pageNumber++;
   }
 
@@ -81,6 +81,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   });
 
+  //delete workflow reminders with past scheduled date
   await prisma.workflowReminder.deleteMany({
     where: {
       method: WorkflowMethods.EMAIL,
@@ -91,7 +92,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
-
   pageNumber = 0;
 
   const allPromisesCancelReminders: Promise<any>[] = [];
@@ -149,11 +149,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   });
 
+  // schedule all unscheduled reminders within the next 72 hours
   pageNumber = 0;
   const sendEmailPromises: Promise<any>[] = [];
 
   while (true) {
-    //find all unscheduled Email reminders
     const unscheduledReminders = await prisma.workflowReminder.findMany({
       where: {
         method: WorkflowMethods.EMAIL,
