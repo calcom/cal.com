@@ -11,6 +11,7 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hidden: true,
   price: true,
   currency: true,
+  lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
 });
@@ -28,6 +29,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   periodStartDate: true,
   periodEndDate: true,
   recurringEvent: true,
+  lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   metadata: true,

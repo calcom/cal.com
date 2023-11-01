@@ -4,14 +4,15 @@ import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import type { API } from "mailhog";
 
-import dayjs from "@calcom/dayjs";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
-import type { TimeZoneEnum } from "./types";
+import { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
 export function hashPassword(password: string) {
@@ -78,11 +79,13 @@ const createTeamAndAddUser = async (
     isUnpublished,
     isOrg,
     hasSubteam,
+    organizationId,
   }: {
     user: { id: number; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
     isOrg?: boolean;
     hasSubteam?: true;
+    organizationId?: number | null;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -101,6 +104,7 @@ const createTeamAndAddUser = async (
     data.children = { connect: [{ id: team.id }] };
   }
   data.orgUsers = isOrg ? { connect: [{ id: user.id }] } : undefined;
+  data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
   const team = await prisma.team.create({
     data,
   });
@@ -114,6 +118,7 @@ const createTeamAndAddUser = async (
       accepted: true,
     },
   });
+
   return team;
 };
 
@@ -282,12 +287,14 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
             isUnpublished: scenario.isUnpublished,
             isOrg: scenario.isOrg,
             hasSubteam: scenario.hasSubteam,
+            organizationId: opts?.organizationId,
           },
           workerInfo
         );
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
+          const teamMatesIds = [];
           for (const teammateObj of scenario.teammates) {
             const teamUser = await prisma.user.create({
               data: createUser(workerInfo, teammateObj),
@@ -319,7 +326,21 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
               }),
               store.page
             );
+            teamMatesIds.push(teamUser.id);
             store.users.push(teammateFixture);
+          }
+          // Add Teammates to OrgUsers
+          if (scenario.isOrg) {
+            await prisma.team.update({
+              where: {
+                id: team.id,
+              },
+              data: {
+                orgUsers: {
+                  connect: teamMatesIds.map((userId) => ({ id: userId })).concat([{ id: user.id }]),
+                },
+              },
+            });
           }
         }
       }
@@ -384,11 +405,27 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
-    getTeam: async () => {
-      return prisma.membership.findFirstOrThrow({
+    getFirstTeam: async () => {
+      const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
         include: { team: true },
       });
+
+      const membership = memberships
+        .map((membership) => {
+          return {
+            ...membership,
+            team: {
+              ...membership.team,
+              metadata: teamMetadataSchema.parse(membership.team.metadata),
+            },
+          };
+        })
+        .find((membership) => !membership.team?.metadata?.isOrganization);
+      if (!membership) {
+        throw new Error("No team found for user");
+      }
+      return membership;
     },
     getOrg: async () => {
       return prisma.membership.findFirstOrThrow({
@@ -438,16 +475,27 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
   _bookings?: PrismaType.BookingCreateInput[];
 };
-type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name" | "email";
+type CustomUserOptsKeys =
+  | "username"
+  | "password"
+  | "completedOnboarding"
+  | "locale"
+  | "name"
+  | "email"
+  | "organizationId";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
   // ignores adding the worker-index after username
   useExactUsername?: boolean;
+  roleInOrganization?: MembershipRole;
 };
 
 // creates the actual user in the db.
-const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): PrismaType.UserCreateInput => {
+const createUser = (
+  workerInfo: WorkerInfo,
+  opts?: CustomUserOpts | null
+): PrismaType.UserUncheckedCreateInput => {
   // build a unique name for our user
   const uname =
     opts?.useExactUsername && opts?.username
@@ -461,13 +509,15 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
     password: hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
-    timeZone: opts?.timeZone ?? dayjs.tz.guess(),
+    timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
+    ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true
         ? {
             create: {
               name: "Working Hours",
+              timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
               availability: {
                 createMany: {
                   data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
@@ -477,6 +527,42 @@ const createUser = (workerInfo: WorkerInfo, opts?: CustomUserOpts | null): Prism
           }
         : undefined,
   };
+
+  function getOrganizationRelatedProps({
+    organizationId,
+    role,
+  }: {
+    organizationId: number | null | undefined;
+    role: MembershipRole | undefined;
+  }) {
+    if (!organizationId) {
+      return null;
+    }
+    if (!role) {
+      throw new Error("Missing role for user in organization");
+    }
+    return {
+      organizationId: organizationId || null,
+      ...(organizationId
+        ? {
+            teams: {
+              // Create membership
+              create: [
+                {
+                  team: {
+                    connect: {
+                      id: organizationId,
+                    },
+                  },
+                  accepted: true,
+                  role: MembershipRole.ADMIN,
+                },
+              ],
+            },
+          }
+        : null),
+    };
+  }
 };
 
 async function confirmPendingPayment(page: Page) {
@@ -543,7 +629,7 @@ export async function apiLogin(
   const data = {
     email: user.email ?? `${user.username}@example.com`,
     password: user.password ?? user.username,
-    callbackURL: "http://localhost:3000/",
+    callbackURL: WEBAPP_URL,
     redirect: "false",
     json: "true",
     csrfToken,

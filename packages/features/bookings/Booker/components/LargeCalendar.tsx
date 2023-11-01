@@ -19,7 +19,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const schedule = useScheduleForEvent({
     prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
   });
-  const displayOverlay = getQueryParam("overlayCalendar") === "true";
+  const displayOverlay =
+    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
   const event = useEvent();
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
@@ -57,7 +58,9 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         start: dayjs(event.start).toDate(),
         end: dayjs(event.end).toDate(),
         title: "Busy",
-        status: "ACCEPTED",
+        options: {
+          status: "ACCEPTED",
+        },
       } as CalendarEvent;
     });
   }, [overlayEvents, displayOverlay]);

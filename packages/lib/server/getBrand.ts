@@ -1,4 +1,4 @@
-import { subdomainSuffix, getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { subdomainSuffix, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -19,7 +19,7 @@ export const getBrand = async (orgId: number | null) => {
   });
   const metadata = teamMetadataSchema.parse(org?.metadata);
   const slug = (org?.slug || metadata?.requestedSlug) as string;
-  const fullDomain = getOrgFullDomain(slug);
+  const fullDomain = getOrgFullOrigin(slug);
   const domainSuffix = subdomainSuffix();
 
   return {

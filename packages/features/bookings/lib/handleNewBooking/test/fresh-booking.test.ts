@@ -13,6 +13,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
@@ -52,24 +53,26 @@ import {
 import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
 import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
 import { setupAndTeardown } from "./lib/setupAndTeardown";
+import { testWithAndWithoutOrg } from "./lib/test";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
 export type CustomNextApiResponse = NextApiResponse & Response;
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
+
 describe("handleNewBooking", () => {
   setupAndTeardown();
 
   describe("Fresh/New Booking:", () => {
-    test(
+    testWithAndWithoutOrg(
       `should create a successful booking with Cal Video(Daily Video) if no explicit location is provided
           1. Should create a booking in the database
           2. Should send emails to the booker as well as organizer
           3. Should create a booking in the event's destination calendar
           3. Should trigger BOOKING_CREATED webhook
     `,
-      async ({ emails }) => {
+      async ({ emails, org }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
           email: "booker@example.com",
@@ -88,37 +91,41 @@ describe("handleNewBooking", () => {
             externalId: "organizer@google-calendar.com",
           },
         });
+
         await createBookingScenario(
-          getScenarioData({
-            webhooks: [
-              {
-                userId: organizer.id,
-                eventTriggers: ["BOOKING_CREATED"],
-                subscriberUrl: "http://my-webhook.example.com",
-                active: true,
-                eventTypeId: 1,
-                appId: null,
-              },
-            ],
-            eventTypes: [
-              {
-                id: 1,
-                slotInterval: 45,
-                length: 45,
-                users: [
-                  {
-                    id: 101,
-                  },
-                ],
-                destinationCalendar: {
-                  integration: "google_calendar",
-                  externalId: "event-type-1@google-calendar.com",
+          getScenarioData(
+            {
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
                 },
-              },
-            ],
-            organizer,
-            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-          })
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 45,
+                  length: 45,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                  destinationCalendar: {
+                    integration: "google_calendar",
+                    externalId: "event-type-1@google-calendar.com",
+                  },
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            },
+            org?.organization
+          )
         );
 
         mockSuccessfulVideoMeetingCreation({
@@ -194,6 +201,10 @@ describe("handleNewBooking", () => {
         });
 
         expectSuccessfulBookingCreationEmails({
+          booking: {
+            uid: createdBooking.uid!,
+            urlOrigin: org ? org.urlOrigin : WEBAPP_URL,
+          },
           booker,
           organizer,
           emails,
@@ -205,7 +216,7 @@ describe("handleNewBooking", () => {
           organizer,
           location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+          videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
         });
       },
       timeout
@@ -342,6 +353,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -352,7 +366,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -487,6 +501,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -498,7 +515,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -748,6 +765,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -759,7 +779,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -833,11 +853,14 @@ describe("handleNewBooking", () => {
           const createdBooking = await handleNewBooking(req);
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
             // Because no calendar was involved, we don't have an ics UID
-            iCalUID: createdBooking.uid,
+            iCalUID: createdBooking.uid!,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1213,6 +1236,122 @@ describe("handleNewBooking", () => {
         timeout
       );
 
+      /**
+       * NOTE: We might want to think about making the bookings get ACCEPTED automatically if the booker is the organizer of the event-type. This is a design decision it seems for now.
+       */
+      test(
+        `should make a fresh booking in PENDING state even when the booker is the organizer of the event-type 
+        1. Should create a booking in the database with status PENDING
+        2. Should send emails to the booker as well as organizer for booking request and awaiting approval
+        3. Should trigger BOOKING_REQUESTED webhook
+    `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const subscriberUrl = "http://my-webhook.example.com";
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl,
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 45,
+                requiresConfirmation: true,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          });
+          await createBookingScenario(scenarioData);
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          req.userId = organizer.id;
+
+          const createdBooking = await handleNewBooking(req);
+
+          await expectBookingToBeInDatabase({
+            description: "",
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.PENDING,
+            location: BookingLocations.CalVideo,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+          });
+
+          expectWorkflowToBeTriggered();
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
+          });
+
+          expectBookingRequestedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.CalVideo,
+            subscriberUrl,
+            eventType: scenarioData.eventTypes[0],
+          });
+        },
+        timeout
+      );
+
       test(
         `should create a booking for event that requires confirmation based on a booking notice duration threshold, if threshold is not met
             1. Should create a booking in the database with status ACCEPTED
@@ -1319,6 +1458,9 @@ describe("handleNewBooking", () => {
           expectWorkflowToBeTriggered();
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             emails,
@@ -1330,7 +1472,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl,
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -1613,6 +1755,9 @@ describe("handleNewBooking", () => {
         expectWorkflowToBeTriggered();
 
         expectSuccessfulBookingCreationEmails({
+          booking: {
+            uid: createdBooking.uid!,
+          },
           booker,
           organizer,
           emails,
@@ -1720,21 +1865,24 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
-          expect(createdBooking.responses).toContain({
-            email: booker.email,
-            name: booker.name,
-          });
           expect(createdBooking).toContain({
             location: BookingLocations.CalVideo,
             paymentUid: paymentUid,
           });
+
           await expectBookingToBeInDatabase({
             description: "",
+            location: BookingLocations.CalVideo,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
           });
+
           expectWorkflowToBeTriggered();
           expectAwaitingPaymentEmails({ organizer, booker, emails });
 
@@ -1763,7 +1911,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             paidEvent: true,
           });
         },
@@ -1887,6 +2035,9 @@ describe("handleNewBooking", () => {
             paymentId: createdBooking.paymentId!,
           });
 
+          // FIXME: Right now we need to reset the test Emails because email expects only tests first email content for an email address
+          // Reset Test Emails to test for more Emails
+          resetTestEmails();
           const { webhookResponse } = await mockPaymentSuccessWebhookFromStripe({ externalId });
 
           expect(webhookResponse?.statusCode).toBe(200);
@@ -1896,6 +2047,12 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+          });
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
           });
           expectBookingRequestedWebhookToHaveBeenFired({
             booker,

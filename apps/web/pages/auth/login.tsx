@@ -51,7 +51,8 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: inferSSRProps<typeof _getServerSideProps> & WithNonceProps) {
+}: // eslint-disable-next-line @typescript-eslint/ban-types
+inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
   const searchParams = useSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -82,7 +83,7 @@ export default function Login({
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 

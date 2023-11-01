@@ -23,6 +23,8 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
+  tooltipOffset?: number;
   disabled?: boolean;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
@@ -92,7 +94,7 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2",
+        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
       },
       {
         variant: "icon",
@@ -123,6 +125,8 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     size,
     variant = "button",
     type = "button",
+    tooltipSide = "top",
+    tooltipOffset = 4,
     StartIcon,
     EndIcon,
     shallow,
@@ -213,19 +217,33 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {element}
     </Link>
   ) : (
-    <Wrapper data-testid="wrapper" tooltip={props.tooltip}>
+    <Wrapper
+      data-testid="wrapper"
+      tooltip={props.tooltip}
+      tooltipSide={tooltipSide}
+      tooltipOffset={tooltipOffset}>
       {element}
     </Wrapper>
   );
 });
 
-const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
+const Wrapper = ({
+  children,
+  tooltip,
+  tooltipSide,
+  tooltipOffset,
+}: {
+  tooltip?: string;
+  children: React.ReactNode;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
+  tooltipOffset?: number;
+}) => {
   if (!tooltip) {
     return <>{children}</>;
   }
 
   return (
-    <Tooltip data-testid="tooltip" content={tooltip}>
+    <Tooltip data-testid="tooltip" content={tooltip} side={tooltipSide} sideOffset={tooltipOffset}>
       {children}
     </Tooltip>
   );

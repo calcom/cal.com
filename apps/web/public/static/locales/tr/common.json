@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Bu kuruluşun henüz ekibi yok",
   "org_no_teams_yet_description": "Yöneticiyseniz burada gösterilecek ekipler oluşturduğunuzdan emin olun.",
   "set_up": "Düzenle",
-  "set_up_your_profile": "Profilinizi düzenleyin",
-  "set_up_your_profile_description": "{{orgName}} adlı kuruluş dâhilinde ve herkese açık bağlantınızla etkileşim kurduklarında insanların kim olduğunuzu bilmelerini sağlayın.",
   "my_profile": "Profilim",
   "my_settings": "Ayarlarım",
   "crm": "CRM",
