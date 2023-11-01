@@ -10,6 +10,7 @@ export default class AttendeeAwaitingPaymentEmail extends AttendeeScheduledEmail
       subject: `${this.attendee.language.translate("complete_your_booking_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
+        date: this.getFormattedDate(),
       })}`,
       html: renderEmail("AttendeeAwaitingPaymentEmail", {
         calEvent: this.calEvent,
