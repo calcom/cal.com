@@ -489,6 +489,22 @@ export default class EventManager {
    */
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
+
+    const fallbackToFirstConnectedCalendar = async () => {
+      /**
+       *  Not ideal but, if we don't find a destination calendar,
+       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
+       */
+      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
+      if (credential) {
+        const createdEvent = await createEvent(credential, event);
+        log.silly("Created Calendar event", safeStringify({ createdEvent }));
+        if (createdEvent) {
+          createdEvents.push(createdEvent);
+        }
+      }
+    };
+
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
       // Since GCal pushes events to multiple calendars we only want to create one event per booking
       let gCalAdded = false;
@@ -545,6 +561,14 @@ export default class EventManager {
           );
           // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
           const firstCalendarCredential = destinationCalendarCredentials[0];
+
+          if (!firstCalendarCredential) {
+            log.warn(
+              "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
+            );
+            await fallbackToFirstConnectedCalendar();
+          }
+
           log.warn(
             "No credentialId found for destination calendar, falling back to first found calendar",
             safeStringify({
@@ -563,19 +587,7 @@ export default class EventManager {
           calendarCredentials: this.calendarCredentials,
         })
       );
-
-      /**
-       *  Not ideal but, if we don't find a destination calendar,
-       *  fallback to the first connected calendar - Shouldn't be a CRM calendar
-       */
-      const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
-      if (credential) {
-        const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event", safeStringify({ createdEvent }));
-        if (createdEvent) {
-          createdEvents.push(createdEvent);
-        }
-      }
+      await fallbackToFirstConnectedCalendar();
     }
 
     // Taking care of non-traditional calendar integrations
