@@ -43,7 +43,9 @@ export async function checkBookingLimit({
   timezone?: string | null;
 }) {
   {
-    const eventDateInOrganizerTz = dayjs(eventStartDate).tz(timezone || "");
+    const eventDateInOrganizerTz = timezone
+      ? dayjs(eventStartDate).tz(timezone || "")
+      : dayjs(eventStartDate);
 
     if (!limitingNumber) return;
 
