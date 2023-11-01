@@ -73,6 +73,10 @@ const generateIcsString = ({
         });
       }
       status = "CANCELLED";
+      break;
+    case BookingAction.LocationChange:
+      title = "event_location_changed";
+      break;
   }
 
   const getTextBody = (title = "", subtitle = "emailed_you_and_any_other_attendees"): string => {
