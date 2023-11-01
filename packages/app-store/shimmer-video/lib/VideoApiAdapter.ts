@@ -121,7 +121,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     // const meetingToken = await postToDailyAPI("/meeting-tokens", {
     //   properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     // }).then(meetingTokenSchema.parse);
-    await postToShimmerAPI(event, "trackDailyRoom", body);
+    await postToShimmerAPI(event, "trackDailyRoom", dailyEvent);
 
     return Promise.resolve({
       type: "shimmer_video",
