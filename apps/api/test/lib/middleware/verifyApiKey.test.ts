@@ -4,6 +4,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, vi, it, expect, afterEach } from "vitest";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import { HttpError } from "@calcom/lib/http-error";
 
 import { isAdminGuard } from "~/lib/utils/isAdmin";
 
@@ -46,10 +47,11 @@ describe("Verify API key", () => {
 
     const middlewareSpy = vi.spyOn(middleware, "fn");
 
-    await middleware.fn(req, res, serverNext);
+    await expect(middleware.fn(req, res, serverNext)).rejects.toThrow(HttpError);
+    await expect(middleware.fn(req, res, serverNext)).rejects.toHaveProperty("statusCode", 401);
+    await expect(middleware.fn(req, res, serverNext)).rejects.toHaveProperty("message", "No apiKey provided");
 
     expect(middlewareSpy).toBeCalled();
-    expect(res.statusCode).toBe(401);
   });
   it("It should thow an error if no api key is provided", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -68,9 +70,10 @@ describe("Verify API key", () => {
 
     const middlewareSpy = vi.spyOn(middleware, "fn");
 
-    await middleware.fn(req, res, serverNext);
+    await expect(middleware.fn(req, res, serverNext)).rejects.toThrow(HttpError);
+    await expect(middleware.fn(req, res, serverNext)).rejects.toHaveProperty("statusCode", 401);
+    await expect(middleware.fn(req, res, serverNext)).rejects.toHaveProperty("message", "No apiKey provided");
 
     expect(middlewareSpy).toBeCalled();
-    expect(res.statusCode).toBe(401);
   });
 });
