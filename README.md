@@ -221,7 +221,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set a 32 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
+1. Set a 24 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:
