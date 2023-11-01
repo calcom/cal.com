@@ -11,18 +11,12 @@ type WrapperWithLayoutProps = {
   params: { [key: string]: any };
 };
 
-const handleGetProps = async (relativePath: string) => {
-  const props = await import(`./${relativePath}`).then((mod) => mod.getProps?.() ?? null);
-  return props;
-};
-
-export default async function WrapperWithLayout({ children, params }: WrapperWithLayoutProps) {
+export default async function WrapperWithLayout({ children }: WrapperWithLayoutProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
-  const props = await handleGetProps(params.relativePath);
 
   return (
-    <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
+    <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null}>
       {children}
     </PageWrapper>
   );

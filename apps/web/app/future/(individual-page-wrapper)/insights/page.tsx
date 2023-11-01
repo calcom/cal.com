@@ -1,12 +1,15 @@
 import InsightsPage from "@pages/insights";
 import { headers } from "next/headers";
 
+import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { constructGenericImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { getFixedT } from "@calcom/lib/server/getFixedT";
 
 import { preparePageMetadata } from "@lib/metadata";
+
+import PageWrapper from "@components/PageWrapperAppDir";
 
 export const generateMetadata = async () => {
   const h = headers();
@@ -53,7 +56,14 @@ export const getProps = async () => {
   };
 };
 
-export default function Insights(props: any) {
-  props.params.relativePath = "insights/page.tsx";
-  return <InsightsPage />;
+export default async function Insights() {
+  const props = await getProps();
+  const h = headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+
+  return (
+    <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
+      <InsightsPage />
+    </PageWrapper>
+  );
 }
