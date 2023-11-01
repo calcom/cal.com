@@ -200,11 +200,6 @@ describe("handleNewBooking", () => {
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
         });
 
-        console.log(
-          "🚀 ~ file: fresh-booking.test.ts:202 ~ MOCKED_GOOGLE_CALENDAR_ICS_ID",
-          "MOCKED_GOOGLE_CALENDAR_ICS_ID"
-        );
-
         expectSuccessfulBookingCreationEmails({
           booking: {
             uid: createdBooking.uid!,
