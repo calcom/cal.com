@@ -26,7 +26,9 @@ const generateIcsString = ({
   role: "attendee" | "organizer";
   bookingAction: BookingAction;
 }) => {
-  let title: string, subtitle: string, status: EventStatus;
+  let title = "",
+    subtitle = "",
+    status: EventStatus;
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
   const partstat: ParticipationStatus = "ACCEPTED";
@@ -73,18 +75,21 @@ const generateIcsString = ({
   }
 
   const getTextBody = (title = "", subtitle = "emailed_you_and_any_other_attendees"): string => {
+    let body: string;
     if (BookingAction.RequestReschedule && role === "attendee") {
-      return `
+      body = `
       ${t(title)}
       ${getWhen(event, t)}
       ${t(subtitle)}`;
     }
-    return `
+    body = `
     ${t(title)}
     ${t(subtitle)}
 
     ${getRichDescription(event, t)}
     `.trim();
+
+    return body;
   };
 
   const icsEvent = createEvent({
