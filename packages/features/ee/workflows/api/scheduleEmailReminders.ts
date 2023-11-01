@@ -107,7 +107,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const pageSize = 90;
   let pageNumber = 0;
-  const deletePromises = [];
+  const deletePromises: Promise<any>[] = [];
 
   //delete batch_ids with already past scheduled date from scheduled_sends
   while (true) {
@@ -130,7 +130,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       break;
     }
 
-    deletePromises.push(
+    deletePromises.concat(
       remindersToDelete.map((reminder) =>
         client.request({
           url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
@@ -162,7 +162,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   pageNumber = 0;
 
-  const allPromisesCancelReminders = [];
+  const allPromisesCancelReminders: Promise<any>[] = [];
 
   while (true) {
     const remindersToCancel = await prisma.workflowReminder.findMany({
@@ -218,7 +218,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   pageNumber = 0;
-  const sendEmailPromises = [];
+  const sendEmailPromises: Promise<any>[] = [];
 
   while (true) {
     //find all unscheduled Email reminders
