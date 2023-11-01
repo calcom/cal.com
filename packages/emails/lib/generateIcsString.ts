@@ -29,7 +29,7 @@ const generateIcsString = ({
 }) => {
   let title = "",
     subtitle = "",
-    status: EventStatus;
+    status: EventStatus = "TENTATIVE";
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
   const partstat: ParticipationStatus = "ACCEPTED";
