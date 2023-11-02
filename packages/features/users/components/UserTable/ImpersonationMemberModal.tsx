@@ -27,7 +27,7 @@ export function ImpersonationMemberModal(props: { state: State; dispatch: Dispat
           onSubmit={async (e) => {
             e.preventDefault();
             await signIn("impersonation-auth", {
-              username: user.username || user.email,
+              username: user.email,
               teamId: teamId,
             });
             props.dispatch({
