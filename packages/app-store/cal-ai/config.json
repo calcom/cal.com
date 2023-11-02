@@ -17,6 +17,7 @@
   "dirName": "cal-ai",
   "paid": {
     "price": 25,
-    "priceId": "price_1O5ScNDVtJmy8ddXvHYTaovD"
+    "priceId": "price_1O5ScNDVtJmy8ddXvHYTaovD",
+    "mode": "subscription"
   }
 }

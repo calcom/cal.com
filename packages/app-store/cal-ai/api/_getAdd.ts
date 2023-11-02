@@ -17,7 +17,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const checkoutSession = await stripe.checkout.sessions.create({
     success_url: redirect_uri,
     cancel_url: redirect_uri,
-    mode: "payment",
+    mode: appConfig.paid?.mode === "subscription" ? "subscription" : "payment",
     payment_method_types: ["card"],
     allow_promotion_codes: true,
     customer: stripeCustomerId,
