@@ -288,7 +288,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     slug: slugify(slug ?? ""),
     orgSlug: currentOrgDomain,
     isTeamView: true,
-    isOrgView: isValidOrgDomain && isOrgProfile,
+    getOrgOnly: isValidOrgDomain && isOrgProfile,
   });
 
   if (!isOrgContext && slug) {

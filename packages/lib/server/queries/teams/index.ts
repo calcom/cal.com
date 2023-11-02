@@ -1,7 +1,12 @@
+import type { Membership } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { getOrgFullOrigin, getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import {
+  getOrgFullOrigin,
+  whereClauseForOrgWithSlugOrRequestedSlug,
+} from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -9,6 +14,7 @@ import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-
 import { WEBAPP_URL } from "../../../constants";
 import logger from "../../../logger";
 
+const log = logger.getSubLogger({ prefix: ["queries", "teams"] });
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
 export async function getTeamWithMembers(args: {
@@ -21,9 +27,12 @@ export async function getTeamWithMembers(args: {
   /**
    * If true, means that you are fetching an organization and not a team
    */
-  isOrgView?: boolean;
+  getOrgOnly?: boolean;
 }) {
-  const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, userId, orgSlug, isTeamView, getOrgOnly: isOrgView, includeTeamLogo } = args;
+
+  // This should improve performance saving already app data found.
+  const appDataMap = new Map();
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -61,115 +70,103 @@ export async function getTeamWithMembers(args: {
       },
     },
   });
-  const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
-    id: true,
-    name: true,
-    slug: true,
-    ...(!!includeTeamLogo ? { logo: true } : {}),
-    bio: true,
-    hideBranding: true,
-    hideBookATeamMember: true,
-    isPrivate: true,
-    metadata: true,
-    parent: {
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-      },
-    },
-    children: {
-      select: {
-        name: true,
-        slug: true,
-      },
-    },
-    members: {
-      select: {
-        accepted: true,
-        role: true,
-        disableImpersonation: true,
-        user: {
-          select: userSelect,
+  let lookupBy;
+
+  if (id) {
+    lookupBy = { id, havingMemberWithId: userId };
+  } else if (slug) {
+    lookupBy = { slug, havingMemberWithId: userId };
+  } else {
+    throw new Error("Must provide either id or slug");
+  }
+
+  const team = await getTeamOrOrg({
+    lookupBy,
+    forOrgWithSlug: orgSlug ?? null,
+    isOrg: !!isOrgView,
+    includeTeamLogo,
+    teamSelect: {
+      id: true,
+      name: true,
+      slug: true,
+      ...(!!includeTeamLogo ? { logo: true } : {}),
+      bio: true,
+      hideBranding: true,
+      hideBookATeamMember: true,
+      isPrivate: true,
+      metadata: true,
+      parent: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
         },
       },
-    },
-    theme: true,
-    brandColor: true,
-    darkBrandColor: true,
-    eventTypes: {
-      where: {
-        hidden: false,
-        schedulingType: {
-          not: SchedulingType.MANAGED,
+      children: {
+        select: {
+          name: true,
+          slug: true,
         },
       },
-      select: {
-        users: {
-          select: userSelect,
+      members: {
+        select: {
+          accepted: true,
+          role: true,
+          disableImpersonation: true,
+          user: {
+            select: userSelect,
+          },
         },
-        metadata: true,
-        ...baseEventTypeSelect,
       },
-    },
-    inviteTokens: {
-      select: {
-        token: true,
-        expires: true,
-        expiresInDays: true,
-        identifier: true,
+      theme: true,
+      brandColor: true,
+      darkBrandColor: true,
+      eventTypes: {
+        where: {
+          hidden: false,
+          schedulingType: {
+            not: SchedulingType.MANAGED,
+          },
+        },
+        select: {
+          users: {
+            select: userSelect,
+          },
+          metadata: true,
+          ...baseEventTypeSelect,
+        },
+      },
+      inviteTokens: {
+        select: {
+          token: true,
+          expires: true,
+          expiresInDays: true,
+          identifier: true,
+        },
       },
     },
   });
 
-  const where: Prisma.TeamFindFirstArgs["where"] = {};
-
-  if (userId) where.members = { some: { userId } };
-  if (orgSlug && orgSlug !== slug) {
-    where.parent = getSlugOrRequestedSlug(orgSlug);
-  }
-  if (id) where.id = id;
-  if (slug) where.slug = slug;
-  if (isOrgView) {
-    // We must fetch only the organization here.
-    // Note that an organization and a team that doesn't belong to an organization, both have parentId null
-    // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
-    // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
-    where.metadata = {
-      path: ["isOrganization"],
-      equals: true,
-    };
-  }
-
-  const teams = await prisma.team.findMany({
-    where,
-    select: teamSelect,
-  });
-
-  if (teams.length > 1) {
-    logger.error("Found more than one team/Org. We should be doing something wrong.", {
-      where,
-      teams: teams.map((team) => ({ id: team.id, slug: team.slug })),
-    });
-  }
-
-  const team = teams[0];
   if (!team) return null;
 
-  // This should improve performance saving already app data found.
-  const appDataMap = new Map();
   const members = team.members.map((obj) => {
-    const { credentials, ...restUser } = obj.user;
+    // We need to do type assertion here because Prisma and TypeScript aren't playing well together and TS complains that obj doesn't have user.
+    const m = obj as Membership & { user: Prisma.UserGetPayload<{ select: typeof userSelect }> };
+    if (m.user === undefined) throw new Error("team.members.[0].user must be selected");
+
+    const { credentials, ...restUser } = m.user;
     return {
       ...restUser,
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
       subteams: orgSlug
-        ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
+        ? m.user.teams
+            .filter((membership) => membership.team.slug !== orgSlug)
+            .map((membership) => membership.team.slug)
         : null,
-      avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
-      orgOrigin: getOrgFullOrigin(obj.user.organization?.slug || ""),
+      avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
+      orgOrigin: getOrgFullOrigin(m.user.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -201,7 +198,7 @@ export async function getTeamWithMembers(args: {
   const { inviteTokens, ...teamWithoutInviteTokens } = team;
 
   // Don't leak stripe payment ids
-  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const teamMetadata = team.metadata;
   const {
     paymentId: _,
     subscriptionId: __,
@@ -256,4 +253,100 @@ export async function isTeamMember(userId: number, teamId: number) {
       accepted: true,
     },
   }));
+}
+
+async function getTeamOrOrg<TeamSel extends Prisma.TeamSelect>({
+  lookupBy,
+  forOrgWithSlug: forOrgWithSlug,
+  isOrg,
+  teamSelect,
+}: {
+  lookupBy: (
+    | {
+        id: number;
+      }
+    | {
+        slug: string;
+      }
+  ) & {
+    havingMemberWithId?: number;
+  };
+  /**
+   * If we are fetching a team, this is the slug of the organization that the team belongs to.
+   */
+  forOrgWithSlug: string | null;
+  /**
+   * If true, means that we need to fetch an organization with the given slug. Otherwise, we need to fetch a team with the given slug.
+   */
+  isOrg: boolean;
+  teamSelect: TeamSel;
+}) : Promise<Omit<Prisma.TeamGetPayload<{select:TeamSel}>, 'metadata'> & {metadata: z.infer<typeof teamMetadataSchema>} | null>  {
+  const where: Prisma.TeamFindFirstArgs["where"] = {};
+
+  if (lookupBy.havingMemberWithId) where.members = { some: { userId: lookupBy.havingMemberWithId } };
+
+  log.debug({
+    orgSlug: forOrgWithSlug,
+    teamLookupBy: lookupBy,
+    isOrgView: isOrg,
+    where,
+  });
+
+  if ("id" in lookupBy) {
+    where.id = lookupBy.id;
+  } else {
+    where.slug = lookupBy.slug;
+  }
+
+  if (isOrg) {
+    // We must fetch only the organization here.
+    // Note that an organization and a team that doesn't belong to an organization, both have parentId null
+    // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
+    // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
+    where.metadata = {
+      path: ["isOrganization"],
+      equals: true,
+    };
+    // We must fetch only the team here.
+  } else {
+    if (forOrgWithSlug) {
+      where.parent = whereClauseForOrgWithSlugOrRequestedSlug(forOrgWithSlug);
+    }
+  }
+
+  const teams = await prisma.team.findMany({
+    where,
+    select: teamSelect,
+  });
+
+  const teamsWithParsedMetadata = teams
+    .map((team) => ({
+      ...team,
+      // Using Type assertion here because we know that the metadata is present and Prisma and TypeScript aren't playing well together
+      metadata: teamMetadataSchema.parse((team as {metadata: z.infer<typeof teamMetadataSchema>}).metadata),
+    }))
+    // In cases where there are many teams with the same slug, we need to find out the one and only one that matches our criteria
+    .filter((team) => {
+      // We need an org if isOrgView otherwise we need a team
+      return isOrg ? team.metadata?.isOrganization : !team.metadata?.isOrganization;
+    });
+
+  if (teamsWithParsedMetadata.length > 1) {
+    log.error("Found more than one team/Org. We should be doing something wrong.", {
+      isOrgView: isOrg,
+      where,
+      teams: teamsWithParsedMetadata.map((team) => {
+        const t = team as unknown as { id: number; slug: string }
+        return {
+          id: t.id,
+          slug: t.slug,
+        };
+      }),
+    });
+  }
+
+  const team = teamsWithParsedMetadata[0];
+  if (!team) return null;
+  // HACK: I am not sure how to make Prisma in peace with TypeScript with this repository pattern
+  return team as any
 }
