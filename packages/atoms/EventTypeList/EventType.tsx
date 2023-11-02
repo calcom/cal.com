@@ -8,9 +8,26 @@ import { ExternalLink, LinkIcon } from "lucide-react";
 import { memo, useState } from "react";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
+import { CAL_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { ArrowButton, AvatarGroup, ButtonGroup } from "@calcom/ui";
+
+type EventTypeProps = {
+  event: any;
+  group: any;
+  type: any;
+  readOnly: boolean;
+  index: number;
+  firstItem: { id: string };
+  lastItem: { id: string };
+  moveEventType: (index: number, increment: 1 | -1) => void;
+  onMutate: ({ hidden, id }: { hidden: boolean; id: string }) => void;
+  onCopy: (link: string) => void;
+  onEdit: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  onPreview: (link: string) => void;
+};
 
 const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: boolean }) => {
   const content = () => (
@@ -76,26 +93,13 @@ export function EventType({
   onEdit,
   onDuplicate,
   onPreview,
-}: {
-  event: any;
-  group: any;
-  type: any;
-  readOnly: boolean;
-  index: number;
-  firstItem: { id: string };
-  lastItem: { id: string };
-  moveEventType: (index: number, increment: 1 | -1) => void;
-  onMutate: ({ hidden, id }: { hidden: boolean; id: string }) => void;
-  onCopy: (linnk: string) => void;
-  onEdit: (id: string) => void;
-  onDuplicate: (id: string) => void;
-  onPreview: (link: string) => void;
-}) {
+}: EventTypeProps) {
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
   const embedLink = `${group.profile.slug}/${type.slug}`;
   const isChildrenManagedEventType =
     type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
   const orgBranding = useOrgBranding();
+  const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   return (
