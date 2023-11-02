@@ -179,7 +179,7 @@ export default class EventManager {
       }
       const isCalendarType = isCalendarResult(result);
       if (isCalendarType) {
-        evt.iCalUID = result.iCalUID || undefined;
+        evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
       }
 
       return {
