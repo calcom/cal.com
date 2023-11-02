@@ -1,3 +1,6 @@
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
+
 import { APP_NAME } from "@calcom/lib/constants";
 
 /**
@@ -24,7 +27,10 @@ const getICalUID = ({
 
   if (uid) return `${uid}@${APP_NAME}`;
 
-  return;
+  const translator = short();
+
+  uid = translator.fromUUID(uuidv5(APP_NAME, uuidv5.URL));
+  return `${uid}@${APP_NAME}`;
 };
 
 export default getICalUID;
