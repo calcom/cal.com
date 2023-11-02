@@ -3,7 +3,7 @@
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://ameer_su:ameer_1234@localhost:5432/cal_com"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
