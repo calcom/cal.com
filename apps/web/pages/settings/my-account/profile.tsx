@@ -156,6 +156,9 @@ const ProfileView = () => {
     },
     onError() {
       setConfirmPasswordDeleteErrorMessage(t("incorrect_password"));
+      setTimeout(()=>{
+        setConfirmPasswordDeleteErrorMessage('')
+      }, 3000)
     },
   });
 
