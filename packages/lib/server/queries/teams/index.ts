@@ -76,6 +76,7 @@ export async function getTeamWithMembers(args: {
         id: true,
         slug: true,
         name: true,
+        members: true,
       },
     },
     children: {

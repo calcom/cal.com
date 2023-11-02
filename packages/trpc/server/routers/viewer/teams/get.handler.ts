@@ -25,8 +25,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
   }
 
-  const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-
+  let membership;
+  membership = team?.members.find((membership) => membership.id === ctx.user.id);
+  if (ctx.user.organization.isOrgAdmin && team.parent.members.length > 0) {
+    membership = team.parent.members.find((membership) => membership.userId === ctx.user.id);
+  }
   return {
     ...team,
     safeBio: markdownToSafeHTML(team.bio),
