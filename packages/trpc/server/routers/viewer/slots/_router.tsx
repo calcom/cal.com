@@ -16,7 +16,6 @@ const UNSTABLE_HANDLER_CACHE: SlotsRouterHandlerCache = {};
 /** This should be called getAvailableSlots */
 export const slotsRouter = router({
   getSchedule: publicProcedure.input(ZGetScheduleInputSchema).query(async ({ input, ctx }) => {
-    throw new Error("Unexpected error. Does it go to Sentry?");
     if (!UNSTABLE_HANDLER_CACHE.getSchedule) {
       UNSTABLE_HANDLER_CACHE.getSchedule = await import("./getSchedule.handler").then(
         (mod) => mod.getScheduleHandler
