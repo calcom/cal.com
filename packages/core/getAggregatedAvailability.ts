@@ -22,14 +22,6 @@ export const getAggregatedAvailability = (
   return mergeOverlappingDateRanges(availability);
 };
 
-function isSameDay(date1: Date, date2: Date) {
-  return (
-    date1.getUTCFullYear() === date2.getUTCFullYear() &&
-    date1.getUTCMonth() === date2.getUTCMonth() &&
-    date1.getUTCDate() === date2.getUTCDate()
-  );
-}
-
 function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
   dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
@@ -42,10 +34,8 @@ function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
 
   for (let i = 1; i < dateRanges.length; i++) {
     const nextRange = dateRanges[i];
-    if (
-      isSameDay(currentRange.start.toDate(), nextRange.start.toDate()) &&
-      currentRange.end.valueOf() > nextRange.start.valueOf()
-    ) {
+
+    if (isCurrentRangeOverlappingNext(currentRange, nextRange)) {
       currentRange = {
         start: currentRange.start,
         end: currentRange.end.valueOf() > nextRange.end.valueOf() ? currentRange.end : nextRange.end,
@@ -58,4 +48,11 @@ function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
   mergedDateRanges.push(currentRange);
 
   return mergedDateRanges;
+}
+
+function isCurrentRangeOverlappingNext(currentRange: DateRange, nextRange: DateRange): boolean {
+  return (
+    currentRange.start.valueOf() <= nextRange.start.valueOf() &&
+    currentRange.end.valueOf() >= nextRange.start.valueOf()
+  );
 }
