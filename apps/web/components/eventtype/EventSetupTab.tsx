@@ -298,9 +298,21 @@ export const EventSetupTab = (
                           !validLocations.find((location) => location.type === newLocationType);
 
                         if (canAddLocation) {
-                          updateLocationField(index, { type: newLocationType });
+                          updateLocationField(index, {
+                            type: newLocationType,
+                            ...(e.credentialId && {
+                              credentialId: e.credentialId,
+                              teamName: e.teamName,
+                            }),
+                          });
                         } else {
-                          updateLocationField(index, { type: field.type });
+                          updateLocationField(index, {
+                            type: field.type,
+                            ...(field.credentialId && {
+                              credentialId: field.credentialId,
+                              teamName: field.teamName,
+                            }),
+                          });
                           showToast(t("location_already_exists"), "warning");
                         }
                       }
@@ -382,7 +394,13 @@ export const EventSetupTab = (
                       !validLocations.find((location) => location.type === newLocationType);
 
                     if (canAppendLocation) {
-                      append({ type: newLocationType });
+                      append({
+                        type: newLocationType,
+                        ...(e.credentialId && {
+                          credentialId: e.credentialId,
+                          teamName: e.teamName,
+                        }),
+                      });
                       setSelectedNewOption(e);
                     } else {
                       showToast(t("location_already_exists"), "warning");
