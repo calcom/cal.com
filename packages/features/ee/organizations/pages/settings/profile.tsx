@@ -113,7 +113,7 @@ const OrgProfileView = () => {
         {isOrgAdminOrOwner ? (
           <OrgProfileForm defaultValues={defaultValues} />
         ) : (
-          <div className="flex">
+          <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="flex-grow">
               <div>
                 <Label className="text-emphasis">{t("org_name")}</Label>
