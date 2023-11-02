@@ -976,26 +976,22 @@ describe("getSchedule", () => {
         },
       });
 
-      let countSlotsOnDayWithBooking = 0;
+      let availableSlotsInTz: dayjs.Dayjs[] = [];
       for (const date in thisUserAvailabilityBookingLimitOne.slots) {
-        for (const timeObj of thisUserAvailabilityBookingLimitOne.slots[date]) {
-          if (dayjs(timeObj.time).tz(Timezones["+5:30"]).format().startsWith(plus2DateString)) {
-            countSlotsOnDayWithBooking++;
-          }
-        }
+        thisUserAvailabilityBookingLimitOne.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+5:30"]));
+        });
       }
 
-      expect(countSlotsOnDayWithBooking).toBe(0); // 1 booking per day as limit
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0); // 1 booking per day as limit
 
-      countSlotsOnDayWithBooking = 0;
+      availableSlotsInTz = [];
       for (const date in thisUserAvailabilityBookingLimitTwo.slots) {
-        for (const timeObj of thisUserAvailabilityBookingLimitTwo.slots[date]) {
-          if (dayjs(timeObj.time).tz(Timezones["+5:30"]).format().startsWith(plus2DateString)) {
-            countSlotsOnDayWithBooking++;
-          }
-        }
+        thisUserAvailabilityBookingLimitTwo.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+5:30"]));
+        });
       }
-      expect(countSlotsOnDayWithBooking).toBe(23); // 2 booking per day as limit
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
     });
   });
 
