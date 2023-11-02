@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -158,6 +158,12 @@ const ProfileView = () => {
       setConfirmPasswordDeleteErrorMessage(t("incorrect_password"));
     },
   });
+
+  useEffect(() => {
+    setTimeout(() => {
+      setConfirmPasswordDeleteErrorMessage(t(""));
+    }, 3000);
+  }, [confirmPasswordErrorMessage]);
 
   const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
     setHasDeleteErrors(true);
