@@ -7,6 +7,14 @@ import { test } from "@calcom/web/test/fixtures/fixtures";
 import { buildCalendarEvent, buildPerson } from "../../../lib/test/builder";
 import generateIcsString, { BookingAction } from "../generateIcsString";
 
+const assertHasIcsString = (icsString: string | undefined) => {
+  if (!icsString) throw new Error("icsString is undefined");
+
+  expect(icsString).toBeDefined();
+
+  return icsString;
+};
+
 const testIcsStringContains = ({
   icsString,
   event,
@@ -53,9 +61,9 @@ describe("generateIcsString", () => {
       role: "organizer",
     });
 
-    expect(icsString).toBeDefined();
+    const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString, event, status: "CONFIRMED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status: "CONFIRMED" });
   });
   test("when bookingAction is Cancel", () => {
     const event = buildCalendarEvent({
@@ -69,9 +77,9 @@ describe("generateIcsString", () => {
       role: "organizer",
     });
 
-    expect(icsString).toBeDefined();
+    const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString, event, status: "CANCELLED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status: "CANCELLED" });
   });
   test("when bookingAction is Reschedule", () => {
     const event = buildCalendarEvent({
@@ -85,9 +93,9 @@ describe("generateIcsString", () => {
       role: "organizer",
     });
 
-    expect(icsString).toBeDefined();
+    const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString, event, status: "CONFIRMED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status: "CONFIRMED" });
   });
   test("when bookingAction is RequestReschedule", () => {
     const event = buildCalendarEvent({
@@ -101,8 +109,8 @@ describe("generateIcsString", () => {
       role: "organizer",
     });
 
-    expect(icsString).toBeDefined();
+    const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString, event, status: "CANCELLED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status: "CANCELLED" });
   });
 });
