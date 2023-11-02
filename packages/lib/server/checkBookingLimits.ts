@@ -12,14 +12,14 @@ export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
   eventId: number,
-  timezone?: string | null
+  timeZone?: string | null
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
 
   // not iterating entries to preserve types
   const limitCalculations = ascendingLimitKeys.map((key) =>
-    checkBookingLimit({ key, limitingNumber: parsedBookingLimits[key], eventStartDate, eventId, timezone })
+    checkBookingLimit({ key, limitingNumber: parsedBookingLimits[key], eventStartDate, eventId, timeZone })
   );
 
   try {
@@ -34,16 +34,16 @@ export async function checkBookingLimit({
   eventId,
   key,
   limitingNumber,
-  timezone,
+  timeZone,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
-  timezone?: string | null;
+  timeZone?: string | null;
 }) {
   {
-    const eventDateInOrganizerTz = timezone ? dayjs(eventStartDate).tz(timezone) : dayjs(eventStartDate);
+    const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
 
     if (!limitingNumber) return;
 
