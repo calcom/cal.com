@@ -47,7 +47,7 @@ export function AvailabilityList({
         <EmptyScreen
           Icon={Clock}
           headline="Create an availability schedule"
-          subtitle="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
+          description="Creating availability schedules allows you to manage availability across event types. They can be applied to one or more event types."
           className="w-full"
           buttonRaw={<NewScheduleButton createMutation={onCreateMutation} />}
         />
