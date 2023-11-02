@@ -11,7 +11,6 @@ import { buildCalendarEvent, buildVideoCallData } from "./builder";
 
 vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "http://localhost:3000",
-  ICAL_UID_DOMAIN: "cal.com",
 }));
 
 vi.mock("short-uuid", () => ({

@@ -106,5 +106,3 @@ export const APP_CREDENTIAL_SHARING_ENABLED =
 
 export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
-
-export const ICAL_UID_DOMAIN = process.env.ICAL_UID_DOMAIN || "cal.com";
