@@ -53,6 +53,6 @@ function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
 function isCurrentRangeOverlappingNext(currentRange: DateRange, nextRange: DateRange): boolean {
   return (
     currentRange.start.valueOf() <= nextRange.start.valueOf() &&
-    currentRange.end.valueOf() >= nextRange.start.valueOf()
+    currentRange.end.valueOf() > nextRange.start.valueOf()
   );
 }
