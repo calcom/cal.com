@@ -33,6 +33,8 @@ import {
 import { Plus, X, Check } from "@calcom/ui/components/icon";
 import { CornerDownRight } from "@calcom/ui/components/icon";
 
+import { useFormatDuration } from "@lib/hooks/useFormatDuration";
+
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
@@ -112,6 +114,7 @@ export const EventSetupTab = (
   >
 ) => {
   const { t } = useLocale();
+  const { formatDuration } = useFormatDuration();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, destinationCalendar } = props;
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
@@ -134,7 +137,7 @@ export const EventSetupTab = (
     5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 480,
   ].map((mins) => ({
     value: mins,
-    label: t("multiple_duration_mins", { count: mins }),
+    label: formatDuration(mins, "setup"),
   }));
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<

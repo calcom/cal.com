@@ -13,6 +13,8 @@ import type { EventTypeModel } from "@calcom/prisma/zod";
 import { Badge } from "@calcom/ui";
 import { Clock, Users, RefreshCw, Clipboard, Plus, User, Lock } from "@calcom/ui/components/icon";
 
+import { useFormatDuration } from "@lib/hooks/useFormatDuration";
+
 export type EventTypeDescriptionProps = {
   eventType: Pick<
     z.infer<typeof EventTypeModel>,
@@ -34,6 +36,7 @@ export const EventTypeDescription = ({
   isPublic,
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
+  const { formatDuration } = useFormatDuration();
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
@@ -61,14 +64,14 @@ export const EventTypeDescription = ({
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
                 <Badge variant="gray" startIcon={Clock}>
-                  {dur}m
+                  {formatDuration(dur, "description")}
                 </Badge>
               </li>
             ))
           ) : (
             <li>
               <Badge variant="gray" startIcon={Clock}>
-                {eventType.length}m
+                {formatDuration(eventType.length, "description")}
               </Badge>
             </li>
           )}

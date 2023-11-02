@@ -5,10 +5,13 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
 
+import { useFormatDuration } from "@lib/hooks/useFormatDuration";
+
 import type { PublicEvent } from "../../types";
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
+  const { formatDuration } = useFormatDuration();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
@@ -39,7 +42,9 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
             className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
             size="md"
             key={duration}
-            onClick={() => setSelectedDuration(duration)}>{`${duration} ${t("minute_timeUnit")}`}</Badge>
+            onClick={() => setSelectedDuration(duration)}>
+            {formatDuration(duration, "duration")}
+          </Badge>
         ))}
     </div>
   );
