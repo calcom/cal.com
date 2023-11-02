@@ -1,5 +1,5 @@
 export const useFormatDuration = () => {
-  const formatDuration = (mins: number, pageType: string): string | undefined => {
+  const formatDuration = (mins: number, pageType: string): string => {
     if (pageType === "description") {
       if (mins < 60) {
         return `${mins}m`;
@@ -18,6 +18,7 @@ export const useFormatDuration = () => {
 
       return result.trim();
     }
+    return "";
   };
 
   return {
