@@ -597,8 +597,6 @@ Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/ma
 
 Special thanks to these amazing projects which help power Cal.com:
 
-[<img src="https://cal.com/powered-by-vercel.svg">](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
-
 - [Vercel](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 - [Next.js](https://nextjs.org/)
 - [Day.js](https://day.js.org/)
