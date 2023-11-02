@@ -151,10 +151,6 @@ const nextConfig = {
     localeDetection: false,
   },
   productionBrowserSourceMaps: true,
-  sentry: {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-  },
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -554,22 +550,11 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  // const sentryWebpackPluginOptions = {
-  //   // Additional config options for the Sentry webpack plugin. Keep in mind that
-  //   // the following options are set automatically, and overriding them is not
-  //   // recommended:
-  //   //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
+  nextConfig["sentry"] = {
+    autoInstrumentServerFunctions: true,
+    hideSourceMaps: true,
+  };
 
-  //   org: process.env.SENTRY_ORG,
-  //   project: process.env.SENTRY_PROJECT,
-
-  //   silent: true, // Suppresses all logs
-
-  //   // For all available options, see:
-  //   // https://github.com/getsentry/sentry-webpack-plugin#options.
-  // };
-
-  console.log("using sentry");
   plugins.push(withSentryConfig);
 }
 
