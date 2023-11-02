@@ -66,7 +66,7 @@ type ExpectedEmail = {
   // };
   ics?: {
     filename: string;
-    // iCalUID: string;
+    iCalUID: string;
     recurrence?: Recurrence;
     method: string;
   };
@@ -106,9 +106,6 @@ expect.extend({
 
     let isToAddressExpected = true;
     const isIcsFilenameExpected = expectedEmail.ics ? ics?.filename === expectedEmail.ics.filename : true;
-    // const isIcsUIDExpected = expectedEmail.ics
-    //   ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
-    //   : true;
     const emailDom = parse(testEmail.html);
 
     const actualEmailContent = {
@@ -370,7 +367,7 @@ export function expectSuccessfulBookingCreationEmails({
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
-        // iCalUID: `${iCalUID}`,``
+        iCalUID: `${iCalUID}`,
         recurrence,
         method: "REQUEST",
       },
@@ -395,7 +392,7 @@ export function expectSuccessfulBookingCreationEmails({
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
-        // iCalUID: iCalUID,
+        iCalUID: iCalUID,
         recurrence,
         method: "REQUEST",
       },
@@ -432,7 +429,7 @@ export function expectSuccessfulBookingCreationEmails({
           to: `${otherTeamMember.email}`,
           ics: {
             filename: "event.ics",
-            // iCalUID: iCalUID,
+            iCalUID: iCalUID,
             method: "REQUEST",
           },
           links: [
@@ -469,7 +466,7 @@ export function expectSuccessfulBookingCreationEmails({
           to: `${guest.email}`,
           ics: {
             filename: "event.ics",
-            // iCalUID: iCalUID,
+            iCalUID: iCalUID,
             method: "REQUEST",
           },
         },
@@ -526,7 +523,7 @@ export function expectCalendarEventCreationFailureEmails({
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
-        // iCalUID,
+        iCalUID,
         method: "REQUEST",
       },
     },
@@ -539,7 +536,7 @@ export function expectCalendarEventCreationFailureEmails({
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
-        // iCalUID,
+        iCalUID,
         method: "REQUEST",
       },
     },
@@ -566,7 +563,7 @@ export function expectSuccessfulBookingRescheduledEmails({
       to: `${organizer.email}`,
       ics: {
         filename: "event.ics",
-        // iCalUID,
+        iCalUID,
         method: "REQUEST",
       },
       appsStatus,
@@ -580,7 +577,7 @@ export function expectSuccessfulBookingRescheduledEmails({
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
-        // iCalUID,
+        iCalUID,
         method: "REQUEST",
       },
     },
