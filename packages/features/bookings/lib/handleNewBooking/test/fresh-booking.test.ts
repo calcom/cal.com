@@ -161,6 +161,7 @@ describe("handleNewBooking", () => {
         });
 
         const createdBooking = await handleNewBooking(req);
+        const iCalUID = getICalUID({ uid: createdBooking.uid });
         expect(createdBooking.responses).toContain({
           email: booker.email,
           name: booker.name,
@@ -192,7 +193,7 @@ describe("handleNewBooking", () => {
               meetingUrl: "https://UNUSED_URL",
             },
           ],
-          iCalUID: getICalUID({ uid: createdBooking.uid }),
+          iCalUID,
         });
 
         expectWorkflowToBeTriggered();
@@ -209,7 +210,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -290,7 +291,6 @@ describe("handleNewBooking", () => {
             create: {
               id: "GOOGLE_CALENDAR_EVENT_ID",
               uid: "MOCK_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             },
           });
 
@@ -320,6 +320,7 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
+          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -342,6 +343,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
+            iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -360,7 +362,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -441,7 +443,6 @@ describe("handleNewBooking", () => {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             },
           });
 
@@ -471,6 +472,7 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
+          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -493,6 +495,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
+            iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -508,7 +511,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -705,7 +708,6 @@ describe("handleNewBooking", () => {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             },
           });
 
@@ -735,6 +737,7 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
+          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -757,6 +760,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
+            iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -772,7 +776,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1416,11 +1420,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -1448,12 +1448,14 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
+          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
+            iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -1465,7 +1467,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1541,11 +1543,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -1573,12 +1571,14 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
+          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+            iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -1728,11 +1728,7 @@ describe("handleNewBooking", () => {
           apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
         });
 
-        mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-          },
-        });
+        mockCalendarToHaveNoBusySlots("googlecalendar", {});
         await createBookingScenario(scenarioData);
 
         const createdBooking = await handleNewBooking(req);
@@ -1745,12 +1741,14 @@ describe("handleNewBooking", () => {
           location: "New York",
         });
 
+        const iCalUID = getICalUID({ uid: createdBooking.uid });
         await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
+          iCalUID,
         });
 
         expectWorkflowToBeTriggered();
@@ -1762,7 +1760,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID,
         });
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,

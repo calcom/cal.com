@@ -106,6 +106,9 @@ expect.extend({
 
     let isToAddressExpected = true;
     const isIcsFilenameExpected = expectedEmail.ics ? ics?.filename === expectedEmail.ics.filename : true;
+    const isIcsUIDExpected = expectedEmail.ics
+      ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
+      : true;
     const emailDom = parse(testEmail.html);
 
     const actualEmailContent = {
@@ -158,14 +161,14 @@ expect.extend({
       };
     }
 
-    // if (!expectedEmail.noIcs && !isIcsUIDExpected) {
-    //   return {
-    //     pass: false,
-    //     actual: JSON.stringify(icsObject),
-    //     expected: expectedEmail.ics?.iCalUID,
-    //     message: () => `Expected ICS UID ${isNot ? "is" : "isn't"} present in actual`,
-    //   };
-    // }
+    if (!expectedEmail.noIcs && !isIcsUIDExpected) {
+      return {
+        pass: false,
+        actual: JSON.stringify(icsObject),
+        expected: expectedEmail.ics?.iCalUID,
+        message: () => `Expected ICS UID ${isNot ? "is" : "isn't"} present in actual`,
+      };
+    }
 
     if (expectedEmail.noIcs && ics) {
       return {
