@@ -12,7 +12,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { WEBAPP_URL, ICAL_UID_DOMAIN } from "@calcom/lib/constants";
+import getICalUID from "@calcom/emails/lib/getICalUid";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -191,7 +192,7 @@ describe("handleNewBooking", () => {
               meetingUrl: "https://UNUSED_URL",
             },
           ],
-          iCalUID: `${createdBooking.uid}@${ICAL_UID_DOMAIN}`,
+          iCalUID: getICalUID({ uid: createdBooking.uid }),
         });
 
         expectWorkflowToBeTriggered();

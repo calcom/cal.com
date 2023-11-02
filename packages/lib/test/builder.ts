@@ -2,9 +2,9 @@ import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import { ICAL_UID_DOMAIN } from "@calcom/lib/constants";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
+import getICalUID from "@calcom/web/lib/getICalUid";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
   return {
@@ -61,7 +61,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     metadata: null,
     responses: null,
     isRecorded: false,
-    iCalUID: `${uid}@${ICAL_UID_DOMAIN}`,
+    iCalUID: getICalUID({ uid }),
     iCalSequence: 0,
     ...booking,
   };
@@ -161,7 +161,7 @@ export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEven
   const uid = faker.datatype.uuid();
   return {
     uid,
-    iCalUID: `${uid}@${ICAL_UID_DOMAIN}`,
+    iCalUID: getICalUID({ uid }),
     type: faker.helpers.arrayElement(["event", "meeting"]),
     title: faker.lorem.sentence(),
     startTime: faker.date.future().toISOString(),
