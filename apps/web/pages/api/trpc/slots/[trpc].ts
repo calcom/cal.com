@@ -1,6 +1,8 @@
 import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
 
-import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
-import { slotsRouter } from "@calcom/trpc/server/routers/viewer/slots/_router";
+const handler = (req, res) => {
+  throw new Error("Unexpected error DIRECT IN SLOTS ROUTE. Does it go to Sentry?");
+  res.status(200).json({ name: "John Doe" });
+};
 
-export default wrapApiHandlerWithSentry(createNextApiHandler(slotsRouter, "/api/trpc/slots/[trpc]"));
+export default wrapApiHandlerWithSentry(handler, "/api/trpc/slots/[trpc]");

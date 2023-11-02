@@ -94,10 +94,6 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withAxiom);
 
-if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  plugins.push(withSentryConfig);
-}
-
 const matcherConfigRootPath = {
   has: [
     {
@@ -556,5 +552,25 @@ const nextConfig = {
     return redirects;
   },
 };
+
+if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  // const sentryWebpackPluginOptions = {
+  //   // Additional config options for the Sentry webpack plugin. Keep in mind that
+  //   // the following options are set automatically, and overriding them is not
+  //   // recommended:
+  //   //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
+
+  //   org: process.env.SENTRY_ORG,
+  //   project: process.env.SENTRY_PROJECT,
+
+  //   silent: true, // Suppresses all logs
+
+  //   // For all available options, see:
+  //   // https://github.com/getsentry/sentry-webpack-plugin#options.
+  // };
+
+  console.log("using sentry");
+  plugins.push(withSentryConfig);
+}
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
