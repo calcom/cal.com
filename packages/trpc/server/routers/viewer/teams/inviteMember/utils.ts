@@ -9,7 +9,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import { Prisma, type User } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -365,6 +365,10 @@ export async function createAndAutoJoinIfInOrg({
       autoJoined: false,
     };
   }
+  let currentRole = role;
+  if (orgMembership.role === MembershipRole.ADMIN || orgMembership.role === MembershipRole.OWNER) {
+    currentRole = orgMembership.role;
+  }
 
   // Since we early return if the user is not a member of the org. Or the team they are being invited to is an org (not having a parentID)
   // We create the membership in the child team
@@ -373,7 +377,7 @@ export async function createAndAutoJoinIfInOrg({
       userId: invitee.id,
       teamId: team.id,
       accepted: true,
-      role: role,
+      role: currentRole,
     },
   });
 
