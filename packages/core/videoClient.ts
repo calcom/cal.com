@@ -26,6 +26,7 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
+    console.log("🚀 ~ file: videoClient.ts:29 ~ getVideoAdapters ~ appName:", appName);
     const appImportFn = appStore[appName as keyof typeof appStore];
 
     // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.

@@ -35,7 +35,6 @@ const dailyReturnTypeSchema = z.object({
     enable_noise_cancellation_ui: z.boolean(),
     enable_advanced_chat: z.boolean(),
     //above flags are for prebuilt daily
-    enable_screenshare: z.boolean(),
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
   }),
@@ -60,7 +59,7 @@ export interface DailyVideoCallData {
 
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
   const { api_key } = await getShimmerAppKeys();
-  return fetch(`https://api.daily.co/v1${endpoint}`, {
+  const response = await fetch(`https://api.daily.co/v1${endpoint}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${api_key}`,
@@ -69,6 +68,7 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
     },
     ...init,
   }).then(handleErrorsJson);
+  return response;
 };
 
 export const fetcherShimmer = async (endpoint: string, init?: RequestInit | undefined) => {
@@ -79,7 +79,7 @@ export const fetcherShimmer = async (endpoint: string, init?: RequestInit | unde
     return Promise.resolve([]);
   }
 
-  return fetch(`${api_route}${endpoint}`, {
+  const response = await fetch(`${api_route}${endpoint}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${api_key}`,
@@ -87,7 +87,9 @@ export const fetcherShimmer = async (endpoint: string, init?: RequestInit | unde
       ...init?.headers,
     },
     ...init,
-  }).then(handleErrorsJson);
+  });
+
+  return response;
 };
 
 export const postToShimmerAPI = async (
@@ -111,7 +113,7 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   });
 }
 
-const DailyVideoApiAdapter = (): VideoApiAdapter => {
+const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
     if (!event.uid) {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
@@ -190,4 +192,4 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   };
 };
 
-export default DailyVideoApiAdapter;
+export default ShimmerDailyVideoApiAdapter;
