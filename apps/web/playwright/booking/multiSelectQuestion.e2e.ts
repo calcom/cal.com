@@ -263,8 +263,8 @@ test.describe("Booking With Multi Select Question and Each Other Question", () =
         eventTypePage,
         placeholderText: "Please share anything that will help prepare for our meeting.",
         question: "multiselect",
-        fillText: "Test Multi Select question and Multi Select question (only multiselect required)",
-        secondQuestion: "multiselect",
+        fillText: "Test Multi Select question and Phone question (only multiselect required)",
+        secondQuestion: "phone",
         options: { ...bookingOptions, isRequired: false },
       });
       await bookingPage.rescheduleBooking(eventTypePage);
