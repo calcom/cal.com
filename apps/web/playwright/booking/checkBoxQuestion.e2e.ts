@@ -64,7 +64,7 @@ test.describe("Booking With Checkbox Question and Each Other Question", () => {
           placeholderText: "Please share anything that will help prepare for our meeting.",
           question: "boolean",
           fillText: "Test checkbox question and checkbox group question (both required)",
-          secondQuestion: "boolean",
+          secondQuestion: "checkbox",
           options: bookingOptions,
         });
         await bookingPage.rescheduleBooking(eventTypePage);
@@ -84,7 +84,7 @@ test.describe("Booking With Checkbox Question and Each Other Question", () => {
           placeholderText: "Please share anything that will help prepare for our meeting.",
           question: "boolean",
           fillText: "Test checkbox question and checkbox group question (only checkbox required)",
-          secondQuestion: "boolean",
+          secondQuestion: "checkbox",
           options: { ...bookingOptions, isRequired: false },
         });
         await bookingPage.rescheduleBooking(eventTypePage);
@@ -116,7 +116,7 @@ test.describe("Booking With Checkbox Question and Each Other Question", () => {
       });
       test("Checkbox and checkbox not required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", true);
-        await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", false);
+        await bookingPage.addQuestion("phone", "phone-test", "phone test", false, "phone-test");
         await bookingPage.updateEventType();
         const eventTypePage = await bookingPage.previewEventType();
         await bookingPage.selectTimeSlot(eventTypePage);
@@ -124,8 +124,8 @@ test.describe("Booking With Checkbox Question and Each Other Question", () => {
           eventTypePage,
           placeholderText: "Please share anything that will help prepare for our meeting.",
           question: "boolean",
-          fillText: "Test checkbox question and checkbox (only checkbox required)",
-          secondQuestion: "boolean",
+          fillText: "Test checkbox question and Phone Question (only checkbox required)",
+          secondQuestion: "phone",
           options: { ...bookingOptions, isRequired: false },
         });
         await bookingPage.rescheduleBooking(eventTypePage);
