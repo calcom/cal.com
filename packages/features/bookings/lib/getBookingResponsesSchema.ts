@@ -236,9 +236,9 @@ function preprocess<T extends z.ZodType>({
             if (optionValue) {
               // `typeOfOptionInput` can be any of the main types. So, we the same validations should run for `optionValue`
               if (typeOfOptionInput === "phone") {
-                if (!(await phoneSchema.safeParseAsync(optionValue)).success) {
-                  ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
-                }
+                // if (!(await phoneSchema.safeParseAsync(optionValue)).success) {
+                //   ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+                // }
               }
             }
           }
