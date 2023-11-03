@@ -168,9 +168,13 @@ export default function ImageUploader({
 
   return (
     <Dialog
-      onOpenChange={
-        (opened) => !opened && setFile(null) // unset file on close
-      }>
+      onOpenChange={(opened) => {
+        // unset file on close
+        if (!opened) {
+          setFile(null);
+          setImageSrc(null);
+        }
+      }}>
       <DialogTrigger asChild>
         <Button color={triggerButtonColor ?? "secondary"} type="button" className="py-1 text-sm">
           {buttonMsg}
@@ -207,10 +211,11 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
+          <DialogClose color="minimal">{t("cancel")}</DialogClose>
+
           <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
