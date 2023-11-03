@@ -130,7 +130,7 @@ const ShimmerDailyVideoApiAdapter = (): VideoApiAdapter => {
       id: dailyEvent.name,
       password: "",
       //   password: meetingToken.token,
-      url: dailyEvent.url,
+      url: `https://app.shimmer.care?videoId=${dailyEvent.name}`,
     });
   }
 
