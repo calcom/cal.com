@@ -27,6 +27,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         price: appConfig.paid.priceId,
       },
     ],
+    client_reference_id: session.user.id.toString(),
   });
 
   if (!checkoutSession) {
