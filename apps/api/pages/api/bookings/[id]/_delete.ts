@@ -56,10 +56,6 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *               <td>The provided id didn't correspond to any existing booking.</td>
  *             </tr>
  *             <tr>
- *               <td>Cannot cancel past events</td>
- *               <td>The provided id matched an existing booking with a past startDate.</td>
- *             </tr>
- *             <tr>
  *               <td>User not found</td>
  *               <td>The userId did not matched an existing user.</td>
  *             </tr>
