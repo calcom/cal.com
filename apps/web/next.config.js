@@ -102,6 +102,16 @@ const matcherConfigRootPath = {
   source: "/",
 };
 
+const matcherConfigRootPathEmbed = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: "/embed",
+};
+
 const matcherConfigUserRoute = {
   has: [
     {
@@ -227,6 +237,14 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        /**
+         * Needed due to the introduction of dotted usernames
+         * @see https://github.com/calcom/cal.com/pull/11706
+         */
+        source: "/embed.js",
+        destination: "/embed/embed.js",
+      },
+      {
         source: "/login",
         destination: "/auth/login",
       },
@@ -235,7 +253,11 @@ const nextConfig = {
         ? [
             {
               ...matcherConfigRootPath,
-              destination: "/team/:orgSlug",
+              destination: "/team/:orgSlug?isOrgProfile=1",
+            },
+            {
+              ...matcherConfigRootPathEmbed,
+              destination: "/team/:orgSlug/embed?isOrgProfile=1",
             },
             {
               ...matcherConfigUserRoute,

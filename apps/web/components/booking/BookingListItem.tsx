@@ -88,10 +88,6 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
-  const eventLocationType = getEventLocationType(booking.location);
-  const meetingLink = booking.references[0]?.meetingUrl
-    ? booking.references[0]?.meetingUrl
-    : booking.location;
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -143,17 +139,6 @@ function BookingListItem(booking: BookingItemProps) {
           },
         ]
       : []),
-  ];
-
-  const showRecordingActions: ActionType[] = [
-    {
-      id: "view_recordings",
-      label: t("view_recordings"),
-      onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
-      },
-      disabled: mutation.isLoading,
-    },
   ];
 
   let bookedActions: ActionType[] = [
@@ -230,6 +215,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const startTime = dayjs(booking.startTime)
+    .tz(user?.timeZone)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
@@ -273,11 +259,19 @@ function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
-  // To be used after we run query on legacy bookings
-  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
 
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+  const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
+
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      disabled: mutation.isLoading,
+    },
+  ];
 
   return (
     <>
@@ -357,27 +351,6 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
-              {!isPending && (eventLocationType || booking.location?.startsWith("https://")) && (
-                <Link
-                  href={meetingLink ? meetingLink.toString() : ""}
-                  className="text-sm leading-6 text-blue-400 hover:underline">
-                  <div className="flex items-center gap-2">
-                    {eventLocationType ? (
-                      <>
-                        <img
-                          src={eventLocationType.iconUrl}
-                          className="h-4 w-4 rounded-sm"
-                          alt={`${eventLocationType.label} logo`}
-                        />
-                        {t("join_event_location", { eventLocationType: eventLocationType.label })}
-                      </>
-                    ) : (
-                      t("join_meeting")
-                    )}
-                  </div>
-                </Link>
-              )}
-
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
