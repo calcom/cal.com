@@ -182,6 +182,7 @@ export function createBookingPageFixture(page: Page) {
     selectFirstAvailableTime: async () => {
       await page.getByTestId("time").first().click();
     },
+
     fillRescheduleReasonAndConfirm: async () => {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
