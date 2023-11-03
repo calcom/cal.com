@@ -40,7 +40,7 @@ Fixes # (issue)
 
 ## Checklist
 
-<!-- Please remove all the irrelevant bullets to your PR -->
+<!-- Remove bullet points below that don't apply to you -->
 
 - I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
 - My code doesn't follow the style guidelines of this project

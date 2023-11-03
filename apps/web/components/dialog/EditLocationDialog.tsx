@@ -356,9 +356,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             onChange={(val) => {
                               if (val) {
                                 locationFormMethods.setValue("locationType", val.value);
-                                if (val.credential) {
-                                  locationFormMethods.setValue("credentialId", val.credential.id);
-                                  locationFormMethods.setValue("teamName", val.credential.team?.name);
+                                if (!!val.credentialId) {
+                                  locationFormMethods.setValue("credentialId", val.credentialId);
+                                  locationFormMethods.setValue("teamName", val.teamName);
                                 }
 
                                 locationFormMethods.unregister([
