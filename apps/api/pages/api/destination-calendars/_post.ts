@@ -1,7 +1,9 @@
 import type { NextApiRequest } from "next";
 
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import {
   schemaDestinationCalendarReadPublic,
@@ -38,9 +40,6 @@ import {
  *               externalId:
  *                 type: string
  *                 description: 'The external ID of the integration'
- *               credentialId:
- *                 type: integer
- *                 description: 'The credential ID it is associated with'
  *               eventTypeId:
  *                 type: integer
  *                 description: 'The ID of the eventType it is associated with'
@@ -65,19 +64,37 @@ async function postHandler(req: NextApiRequest) {
   const parsedBody = schemaDestinationCalendarCreateBodyParams.parse(body);
   await checkPermissions(req, userId);
 
-  const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
+  const assignedUserId = isAdmin && parsedBody.userId ? parsedBody.userId : userId;
 
   /* Check if credentialId data matches the ownership and integration passed in */
-  const credential = await prisma.credential.findFirst({
-    where: { type: parsedBody.integration, userId: assignedUserId },
-    select: { id: true, type: true, userId: true },
+  const userCredentials = await prisma.credential.findMany({
+    where: {
+      type: parsedBody.integration,
+      userId: assignedUserId,
+    },
+    select: credentialForCalendarServiceSelect,
   });
 
-  if (!credential)
+  if (userCredentials.length === 0)
     throw new HttpError({
       statusCode: 400,
       message: "Bad request, credential id invalid",
     });
+
+  const calendarCredentials = getCalendarCredentials(userCredentials);
+
+  const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, [], parsedBody.externalId);
+
+  const eligibleCalendars = connectedCalendars[0]?.calendars?.filter((calendar) => !calendar.readOnly);
+  const calendar = eligibleCalendars?.find(
+    (c) => c.externalId === parsedBody.externalId && c.integration === parsedBody.integration
+  );
+  if (!calendar?.credentialId)
+    throw new HttpError({
+      statusCode: 400,
+      message: "Bad request, credential id invalid",
+    });
+  const credentialId = calendar.credentialId;
 
   if (parsedBody.eventTypeId) {
     const eventType = await prisma.eventType.findFirst({
@@ -91,7 +108,9 @@ async function postHandler(req: NextApiRequest) {
     parsedBody.userId = undefined;
   }
 
-  const destination_calendar = await prisma.destinationCalendar.create({ data: { ...parsedBody } });
+  const destination_calendar = await prisma.destinationCalendar.create({
+    data: { ...parsedBody, credentialId },
+  });
 
   return {
     destinationCalendar: schemaDestinationCalendarReadPublic.parse(destination_calendar),
