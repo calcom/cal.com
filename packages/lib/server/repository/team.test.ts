@@ -17,10 +17,10 @@ const sampleTeamProps = {
   theme: null,
   brandColor: "",
   darkBrandColor: "",
-  parentId: null,
   timeFormat: null,
   timeZone: "",
   weekStart: "",
+  parentId: null,
 };
 
 describe("getOrg", () => {
@@ -63,17 +63,17 @@ describe("getOrg", () => {
         metadata: true,
       },
     });
-    expect(org.metadata.isOrganization).toBe(true);
+    expect(org.metadata?.isOrganization).toBe(true);
   });
 
   it("should not return an org result if metadata.isOrganization isn't true", async () => {
     prismaMock.team.findMany.mockResolvedValue([
       {
+        ...sampleTeamProps,
         id: 101,
         name: "Test Team",
         slug: "test-slug",
         metadata: {},
-        ...sampleTeamProps,
       },
     ]);
 
@@ -110,11 +110,11 @@ describe("getOrg", () => {
   it("should error if metadata isn't valid", async () => {
     prismaMock.team.findMany.mockResolvedValue([
       {
+        ...sampleTeamProps,
         id: 101,
         name: "Test Team",
         slug: "test-slug",
         metadata: [],
-        ...sampleTeamProps,
       },
     ]);
 
@@ -134,18 +134,21 @@ describe("getOrg", () => {
 });
 
 describe("getTeam", () => {
-  it("should return a team correctly by slug even if there is an org by that slug", async () => {
+  it("should query a team correctly", async () => {
     prismaMock.team.findMany.mockResolvedValue([
       {
+        ...sampleTeamProps,
         id: 101,
         name: "Test Team",
         slug: "test-slug",
-        metadata: null,
-        ...sampleTeamProps,
+        metadata: {
+          anything: "here",
+          paymentId: "1",
+        },
       },
     ]);
 
-    await getTeam({
+    const team = await getTeam({
       lookupBy: {
         slug: "test-slug",
       },
@@ -170,17 +173,61 @@ describe("getTeam", () => {
         metadata: true,
       },
     });
+    expect(team).not.toBeNull();
+    // 'anything' is not in the teamMetadata schema, so it should be stripped out
+    expect(team?.metadata).toEqual({ paymentId: "1" });
+  });
+
+  it("should not return a team result if the queried result isn't a team", async () => {
+    prismaMock.team.findMany.mockResolvedValue([
+      {
+        ...sampleTeamProps,
+        id: 101,
+        name: "Test Team",
+        slug: "test-slug",
+        metadata: {
+          isOrganization: true,
+        },
+      },
+    ]);
+
+    const team = await getTeam({
+      lookupBy: {
+        slug: "test-slug",
+      },
+      forOrgWithSlug: null,
+      teamSelect: {
+        id: true,
+        slug: true,
+        name: true,
+      },
+    });
+
+    const firstFindManyCallArguments = prismaMock.team.findMany.mock.calls[0];
+
+    expect(firstFindManyCallArguments[0]).toEqual({
+      where: {
+        slug: "test-slug",
+      },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        metadata: true,
+      },
+    });
+    expect(team).toBe(null);
   });
 
   it("should return a team by slug within an org", async () => {
     prismaMock.team.findMany.mockResolvedValue([
       {
+        ...sampleTeamProps,
         id: 101,
         name: "Test Team",
         slug: "test-slug",
         parentId: 100,
         metadata: null,
-        ...sampleTeamProps,
       },
     ]);
 

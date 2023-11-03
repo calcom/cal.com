@@ -96,7 +96,6 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
     }))
     // In cases where there are many teams with the same slug, we need to find out the one and only one that matches our criteria
     .filter((team) => {
-      console.log(team.metadata);
       // We need an org if isOrgView otherwise we need a team
       return isOrg ? team.metadata?.isOrganization : !team.metadata?.isOrganization;
     });
