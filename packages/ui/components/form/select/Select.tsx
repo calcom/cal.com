@@ -79,7 +79,7 @@ export const Select = <
           cx("text-emphasis placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
         multiValue: () =>
           cx(
-            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-none",
+            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-tight",
             innerClassNames?.multiValue
           ),
         menu: () =>

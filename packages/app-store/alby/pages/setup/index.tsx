@@ -30,15 +30,20 @@ export default function AlbySetup(props: IAlbySetupProps) {
 
 function AlbySetupCallback() {
   const [error, setError] = useState<string | null>(null);
-  const params = useSearchParams();
+  const searchParams = useSearchParams();
+
   useEffect(() => {
+    if (!searchParams) {
+      return;
+    }
+
     if (!window.opener) {
       setError("Something went wrong. Opener not available. Please contact support@getalby.com");
       return;
     }
 
-    const code = params.get("code");
-    const error = params.get("error");
+    const code = searchParams?.get("code");
+    const error = searchParams?.get("error");
 
     if (!code) {
       setError("declined");
@@ -54,7 +59,7 @@ function AlbySetupCallback() {
       payload: { code },
     });
     window.close();
-  }, []);
+  }, [searchParams]);
 
   return (
     <div>
@@ -120,6 +125,17 @@ function AlbySetupPage(props: IAlbySetupProps) {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
+  const albyIcon = (
+    <>
+      <img className="h-12 w-12 dark:hidden" src="/api/app-store/alby/icon-borderless.svg" alt="Alby Icon" />
+      <img
+        className="hidden h-12 w-12 dark:block"
+        src="/api/app-store/alby/icon-borderless-dark.svg"
+        alt="Alby Icon"
+      />
+    </>
+  );
+
   return (
     <div className="bg-default flex h-screen">
       {showContent ? (
@@ -138,13 +154,13 @@ function AlbySetupPage(props: IAlbySetupProps) {
                   }}
                   type="button"
                   onClick={connectWithAlby}>
-                  <img className="h-8 w-8" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
+                  {albyIcon}
                   <span className="mr-2">Connect with Alby</span>
                 </button>
               </>
             ) : (
               <>
-                <img className="h-16 w-16" src="/api/app-store/alby/icon2.svg" alt="Alby Logo" />
+                {albyIcon}
                 <p>Alby Connected!</p>
                 <Badge>Email: {props.email}</Badge>
                 <Badge>Lightning Address: {props.lightningAddress}</Badge>
@@ -152,7 +168,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
             )}
 
             {/* TODO: remove when invoices are generated using user identifier */}
-            <div className="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-700">
+            <div className="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
               <Info className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be used to
               generate invoices. If you update your lightning address, please disconnect and setup the Alby
               app again.

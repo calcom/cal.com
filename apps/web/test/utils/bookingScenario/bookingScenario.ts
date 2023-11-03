@@ -2,6 +2,7 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
+import type { BookingReference, Attendee, Booking } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
@@ -9,20 +10,21 @@ import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
-type App = {
-  slug: string;
-  dirName: string;
-};
+logger.settings.minLevel = 0;
+const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
   appId: string | null;
@@ -49,24 +51,28 @@ type ScenarioData = {
   /**
    * Prisma would return these apps
    */
-  apps?: App[];
+  apps?: Partial<AppMeta>[];
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
 };
 
-type InputCredential = typeof TestData.credentials.google;
+type InputCredential = typeof TestData.credentials.google & {
+  id?: number;
+};
 
 type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
 
-type InputUser = typeof TestData.users.example & { id: number } & {
+type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
+  id: number;
+  defaultScheduleId?: number | null;
   credentials?: InputCredential[];
+  organizationId?: number | null;
   selectedCalendars?: InputSelectedCalendar[];
   schedules: {
-    id: number;
+    // Allows giving id in the input directly so that it can be referenced somewhere else as well
+    id?: number;
     name: string;
     availability: {
-      userId: number | null;
-      eventTypeId: number | null;
       days: number[];
       startTime: Date;
       endTime: Date;
@@ -94,9 +100,10 @@ export type InputEventType = {
   afterEventBuffer?: number;
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-} & Partial<Omit<Prisma.EventTypeCreateInput, "users">>;
+  schedule?: InputUser["schedules"][number];
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
 
-type InputBooking = {
+type WhiteListedBookingProps = {
   id?: number;
   uid?: string;
   userId?: number;
@@ -106,51 +113,83 @@ type InputBooking = {
   title?: string;
   status: BookingStatus;
   attendees?: { email: string }[];
-  references?: {
-    type: string;
-    uid: string;
-    meetingId?: string;
-    meetingPassword?: string;
-    meetingUrl?: string;
-    bookingId?: number;
-    externalCalendarId?: string;
-    deleted?: boolean;
-    credentialId?: number;
-  }[];
+  references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
+    // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
+    credentialId?: number | null;
+  })[];
 };
 
-const Timezones = {
+type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
+
+export const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
 };
-logger.setSettings({ minLevel: "silly" });
 
 async function addEventTypesToDb(
-  eventTypes: (Omit<Prisma.EventTypeCreateInput, "users" | "worflows" | "destinationCalendar"> & {
+  eventTypes: (Omit<
+    Prisma.EventTypeCreateInput,
+    "users" | "worflows" | "destinationCalendar" | "schedule"
+  > & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     destinationCalendar?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    schedule?: any;
   })[]
 ) {
-  logger.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
+  log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
   await prismock.eventType.createMany({
     data: eventTypes,
   });
-  logger.silly(
+  const allEventTypes = await prismock.eventType.findMany({
+    include: {
+      users: true,
+      workflows: true,
+      destinationCalendar: true,
+      schedule: true,
+    },
+  });
+
+  /**
+   * This is a hack to get the relationship of schedule to be established with eventType. Looks like a prismock bug that creating eventType along with schedule.create doesn't establish the relationship.
+   * HACK STARTS
+   */
+  log.silly("Fixed possible prismock bug by creating schedule separately");
+  for (let i = 0; i < eventTypes.length; i++) {
+    const eventType = eventTypes[i];
+    const createdEventType = allEventTypes[i];
+
+    if (eventType.schedule) {
+      log.silly("TestData: Creating Schedule for EventType", JSON.stringify(eventType));
+      await prismock.schedule.create({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        data: {
+          ...eventType.schedule.create,
+          eventType: {
+            connect: {
+              id: createdEventType.id,
+            },
+          },
+        },
+      });
+    }
+  }
+  /***
+   *  HACK ENDS
+   */
+
+  log.silly(
     "TestData: All EventTypes in DB are",
     JSON.stringify({
-      eventTypes: await prismock.eventType.findMany({
-        include: {
-          users: true,
-          workflows: true,
-          destinationCalendar: true,
-        },
-      }),
+      eventTypes: allEventTypes,
     })
   );
+  return allEventTypes;
 }
 
 async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
@@ -195,10 +234,22 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
             create: eventType.destinationCalendar,
           }
         : eventType.destinationCalendar,
+      schedule: eventType.schedule
+        ? {
+            create: {
+              ...eventType.schedule,
+              availability: {
+                createMany: {
+                  data: eventType.schedule.availability,
+                },
+              },
+            },
+          }
+        : eventType.schedule,
     };
   });
-  logger.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  await addEventTypesToDb(eventTypesWithUsers);
+  log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
+  return await addEventTypesToDb(eventTypesWithUsers);
 }
 
 function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCreateManyInput[]) {
@@ -213,15 +264,30 @@ async function addBookingsToDb(
     references: any[];
   })[]
 ) {
-  await prismock.booking.createMany({
-    data: bookings,
+  log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+
+  function getDateObj(time: string | Date) {
+    return time instanceof Date ? time : new Date(time);
+  }
+
+  // Make sure that we store the date in Date object always. This is to ensure consistency which Prisma does but not prismock
+  log.silly("Handling Prismock bug-3");
+  const fixedBookings = bookings.map((booking) => {
+    const startTime = getDateObj(booking.startTime);
+    const endTime = getDateObj(booking.endTime);
+    return { ...booking, startTime, endTime };
   });
-  logger.silly(
-    "TestData: Booking as in DB",
+
+  await prismock.booking.createMany({
+    data: fixedBookings,
+  });
+  log.silly(
+    "TestData: Bookings as in DB",
     JSON.stringify({
       bookings: await prismock.booking.findMany({
         include: {
           references: true,
+          attendees: true,
         },
       }),
     })
@@ -229,7 +295,7 @@ async function addBookingsToDb(
 }
 
 async function addBookings(bookings: InputBooking[]) {
-  logger.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+  log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
   const allBookings = [...bookings].map((booking) => {
     if (booking.references) {
       addBookingReferencesToDB(
@@ -264,6 +330,15 @@ async function addBookings(bookings: InputBooking[]) {
           },
         };
       }
+      if (booking.attendees) {
+        bookingCreate.attendees = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          createMany: {
+            data: booking.attendees,
+          },
+        };
+      }
       return bookingCreate;
     })
   );
@@ -277,19 +352,33 @@ async function addWebhooksToDb(webhooks: any[]) {
 }
 
 async function addWebhooks(webhooks: InputWebhook[]) {
-  logger.silly("TestData: Creating Webhooks", webhooks);
+  log.silly("TestData: Creating Webhooks", safeStringify(webhooks));
 
   await addWebhooksToDb(webhooks);
 }
 
 async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
-  logger.silly("TestData: Creating Users", JSON.stringify(users));
+  log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
   });
-  logger.silly("Added users to Db", {
-    allUsers: await prismock.user.findMany(),
-  });
+
+  log.silly(
+    "Added users to Db",
+    safeStringify({
+      allUsers: await prismock.user.findMany({
+        include: {
+          credentials: true,
+          schedules: {
+            include: {
+              availability: true,
+            },
+          },
+          destinationCalendar: true,
+        },
+      }),
+    })
+  );
 }
 
 async function addUsers(users: InputUser[]) {
@@ -331,6 +420,7 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+
     return newUser;
   });
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -338,16 +428,28 @@ async function addUsers(users: InputUser[]) {
   await addUsersToDb(prismaUsersCreate);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function addAppsToDb(apps: any[]) {
+  log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
+  await prismock.app.createMany({
+    data: apps,
+  });
+  const allApps = await prismock.app.findMany();
+  log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
+}
 export async function createBookingScenario(data: ScenarioData) {
-  logger.silly("TestData: Creating Scenario", JSON.stringify({ data }));
+  log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
-
-  const eventType = await addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
-    prismock.app.createMany({
-      data: data.apps,
-    });
+    await addAppsToDb(
+      data.apps.map((app) => {
+        // Enable the app by default
+        return { enabled: true, ...app };
+      })
+    );
   }
+  const eventTypes = await addEventTypes(data.eventTypes, data.users);
+
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
   await addBookings(data.bookings);
@@ -355,8 +457,18 @@ export async function createBookingScenario(data: ScenarioData) {
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
   return {
-    eventType,
+    eventTypes,
   };
+}
+
+export async function createOrganization(orgData: { name: string; slug: string }) {
+  const org = await prismock.team.create({
+    data: {
+      name: orgData.name,
+      slug: orgData.slug,
+    },
+  });
+  return org;
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
@@ -399,8 +511,8 @@ export const getDate = (
     year = year + 1;
   }
 
-  const date = _date < 10 ? "0" + _date : _date;
-  const month = _month < 10 ? "0" + _month : _month;
+  const date = _date < 10 ? `0${_date}` : _date;
+  const month = _month < 10 ? `0${_month}` : _month;
 
   return {
     date,
@@ -478,12 +590,11 @@ export const TestData = {
   },
   schedules: {
     IstWorkHours: {
-      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
-          userId: null,
-          eventTypeId: null,
+          // userId: null,
+          // eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
@@ -492,21 +603,50 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    /**
+     * Has an overlap with IstEveningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
+     */
+    IstMorningShift: {
+      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T09:30:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
+     * Has an overlap with IstMorningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
+     */
+    IstEveningShift: {
+      name: "5:00PM to 10PM in India - 11:30AM to 16:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T17:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
-      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
         {
-          userId: null,
-          eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: null,
         },
         {
-          userId: null,
-          eventTypeId: null,
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date(`1970-01-01T14:00:00.000Z`),
           endTime: new Date(`1970-01-01T18:00:00.000Z`),
@@ -520,16 +660,14 @@ export const TestData = {
     example: {
       name: "Example",
       email: "example@example.com",
-      username: "example",
+      username: "example.username",
       defaultScheduleId: 1,
       timeZone: Timezones["+5:30"],
     },
   },
   apps: {
     "google-calendar": {
-      slug: "google-calendar",
-      enabled: true,
-      dirName: "whatever",
+      ...appStoreMetadata.googlecalendar,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -540,9 +678,7 @@ export const TestData = {
       },
     },
     "daily-video": {
-      slug: "daily-video",
-      dirName: "whatever",
-      enabled: true,
+      ...appStoreMetadata.dailyvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -555,9 +691,7 @@ export const TestData = {
       },
     },
     zoomvideo: {
-      slug: "zoom",
-      enabled: true,
-      dirName: "whatever",
+      ...appStoreMetadata.zoomvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -570,10 +704,7 @@ export const TestData = {
       },
     },
     "stripe-payment": {
-      //TODO: Read from appStoreMeta
-      slug: "stripe",
-      enabled: true,
-      dirName: "stripepayment",
+      ...appStoreMetadata.stripepayment,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       keys: {
@@ -603,6 +734,7 @@ export function getOrganizer({
   credentials,
   selectedCalendars,
   destinationCalendar,
+  defaultScheduleId,
 }: {
   name: string;
   email: string;
@@ -610,10 +742,12 @@ export function getOrganizer({
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
+  defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
 }) {
   return {
     ...TestData.users.example,
+    organizationId: null as null | number,
     name,
     email,
     id,
@@ -621,27 +755,37 @@ export function getOrganizer({
     credentials,
     selectedCalendars,
     destinationCalendar,
+    defaultScheduleId,
   };
 }
 
-export function getScenarioData({
-  organizer,
-  eventTypes,
-  usersApartFromOrganizer = [],
-  apps = [],
-  webhooks,
-  bookings,
-}: // hosts = [],
-{
-  organizer: ReturnType<typeof getOrganizer>;
-  eventTypes: ScenarioData["eventTypes"];
-  apps?: ScenarioData["apps"];
-  usersApartFromOrganizer?: ScenarioData["users"];
-  webhooks?: ScenarioData["webhooks"];
-  bookings?: ScenarioData["bookings"];
-  // hosts?: ScenarioData["hosts"];
-}) {
+export function getScenarioData(
+  {
+    organizer,
+    eventTypes,
+    usersApartFromOrganizer = [],
+    apps = [],
+    webhooks,
+    bookings,
+  }: // hosts = [],
+  {
+    organizer: ReturnType<typeof getOrganizer>;
+    eventTypes: ScenarioData["eventTypes"];
+    apps?: ScenarioData["apps"];
+    usersApartFromOrganizer?: ScenarioData["users"];
+    webhooks?: ScenarioData["webhooks"];
+    bookings?: ScenarioData["bookings"];
+    // hosts?: ScenarioData["hosts"];
+  },
+  org?: { id: number | null } | undefined | null
+) {
   const users = [organizer, ...usersApartFromOrganizer];
+  if (org) {
+    users.forEach((user) => {
+      user.organizationId = org.id;
+    });
+  }
+
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -690,6 +834,7 @@ export function enableEmailFeature() {
 }
 
 export function mockNoTranslations() {
+  log.silly("Mocking i18n.getTranslation to return identity function");
   // @ts-expect-error FIXME
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
@@ -707,10 +852,14 @@ export function mockCalendar(
   metadataLookupKey: keyof typeof appStoreMetadata,
   calendarData?: {
     create?: {
+      id?: string;
       uid?: string;
+      iCalUID?: string;
     };
     update?: {
+      id?: string;
       uid: string;
+      iCalUID?: string;
     };
     busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
     creationCrash?: boolean;
@@ -727,11 +876,13 @@ export function mockCalendar(
       uid: "UPDATED_MOCK_ID",
     },
   };
-  logger.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
+  log.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createEventCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateEventCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deleteEventCalls: any[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockResolvedValue({
     lib: {
@@ -745,13 +896,15 @@ export function mockCalendar(
               throw new Error("MockCalendarService.createEvent fake error");
             }
             const [calEvent, credentialId] = rest;
-            logger.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
+            log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
             createEventCalls.push(rest);
             return Promise.resolve({
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
-              id: normalizedCalendarData.create?.uid || "FALLBACK_MOCK_ID",
+              // A Calendar is always expected to return an id.
+              id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
+              iCalUID: normalizedCalendarData.create?.iCalUID,
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
@@ -763,19 +916,27 @@ export function mockCalendar(
               throw new Error("MockCalendarService.updateEvent fake error");
             }
             const [uid, event, externalCalendarId] = rest;
-            logger.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
+            log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
             // eslint-disable-next-line prefer-rest-params
             updateEventCalls.push(rest);
             return Promise.resolve({
               type: app.type,
               additionalInfo: {},
               uid: "PROBABLY_UNUSED_UID",
+              iCalUID: normalizedCalendarData.update?.iCalUID,
+
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
               // Password and URL seems useless for CalendarService, plan to remove them if that's the case
               password: "MOCK_PASSWORD",
               url: "https://UNUSED_URL",
             });
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          deleteEvent: async (...rest: any[]) => {
+            log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
+            // eslint-disable-next-line prefer-rest-params
+            deleteEventCalls.push(rest);
           },
           getAvailability: async (): Promise<EventBusyDate[]> => {
             if (calendarData?.getAvailabilityCrash) {
@@ -791,20 +952,14 @@ export function mockCalendar(
   });
   return {
     createEventCalls,
+    deleteEventCalls,
     updateEventCalls,
   };
 }
 
 export function mockCalendarToHaveNoBusySlots(
   metadataLookupKey: keyof typeof appStoreMetadata,
-  calendarData?: {
-    create: {
-      uid?: string;
-    };
-    update?: {
-      uid: string;
-    };
-  }
+  calendarData?: Parameters<typeof mockCalendar>[1]
 ) {
   calendarData = calendarData || {
     create: {
@@ -848,12 +1003,13 @@ export function mockVideoApp({
     password: "MOCK_PASS",
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
-  logger.silly(
-    "mockSuccessfulVideoMeetingCreation",
-    JSON.stringify({ metadataLookupKey, appStoreLookupKey })
-  );
+  log.silly("mockVideoApp", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createMeetingCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateMeetingCalls: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const deleteMeetingCalls: any[] = [];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockImplementation(() => {
@@ -862,42 +1018,55 @@ export function mockVideoApp({
         lib: {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
-          VideoApiAdapter: () => ({
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            createMeeting: (...rest: any[]) => {
-              if (creationCrash) {
-                throw new Error("MockVideoApiAdapter.createMeeting fake error");
-              }
-              createMeetingCalls.push(rest);
+          VideoApiAdapter: (credential) => {
+            return {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              createMeeting: (...rest: any[]) => {
+                if (creationCrash) {
+                  throw new Error("MockVideoApiAdapter.createMeeting fake error");
+                }
+                createMeetingCalls.push({
+                  credential,
+                  args: rest,
+                });
 
-              return Promise.resolve({
-                type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                ...videoMeetingData,
-              });
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updateMeeting: async (...rest: any[]) => {
-              if (updationCrash) {
-                throw new Error("MockVideoApiAdapter.updateMeeting fake error");
-              }
-              const [bookingRef, calEvent] = rest;
-              updateMeetingCalls.push(rest);
-              if (!bookingRef.type) {
-                throw new Error("bookingRef.type is not defined");
-              }
-              if (!calEvent.organizer) {
-                throw new Error("calEvent.organizer is not defined");
-              }
-              logger.silly(
-                "mockSuccessfulVideoMeetingCreation.updateMeeting",
-                JSON.stringify({ bookingRef, calEvent })
-              );
-              return Promise.resolve({
-                type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
-                ...videoMeetingData,
-              });
-            },
-          }),
+                return Promise.resolve({
+                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                  ...videoMeetingData,
+                });
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              updateMeeting: async (...rest: any[]) => {
+                if (updationCrash) {
+                  throw new Error("MockVideoApiAdapter.updateMeeting fake error");
+                }
+                const [bookingRef, calEvent] = rest;
+                updateMeetingCalls.push({
+                  credential,
+                  args: rest,
+                });
+                if (!bookingRef.type) {
+                  throw new Error("bookingRef.type is not defined");
+                }
+                if (!calEvent.organizer) {
+                  throw new Error("calEvent.organizer is not defined");
+                }
+                log.silly("MockVideoApiAdapter.updateMeeting", JSON.stringify({ bookingRef, calEvent }));
+                return Promise.resolve({
+                  type: appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata].type,
+                  ...videoMeetingData,
+                });
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              deleteMeeting: async (...rest: any[]) => {
+                log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
+                deleteMeetingCalls.push({
+                  credential,
+                  args: rest,
+                });
+              },
+            };
+          },
         },
       });
     });
@@ -905,6 +1074,7 @@ export function mockVideoApp({
   return {
     createMeetingCalls,
     updateMeetingCalls,
+    deleteMeetingCalls,
   };
 }
 
@@ -1019,9 +1189,87 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
   try {
     await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
-    logger.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-
+    log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
 }
+
+export function getExpectedCalEventForBookingRequest({
+  bookingRequest,
+  eventType,
+}: {
+  bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventType: any;
+}) {
+  return {
+    // keep adding more fields as needed, so that they can be verified in all scenarios
+    type: eventType.title,
+    // Not sure why, but milliseconds are missing in cal Event.
+    startTime: bookingRequest.start.replace(".000Z", "Z"),
+    endTime: bookingRequest.end.replace(".000Z", "Z"),
+  };
+}
+
+export function getMockBookingReference(
+  bookingReference: Partial<BookingReference> & Pick<BookingReference, "type" | "uid" | "credentialId">
+) {
+  let credentialId = bookingReference.credentialId;
+  if (bookingReference.type === appStoreMetadata.dailyvideo.type) {
+    // Right now we seems to be storing credentialId for `dailyvideo` in BookingReference as null. Another possible value is 0 in there.
+    credentialId = null;
+    log.debug("Ensuring null credentialId for dailyvideo");
+  }
+  return {
+    ...bookingReference,
+    credentialId,
+  };
+}
+
+export function getMockBookingAttendee(attendee: Omit<Attendee, "bookingId">) {
+  return {
+    id: attendee.id,
+    timeZone: attendee.timeZone,
+    name: attendee.name,
+    email: attendee.email,
+    locale: attendee.locale,
+  };
+}
+
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
+}
+
+const getMockAppStatus = ({
+  slug,
+  failures,
+  success,
+}: {
+  slug: string;
+  failures: number;
+  success: number;
+}) => {
+  const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
+    return app.slug === slug;
+  });
+  if (!foundEntry) {
+    throw new Error("App not found for the slug");
+  }
+  const foundApp = foundEntry[1];
+  return {
+    appName: foundApp.slug,
+    type: foundApp.type,
+    failures,
+    success,
+    errors: [],
+  };
+};
+export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
+  return getMockAppStatus({ slug, failures: 1, success: 0 });
+};
+
+export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
+  return getMockAppStatus({ slug, failures: 0, success: 1 });
+};

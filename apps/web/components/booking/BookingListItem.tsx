@@ -141,17 +141,6 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  const showRecordingActions: ActionType[] = [
-    {
-      id: "view_recordings",
-      label: t("view_recordings"),
-      onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
-      },
-      disabled: mutation.isLoading,
-    },
-  ];
-
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -226,6 +215,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const startTime = dayjs(booking.startTime)
+    .tz(user?.timeZone)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
@@ -269,11 +259,19 @@ function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
-  // To be used after we run query on legacy bookings
-  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
 
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+  const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
+
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      disabled: mutation.isLoading,
+    },
+  ];
 
   return (
     <>
@@ -380,7 +378,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className={"w-full px-4" + (isRejected ? " line-through" : "")}>
+        <td className={`w-full px-4${isRejected ? " line-through" : ""}`}>
           <Link href={bookingLink}>
             {/* Time and Badges for mobile */}
             <div className="w-full pb-2 pt-4 sm:hidden">
@@ -576,7 +574,7 @@ const FirstAttendee = ({
     <a
       key={user.email}
       className=" hover:text-blue-500"
-      href={"mailto:" + user.email}
+      href={`mailto:${user.email}`}
       onClick={(e) => e.stopPropagation()}>
       {user.name}
     </a>
@@ -590,7 +588,7 @@ type AttendeeProps = {
 
 const Attendee = ({ email, name }: AttendeeProps) => {
   return (
-    <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
+    <a className="hover:text-blue-500" href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
       {name || email}
     </a>
   );

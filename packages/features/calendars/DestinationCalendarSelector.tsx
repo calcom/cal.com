@@ -17,6 +17,7 @@ interface Props {
   destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
+  hideAdvancedText?: boolean;
 }
 
 interface Option {
@@ -51,6 +52,7 @@ const DestinationCalendarSelector = ({
   isLoading,
   value,
   hidePlaceholder,
+  hideAdvancedText,
   maxWidth,
   destinationCalendar,
 }: Props): JSX.Element | null => {
@@ -126,6 +128,7 @@ const DestinationCalendarSelector = ({
 
   return (
     <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
+      <p className="text-sm font-medium leading-none">{t("add_events_to")}</p>
       <Select
         name="primarySelectedCalendar"
         placeholder={
@@ -155,7 +158,7 @@ const DestinationCalendarSelector = ({
         }}
         isSearchable={false}
         className={classNames(
-          "border-default mb-2 mt-1 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
+          "border-default my-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm text-sm"
         )}
         onChange={(newValue) => {
           setSelectedOption(newValue);
@@ -176,6 +179,9 @@ const DestinationCalendarSelector = ({
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}
       />
+      {hideAdvancedText ? null : (
+        <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
+      )}
     </div>
   );
 };

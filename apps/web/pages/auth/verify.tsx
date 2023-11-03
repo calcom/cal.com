@@ -120,7 +120,7 @@ export default function Verify() {
             ? "Your payment failed"
             : sessionId
             ? "Payment successful!"
-            : "Verify your email" + " | " + APP_NAME}
+            : `Verify your email | ${APP_NAME}`}
         </title>
       </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
@@ -164,7 +164,7 @@ export default function Verify() {
                 e.preventDefault();
                 setSecondsLeft(30);
                 // Update query params with t:timestamp, shallow: true doesn't re-render the page
-                const _searchParams = new URLSearchParams(searchParams.toString());
+                const _searchParams = new URLSearchParams(searchParams?.toString());
                 _searchParams.set("t", `${Date.now()}`);
                 router.replace(`${pathname}?${_searchParams.toString()}`);
                 return await sendVerificationLogin(customer.email, customer.username);

@@ -14,7 +14,7 @@ import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
-const log = logger.getChildLogger({ prefix: [`[[zohocalendar/api/callback]`] });
+const log = logger.getSubLogger({ prefix: [`[[zohocalendar/api/callback]`] });
 
 const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
 
@@ -55,7 +55,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!response.ok || responseBody.error) {
     log.error("get access_token failed", responseBody);
-    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
   }
 
   const key: ZohoAuthCredentials = {

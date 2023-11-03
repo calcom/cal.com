@@ -2,8 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
@@ -16,7 +16,7 @@ import { appRouter } from "@calcom/trpc/server/routers/_app";
  */
 export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
   const ctx = await createContext(context);
-  const locale = await getLocaleFromRequest(context.req);
+  const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
 
   const ssr = createProxySSGHelpers({
@@ -25,11 +25,17 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
     ctx: { ...ctx, locale, i18n },
   });
 
+  // i18n translations are already retrieved from serverSideTranslations call, there is no need to run a i18n.fetch
+  // we can set query data directly to the queryClient
+  const queryKey = [
+    ["viewer", "public", "i18n"],
+    { input: { locale, CalComVersion: CALCOM_VERSION }, type: "query" },
+  ];
+  if (!options?.noI18nPreload) {
+    ssr.queryClient.setQueryData(queryKey, { i18n });
+  }
+
   await Promise.allSettled([
-    // always preload "viewer.public.i18n"
-    !options?.noI18nPreload
-      ? ssr.viewer.public.i18n.prefetch({ locale, CalComVersion: CALCOM_VERSION })
-      : Promise.resolve({}),
     // So feature flags are available on first render
     ssr.viewer.features.map.prefetch(),
     // Provides a better UX to the users who have already upgraded.

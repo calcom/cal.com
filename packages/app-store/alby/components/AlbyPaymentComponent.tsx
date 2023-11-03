@@ -111,9 +111,14 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
       )}
       <Link target="_blank" href="https://getalby.com">
         <div className="mt-4 flex items-center text-sm">
-          Powered by
-          <img title="Alby" src="/app-store/alby/icon.svg" alt="Alby" className="h-8 w-8" />
-          Alby
+          Powered by&nbsp;
+          <img title="Alby" src="/app-store/alby/logo.svg" alt="Alby" className="h-8 dark:hidden" />
+          <img
+            title="Alby"
+            src="/app-store/alby/logo-dark.svg"
+            alt="Alby"
+            className="hidden h-8 dark:block"
+          />
         </div>
       </Link>
     </div>
@@ -129,7 +134,15 @@ function PaymentChecker(props: PaymentCheckerProps) {
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const utils = trpc.useContext();
   const { t } = useLocale();
+
   useEffect(() => {
+    if (searchParams === null) {
+      return;
+    }
+
+    // use closure to ensure non-nullability
+    const sp = searchParams;
+
     const interval = setInterval(() => {
       (async () => {
         if (props.booking.status === "ACCEPTED") {
@@ -148,7 +161,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             location: string;
           } = {
             uid: props.booking.uid,
-            email: searchParams.get("email"),
+            email: sp.get("email"),
             location: t("web_conferencing_details_to_follow"),
           };
 
@@ -160,6 +173,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
         }
       })();
     }, 1000);
+
     return () => clearInterval(interval);
   }, [
     bookingSuccessRedirect,
@@ -173,5 +187,6 @@ function PaymentChecker(props: PaymentCheckerProps) {
     t,
     utils.viewer.bookings,
   ]);
+
   return null;
 }

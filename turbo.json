@@ -51,6 +51,7 @@
         "BACKEND_URL",
         "APP_ID",
         "APP_URL",
+        "SENDER_DOMAIN",
         "PARSE_KEY",
         "NODE_ENV",
         "OPENAI_API_KEY",

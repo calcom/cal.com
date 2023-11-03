@@ -11,6 +11,7 @@ import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
+import { OverlayCalendarContainer } from "./OverlayCalendar/OverlayCalendarContainer";
 
 export function Header({
   extraDays,
@@ -56,7 +57,12 @@ export function Header({
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
-    return <LayoutToggleWithData />;
+    return (
+      <div className="flex gap-2">
+        <OverlayCalendarContainer />
+        <LayoutToggleWithData />
+      </div>
+    );
   }
   const endDate = selectedDate.add(layout === BookerLayouts.COLUMN_VIEW ? extraDays : extraDays - 1, "days");
 
@@ -113,6 +119,7 @@ export function Header({
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">
+        <OverlayCalendarContainer />
         <TimeFormatToggle />
         <div className="fixed top-4 ltr:right-4 rtl:left-4">
           <LayoutToggleWithData />

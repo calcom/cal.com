@@ -30,6 +30,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
   username: true,
   name: true,
+  organizationId: true,
 });
 
 const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
@@ -255,7 +256,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
             slug: membership.team.slug
               ? !membership.team.parentId
                 ? `team/${membership.team.slug}`
-                : "" + membership.team.slug
+                : `${membership.team.slug}`
               : null,
           },
           metadata: {
