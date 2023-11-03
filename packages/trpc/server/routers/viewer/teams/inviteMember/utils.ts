@@ -365,10 +365,6 @@ export async function createAndAutoJoinIfInOrg({
       autoJoined: false,
     };
   }
-  let currentRole = role;
-  if (orgMembership.role === MembershipRole.ADMIN || orgMembership.role === MembershipRole.OWNER) {
-    currentRole = orgMembership.role;
-  }
 
   // Since we early return if the user is not a member of the org. Or the team they are being invited to is an org (not having a parentID)
   // We create the membership in the child team
@@ -377,7 +373,10 @@ export async function createAndAutoJoinIfInOrg({
       userId: invitee.id,
       teamId: team.id,
       accepted: true,
-      role: currentRole,
+      role:
+        orgMembership.role === MembershipRole.ADMIN || orgMembership.role === MembershipRole.OWNER
+          ? orgMembership.role
+          : role,
     },
   });
 
