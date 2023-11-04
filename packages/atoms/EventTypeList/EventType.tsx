@@ -32,7 +32,7 @@ type EventTypeProps = {
   onPreview: (link: string) => void;
 };
 
-const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: boolean }) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const content = () => (
     <div>
       <span
@@ -56,10 +56,14 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: bool
   return readOnly ? (
     <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
-      <EventTypeDescription eventType={type} shortenDescription />
+      <EventTypeDescription
+        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
+        eventType={type}
+        shortenDescription
+      />
     </div>
   ) : (
-    <a href={`/event-types/${type.id}?tabName=setup`}>
+    <a className="text-s flex-1 overflow-hidden pr-4" href={`/event-types/${type.id}?tabName=setup`}>
       <div>
         <span
           className="text-default font-semibold ltr:mr-1 rtl:ml-1"
@@ -76,6 +80,7 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: bool
         {readOnly && <Badge className="ml-2">Readonly</Badge>}
       </div>
       <EventTypeDescription
+        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
         shortenDescription
       />
