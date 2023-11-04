@@ -9,7 +9,12 @@ import { parseZone } from "./parse-zone";
 
 type ExtraOptions = { withDefaultTimeFormat?: boolean; selectedTimeFormat?: TimeFormat };
 
-const processDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
+const processDate = (
+  date: string | null | Dayjs,
+  language: string,
+  options?: ExtraOptions,
+  timeZone?: string
+) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
   const formattedTime = parsedZone?.format(
@@ -17,7 +22,9 @@ const processDate = (date: string | null | Dayjs, language: string, options?: Ex
       ? TimeFormat.TWELVE_HOUR
       : options?.selectedTimeFormat || detectBrowserTimeFormat
   );
-  return `${formattedTime}, ${dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" })}`;
+  return `${formattedTime}, ${dayjs(date)
+    .toDate()
+    .toLocaleString(language, { dateStyle: "full", timeZone })}`;
 };
 
 export const parseDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
@@ -98,7 +105,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), language, { selectedTimeFormat, withDefaultTimeFormat });
+    return processDate(t.tz(timeZone), language, { selectedTimeFormat, withDefaultTimeFormat }, timeZone);
   });
 
   return [dateStrings, times.map((t) => t.toDate())];
