@@ -13,7 +13,9 @@ export function defaultResponder<T>(f: Handle<T>) {
       performance.mark("Start");
       const result = await f(req, res);
       ok = true;
-      if (result) res.json(result);
+      if (result && !res.writableEnded) {
+        res.json(result);
+      }
     } catch (err) {
       console.error(err);
       const error = getServerErrorFromUnknown(err);

@@ -23,7 +23,7 @@ export function processWorkingHours({
 }) {
   const results = [];
   for (let date = dateFrom.tz(timeZone).startOf("day"); dateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.tz(timeZone).utcOffset();
+    const fromOffset = dateFrom.tz(timeZone).startOf("day").utcOffset();
     const offset = date.tz(timeZone).utcOffset();
 
     // it always has to be start of the day (midnight) even when DST changes
