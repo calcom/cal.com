@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import type { EventTypeGroup } from "EventTypeList/EventTypeList";
 import { EventTypeDialog } from "EventTypeList/components/controls/Dialog";
 import { EventTypeDropdown } from "EventTypeList/components/controls/Dropdown";
 import { EventTypeTooltip } from "EventTypeList/components/controls/Tooltip";
@@ -14,14 +15,15 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { ArrowButton, AvatarGroup, ButtonGroup } from "@calcom/ui";
 
+type EventType = EventTypeGroup["eventTypes"][number];
+
 type EventTypeProps = {
-  event: any;
-  group: any;
-  type: any;
+  group: EventTypeGroup;
+  type: EventType;
   readOnly: boolean;
   index: number;
-  firstItem: { id: string };
-  lastItem: { id: string };
+  firstItem: EventType;
+  lastItem: EventType;
   moveEventType: (index: number, increment: 1 | -1) => void;
   onMutate: ({ hidden, id }: { hidden: boolean; id: string }) => void;
   onCopy: (link: string) => void;

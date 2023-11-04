@@ -6,7 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc";
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 
 export type EventTypeGroup = EventTypeGroups[number];
-export type EventType = EventTypeGroup["eventTypes"][number];
+type EventType = EventTypeGroup["eventTypes"][number];
 
 type EventTypeListProps = {
   group: EventTypeGroup;
