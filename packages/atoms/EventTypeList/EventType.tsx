@@ -4,6 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { EventTypeDialog } from "EventTypeList/components/controls/Dialog";
 import { EventTypeDropdown } from "EventTypeList/components/controls/Dropdown";
 import { EventTypeTooltip } from "EventTypeList/components/controls/Tooltip";
+import { EventTypeDescription } from "EventTypeList/components/event-type-description";
 import { ExternalLink, LinkIcon } from "lucide-react";
 import { memo, useState } from "react";
 
@@ -53,7 +54,7 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: bool
   return readOnly ? (
     <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
-      {/* Return EventTypeDescription component here */}
+      <EventTypeDescription eventType={type} shortenDescription />
     </div>
   ) : (
     <a href={`/event-types/${type.id}?tabName=setup`}>
@@ -72,7 +73,10 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: bool
         ) : null}
         {readOnly && <Badge className="ml-2">Readonly</Badge>}
       </div>
-      {/* Return EventTypeDescription component here */}
+      <EventTypeDescription
+        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
+        shortenDescription
+      />
     </a>
   );
 };
@@ -80,7 +84,6 @@ const Item = ({ type, group, readOnly }: { type: any; group: any; readOnly: bool
 const MemoizedItem = memo(Item);
 
 export function EventType({
-  event,
   group,
   type,
   readOnly,
