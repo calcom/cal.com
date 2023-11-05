@@ -196,6 +196,9 @@ export function createBookingPageFixture(page: Page) {
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
+    goToEventTypesPage: async () => {
+      await page.goto("/event-types");
+    },
     addQuestion: async (
       questionType: string,
       identifier: string,
@@ -355,6 +358,92 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+
+    checkRequiresConfirmation: async () => {
+      const confirmationSwitch = page
+        .locator("fieldset")
+        .filter({
+          hasText: "Requires confirmation",
+        })
+        .getByRole("switch");
+      await expect(confirmationSwitch).toBeVisible();
+      await confirmationSwitch.click();
+    },
+
+    checkRequiresBookerEmailVerification: async () => {
+      const emailSwitch = page
+        .locator("fieldset")
+        .filter({
+          hasText: "Requires booker email verification",
+        })
+        .getByRole("switch");
+
+      await expect(emailSwitch).toBeVisible();
+      await emailSwitch.click();
+    },
+
+    checkHideNotes: async () => {
+      const hideNotesSwitch = page
+        .locator("fieldset")
+        .filter({
+          hasText: "Hide notes in calendar",
+        })
+        .getByRole("switch");
+
+      await expect(hideNotesSwitch).toBeVisible();
+      await hideNotesSwitch.click();
+    },
+
+    checkRedirectOnBooking: async () => {
+      const redirectSwitch = page
+        .locator("fieldset")
+        .filter({
+          hasText: "Redirect on booking Redirect to a custom URL after a successful booking",
+        })
+        .getByRole("switch");
+
+      await expect(redirectSwitch).toBeVisible();
+      await redirectSwitch.click();
+      await expect(page.getByPlaceholder("https://example.com/redirect-to-my-success-page")).toBeVisible();
+    },
+
+    checkEnablePrivateUrl: async () => {
+      const urlSwitch = page.getByTestId("hashedLinkCheck");
+
+      await expect(urlSwitch).toBeVisible();
+      await urlSwitch.click();
+      await expect(page.getByText("Your private link will regenerate after each use")).toBeVisible();
+    },
+
+    toggleOfferSeats: async () => {
+      const seatSwitch = page.getByTestId("offer-seats-toggle");
+
+      await expect(seatSwitch).toBeVisible();
+      await seatSwitch.click();
+
+      const seatSwitchField = page.getByLabel("Number of seats per booking");
+      await seatSwitchField.fill("3");
+      await expect(seatSwitchField).toHaveValue("3");
+      await expect(page.getByLabel("Share attendee information between guests")).toBeVisible();
+      await seatSwitch.click();
+    },
+
+    checkLockTimezone: async () => {
+      const lockSwitch = page
+        .locator("fieldset")
+        .filter({
+          hasText: "Lock timezone on booking pageTo lock the timezone on booking page, useful for in",
+        })
+        .getByRole("switch");
+
+      await expect(lockSwitch).toBeVisible();
+    },
+
+    checkEventType: async () => {
+      await expect(
+        page.getByText("30 min/user-0-1698797839561/30-min 30m Requires confirmation")
+      ).toBeTruthy();
     },
   };
 }
