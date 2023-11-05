@@ -26,9 +26,9 @@ export function ConnectButton({
 
   function handleSubmit(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.preventDefault();
+    setIsProcessing(true);
 
     try {
-      setIsProcessing(true);
       onClick && onClick(e);
 
       // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
@@ -47,6 +47,7 @@ export function ConnectButton({
 
   return (
     <div>
+      {/* TODO: Button needs a fix width in order to not resize at loading time */}
       <Button
         className={cn(
           "bg-default text-default dark:text-muted dark:bg-muted relative inline-flex h-9 items-center whitespace-nowrap rounded-md px-4 py-2.5 text-sm font-medium !shadow-none transition-colors disabled:cursor-not-allowed",
