@@ -654,8 +654,6 @@ export default class EventManager {
    */
   private async createVideoEvent(event: CalendarEvent) {
     const credential = this.getVideoCredential(event);
-    console.log("🚀 ~ file: EventManager.ts:657 ~ EventManager ~ createVideoEvent ~ credential:", credential);
-
     if (credential) {
       return createMeeting(credential, event);
     } else {

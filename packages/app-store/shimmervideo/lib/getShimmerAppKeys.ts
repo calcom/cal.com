@@ -9,6 +9,5 @@ const shimmerAppKeysSchema = z.object({
 
 export const getShimmerAppKeys = async () => {
   const appKeys = await getAppKeysFromSlug("shimmer-video");
-  console.log("🚀 ~ file: getShimmerAppKeys.ts:12 ~ getShimmerAppKeys ~ appKeys:", appKeys);
   return shimmerAppKeysSchema.parse(appKeys);
 };
