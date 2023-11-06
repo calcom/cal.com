@@ -149,7 +149,8 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
         seatsReferences: number;
       };
     })[];
-  }
+  },
+  getMoreEventInfo = false // This is only called from the calendar view, and when the username === ctx.user.username
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
     availabilitySchema.parse(query);
@@ -200,22 +201,25 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  const busyTimes = await getBusyTimes({
-    credentials: user.credentials,
-    startTime: getBusyTimesStart,
-    endTime: getBusyTimesEnd,
-    eventTypeId,
-    userId: user.id,
-    userEmail: user.email,
-    username: `${user.username}`,
-    beforeEventBuffer,
-    afterEventBuffer,
-    selectedCalendars: user.selectedCalendars,
-    seatedEvent: !!eventType?.seatsPerTimeSlot,
-    rescheduleUid: initialData?.rescheduleUid || null,
-    duration,
-    currentBookings: initialData?.currentBookings,
-  });
+  const busyTimes = await getBusyTimes(
+    {
+      credentials: user.credentials,
+      startTime: getBusyTimesStart,
+      endTime: getBusyTimesEnd,
+      eventTypeId,
+      userId: user.id,
+      userEmail: user.email,
+      username: `${user.username}`,
+      beforeEventBuffer,
+      afterEventBuffer,
+      selectedCalendars: user.selectedCalendars,
+      seatedEvent: !!eventType?.seatsPerTimeSlot,
+      rescheduleUid: initialData?.rescheduleUid || null,
+      duration,
+      currentBookings: initialData?.currentBookings,
+    },
+    getMoreEventInfo
+  );
 
   const detailedBusyTimes: EventBusyDetails[] = [
     ...busyTimes.map((a) => ({

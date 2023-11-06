@@ -203,7 +203,8 @@ export const getBusyCalendarTimes = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  getMoreEventInfo = false
 ) => {
   let results: EventBusyDate[][] = [];
   const months = getMonths(dateFrom, dateTo);
@@ -212,7 +213,13 @@ export const getBusyCalendarTimes = async (
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+    results = await getCalendarsEvents(
+      withCredentials,
+      startDate,
+      endDate,
+      selectedCalendars,
+      getMoreEventInfo
+    );
   } catch (e) {
     log.warn(safeStringify(e));
   }
