@@ -327,7 +327,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                           form.setValue("logo", newLogo, { shouldDirty: true });
                         }}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        imageSrc={value}
+                        imageSrc={value ?? undefined}
                       />
                       {showRemoveLogoButton && (
                         <Button
