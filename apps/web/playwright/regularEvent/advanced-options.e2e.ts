@@ -2,12 +2,10 @@ import { loginUser } from "../fixtures/regularBookings";
 import { test } from "../lib/fixtures";
 
 test.describe("Check all advanced options in a regular event-type", () => {
-  test.beforeEach(async ({ page, users }) => {
+  test("Check advanced options in a regular event type", async ({ bookingPage, users }) => {
     await loginUser(users);
-    await page.goto("/event-types");
-  });
+    await bookingPage.goToEventTypesPage();
 
-  test("Check advanced options in a regular event type", async ({ bookingPage }) => {
     await bookingPage.goToEventType("30 min");
     await bookingPage.goToTab("event_advanced_tab_title");
 
