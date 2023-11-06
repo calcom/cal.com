@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import * as React from "react";
 
 import { Button } from "../src/components/ui/button";
@@ -24,26 +24,29 @@ export function ConnectButton({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [errMsg, setErrMsg] = useState<string>("");
 
-  function handleSubmit(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    e.preventDefault();
-    setIsProcessing(true);
+  const handleSubmit = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      e.preventDefault();
+      setIsProcessing(true);
 
-    try {
-      onClick && onClick(e);
+      try {
+        onClick && onClick(e);
 
-      // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
-      // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
-      if (onSuccess) {
-        onSuccess();
+        // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
+        // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
+        if (onSuccess) {
+          onSuccess();
+        }
+      } catch (error) {
+        setIsProcessing(false);
+        onError();
+        setErrMsg(error?.message);
       }
-    } catch (error) {
-      setIsProcessing(false);
-      onError();
-      setErrMsg(error?.message);
-    }
 
-    setIsProcessing(false);
-  }
+      setIsProcessing(false);
+    },
+    [onClick, onSuccess, onError]
+  );
 
   return (
     <div>
@@ -55,7 +58,7 @@ export function ConnectButton({
         )}
         type="button"
         disabled={isProcessing}
-        onClick={(event) => handleSubmit(event)}>
+        onClick={handleSubmit}>
         {isProcessing ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
