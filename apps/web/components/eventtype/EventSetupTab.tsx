@@ -30,8 +30,7 @@ import {
   Button,
   showToast,
 } from "@calcom/ui";
-import { Plus, X, Check } from "@calcom/ui/components/icon";
-import { CornerDownRight } from "@calcom/ui/components/icon";
+import { Plus, X, Check, CornerDownRight } from "@calcom/ui/components/icon";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
@@ -200,23 +199,16 @@ export const EventSetupTab = (
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
-                <>
-                  <Input
-                    name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                    type="text"
-                    required
-                    onChange={onChange}
-                    value={value}
-                    className="my-0"
-                    {...rest}
-                  />
-                  <ErrorMessage
-                    errors={formMethods.formState.errors.locations?.[index]}
-                    name={eventLocationType.defaultValueVariable}
-                    className="text-error my-1 text-sm"
-                    as="div"
-                  />
-                </>
+                <Input
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                  type="text"
+                  required
+                  onChange={onChange}
+                  value={value}
+                  className="my-0"
+                  {...rest}
+                />
               );
             }}
           />
@@ -231,21 +223,14 @@ export const EventSetupTab = (
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
-                <>
-                  <PhoneInput
-                    required
-                    name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                    value={value}
-                    onChange={onChange}
-                    {...rest}
-                  />
-                  <ErrorMessage
-                    errors={formMethods.formState.errors.locations?.[index]}
-                    name={eventLocationType.defaultValueVariable}
-                    className="text-error my-1 text-sm"
-                    as="div"
-                  />
-                </>
+                <PhoneInput
+                  required
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  value={value}
+                  onChange={onChange}
+                  {...rest}
+                />
               );
             }}
           />
@@ -332,11 +317,11 @@ export const EventSetupTab = (
 
                 {eventLocationType?.organizerInputType && (
                   <div className="mt-2 space-y-2">
-                    <div className="flex gap-2">
-                      <div className="flex items-center justify-center">
-                        <CornerDownRight className="h-4 w-4" />
-                      </div>
-                      <div className="w-full">
+                    <div className="w-full">
+                      <div className="flex gap-2">
+                        <div className="flex items-center justify-center">
+                          <CornerDownRight className="h-4 w-4" />
+                        </div>
                         <LocationInput
                           defaultValue={
                             defaultLocation
@@ -347,6 +332,12 @@ export const EventSetupTab = (
                           index={index}
                         />
                       </div>
+                      <ErrorMessage
+                        errors={formMethods.formState.errors.locations?.[index]}
+                        name={eventLocationType.defaultValueVariable}
+                        className="text-error my-1 ml-6 text-sm"
+                        as="div"
+                      />
                     </div>
                     <div className="ml-6">
                       <CheckboxField
