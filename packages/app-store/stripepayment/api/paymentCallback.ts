@@ -4,7 +4,6 @@ import z from "zod";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -19,7 +18,9 @@ const querySchema = z.object({
 });
 
 // It handles premium user payment success/failure
-async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "GET") throw new HttpError({ statusCode: 405, message: "Method not allowed" });
+
   const { callbackUrl, checkoutSessionId } = querySchema.parse(req.query);
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
 
@@ -74,6 +75,4 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   return res.redirect(callbackUrl.toString()).end();
 }
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
-});
+export default handler;
