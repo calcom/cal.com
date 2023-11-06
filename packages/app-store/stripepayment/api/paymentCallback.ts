@@ -4,6 +4,7 @@ import z from "zod";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -18,14 +19,17 @@ const querySchema = z.object({
 });
 
 // It handles premium user payment success/failure
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "GET") throw new HttpError({ statusCode: 405, message: "Method not allowed" });
-
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { callbackUrl, checkoutSessionId } = querySchema.parse(req.query);
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
 
   if (!stripeCustomer)
-    throw new HttpError({ statusCode: 404, message: "Stripe customer not found or deleted" });
+    throw new HttpError({
+      statusCode: 404,
+      message: "Stripe customer not found or deleted",
+      url: req.url,
+      method: req.method,
+    });
 
   // first let's try to find user by metadata stripeCustomerId
   let user = await prisma.user.findFirst({
@@ -46,7 +50,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
 
-  if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
+  if (!user)
+    throw new HttpError({ statusCode: 404, message: "User not found", url: req.url, method: req.method });
 
   if (checkoutSession.payment_status === "paid" && stripeCustomer.metadata.username) {
     try {
@@ -66,6 +71,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       console.error(error);
       throw new HttpError({
         statusCode: 400,
+        url: req.url,
+        method: req.method,
         message:
           "We have received your payment. Your premium username could still not be reserved. Please contact support@cal.com and mention your premium username",
       });
@@ -75,4 +82,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   return res.redirect(callbackUrl.toString()).end();
 }
 
-export default handler;
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+});
