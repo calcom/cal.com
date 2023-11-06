@@ -493,9 +493,16 @@ function BookingListItem(booking: BookingItemProps) {
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
   recurringDates: Date[];
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
 }
 
-const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
+const RecurringBookingsTooltip = ({
+  booking,
+  recurringDates,
+  userTimeZone,
+  userTimeFormat,
+}: RecurringBookingsTooltipProps) => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
@@ -543,7 +550,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
-                    ? `${t("event_remaining", {
+                    ? `${t("event_remaining_other", {
                         count: recurringCount,
                       })}`
                     : getEveryFreqFor({
