@@ -34,7 +34,7 @@ export function ConnectButton({
           onClick(e);
         }
 
-        // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
+        // if user wants to handle onSuccess inside onClick then it makes no sense to have a separate handler
         // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
         if (onSuccess) {
           onSuccess();
