@@ -98,7 +98,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         sendTo = invitee.email;
       }
       // inform user of membership by email
-      if (input.sendEmailInvitation && ctx?.user?.name && team?.name) {
+      if (ctx?.user?.name && team?.name) {
         const inviteTeamOptions = {
           joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
           isCalcomMember: true,
