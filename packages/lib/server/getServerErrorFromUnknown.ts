@@ -52,11 +52,11 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode: 400, cause });
   }
   if (cause instanceof HttpError) {
-    const _ = redactError(cause);
+    const redactedCause = redactError(cause);
     return {
+      ...redactedCause,
       name: cause.name,
       message: cause.message ?? "",
-      stack: cause.stack,
       cause: cause.cause,
       url: cause.url,
       statusCode: cause.statusCode,
