@@ -33,6 +33,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
 
+  let credentialId;
+
+  if (eventType.teamId) {
+    const teamCredential = app.teams.find((team) => team.teamId === eventType.teamId);
+    credentialId = teamCredential?.credentialId ?? app.userCredentialIds[0];
+  } else {
+    credentialId = app.userCredentialIds[0];
+  }
+
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
@@ -65,6 +74,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
+        setAppData("credentialId", credentialId);
       }}
       teamId={eventType.team?.id || undefined}>
       <>

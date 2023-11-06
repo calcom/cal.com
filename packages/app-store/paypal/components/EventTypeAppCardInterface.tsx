@@ -29,6 +29,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     isAcceptedCurrencyCode(currency) ? currencySymbols[currency] : ""
   );
 
+  let credentialId;
+
+  if (eventType.teamId) {
+    const teamCredential = app.teams.find((team) => team.teamId === eventType.teamId);
+    credentialId = teamCredential?.credentialId ?? app.userCredentialIds[0];
+  } else {
+    credentialId = app.userCredentialIds[0];
+  }
+
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
     label: paymentOptions[0].label,
@@ -57,6 +66,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
+        setAppData("credentialId", credentialId);
       }}
       description={<>Add Paypal payment to your events</>}>
       <>
