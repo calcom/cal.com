@@ -45,6 +45,10 @@
       "cache": false,
       "dependsOn": []
     },
+    "@calcom/api#start": {
+      "cache": false,
+      "dependsOn": []
+    },
     "@calcom/ai#build": {
       "env": [
         "FRONTEND_URL",
@@ -132,6 +136,9 @@
       "outputs": ["dist/**", "build/**"]
     },
     "start": {
+      "outputs": ["dist/**", "build/**"]
+    },
+    "docker-start-api": {
       "outputs": ["dist/**", "build/**"]
     },
     "embed-tests": {
