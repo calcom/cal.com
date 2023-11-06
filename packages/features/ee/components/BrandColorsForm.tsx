@@ -8,6 +8,11 @@ import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, ColorPicker, SettingsToggle, Alert } from "@calcom/ui";
 
+type BrandColorsFormValues = {
+  brandColor: string;
+  darkBrandColor: string;
+};
+
 const BrandColorsForm = ({
   onSubmit,
   brandColor,

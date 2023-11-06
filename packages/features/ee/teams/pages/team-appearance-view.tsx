@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
@@ -47,7 +48,9 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     },
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
-      resetTheme({ theme: res.theme as string | undefined });
+      if (res) {
+        resetTheme({ theme: res.theme });
+      }
 
       showToast(t("your_team_updated_successfully"), "success");
     },
@@ -55,7 +58,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   const brandColorsFormMethods = useForm<BrandColorsFormValues>({
     defaultValues: {
-      brandColor: team?.brandColorr || DEFAULT_LIGHT_BRAND_COLOR,
+      brandColor: team?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
       darkBrandColor: team?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
     },
   });
