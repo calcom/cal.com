@@ -19,6 +19,7 @@ COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json git-init
 COPY /.yarn ./.yarn
 COPY ./apps/api ./apps/api
 COPY ./packages ./packages
+# TODO: follow up pr to remove dependencies on web
 COPY ./apps/web ./apps/web
 
 # Install node modules and dependencies, prune unneeded deps, then build
@@ -52,8 +53,8 @@ COPY --from=build /app/apps/api/.turbo ./apps/api/.turbo
 COPY --from=build /app/turbo.json ./turbo.json
 COPY --from=build /app/yarn.lock ./yarn.lock
 
-# Expose port 3002
+# Expose port 80
 EXPOSE 80
 
 # Start cmd, called when docker image is mounted
-CMD [ "yarn", "docker-start-api"]
+CMD [ "yarn", "workspace", "@calcom/api", "docker-start-api"]t

@@ -355,7 +355,7 @@ const main = async () => {
   const apiImage = createDockerImage({
     imageName: "cal-api-image",
     repoUrl: repo.url,
-    dockerFilePath: "./api/Dockerfile",
+    dockerFilePath: "./docker/api/Dockerfile",
     buildContextPath: "../",
   });
   const ecsCluster = createElasticContainerCluster("cal-api-cluster");

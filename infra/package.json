@@ -2,7 +2,7 @@
   "name": "@calcom/infra",
   "main": "index.ts",
   "scripts": {
-    "deploy-api": "pulumi up"
+    "deploy": "pulumi up"
   },
   "devDependencies": {
     "@types/node": "^16"

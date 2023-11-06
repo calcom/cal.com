@@ -138,9 +138,6 @@
     "start": {
       "outputs": ["dist/**", "build/**"]
     },
-    "docker-start-api": {
-      "outputs": ["dist/**", "build/**"]
-    },
     "embed-tests": {
       "cache": false,
       "outputs": ["dist/**", "build/**"]
