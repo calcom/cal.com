@@ -42,6 +42,15 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     reset: resetTheme,
   } = themeForm;
 
+  const brandColorsFormMethods = useForm<BrandColorsFormValues>({
+    defaultValues: {
+      brandColor: team?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
+      darkBrandColor: team?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
+    },
+  });
+
+  const { reset: resetBrandColors } = brandColorsFormMethods;
+
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
@@ -50,16 +59,10 @@ const ProfileView = ({ team }: ProfileViewProps) => {
       await utils.viewer.teams.get.invalidate();
       if (res) {
         resetTheme({ theme: res.theme });
+        resetBrandColors({ brandColor: res.brandColor, darkBrandColor: res.darkBrandColor });
       }
 
       showToast(t("your_team_updated_successfully"), "success");
-    },
-  });
-
-  const brandColorsFormMethods = useForm<BrandColorsFormValues>({
-    defaultValues: {
-      brandColor: team?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
-      darkBrandColor: team?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
     },
   });
 

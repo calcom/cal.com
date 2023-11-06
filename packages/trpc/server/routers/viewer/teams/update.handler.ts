@@ -93,5 +93,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bio: updatedTeam.bio,
     slug: updatedTeam.slug,
     theme: updatedTeam.theme,
+    brandColor: updatedTeam.brandColor,
+    darkBrandColor: updatedTeam.darkBrandColor,
   };
 };

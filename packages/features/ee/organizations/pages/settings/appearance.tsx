@@ -60,11 +60,13 @@ const OrgAppearanceView = ({
       await utils.viewer.organizations.listCurrent.invalidate();
 
       showToast(t("your_team_updated_successfully"), "success");
-      brandColorsFormMethods.reset({
-        brandColor: res.data.brandColor as string,
-        darkBrandColor: res.data.darkBrandColor as string,
-      });
-      resetOrgThemeReset({ theme: res.data.theme as string | undefined });
+      if (res) {
+        brandColorsFormMethods.reset({
+          brandColor: res.data.brandColor as string,
+          darkBrandColor: res.data.darkBrandColor as string,
+        });
+        resetOrgThemeReset({ theme: res.data.theme as string | undefined });
+      }
     },
   });
 
