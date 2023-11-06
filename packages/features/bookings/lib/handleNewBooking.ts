@@ -903,7 +903,6 @@ async function handler(
   }
 
   if (!eventType.seatsPerTimeSlot) {
-    console.log(`cal ensure now: ${reqBody.start}`);
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
