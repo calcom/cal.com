@@ -94,7 +94,7 @@ const PaymentForm = (props: Props) => {
       location?: string;
     } = {
       uid: props.booking.uid,
-      email: searchParams.get("email"),
+      email: searchParams?.get("email"),
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
@@ -147,7 +147,7 @@ const PaymentForm = (props: Props) => {
               formatParams: { amount: { currency: props.payment.currency } },
             })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
-            descriptionClassName="text-blue-900 font-semibold"
+            descriptionClassName="text-info font-semibold"
           />
         </div>
       )}

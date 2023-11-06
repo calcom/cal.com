@@ -78,8 +78,8 @@ type FormValues = {
   bio: string;
 };
 
-const checkIfItFallbackImage = (fetchedImgSrc: string) => {
-  return fetchedImgSrc.endsWith(AVATAR_FALLBACK);
+const checkIfItFallbackImage = (fetchedImgSrc?: string) => {
+  return !fetchedImgSrc || fetchedImgSrc.endsWith(AVATAR_FALLBACK);
 };
 
 const ProfileView = () => {
@@ -226,10 +226,11 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || fetchedImgSrc === undefined)
+  if (isLoading || !user) {
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
+  }
 
   const defaultValues = {
     username: user.username || "",
@@ -282,8 +283,8 @@ const ProfileView = () => {
       />
 
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle">{t("account_deletion_cannot_be_undone")}</p>
+        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
+        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
       </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>

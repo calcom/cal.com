@@ -22,13 +22,14 @@ type Team = RouterOutputs["viewer"]["teams"]["get"];
 
 interface MembersListProps {
   team: Team | undefined;
+  isOrgAdminOrOwner: boolean | undefined;
 }
 
 const checkIfExist = (comp: string, query: string) =>
   comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
 
 function MembersList(props: MembersListProps) {
-  const { team } = props;
+  const { team, isOrgAdminOrOwner } = props;
   const { t } = useLocale();
   const [query, setQuery] = useState<string>("");
 
@@ -56,7 +57,14 @@ function MembersList(props: MembersListProps) {
       {membersList?.length && team ? (
         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
           {membersList.map((member) => {
-            return <MemberListItem key={member.id} team={team} member={member} />;
+            return (
+              <MemberListItem
+                key={member.id}
+                team={team}
+                member={member}
+                isOrgAdminOrOwner={isOrgAdminOrOwner}
+              />
+            );
           })}
         </ul>
       ) : null}
@@ -161,7 +169,7 @@ const MembersView = () => {
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
-                <MembersList team={team} />
+                <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
                 <hr className="border-subtle my-8" />
               </>
             )}
@@ -197,29 +205,27 @@ const MembersView = () => {
                     language: i18n.language,
                     role: values.role,
                     usernameOrEmail: values.emailOrUsername,
-                    sendEmailInvitation: values.sendInviteEmail,
                   },
                   {
                     onSuccess: async (data) => {
                       await utils.viewer.teams.get.invalidate();
                       setShowMemberInvitationModal(false);
-                      if (data.sendEmailInvitation) {
-                        if (Array.isArray(data.usernameOrEmail)) {
-                          showToast(
-                            t("email_invite_team_bulk", {
-                              userCount: data.usernameOrEmail.length,
-                            }),
-                            "success"
-                          );
-                          resetFields();
-                        } else {
-                          showToast(
-                            t("email_invite_team", {
-                              email: data.usernameOrEmail,
-                            }),
-                            "success"
-                          );
-                        }
+
+                      if (Array.isArray(data.usernameOrEmail)) {
+                        showToast(
+                          t("email_invite_team_bulk", {
+                            userCount: data.usernameOrEmail.length,
+                          }),
+                          "success"
+                        );
+                        resetFields();
+                      } else {
+                        showToast(
+                          t("email_invite_team", {
+                            email: data.usernameOrEmail,
+                          }),
+                          "success"
+                        );
                       }
                     },
                     onError: (error) => {
