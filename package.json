@@ -81,6 +81,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@types/jsonwebtoken": "^9.0.3",
     "c8": "^7.13.0",
+    "checkly": "latest",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
@@ -107,7 +108,9 @@
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/node": "16.9.1",
     "@types/react": "18.0.26",
-    "@types/react-dom": "^18.0.9"
+    "@types/react-dom": "^18.0.9",
+    "libphonenumber-js@^1.10.12": "patch:libphonenumber-js@npm%3A1.10.12#./.yarn/patches/libphonenumber-js-npm-1.10.12-51c84f8bf1.patch",
+    "next-i18next@^13.2.2": "patch:next-i18next@npm%3A13.3.0#./.yarn/patches/next-i18next-npm-13.3.0-bf25b0943c.patch"
   },
   "lint-staged": {
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [

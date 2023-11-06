@@ -3,12 +3,13 @@ import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
+import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
+import type { Ensure } from "@calcom/types/utils";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
@@ -96,16 +97,19 @@ const UserProfile = () => {
     },
   ];
 
+  const organization =
+    user.organization && user.organization.id
+      ? {
+          ...(user.organization as Ensure<typeof user.organization, "id">),
+          slug: user.organization.slug || null,
+          requestedSlug: user.organization.metadata?.requestedSlug || null,
+        }
+      : null;
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && (
-          <OrganizationAvatar
-            alt={user.username || "user avatar"}
-            size="lg"
-            imageSrc={imageSrc}
-            organizationSlug={user.organization?.slug}
-          />
+          <OrganizationMemberAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />
         )}
         <input
           ref={avatarRef}

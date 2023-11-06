@@ -188,7 +188,7 @@ export async function listBookings(
         };
       } else {
         where.eventType = {
-          teamId: account.id,
+          OR: [{ teamId: account.id }, { parent: { teamId: account.id } }],
         };
       }
     }

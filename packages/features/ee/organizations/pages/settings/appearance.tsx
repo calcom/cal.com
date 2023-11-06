@@ -194,7 +194,7 @@ const OrgAppearanceView = ({
           />
         </div>
       ) : (
-        <div className="border-subtle rounded-md border p-5">
+        <div className="py-5">
           <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}
