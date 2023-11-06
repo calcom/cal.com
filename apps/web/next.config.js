@@ -30,10 +30,6 @@ if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
   process.env.NEXT_PUBLIC_WEBSITE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL;
 }
-if (!process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) {
-  process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL =
-    process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL;
-}
 if (
   process.env.CSP_POLICY === "strict" &&
   (process.env.CALCOM_ENV === "production" || process.env.NODE_ENV === "production")
