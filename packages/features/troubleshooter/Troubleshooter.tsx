@@ -43,7 +43,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
             gridTemplateRows: "70px auto",
           }}
           className={classNames(
-            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row"
+            "bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row "
           )}>
           <div className={classNames("bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]")}>
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
@@ -54,7 +54,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
             </div>
           </StickyOnDesktop>
 
-          <div className="border-subtle sticky top-0 ml-[-1px] h-full [grid-area:main] md:border-l">
+          <div className="border-subtle sticky top-0 ml-[-1px] h-full [grid-area:main] md:border-l ">
             <LargeCalendar extraDays={extraDays} />
           </div>
         </div>

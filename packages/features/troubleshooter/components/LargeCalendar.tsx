@@ -69,7 +69,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
       return {
         id: idx,
-        title: event.title ?? "Busy",
+        title: event.title ?? `Busy`,
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
@@ -107,7 +107,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         availableTimeslots={availableSlots}
         startDate={startDate.toDate()}
         endDate={endDate}
-        gridCellsPerHour={60 / 15}
+        gridCellsPerHour={60 / (event?.duration || 15)}
         hoverEventDuration={30}
         hideHeader
       />

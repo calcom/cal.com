@@ -15,7 +15,7 @@ type EventProps = {
 };
 
 const eventClasses = cva(
-  "group flex h-full w-full flex-col overflow-y-auto rounded-[6px] px-[6px] py-1 text-xs font-semibold  leading-5 ",
+  "group flex h-full w-full overflow-y-auto rounded-[6px] px-[6px] text-xs font-semibold leading-5",
   {
     variants: {
       status: {
@@ -74,11 +74,21 @@ export function Event({
             selected,
             borderColor,
           }),
+          eventDuration > 30 && "flex-col py-1",
           options?.className
         )}
         style={styles}>
-        <div className="w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4">
-          {event.title}
+        <div
+          className={classNames(
+            "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
+            eventDuration <= 30 && "items-center"
+          )}>
+          <span>{event.title}</span>
+          {eventDuration <= 30 && (
+            <p className="text-subtle w-full whitespace-nowrap text-left text-[10px] leading-none">
+              {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+            </p>
+          )}
         </div>
         {eventDuration > 30 && (
           <p className="text-subtle text-left text-[10px] leading-none">
