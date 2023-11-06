@@ -15,44 +15,14 @@ const awsConfig = new pulumi.Config("aws");
 const baseConfig = new pulumi.Config("base");
 const awsRegion = awsConfig.require("region");
 const certificateArn = baseConfig.require("certificateArn");
-const url = baseConfig.require("url");
 
-console.log("REGION", awsRegion, url, certificateArn);
 if (!awsRegion) {
   throw new Error("AWS REGION IS NOT SET");
 }
 
-const SECRETS = [
-  "API_KEY_PREFIX",
-  "CALCOM_LICENSE_KEY",
-  "DATABASE_URL",
-  "DATABASE_URL_BACKUP",
-  "GITHUB_ACCESS_TOKEN",
-  "NEXT_PUBLIC_WEBAPP_URL",
-  "UPSTASH_REDIS_REST_TOKEN",
-  "UPSTASH_REDIS_REST_URL",
-  "CALENDSO_ENCRYPTION_KEY",
-  "EMAIL_FROM",
-  "EMAIL_SERVER",
-  "GOOGLE_API_CREDENTIALS",
-  "GOOGLE_LOGIN_ENABLED",
-  "NEXT_PUBLIC_SENDGRID_SENDER_NAME",
-  "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
-  "NEXT_PUBLIC_WEBSITE_URL",
-  "NEXTAUTH_COOKIE_DOMAIN",
-  "NEXTAUTH_SECRET",
-  "NEXTAUTH_URL",
-  "SENDGRID_API_KEY",
-  "SENDGRID_EMAIL",
-  "STRIPE_CLIENT_ID",
-  "STRIPE_PRIVATE_KEY",
-  "TWILIO_MESSAGING_SID",
-  "TWILIO_PHONE_NUMBER",
-  "TWILIO_SID",
-  "TWILIO_TOKEN",
-  "TWILIO_VERIFY_SID",
-  "YARN_ENABLE_IMMUTABLE_INSTALLS",
-].map((secretKey) => {
+const secretKeys: string[] = JSON.parse(baseConfig.require("secretKeys") ?? "[]");
+
+const SECRETS = secretKeys.map((secretKey) => {
   if (process.env.NODE_ENV === "development") {
     return `DEV_${secretKey}`;
   }
@@ -378,6 +348,9 @@ const main = async () => {
     scaleInCooldown: 60,
     scaleOutCooldown: 120,
   });
+  return { apiDnsName: pulumi.interpolate`apiUrl: ${apiAlb.loadBalancer.dnsName}` };
 };
 
-main();
+main().then(({ apiDnsName }) => {
+  console.info(apiDnsName);
+});
