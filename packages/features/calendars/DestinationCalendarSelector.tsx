@@ -17,6 +17,7 @@ interface Props {
   destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
+  hideAdvancedText?: boolean;
 }
 
 interface Option {
@@ -51,6 +52,7 @@ const DestinationCalendarSelector = ({
   isLoading,
   value,
   hidePlaceholder,
+  hideAdvancedText,
   maxWidth,
   destinationCalendar,
 }: Props): JSX.Element | null => {
@@ -177,7 +179,9 @@ const DestinationCalendarSelector = ({
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}
       />
-      <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
+      {hideAdvancedText ? null : (
+        <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
+      )}
     </div>
   );
 };

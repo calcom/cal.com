@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
@@ -63,9 +64,73 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 }
 
 export function checkPermission(session: Session | null) {
-  if (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") {
+  if (
+    (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
+    !session?.user
+  ) {
     throw new Error("You do not have permission to do this.");
   }
+}
+
+async function getImpersonatedUser({
+  session,
+  teamId,
+  creds,
+}: {
+  session: Session | null;
+  teamId: number | undefined;
+  creds: Credentials | null;
+}) {
+  let TeamWhereClause: Prisma.MembershipWhereInput = {
+    disableImpersonation: false, // Ensure they have impersonation enabled
+    accepted: true, // Ensure they are apart of the team and not just invited.
+    team: {
+      id: teamId, // Bring back only the right team
+    },
+  };
+
+  // If you are an admin we dont need to follow this flow -> We can just follow the usual flow
+  // If orgId and teamId are the same we can follow the same flow
+  if (session?.user.org?.id && session.user.org.id !== teamId && session?.user.role !== "ADMIN") {
+    TeamWhereClause = {
+      disableImpersonation: false,
+      accepted: true,
+      team: {
+        id: session.user.org.id,
+      },
+    };
+  }
+
+  // Get user who is being impersonated
+  const impersonatedUser = await prisma.user.findFirst({
+    where: {
+      OR: [{ username: creds?.username }, { email: creds?.username }],
+    },
+    select: {
+      id: true,
+      username: true,
+      role: true,
+      name: true,
+      email: true,
+      organizationId: true,
+      disableImpersonation: true,
+      locale: true,
+      teams: {
+        where: TeamWhereClause,
+        select: {
+          teamId: true,
+          disableImpersonation: true,
+          role: true,
+        },
+      },
+    },
+  });
+
+  if (!impersonatedUser) {
+    throw new Error("This user does not exist");
+  }
+
+  return impersonatedUser;
 }
 
 const ImpersonationProvider = CredentialsProvider({
@@ -85,41 +150,7 @@ const ImpersonationProvider = CredentialsProvider({
     checkUserIdentifier(creds);
     checkPermission(session);
 
-    // Get user who is being impersonated
-    const impersonatedUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ username: creds?.username }, { email: creds?.username }],
-      },
-      select: {
-        id: true,
-        username: true,
-        role: true,
-        name: true,
-        email: true,
-        organizationId: true,
-        disableImpersonation: true,
-        locale: true,
-        teams: {
-          where: {
-            disableImpersonation: false, // Ensure they have impersonation enabled
-            accepted: true, // Ensure they are apart of the team and not just invited.
-            team: {
-              id: teamId, // Bring back only the right team
-            },
-          },
-          select: {
-            teamId: true,
-            disableImpersonation: true,
-            role: true,
-          },
-        },
-      },
-    });
-
-    // Check if impersonating is allowed for this user
-    if (!impersonatedUser) {
-      throw new Error("This user does not exist");
-    }
+    const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
 
     if (session?.user.role === "ADMIN") {
       if (impersonatedUser.disableImpersonation) {
