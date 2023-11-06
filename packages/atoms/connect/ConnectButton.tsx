@@ -30,7 +30,9 @@ export function ConnectButton({
       setIsProcessing(true);
 
       try {
-        onClick && onClick(e);
+        if (onClick) {
+          onClick(e);
+        }
 
         // if user wants to handle onSuccess inside handleClick then it makes no sense to have a separate handler
         // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
