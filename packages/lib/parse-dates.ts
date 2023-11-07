@@ -27,9 +27,14 @@ const processDate = (
     .toLocaleString(language, { dateStyle: "full", timeZone })}`;
 };
 
-export const parseDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
+export const parseDate = (
+  date: string | null | Dayjs,
+  language: string,
+  options?: ExtraOptions,
+  timeZone: string
+) => {
   if (!date) return ["No date"];
-  return processDate(date, language, options);
+  return processDate(date, language, options, timeZone);
 };
 
 const timeOptions: Intl.DateTimeFormatOptions = {
