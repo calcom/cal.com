@@ -205,29 +205,27 @@ const MembersView = () => {
                     language: i18n.language,
                     role: values.role,
                     usernameOrEmail: values.emailOrUsername,
-                    sendEmailInvitation: values.sendInviteEmail,
                   },
                   {
                     onSuccess: async (data) => {
                       await utils.viewer.teams.get.invalidate();
                       setShowMemberInvitationModal(false);
-                      if (data.sendEmailInvitation) {
-                        if (Array.isArray(data.usernameOrEmail)) {
-                          showToast(
-                            t("email_invite_team_bulk", {
-                              userCount: data.usernameOrEmail.length,
-                            }),
-                            "success"
-                          );
-                          resetFields();
-                        } else {
-                          showToast(
-                            t("email_invite_team", {
-                              email: data.usernameOrEmail,
-                            }),
-                            "success"
-                          );
-                        }
+
+                      if (Array.isArray(data.usernameOrEmail)) {
+                        showToast(
+                          t("email_invite_team_bulk", {
+                            userCount: data.usernameOrEmail.length,
+                          }),
+                          "success"
+                        );
+                        resetFields();
+                      } else {
+                        showToast(
+                          t("email_invite_team", {
+                            email: data.usernameOrEmail,
+                          }),
+                          "success"
+                        );
                       }
                     },
                     onError: (error) => {
