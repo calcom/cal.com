@@ -3190,6 +3190,7 @@ __metadata:
     lodash: ^4.17.21
     qs-stringify: ^1.2.1
     react-i18next: ^12.2.0
+    stripe: ^14.3.0
   languageName: unknown
   linkType: soft
 
@@ -35787,6 +35788,16 @@ __metadata:
     "@types/node": ">=8.1.0"
     qs: ^6.11.0
   checksum: c22af58c1a01300e98875b90f3c63336b7fc256ebccc0676cd9d81778a6635c11cc1eff1b75c6673fe62f8b548e346f259edfce9e7416940c3856d23f1394fa2
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^14.3.0":
+  version: 14.3.0
+  resolution: "stripe@npm:14.3.0"
+  dependencies:
+    "@types/node": ">=8.1.0"
+    qs: ^6.11.0
+  checksum: 1aa0dec1fe8cd4c0d2a5378b9d3c69f7df505efdc86b8d6352e194d656129db83b9faaf189b5138fb5fd9a0b90e618dfcff854bb4773d289a0de0b65d0a94cb2
   languageName: node
   linkType: hard
 
