@@ -1,6 +1,6 @@
 {
   "functions": {
-    "pages/api/slots/index.ts": {
+    "**/slots/*": {
       "memory": 512,
       "maxDuration": 60
     }
