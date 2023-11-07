@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "W tej organizacji nie ma jeszcze żadnych zespołów",
   "org_no_teams_yet_description": "Jeśli jesteś administratorem, pamiętaj o utworzeniu zespołów, które będą wyświetlane tutaj.",
   "set_up": "Skonfiguruj",
-  "set_up_your_profile": "Skonfiguruj profil",
-  "set_up_your_profile_description": "Określ informacje o Twojej roli w organizacji {{orgName}} wyświetlane osobom, które klikną Twój link publiczny.",
   "my_profile": "Mój profil",
   "my_settings": "Moje ustawienia",
   "crm": "CRM",

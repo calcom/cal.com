@@ -22,6 +22,7 @@ import { TRPCError } from "@trpc/server";
 import { getDefaultScheduleId } from "../viewer/availability/util";
 import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
+const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -35,6 +36,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
+    avatar: await getAvatarToSet(input.avatar),
     metadata: userMetadata,
   };
 
@@ -232,3 +234,17 @@ const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
   // Required so we don't override and delete saved values
   return { ...userMetadata, ...cleanMetadata };
 };
+
+async function getAvatarToSet(avatar: string | null | undefined) {
+  if (avatar === null || avatar === undefined) {
+    return avatar;
+  }
+
+  if (!avatar.startsWith("data:image")) {
+    // Non Base64 avatar currently could only be the dynamic avatar URL(i.e. /{USER}/avatar.png). If we allow setting that URL, we would get infinite redirects on /user/avatar.ts endpoint
+    log.warn("Non Base64 avatar, ignored it", { avatar });
+    // `undefined` would not ignore the avatar, but `null` would remove it. So, we return `undefined` here.
+    return undefined;
+  }
+  return await resizeBase64Image(avatar);
+}

@@ -134,7 +134,15 @@ function PaymentChecker(props: PaymentCheckerProps) {
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const utils = trpc.useContext();
   const { t } = useLocale();
+
   useEffect(() => {
+    if (searchParams === null) {
+      return;
+    }
+
+    // use closure to ensure non-nullability
+    const sp = searchParams;
+
     const interval = setInterval(() => {
       (async () => {
         if (props.booking.status === "ACCEPTED") {
@@ -153,7 +161,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             location: string;
           } = {
             uid: props.booking.uid,
-            email: searchParams.get("email"),
+            email: sp.get("email"),
             location: t("web_conferencing_details_to_follow"),
           };
 
@@ -165,6 +173,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
         }
       })();
     }, 1000);
+
     return () => clearInterval(interval);
   }, [
     bookingSuccessRedirect,
@@ -178,5 +187,6 @@ function PaymentChecker(props: PaymentCheckerProps) {
     t,
     utils.viewer.bookings,
   ]);
+
   return null;
 }

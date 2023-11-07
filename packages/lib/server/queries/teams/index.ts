@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin, getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -30,6 +30,12 @@ export async function getTeamWithMembers(args: {
     name: true,
     id: true,
     bio: true,
+    organizationId: true,
+    organization: {
+      select: {
+        slug: true,
+      },
+    },
     teams: {
       select: {
         team: {
@@ -163,6 +169,7 @@ export async function getTeamWithMembers(args: {
         ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
+      orgOrigin: getOrgFullOrigin(obj.user.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;

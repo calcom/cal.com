@@ -11,7 +11,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
+import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -25,7 +25,7 @@ import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
@@ -99,11 +99,22 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
-            <OrganizationAvatar
-              imageSrc={profile.image}
+            <OrganizationMemberAvatar
               size="xl"
-              alt={profile.name}
-              organizationSlug={profile.organizationSlug}
+              user={{
+                organizationId: profile.organization?.id,
+                name: profile.name,
+                username: profile.username,
+              }}
+              organization={
+                profile.organization?.id
+                  ? {
+                      id: profile.organization.id,
+                      slug: profile.organization.slug,
+                      requestedSlug: null,
+                    }
+                  : null
+              }
             />
             <h1 className="font-cal text-emphasis mb-1 text-3xl" data-testid="name-title">
               {profile.name}
@@ -226,8 +237,13 @@ export type UserPageProps = {
     theme: string | null;
     brandColor: string;
     darkBrandColor: string;
-    organizationSlug: string | null;
+    organization: {
+      requestedSlug: string | null;
+      slug: string | null;
+      id: number | null;
+    };
     allowSEOIndexing: boolean;
+    username: string | null;
   };
   users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
   themeBasis: string | null;
@@ -248,6 +264,7 @@ export type UserPageProps = {
     | "slug"
     | "length"
     | "hidden"
+    | "lockTimeZoneToggleOnBookingPage"
     | "requiresConfirmation"
     | "requiresBookerEmailVerification"
     | "price"
@@ -258,10 +275,7 @@ export type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
-    context.req.headers.host ?? "",
-    context.params?.orgSlug
-  );
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
@@ -286,6 +300,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         select: {
           slug: true,
           name: true,
+          metadata: true,
         },
       },
       theme: true,
@@ -313,6 +328,10 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
+    organization: {
+      ...user.organization,
+      metadata: user.organization?.metadata ? teamMetadataSchema.parse(user.organization.metadata) : null,
+    },
     avatar: `/${user.username}/avatar.png`,
   }));
 
@@ -321,6 +340,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       slug: usernameList[0],
       redirectType: RedirectType.User,
       eventTypeSlug: null,
+      currentQuery: context.query,
     });
 
     if (redirect) {
@@ -344,8 +364,13 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     theme: user.theme,
     brandColor: user.brandColor,
     darkBrandColor: user.darkBrandColor,
-    organizationSlug: user.organization?.slug ?? null,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
+    username: user.username,
+    organization: {
+      id: user.organizationId,
+      slug: user.organization?.slug ?? null,
+      requestedSlug: user.organization?.metadata?.requestedSlug ?? null,
+    },
   };
 
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
