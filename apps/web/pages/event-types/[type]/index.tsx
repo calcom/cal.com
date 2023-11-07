@@ -473,6 +473,19 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    // Prevent two payment apps to be enabled
+    let enabledPaymentApps = 0;
+    for (const appKey in metadata?.apps) {
+      const app = metadata?.apps[appKey];
+      if (app.price && app.enabled) {
+        enabledPaymentApps++;
+      }
+
+      if (enabledPaymentApps > 1) {
+        throw new Error(t("event_setup_multiple_payment_apps_error"));
+      }
+    }
+
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
@@ -570,6 +583,20 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+
+            // Prevent two payment apps to be enabled
+            let enabledPaymentApps = 0;
+            for (const appKey in metadata?.apps) {
+              const app = metadata?.apps[appKey];
+              if (app.price && app.enabled) {
+                enabledPaymentApps++;
+              }
+
+              if (enabledPaymentApps > 1) {
+                throw new Error(t("event_setup_multiple_payment_apps_error"));
+              }
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
