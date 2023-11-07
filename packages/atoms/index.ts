@@ -1,3 +1,3 @@
 export { Booker } from "./booker/Booker";
-export { EventType } from "./EventTypeList/EventType";
-export { EventTypeList } from "./EventTypeList/EventTypeList";
+export { EventType } from "./event-type-list/components/event-type";
+export { EventTypeList } from "./event-type-list";
