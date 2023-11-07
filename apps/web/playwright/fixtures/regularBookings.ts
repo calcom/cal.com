@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 
+import { localize } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -372,10 +373,11 @@ export function createBookingPageFixture(page: Page) {
     },
 
     checkRequiresBookerEmailVerification: async () => {
+      const emailSwitchLabel = (await localize("en"))("requires_booker_email_verification");
       const emailSwitch = page
         .locator("fieldset")
         .filter({
-          hasText: "Requires booker email verification",
+          hasText: emailSwitchLabel,
         })
         .getByRole("switch");
 
