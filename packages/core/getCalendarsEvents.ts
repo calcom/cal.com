@@ -13,8 +13,7 @@ const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  getMoreEventInfo = false
+  selectedCalendars: SelectedCalendar[]
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -55,7 +54,7 @@ const getCalendarsEvents = async (
 
     return eventBusyDates.map((a) => ({
       ...a,
-      source: getMoreEventInfo && selectedCalendarIds[0] ? selectedCalendarIds[0] : `${appId}`,
+      source: `${appId}`,
     }));
   });
   const awaitedResults = await Promise.all(results);

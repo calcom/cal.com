@@ -10,6 +10,6 @@ type UserOptions = {
   input: TUserInputSchema;
 };
 
-export const userHandler = async ({ input, ctx: { user } }: UserOptions) => {
-  return getUserAvailability(input, undefined, user.username === input.username);
+export const userHandler = async ({ input }: UserOptions) => {
+  return getUserAvailability(input, undefined);
 };

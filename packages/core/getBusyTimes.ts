@@ -12,35 +12,32 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-export async function getBusyTimes(
-  params: {
-    credentials: CredentialPayload[];
-    userId: number;
-    userEmail: string;
-    username: string;
-    eventTypeId?: number;
-    startTime: string;
-    beforeEventBuffer?: number;
-    afterEventBuffer?: number;
-    endTime: string;
-    selectedCalendars: SelectedCalendar[];
-    seatedEvent?: boolean;
-    rescheduleUid?: string | null;
-    duration?: number | null;
-    currentBookings?:
-      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-          eventType: Pick<
-            EventType,
-            "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-          > | null;
-          _count?: {
-            seatsReferences: number;
-          };
-        })[]
-      | null;
-  },
-  getMoreEventInfo = false
-) {
+export async function getBusyTimes(params: {
+  credentials: CredentialPayload[];
+  userId: number;
+  userEmail: string;
+  username: string;
+  eventTypeId?: number;
+  startTime: string;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
+  endTime: string;
+  selectedCalendars: SelectedCalendar[];
+  seatedEvent?: boolean;
+  rescheduleUid?: string | null;
+  duration?: number | null;
+  currentBookings?:
+    | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+        eventType: Pick<
+          EventType,
+          "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+        > | null;
+        _count?: {
+          seatsReferences: number;
+        };
+      })[]
+    | null;
+}) {
   const {
     credentials,
     userId,
@@ -198,8 +195,7 @@ export async function getBusyTimes(
       credentials,
       startTime,
       endTime,
-      selectedCalendars,
-      getMoreEventInfo
+      selectedCalendars
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
