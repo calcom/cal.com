@@ -13,7 +13,6 @@ import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import {
   Button,
-  CheckboxField,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -53,7 +52,6 @@ type MembershipRoleOption = {
 export interface NewMemberForm {
   emailOrUsername: string | string[];
   role: MembershipRole;
-  sendInviteEmail: boolean;
 }
 
 type ModalMode = "INDIVIDUAL" | "BULK" | "ORGANIZATION";
@@ -342,19 +340,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }}
                   />
                 </div>
-              )}
-            />
-            <Controller
-              name="sendInviteEmail"
-              control={newMemberFormMethods.control}
-              defaultValue={true}
-              render={() => (
-                <CheckboxField
-                  className="mr-0"
-                  defaultChecked={true}
-                  description={t("send_invite_email")}
-                  onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
-                />
               )}
             />
             {props.token && (

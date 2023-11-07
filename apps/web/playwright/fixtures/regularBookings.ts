@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import dayjs from "@calcom/dayjs";
+
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -13,6 +15,7 @@ type BookingOptions = {
   hasPlaceholder?: boolean;
   isReschedule?: boolean;
   isRequired?: boolean;
+  isAllRequired?: boolean;
   isMultiSelect?: boolean;
 };
 
@@ -37,6 +40,12 @@ type fillAndConfirmBookingParams = {
 };
 
 type UserFixture = ReturnType<typeof createUsersFixture>;
+
+function isLastDayOfMonth(): boolean {
+  const today = dayjs();
+  const endOfMonth = today.endOf("month");
+  return today.isSame(endOfMonth, "day");
+}
 
 const fillQuestion = async (eventTypePage: Page, questionType: string, customLocators: customLocators) => {
   const questionActions: QuestionActions = {
@@ -103,9 +112,63 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
       await eventTypePage.getByPlaceholder(`${questionType} test`).fill("text test");
     },
   };
-
   if (questionActions[questionType]) {
     await questionActions[questionType]();
+  }
+};
+
+const fillAllQuestions = async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
+  if (options.isAllRequired) {
+    for (const question of questions) {
+      switch (question) {
+        case "email":
+          await eventTypePage.getByPlaceholder("Email").click();
+          await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
+          break;
+        case "phone":
+          await eventTypePage.getByPlaceholder("Phone test").click();
+          await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
+          break;
+        case "address":
+          await eventTypePage.getByPlaceholder("Address test").click();
+          await eventTypePage.getByPlaceholder("Address test").fill("123 Main St, City, Country");
+          break;
+        case "textarea":
+          await eventTypePage.getByPlaceholder("Textarea test").click();
+          await eventTypePage.getByPlaceholder("Textarea test").fill("This is a sample text for textarea.");
+          break;
+        case "select":
+          await eventTypePage.locator("form svg").last().click();
+          await eventTypePage.getByTestId("select-option-Option 1").click();
+          break;
+        case "multiselect":
+          await eventTypePage.locator("form svg").nth(4).click();
+          await eventTypePage.getByTestId("select-option-Option 1").click();
+          break;
+        case "number":
+          await eventTypePage.getByLabel("number test").click();
+          await eventTypePage.getByLabel("number test").fill("123");
+          break;
+        case "radio":
+          await eventTypePage.getByRole("radiogroup").getByText("Option 1").check();
+          break;
+        case "text":
+          await eventTypePage.getByPlaceholder("Text test").click();
+          await eventTypePage.getByPlaceholder("Text test").fill("Sample text");
+          break;
+        case "checkbox":
+          await eventTypePage.getByLabel("Option 1").first().check();
+          await eventTypePage.getByLabel("Option 2").first().check();
+          break;
+        case "boolean":
+          await eventTypePage.getByLabel(`${question} test`).check();
+          break;
+        case "multiemail":
+          await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+          await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+          break;
+      }
+    }
   }
 };
 
@@ -113,6 +176,17 @@ export async function loginUser(users: UserFixture) {
   const pro = await users.create({ name: "testuser" });
   await pro.apiLogin();
 }
+
+const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
+  try {
+    if (isLastDayOfMonth()) {
+      await eventTypePage.getByTestId("view_next_month").waitFor({ timeout: 6000 });
+      await eventTypePage.getByTestId("view_next_month").click();
+    }
+  } catch (err) {
+    console.info("No need to click on view next month button");
+  }
+};
 
 export function createBookingPageFixture(page: Page) {
   return {
@@ -154,22 +228,17 @@ export function createBookingPageFixture(page: Page) {
       return eventtypePromise;
     },
     selectTimeSlot: async (eventTypePage: Page) => {
-      while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
-        await eventTypePage.getByRole("button", { name: "View next" }).click();
-      }
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByTestId("time").first().click();
     },
     clickReschedule: async () => {
       await page.getByText("Reschedule").click();
     },
-    navigateToAvailableTimeSlot: async () => {
-      while (await page.getByRole("button", { name: "View next" }).isVisible()) {
-        await page.getByRole("button", { name: "View next" }).click();
-      }
-    },
+
     selectFirstAvailableTime: async () => {
       await page.getByTestId("time").first().click();
     },
+
     fillRescheduleReasonAndConfirm: async () => {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
@@ -186,6 +255,7 @@ export function createBookingPageFixture(page: Page) {
     },
 
     rescheduleBooking: async (eventTypePage: Page) => {
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByText("Reschedule").click();
       while (await eventTypePage.getByRole("button", { name: "View next" }).isVisible()) {
         await eventTypePage.getByRole("button", { name: "View next" }).click();
@@ -194,6 +264,14 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
+      await eventTypePage.waitForTimeout(400);
+      if (
+        await eventTypePage.getByRole("heading", { name: "Could not reschedule the meeting." }).isVisible()
+      ) {
+        await eventTypePage.getByTestId("back").click();
+        await eventTypePage.getByTestId("time").last().click();
+        await eventTypePage.getByTestId("confirm-reschedule-button").click();
+      }
     },
 
     assertBookingRescheduled: async (page: Page) => {
@@ -222,7 +300,7 @@ export function createBookingPageFixture(page: Page) {
 
       // Change the selector for specifics cases related to select question
       const shouldChangeSelectLocator = (question: string, secondQuestion: string): boolean =>
-        question === "select" && ["multiemail", "multiselect"].includes(secondQuestion);
+        question === "select" && ["multiemail", "multiselect", "address"].includes(secondQuestion);
 
       const shouldUseLastRadioGroupLocator = (question: string, secondQuestion: string): boolean =>
         question === "radio" && secondQuestion === "checkbox";
@@ -248,6 +326,32 @@ export function createBookingPageFixture(page: Page) {
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
       await eventTypePage.getByTestId(confirmButton).click();
+      await eventTypePage.waitForTimeout(400);
+      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
+        await eventTypePage.getByTestId("back").click();
+        await eventTypePage.getByTestId("time").last().click();
+        await fillQuestion(eventTypePage, question, customLocators);
+        options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
+        await eventTypePage.getByTestId(confirmButton).click();
+      }
+      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
+      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
+      await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    checkField: async (question: string) => {
+      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
+    },
+    fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
+      const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
+      await fillAllQuestions(eventTypePage, questions, options);
+      await eventTypePage.getByTestId(confirmButton).click();
+      await eventTypePage.waitForTimeout(400);
+      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
+        await eventTypePage.getByTestId("back").click();
+        await eventTypePage.getByTestId("time").last().click();
+        await fillAllQuestions(eventTypePage, questions, options);
+        await eventTypePage.getByTestId(confirmButton).click();
+      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
