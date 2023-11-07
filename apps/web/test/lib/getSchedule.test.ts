@@ -4,6 +4,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -873,6 +874,124 @@ describe("getSchedule", () => {
           dateString: plus2DateString,
         }
       );
+    });
+    test("test that booking limit is working correctly if user is all day available", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 1,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          {
+            id: 2,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 2,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                name: "All Day available",
+                availability: [
+                  {
+                    userId: null,
+                    eventTypeId: null,
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T00:00:00.000Z"),
+                    endTime: new Date("1970-01-01T23:59:59.999Z"),
+                    date: null,
+                  },
+                ],
+                timeZone: Timezones["+5:30"],
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T08:30:00.000Z`,
+            endTime: `${plus2DateString}T08:29:59.999Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+          {
+            userId: 101,
+            eventTypeId: 2,
+            startTime: `${plus2DateString}T08:30:00.000Z`,
+            endTime: `${plus2DateString}T08:29:59.999Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const thisUserAvailabilityBookingLimitOne = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+        },
+      });
+
+      const thisUserAvailabilityBookingLimitTwo = await getSchedule({
+        input: {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+        },
+      });
+
+      let availableSlotsInTz: dayjs.Dayjs[] = [];
+      for (const date in thisUserAvailabilityBookingLimitOne.slots) {
+        thisUserAvailabilityBookingLimitOne.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+5:30"]));
+        });
+      }
+
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0); // 1 booking per day as limit
+
+      availableSlotsInTz = [];
+      for (const date in thisUserAvailabilityBookingLimitTwo.slots) {
+        thisUserAvailabilityBookingLimitTwo.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+5:30"]));
+        });
+      }
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
     });
   });
 
