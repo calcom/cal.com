@@ -79,15 +79,10 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
   }).then(handleErrorsJson);
 };
 
-function postToDailyAPI(
-  endpoint: string,
-  body: Record<string, unknown>,
-  headers?: RequestInit["headers"] | undefined
-) {
+function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   return fetcher(endpoint, {
     method: "POST",
     body: JSON.stringify(body),
-    headers,
   });
 }
 
@@ -101,26 +96,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
     }).then(meetingTokenSchema.parse);
-
-    // console.log("RESPONSES>DAILY_EVENT", dailyEvent);
-
-    // try {
-    //   // if (!!dailyEvent.enable_recording) {
-    //   // Create a webhook to receive the recording ready to download event
-    //   const webhooks = await postToDailyAPI("/webhooks", {
-    //     // url: "https://eb30-220-158-162-29.ngrok-free.app",
-    //     url: "https://webhook.site/2a4adf5f-91e9-49be-8a49-c1a091a6557b",
-    //     eventTypes: ["recording.ready-to-download"],
-    //     basicAuth: "Basic mySecret",
-    //     headers: {
-    //       "Content-Type": "text/plain",
-    //     },
-    //   });
-    //   console.log("RESPONSES>WEBHOOKS", webhooks);
-    //   // }
-    // } catch (error) {
-    //   console.log("RESPONSES>WEBHOOKS>Error", error);
-    // }
 
     return Promise.resolve({
       type: "daily_video",

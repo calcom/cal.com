@@ -1,24 +1,38 @@
 import type { WebhookTriggerEvents } from "@prisma/client";
+import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const schema = z.object({
-  recordingId: z.string(),
-  bookingUID: z.string(),
-});
+const schema = z
+  .object({
+    version: z.string(),
+    type: z.string(),
+    id: z.string(),
+    payload: z.object({
+      recording_id: z.string(),
+      end_ts: z.number(),
+      room_name: z.string(),
+      start_ts: z.number(),
+      status: z.string(),
+
+      max_participants: z.number(),
+      duration: z.number(),
+      s3_key: z.string(),
+    }),
+    event_ts: z.number(),
+  })
+  .passthrough();
 
 const downloadLinkSchema = z.object({
   download_link: z.string(),
@@ -39,8 +53,8 @@ const triggerWebhook = async ({
   };
 }) => {
   const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
-  // Send Webhook call if hooked to BOOKING.RECORDING_READY
 
+  // Send Webhook call if hooked to BOOKING.RECORDING_READY
   const triggerForUser = !booking.teamId || (booking.teamId && booking.eventTypeParentId);
 
   const subscriberOptions = {
@@ -62,50 +76,20 @@ const triggerWebhook = async ({
   await Promise.all(promises);
 };
 
-const checkIfUserIsPartOfTheSameTeam = async (
-  teamId: number | undefined | null,
-  userId: number,
-  userEmail: string | undefined | null
-) => {
-  if (!teamId) return false;
-
-  const getUserQuery = () => {
-    if (!!userEmail) {
-      return {
-        OR: [
-          {
-            id: userId,
-          },
-          {
-            email: userEmail,
-          },
-        ],
-      };
-    } else {
-      return {
-        id: userId,
-      };
-    }
-  };
-
-  const team = await prisma.team.findFirst({
-    where: {
-      id: teamId,
-      members: {
-        some: {
-          user: getUserQuery(),
-        },
-      },
-    },
-  });
-
-  return !!team;
-};
-
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
+  const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
+  const signature = `${req.headers["X-Webhook-Timestamp"]}.${JSON.stringify(req.body)}`;
+  const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
+  const hmac = createHmac("sha256", base64DecodedSecret);
+  const computed_signature = hmac.update(signature).digest("base64");
+
+  if (req.headers["X-Webhook-Timestamp"] !== computed_signature) {
+    return res.status(403);
+  }
+
   const response = schema.safeParse(JSON.parse(req.body));
 
   if (!response.success) {
@@ -114,19 +98,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
 
-  const { recordingId, bookingUID } = response.data;
-  const session = await getServerSession({ req, res });
-
-  if (!session?.user) {
-    return res.status(401).send({
-      message: "User not logged in",
+  if (response.data.type !== "recording.ready-to-download") {
+    return res.status(400).send({
+      message: "Invalid Webhook Event",
     });
   }
 
+  const { room_name, recording_id } = response.data.payload;
+
   try {
-    const booking = await prisma.booking.findFirst({
+    const { bookingId } = await prisma.bookingReference.findUniqueOrThrow({
+      where: { uid: room_name },
+      select: { bookingId: true },
+    });
+
+    const booking = await prisma.booking.findUniqueOrThrow({
       where: {
-        uid: bookingUID,
+        id: bookingId,
       },
       select: {
         ...bookingMinimalSelect,
@@ -153,7 +141,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!booking || booking.location !== DailyLocationType) {
+    if (!booking || !(booking.location === DailyLocationType || booking.location.trim() === "")) {
       return res.status(404).send({
         message: `Booking of uid ${bookingUID} does not exist or does not contain daily video as location`,
       });
@@ -175,26 +163,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const attendeesList = await Promise.all(attendeesListPromises);
 
-    const isUserAttendeeOrOrganiser =
-      booking?.user?.id === session.user.id ||
-      attendeesList.find(
-        (attendee) => attendee.id === session.user.id || attendee.email === session.user.email
-      );
-
-    if (!isUserAttendeeOrOrganiser) {
-      const isUserMemberOfTheTeam = checkIfUserIsPartOfTheSameTeam(
-        booking?.eventType?.teamId,
-        session.user.id,
-        session.user.email
-      );
-
-      if (!isUserMemberOfTheTeam) {
-        return res.status(403).send({
-          message: "Unauthorised",
-        });
-      }
-    }
-
     await prisma.booking.update({
       where: {
         uid: booking.uid,
@@ -204,7 +172,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
+    const response = await getDownloadLinkOfCalVideoByRecordingId(recording_id);
     const downloadLinkResponse = downloadLinkSchema.parse(response);
     const downloadLink = downloadLinkResponse.download_link;
 
@@ -242,17 +210,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    const isSendingEmailsAllowed = IS_SELF_HOSTED || session?.user?.belongsToActiveTeam;
-
     // send emails to all attendees only when user has team plan
-    if (isSendingEmailsAllowed) {
-      await sendDailyVideoRecordingEmails(evt, downloadLink);
-      return res.status(200).json({ message: "Success" });
-    }
-
-    return res.status(403).json({ message: "User does not have team plan to send out emails" });
+    await sendDailyVideoRecordingEmails(evt, downloadLink);
+    return res.status(200).json({ message: "Success" });
   } catch (err) {
-    console.warn("Error in /recorded-daily-video", err);
+    console.error("Error in /recorded-daily-video", err);
     return res.status(500).json({ message: "something went wrong" });
   }
 }
