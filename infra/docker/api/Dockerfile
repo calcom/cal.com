@@ -57,4 +57,4 @@ COPY --from=build /app/yarn.lock ./yarn.lock
 EXPOSE 80
 
 # Start cmd, called when docker image is mounted
-CMD [ "yarn", "workspace", "@calcom/api", "docker-start-api"]t
+CMD [ "yarn", "workspace", "@calcom/api", "docker-start-api"]
