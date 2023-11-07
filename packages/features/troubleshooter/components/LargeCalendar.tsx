@@ -70,7 +70,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
       return {
         id: idx,
-        title: event.title ?? `Busy - ${event.source}`,
+        title: event.title ?? `Busy`,
         start: new Date(event.start),
         end: new Date(event.end),
         options: {

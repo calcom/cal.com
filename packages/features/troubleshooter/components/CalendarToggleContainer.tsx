@@ -91,14 +91,15 @@ export function CalendarToggleContainer() {
         <>
           {data.connectedCalendars.map((calendar, idx) => {
             const foundPrimary = calendar.calendars?.find((item) => item.primary);
-            const color = SELECTION_COLORS[idx] || "#000000";
-            // Add calendar to color map using externalId (what we use on the backend to determine source)
-            addToColorMap(foundPrimary?.externalId, color);
+            // Will be used when getAvailbility is modified to use externalId instead of appId for source.
+            // const color = SELECTION_COLORS[idx] || "#000000";
+            // // Add calendar to color map using externalId (what we use on the backend to determine source)
+            // addToColorMap(foundPrimary?.externalId, color);
             return (
               <CalendarToggleItem
                 key={calendar.credentialId}
                 title={calendar.integration.name}
-                colorDot={color}
+                colorDot="#000000"
                 subtitle={foundPrimary?.name ?? "Nameless Calendar"}
                 status={calendar.error ? "not_found" : "connected"}
                 calendars={calendar.calendars?.map((item) => {
