@@ -245,26 +245,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
    * but the real detail will be inside app metadata, so with this you can have different prices in different apps
    * So the price and currency inside eventType will be deprecated soon or just keep as reference.
    */
-  if (
-    input.metadata?.apps?.alby?.price ||
-    input?.metadata?.apps?.paypal?.price ||
-    input?.metadata?.apps?.stripe?.price
-  ) {
-    data.price =
-      input.metadata?.apps?.alby?.price ||
-      input.metadata.apps.paypal?.price ||
-      input.metadata.apps.stripe?.price;
+
+  let enabledPaymentAppKey: string | undefined = undefined;
+
+  for (const appKey in input.metadata?.apps) {
+    const app = input.metadata?.apps[appKey];
+    if (app.enabled && app) {
+      enabledPaymentAppKey = appKey;
+      break;
+    }
   }
 
-  if (
-    input.metadata?.apps?.alby?.currency ||
-    input?.metadata?.apps?.paypal?.currency ||
-    input?.metadata?.apps?.stripe?.currency
-  ) {
-    data.currency =
-      input.metadata?.apps?.alby?.currency ||
-      input.metadata.apps.paypal?.currency ||
-      input.metadata.apps.stripe?.currency;
+  if (enabledPaymentAppKey) {
+    const paymentApp = input.metadata?.apps[enabledPaymentAppKey];
+    data.price = paymentApp.price;
+    data.currency = paymentApp.currency;
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({
