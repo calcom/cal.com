@@ -9,7 +9,12 @@ import { parseZone } from "./parse-zone";
 
 type ExtraOptions = { withDefaultTimeFormat?: boolean; selectedTimeFormat?: TimeFormat };
 
-const processDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
+const processDate = (
+  date: string | null | Dayjs,
+  language: string,
+  timeZone: string,
+  options?: ExtraOptions
+) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
   const formattedTime = parsedZone?.format(
@@ -17,12 +22,19 @@ const processDate = (date: string | null | Dayjs, language: string, options?: Ex
       ? TimeFormat.TWELVE_HOUR
       : options?.selectedTimeFormat || detectBrowserTimeFormat
   );
-  return `${formattedTime}, ${dayjs(date).toDate().toLocaleString(language, { dateStyle: "full" })}`;
+  return `${formattedTime}, ${dayjs(date)
+    .toDate()
+    .toLocaleString(language, { dateStyle: "full", timeZone })}`;
 };
 
-export const parseDate = (date: string | null | Dayjs, language: string, options?: ExtraOptions) => {
+export const parseDate = (
+  date: string | null | Dayjs,
+  language: string,
+  timeZone: string,
+  options?: ExtraOptions
+) => {
   if (!date) return ["No date"];
-  return processDate(date, language, options);
+  return processDate(date, language, timeZone, options);
 };
 
 const timeOptions: Intl.DateTimeFormatOptions = {
@@ -74,7 +86,7 @@ export const parseRecurringDates = (
     withDefaultTimeFormat,
   }: {
     startDate: string | null | Dayjs;
-    timeZone?: string;
+    timeZone: string;
     recurringEvent: RecurringEvent | null;
     recurringCount: number;
     selectedTimeFormat?: TimeFormat;
@@ -98,7 +110,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), language, { selectedTimeFormat, withDefaultTimeFormat });
+    return processDate(t.tz(timeZone), language, timeZone, { selectedTimeFormat, withDefaultTimeFormat });
   });
 
   return [dateStrings, times.map((t) => t.toDate())];
