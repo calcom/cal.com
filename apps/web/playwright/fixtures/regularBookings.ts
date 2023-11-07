@@ -362,10 +362,12 @@ export function createBookingPageFixture(page: Page) {
     },
 
     checkRequiresConfirmation: async () => {
+      const requiresConfirmationText = (await localize("en"))("requires_confirmation");
+
       const confirmationSwitch = page
         .locator("fieldset")
         .filter({
-          hasText: "Requires confirmation",
+          hasText: requiresConfirmationText,
         })
         .getByRole("switch");
       await expect(confirmationSwitch).toBeVisible();
@@ -386,10 +388,11 @@ export function createBookingPageFixture(page: Page) {
     },
 
     checkHideNotes: async () => {
+      const hideNotesText = (await localize("en"))("disable_notes");
       const hideNotesSwitch = page
         .locator("fieldset")
         .filter({
-          hasText: "Hide notes in calendar",
+          hasText: hideNotesText,
         })
         .getByRole("switch");
 
@@ -398,44 +401,52 @@ export function createBookingPageFixture(page: Page) {
     },
 
     checkRedirectOnBooking: async () => {
+      const redirectSwitchText = (await localize("en"))("redirect_url_description");
+      const placeholder = (await localize("en"))("external_redirect_url");
+
       const redirectSwitch = page
         .locator("fieldset")
         .filter({
-          hasText: "Redirect on booking Redirect to a custom URL after a successful booking",
+          hasText: redirectSwitchText,
         })
         .getByRole("switch");
 
       await expect(redirectSwitch).toBeVisible();
       await redirectSwitch.click();
-      await expect(page.getByPlaceholder("https://example.com/redirect-to-my-success-page")).toBeVisible();
+      await expect(page.getByPlaceholder(placeholder)).toBeVisible();
     },
 
     checkEnablePrivateUrl: async () => {
       const urlSwitch = page.getByTestId("hashedLinkCheck");
+      const privateLinkText = (await localize("en"))("private_link_hint");
 
       await expect(urlSwitch).toBeVisible();
       await urlSwitch.click();
-      await expect(page.getByText("Your private link will regenerate after each use")).toBeVisible();
+      await expect(page.locator(`text=${privateLinkText}`)).toBeVisible();
     },
 
     toggleOfferSeats: async () => {
       const seatSwitch = page.getByTestId("offer-seats-toggle");
+      const seatSwitchText = (await localize("en"))("number_of_seats");
+      const shareAttendeeText = (await localize("en"))("show_attendees");
 
       await expect(seatSwitch).toBeVisible();
       await seatSwitch.click();
 
-      const seatSwitchField = page.getByLabel("Number of seats per booking");
+      const seatSwitchField = page.getByLabel(seatSwitchText);
       await seatSwitchField.fill("3");
       await expect(seatSwitchField).toHaveValue("3");
-      await expect(page.getByLabel("Share attendee information between guests")).toBeVisible();
+      await expect(page.getByLabel(shareAttendeeText)).toBeVisible();
       await seatSwitch.click();
     },
 
     checkLockTimezone: async () => {
+      const lockTimezoneText = (await localize("en"))("description_lock_timezone_toggle_on_booking_page");
+
       const lockSwitch = page
         .locator("fieldset")
         .filter({
-          hasText: "Lock timezone on booking pageTo lock the timezone on booking page, useful for in",
+          hasText: lockTimezoneText,
         })
         .getByRole("switch");
 
@@ -443,9 +454,8 @@ export function createBookingPageFixture(page: Page) {
     },
 
     checkEventType: async () => {
-      await expect(
-        page.getByText("30 min/user-0-1698797839561/30-min 30m Requires confirmation")
-      ).toBeTruthy();
+      const requiresConfirmationText = (await localize("en"))("requires_confirmation");
+      await expect(page.locator(`text=${requiresConfirmationText}`)).toBeTruthy();
     },
   };
 }
