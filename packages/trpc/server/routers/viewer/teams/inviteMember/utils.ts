@@ -243,7 +243,6 @@ export async function sendVerificationEmail({
     role: "ADMIN" | "MEMBER" | "OWNER";
     usernameOrEmail: string | string[];
     language: string;
-    sendEmailInvitation: boolean;
     isOrg: boolean;
   };
   connectionInfo: ReturnType<typeof getOrgConnectionInfo>;
