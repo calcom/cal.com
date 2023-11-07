@@ -84,16 +84,19 @@ export function Event({
             eventDuration <= 30 && "items-center"
           )}>
           <span>{event.title}</span>
-          {eventDuration <= 30 && (
+          {eventDuration <= 30 && !event.options?.hideTime && (
             <p className="text-subtle w-full whitespace-nowrap text-left text-[10px] leading-none">
               {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
             </p>
           )}
         </div>
-        {eventDuration > 30 && (
+        {eventDuration > 30 && !event.options?.hideTime && (
           <p className="text-subtle text-left text-[10px] leading-none">
             {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
           </p>
+        )}
+        {eventDuration > 45 && event.description && (
+          <p className="text-subtle text-left text-[10px] leading-none">{event.description}</p>
         )}
       </Component>
     </Tooltip>

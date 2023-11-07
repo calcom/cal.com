@@ -67,6 +67,14 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const events = useMemo(() => {
     if (!busyEvents?.busy) return [];
 
+    // TODO: Add buffer times in here as well just requires a bit of logic for fetching event type and then adding buffer time
+    //   start: dayjs(startTime)
+    //   .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+    //   .toDate(),
+    // end: dayjs(endTime)
+    //   .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+    //   .toDate(),
+
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
       return {
         id: idx,
@@ -111,7 +119,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
       });
     }
     return calendarEvents;
-  }, [busyEvents, calendarToColorMap, schedule?.slots]);
+  }, [busyEvents, calendarToColorMap]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
