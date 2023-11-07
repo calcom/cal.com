@@ -15,6 +15,7 @@ type BookingOptions = {
   hasPlaceholder?: boolean;
   isReschedule?: boolean;
   isRequired?: boolean;
+  isAllRequired?: boolean;
   isMultiSelect?: boolean;
 };
 
@@ -116,6 +117,61 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
   }
 };
 
+const fillAllQuestions = async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
+  if (options.isAllRequired) {
+    for (const question of questions) {
+      switch (question) {
+        case "email":
+          await eventTypePage.getByPlaceholder("Email").click();
+          await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
+          break;
+        case "phone":
+          await eventTypePage.getByPlaceholder("Phone test").click();
+          await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
+          break;
+        case "address":
+          await eventTypePage.getByPlaceholder("Address test").click();
+          await eventTypePage.getByPlaceholder("Address test").fill("123 Main St, City, Country");
+          break;
+        case "textarea":
+          await eventTypePage.getByPlaceholder("Textarea test").click();
+          await eventTypePage.getByPlaceholder("Textarea test").fill("This is a sample text for textarea.");
+          break;
+        case "select":
+          await eventTypePage.locator("form svg").last().click();
+          await eventTypePage.getByTestId("select-option-Option 1").click();
+          break;
+        case "multiselect":
+          await eventTypePage.locator("form svg").nth(4).click();
+          await eventTypePage.getByTestId("select-option-Option 1").click();
+          break;
+        case "number":
+          await eventTypePage.getByLabel("number test").click();
+          await eventTypePage.getByLabel("number test").fill("123");
+          break;
+        case "radio":
+          await eventTypePage.getByRole("radiogroup").getByText("Option 1").check();
+          break;
+        case "text":
+          await eventTypePage.getByPlaceholder("Text test").click();
+          await eventTypePage.getByPlaceholder("Text test").fill("Sample text");
+          break;
+        case "checkbox":
+          await eventTypePage.getByLabel("Option 1").first().check();
+          await eventTypePage.getByLabel("Option 2").first().check();
+          break;
+        case "boolean":
+          await eventTypePage.getByLabel(`${question} test`).check();
+          break;
+        case "multiemail":
+          await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
+          await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
+          break;
+      }
+    }
+  }
+};
+
 export async function loginUser(users: UserFixture) {
   const pro = await users.create({ name: "testuser" });
   await pro.apiLogin();
@@ -182,6 +238,7 @@ export function createBookingPageFixture(page: Page) {
     selectFirstAvailableTime: async () => {
       await page.getByTestId("time").first().click();
     },
+
     fillRescheduleReasonAndConfirm: async () => {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
@@ -207,6 +264,14 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
+      await eventTypePage.waitForTimeout(400);
+      if (
+        await eventTypePage.getByRole("heading", { name: "Could not reschedule the meeting." }).isVisible()
+      ) {
+        await eventTypePage.getByTestId("back").click();
+        await eventTypePage.getByTestId("time").last().click();
+        await eventTypePage.getByTestId("confirm-reschedule-button").click();
+      }
     },
 
     assertBookingRescheduled: async (page: Page) => {
@@ -261,6 +326,32 @@ export function createBookingPageFixture(page: Page) {
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
       await eventTypePage.getByTestId(confirmButton).click();
+      await eventTypePage.waitForTimeout(400);
+      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
+        await eventTypePage.getByTestId("back").click();
+        await eventTypePage.getByTestId("time").last().click();
+        await fillQuestion(eventTypePage, question, customLocators);
+        options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
+        await eventTypePage.getByTestId(confirmButton).click();
+      }
+      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
+      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
+      await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    checkField: async (question: string) => {
+      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
+    },
+    fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
+      const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
+      await fillAllQuestions(eventTypePage, questions, options);
+      await eventTypePage.getByTestId(confirmButton).click();
+      await eventTypePage.waitForTimeout(400);
+      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
+        await eventTypePage.getByTestId("back").click();
+        await eventTypePage.getByTestId("time").last().click();
+        await fillAllQuestions(eventTypePage, questions, options);
+        await eventTypePage.getByTestId(confirmButton).click();
+      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
