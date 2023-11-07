@@ -12,8 +12,8 @@ type ExtraOptions = { withDefaultTimeFormat?: boolean; selectedTimeFormat?: Time
 const processDate = (
   date: string | null | Dayjs,
   language: string,
-  options?: ExtraOptions,
-  timeZone: string
+  timeZone: string,
+  options?: ExtraOptions
 ) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
@@ -30,8 +30,8 @@ const processDate = (
 export const parseDate = (
   date: string | null | Dayjs,
   language: string,
-  options?: ExtraOptions,
-  timeZone: string
+  timeZone: string,
+  options?: ExtraOptions
 ) => {
   if (!date) return ["No date"];
   return processDate(date, language, options, timeZone);
