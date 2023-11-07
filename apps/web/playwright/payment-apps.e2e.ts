@@ -234,4 +234,141 @@ test.describe("Payment app", () => {
     await page.getByLabel("Tracking ID").fill("demo");
     await page.getByTestId("update-eventtype").click();
   });
+
+  test("Should only be allowed to enable one payment app", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+    await prisma.credential.createMany({
+      data: [
+        {
+          type: "paypal_payment",
+          userId: user.id,
+          key: {
+            client_id: "randomString",
+            secret_key: "randomString",
+            webhook_id: "randomString",
+          },
+        },
+        {
+          type: "stripe_payment",
+          userId: user.id,
+          key: {
+            scope: "read_write",
+            livemode: false,
+            token_type: "bearer",
+            access_token: "sk_test_randomString",
+            refresh_token: "rt_randomString",
+            stripe_user_id: "acct_randomString",
+            default_currency: "usd",
+            stripe_publishable_key: "pk_test_randomString",
+          },
+        },
+      ],
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("[data-testid='app-switch-paypal']").click();
+    await page.locator("[data-testid='app-switch-stripe']").click();
+
+    await page.locator("[data-testid='price-input-stripe']").fill("100");
+    await page.locator("[data-testid='price-input-paypal']").fill("100");
+
+    // The check for multiple payments apps is done before making the update call
+    let updateRequestWasMade = false;
+    page.on("request", (request) => {
+      if (request.url().includes("/update")) updateRequestWasMade = true;
+    });
+
+    await page.locator("[data-testid='update-eventtype']").click();
+
+    expect(updateRequestWasMade).toBeFalsy();
+  });
+
+  test("when more than one payment app is installed the price should be updated when changing settings", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+
+    await prisma.credential.createMany({
+      data: [
+        {
+          type: "paypal_payment",
+          userId: user.id,
+          key: {
+            client_id: "randomString",
+            secret_key: "randomString",
+            webhook_id: "randomString",
+          },
+        },
+        {
+          type: "stripe_payment",
+          userId: user.id,
+          key: {
+            scope: "read_write",
+            livemode: false,
+            token_type: "bearer",
+            access_token: "sk_test_randomString",
+            refresh_token: "rt_randomString",
+            stripe_user_id: "acct_randomString",
+            default_currency: "usd",
+            stripe_publishable_key: "pk_test_randomString",
+          },
+        },
+      ],
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("[data-testid='app-switch-paypal']").click();
+    await page.locator("[data-testid='price-input-paypal']").fill("100");
+    await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
+    await page.locator("#react-select-2-option-13").click();
+    await page.locator(".mb-1 > .bg-default > div > div:nth-child(2)").first().click();
+    await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
+    await page.locator("[data-testid='update-eventtype']").click();
+
+    // Need to wait for the DB to be updated
+    await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
+
+    const paypalPrice = await prisma.eventType.findFirst({
+      where: {
+        id: paymentEvent.id,
+      },
+      select: {
+        price: true,
+      },
+    });
+
+    expect(paypalPrice?.price).toEqual(10000);
+
+    await page.locator("[data-testid='app-switch-paypal']").click();
+    await page.locator("[data-testid='app-switch-stripe']").click();
+    await page.locator("[data-testid='price-input-stripe']").fill("200");
+    await page.locator("[data-testid='update-eventtype']").click();
+
+    // Need to wait for the DB to be updated
+    await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
+
+    const stripePrice = await prisma.eventType.findFirst({
+      where: {
+        id: paymentEvent.id,
+      },
+      select: {
+        price: true,
+      },
+    });
+
+    expect(stripePrice?.price).toEqual(20000);
+  });
 });

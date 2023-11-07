@@ -77,6 +77,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   required
                   className="block w-full rounded-sm pl-2 text-sm"
                   placeholder="Price"
+                  data-testid="price-input-paypal"
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
                     if (selectedCurrency) {
