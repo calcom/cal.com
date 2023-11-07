@@ -13,7 +13,7 @@ const processDate = (
   date: string | null | Dayjs,
   language: string,
   options?: ExtraOptions,
-  timeZone?: string
+  timeZone: string
 ) => {
   const parsedZone = parseZone(date);
   if (!parsedZone?.isValid()) return "Invalid date";
@@ -81,7 +81,7 @@ export const parseRecurringDates = (
     withDefaultTimeFormat,
   }: {
     startDate: string | null | Dayjs;
-    timeZone?: string;
+    timeZone: string;
     recurringEvent: RecurringEvent | null;
     recurringCount: number;
     selectedTimeFormat?: TimeFormat;
