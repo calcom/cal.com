@@ -34,7 +34,7 @@ export const parseDate = (
   options?: ExtraOptions
 ) => {
   if (!date) return ["No date"];
-  return processDate(date, language, options, timeZone);
+  return processDate(date, language, timeZone, options);
 };
 
 const timeOptions: Intl.DateTimeFormatOptions = {
@@ -110,7 +110,7 @@ export const parseRecurringDates = (
   });
   const dateStrings = times.map((t) => {
     // finally; show in local timeZone again
-    return processDate(t.tz(timeZone), language, { selectedTimeFormat, withDefaultTimeFormat }, timeZone);
+    return processDate(t.tz(timeZone), language, timeZone, { selectedTimeFormat, withDefaultTimeFormat });
   });
 
   return [dateStrings, times.map((t) => t.toDate())];
