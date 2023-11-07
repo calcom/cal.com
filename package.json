@@ -71,7 +71,10 @@
     "test": "vitest run",
     "type-check": "turbo run type-check",
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",
-    "web": "yarn workspace @calcom/web"
+    "web": "yarn workspace @calcom/web",
+    "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
+    "docker-run-api": "docker run -p 80:80 cal-api",
+    "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
