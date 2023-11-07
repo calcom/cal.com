@@ -33,10 +33,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
-  let credentialId;
+  let credentialId: number;
 
-  if (eventType.teamId) {
-    const teamCredential = app.teams.find((team) => team.teamId === eventType.teamId);
+  if (eventType.teamId && app.teams.length) {
+    const teamCredential = app.teams.find((team) => team?.teamId === eventType.teamId);
     credentialId = teamCredential?.credentialId ?? app.userCredentialIds[0];
   } else {
     credentialId = app.userCredentialIds[0];

@@ -33,10 +33,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
 
-  let credentialId;
+  let credentialId: number;
 
   if (eventType.teamId) {
-    const teamCredential = app.teams.find((team) => team.teamId === eventType.teamId);
+    const teamCredential = app.teams.find((team) => team?.teamId === eventType.teamId);
     credentialId = teamCredential?.credentialId ?? app.userCredentialIds[0];
   } else {
     credentialId = app.userCredentialIds[0];
