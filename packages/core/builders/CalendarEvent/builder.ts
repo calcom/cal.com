@@ -244,7 +244,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
       let slug = "";
       if (isTeam && eventType?.team?.slug) {
-        slug = `/team/${eventType.team?.slug}`;
+        slug = `team/${eventType.team?.slug}/${eventType.slug}`;
       } else if (isDynamic) {
         const dynamicSlug = isDynamic ? `${booking.dynamicGroupSlugRef}/${booking.dynamicEventSlugRef}` : "";
         slug = dynamicSlug;
