@@ -1,5 +1,5 @@
 import { usePathname, useSearchParams } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -14,7 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
 import type { appDataSchema } from "../zod";
-import { PaypalPaymentOptions as paymentOptions } from "../zod";
+import { paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
 
@@ -26,35 +26,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     () => `${pathname}${searchParams ? `?${searchParams.toString()}` : ""}`,
     [pathname, searchParams]
   );
+  const { t } = useLocale();
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
-
   const currency = getAppData("currency");
+  const paymentOption = getAppData("paymentOption");
+  const enable = getAppData("enabled");
+
   const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions.find((c) => c.value === currency));
   const [currencySymbol, setCurrencySymbol] = useState(
     isAcceptedCurrencyCode(currency) ? currencySymbols[currency] : ""
   );
 
-  const paymentOption = getAppData("paymentOption");
+  const [requirePayment, setRequirePayment] = useState(enable);
+
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
     label: paymentOptions[0].label,
     value: paymentOptions[0].value,
   };
-  const seatsEnabled = !!eventType.seatsPerTimeSlot;
-  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
-  const { t } = useLocale();
-  const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
-  useEffect(() => {
-    if (requirePayment) {
-      if (!getAppData("currency")) {
-        setAppData("currency", currencyOptions[0].value);
-      }
-      if (!getAppData("paymentOption")) {
-        setAppData("paymentOption", paymentOptions[0].value);
-      }
-    }
-  }, []);
+  const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
   return (
     <AppCard
@@ -64,7 +55,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      description={<>Add Paypal payment to your events</>}>
+      description={<>Add a mock payment to your events</>}>
       <>
         {recurringEventDefined ? (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
@@ -129,12 +120,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     if (input) setAppData("paymentOption", input.value);
                   }}
                   className="mb-1 h-[38px] w-full"
-                  isDisabled={seatsEnabled}
+                  isDisabled={false}
                 />
               </div>
-              {seatsEnabled && paymentOption === "HOLD" && (
-                <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
-              )}
             </>
           )
         )}
