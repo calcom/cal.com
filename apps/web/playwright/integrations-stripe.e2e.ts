@@ -3,6 +3,7 @@ import type Prisma from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
@@ -60,7 +61,9 @@ test.describe("Stripe integration", () => {
       },
     });
 
-    const stripeAppMetadata = eventTypeMetadata?.metadata?.apps?.stripe;
+    const metadata = EventTypeMetaDataSchema.parse(eventTypeMetadata?.metadata);
+
+    const stripeAppMetadata = metadata?.apps?.stripe;
 
     expect(stripeAppMetadata).toHaveProperty("credentialId");
     expect(typeof stripeAppMetadata?.credentialId).toBe("number");
@@ -116,7 +119,9 @@ test.describe("Stripe integration", () => {
       },
     });
 
-    const stripeAppMetadata = eventTypeMetadata?.metadata?.apps?.stripe;
+    const metadata = EventTypeMetaDataSchema.parse(eventTypeMetadata?.metadata);
+
+    const stripeAppMetadata = metadata?.apps?.stripe;
 
     expect(stripeAppMetadata).toHaveProperty("credentialId");
     expect(typeof stripeAppMetadata?.credentialId).toBe("number");
