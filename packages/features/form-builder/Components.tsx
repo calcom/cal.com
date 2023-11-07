@@ -20,6 +20,7 @@ import {
   CheckboxField,
 } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
+import InfoBadge from "@calcom/web/components/ui/InfoBadge";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -395,6 +396,7 @@ export const Components: Record<FieldType, Component> = {
         }
       }, [options, setValue, value]);
 
+      const { t } = useLocale();
       return (
         <div>
           <div>
@@ -418,6 +420,11 @@ export const Components: Record<FieldType, Component> = {
                         checked={value?.value === option.value}
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                      <span>
+                        {option.value === "phone" && (
+                          <InfoBadge content={t("number_in_international_format")} />
+                        )}
+                      </span>
                     </label>
                   );
                 })
