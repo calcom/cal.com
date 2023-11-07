@@ -82,23 +82,36 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     });
 
     if (busyEvents.dateOverrides) {
-      for (const date in busyEvents.dateOverrides) {
-        const dateOverride = busyEvents.dateOverrides[date];
+      busyEvents.dateOverrides.forEach((dateOverride) => {
+        const dateOverrideStart = dayjs(dateOverride.start);
+        const dateOverrideEnd = dayjs(dateOverride.end);
+
+        if (!dateOverrideStart.isSame(dateOverrideEnd)) {
+          return;
+        }
+
+        const dayOfWeekNum = dateOverrideStart.day();
+
+        const workingHoursForDay = busyEvents.workingHours.find((workingHours) =>
+          workingHours.days.includes(dayOfWeekNum)
+        );
+
+        if (!workingHoursForDay) return;
+
         calendarEvents.push({
           id: calendarEvents.length,
           title: "Date Override",
-          start: new Date(dateOverride.start),
-          end: new Date(dateOverride.end),
+          start: dateOverrideStart.add(workingHoursForDay.startTime, "minutes").toDate(),
+          end: dateOverrideEnd.add(workingHoursForDay.endTime, "minutes").toDate(),
           options: {
             borderColor: "black",
             status: BookingStatus.ACCEPTED,
           },
         });
-      }
+      });
     }
-
     return calendarEvents;
-  }, [busyEvents, calendarToColorMap]);
+  }, [busyEvents, calendarToColorMap, schedule?.slots]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
