@@ -1,6 +1,6 @@
 {
   "functions": {
-    "**/slots/*": {
+    "api/slots": {
       "memory": 512,
       "maxDuration": 60
     }
