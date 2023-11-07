@@ -65,7 +65,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
-  const { currentOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain } = orgDomainConfig(context.req);
 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation

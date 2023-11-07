@@ -12,8 +12,8 @@ import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
-import { getOrgFullDomain } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -263,7 +263,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug }: Signup
                 setPremium={(value) => setPremiumUsername(value)}
                 addOnLeading={
                   orgSlug
-                    ? getOrgFullDomain(orgSlug, { protocol: true })
+                    ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
                     : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                 }
               />

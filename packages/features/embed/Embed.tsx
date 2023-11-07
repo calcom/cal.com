@@ -61,7 +61,7 @@ function useRouterHelpers() {
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(searchParams ?? undefined);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
     });
@@ -70,7 +70,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams ?? undefined);
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -529,7 +529,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
