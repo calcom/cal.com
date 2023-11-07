@@ -13,6 +13,7 @@
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
+    "docker-start-api": "PORT=80 next start",
     "type-check": "tsc --pretty --noEmit"
   },
   "devDependencies": {
