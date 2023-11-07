@@ -207,6 +207,7 @@ const InstallAppButtonChild = ({
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
         StartIcon={Plus}
         data-testid="install-app-button"
+        loading={props?.isLoading}
         {...props}>
         {t("install")}
       </Button>
@@ -221,6 +222,7 @@ const InstallAppButtonChild = ({
           className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
           StartIcon={Plus}
           data-testid="install-app-button"
+          loading={props?.isLoading}
           {...props}>
           {t("install")}
         </Button>
