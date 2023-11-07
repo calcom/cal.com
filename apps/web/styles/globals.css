@@ -9,23 +9,13 @@
 
   --cal-bg-emphasis: hsla(220,13%,91%,1);
   --cal-bg: hsla(0,0%,100%,1);
-<<<<<<< HEAD
-  --cal-bg-subtle: hsl(220, 14%, 96%);
+  --cal-bg-subtle: hsla(220, 14%, 96%,1);
   --cal-bg-muted: hsla(210,20%,98%,1);
   --cal-bg-inverted: hsla(0,0%,6%,1);
 
   /* background -> components*/
   --cal-bg-info: hsla(218,83%,98%,1);
   --cal-bg-success: hsla(134,76%,94%,1);
-=======
-  --cal-bg-subtle: hsla(220,14,96,1);
-  --cal-bg-muted: hsla(210,20,98,1);
-  --cal-bg-inverted: hsla(0,0,6,1);
-
-  /* background -> components*/
-  --cal-bg-info: hsla(218,83,98,1);
-  --cal-bg-success: hsla(134,76,94,1);
->>>>>>> 3cceb108cf82a3c3a1ab54ce1e2fbfe1706636f1
   --cal-bg-attention: hsla(37, 86%, 92%, 1);
   --cal-bg-error: hsla(3,66,93,1);
   --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
