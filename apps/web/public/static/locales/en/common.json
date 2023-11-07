@@ -2098,5 +2098,6 @@
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
   "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
   "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",
+  "event_setup_multiple_payment_apps_error": "You can only have one payment app enabled per event type.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
