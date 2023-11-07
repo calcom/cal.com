@@ -28,6 +28,8 @@ export type TroubleshooterStore = {
   setSelectedDate: (date: string | null) => void;
   addToSelectedDate: (days: number) => void;
   initialize: (data: StoreInitializeType) => void;
+  calendarToColorMap: Record<string, string>;
+  addToCalendarToColorMap: (calendarId: string | undefined, color: string) => void;
 };
 
 /**
@@ -88,6 +90,13 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
       updateQueryParam("month", month);
     }
     //removeQueryParam("layout");
+  },
+  calendarToColorMap: {},
+  addToCalendarToColorMap: (calendarId: string | undefined, color: string) => {
+    if (!calendarId) return;
+    const calendarToColorMap = get().calendarToColorMap;
+    calendarToColorMap[calendarId] = color;
+    set({ calendarToColorMap });
   },
 }));
 

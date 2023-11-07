@@ -2,6 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, Switch } from "@calcom/ui";
 
+import { useTroubleshooterStore } from "../store";
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
 
 const SELECTION_COLORS = ["#f97316", "#84cc16", "#06b6d4", "#8b5cf6", "#ec4899", "#f43f5e"];
@@ -79,6 +80,7 @@ function EmptyCalendarToggleItem() {
 export function CalendarToggleContainer() {
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery();
+  const addToColorMap = useTroubleshooterStore((state) => state.addToCalendarToColorMap);
 
   const hasConnectedCalendars = data && data?.connectedCalendars.length > 0;
 
@@ -89,11 +91,14 @@ export function CalendarToggleContainer() {
         <>
           {data.connectedCalendars.map((calendar, idx) => {
             const foundPrimary = calendar.calendars?.find((item) => item.primary);
+            const color = SELECTION_COLORS[idx] || "#000000";
+            // Add calendar to color map using externalId (what we use on the backend to determine source)
+            addToColorMap(foundPrimary?.externalId, color);
             return (
               <CalendarToggleItem
                 key={calendar.credentialId}
                 title={calendar.integration.name}
-                colorDot={SELECTION_COLORS[idx] || "#000000"}
+                colorDot={color}
                 subtitle={foundPrimary?.name ?? "Nameless Calendar"}
                 status={calendar.error ? "not_found" : "connected"}
                 calendars={calendar.calendars?.map((item) => {

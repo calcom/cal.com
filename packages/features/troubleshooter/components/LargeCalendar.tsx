@@ -15,10 +15,11 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { timezone } = useTimePreferences();
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const event = useTroubleshooterStore((state) => state.event);
+  const calendarToColorMap = useTroubleshooterStore((state) => state.calendarToColorMap);
   const { data: session } = useSession();
   const startDate = selectedDate ? dayjs(selectedDate) : dayjs();
 
-  const { data: busyEvents, isLoading } = trpc.viewer.availability.user.useQuery(
+  const { data: busyEvents } = trpc.viewer.availability.user.useQuery(
     {
       username: session?.user?.username || "",
       dateFrom: startDate.startOf("day").utc().format(),
@@ -69,11 +70,12 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
       return {
         id: idx,
-        title: event.title ?? `Busy`,
+        title: event.title ?? `Busy - ${event.source}`,
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
-          borderColor: "#F97417",
+          borderColor:
+            event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",
           status: BookingStatus.ACCEPTED,
         },
       };
@@ -96,11 +98,12 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     }
 
     return calendarEvents;
-  }, [busyEvents]);
+  }, [busyEvents, calendarToColorMap]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
+        sortEvents
         startHour={0}
         endHour={23}
         events={events}

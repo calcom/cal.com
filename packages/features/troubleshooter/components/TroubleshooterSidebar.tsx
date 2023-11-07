@@ -26,7 +26,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
 };
 
 export const TroubleshooterSidebar = () => {
-  const { i18n, t } = useLocale();
+  const { t } = useLocale();
 
   return (
     <div className="relative z-10 flex w-full flex-col gap-6 py-6 pr-6">
