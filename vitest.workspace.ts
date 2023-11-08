@@ -36,7 +36,7 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
           // TODO: Ignore the api until tests are fixed
-          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+          exclude: ["**/node_modules/**/*", "packages/embeds/**/*", "packages/lib/hooks/**/*"],
           setupFiles: ["setupVitest.ts"],
         },
       },
@@ -65,6 +65,13 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/app-store/_components/**/*.{test,spec}.{ts,js,tsx}"],
           environment: "jsdom",
           setupFiles: ["packages/app-store/test-setup.ts"],
+        },
+      },
+      {
+        test: {
+          name: "@calcom/packages/lib/hooks",
+          include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
+          environment: "jsdom",
         },
       },
     ];
