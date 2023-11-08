@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc";
 import { SelectField } from "@calcom/ui";
@@ -6,7 +6,7 @@ import { SelectField } from "@calcom/ui";
 import { useTroubleshooterStore } from "../store";
 
 export function EventTypeSelect() {
-  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
+  const { data: eventTypes, isLoading } = trpc.viewer.eventTypes.list.useQuery();
   const selectedEventType = useTroubleshooterStore((state) => state.event);
   const setSelectedEventType = useTroubleshooterStore((state) => state.setEvent);
 
@@ -22,10 +22,23 @@ export function EventTypeSelect() {
     }));
   }, [eventTypes]);
 
+  useEffect(() => {
+    if (!selectedEventType && eventTypes && eventTypes[0]) {
+      const { id, slug, length } = eventTypes[0];
+      setSelectedEventType({
+        id,
+        slug,
+        duration: length,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventTypes]);
+
   return (
     <SelectField
       label="Event Type"
       options={options}
+      isDisabled={isLoading || options.length > 0}
       value={options.find((option) => option.value === selectedEventType?.slug) || options[0]}
       onChange={(option) => {
         if (!option) return;
