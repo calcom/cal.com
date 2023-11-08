@@ -12,8 +12,9 @@ type DesktopDropdownContentProps = {
   isManagedEventType: boolean;
   isChildrenManagedEventType: boolean;
   id: number;
-  onEdit: (id: number) => void;
-  onDuplicate: (id: number) => void;
+  onEdit: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
 };
 
 export function DesktopDropdownContent({
@@ -25,29 +26,20 @@ export function DesktopDropdownContent({
   isChildrenManagedEventType,
   onEdit,
   onDuplicate,
+  onDelete,
 }: DesktopDropdownContentProps) {
   return (
     <>
       {!isReadOnly && (
         <DropdownMenuItem>
-          <Button
-            type="button"
-            data-testid={`event-type-edit-${id}`}
-            onClick={() => {
-              onEdit(id);
-            }}>
+          <Button type="button" data-testid={`event-type-edit-${id}`} onClick={onEdit}>
             Edit
           </Button>
         </DropdownMenuItem>
       )}
       {!isManagedEventType && !isChildrenManagedEventType && (
         <DropdownMenuItem className="outline-none">
-          <Button
-            type="button"
-            data-testid={`event-type-duplicate-${id}`}
-            onClick={() => {
-              onDuplicate(id);
-            }}>
+          <Button type="button" data-testid={`event-type-duplicate-${id}`} onClick={onDuplicate}>
             <Copy />
             Duplicate
           </Button>
@@ -70,12 +62,7 @@ export function DesktopDropdownContent({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  // Add appropriate handler for destruction
-                }}
-                className="w-full rounded-none">
+              <Button variant="destructive" onClick={onDelete} className="w-full rounded-none">
                 <Trash /> Delete
               </Button>
             </DropdownMenuItem>
