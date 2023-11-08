@@ -38,7 +38,7 @@ export function EventTypeSelect() {
     <SelectField
       label="Event Type"
       options={options}
-      isDisabled={isLoading || options.length > 0}
+      isDisabled={isLoading || options.length === 0}
       value={options.find((option) => option.value === selectedEventType?.slug) || options[0]}
       onChange={(option) => {
         if (!option) return;
