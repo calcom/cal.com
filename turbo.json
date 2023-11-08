@@ -26,6 +26,7 @@
       "outputs": [".next/**"],
       "env": [
         "NEXT_PUBLIC_IS_E2E",
+        "NEXT_PUBLIC_SENTRY_DSN",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
         "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
