@@ -60,6 +60,9 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *               locale:
  *                 description: The new user's locale. Acceptable values are one of [EN, FR, IT, RU, ES, DE, PT, RO, NL, PT_BR, ES_419, KO, JA, PL, AR, IW, ZH_CH, ZH_TW, CS, SR, SV, VI]
  *                 type: string
+ *               avatar:
+ *                 description: The user's avatar, in base64 format
+ *                 type: string
  *           examples:
  *              user:
  *                summary: An example of USER
