@@ -25,11 +25,12 @@ type EventTypeProps = {
   firstItem: EventType;
   lastItem: EventType;
   moveEventType: (index: number, increment: 1 | -1) => void;
-  onMutate: ({ hidden, id }: { hidden: boolean; id: number }) => void;
-  onCopy: (link: string) => void;
-  onEdit: (id: number) => void;
-  onDuplicate: (id: number) => void;
-  onPreview: (link: string) => void;
+  onMutate: () => void;
+  onCopy: () => void;
+  onEdit: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  onPreview: () => void;
 };
 
 const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
@@ -102,6 +103,7 @@ export function EventType({
   onCopy,
   onEdit,
   onDuplicate,
+  onDelete,
   onPreview,
 }: EventTypeProps) {
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
@@ -162,13 +164,7 @@ export function EventType({
                     <EventTypeTooltip
                       trigger={
                         <div className="self-center rounded-md p-2">
-                          <Switch
-                            name="hidden"
-                            checked={!type.hidden}
-                            onClick={() => {
-                              onMutate({ id: type.id, hidden: !type.hidden });
-                            }}
-                          />
+                          <Switch name="hidden" checked={!type.hidden} onCheckedChange={onMutate} />
                         </div>
                       }
                       content={type.hidden ? "Show on profile" : "Hide from profile"}
@@ -183,9 +179,7 @@ export function EventType({
                           <Button
                             data-testid="preview-link-button"
                             className="bg-secondary color-secondary"
-                            onClick={() => {
-                              onPreview(calLink);
-                            }}>
+                            onClick={onPreview}>
                             <ExternalLink />
                           </Button>
                         }
@@ -193,11 +187,7 @@ export function EventType({
                       />
                       <EventTypeTooltip
                         trigger={
-                          <Button
-                            className="bg-secondary color-secondary"
-                            onClick={() => {
-                              onCopy(calLink);
-                            }}>
+                          <Button className="bg-secondary color-secondary" onClick={onCopy}>
                             <LinkIcon />
                           </Button>
                         }
@@ -216,6 +206,7 @@ export function EventType({
                     id={type.id}
                     onEdit={onEdit}
                     onDuplicate={onDuplicate}
+                    onDelete={onDelete}
                   />
                 </ButtonGroup>
               </div>
