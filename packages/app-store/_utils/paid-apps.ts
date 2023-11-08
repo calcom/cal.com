@@ -36,6 +36,7 @@ export const withPaidAppRedirect = async ({ appSlug, appPaidMode, priceId, userI
 
 export const withStripeCallback = async (
   checkoutId: string,
+  appSlug: string,
   callback: (args: { checkoutSession: Stripe.Checkout.Session }) => Promise<{ url: string }>
 ): Promise<{ url: string }> => {
   if (!checkoutId) {
@@ -61,6 +62,14 @@ export const withStripeCallback = async (
         JSON.stringify({ message: "Stripe Payment not processed" })
       )}`,
     };
+  }
+
+  if (checkoutSession.mode === "subscription" && checkoutSession.subscription) {
+    await stripe.subscriptions.update(checkoutSession.subscription.toString(), {
+      metadata: {
+        appSlug,
+      },
+    });
   }
 
   // Execute the callback if all checks pass

@@ -20,7 +20,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return { url: `/apps/installed?error=${JSON.stringify({ message: "No Stripe Checkout Session ID" })}` };
   }
 
-  return withStripeCallback(checkoutId, async ({ checkoutSession }) => {
+  return withStripeCallback(checkoutId, slug, async ({ checkoutSession }) => {
     const ctx = await createContext({ req, res });
     const caller = apiKeysRouter.createCaller(ctx);
 
@@ -40,7 +40,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       },
       subscriptionId: checkoutSession.subscription?.toString(),
       billingCycleStart: new Date().getDate(),
-      paymentStatus: "paid",
+      paymentStatus: "active",
     });
 
     await fetch(
