@@ -55,7 +55,7 @@ export function EventList({ day }: Props) {
                 marginLeft = "auto";
                 // 8 looks like a really random number but we need to take into account the bordersize on the event.
                 // Logically it should be 5% but this causes a bit of a overhang which we don't want.
-                right = 8;
+                right = 4;
                 width = width / 2;
               }
             }
@@ -64,7 +64,7 @@ export function EventList({ day }: Props) {
               zIndex = 66;
 
               marginLeft = "auto";
-              right = 8;
+              right = 4;
               width = width / 2;
             }
           } else if (prevEvent) {
@@ -77,7 +77,7 @@ export function EventList({ day }: Props) {
               if (prevEventDuration > eventDuration) {
                 zIndex = 65;
                 marginLeft = "auto";
-                right = 8;
+                right = 4;
                 width = width / 2;
                 if (eventDuration >= 30) {
                   width = 80;
