@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
@@ -240,26 +241,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  /**
-   * Since you can have multiple payment apps we will honor the first one to save in eventType
-   * but the real detail will be inside app metadata, so with this you can have different prices in different apps
-   * So the price and currency inside eventType will be deprecated soon or just keep as reference.
-   */
-
-  let enabledPaymentAppKey: string | undefined = undefined;
-
   for (const appKey in input.metadata?.apps) {
-    const app = input.metadata?.apps[appKey];
-    if (app.enabled && app) {
-      enabledPaymentAppKey = appKey;
+    const app = input.metadata?.apps[appKey as keyof typeof appDataSchemas];
+    // There should only be one enabled payment app in the metadata
+    if (app.enabled && app.price && app.currency) {
+      data.price = app.price;
+      data.currency = app.currency;
       break;
     }
-  }
-
-  if (enabledPaymentAppKey) {
-    const paymentApp = input.metadata?.apps[enabledPaymentAppKey];
-    data.price = paymentApp.price;
-    data.currency = paymentApp.currency;
   }
 
   const connectedLink = await ctx.prisma.hashedLink.findFirst({
