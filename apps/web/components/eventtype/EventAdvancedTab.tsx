@@ -153,6 +153,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     value={value ? value.externalId : undefined}
                     onChange={onChange}
                     hidePlaceholder
+                    hideAdvancedText
                   />
                 )}
               />
