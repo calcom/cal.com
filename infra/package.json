@@ -2,7 +2,8 @@
   "name": "@calcom/infra",
   "main": "index.ts",
   "scripts": {
-    "deploy": "pulumi up"
+    "deploy-dev": "NODE_ENV=development pulumi up",
+    "deploy-prod": "NODE_ENV=production pulumi up"
   },
   "devDependencies": {
     "@types/node": "^16"

@@ -20,17 +20,16 @@ if (!awsRegion) {
   throw new Error("AWS REGION IS NOT SET");
 }
 
-const secretKeys: string[] = JSON.parse(baseConfig.require("secretKeys") ?? "[]");
-
-const SECRETS = secretKeys.map((secretKey) => {
-  if (process.env.NODE_ENV === "development") {
-    return `DEV_${secretKey}`;
-  }
-  return secretKey;
-});
-
 // Get Secrets
 const getAwsSecrets = async () => {
+  const secretKeys: string[] = JSON.parse(baseConfig.require("secretKeys") ?? "[]");
+  const SECRETS = secretKeys.map((secretKey) => {
+    if (process.env.NODE_ENV === "development") {
+      return `DEV_${secretKey}`;
+    }
+    return secretKey;
+  });
+
   const res = [];
   for (let index = 0; index < SECRETS.length; index++) {
     try {
@@ -41,7 +40,10 @@ const getAwsSecrets = async () => {
       console.info("Secret not found:", SECRETS[index]);
     }
   }
-  return res;
+  return res.map((res) => ({
+    name: res.name.replace("DEV_", ""),
+    valueFrom: res.valueFrom,
+  }));
 };
 
 const createVpc = (name: string) => {
@@ -84,10 +86,10 @@ const createHttpsSecurityGroup = (name: string, vpcId: Vpc["vpcId"]) => {
   return sg;
 };
 
-const createLog = () => {
+const createLog = (name: string) => {
   // Create Cloudwatch LogGroup and Stream
-  const logGroup = new aws.cloudwatch.LogGroup("cal-api-log-group");
-  const logStream = new aws.cloudwatch.LogStream("cal-api-log-stream", {
+  const logGroup = new aws.cloudwatch.LogGroup(`${name}-log-group`);
+  const logStream = new aws.cloudwatch.LogStream(`${name}-log-stream`, {
     logGroupName: logGroup.name,
   });
   return { logGroup, logStream };
@@ -169,6 +171,9 @@ const createFargateServiceWithSecrets = ({
   privateSubnetIds,
   securityGroupId,
   serviceName,
+  desiredNbOfTasks,
+  cpu,
+  memory,
 }: {
   secrets: SecretType[];
   imageUri: Image["imageUri"];
@@ -178,9 +183,12 @@ const createFargateServiceWithSecrets = ({
   privateSubnetIds: Vpc["privateSubnetIds"];
   securityGroupId: SecurityGroup["id"];
   serviceName: string;
+  desiredNbOfTasks: number;
+  cpu: 512 | 1024 | 2048;
+  memory: 1000 | 2000 | 3000 | 4000;
 }) => {
   // Policy For Secrets
-  const secretsManagerAccessPolicy = new aws.iam.Policy("fargate-secrets-policy", {
+  const secretsManagerAccessPolicy = new aws.iam.Policy(`${serviceName}-fargate-secrets-policy`, {
     policy: {
       Version: "2012-10-17",
       Statement: [
@@ -222,13 +230,13 @@ const createFargateServiceWithSecrets = ({
   });
 
   // Attach Policy and Role
-  new aws.iam.RolePolicyAttachment("task-exec-policy-attach", {
+  new aws.iam.RolePolicyAttachment(`${serviceName}-task-exec-policy-attach`, {
     role: taskRole,
     policyArn: secretsManagerAccessPolicy.arn,
   });
 
   // Create Fargate Service
-  const service = new awsx.ecs.FargateService("service", {
+  const service = new awsx.ecs.FargateService(`${serviceName}-fargate-service`, {
     cluster: ecsClusterArn,
     networkConfiguration: {
       subnets: privateSubnetIds,
@@ -236,7 +244,7 @@ const createFargateServiceWithSecrets = ({
       assignPublicIp: true,
     },
 
-    desiredCount: 2,
+    desiredCount: desiredNbOfTasks,
     taskDefinitionArgs: {
       executionRole: { roleArn: taskRole.arn },
       logGroup: { skip: true },
@@ -246,8 +254,8 @@ const createFargateServiceWithSecrets = ({
       container: {
         name: serviceName,
         image: imageUri,
-        cpu: 1024,
-        memory: 2000,
+        cpu: cpu,
+        memory: memory,
         essential: true,
         portMappings: [
           {
@@ -260,7 +268,7 @@ const createFargateServiceWithSecrets = ({
           logDriver: "awslogs",
           options: {
             "awslogs-group": logGroupName,
-            "awslogs-stream-prefix": "cal-api",
+            "awslogs-stream-prefix": serviceName,
             "awslogs-region": `${awsRegion}`,
           },
         },
@@ -272,6 +280,7 @@ const createFargateServiceWithSecrets = ({
 };
 
 const createAutoScalingCpu = ({
+  name,
   ecsClusterName,
   serviceName,
   cpuTargetValue,
@@ -280,6 +289,7 @@ const createAutoScalingCpu = ({
   scaleInCooldown,
   scaleOutCooldown,
 }: {
+  name: string;
   ecsClusterName: Cluster["cluster"]["name"];
   serviceName: FargateService["service"]["name"];
   cpuTargetValue: number;
@@ -289,7 +299,7 @@ const createAutoScalingCpu = ({
   scaleOutCooldown: number;
 }) => {
   // Create Autoscaling for the ECS service, Scale when CPU > 75%
-  const autoscaling = new aws.appautoscaling.Policy("autoscaling", {
+  const autoscaling = new aws.appautoscaling.Policy(name, {
     serviceNamespace: "ecs",
     scalableDimension: "ecs:service:DesiredCount",
     resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
@@ -304,7 +314,7 @@ const createAutoScalingCpu = ({
     },
   });
   // Set Min and Max Number of Tasks
-  const autoscalingTarget = new aws.appautoscaling.Target("my-scaling-target", {
+  const autoscalingTarget = new aws.appautoscaling.Target(`${name}-scaling-target`, {
     maxCapacity: maxCapacity, // maximum number of tasks
     minCapacity: minCapacity, // minimum number of tasks
     resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
@@ -315,21 +325,27 @@ const createAutoScalingCpu = ({
   return { autoscaling, autoscalingTarget };
 };
 
+const addSuffixToName = (name: string) => {
+  const suffix = process.env.NODE_ENV === "development" ? "dev" : "prod";
+  return `${name}-${suffix}`;
+};
+
 const main = async () => {
   const awsSecrets = await getAwsSecrets();
-  const vpc = createVpc("cal-api-vpc");
-  const httpsSg = createHttpsSecurityGroup("cal-api-sg", vpc.vpcId);
-  const apiAlb = createAppLoadBalancer("cal-api-lb", vpc.publicSubnetIds, httpsSg.id);
-  const { logGroup } = createLog();
-  const repo = createDockerImagesRepo("cal-api-repo");
+  const vpc = createVpc(addSuffixToName("cal-api-vpc"));
+  const httpsSg = createHttpsSecurityGroup(addSuffixToName("cal-api-sg"), vpc.vpcId);
+  const apiAlb = createAppLoadBalancer(addSuffixToName("cal-api-lb"), vpc.publicSubnetIds, httpsSg.id);
+  const { logGroup } = createLog(addSuffixToName("cal-api"));
+  const repo = createDockerImagesRepo(addSuffixToName("cal-api-repo"));
   const apiImage = createDockerImage({
-    imageName: "cal-api-image",
+    imageName: addSuffixToName("cal-api-image"),
     repoUrl: repo.url,
     dockerFilePath: "./docker/api/Dockerfile",
     buildContextPath: "../",
   });
-  const ecsCluster = createElasticContainerCluster("cal-api-cluster");
+  const ecsCluster = createElasticContainerCluster(addSuffixToName("cal-api-cluster"));
   const apiService = createFargateServiceWithSecrets({
+    desiredNbOfTasks: 2,
     privateSubnetIds: vpc.privateSubnetIds,
     securityGroupId: httpsSg.id,
     secrets: awsSecrets,
@@ -337,16 +353,19 @@ const main = async () => {
     logGroupName: logGroup.name,
     loadBalancerTargetGroup: apiAlb.defaultTargetGroup,
     ecsClusterArn: ecsCluster.cluster.arn,
-    serviceName: process.env.NODE_ENV === "development" ? "cal-api-fargate-dev" : "cal-api-fargate",
+    serviceName: addSuffixToName("cal-api-fargate"),
+    cpu: 512,
+    memory: 1000,
   });
   const _ = createAutoScalingCpu({
+    name: addSuffixToName("cal-api-cpu-scaling"),
     ecsClusterName: ecsCluster.cluster.name,
     serviceName: apiService.service.name,
     minCapacity: 1,
-    maxCapacity: 5,
+    maxCapacity: 4,
     cpuTargetValue: 75,
-    scaleInCooldown: 60,
-    scaleOutCooldown: 120,
+    scaleInCooldown: 120,
+    scaleOutCooldown: 60,
   });
   return { apiDnsName: pulumi.interpolate`apiUrl: ${apiAlb.loadBalancer.dnsName}` };
 };
