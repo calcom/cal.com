@@ -9,9 +9,16 @@ interface RedirectArgs {
   appSlug: string;
   appPaidMode: string;
   priceId: string;
+  trialDays?: number;
 }
 
-export const withPaidAppRedirect = async ({ appSlug, appPaidMode, priceId, userId }: RedirectArgs) => {
+export const withPaidAppRedirect = async ({
+  appSlug,
+  appPaidMode,
+  priceId,
+  userId,
+  trialDays,
+}: RedirectArgs) => {
   const redirect_uri = `${WEBAPP_URL}/api/integrations/${appSlug}/callback?checkoutId={CHECKOUT_SESSION_ID}`;
 
   const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
@@ -29,6 +36,14 @@ export const withPaidAppRedirect = async ({ appSlug, appPaidMode, priceId, userI
       },
     ],
     client_reference_id: userId.toString(),
+    ...(trialDays
+      ? {
+          subscription_data: {
+            trial_period_days: trialDays,
+            trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+          },
+        }
+      : undefined),
   });
 
   return checkoutSession.url;

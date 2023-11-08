@@ -14,6 +14,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     appSlug: appConfig.slug,
     userId: session.user.id,
     priceId: appConfig.paid.priceId,
+    trialDays: appConfig.paid.trial ?? 14, // 2 weeks paid trial
   });
 
   if (!redirectUrl) {

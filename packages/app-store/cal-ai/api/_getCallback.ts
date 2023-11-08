@@ -1,6 +1,3 @@
-import getInstalledAppPath from "_utils/getInstalledAppPath";
-import { checkInstalled, createDefaultInstallation } from "_utils/installation";
-import { withStripeCallback } from "_utils/paid-apps";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
@@ -8,6 +5,9 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { apiKeysRouter } from "@calcom/trpc/server/routers/viewer/apiKeys/_router";
 
 import checkSession from "../../_utils/auth";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
+import { withStripeCallback } from "../../_utils/paid-apps";
 import appConfig from "../config.json";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {

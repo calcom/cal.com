@@ -33,7 +33,7 @@ export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | Dynami
 type PaidAppData = {
   price: number;
   priceId: string;
-  hasTrial?: boolean;
+  trial?: number;
 };
 
 type AppData = {

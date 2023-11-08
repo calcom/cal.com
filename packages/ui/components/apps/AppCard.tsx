@@ -213,7 +213,7 @@ const InstallAppButtonChild = ({
           StartIcon={Plus}
           data-testid="install-app-button"
           {...props}>
-          {t("install_paid")}
+          {paid.trial ? t("start_paid_trial") : t("install_paid_app")}
         </Button>
       );
     }

@@ -53,7 +53,7 @@ export const InstallAppButtonChild = ({
     if (paid) {
       return (
         <Button data-testid="install-app-button" {...props} color="primary" size="base">
-          {t("install_paid_app")}
+          {paid.trial ? t("start_paid_trial") : t("install_paid_app")}
         </Button>
       );
     }
