@@ -929,7 +929,7 @@ describe("getSchedule", () => {
                     date: null,
                   },
                 ],
-                timeZone: Timezones["+6:00"],
+                timeZone: Timezones["+5:30"],
               },
             ],
           },
@@ -960,7 +960,7 @@ describe("getSchedule", () => {
           eventTypeSlug: "",
           startTime: `${plus1DateString}T00:00:00.000Z`,
           endTime: `${plus3DateString}T23:59:59.999Z`,
-          timeZone: Timezones["+6:00"],
+          timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
       });
@@ -971,7 +971,7 @@ describe("getSchedule", () => {
           eventTypeSlug: "",
           startTime: `${plus1DateString}T00:00:00.000Z`,
           endTime: `${plus3DateString}T23:59:59.999Z`,
-          timeZone: Timezones["+6:00"],
+          timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
       });
@@ -979,7 +979,7 @@ describe("getSchedule", () => {
       let availableSlotsInTz: dayjs.Dayjs[] = [];
       for (const date in thisUserAvailabilityBookingLimitOne.slots) {
         thisUserAvailabilityBookingLimitOne.slots[date].forEach((timeObj) => {
-          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+5:30"]));
         });
       }
 
@@ -988,7 +988,7 @@ describe("getSchedule", () => {
       availableSlotsInTz = [];
       for (const date in thisUserAvailabilityBookingLimitTwo.slots) {
         thisUserAvailabilityBookingLimitTwo.slots[date].forEach((timeObj) => {
-          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+5:30"]));
         });
       }
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(24); // 2 booking per day as limit, only one booking on that
