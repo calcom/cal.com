@@ -387,7 +387,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
-        iCalSequence: evt.iCalSequence,
+        iCalSequence: evt.iCalSequence || 1,
       },
       select: {
         startTime: true,
