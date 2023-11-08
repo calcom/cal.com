@@ -276,6 +276,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       periodEndDate: true,
       periodDays: true,
       periodCountCalendarDays: true,
+      lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
       userId: true,
@@ -407,22 +408,7 @@ async function ensureAvailableUsers(
 
     let foundConflict = false;
     try {
-      if (
-        eventType.recurringEvent &&
-        recurringDatesInfo?.currentRecurringIndex === 0 &&
-        recurringDatesInfo.allRecurringDates
-      ) {
-        const allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
-        // Go through each date for the recurring event and check if each one's availability
-        // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
-        // running at the first unavailable time.
-        let i = 0;
-        while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], duration);
-        }
-      } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
-      }
+      foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
@@ -881,7 +867,12 @@ async function handler(
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
     if (eventType.bookingLimits) {
-      await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
+      await checkBookingLimits(
+        eventType.bookingLimits as IntervalLimit,
+        startAsDate,
+        eventType.id,
+        eventType.schedule?.timeZone
+      );
     }
     if (eventType.durationLimits) {
       await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
@@ -929,8 +920,8 @@ async function handler(
         }),
       },
       {
-        dateFrom: reqBody.start,
-        dateTo: reqBody.end,
+        dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+        dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
       },
@@ -997,7 +988,6 @@ async function handler(
   const attendeeTimezone = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.timeZone : reqBody.timeZone;
 
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
-
   // use host default
   if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
@@ -1851,6 +1841,7 @@ async function handler(
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: booking?.id,
+      rescheduleId: originalRescheduledBooking?.id || undefined,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2377,6 +2368,7 @@ async function handler(
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
+    rescheduleId: originalRescheduledBooking?.id || undefined,
     rescheduleUid,
     rescheduleStartTime: originalRescheduledBooking?.startTime
       ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -2684,6 +2676,7 @@ const findBookingQuery = async (bookingId: number) => {
           description: true,
           currency: true,
           length: true,
+          lockTimeZoneToggleOnBookingPage: true,
           requiresConfirmation: true,
           requiresBookerEmailVerification: true,
           price: true,

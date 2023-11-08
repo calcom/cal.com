@@ -9,6 +9,7 @@ import type {
 } from "@calcom/types/Calendar";
 
 class CalendarEventClass implements CalendarEvent {
+  bookerUrl?: string | undefined;
   type!: string;
   title!: string;
   startTime!: string;

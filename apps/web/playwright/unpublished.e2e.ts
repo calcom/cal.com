@@ -18,7 +18,7 @@ test.afterAll(async ({ users }) => {
 test.describe("Unpublished", () => {
   test("Regular team profile", async ({ page, users }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true });
-    const { team } = await owner.getTeam();
+    const { team } = await owner.getFirstTeam();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     await page.goto(`/team/${requestedSlug}`);
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
@@ -33,7 +33,7 @@ test.describe("Unpublished", () => {
       isUnpublished: true,
       schedulingType: SchedulingType.COLLECTIVE,
     });
-    const { team } = await owner.getTeam();
+    const { team } = await owner.getFirstTeam();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
     await page.goto(`/team/${requestedSlug}/${teamEventSlug}`);
