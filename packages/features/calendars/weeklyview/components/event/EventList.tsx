@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -18,6 +19,14 @@ export function EventList({ day }: Props) {
     }),
     shallow
   );
+
+  // Use a ref so we dont trigger a re-render
+  const longestRef = useRef<{
+    start: Date;
+    end: Date;
+    duration: number;
+    idx: number;
+  } | null>(null);
 
   return (
     <>
@@ -41,46 +50,56 @@ export function EventList({ day }: Props) {
           const nextEvent = eventsArray[idx + 1];
           const prevEvent = eventsArray[idx - 1];
 
-          // Check for overlapping events since this is sorted it should just work.
-          if (nextEvent) {
-            const nextEventStart = dayjs(nextEvent.start);
-            const nextEventEnd = dayjs(nextEvent.end);
-            // check if next event starts before this event ends
-            if (nextEventStart.isBefore(eventEnd)) {
-              // figure out which event has the longest duration
-              const nextEventDuration = nextEventEnd.diff(nextEventStart, "minutes");
-              if (nextEventDuration > eventDuration) {
-                zIndex = 65;
+          if (!longestRef.current) {
+            longestRef.current = {
+              idx,
+              start: eventStart.toDate(),
+              end: eventEnd.toDate(),
+              duration: eventDuration,
+            };
+          } else if (
+            eventDuration > longestRef.current.duration &&
+            eventStart.isBetween(longestRef.current.start, longestRef.current.end)
+          ) {
+            longestRef.current = {
+              idx,
+              start: eventStart.toDate(),
+              end: eventEnd.toDate(),
+              duration: eventDuration,
+            };
+          }
 
+          if (longestRef.current.idx !== idx) {
+            if (nextEvent) {
+              const nextStart = dayjs(nextEvent.start);
+              if (nextStart.isBetween(longestRef.current.start, longestRef.current.end)) {
+                zIndex = 65;
                 marginLeft = "auto";
-                // 8 looks like a really random number but we need to take into account the bordersize on the event.
-                // Logically it should be 5% but this causes a bit of a overhang which we don't want.
                 right = 4;
                 width = width / 2;
+              } else if (nextStart.isSame(longestRef.current.start, "hour")) {
+                const minDiff = nextStart.diff(longestRef.current.start, "minutes");
+                if (minDiff < 5 || minDiff > -5) {
+                  zIndex = 65;
+                  marginLeft = "auto";
+                  right = 4;
+                  width = width / 2;
+                }
               }
-            }
-
-            if (nextEventStart.isSame(eventStart)) {
-              zIndex = 66;
-
-              marginLeft = "auto";
-              right = 4;
-              width = width / 2;
-            }
-          } else if (prevEvent) {
-            const prevEventStart = dayjs(prevEvent.start);
-            const prevEventEnd = dayjs(prevEvent.end);
-            // check if next event starts before this event ends
-            if (prevEventEnd.isAfter(eventStart)) {
-              // figure out which event has the longest duration
-              const prevEventDuration = prevEventEnd.diff(prevEventStart, "minutes");
-              if (prevEventDuration > eventDuration) {
+            } else if (prevEvent) {
+              const prevStart = dayjs(prevEvent.start);
+              if (prevStart.isBetween(longestRef.current.start, longestRef.current.end)) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 4;
                 width = width / 2;
-                if (eventDuration >= 30) {
-                  width = 80;
+              } else if (prevStart.isSame(longestRef.current.start, "hour")) {
+                const minDiff = prevStart.diff(longestRef.current.start, "minutes");
+                if (minDiff < 5 || minDiff > -5) {
+                  zIndex = 65;
+                  marginLeft = "auto";
+                  right = 4;
+                  width = width / 2;
                 }
               }
             }
@@ -98,7 +117,14 @@ export function EventList({ day }: Props) {
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
               }}>
-              <Event event={event} eventDuration={eventDuration} onEventClick={eventOnClick} />
+              <Event
+                event={{
+                  ...event,
+                  description: longestRef.current.duration.toLocaleString(),
+                }}
+                eventDuration={eventDuration}
+                onEventClick={eventOnClick}
+              />
             </div>
           );
         })}
