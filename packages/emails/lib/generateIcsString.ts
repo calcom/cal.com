@@ -1,5 +1,6 @@
-import type { DateArray, ParticipationStatus, ParticipationRole } from "ics";
+import type { DateArray, ParticipationStatus, ParticipationRole, EventStatus } from "ics";
 import { createEvent } from "ics";
+import type { TFunction } from "next-i18next";
 import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
@@ -21,12 +22,16 @@ const generateIcsString = ({
   subtitle,
   status,
   role,
+  isRequestReschedule,
+  t,
 }: {
   event: CalendarEvent;
   title: string;
   subtitle: string;
   status: EventStatus;
   role: "attendee" | "organizer";
+  isRequestReschedule?: boolean;
+  t?: TFunction;
 }) => {
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
@@ -37,17 +42,17 @@ const generateIcsString = ({
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
   }
 
-  const getTextBody = (title = "", subtitle = "emailed_you_and_any_other_attendees"): string => {
+  const getTextBody = (title: string, subtitle: string): string => {
     let body: string;
-    if (BookingAction.RequestReschedule && role === "attendee") {
+    if (isRequestReschedule && role === "attendee" && t) {
       body = `
-      ${t(title)}
+      ${title}
       ${getWhen(event, t)}
-      ${t(subtitle)}`;
+      ${subtitle}`;
     }
     body = `
-    ${t(title)}
-    ${t(subtitle)}
+    ${title}
+    ${subtitle}
 
     ${getRichDescription(event, t)}
     `.trim();

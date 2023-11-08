@@ -28,7 +28,7 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
             attendee: this.calEvent.attendees[0].name,
           }),
           subtitle: this.t("request_reschedule_subtitle_organizer", {
-            attendee: calEvent.attendees[0].name,
+            attendee: this.calEvent.attendees[0].name,
           }),
           role: "organizer",
           status: "CANCELLED",

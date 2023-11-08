@@ -5,7 +5,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { buildCalendarEvent, buildPerson } from "../../../lib/test/builder";
-import generateIcsString, { BookingAction } from "../generateIcsString";
+import generateIcsString from "../generateIcsString";
 
 const assertHasIcsString = (icsString: string | undefined) => {
   if (!icsString) throw new Error("icsString is undefined");
@@ -37,7 +37,6 @@ const testIcsStringContains = ({
   );
   expect(icsString).toEqual(expect.stringContaining(`DURATION:PT${duration}M`));
   expect(icsString).toEqual(expect.stringContaining(`STATUS:${status}`));
-
   //   Getting an error expected icsString to deeply equal stringMatching
   //   for (const attendee of event.attendees) {
   //     expect(icsString).toEqual(
@@ -54,63 +53,84 @@ describe("generateIcsString", () => {
       iCalSequence: 0,
       attendees: [buildPerson()],
     });
+
+    const title = "new_event_scheduled_recurring";
+    const subtitle = "emailed_you_and_any_other_attendees";
+    const status = "CONFIRMED";
+
     const icsString = generateIcsString({
-      event,
-      t: event.organizer.language.translate,
-      bookingAction: BookingAction.Create,
+      event: event,
+      title,
+      subtitle,
       role: "organizer",
+      status,
     });
 
     const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString: assertedIcsString, event, status: "CONFIRMED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status });
   });
   test("when bookingAction is Cancel", () => {
     const event = buildCalendarEvent({
       iCalSequence: 0,
       attendees: [buildPerson()],
     });
+    const title = "event_request_cancelled";
+    const subtitle = "emailed_you_and_any_other_attendees";
+    const status = "CANCELLED";
+
     const icsString = generateIcsString({
-      event,
-      t: event.organizer.language.translate,
-      bookingAction: BookingAction.Cancel,
+      event: event,
+      title,
+      subtitle,
       role: "organizer",
+      status,
     });
 
     const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString: assertedIcsString, event, status: "CANCELLED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status });
   });
   test("when bookingAction is Reschedule", () => {
     const event = buildCalendarEvent({
       iCalSequence: 0,
       attendees: [buildPerson()],
     });
+    const title = "event_type_has_been_rescheduled";
+    const subtitle = "emailed_you_and_any_other_attendees";
+    const status = "CONFIRMED";
+
     const icsString = generateIcsString({
-      event,
-      t: event.organizer.language.translate,
-      bookingAction: BookingAction.Reschedule,
+      event: event,
+      title,
+      subtitle,
       role: "organizer",
+      status,
     });
 
     const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString: assertedIcsString, event, status: "CONFIRMED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status });
   });
   test("when bookingAction is RequestReschedule", () => {
     const event = buildCalendarEvent({
       iCalSequence: 0,
       attendees: [buildPerson()],
     });
+    const title = "request_reschedule_title_organizer";
+    const subtitle = "request_reschedule_subtitle_organizer";
+    const status = "CANCELLED";
+
     const icsString = generateIcsString({
-      event,
-      t: event.organizer.language.translate,
-      bookingAction: BookingAction.RequestReschedule,
+      event: event,
+      title,
+      subtitle,
       role: "organizer",
+      status,
     });
 
     const assertedIcsString = assertHasIcsString(icsString);
 
-    testIcsStringContains({ icsString: assertedIcsString, event, status: "CANCELLED" });
+    testIcsStringContains({ icsString: assertedIcsString, event, status });
   });
 });
