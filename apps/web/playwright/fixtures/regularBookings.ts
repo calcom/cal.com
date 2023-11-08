@@ -225,6 +225,7 @@ export function createBookingPageFixture(page: Page) {
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
+      await expect(page.getByRole("button", { name: "event type updated successfully" })).toBeVisible();
     },
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
@@ -414,6 +415,7 @@ export function createBookingPageFixture(page: Page) {
       await expect(redirectSwitch).toBeVisible();
       await redirectSwitch.click();
       await expect(page.getByPlaceholder(placeholder)).toBeVisible();
+      await redirectSwitch.click();
     },
 
     checkEnablePrivateUrl: async () => {
@@ -455,7 +457,7 @@ export function createBookingPageFixture(page: Page) {
 
     checkEventType: async () => {
       const requiresConfirmationText = (await localize("en"))("requires_confirmation");
-      await expect(page.locator(`text=${requiresConfirmationText}`)).toBeTruthy();
+      await expect(page.locator(`text=${requiresConfirmationText}`)).toBeVisible();
     },
   };
 }
