@@ -867,7 +867,12 @@ async function handler(
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
     if (eventType.bookingLimits) {
-      await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
+      await checkBookingLimits(
+        eventType.bookingLimits as IntervalLimit,
+        startAsDate,
+        eventType.id,
+        eventType.schedule?.timeZone
+      );
     }
     if (eventType.durationLimits) {
       await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
@@ -915,8 +920,8 @@ async function handler(
         }),
       },
       {
-        dateFrom: reqBody.start,
-        dateTo: reqBody.end,
+        dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+        dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
       },
@@ -985,6 +990,7 @@ async function handler(
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
 
   const isManagedEventType = !!eventType.parentId;
+
   // use host default
   if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
