@@ -5,31 +5,41 @@ import { DesktopDropdownContent } from "event-type-list/components/controls/Desk
 import { MobileDropdownContent } from "event-type-list/components/controls/MobileDropdownContent";
 import { MoreHorizontal } from "lucide-react";
 
-type EventTypeDropdownProps = {
-  // In progress: Display dropdown content based on variant
-  variant: "desktop" | "mobile";
+type DesktopContent = {
+  variant: "desktop";
   group: EventTypeGroup;
+  embedLink: string;
   isReadOnly: boolean;
   isManagedEventType: boolean;
   isChildrenManagedEventType: boolean;
   id: number;
-  embedLink: string;
-  onEdit: (id: number) => void;
-  onDuplicate: (id: number) => void;
+  onEdit: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
 };
 
+type MobileContent = {
+  variant: "mobile";
+  group: EventTypeGroup;
+  isManagedEventType: boolean;
+  isChildrenManagedEventType: boolean;
+  isNativeShare: boolean;
+  readOnly: boolean;
+  id: number;
+  onPreview: () => void;
+  onCopy: () => void;
+  onShare: () => void;
+  onEdit: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+};
+
+// EventTypeDropdownProps is a discriminated union
+// where discriminant is the variant prop
+type EventTypeDropdownProps = DesktopContent | MobileContent;
+
 // Two more separate components one for desktop content for dropdown and other for mobile dropdown content
-export function EventTypeDropdown({
-  variant,
-  group,
-  isReadOnly,
-  id,
-  isManagedEventType,
-  isChildrenManagedEventType,
-  embedLink,
-  onEdit,
-  onDuplicate,
-}: EventTypeDropdownProps) {
+export function EventTypeDropdown(props: EventTypeDropdownProps) {
   return (
     <>
       <DropdownMenu>
@@ -37,7 +47,7 @@ export function EventTypeDropdown({
           <Button
             type="button"
             className={`${
-              variant === "desktop"
+              props.variant === "desktop"
                 ? "bg-secondary text-secondary ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                 : "bg-secondary text-secondary"
             }`}>
@@ -45,19 +55,34 @@ export function EventTypeDropdown({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {variant === "desktop" ? (
+          {props.variant === "desktop" && (
             <DesktopDropdownContent
-              group={group}
-              embedLink={embedLink}
-              isReadOnly={isReadOnly}
-              isManagedEventType={isManagedEventType}
-              isChildrenManagedEventType={isChildrenManagedEventType}
-              id={id}
-              onEdit={onEdit}
-              onDuplicate={onDuplicate}
+              group={props.group}
+              embedLink={props.embedLink}
+              isReadOnly={props.isReadOnly}
+              isManagedEventType={props.isManagedEventType}
+              isChildrenManagedEventType={props.isChildrenManagedEventType}
+              id={props.id}
+              onEdit={props.onEdit}
+              onDuplicate={props.onDuplicate}
+              onDelete={props.onDelete}
             />
-          ) : (
-            <MobileDropdownContent />
+          )}
+          {props.variant === "mobile" && (
+            <MobileDropdownContent
+              group={props.group}
+              isManagedEventType={props.isManagedEventType}
+              isChildrenManagedEventType={props.isChildrenManagedEventType}
+              isNativeShare={props.isNativeShare}
+              readOnly={props.readOnly}
+              id={props.id}
+              onPreview={props.onPreview}
+              onCopy={props.onCopy}
+              onShare={props.onShare}
+              onEdit={props.onEdit}
+              onDuplicate={props.onDuplicate}
+              onDelete={props.onDelete}
+            />
           )}
         </DropdownMenuContent>
       </DropdownMenu>
