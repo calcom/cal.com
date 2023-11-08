@@ -1,7 +1,7 @@
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
-import generateIcsString, { BookingAction } from "../lib/generateIcsString";
+import generateIcsString from "../lib/generateIcsString";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
@@ -13,9 +13,10 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          t: this.t,
+          title: this.t("event_request_cancelled"),
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
+          status: "CANCELLED",
           role: "organizer",
-          bookingAction: BookingAction.Cancel,
         }),
         method: "REQUEST",
       },

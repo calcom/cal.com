@@ -8,7 +8,7 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
-import generateIcsString, { BookingAction } from "../lib/generateIcsString";
+import generateIcsString from "../lib/generateIcsString";
 import BaseEmail from "./_base-email";
 
 export default class OrganizerScheduledEmail extends BaseEmail {
@@ -35,9 +35,12 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          t: this.t,
+          title: this.calEvent.recurringEvent?.count
+            ? this.t("new_event_scheduled_recurring")
+            : this.t("new_event_scheduled"),
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
           role: "organizer",
-          bookingAction: BookingAction.Create,
+          status: "CONFIRMED",
         }),
         method: "REQUEST",
       },

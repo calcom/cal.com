@@ -1,7 +1,7 @@
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
-import generateIcsString, { BookingAction } from "../lib/generateIcsString";
+import generateIcsString from "../lib/generateIcsString";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmail {
@@ -13,9 +13,10 @@ export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmai
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          t: this.t,
-          role: "attendee",
-          bookingAction: BookingAction.LocationChange,
+          title: this.t("event_location_changed"),
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
+          role: "organizer",
+          status: "CONFIRMED",
         }),
         method: "REQUEST",
       },

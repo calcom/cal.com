@@ -1,5 +1,5 @@
 import { renderEmail } from "../";
-import generateIcsString, { BookingAction } from "../lib/generateIcsString";
+import generateIcsString from "../lib/generateIcsString";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
@@ -9,9 +9,10 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          t: this.t,
+          title: this.t("event_type_has_been_rescheduled"),
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
           role: "attendee",
-          bookingAction: BookingAction.Reschedule,
+          status: "CONFIRMED",
         }),
         method: "REQUEST",
       },

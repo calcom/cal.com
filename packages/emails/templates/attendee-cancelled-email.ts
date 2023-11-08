@@ -1,5 +1,5 @@
 import { renderEmail } from "../";
-import generateIcsString, { BookingAction } from "../lib/generateIcsString";
+import generateIcsString from "../lib/generateIcsString";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
@@ -9,9 +9,10 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          t: this.t,
+          title: this.t("event_request_cancelled"),
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
+          status: "CANCELLED",
           role: "attendee",
-          bookingAction: BookingAction.Cancel,
         }),
         method: "REQUEST",
       },

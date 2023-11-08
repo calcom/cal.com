@@ -3,7 +3,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
-import generateIcsString, { BookingAction } from "../lib/generateIcsString";
+import generateIcsString from "../lib/generateIcsString";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerScheduledEmail {
@@ -21,9 +21,12 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          t: this.t,
+          title: this.t("request_reschedule_booking"),
+          subtitle: this.t("request_reschedule_subtitle", {
+            organizer: calEvent.organizer.name,
+          }),
           role: "attendee",
-          bookingAction: BookingAction.RequestReschedule,
+          status: "CANCELLED",
         }),
         method: "REQUEST",
       },
