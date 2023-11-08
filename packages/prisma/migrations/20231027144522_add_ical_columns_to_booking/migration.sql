@@ -6,5 +6,5 @@
 */
 -- AlterTable
 ALTER TABLE  "Booking"
-ADD COLUMN   "iCalUID" VARCHAR NOT NULL ,      
+ADD COLUMN   "iCalUID" VARCHAR ,      
 ADD COLUMN   "iCalSequence" INTEGER NOT NULL DEFAULT 0;

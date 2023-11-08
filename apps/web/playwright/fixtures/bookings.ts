@@ -4,7 +4,6 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import _dayjs from "@calcom/dayjs";
-import getICalUID from "@calcom/emails/lib/getICalUid";
 import { prisma } from "@calcom/prisma";
 
 const translator = short();
@@ -63,7 +62,7 @@ export const createBookingsFixture = (page: Page) => {
           rescheduled,
           paid,
           status,
-          iCalUID: getICalUID({ uid }),
+          iCalUID: `${uid}@cal.com`,
         },
       });
       const bookingFixture = createBookingFixture(booking, store.page);
