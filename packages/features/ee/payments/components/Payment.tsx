@@ -64,16 +64,19 @@ const getReturnUrl = (props: Props) => {
 };
 
 const PaymentForm = (props: Props) => {
+  const {
+    user: { username },
+  } = props;
   const { t, i18n } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, setState] = useState<States>({ status: "idle" });
+  const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const stripe = useStripe();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
@@ -134,6 +137,8 @@ const PaymentForm = (props: Props) => {
     }
   };
 
+  const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
+
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
       <div>
@@ -154,14 +159,22 @@ const PaymentForm = (props: Props) => {
       <div className="mt-2 flex justify-end space-x-2">
         <Button
           color="minimal"
-          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
+          disabled={disableButtons}
           id="cancel"
-          onClick={() => router.back()}>
+          type="button"
+          loading={isCanceling}
+          onClick={() => {
+            setIsCanceling(true);
+            if (username) {
+              return router.push(`/${username}`);
+            }
+            return router.back();
+          }}>
           <span id="button-text">{t("cancel")}</span>
         </Button>
         <Button
           type="submit"
-          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
+          disabled={disableButtons}
           loading={state.status === "processing"}
           id="submit"
           color="secondary">
