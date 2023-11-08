@@ -63,7 +63,7 @@ describe("getOrg", () => {
         metadata: true,
       },
     });
-    expect(org.metadata?.isOrganization).toBe(true);
+    expect(org?.metadata?.isOrganization).toBe(true);
   });
 
   it("should not return an org result if metadata.isOrganization isn't true", async () => {
