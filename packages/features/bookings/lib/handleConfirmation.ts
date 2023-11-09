@@ -12,7 +12,13 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "../../ee/workflows/lib/allowDisablingStandardEmails";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -33,6 +39,12 @@ export async function handleConfirmation(args: {
       title: string;
       teamId?: number | null;
       parentId?: number | null;
+      metadata: Prisma.JsonValue;
+      workflows?: {
+        workflow: Workflow & {
+          steps: WorkflowStep[];
+        };
+      }[];
     } | null;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
@@ -61,7 +73,34 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      await sendScheduledEmails({ ...evt, additionalInformation: metadata });
+      const eventType = booking.eventType;
+      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+      let isHostConfirmationEmailsDisabled = false;
+      let isAttendeeConfirmationEmailDisabled = false;
+
+      const workflows = eventType?.workflows?.map((workflow) => workflow.workflow);
+
+      if (workflows) {
+        isHostConfirmationEmailsDisabled =
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+        isAttendeeConfirmationEmailDisabled =
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+        if (isHostConfirmationEmailsDisabled) {
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+        }
+
+        if (isAttendeeConfirmationEmailDisabled) {
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+        }
+      }
+
+      await sendScheduledEmails(
+        { ...evt, additionalInformation: metadata },
+        undefined,
+        isHostConfirmationEmailsDisabled,
+        isAttendeeConfirmationEmailDisabled
+      );
     } catch (error) {
       log.error(error);
     }
