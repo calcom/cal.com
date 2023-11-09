@@ -48,6 +48,9 @@ RUN apt-get update -qq && \
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/api/package.json ./apps/api/package.json
+COPY --from=build /app/apps/api/next-i18next.config.js ./apps/api/next-i18next.config.js
+COPY --from=build /app/apps/api/next.config.js ./apps/api/next.config.js
+COPY --from=build /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
 COPY --from=build /app/apps/api/.next ./apps/api/.next
 COPY --from=build /app/apps/api/.turbo ./apps/api/.turbo
 COPY --from=build /app/turbo.json ./turbo.json
