@@ -12,7 +12,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import getICalUID from "@calcom/emails/lib/getICalUid";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -161,7 +160,7 @@ describe("handleNewBooking", () => {
         });
 
         const createdBooking = await handleNewBooking(req);
-        const iCalUID = getICalUID({ uid: createdBooking.uid });
+
         expect(createdBooking.responses).toContain({
           email: booker.email,
           name: booker.name,
@@ -193,7 +192,7 @@ describe("handleNewBooking", () => {
               meetingUrl: "https://UNUSED_URL",
             },
           ],
-          iCalUID,
+          iCalUID: createdBooking.iCalUID,
         });
 
         expectWorkflowToBeTriggered();
@@ -210,7 +209,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID,
+          iCalUID: createdBooking.iCalUID,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -320,7 +319,6 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
-          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -343,7 +341,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -362,7 +360,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -472,7 +470,6 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
-          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -495,7 +492,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -511,7 +508,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -737,7 +734,6 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
-          const iCalUID = `${createdBooking.uid}@Cal.com`;
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -760,7 +756,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -776,7 +772,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -856,7 +852,6 @@ describe("handleNewBooking", () => {
             }),
           });
           const createdBooking = await handleNewBooking(req);
-          const iCalUID = `${createdBooking.uid}@Cal.com`;
 
           expectSuccessfulBookingCreationEmails({
             booking: {
@@ -866,7 +861,7 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
             // Because no calendar was involved, we don't have an ics UID
-            iCalUID: iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1449,14 +1444,13 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
-          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -1468,7 +1462,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1572,14 +1566,13 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
-          const iCalUID = getICalUID({ uid: createdBooking.uid });
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
-            iCalUID,
+            iCalUID: createdBooking.iCalUID,
           });
 
           expectWorkflowToBeTriggered();
@@ -1742,14 +1735,13 @@ describe("handleNewBooking", () => {
           location: "New York",
         });
 
-        const iCalUID = getICalUID({ uid: createdBooking.uid });
         await expectBookingToBeInDatabase({
           description: "",
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
-          iCalUID,
+          iCalUID: createdBooking.iCalUID,
         });
 
         expectWorkflowToBeTriggered();
@@ -1761,7 +1753,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID,
+          iCalUID: createdBooking.iCalUID,
         });
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,
