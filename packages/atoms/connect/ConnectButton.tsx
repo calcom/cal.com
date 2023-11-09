@@ -10,7 +10,7 @@ interface ConnectButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   buttonText?: string;
   icon?: JSX.Element;
   onSuccess?: () => void;
-  onError: () => void;
+  onError?: () => void;
 }
 
 export function ConnectButton({
@@ -25,23 +25,26 @@ export function ConnectButton({
   const [errMsg, setErrMsg] = useState<string>("");
 
   const handleSubmit = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
       e.preventDefault();
       setIsProcessing(true);
 
       try {
         if (onClick) {
-          onClick(e);
+          await onClick(e);
         }
 
         // if user wants to handle onSuccess inside onClick then it makes no sense to have a separate handler
         // otherwise only if the user explicitly passes an onSuccess handler this gets triggered
         if (onSuccess) {
-          onSuccess();
+          await onSuccess();
         }
       } catch (error) {
         setIsProcessing(false);
-        onError();
+
+        if (onError) {
+          await onError();
+        }
         setErrMsg(error?.message);
       }
 
