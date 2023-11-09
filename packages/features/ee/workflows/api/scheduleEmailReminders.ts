@@ -1,4 +1,5 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
+import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -23,6 +24,39 @@ const senderEmail = process.env.SENDGRID_EMAIL as string;
 sgMail.setApiKey(sendgridAPIKey);
 client.setApiKey(sendgridAPIKey);
 
+type PartialWorkflowStep = Partial<WorkflowStep> | null;
+
+type Booking = Prisma.BookingGetPayload<{
+  include: {
+    eventType: true;
+    attendees: true;
+    user: true;
+  };
+}>;
+
+type PartialBooking =
+  | (Pick<
+      Booking,
+      | "startTime"
+      | "endTime"
+      | "location"
+      | "description"
+      | "metadata"
+      | "customInputs"
+      | "responses"
+      | "uid"
+      | "attendees"
+    > & {
+      user: Partial<User> | null;
+      eventType: Partial<EventType> | null;
+      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    })
+  | null;
+
+type PartialWorkflowReminder = Pick<WorkflowReminder, "id" | "scheduledDate"> & {
+  booking: PartialBooking | null;
+} & { workflowStep: PartialWorkflowStep };
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -40,10 +74,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   // delete batch_ids with already past scheduled date from scheduled_sends
   const pageSize = 90;
   let pageNumber = 0;
-  const deletePromises: Promise<any>[] = [];
+
+  const remindersToDelete: { referenceId: string | null }[] = [];
 
   while (true) {
-    const remindersToDelete = await prisma.workflowReminder.findMany({
+    const newRemindersToDelete = await prisma.workflowReminder.findMany({
       where: {
         method: WorkflowMethods.EMAIL,
         cancelled: true,
@@ -58,19 +93,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (remindersToDelete.length === 0) {
+    if (newRemindersToDelete.length === 0) {
       break;
     }
 
-    for (const reminder of remindersToDelete) {
-      const deletePromise = client.request({
-        url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
-        method: "DELETE",
-      });
+    remindersToDelete.push(...newRemindersToDelete);
 
-      deletePromises.push(deletePromise);
-    }
     pageNumber++;
+  }
+
+  const deletePromises: Promise<any>[] = [];
+
+  for (const reminder of remindersToDelete) {
+    const deletePromise = client.request({
+      url: `/v3/user/scheduled_sends/${reminder.referenceId}`,
+      method: "DELETE",
+    });
+    deletePromises.push(deletePromise);
   }
 
   Promise.allSettled(deletePromises).then((results) => {
@@ -94,10 +133,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   //cancel reminders for cancelled/rescheduled bookings that are scheduled within the next hour
   pageNumber = 0;
 
-  const allPromisesCancelReminders: Promise<any>[] = [];
+  const remindersToCancel: { referenceId: string | null; id: number }[] = [];
 
   while (true) {
-    const remindersToCancel = await prisma.workflowReminder.findMany({
+    const newRemindersToCancel = await prisma.workflowReminder.findMany({
       where: {
         cancelled: true,
         scheduled: true, //if it is false then they are already cancelled
@@ -113,35 +152,40 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (remindersToCancel.length === 0) {
+    if (newRemindersToCancel.length === 0) {
       break;
     }
 
-    for (const reminder of remindersToCancel) {
-      const cancelPromise = client.request({
-        url: "/v3/user/scheduled_sends",
-        method: "POST",
-        body: {
-          batch_id: reminder.referenceId,
-          status: "cancel",
-        },
-      });
+    remindersToCancel.push(...newRemindersToCancel);
 
-      const updatePromise = prisma.workflowReminder.update({
-        where: {
-          id: reminder.id,
-        },
-        data: {
-          scheduled: false, // to know which reminder already got cancelled (to avoid error from cancelling the same reminders again)
-        },
-      });
-
-      allPromisesCancelReminders.push(cancelPromise, updatePromise);
-    }
     pageNumber++;
   }
 
-  Promise.allSettled(allPromisesCancelReminders).then((results) => {
+  const cancelUpdatePromises: Promise<any>[] = [];
+
+  for (const reminder of remindersToCancel) {
+    const cancelPromise = client.request({
+      url: "/v3/user/scheduled_sends",
+      method: "POST",
+      body: {
+        batch_id: reminder.referenceId,
+        status: "cancel",
+      },
+    });
+
+    const updatePromise = prisma.workflowReminder.update({
+      where: {
+        id: reminder.id,
+      },
+      data: {
+        scheduled: false, // to know which reminder already got cancelled (to avoid error from cancelling the same reminders again)
+      },
+    });
+
+    cancelUpdatePromises.push(cancelPromise, updatePromise);
+  }
+
+  Promise.allSettled(cancelUpdatePromises).then((results) => {
     results.forEach((result) => {
       if (result.status === "rejected") {
         console.log(`Error cancelling scheduled_sends: ${result.reason}`);
@@ -153,8 +197,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   pageNumber = 0;
   const sendEmailPromises: Promise<any>[] = [];
 
+  const unscheduledReminders: PartialWorkflowReminder[] = [];
+
   while (true) {
-    const unscheduledReminders = await prisma.workflowReminder.findMany({
+    const newUnscheduledReminders = await prisma.workflowReminder.findMany({
       where: {
         method: WorkflowMethods.EMAIL,
         scheduled: false,
@@ -214,179 +260,180 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!unscheduledReminders.length && pageNumber === 0) {
+    if (!newUnscheduledReminders.length && pageNumber === 0) {
       res.status(200).json({ message: "No Emails to schedule" });
       return;
     }
 
-    if (unscheduledReminders.length === 0) {
+    if (newUnscheduledReminders.length === 0) {
       break;
     }
 
-    for (const reminder of unscheduledReminders) {
-      if (!reminder.workflowStep || !reminder.booking) {
-        continue;
+    unscheduledReminders.push(...newUnscheduledReminders);
+
+    pageNumber++;
+  }
+
+  for (const reminder of unscheduledReminders) {
+    if (!reminder.workflowStep || !reminder.booking) {
+      continue;
+    }
+    try {
+      let sendTo;
+
+      switch (reminder.workflowStep.action) {
+        case WorkflowActions.EMAIL_HOST:
+          sendTo = reminder.booking.user?.email;
+          break;
+        case WorkflowActions.EMAIL_ATTENDEE:
+          sendTo = reminder.booking.attendees[0].email;
+          break;
+        case WorkflowActions.EMAIL_ADDRESS:
+          sendTo = reminder.workflowStep.sendTo;
       }
-      try {
-        let sendTo;
 
-        switch (reminder.workflowStep.action) {
-          case WorkflowActions.EMAIL_HOST:
-            sendTo = reminder.booking.user?.email;
-            break;
-          case WorkflowActions.EMAIL_ATTENDEE:
-            sendTo = reminder.booking.attendees[0].email;
-            break;
-          case WorkflowActions.EMAIL_ADDRESS:
-            sendTo = reminder.workflowStep.sendTo;
-        }
+      const name =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+          ? reminder.booking.attendees[0].name
+          : reminder.booking.user?.name;
 
-        const name =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-            ? reminder.booking.attendees[0].name
-            : reminder.booking.user?.name;
+      const attendeeName =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+          ? reminder.booking.user?.name
+          : reminder.booking.attendees[0].name;
 
-        const attendeeName =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-            ? reminder.booking.user?.name
-            : reminder.booking.attendees[0].name;
+      const timeZone =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
+          ? reminder.booking.attendees[0].timeZone
+          : reminder.booking.user?.timeZone;
 
-        const timeZone =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
-            ? reminder.booking.attendees[0].timeZone
-            : reminder.booking.user?.timeZone;
+      const locale =
+        reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+        reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+          ? reminder.booking.attendees[0].locale
+          : reminder.booking.user?.locale;
 
-        const locale =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE ||
-          reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE
-            ? reminder.booking.attendees[0].locale
-            : reminder.booking.user?.locale;
+      let emailContent = {
+        emailSubject: reminder.workflowStep.emailSubject || "",
+        emailBody: `<body style="white-space: pre-wrap;">${reminder.workflowStep.reminderBody || ""}</body>`,
+      };
 
-        let emailContent = {
-          emailSubject: reminder.workflowStep.emailSubject || "",
-          emailBody: `<body style="white-space: pre-wrap;">${
-            reminder.workflowStep.reminderBody || ""
-          }</body>`,
+      let emailBodyEmpty = false;
+
+      if (reminder.workflowStep.reminderBody) {
+        const { responses } = getCalEventResponses({
+          bookingFields: reminder.booking.eventType?.bookingFields ?? null,
+          booking: reminder.booking,
+        });
+
+        const variables: VariablesType = {
+          eventName: reminder.booking.eventType?.title || "",
+          organizerName: reminder.booking.user?.name || "",
+          attendeeName: reminder.booking.attendees[0].name,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
+          eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
+          timeZone: timeZone,
+          location: reminder.booking.location || "",
+          additionalNotes: reminder.booking.description,
+          responses: responses,
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
+          cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
+          rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
         };
+        const emailLocale = locale || "en";
+        const emailSubject = customTemplate(
+          reminder.workflowStep.emailSubject || "",
+          variables,
+          emailLocale,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+          !!reminder.booking.user?.hideBranding
+        ).text;
+        emailContent.emailSubject = emailSubject;
+        emailContent.emailBody = customTemplate(
+          reminder.workflowStep.reminderBody || "",
+          variables,
+          emailLocale,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+          !!reminder.booking.user?.hideBranding
+        ).html;
 
-        let emailBodyEmpty = false;
-
-        if (reminder.workflowStep.reminderBody) {
-          const { responses } = getCalEventResponses({
-            bookingFields: reminder.booking.eventType?.bookingFields ?? null,
-            booking: reminder.booking,
-          });
-
-          const variables: VariablesType = {
-            eventName: reminder.booking.eventType?.title || "",
-            organizerName: reminder.booking.user?.name || "",
-            attendeeName: reminder.booking.attendees[0].name,
-            attendeeEmail: reminder.booking.attendees[0].email,
-            eventDate: dayjs(reminder.booking.startTime).tz(timeZone),
-            eventEndTime: dayjs(reminder.booking?.endTime).tz(timeZone),
-            timeZone: timeZone,
-            location: reminder.booking.location || "",
-            additionalNotes: reminder.booking.description,
-            responses: responses,
-            meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
-            cancelLink: `/booking/${reminder.booking.uid}?cancel=true`,
-            rescheduleLink: `/${reminder.booking.user?.username}/${reminder.booking.eventType?.slug}?rescheduleUid=${reminder.booking.uid}`,
-          };
-          const emailLocale = locale || "en";
-          const emailSubject = customTemplate(
-            reminder.workflowStep.emailSubject || "",
-            variables,
-            emailLocale,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
-          ).text;
-          emailContent.emailSubject = emailSubject;
-          emailContent.emailBody = customTemplate(
+        emailBodyEmpty =
+          customTemplate(
             reminder.workflowStep.reminderBody || "",
             variables,
             emailLocale,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
-          ).html;
+            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
+          ).text.length === 0;
+      } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
+        emailContent = emailReminderTemplate(
+          false,
+          reminder.workflowStep.action,
+          getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
+          reminder.booking.startTime?.toISOString() || "",
+          reminder.booking.endTime?.toISOString() || "",
+          reminder.booking.eventType?.title || "",
+          timeZone || "",
+          attendeeName || "",
+          name || "",
+          !!reminder.booking.user?.hideBranding
+        );
+      }
 
-          emailBodyEmpty =
-            customTemplate(
-              reminder.workflowStep.reminderBody || "",
-              variables,
-              emailLocale,
-              getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
-            ).text.length === 0;
-        } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
-          emailContent = emailReminderTemplate(
-            false,
-            reminder.workflowStep.action,
-            getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            reminder.booking.startTime.toISOString() || "",
-            reminder.booking.endTime.toISOString() || "",
-            reminder.booking.eventType?.title || "",
-            timeZone || "",
-            attendeeName || "",
-            name || "",
-            !!reminder.booking.user?.hideBranding
+      if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
+        const batchIdResponse = await client.request({
+          url: "/v3/mail/batch",
+          method: "POST",
+        });
+
+        const batchId = batchIdResponse[1].batch_id;
+
+        if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
+          sendEmailPromises.push(
+            sgMail.send({
+              to: sendTo,
+              from: {
+                email: senderEmail,
+                name: reminder.workflowStep.sender || "Cal.com",
+              },
+              subject: emailContent.emailSubject,
+              html: emailContent.emailBody,
+              batchId: batchId,
+              sendAt: dayjs(reminder.scheduledDate).unix(),
+              replyTo: reminder.booking.user?.email || senderEmail,
+              mailSettings: {
+                sandboxMode: {
+                  enable: sandboxMode,
+                },
+              },
+              attachments: reminder.workflowStep.includeCalendarEvent
+                ? [
+                    {
+                      content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
+                      filename: "event.ics",
+                      type: "text/calendar; method=REQUEST",
+                      disposition: "attachment",
+                      contentId: uuidv4(),
+                    },
+                  ]
+                : undefined,
+            })
           );
         }
 
-        if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
-          const batchIdResponse = await client.request({
-            url: "/v3/mail/batch",
-            method: "POST",
-          });
-
-          const batchId = batchIdResponse[1].batch_id;
-
-          if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
-            sendEmailPromises.push(
-              sgMail.send({
-                to: sendTo,
-                from: {
-                  email: senderEmail,
-                  name: reminder.workflowStep.sender || "Cal.com",
-                },
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking.user?.email || senderEmail,
-                mailSettings: {
-                  sandboxMode: {
-                    enable: sandboxMode,
-                  },
-                },
-                attachments: reminder.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: uuidv4(),
-                      },
-                    ]
-                  : undefined,
-              })
-            );
-          }
-
-          await prisma.workflowReminder.update({
-            where: {
-              id: reminder.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: batchId,
-            },
-          });
-        }
-      } catch (error) {
-        console.log(`Error scheduling Email with error ${error}`);
+        await prisma.workflowReminder.update({
+          where: {
+            id: reminder.id,
+          },
+          data: {
+            scheduled: true,
+            referenceId: batchId,
+          },
+        });
       }
+    } catch (error) {
+      console.log(`Error scheduling Email with error ${error}`);
     }
-    pageNumber++;
   }
 
   Promise.allSettled(sendEmailPromises).then((results) => {
