@@ -47,6 +47,7 @@ export const apiHandlers = {
   "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
   sendgrid: import("./sendgrid/api"),
+  shimmervideo: import("./shimmervideo/api"),
   signal: import("./signal/api"),
   sirius_video: import("./sirius_video/api"),
   skiff: import("./skiff/api"),
