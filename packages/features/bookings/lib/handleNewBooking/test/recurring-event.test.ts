@@ -206,6 +206,11 @@ describe("handleNewBooking", () => {
 
         expectSuccessfulBookingCreationEmails({
           booker,
+          booking: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBookings[0].uid!,
+            urlOrigin: WEBAPP_URL,
+          },
           organizer,
           emails,
           bookingTimeRange: {
@@ -547,6 +552,11 @@ describe("handleNewBooking", () => {
 
         expectSuccessfulBookingCreationEmails({
           booker,
+          booking: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBookings[0].uid!,
+            urlOrigin: WEBAPP_URL,
+          },
           organizer,
           emails,
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -756,6 +766,11 @@ describe("handleNewBooking", () => {
         expectWorkflowToBeTriggered();
 
         expectSuccessfulBookingCreationEmails({
+          booking: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBookings[0].uid!,
+            urlOrigin: WEBAPP_URL,
+          },
           booker,
           organizer,
           emails,
