@@ -37,7 +37,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
         filename: "event.ics",
         content: generateIcsString({
           event: this.calEvent,
-          title: event.recurringEvent?.count
+          title: this.calEvent.recurringEvent?.count
             ? this.t("your_event_has_been_scheduled_recurring")
             : this.t("your_event_has_been_scheduled"),
           role: "attendee",
