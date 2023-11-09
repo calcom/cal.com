@@ -15,7 +15,7 @@ type EventProps = {
 };
 
 const eventClasses = cva(
-  "group flex h-full w-full overflow-y-auto rounded-[6px] px-[6px] text-xs font-semibold leading-5",
+  "group flex h-full w-full overflow-y-auto rounded-[6px] px-[6px] text-xs font-semibold leading-5 opacity-80",
   {
     variants: {
       status: {

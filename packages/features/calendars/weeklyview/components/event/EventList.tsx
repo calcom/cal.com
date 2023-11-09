@@ -50,6 +50,12 @@ export function EventList({ day }: Props) {
           const nextEvent = eventsArray[idx + 1];
           const prevEvent = eventsArray[idx - 1];
 
+          console.log({
+            prevEvent,
+            nextEvent,
+            title: event.title,
+          });
+
           if (!longestRef.current) {
             longestRef.current = {
               idx,
@@ -77,30 +83,24 @@ export function EventList({ day }: Props) {
                 marginLeft = "auto";
                 right = 4;
                 width = width / 2;
-              } else if (nextStart.isSame(longestRef.current.start, "hour")) {
-                const minDiff = nextStart.diff(longestRef.current.start, "minutes");
-                if (minDiff < 5 || minDiff > -5) {
-                  zIndex = 65;
-                  marginLeft = "auto";
-                  right = 4;
-                  width = width / 2;
-                }
+              } else if (nextStart.isBetween(eventStart.add(-5, "minutes"), eventStart.add(5, "minutes"))) {
+                zIndex = 65;
+                marginLeft = "auto";
+                right = 4;
+                width = width / 2;
               }
             } else if (prevEvent) {
               const prevStart = dayjs(prevEvent.start);
+
               if (prevStart.isBetween(longestRef.current.start, longestRef.current.end)) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 4;
                 width = width / 2;
-              } else if (prevStart.isSame(longestRef.current.start, "hour")) {
-                const minDiff = prevStart.diff(longestRef.current.start, "minutes");
-                if (minDiff < 5 || minDiff > -5) {
-                  zIndex = 65;
-                  marginLeft = "auto";
-                  right = 4;
-                  width = width / 2;
-                }
+              } else if (eventStart.isBetween(prevStart.add(5, "minutes"), prevStart.add(-5, "minutes"))) {
+                zIndex = 65;
+                right = 4;
+                width = width / 2;
               }
             }
           }
@@ -117,14 +117,7 @@ export function EventList({ day }: Props) {
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
               }}>
-              <Event
-                event={{
-                  ...event,
-                  description: longestRef.current.duration.toLocaleString(),
-                }}
-                eventDuration={eventDuration}
-                onEventClick={eventOnClick}
-              />
+              <Event event={event} eventDuration={eventDuration} onEventClick={eventOnClick} />
             </div>
           );
         })}
