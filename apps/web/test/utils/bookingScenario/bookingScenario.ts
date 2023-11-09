@@ -101,6 +101,9 @@ export type InputEventType = {
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
+  bookingLimits?: {
+    PER_DAY?: number;
+  };
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
 
 type WhiteListedBookingProps = {
@@ -199,6 +202,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
     timeZone: null,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
+    bookingLimits: {},
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
