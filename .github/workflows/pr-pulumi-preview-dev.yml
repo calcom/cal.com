@@ -1,0 +1,41 @@
+name: Pulumi Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pulumi-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3.5.0
+        with:
+          node-version-file: package.json
+
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh
+          pulumi version
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Configure Cloud Provider Authentication
+        run: |
+          # Set up authentication for your chosen cloud provider (e.g., AWS, Azure, GCP).
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # Add other provider-specific environment variables here as needed.
+
+      - name: Pulumi Preview
+        run: |
+          cd infra  # Navigate to the /infra subfolder
+          yarn
+          NODE_ENV=development pulumi login ${{ secrets.DEV_PULUMI_S3_BUCKET }}
+          NODE_ENV=development pulumi stack select ${{ secrets.DEV_PULUMI_STACK_NAME }}
+          NODE_ENV=development pulumi preview
+        env:
+          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.DEV_PULUMI_CONFIG_PASSPHRASE }}
