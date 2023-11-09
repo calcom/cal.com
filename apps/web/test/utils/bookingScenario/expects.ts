@@ -167,7 +167,9 @@ expect.extend({
       if (!icsKey) throw new Error("icsKey not found");
       return {
         pass: false,
-        actual: icsObject?.[icsKey]?.uid,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        actual: icsObject[icsKey].uid!,
         expected: expectedEmail.ics?.iCalUID,
         message: () => `Expected ICS UID ${isNot ? "is" : "isn't"} present in actual`,
       };

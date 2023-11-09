@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import getICalUID from "@calcom/emails/lib/getICalUid";
+import getICalUID from "@calcom/emails/lib/getICalUID";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
