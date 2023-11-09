@@ -365,11 +365,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  recurringDatesInfo?: {
-    allRecurringDates: string[] | undefined;
-    currentRecurringIndex: number | undefined;
-  }
+  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
@@ -624,10 +620,13 @@ async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
     isNotAnApiCall = false,
+    skipAvailabilityCheck = false,
   }: {
     isNotAnApiCall?: boolean;
+    skipAvailabilityCheck?: boolean;
   } = {
     isNotAnApiCall: false,
+    skipAvailabilityCheck: false,
   }
 ) {
   const { userId } = req;
@@ -706,6 +705,7 @@ async function handler(
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
+      skipAvailabilityCheck,
       paymentAppData: {
         enabled: paymentAppData.enabled,
         price: paymentAppData.price,
@@ -908,7 +908,7 @@ async function handler(
     }
   }
 
-  if (!eventType.seatsPerTimeSlot) {
+  if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
@@ -925,10 +925,6 @@ async function handler(
         dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
-      },
-      {
-        allRecurringDates,
-        currentRecurringIndex,
       }
     );
 

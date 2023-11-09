@@ -349,16 +349,19 @@ export function expectSuccessfulBookingCreationEmails({
       titleTag: "confirmed_event_type_subject",
       heading: recurrence ? "new_event_scheduled_recurring" : "new_event_scheduled",
       subHeading: "",
-      links: [
-        {
-          href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
-          text: "reschedule",
-        },
-        {
-          href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
-          text: "cancel",
-        },
-      ],
+      links: recurrence
+        ? [
+            {
+              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              text: "cancel",
+            },
+          ]
+        : [
+            {
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              text: "reschedule",
+            },
+          ],
       ...(bookingTimeRange
         ? {
             bookingTimeRange: {
@@ -399,16 +402,19 @@ export function expectSuccessfulBookingCreationEmails({
         recurrence,
         method: "REQUEST",
       },
-      links: [
-        {
-          href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
-          text: "reschedule",
-        },
-        {
-          href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
-          text: "cancel",
-        },
-      ],
+      links: recurrence
+        ? [
+            {
+              href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
+              text: "cancel",
+            },
+          ]
+        : [
+            {
+              href: `${bookingUrlOrigin}/reschedule/${booking.uid}`,
+              text: "reschedule",
+            },
+          ],
     },
     `${booker.name} <${booker.email}>`
   );
