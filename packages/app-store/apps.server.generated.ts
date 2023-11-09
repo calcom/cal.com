@@ -13,6 +13,7 @@ export const apiHandlers = {
   campfire: import("./campfire/api"),
   closecom: import("./closecom/api"),
   cron: import("./cron/api"),
+  deel: import("./deel/api"),
   discord: import("./discord/api"),
   eightxeight: import("./eightxeight/api"),
   "element-call": import("./element-call/api"),
