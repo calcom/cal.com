@@ -42,11 +42,11 @@ describe("handleNewBooking", () => {
   describe("Recurring EventType:", () => {
     test(
       `should create successful bookings for the number of slots requested
-			1. Should create the same number of bookings as requested slots in the database
-			2. Should send emails for the first booking only to the booker as well as organizer
-			3. Should create a calendar event for every booking in the destination calendar
-			3. Should trigger BOOKING_CREATED webhook for every booking
-	  `,
+        1. Should create the same number of bookings as requested slots in the database
+        2. Should send emails for the first booking only to the booker as well as organizer
+        3. Should create a calendar event for every booking in the destination calendar
+        3. Should trigger BOOKING_CREATED webhook for every booking
+    `,
       async ({ emails }) => {
         const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
           .handleRecurringEventBooking;
@@ -377,11 +377,11 @@ describe("handleNewBooking", () => {
 
     test(
       `should create successful bookings for the number of slots requested even if the third slot is already booked as long as first two slots are free
-			1. Should create the same number of bookings as requested slots in the database
-			2. Should send emails for the first booking only to the booker as well as organizer
-			3. Should create a calendar event for every booking in the destination calendar
-			3. Should trigger BOOKING_CREATED webhook for every booking
-	  `,
+        1. Should create the same number of bookings as requested slots in the database
+        2. Should send emails for the first booking only to the booker as well as organizer
+        3. Should create a calendar event for every booking in the destination calendar
+        3. Should trigger BOOKING_CREATED webhook for every booking
+    `,
       async ({ emails }) => {
         const recurringCountInRequest = 4;
 
@@ -592,11 +592,11 @@ describe("handleNewBooking", () => {
 
     test(
       `should create successful bookings for the number of slots requested even if the last slot is already booked as long as first two slots are free
-			1. Should create the same number of bookings as requested slots in the database
-			2. Should send emails for the first booking only to the booker as well as organizer
-			3. Should create a calendar event for every booking in the destination calendar
-			3. Should trigger BOOKING_CREATED webhook for every booking
-	  `,
+        1. Should create the same number of bookings as requested slots in the database
+        2. Should send emails for the first booking only to the booker as well as organizer
+        3. Should create a calendar event for every booking in the destination calendar
+        3. Should trigger BOOKING_CREATED webhook for every booking
+    `,
       async ({ emails }) => {
         const recurringCountInRequest = 4;
 
