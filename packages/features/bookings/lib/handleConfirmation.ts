@@ -39,7 +39,7 @@ export async function handleConfirmation(args: {
       title: string;
       teamId?: number | null;
       parentId?: number | null;
-      metadata: Prisma.JsonValue;
+      metadata?: Prisma.JsonValue;
       workflows?: {
         workflow: Workflow & {
           steps: WorkflowStep[];
@@ -134,6 +134,8 @@ export async function handleConfirmation(args: {
     } | null;
   }[] = [];
 
+  const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
@@ -155,6 +157,7 @@ export async function handleConfirmation(args: {
             create: scheduleResult.referencesToCreate,
           },
           paid,
+          metadata: { ...recurringBooking.metadata, videoCallUrl },
         },
         select: {
           eventType: {
@@ -206,6 +209,7 @@ export async function handleConfirmation(args: {
         references: {
           create: scheduleResult.referencesToCreate,
         },
+        metadata: { ...booking.metadata, videoCallUrl },
       },
       select: {
         eventType: {
@@ -246,8 +250,6 @@ export async function handleConfirmation(args: {
 
   //Workflows - set reminders for confirmed events
   try {
-    const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
-
     for (let index = 0; index < updatedBookings.length; index++) {
       if (updatedBookings[index].eventType?.workflows) {
         const evtOfBooking = evt;
