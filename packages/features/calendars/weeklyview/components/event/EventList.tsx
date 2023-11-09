@@ -74,15 +74,20 @@ export function EventList({ day }: Props) {
               duration: eventDuration,
             };
           }
-
+          // By default longest event doesnt have any styles applied
           if (longestRef.current.idx !== idx) {
             if (nextEvent) {
+              // If we have a next event
               const nextStart = dayjs(nextEvent.start);
+              // If the next event is inbetween the longest start and end make 65% width
               if (nextStart.isBetween(longestRef.current.start, longestRef.current.end)) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 4;
                 width = width / 2;
+
+                // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
+                // close start times
               } else if (nextStart.isBetween(eventStart.add(-5, "minutes"), eventStart.add(5, "minutes"))) {
                 zIndex = 65;
                 marginLeft = "auto";
@@ -92,11 +97,14 @@ export function EventList({ day }: Props) {
             } else if (prevEvent) {
               const prevStart = dayjs(prevEvent.start);
 
+              // If the next event is inbetween the longest start and end make 65% width
+
               if (prevStart.isBetween(longestRef.current.start, longestRef.current.end)) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 4;
-                width = width / 2;
+                // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
+                // close start times (Inverse of above )
               } else if (eventStart.isBetween(prevStart.add(5, "minutes"), prevStart.add(-5, "minutes"))) {
                 zIndex = 65;
                 right = 4;
