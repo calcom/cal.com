@@ -12,7 +12,6 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -45,6 +44,7 @@ export async function handleConfirmation(args: {
   const eventManager = new EventManager(user);
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
+  const metadata: AdditionalInformation = {};
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -54,8 +54,6 @@ export async function handleConfirmation(args: {
 
     log.error(`Booking ${user.username} failed`, JSON.stringify({ error, results }));
   } else {
-    const metadata: AdditionalInformation = {};
-
     if (results.length) {
       // TODO: Handle created event metadata more elegantly
       metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
@@ -209,6 +207,8 @@ export async function handleConfirmation(args: {
 
   //Workflows - set reminders for confirmed events
   try {
+    const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+
     for (let index = 0; index < updatedBookings.length; index++) {
       if (updatedBookings[index].eventType?.workflows) {
         const evtOfBooking = evt;
@@ -218,8 +218,6 @@ export async function handleConfirmation(args: {
         const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
 
         const isFirstBooking = index === 0;
-        const videoCallUrl =
-          bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
 
         await scheduleWorkflowReminders({
           workflows: updatedBookings[index]?.eventType?.workflows || [],
