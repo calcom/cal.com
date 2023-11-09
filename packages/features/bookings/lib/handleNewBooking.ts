@@ -32,6 +32,7 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -1088,7 +1089,7 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
-  const iCalUID = originalRescheduledBooking?.iCalUID ?? `${uid}@cal.com`;
+  const iCalUID = getICalUID({ event: originalRescheduledBooking, uid });
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = originalRescheduledBooking?.iCalSequence
     ? originalRescheduledBooking.iCalSequence + 1
@@ -2188,12 +2189,6 @@ async function handler(
         `EventManager.create failure in some of the integrations ${organizerUser.username}`,
         safeStringify({ error, results })
       );
-    } else {
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
     }
 
     const { metadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
@@ -2302,13 +2297,13 @@ async function handler(
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
 
         if (evt.iCalUID !== booking.iCalUID) {
-          // The eventManager and handleAppsStatus could change the iCalUID. At this point we can update the DB record
+          // The eventManager could change the iCalUID. At this point we can update the DB record
           await prisma.booking.update({
             where: {
               id: booking.id,
             },
             data: {
-              iCalUID: evt.iCalUID,
+              iCalUID: evt.iCalUID || booking.iCalUID,
             },
           });
         }

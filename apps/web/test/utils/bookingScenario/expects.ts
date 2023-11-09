@@ -68,6 +68,7 @@ type ExpectedEmail = {
     filename: string;
     iCalUID: string;
     recurrence?: Recurrence;
+    method: string;
   };
   /**
    * Checks that there is no
@@ -371,6 +372,7 @@ export function expectSuccessfulBookingCreationEmails({
         filename: "event.ics",
         iCalUID: `${iCalUID}`,
         recurrence,
+        method: "REQUEST",
       },
     },
     `${organizer.email}`
@@ -395,6 +397,7 @@ export function expectSuccessfulBookingCreationEmails({
         filename: "event.ics",
         iCalUID: iCalUID,
         recurrence,
+        method: "REQUEST",
       },
       links: [
         {
@@ -430,6 +433,7 @@ export function expectSuccessfulBookingCreationEmails({
           ics: {
             filename: "event.ics",
             iCalUID: iCalUID,
+            method: "REQUEST",
           },
           links: [
             {
@@ -466,6 +470,7 @@ export function expectSuccessfulBookingCreationEmails({
           ics: {
             filename: "event.ics",
             iCalUID: iCalUID,
+            method: "REQUEST",
           },
         },
         `${guest.name} <${guest.email}`
@@ -522,6 +527,7 @@ export function expectCalendarEventCreationFailureEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
     },
     `${organizer.email}`
@@ -534,6 +540,7 @@ export function expectCalendarEventCreationFailureEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
     },
     `${booker.name} <${booker.email}>`
@@ -560,6 +567,7 @@ export function expectSuccessfulBookingRescheduledEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
       appsStatus,
     },
@@ -573,6 +581,7 @@ export function expectSuccessfulBookingRescheduledEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
     },
     `${booker.name} <${booker.email}>`
