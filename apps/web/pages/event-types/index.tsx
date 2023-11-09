@@ -72,6 +72,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
+import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -298,7 +299,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams);
+    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
@@ -398,23 +399,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
-                        <AvatarGroup
+                        <UserAvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={
-                            type?.users
-                              ? type.users.map(
-                                  (organizer: { name: string | null; username: string | null }) => ({
-                                    alt: organizer.name || "",
-                                    image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                      organizer.username
-                                    }/avatar.png`,
-                                    title: organizer.name || "",
-                                  })
-                                )
-                              : []
-                          }
+                          users={type?.users ?? []}
                         />
                       )}
                       {isManagedEventType && type?.children && type.children?.length > 0 && (

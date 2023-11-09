@@ -5,10 +5,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import config from "../config.json";
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
@@ -64,7 +64,36 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
   };
 
-  await createOAuthAppCredential({ appId: config.slug, type: config.type }, key, req);
+  const credential = await prisma.credential.create({
+    data: {
+      type: config.type,
+      key,
+      userId: req.session.user.id,
+      appId: config.slug,
+    },
+  });
+
+  const calendarResponse = await fetch("https://calendar.zoho.com/api/v1/calendars", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${key.access_token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await calendarResponse.json();
+
+  const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
+
+  if (primaryCalendar.uid) {
+    await prisma.selectedCalendar.create({
+      data: {
+        userId: req.session.user.id,
+        integration: config.type,
+        externalId: primaryCalendar.uid,
+        credentialId: credential.id,
+      },
+    });
+  }
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
