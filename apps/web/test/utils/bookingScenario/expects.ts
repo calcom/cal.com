@@ -162,9 +162,12 @@ expect.extend({
     }
 
     if (!expectedEmail.noIcs && !isIcsUIDExpected) {
+      const icsObjectKeys = icsObject ? Object.keys(icsObject) : [];
+      const icsKey = icsObjectKeys.find((key) => key !== "vcalendar");
+      if (!icsKey) throw new Error("icsKey not found");
       return {
         pass: false,
-        actual: JSON.stringify(icsObject),
+        actual: icsObject?.[icsKey]?.uid,
         expected: expectedEmail.ics?.iCalUID,
         message: () => `Expected ICS UID ${isNot ? "is" : "isn't"} present in actual`,
       };
@@ -398,7 +401,7 @@ export function expectSuccessfulBookingCreationEmails({
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
-        iCalUID: iCalUID,
+        iCalUID: `${iCalUID}`,
         recurrence,
         method: "REQUEST",
       },
@@ -438,7 +441,7 @@ export function expectSuccessfulBookingCreationEmails({
           to: `${otherTeamMember.email}`,
           ics: {
             filename: "event.ics",
-            iCalUID: iCalUID,
+            iCalUID: `${iCalUID}`,
             method: "REQUEST",
           },
           links: [
@@ -475,7 +478,7 @@ export function expectSuccessfulBookingCreationEmails({
           to: `${guest.email}`,
           ics: {
             filename: "event.ics",
-            iCalUID: iCalUID,
+            iCalUID: `${iCalUID}`,
             method: "REQUEST",
           },
         },

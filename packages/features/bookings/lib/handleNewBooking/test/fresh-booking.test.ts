@@ -737,7 +737,7 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
           });
 
-          const iCalUID = getICalUID({ uid: createdBooking.uid });
+          const iCalUID = `${createdBooking.uid}@Cal.com`;
           await expectBookingToBeInDatabase({
             description: "",
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -856,6 +856,7 @@ describe("handleNewBooking", () => {
             }),
           });
           const createdBooking = await handleNewBooking(req);
+          const iCalUID = `${createdBooking.uid}@Cal.com`;
 
           expectSuccessfulBookingCreationEmails({
             booking: {
@@ -865,7 +866,7 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
             // Because no calendar was involved, we don't have an ics UID
-            iCalUID: createdBooking.uid!,
+            iCalUID: iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
