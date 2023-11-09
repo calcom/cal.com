@@ -74,6 +74,7 @@ describe("handleNewBooking", () => {
 
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+        const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
         await createBookingScenario(
           getScenarioData({
             webhooks: [
@@ -127,6 +128,7 @@ describe("handleNewBooking", () => {
                     credentialId: undefined,
                   },
                 ],
+                iCalUID,
               },
             ],
             organizer,
@@ -144,7 +146,6 @@ describe("handleNewBooking", () => {
           },
           update: {
             uid: "UPDATED_MOCK_ID",
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           },
         });
 
@@ -258,7 +259,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID,
           appsStatus: [
             getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug }),
             getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
@@ -301,6 +302,7 @@ describe("handleNewBooking", () => {
 
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+        const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
         await createBookingScenario(
           getScenarioData({
             webhooks: [
@@ -354,6 +356,7 @@ describe("handleNewBooking", () => {
                     credentialId: undefined,
                   },
                 ],
+                iCalUID,
               },
             ],
             organizer,
@@ -370,7 +373,6 @@ describe("handleNewBooking", () => {
             uid: "MOCK_ID",
           },
           update: {
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             uid: "UPDATED_MOCK_ID",
           },
         });
@@ -466,7 +468,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID,
         });
         expectBookingRescheduledWebhookToHaveBeenFired({
           booker,
@@ -875,6 +877,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
           await createBookingScenario(
             getScenarioData({
               webhooks: [
@@ -948,6 +951,7 @@ describe("handleNewBooking", () => {
                       timeZone: "Asia/Kolkata",
                     }),
                   ],
+                  iCalUID,
                 },
               ],
               organizer,
@@ -1077,7 +1081,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
           expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
@@ -1317,6 +1321,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
           const previousOrganizerIdForTheBooking = 1001;
           await createBookingScenario(
             getScenarioData({
@@ -1392,6 +1397,7 @@ describe("handleNewBooking", () => {
                       timeZone: "Asia/Kolkata",
                     }),
                   ],
+                  iCalUID,
                 },
               ],
               organizer,
@@ -1531,7 +1537,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingRescheduledWebhookToHaveBeenFired({
