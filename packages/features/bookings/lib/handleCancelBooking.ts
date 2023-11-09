@@ -224,7 +224,7 @@ async function handler(req: CustomRequest) {
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
-    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
+    type: (bookingToDelete?.eventType?.slug as string) || bookingToDelete?.title,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
     ...getCalEventResponses({
