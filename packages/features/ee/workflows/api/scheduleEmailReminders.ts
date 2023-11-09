@@ -1,5 +1,5 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
-import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@prisma/client";
+import type { Prisma, WorkflowReminder, WorkflowStep } from "@prisma/client";
 import client from "@sendgrid/client";
 import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -34,24 +34,20 @@ type Booking = Prisma.BookingGetPayload<{
   };
 }>;
 
-type PartialBooking =
-  | (Pick<
-      Booking,
-      | "startTime"
-      | "endTime"
-      | "location"
-      | "description"
-      | "metadata"
-      | "customInputs"
-      | "responses"
-      | "uid"
-      | "attendees"
-    > & {
-      user: Partial<User> | null;
-      eventType: Partial<EventType> | null;
-      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
-    })
-  | null;
+type PartialBooking = Pick<
+  Booking,
+  | "startTime"
+  | "endTime"
+  | "location"
+  | "description"
+  | "metadata"
+  | "customInputs"
+  | "responses"
+  | "uid"
+  | "attendees"
+  | "user"
+  | "eventType"
+> | null;
 
 type PartialWorkflowReminder = Pick<WorkflowReminder, "id" | "scheduledDate"> & {
   booking: PartialBooking | null;
