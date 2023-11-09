@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3.5.0
         with:
           node-version-file: package.json
@@ -19,8 +19,6 @@ jobs:
         run: |
           curl -fsSL https://get.pulumi.com | sh
           pulumi version
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - name: Configure Cloud Provider Authentication
         run: |
