@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -110,7 +111,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   Promise.allSettled(deletePromises).then((results) => {
     results.forEach((result) => {
       if (result.status === "rejected") {
-        console.log(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+        logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
       }
     });
   });
@@ -183,7 +184,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   Promise.allSettled(cancelUpdatePromises).then((results) => {
     results.forEach((result) => {
       if (result.status === "rejected") {
-        console.log(`Error cancelling scheduled_sends: ${result.reason}`);
+        logger.error(`Error cancelling scheduled_sends: ${result.reason}`);
       }
     });
   });
@@ -427,11 +428,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
       }
     } catch (error) {
-      console.log(`Error scheduling Email with error ${error}`);
+      logger.error(`Error scheduling Email with error ${error}`);
     }
   }
 
-  res.status(200).json({ message: "Emails scheduled" });
+  res.status(200).json({ message: `${unscheduledReminders.length} Emails scheduled` });
 }
 
 export default defaultHandler({
