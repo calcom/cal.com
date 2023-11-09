@@ -2099,7 +2099,7 @@
   "troubleshooting":"Troubleshooting",
   "calendars_were_checking_for_conflicts":"Calendars we’re checking for conflicts",
   "availabilty_schedules":"Availability schedules",
-  "manage calendars":"Manage calendars",
+  "manage_calendars":"Manage calendars",
   "manage_availability_schedules":"Manage availability schedules",
   "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
   "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",

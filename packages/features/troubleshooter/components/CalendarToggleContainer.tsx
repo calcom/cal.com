@@ -2,7 +2,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, Switch } from "@calcom/ui";
 
-import { useTroubleshooterStore } from "../store";
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
 
 const SELECTION_COLORS = ["#f97316", "#84cc16", "#06b6d4", "#8b5cf6", "#ec4899", "#f43f5e"];
@@ -80,7 +79,6 @@ function EmptyCalendarToggleItem() {
 export function CalendarToggleContainer() {
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery();
-  const addToColorMap = useTroubleshooterStore((state) => state.addToCalendarToColorMap);
 
   const hasConnectedCalendars = data && data?.connectedCalendars.length > 0;
 
@@ -89,7 +87,7 @@ export function CalendarToggleContainer() {
       <p className="text-sm font-medium leading-none">{t("calendars_were_checking_for_conflicts")}</p>
       {hasConnectedCalendars && !isLoading ? (
         <>
-          {data.connectedCalendars.map((calendar, idx) => {
+          {data.connectedCalendars.map((calendar) => {
             const foundPrimary = calendar.calendars?.find((item) => item.primary);
             // Will be used when getAvailbility is modified to use externalId instead of appId for source.
             // const color = SELECTION_COLORS[idx] || "#000000";
@@ -111,7 +109,7 @@ export function CalendarToggleContainer() {
               />
             );
           })}
-          <Button color="secondary" className="justify-center gap-2">
+          <Button color="secondary" className="justify-center gap-2" href="/settings/my-account/calendars">
             {t("manage_calendars")}
           </Button>
         </>
