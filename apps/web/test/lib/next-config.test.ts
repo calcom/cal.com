@@ -99,6 +99,11 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserRouteMatch("/abc")?.params).toContain({
         user: "abc",
       });
+
+      // Tests that something that starts with d which could accidentally match /d route is correctly identified as a booking page
+      expect(orgUserRouteMatch("/designer")?.params).toContain({
+        user: "designer",
+      });
     });
 
     it("Non booking pages", () => {
@@ -106,6 +111,8 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserTypeRouteMatch("/public/def")).toEqual(false);
       expect(orgUserRouteMatch("/_next/")).toEqual(false);
       expect(orgUserRouteMatch("/public/")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/event-types/")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/event-types?abc=1")).toEqual(false);
       expect(orgUserRouteMatch("/event-types")).toEqual(false);
       expect(orgUserTypeRouteMatch("/event-types")).toEqual(false);
       expect(orgUserTypeRouteMatch("/john/avatar.png")).toEqual(false);

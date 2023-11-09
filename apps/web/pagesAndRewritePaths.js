@@ -28,7 +28,7 @@ let subdomainRegExp = (exports.subdomainRegExp = getSubdomainRegExp(
 exports.orgHostPath = `^(?<orgSlug>${subdomainRegExp})\\.(?!vercel\.app).*`;
 
 let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes);
-exports.orgUserRoutePath = `/:user((?!${beforeRewriteExcludePages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`;
+exports.orgUserRoutePath = `/:user((?!${beforeRewriteExcludePages.join("$|")}|_next|public)[a-zA-Z0-9\-_]+)`;
 exports.orgUserTypeRoutePath = `/:user((?!${beforeRewriteExcludePages.join(
   "/|"
 )}|_next/|public/)[^/]+)/:type((?!avatar\.png)[^/]+)`;
