@@ -3603,6 +3603,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/deel@workspace:packages/app-store/deel":
+  version: 0.0.0-use.local
+  resolution: "@calcom/deel@workspace:packages/app-store/deel"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/discord@workspace:packages/app-store/discord":
   version: 0.0.0-use.local
   resolution: "@calcom/discord@workspace:packages/app-store/discord"
