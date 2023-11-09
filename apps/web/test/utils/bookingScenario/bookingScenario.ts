@@ -1024,7 +1024,8 @@ export function mockVideoApp({
           //@ts-ignore
           VideoApiAdapter: (credential) => {
             return {
-              createMeeting: (...rest: unknown[]) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              createMeeting: (...rest: any[]) => {
                 if (creationCrash) {
                   throw new Error("MockVideoApiAdapter.createMeeting fake error");
                 }
