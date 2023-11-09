@@ -10,6 +10,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { EventType, User } from "@calcom/prisma/client";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -28,26 +29,24 @@ type PartialWorkflowStep = Partial<WorkflowStep> | null;
 
 type Booking = Prisma.BookingGetPayload<{
   include: {
-    eventType: true;
     attendees: true;
-    user: true;
   };
 }>;
 
-type PartialBooking = Pick<
-  Booking,
-  | "startTime"
-  | "endTime"
-  | "location"
-  | "description"
-  | "metadata"
-  | "customInputs"
-  | "responses"
-  | "uid"
-  | "attendees"
-  | "user"
-  | "eventType"
-> | null;
+type PartialBooking =
+  | (Pick<
+      Booking,
+      | "startTime"
+      | "endTime"
+      | "location"
+      | "description"
+      | "metadata"
+      | "customInputs"
+      | "responses"
+      | "uid"
+      | "attendees"
+    > & { eventType: Partial<EventType> | null } & { user: Partial<User> | null })
+  | null;
 
 type PartialWorkflowReminder = Pick<WorkflowReminder, "id" | "scheduledDate"> & {
   booking: PartialBooking | null;
@@ -385,7 +384,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const batchId = batchIdResponse[1].batch_id;
 
         if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
-          sendEmailPromises.push(
+          await sendEmailPromises.push(
             sgMail.send({
               to: sendTo,
               from: {
@@ -431,14 +430,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       console.log(`Error scheduling Email with error ${error}`);
     }
   }
-
-  Promise.allSettled(sendEmailPromises).then((results) => {
-    results.forEach((result) => {
-      if (result.status === "rejected") {
-        console.log("Email sending failed", result.reason);
-      }
-    });
-  });
 
   res.status(200).json({ message: "Emails scheduled" });
 }
