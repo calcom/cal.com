@@ -174,7 +174,7 @@ export const AppPage = ({
                       useGrouping: false,
                       maximumFractionDigits: 0,
                     }).format(paid.price)}
-                    /mo
+                    /{t("month")}
                   </Badge>
                 </>
               )}

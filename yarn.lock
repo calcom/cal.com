@@ -4110,6 +4110,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/shimmer-video@workspace:packages/app-store/shimmervideo":
+  version: 0.0.0-use.local
+  resolution: "@calcom/shimmer-video@workspace:packages/app-store/shimmervideo"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/signal@workspace:packages/app-store/signal":
   version: 0.0.0-use.local
   resolution: "@calcom/signal@workspace:packages/app-store/signal"

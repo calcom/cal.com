@@ -116,22 +116,6 @@ export const POST = async (request: NextRequest) => {
   }
 
   const { apiKey } = credential as { apiKey: string };
-  if (!(credential as { paymentStatus: string })?.paymentStatus) {
-    const url = env.APP_URL;
-
-    // TODO payment data
-
-    return new NextResponse("ok");
-  }
-
-  const { paymentStatus } = credential as { paymentStatus: string };
-  if (paymentStatus !== "active") {
-    const url = env.APP_URL;
-
-    // TODO send unpaid email.
-
-    return new NextResponse("ok");
-  }
 
   // Pre-fetch data relevant to most bookings.
   const [eventTypes, availability, users] = await Promise.all([
