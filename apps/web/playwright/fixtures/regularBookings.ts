@@ -190,6 +190,9 @@ const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
 
 export function createBookingPageFixture(page: Page) {
   return {
+    goToEventTypesPage: async (page?: Page) => {
+      page?.goto("/event-types");
+    },
     goToEventType: async (eventType: string) => {
       await page.getByRole("link", { name: eventType }).click();
     },
@@ -221,6 +224,7 @@ export function createBookingPageFixture(page: Page) {
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
+      await expect(page.getByRole("button", { name: "event type updated successfully" })).toBeVisible();
     },
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
@@ -231,24 +235,27 @@ export function createBookingPageFixture(page: Page) {
       await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByTestId("time").first().click();
     },
-    clickReschedule: async () => {
-      await page.getByText("Reschedule").click();
+    clickReschedule: async (page?: Page) => {
+      await page?.getByText("Reschedule").click();
+    },
+    navigateToAvailableTimeSlot: async () => {
+      while (await page.getByRole("button", { name: "View next" }).isVisible()) {
+        await page.getByRole("button", { name: "View next" }).click();
+      }
+    },
+    selectFirstAvailableTime: async (page?: Page) => {
+      await page?.getByTestId("time").first().click();
     },
 
-    selectFirstAvailableTime: async () => {
-      await page.getByTestId("time").first().click();
+    fillRescheduleReasonAndConfirm: async (page?: Page) => {
+      await page?.getByPlaceholder(reschedulePlaceholderText).click();
+      await page?.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
+      await page?.getByTestId("confirm-reschedule-button").click();
     },
-
-    fillRescheduleReasonAndConfirm: async () => {
-      await page.getByPlaceholder(reschedulePlaceholderText).click();
-      await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
-      await page.getByTestId("confirm-reschedule-button").click();
-    },
-
-    cancelBookingWithReason: async (page: Page) => {
-      await page.getByTestId("cancel").click();
-      await page.getByTestId("cancel_reason").fill("Test cancel");
-      await page.getByTestId("confirm_cancel").click();
+    cancelBookingWithReason: async (page?: Page) => {
+      await page?.getByTestId("cancel").click();
+      await page?.getByTestId("cancel_reason").fill("Test cancel");
+      await page?.getByTestId("confirm_cancel").click();
     },
     assertBookingCanceled: async (page: Page) => {
       await expect(page.getByTestId("cancelled-headline")).toBeVisible();
@@ -275,6 +282,10 @@ export function createBookingPageFixture(page: Page) {
     },
 
     assertBookingRescheduled: async (page: Page) => {
+      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+
+    assertBookingScheduled: async (page: Page) => {
       await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
     },
 
@@ -355,6 +366,178 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    editEventType: async () => {
+      // Edit title
+      await page.getByLabel("Title").click();
+      await page.getByLabel("Title").fill("30 min test");
+
+      // Edit description
+      await page.locator("#event-type-form").getByRole("paragraph").first().click();
+      await page.locator("#event-type-form").getByRole("paragraph").first().fill("test");
+
+      // Click on markdown buttons
+      await page.locator("#event-type-form").getByRole("button").first().click();
+      await page.locator("#event-type-form").getByRole("button").nth(1).click();
+      await page.locator("#event-type-form").getByRole("button").nth(2).click();
+
+      // Edit url
+      await page.getByLabel("URL").click();
+      await page.getByLabel("URL").fill("30-min test");
+    },
+    getByExactTextAndClick: async (text: string) => {
+      return page.getByText(text, { exact: true }).click();
+    },
+    verifyTextVisibility: async (text: string) => {
+      await expect(page.locator("div").filter({ hasText: text }).first()).toBeVisible();
+    },
+    selectLocation: async (
+      location: string,
+      options?: {
+        shouldAddAnother: boolean;
+        additionalLocations: string[];
+        shouldOpenSelector?: boolean;
+        displayOnBookingPage?: boolean;
+      }
+    ) => {
+      await page.locator("#location-select").click();
+      location === "Cal Video"
+        ? await page.getByText(`${location} (Global)`, { exact: true }).click()
+        : await page.getByText(location, { exact: true }).click();
+      if (options?.shouldAddAnother) {
+        await page.getByTestId("add-location").click();
+        for (const location of options?.additionalLocations) {
+          switch (location) {
+            case "In Person (Organizer Address)":
+              await page.getByText("In Person (Organizer Address)", { exact: true }).click();
+              await page?.locator('input[name="locations\\[3\\]\\.address"]').click();
+              await page?.locator('input[name="locations\\[3\\]\\.address"]').fill("test location");
+              options?.displayOnBookingPage && (await page?.getByTestId("display-location").check());
+              await page
+                ?.getByTitle("Location will be visible before the booking is confirmed")
+                .locator("svg")
+                .hover();
+              page !== undefined &&
+                (await expect(
+                  page.getByTitle("Location will be visible before the booking is confirmed").locator("svg")
+                ).toBeVisible());
+              await page.getByTestId("add-location").click();
+              break;
+            case "Link meeting":
+              await page.getByText("Link meeting", { exact: true }).click();
+
+              await page?.locator('input[name="locations\\[4\\]\\.link"]').click();
+              await page?.locator('input[name="locations\\[4\\]\\.link"]').fill("test");
+              options?.displayOnBookingPage && (await page?.getByTestId("display-location").check());
+              await page?.getByTestId("update-eventtype").click();
+
+              // Check if the invalid url warning is showing when the link is invalid
+              page !== undefined && (await expect(page.getByText("Invalid url")).toBeVisible());
+              await page?.locator('input[name="locations\\[4\\]\\.link"]').fill("https:test.com");
+              await page?.getByTestId("update-eventtype").click();
+              await page.getByTestId("add-location").click();
+              break;
+            case "Organizer Phone Number":
+              await page.getByText("Organizer Phone Number", { exact: true }).click();
+
+              await page?.locator('input[name="locations\\[5\\]\\.hostPhoneNumber"]').clear();
+              await page?.locator('input[name="locations\\[5\\]\\.hostPhoneNumber"]').click();
+              await page
+                ?.locator('input[name="locations\\[5\\]\\.hostPhoneNumber"]')
+                .fill("+55 32 988776655");
+              options?.displayOnBookingPage && (await page?.getByTestId("display-location").check());
+              await page.getByTestId("add-location").click();
+              break;
+            default:
+              await page.getByText(location, { exact: true }).click();
+              await page.getByTestId("add-location").click();
+          }
+        }
+      }
+    },
+    addLocation: async (page?: Page) => {
+      await page?.getByTestId("add-location").click();
+      await page?.locator("#location-select").click();
+    },
+
+    fillLocationInformation: async (
+      locationType: string,
+      page?: Page,
+      options?: { displayOnBookingPage: boolean }
+    ) => {
+      switch (locationType) {
+        case "In Person (Organizer Address)":
+          await page?.locator('input[name="locations\\[0\\]\\.address"]').click();
+          await page?.locator('input[name="locations\\[0\\]\\.address"]').fill("test location");
+          options?.displayOnBookingPage && (await page?.getByTestId("display-location").check());
+          await page
+            ?.getByTitle("Location will be visible before the booking is confirmed")
+            .locator("svg")
+            .hover();
+          page !== undefined &&
+            (await expect(
+              page.getByTitle("Location will be visible before the booking is confirmed").locator("svg")
+            ).toBeVisible());
+          break;
+        case "Link meeting":
+          await page?.locator('input[name="locations\\[0\\]\\.link"]').click();
+          await page?.locator('input[name="locations\\[0\\]\\.link"]').fill("test");
+          options?.displayOnBookingPage && (await page?.getByTestId("display-location").check());
+          await page?.getByTestId("update-eventtype").click();
+          page !== undefined && (await expect(page.getByText("Invalid url")).toBeVisible());
+          await page?.locator('input[name="locations\\[0\\]\\.link"]').fill("https:test.com");
+          await page?.getByTestId("update-eventtype").click();
+          break;
+        case "Organizer Phone Number":
+          await page?.locator('input[name="locations\\[0\\]\\.hostPhoneNumber"]').clear();
+          await page?.locator('input[name="locations\\[0\\]\\.hostPhoneNumber"]').click();
+          await page?.locator('input[name="locations\\[0\\]\\.hostPhoneNumber"]').fill("+55 32 988776655");
+          options?.displayOnBookingPage && (await page?.getByTestId("display-location").check());
+      }
+    },
+    removeLocation: async () => {
+      await page.getByRole("button", { name: "Remove" }).click();
+    },
+    assertLocationRemoved: async () => {
+      await expect(page.getByText("Select...")).toBeVisible();
+    },
+    assertLocationAdded: async (page: Page, name: string, options?: { displayOnBookingPage: boolean }) => {
+      if (name === "In Person (Organizer Address)") {
+        options?.displayOnBookingPage
+          ? await expect(page.getByText("test location").first()).toBeVisible()
+          : await expect(page.getByText(`${name}`).first()).toBeVisible();
+      } else if (name === "Link meeting") {
+        options?.displayOnBookingPage
+          ? await expect(page.getByText("https:test.com").first()).toBeVisible()
+          : await expect(page.getByText(`${name}`).first()).toBeVisible();
+      } else if (name === "Organizer Phone Number") {
+        options?.displayOnBookingPage
+          ? await expect(page?.getByRole("paragraph").filter({ hasText: "+5532988776655" })).toBeVisible()
+          : await expect(page.getByText(`${name}`).first()).toBeVisible();
+      } else {
+        await expect(page.getByText(`${name}`).first()).toBeVisible();
+      }
+    },
+    assertMultipleLocationsAdded: async (page: Page, names: string[], options?: { shouldHover: boolean }) => {
+      options?.shouldHover && page.getByText("6 location options").hover();
+      for (const name of names) {
+        await expect(page.getByText(`${name}`).first()).toBeVisible();
+      }
+    },
+    assertInputIsRequired: async (page: Page) => {
+      await expect(page.getByTestId("error-message-location")).toBeVisible();
+    },
+    confirmBooking: async (page: Page) => {
+      await page.getByTestId("confirm-book-button").click();
+    },
+    fillBookingFormLocation: async (page: Page, name: string, location?: string) => {
+      if (location === "Attendee Phone Number") {
+        await page.getByPlaceholder("Enter phone number").clear();
+        await page.getByPlaceholder("Enter phone number").fill(name);
+      } else {
+        await page.getByPlaceholder("Enter address").click();
+        await page.getByPlaceholder("Enter address").fill(name);
+      }
     },
   };
 }
