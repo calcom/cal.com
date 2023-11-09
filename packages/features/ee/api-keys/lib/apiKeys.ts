@@ -17,7 +17,7 @@ export const apiKeySchema = z.string({ required_error: "No apiKey provided" }).r
       return false;
     }
     // Extract the hash part and validate its format
-    const hashPart = value.slice(4); // Remove prefix
+    const hashPart = value.slice((process.env.API_KEY_PREFIX || "cal_").length); // Remove prefix
     const hashRegex = /^[a-f0-9]{32}$/i; // Regex for a 32-character hexadecimal hash
 
     return hashRegex.test(hashPart);
