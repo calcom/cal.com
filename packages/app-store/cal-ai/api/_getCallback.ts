@@ -20,7 +20,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return { url: `/apps/installed?error=${JSON.stringify({ message: "No Stripe Checkout Session ID" })}` };
   }
 
-  return withStripeCallback(checkoutId, slug, async ({ checkoutSession }) => {
+  const { url } = await withStripeCallback(checkoutId, slug, async ({ checkoutSession }) => {
     const ctx = await createContext({ req, res });
     const caller = apiKeysRouter.createCaller(ctx);
 
@@ -58,6 +58,8 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "cal-ai" }) };
   });
+
+  return res.redirect(url);
 }
 
 export default defaultResponder(getHandler);

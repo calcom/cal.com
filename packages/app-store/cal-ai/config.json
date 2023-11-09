@@ -3,7 +3,6 @@
   "name": "Cal.ai",
   "slug": "cal-ai",
   "type": "cal-ai_automation",
-  "trial": 14,
   "logo": "icon.png",
   "url": "https://cal.ai",
   "variant": "automation",
@@ -18,7 +17,6 @@
   "paid": {
     "price": 25,
     "priceId": "price_1OACLADVtJmy8ddXXgEPHXPo",
-    "mode": "subscription",
-    "trial": 14
+    "mode": "subscription"
   }
 }

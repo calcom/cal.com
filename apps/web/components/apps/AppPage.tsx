@@ -172,6 +172,7 @@ export const AppPage = ({
                       style: "currency",
                       currency: "USD",
                       useGrouping: false,
+                      maximumFractionDigits: 0,
                     }).format(paid.price)}
                     /mo
                   </Badge>
