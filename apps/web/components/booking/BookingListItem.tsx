@@ -32,8 +32,6 @@ import {
 } from "@calcom/ui";
 import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
 
-import useMeQuery from "@lib/hooks/useMeQuery";
-
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -376,7 +374,12 @@ function BookingListItem(booking: BookingItemProps) {
               ) : null}
               {recurringDates !== undefined && (
                 <div className="text-muted mt-2 text-sm">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
                 </div>
               )}
             </div>
@@ -418,7 +421,12 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {recurringDates !== undefined && (
                 <div className="text-muted text-sm sm:hidden">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
                 </div>
               )}
             </div>
@@ -500,9 +508,6 @@ const RecurringBookingsTooltip = ({
   userTimeZone,
   userTimeFormat,
 }: RecurringBookingsTooltipProps) => {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
   const {
     t,
     i18n: { language },
