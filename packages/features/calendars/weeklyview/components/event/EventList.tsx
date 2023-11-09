@@ -50,11 +50,6 @@ export function EventList({ day }: Props) {
           const nextEvent = eventsArray[idx + 1];
           const prevEvent = eventsArray[idx - 1];
 
-          console.log({
-            prevEvent,
-            nextEvent,
-            title: event.title,
-          });
 
           if (!longestRef.current) {
             longestRef.current = {
