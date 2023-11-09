@@ -354,15 +354,15 @@ const main = async () => {
     loadBalancerTargetGroup: apiAlb.defaultTargetGroup,
     ecsClusterArn: ecsCluster.cluster.arn,
     serviceName: addSuffixToName("cal-api-fargate"),
-    cpu: 512,
-    memory: 1000,
+    cpu: 1024,
+    memory: 2000,
   });
   const _ = createAutoScalingCpu({
     name: addSuffixToName("cal-api-cpu-scaling"),
     ecsClusterName: ecsCluster.cluster.name,
     serviceName: apiService.service.name,
     minCapacity: 1,
-    maxCapacity: 4,
+    maxCapacity: 3,
     cpuTargetValue: 75,
     scaleInCooldown: 120,
     scaleOutCooldown: 60,
