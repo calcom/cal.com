@@ -1,8 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
 
 /**
@@ -207,15 +205,8 @@ import { defaultResponder } from "@calcom/lib/server";
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   if (isAdmin) req.userId = req.body.userId || userId;
-  const userIp = getIP(req);
 
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: userIp,
-  });
-
-  const booking = await handleNewBooking(req);
-  return booking;
+  return await handleNewBooking(req);
 }
 
 export default defaultResponder(handler);
