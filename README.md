@@ -554,6 +554,10 @@ following
 
 [Follow these steps](./packages/app-store/zoho-bigin/)
 
+### Obtaining Pipedrive Client ID and Secret
+
+[Follow these steps](./packages/app-store/pipedrive-crm/)
+
 ## Workflows
 
 ### Setting up SendGrid for Email reminders
