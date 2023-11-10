@@ -17,7 +17,6 @@ const extraDaysConfig = {
 const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
-  const StickyOnDesktop = isMobile ? "div" : StickyBox;
   const extraDays = isTablet ? extraDaysConfig.tablet : extraDaysConfig.desktop;
 
   useInitalizeTroubleshooterStore({
@@ -28,7 +27,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
     <>
       <div
         className={classNames(
-          "text-default flex min-h-full w-full flex-col items-center overflow-clip [--troublehooster-meta-width:350px] lg:[--troubleshooter-meta-width:430px]"
+          "text-default grid   min-h-full w-full flex-col items-center overflow-clip [--troublehooster-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
         )}>
         <div
           style={{
@@ -48,11 +47,11 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
           <div className={classNames("bg-default dark:bg-muted sticky top-0 z-10 [grid-area:header]")}>
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>
-          <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
-            <div className="max-w-screen flex w-full flex-col [grid-area:meta] md:w-[var(--troubleshooter-meta-width)]">
+          <StickyBox key="meta" className={classNames("relative z-10")}>
+            <div className="">
               <TroubleshooterSidebar />
             </div>
-          </StickyOnDesktop>
+          </StickyBox>
 
           <div className="border-subtle sticky top-0 ml-[-1px] h-full [grid-area:main] md:border-l ">
             <LargeCalendar extraDays={extraDays} />

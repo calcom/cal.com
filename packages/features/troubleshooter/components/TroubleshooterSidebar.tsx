@@ -29,7 +29,7 @@ export const TroubleshooterSidebar = () => {
   const { t } = useLocale();
 
   return (
-    <div className="relative z-10 flex w-full flex-col gap-6 py-6 pr-6">
+    <div className="relative z-10 hidden w-full flex-col gap-6 py-6 pr-6 sm:flex">
       <BackButtonInSidebar name={t("troubleshooter")} />
       <EventTypeSelect />
       <EventScheduleItem />
