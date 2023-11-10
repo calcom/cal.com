@@ -36,6 +36,7 @@ export async function handleConfirmation(args: {
       length: number;
       price: number;
       requiresConfirmation: boolean;
+      metadata?: Prisma.JsonValue;
       title: string;
       teamId?: number | null;
       parentId?: number | null;
