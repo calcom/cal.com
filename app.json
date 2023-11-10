@@ -83,6 +83,10 @@
     "NEXT_PUBLIC_TEAM_IMPERSONATION": {
       "description": "Set the following value to true if you wish to enable Team Impersonation",
       "value": "false"
+    },
+    "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL": {
+      "description": "Control time intervals on a user's Schedule availability",
+      "value": "15"
     }
   },
   "scripts": {
