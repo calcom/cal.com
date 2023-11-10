@@ -2103,5 +2103,6 @@
   "manage_availability_schedules":"Manage availability schedules",
   "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
   "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",
+  "install_calendar":"Install Calendar",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -68,7 +68,7 @@ function EmptyCalendarToggleItem() {
         </div>
       }>
       <div className="flex flex-col gap-3">
-        <Button color="secondary" className="justify-center gap-2">
+        <Button color="secondary" className="justify-center gap-2" href="/apps/categories/calendar">
           {t("install_calendar")}
         </Button>
       </div>
