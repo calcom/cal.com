@@ -87,8 +87,8 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
-      throw new Error("Payment could not be created");
+      log.error("Paypal: Payment could not be created for bookingId", bookingId);
+      throw new Error("payment_not_created_error");
     }
   }
   async update(): Promise<Payment> {
@@ -166,8 +166,8 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
-      throw new Error("Payment could not be created");
+      log.error("Paypal: Payment method could not be collected for bookingId", bookingId);
+      throw new Error("Paypal: Payment method could not be collected");
     }
   }
   chargeCard(

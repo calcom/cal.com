@@ -36,7 +36,7 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
       if (!booking || !this.credentials?.account_lightning_address) {
-        throw new Error();
+        throw new Error("Ably: Booking or Lightning address not found");
       }
 
       const uid = uuidv4();
@@ -80,8 +80,8 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
-      throw new Error("Payment could not be created");
+      log.error("Ably: Payment could not be created", bookingId);
+      throw new Error("payment_not_created_error");
     }
   }
   async update(): Promise<Payment> {

@@ -680,10 +680,11 @@ async function handler(
 
   const fullName = getFullName(bookerName);
 
+  // Why are we only using "en" locale
   const tGuests = await getTranslation("en", "common");
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
-  if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+  if (!eventType) throw new HttpError({ statusCode: 404, message: "EventType not Found" });
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -2683,7 +2684,7 @@ const findBookingQuery = async (bookingId: number) => {
 
   // This should never happen but it's just typescript safe
   if (!foundBooking) {
-    throw new Error("Internal Error.");
+    throw new Error("Internal Error. Couldn't found booking");
   }
 
   // Don't leak any sensitive data

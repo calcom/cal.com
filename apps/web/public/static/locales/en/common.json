@@ -56,6 +56,8 @@
   "a_refund_failed": "A refund failed",
   "awaiting_payment_subject": "Awaiting Payment: {{title}} on {{date}}",
   "meeting_awaiting_payment": "Your meeting is awaiting payment",
+  "payment_not_created_error":"Payment could not be created",
+  "couldnt_charge_card_error":"Could not charge card for Payment",
   "help": "Help",
   "price": "Price",
   "paid": "Paid",
