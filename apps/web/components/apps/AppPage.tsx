@@ -173,7 +173,7 @@ export const AppPage = ({
                       currency: "USD",
                       useGrouping: false,
                       maximumFractionDigits: 0,
-                    }).format(paid.price)}
+                    }).format(paid.priceInUsd)}
                     /{t("month")}
                   </Badge>
                 </>
