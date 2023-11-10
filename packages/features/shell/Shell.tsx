@@ -55,7 +55,6 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  BarChart,
   Calendar,
   ChevronDown,
   Clock,
@@ -586,11 +585,6 @@ const navigation: NavigationItemType[] = [
     name: "workflows",
     href: "/workflows",
     icon: Zap,
-  },
-  {
-    name: "insights",
-    href: "/insights",
-    icon: BarChart,
   },
 ];
 
