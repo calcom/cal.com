@@ -31,9 +31,10 @@ type DynamicLinkBasedEventLocation = {
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
 type PaidAppData = {
-  price: number;
+  priceInUsd: number;
   priceId: string;
   trial?: number;
+  mode?: "subscription" | "one_time";
 };
 
 type AppData = {

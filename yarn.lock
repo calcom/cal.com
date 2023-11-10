@@ -3488,9 +3488,7 @@ __metadata:
   resolution: "@calcom/cal-ai@workspace:packages/app-store/cal-ai"
   dependencies:
     "@calcom/lib": "*"
-    "@calcom/prisma": "workspace:^"
     "@calcom/types": "*"
-    stripe: ^14.1.0
   languageName: unknown
   linkType: soft
 
@@ -4040,7 +4038,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/prisma@*, @calcom/prisma@workspace:^, @calcom/prisma@workspace:packages/prisma":
+"@calcom/prisma@*, @calcom/prisma@workspace:packages/prisma":
   version: 0.0.0-use.local
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
@@ -37161,7 +37159,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:^14.1.0, stripe@npm:^14.3.0":
+"stripe@npm:^14.3.0":
   version: 14.3.0
   resolution: "stripe@npm:14.3.0"
   dependencies:
