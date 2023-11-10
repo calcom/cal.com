@@ -431,11 +431,14 @@ export const Components: Record<FieldType, Component> = {
               ) : (
                 // Show option itself as label because there is just one option
                 <>
-                  <Label>
+                  <Label className="flex">
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}
+                    {options[0].value === "phone" && (
+                      <InfoBadge content={t("number_in_international_format")} />
+                    )}
                   </Label>
                 </>
               )}
