@@ -81,6 +81,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
   const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
+  if (!hmacSecret) {
+    return res.status(405).json({ message: "No Daily Webhook Secret" });
+  }
   console.log("hmacSecret: ", hmacSecret);
   const signature = `${req.headers["X-Webhook-Timestamp"]}.${JSON.stringify(req.body)}`;
   console.log("webhook-timestamp: ", req.headers["X-Webhook-Timestamp"]);
