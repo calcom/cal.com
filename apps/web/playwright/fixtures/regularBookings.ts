@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import { randomString } from "@calcom/lib/random";
 
 import type { createUsersFixture } from "./users";
 
@@ -18,6 +19,8 @@ type BookingOptions = {
   isAllRequired?: boolean;
   isMultiSelect?: boolean;
 };
+
+type teamBookingtypes = { isManagedType?: boolean; isRoundRobinType?: boolean; isCollectiveType?: boolean };
 
 interface QuestionActions {
   [key: string]: () => Promise<void>;
@@ -190,8 +193,21 @@ const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
 
 export function createBookingPageFixture(page: Page) {
   return {
-    goToEventType: async (eventType: string) => {
-      await page.getByRole("link", { name: eventType }).click();
+    goToEventType: async (
+      eventType: string,
+      options?: {
+        clickOnFirst?: boolean;
+        clickOnLast?: boolean;
+      }
+    ) => {
+      if (options?.clickOnFirst) {
+        await page.getByRole("link", { name: eventType }).first().click();
+      }
+      if (options?.clickOnLast) {
+        await page.getByRole("link", { name: eventType }).last().click();
+      } else {
+        await page.getByRole("link", { name: eventType }).click();
+      }
     },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
@@ -219,8 +235,12 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
-    updateEventType: async () => {
+    updateEventType: async (options?: { shouldCheck: boolean }) => {
       await page.getByTestId("update-eventtype").click();
+      options?.shouldCheck &&
+        (await expect(
+          page.getByRole("button", { name: "Test Managed Event Type event type updated successfully" })
+        ).toBeVisible());
     },
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
@@ -338,7 +358,13 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    checkField: async (question: string) => {
+
+    checkField: async (question: string, options?: { isOptional: boolean }) => {
+      if (options?.isOptional) {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Optional")).toBeVisible();
+      } else {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Required")).toBeVisible();
+      }
       await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
     },
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
@@ -355,6 +381,102 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    createTeam: async (name: string) => {
+      await page.getByRole("link", { name: "Teams" }).click();
+      await page.getByTestId("new-team-btn").click();
+      await page.getByPlaceholder("Acme Inc.").click();
+      await page.getByPlaceholder("Acme Inc.").fill(`${name}-${randomString(3)}`);
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByRole("button", { name: "Publish team" }).click();
+
+      await page.getByTestId("vertical-tab-Back").click();
+    },
+    createTeamEventType: async (name: string, options: teamBookingtypes) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-0").click();
+
+      // We first simulate to create a default event type to check if managed option is not available
+      await expect(
+        page
+          .locator("div")
+          .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
+      ).toBeHidden();
+      await page.getByTestId("dialog-rejection").click();
+
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-team-1").click();
+      await page.getByPlaceholder("Quick Chat").fill(name);
+      if (options.isCollectiveType) {
+        await page
+          .locator("div")
+          .filter({ hasText: "CollectiveSchedule meetings when all selected team members are available." })
+          .getByRole("radio")
+          .first()
+          .click();
+      }
+
+      if (options.isRoundRobinType) {
+        await page
+          .locator("div")
+          .filter({ hasText: "Round RobinCycle meetings between multiple team members." })
+          .getByRole("radio")
+          .nth(1)
+          .click();
+      }
+
+      if (options.isManagedType) {
+        await page
+          .locator("div")
+          .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
+          .getByRole("radio")
+          .last()
+          .click();
+        await expect(
+          page.getByText('"username" will be filled by the username of the members assigned')
+        ).toBeVisible();
+      }
+
+      await page.getByRole("button", { name: "Continue" }).click();
+      await expect(page.getByRole("button", { name: "event type created successfully" })).toBeVisible();
+      await page.getByTestId("update-eventtype").click();
+    },
+    removeManagedEventType: async () => {
+      await page
+        .locator("header")
+        .filter({ hasText: "Test Managed Event TypeSave" })
+        .getByRole("button")
+        .first()
+        .click();
+
+      // Check if the correct messages is showed in the dialog
+      await expect(
+        page.getByText("Members assigned to this event type will also have their event types deleted.")
+      ).toBeVisible();
+      await expect(
+        page.getByText("Anyone who they've shared their link with will no longer be able to book using it")
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Yes, delete" }).click();
+
+      // Check if the correct image is showed when there is no event type
+      await expect(page.getByTestId("empty-screen")).toBeVisible();
+    },
+    assertManagedEventTypeDeleted: async () => {
+      await expect(page.getByRole("button", { name: "Event type deleted successfully" })).toBeVisible();
+    },
+    deleteTeam: async () => {
+      await page.getByRole("link", { name: "Teams" }).click();
+      await page.getByRole("link", { name: "Team Logo Test Team" }).click();
+      await page.getByRole("button", { name: "Disband Team" }).click();
+      await page.getByRole("button", { name: "Yes, disband team" }).click();
+
+      // Check if the correct image is showed when there is no team
+      await expect(page.getByRole("img", { name: "Cal.com is better with teams" })).toBeVisible();
+    },
+    assertTeamDeleted: async () => {
+      await expect(
+        page.getByRole("button", { name: "Your team has been disbanded successfully" })
+      ).toBeVisible();
     },
   };
 }
