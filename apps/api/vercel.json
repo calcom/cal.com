@@ -1,6 +1,6 @@
 {
   "functions": {
-    "/api/slots": {
+    "*": {
       "memory": 512
     }
   }
