@@ -55,6 +55,9 @@ COPY --from=build /app/apps/api/.next ./apps/api/.next
 COPY --from=build /app/apps/api/.turbo ./apps/api/.turbo
 COPY --from=build /app/turbo.json ./turbo.json
 COPY --from=build /app/yarn.lock ./yarn.lock
+COPY --from=build /app/packages/config ./packages/config
+COPY --from=build /app/packages/tsconfig ./packages/tsconfig
+COPY --from=build /app/packages/types ./packages/types
 
 # Expose port 80
 EXPOSE 80
