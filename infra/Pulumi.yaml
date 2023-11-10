@@ -1,0 +1,3 @@
+name: cal-infra
+runtime: nodejs
+description: cal.com IaC

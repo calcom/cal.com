@@ -97,5 +97,4 @@ apps/auth
 !.yarn/sdks
 !.yarn/versions
 infra/.yarn
-infra/Pulumi.yaml
-infra/Pulumi.*.yaml
+
