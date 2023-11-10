@@ -39,13 +39,13 @@ export async function handleConfirmation(args: {
       title: string;
       teamId?: number | null;
       parentId?: number | null;
-      metadata?: Prisma.JsonValue;
       workflows?: {
         workflow: Workflow & {
           steps: WorkflowStep[];
         };
       }[];
     } | null;
+    metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
     userId: number | null;
@@ -157,7 +157,10 @@ export async function handleConfirmation(args: {
             create: scheduleResult.referencesToCreate,
           },
           paid,
-          metadata: { ...recurringBooking.metadata, videoCallUrl },
+          metadata: {
+            ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
+            videoCallUrl,
+          },
         },
         select: {
           eventType: {
@@ -209,7 +212,7 @@ export async function handleConfirmation(args: {
         references: {
           create: scheduleResult.referencesToCreate,
         },
-        metadata: { ...booking.metadata, videoCallUrl },
+        metadata: { ...(typeof booking.metadata === "object" ? booking.metadata : {}), videoCallUrl },
       },
       select: {
         eventType: {
