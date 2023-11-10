@@ -204,20 +204,22 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
-    if (paid) {
-      return (
-        <Button
-          color="secondary"
-          className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-          StartIcon={Plus}
-          data-testid="install-app-button"
-          {...props}>
-          {paid.trial ? t("start_paid_trial") : t("install_paid_app")}
-        </Button>
-      );
-    }
+  // Paid apps don't support team installs at the moment
+  // Also, cal.ai(the only paid app at the moment) doesn't support team install either
+  if (paid) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon={Plus}
+        data-testid="install-app-button"
+        {...props}>
+        {paid.trial ? t("start_paid_trial") : t("install_paid_app")}
+      </Button>
+    );
+  }
 
+  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
     return (
       <Button
         color="secondary"
