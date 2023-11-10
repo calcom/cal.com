@@ -1,6 +1,6 @@
 {
   "functions": {
-    "**/**": {
+    "apps/**/**.ts": {
       "memory": 512
     }
   }
