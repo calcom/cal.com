@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
 import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
@@ -8,6 +8,7 @@ import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCard
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
@@ -64,9 +65,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
+    methods,
+    t
   );
+  const appsDisableProps = shouldLockDisableProps("apps", { simple: true });
+  const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
 
   const appsWithTeamCredentials = eventTypeApps?.items.filter((app) => app.teams.length) || [];
   const cardsForAppsWithTeams = appsWithTeamCredentials.map((app) => {
@@ -80,7 +83,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           key={app.slug}
           app={app}
           eventType={eventType}
-          {...shouldLockDisableProps("apps")}
         />
       );
     }
@@ -103,7 +105,6 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               },
             }}
             eventType={eventType}
-            {...shouldLockDisableProps("apps")}
           />
         );
       }
@@ -115,12 +116,28 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     <>
       <div>
         <div className="before:border-0">
-          {isManagedEventType && (
+          {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity="neutral"
+              severity={appsDisableProps.isLocked ? "neutral" : "green"}
               className="mb-2"
-              title={t("locked_for_members")}
-              message={t("locked_apps_description")}
+              title={
+                <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>
+                  {lockedText[0].toUpperCase()}
+                  {lockedText.slice(1)} {isManagedEventType ? "for members" : "by team admins"}
+                </Trans>
+              }
+              actions={<div className="flex h-full items-center">{appsDisableProps.LockedIcon}</div>}
+              message={
+                <Trans
+                  i18nKey={`apps_${lockedText}_${
+                    isManagedEventType ? "for_members" : "by_team_admins"
+                  }_description`}>
+                  {isManagedEventType ? "Members" : "You"}{" "}
+                  {appsDisableProps.isLocked
+                    ? "will be able to see the active apps but will not be able to edit any app settings"
+                    : "will be able to see the active apps and will be able to edit any app settings"}
+                </Trans>
+              }
             />
           )}
           {!isLoading && !installedApps?.length ? (
@@ -129,9 +146,9 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
-                isChildrenManagedEventType && !isManagedEventType ? (
+                appsDisableProps.disabled ? (
                   <Button StartIcon={Lock} color="secondary" disabled>
-                    {t("locked_by_admin")}
+                    {t("locked_by_team_admin")}
                   </Button>
                 ) : (
                   <Button target="_blank" color="secondary" href="/apps">
@@ -151,13 +168,12 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                   key={app.slug}
                   app={app}
                   eventType={eventType}
-                  {...shouldLockDisableProps("apps")}
                 />
               );
           })}
         </div>
       </div>
-      {!shouldLockDisableProps("apps").disabled && (
+      {!appsDisableProps.disabled && (
         <div className="bg-muted mt-6 rounded-md p-8">
           {!isLoading && notInstalledApps?.length ? (
             <>

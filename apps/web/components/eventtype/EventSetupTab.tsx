@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import type { MultiValue } from "react-select";
@@ -11,6 +11,7 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, LocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -147,11 +148,7 @@ export const EventSetupTab = (
   );
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
-    useLockedFieldsManager(
-      eventType,
-      t("locked_fields_admin_description"),
-      t("locked_fields_member_description")
-    );
+    useLockedFieldsManager(eventType, formMethods, t);
 
   const Locations = () => {
     const { t } = useLocale();
@@ -474,7 +471,7 @@ export const EventSetupTab = (
             {...formMethods.register("title")}
           />
           <div>
-            <Label>
+            <Label htmlFor="editor">
               {t("description")}
               {shouldLockIndicator("description")}
             </Label>
@@ -602,7 +599,7 @@ export const EventSetupTab = (
 
         <div className="border-subtle rounded-lg border p-6">
           <div>
-            <Skeleton as={Label} loadingClassName="w-16">
+            <Skeleton as={Label} loadingClassName="w-16" htmlFor="locations">
               {t("location")}
               {shouldLockIndicator("locations")}
             </Skeleton>

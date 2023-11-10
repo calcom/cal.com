@@ -2,9 +2,10 @@ import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
-test.afterEach(({ users }) => users.deleteAll());
+test.afterAll(({ users }) => users.deleteAll());
+test.setTimeout(120000);
 
-test.describe("Managed Event Types tests", () => {
+test.describe("Managed Event Types", () => {
   test("Can create managed event type", async ({ page, users }) => {
     // Creating the owner user of the team
     const adminUser = await users.create();
@@ -50,7 +51,7 @@ test.describe("Managed Event Types tests", () => {
       await expect(page.locator('input[name="title"]')).toBeEditable();
       await expect(page.locator('input[name="slug"]')).toBeEditable();
       await expect(page.locator('input[name="length"]')).toBeEditable();
-      await adminUser.logout();
+      await adminUser.apiLogin();
     });
 
     await test.step("Managed event type exists for added member", async () => {
@@ -62,7 +63,7 @@ test.describe("Managed Event Types tests", () => {
       await page.locator('button[data-testid^="accept-invitation"]').click();
       await page.getByText("Member").waitFor();
 
-      await memberUser.logout();
+      await page.goto("/auth/logout");
 
       // Coming back as team owner to assign member user to managed event
       await adminUser.apiLogin();
@@ -72,12 +73,12 @@ test.describe("Managed Event Types tests", () => {
       await page.locator('[class$="control"]').filter({ hasText: "Select..." }).click();
       await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
-      await page.getByTestId("toast-success").waitFor();
+      await page.waitForLoadState("networkidle");
 
-      await adminUser.logout();
+      await page.goto("/auth/logout");
     });
 
-    await test.step("Managed event type has locked fields for added member", async () => {
+    await test.step("Managed event type has default locked fields for added member", async () => {
       // Coming back as member user to see if there is a managed event present after assignment
       await memberUser.apiLogin();
       await page.goto("/event-types");
@@ -88,6 +89,42 @@ test.describe("Managed Event Types tests", () => {
       await expect(page.locator('input[name="title"]')).not.toBeEditable();
       await expect(page.locator('input[name="slug"]')).not.toBeEditable();
       await expect(page.locator('input[name="length"]')).not.toBeEditable();
+
+      await page.goto("/auth/logout");
+    });
+
+    await test.step("Managed event type provides discrete field lock/unlock state for admin", async () => {
+      await adminUser.apiLogin();
+      await page.goto("/event-types");
+
+      await page.getByTestId("event-types").locator('a[title="managed"]').click();
+      await page.waitForURL("event-types/**");
+
+      // Locked by default
+      const titleLockIndicator = page.getByTestId("locked-indicator-title");
+      await expect(titleLockIndicator).toBeVisible();
+      await expect(titleLockIndicator.locator("[data-state='checked']")).toHaveCount(1);
+
+      // Proceed to unlock and check that it got unlocked
+      titleLockIndicator.click();
+      await expect(titleLockIndicator.locator("[data-state='checked']")).toHaveCount(0);
+      await expect(titleLockIndicator.locator("[data-state='unchecked']")).toHaveCount(1);
+
+      // Save changes
+      await page.locator('[type="submit"]').click();
+      await page.waitForLoadState("networkidle");
+
+      await page.goto("/auth/logout");
+    });
+
+    await test.step("Managed event type shows discretionally unlocked field to member", async () => {
+      await memberUser.apiLogin();
+      await page.goto("/event-types");
+
+      await page.getByTestId("event-types").locator('a[title="managed"]').click();
+      await page.waitForURL("event-types/**");
+
+      await expect(page.locator('input[name="title"]')).toBeEditable();
     });
   });
 });
