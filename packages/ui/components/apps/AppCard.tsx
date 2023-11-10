@@ -39,8 +39,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const { t } = useLocale();
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-
-  const enabledOnTeams = doesAppSupportTeamInstall(app.categories, app.concurrentMeetings);
+  const enabledOnTeams = doesAppSupportTeamInstall({
+    appCategories: app.categories,
+    concurrentMeetings: app.concurrentMeetings,
+    isPaid: !!app.paid,
+  });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
@@ -219,7 +222,10 @@ const InstallAppButtonChild = ({
     );
   }
 
-  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
+  if (
+    !userAdminTeams?.length ||
+    !doesAppSupportTeamInstall({ appCategories, concurrentMeetings, isPaid: !!paid })
+  ) {
     return (
       <Button
         color="secondary"

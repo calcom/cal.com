@@ -48,18 +48,27 @@ export const InstallAppButtonChild = ({
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
+  const shouldDisableInstallation = !multiInstall ? !!(credentials && credentials.length) : false;
 
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
     return (
-      <Button data-testid="install-app-button" {...props} color="primary" size="base">
+      <Button
+        data-testid="install-app-button"
+        {...props}
+        disabled={shouldDisableInstallation}
+        color="primary"
+        size="base">
         {paid.trial ? t("start_paid_trial") : t("install_paid_app")}
       </Button>
     );
   }
 
-  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
+  if (
+    !userAdminTeams?.length ||
+    !doesAppSupportTeamInstall({ appCategories, concurrentMeetings, isPaid: !!paid })
+  ) {
     return (
       <Button
         data-testid="install-app-button"
@@ -67,6 +76,7 @@ export const InstallAppButtonChild = ({
         // @TODO: Overriding color and size prevent us from
         // having to duplicate InstallAppButton for now.
         color="primary"
+        disabled={shouldDisableInstallation}
         size="base">
         {multiInstall ? t("install_another") : t("install_app")}
       </Button>
