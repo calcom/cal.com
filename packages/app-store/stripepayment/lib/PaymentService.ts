@@ -286,7 +286,7 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       console.error(`Could not charge card for payment ${payment.id}`, error);
-      log.error("Stripe: Could not charge card for paymentd", bookingId, JSON.stringify(error));
+      log.error("Stripe: Could not charge card for paymentd", _bookingId, JSON.stringify(error));
       throw new Error("couldnt_charge_card_error");
     }
   }
@@ -378,7 +378,7 @@ export class PaymentService implements IAbstractPaymentService {
       await this.stripe.paymentIntents.cancel(payment.externalId, { stripeAccount });
       return true;
     } catch (e) {
-      log.error("Stripe: Unable to delete Payment in stripe of paymentId", bookingId, JSON.stringify(e));
+      log.error("Stripe: Unable to delete Payment in stripe of paymentId", paymentId, JSON.stringify(e));
       return false;
     }
   }
