@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "/slots/*": {
-      "memory": 512
-    }
-  }
-}
