@@ -83,7 +83,7 @@ const DateOverrideForm = ({
   const form = useForm({
     values: {
       range:
-        value && value[0].start.valueOf() - value[0].end.valueOf() !== 0
+        value && value[0].start.valueOf() !== value[0].end.valueOf()
           ? value.map((range) => ({
               start: new Date(
                 dayjs
