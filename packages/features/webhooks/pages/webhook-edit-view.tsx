@@ -12,7 +12,7 @@ import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const EditWebhook = () => {
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
 
   if (!id) return <SkeletonContainer />;
 
