@@ -51,10 +51,8 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -364,11 +362,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  recurringDatesInfo?: {
-    allRecurringDates: string[] | undefined;
-    currentRecurringIndex: number | undefined;
-  }
+  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
@@ -623,19 +617,16 @@ async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
     isNotAnApiCall = false,
+    skipAvailabilityCheck = false,
   }: {
     isNotAnApiCall?: boolean;
+    skipAvailabilityCheck?: boolean;
   } = {
     isNotAnApiCall: false,
+    skipAvailabilityCheck: false,
   }
 ) {
   const { userId } = req;
-  const userIp = getIP(req);
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: userIp,
-  });
 
   // handle dynamic user
   let eventType =
@@ -705,6 +696,7 @@ async function handler(
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
+      skipAvailabilityCheck,
       paymentAppData: {
         enabled: paymentAppData.enabled,
         price: paymentAppData.price,
@@ -907,7 +899,7 @@ async function handler(
     }
   }
 
-  if (!eventType.seatsPerTimeSlot) {
+  if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
@@ -924,10 +916,6 @@ async function handler(
         dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
-      },
-      {
-        allRecurringDates,
-        currentRecurringIndex,
       }
     );
 

@@ -25,6 +25,7 @@ import {
   SkeletonContainer,
   SkeletonText,
   showToast,
+  Label,
 } from "@calcom/ui";
 import { Plus, Calendar } from "@calcom/ui/components/icon";
 
@@ -113,17 +114,20 @@ const CalendarsView = () => {
                 <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
                   {t("add_to_calendar")}
                 </h2>
-                <p className="text-default text-sm leading-tight">{t("add_to_calendar_description")}</p>
+                <p className="text-subtle text-sm leading-tight">{t("add_to_calendar_description")}</p>
               </div>
               <div className="border-subtle flex w-full flex-col space-y-3 border border-x border-y-0 px-4 py-6 sm:px-6">
-                <DestinationCalendarSelector
-                  hidePlaceholder
-                  value={selectedDestinationCalendarOption?.externalId}
-                  onChange={(option) => {
-                    setSelectedDestinationCalendar(option);
-                  }}
-                  isLoading={mutation.isLoading}
-                />
+                <div>
+                  <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
+                  <DestinationCalendarSelector
+                    hidePlaceholder
+                    value={selectedDestinationCalendarOption?.externalId}
+                    onChange={(option) => {
+                      setSelectedDestinationCalendar(option);
+                    }}
+                    isLoading={mutation.isLoading}
+                  />
+                </div>
               </div>
               <SectionBottomActions align="end">
                 <Button
