@@ -6,7 +6,7 @@
     }
   ],
   "functions": {
-    "pages/api/trpc/slots/*.ts": {
+    "pages/api/slots/*.ts": {
       "memory": 768
     }
   }
