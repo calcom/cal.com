@@ -1,13 +1,7 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/calendar-cache-cleanup",
-      "schedule": "0 5 * * *"
-    }
-  ],
   "functions": {
     "pages/api/slots/*.ts": {
-      "memory": 768
+      "memory": 512
     }
   }
 }
