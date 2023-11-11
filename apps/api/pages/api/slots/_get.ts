@@ -9,10 +9,6 @@ import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
-export const config = {
-  memory: 512,
-};
-
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const input = getScheduleSchema.parse(req.query);

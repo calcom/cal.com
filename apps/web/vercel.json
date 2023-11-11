@@ -6,7 +6,10 @@
     }
   ],
   "functions": {
-    "pages/api/trpc/slots/*.ts": {
+    "pages/api/trpc/public/[trpc].ts": {
+      "memory": 768
+    },
+    "pages/api/trpc/slots/[trpc].ts": {
       "memory": 768
     }
   }
