@@ -5,6 +5,7 @@ import z from "zod";
 
 import { sendAwaitingPaymentEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -13,6 +14,8 @@ import { paymentOptionEnum } from "../zod";
 import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
 import type { StripePaymentData, StripeSetupIntentData } from "./server";
+
+const log = logger.getSubLogger({ prefix: ["payment-service:stripe"] });
 
 export const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),

@@ -16,8 +16,4 @@ const logger = new Logger({
   },
 });
 
-export const setRequestId = (requestId: string | undefined) => {
-  logger.context.requestId = requestId;
-};
-
 export default logger;

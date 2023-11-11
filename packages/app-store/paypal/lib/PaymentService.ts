@@ -4,11 +4,14 @@ import z from "zod";
 
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
+
+const log = logger.getSubLogger({ prefix: ["payment-service:paypal"] });
 
 export const paypalCredentialKeysSchema = z.object({
   client_id: z.string(),
