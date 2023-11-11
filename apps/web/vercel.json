@@ -4,5 +4,10 @@
       "path": "/api/cron/calendar-cache-cleanup",
       "schedule": "0 5 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 512
+    }
+  }
 }
