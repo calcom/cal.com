@@ -6,6 +6,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
+import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
@@ -364,7 +365,8 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType }
+  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
+  loggerWithEventDetails: Logger<unknown>
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
@@ -416,7 +418,8 @@ async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    throw new Error("No available users found.");
+    loggerWithEventDetails.error(`No available users found.`);
+    throw new Error("no_available_users_found_error");
   }
   return availableUsers;
 }
@@ -539,7 +542,7 @@ async function getBookingData({
     return true;
   };
   if (!reqBodyWithEnd(reqBody)) {
-    throw new Error("Internal Error.");
+    throw new Error("request_body_end_time_internal_error");
   }
   // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
@@ -925,7 +928,8 @@ async function handler(
         dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
-      }
+      },
+      loggerWithEventDetails
     );
 
     const luckyUsers: typeof users = [];

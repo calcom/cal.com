@@ -450,20 +450,14 @@ const getError = (
   if (globalError) return globalError.message;
 
   const error = bookingMutation.error || recurringBookingMutation.error;
-  console.log("ERROR_IN_BOOK_EVENT_FORM", bookingMutation, error);
 
   return error.message ? (
     <>
-      {responseVercelIdHeader ?? ""} {error.message}
+      {responseVercelIdHeader ?? ""} {t(error.message)}
     </>
   ) : (
     <>{t("can_you_try_again")}</>
   );
-  // return error instanceof HttpError || error instanceof Error ? (
-  //   <>{t("can_you_try_again")}</>
-  // ) : (
-  //   "Unknown error"
-  // );
 };
 
 function useInitialFormValues({
