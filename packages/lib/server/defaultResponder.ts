@@ -5,10 +5,6 @@ import { performance } from "./perfObserver";
 
 type Handle<T> = (req: NextApiRequest, res: NextApiResponse) => Promise<T>;
 
-export const config = {
-  memory: 512,
-};
-
 /** Allows us to get type inference from API handler responses */
 export function defaultResponder<T>(f: Handle<T>) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
