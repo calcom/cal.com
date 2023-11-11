@@ -6,7 +6,7 @@
     }
   ],
   "functions": {
-    "api/**/*.js": {
+    "api/**/*.ts": {
       "memory": 512
     }
   }
