@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -68,6 +68,41 @@ export const VerifyCodeDialog = ({
     },
   });
 
+  const verifyCode = useCallback(() => {
+    setError("");
+    if (value === "") {
+      setError("The code is a required field");
+    } else {
+      setIsLoading(true);
+      if (isUserSessionRequiredToVerify) {
+        verifyCodeMutationUserSessionRequired.mutate({
+          code: value,
+          email,
+        });
+      } else {
+        verifyCodeMutationUserSessionNotRequired.mutate({
+          code: value,
+          email,
+        });
+      }
+    }
+  }, [
+    email,
+    isUserSessionRequiredToVerify,
+    value,
+    verifyCodeMutationUserSessionNotRequired,
+    verifyCodeMutationUserSessionRequired,
+  ]);
+
+  useEffect(() => {
+    // trim the input value because "react-digit-input" creates a string of the given length,
+    // even when some digits are missing. And finally we use regex to check if the value consists
+    // of 6 non-empty digits.
+    if (isLoading || !/^\d{6}$/.test(value.trim())) return;
+
+    verifyCode();
+  }, [isLoading, value, verifyCode]);
+
   useEffect(() => onChange(""), [isOpenDialog]);
 
   const digitClassName = "h-12 w-12 !text-xl text-center";
@@ -110,28 +145,7 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
-              <Button
-                loading={isLoading}
-                disabled={isLoading}
-                onClick={() => {
-                  setError("");
-                  if (value === "") {
-                    setError("The code is a required field");
-                  } else {
-                    setIsLoading(true);
-                    if (isUserSessionRequiredToVerify) {
-                      verifyCodeMutationUserSessionRequired.mutate({
-                        code: value,
-                        email,
-                      });
-                    } else {
-                      verifyCodeMutationUserSessionNotRequired.mutate({
-                        code: value,
-                        email,
-                      });
-                    }
-                  }
-                }}>
+              <Button loading={isLoading} disabled={isLoading} onClick={verifyCode}>
                 {t("verify")}
               </Button>
             </DialogFooter>
