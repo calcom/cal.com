@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
 
-    await prisma.credential.create({
+    const credential = await prisma.credential.create({
       data: {
         type: "google_calendar",
         key,
@@ -49,6 +49,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         appId: "google-calendar",
       },
     });
+
+    // Set the primary calendar as the first selected calendar
+
+    // We can ignore this type error because we just validated the key when we init oAuth2Client
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    oAuth2Client.setCredentials(key);
+
+    const calendar = google.calendar({
+      version: "v3",
+      auth: oAuth2Client,
+    });
+
+    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
+
+    const primaryCal = cals.data.items?.find((cal) => cal.primary);
+
+    if (primaryCal?.id) {
+      await prisma.selectedCalendar.create({
+        data: {
+          userId: req.session.user.id,
+          externalId: primaryCal.id,
+          credentialId: credential.id,
+          integration: "google_calendar",
+        },
+      });
+    }
   }
 
   if (state?.installGoogleVideo) {
