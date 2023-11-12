@@ -1277,7 +1277,7 @@ async function handler(
       booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
       dayjs.utc(booking.startTime).format() === evt.startTime
     ) {
-      throw new HttpError({ statusCode: 409, message: "Already signed up for this booking." });
+      throw new HttpError({ statusCode: 409, message: "already_signed_up_for_this_booking_error" });
     }
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule

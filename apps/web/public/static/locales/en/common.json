@@ -63,6 +63,7 @@
   "create_calendar_event_error":"Unable to create Calendar event in Organizer's calendar",
   "update_calendar_event_error":"Unable to update Calendar event.",
   "delete_calendar_event_error":"Unable to delete Calendar event.",
+  "already_signed_up_for_this_booking_error":"You are already signed up for this booking.",
   "help": "Help",
   "price": "Price",
   "paid": "Paid",
