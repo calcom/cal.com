@@ -8,6 +8,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/checkForMultiplePaymentApps";
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
@@ -474,17 +476,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     // Prevent two payment apps to be enabled
-    let enabledPaymentApps = 0;
-    for (const appKey in metadata?.apps) {
-      const app = metadata?.apps[appKey];
-      if (app.price && app.enabled) {
-        enabledPaymentApps++;
-      }
-
-      if (enabledPaymentApps > 1) {
-        throw new Error(t("event_setup_multiple_payment_apps_error"));
-      }
-    }
+    // Ok to cast type here because this metadata will be updated as the event type metadata
+    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
 
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
@@ -587,7 +581,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             // Prevent two payment apps to be enabled
             let enabledPaymentApps = 0;
             for (const appKey in metadata?.apps) {
-              const app = metadata?.apps[appKey];
+              const app = metadata?.apps[appKey as keyof typeof appDataSchemas];
               if (app.price && app.enabled) {
                 enabledPaymentApps++;
               }
