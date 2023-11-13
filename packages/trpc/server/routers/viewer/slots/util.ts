@@ -266,7 +266,7 @@ export function getRegularOrDynamicEventType(
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
-  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
+  const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
   }

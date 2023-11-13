@@ -421,6 +421,7 @@ export const BookEventFormChild = ({
         onSuccess={() => {
           setVerifiedEmail(email);
           setEmailVerificationModalVisible(false);
+          bookEvent(bookingForm.getValues());
         }}
         isUserSessionRequiredToVerify={false}
       />

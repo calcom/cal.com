@@ -5,9 +5,13 @@ import { NextResponse } from "next/server";
 
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
+import { csp } from "@lib/csp";
+
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
+
+  requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -32,6 +36,18 @@ const middleware: NextMiddleware = async (req) => {
   }
 
   const res = routingForms.handle(url);
+
+  const { nonce } = csp(req, res ?? null);
+
+  if (!process.env.CSP_POLICY) {
+    req.headers.set("x-csp", "not-opted-in");
+  } else if (!req.headers.get("x-csp")) {
+    // If x-csp not set by gSSP, then it's initialPropsOnly
+    req.headers.set("x-csp", "initialPropsOnly");
+  } else {
+    req.headers.set("x-csp", nonce ?? "");
+  }
+
   if (res) {
     return res;
   }

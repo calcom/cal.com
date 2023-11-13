@@ -1,6 +1,8 @@
+import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
@@ -65,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  await prisma.credential.create({
+  const credential = await prisma.credential.create({
     data: {
       type: "office365_calendar",
       key: responseBody,
@@ -73,6 +75,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       appId: "office365-calendar",
     },
   });
+
+  // Set the isDefaultCalendar as selectedCalendar
+  // If a user has multiple calendars, keep on making calls until we find the default calendar
+  let defaultCalendar: OfficeCalendar | undefined = undefined;
+  let requestUrl = "https://graph.microsoft.com/v1.0/me/calendars?$select=id,isDefaultCalendar";
+  let finishedParsingCalendars = false;
+
+  while (!finishedParsingCalendars) {
+    const calRequest = await fetch(requestUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${responseBody.access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    let calBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(calRequest);
+
+    if (typeof responseBody === "string") {
+      calBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
+    }
+
+    const findDefaultCalendar = calBody.value.find((calendar) => calendar.isDefaultCalendar);
+
+    if (findDefaultCalendar) {
+      defaultCalendar = findDefaultCalendar;
+    }
+
+    if (calBody["@odata.nextLink"]) {
+      requestUrl = calBody["@odata.nextLink"];
+    } else {
+      finishedParsingCalendars = true;
+    }
+  }
+
+  if (defaultCalendar?.id && req.session?.user?.id) {
+    await prisma.selectedCalendar.create({
+      data: {
+        userId: req.session?.user.id,
+        integration: "office365_calendar",
+        externalId: defaultCalendar.id,
+        credentialId: credential.id,
+      },
+    });
+  }
 
   const state = decodeOAuthState(req);
   return res.redirect(
