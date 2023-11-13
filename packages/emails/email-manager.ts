@@ -87,6 +87,7 @@ export const sendScheduledEmails = async (
             new AttendeeScheduledEmail(
               {
                 ...calEvent,
+                ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
                 ...(eventNameObject && {
                   title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
                 }),
