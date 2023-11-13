@@ -17,7 +17,8 @@ export const config = {
 // This file is a catch-all for any integration related subscription/paid app.
 
 const handleSubscriptionUpdate = async (event: Stripe.Event) => {
-  const subscription = event.data as Stripe.Subscription;
+  const subscription = event.data.object as Stripe.Subscription;
+  if (!subscription.id) throw new HttpCode({ statusCode: 400, message: "Subscription ID not found" });
 
   const app = await prisma.credential.findFirst({
     where: {
@@ -40,7 +41,8 @@ const handleSubscriptionUpdate = async (event: Stripe.Event) => {
 };
 
 const handleSubscriptionDeleted = async (event: Stripe.Event) => {
-  const subscription = event.data as Stripe.Subscription;
+  const subscription = event.data.object as Stripe.Subscription;
+  if (!subscription.id) throw new HttpCode({ statusCode: 400, message: "Subscription ID not found" });
 
   const app = await prisma.credential.findFirst({
     where: {
@@ -52,6 +54,7 @@ const handleSubscriptionDeleted = async (event: Stripe.Event) => {
     throw new HttpCode({ statusCode: 202, message: "Received and discarded" });
   }
 
+  // should we delete the credential here rather than marking as inactive?
   await prisma.credential.update({
     where: {
       id: app.id,
