@@ -2060,5 +2060,6 @@
   "view_only_edit_availability_not_onboarded": "Người dùng chưa hoàn thành việc gia nhập. Bạn sẽ không thể đặt tình trạng lịch trống cho đến khi họ hoàn thành việc gia nhập.",
   "view_only_edit_availability": "Bạn đang xem tình trạng trống lịch của người dùng này. Bạn chỉ có thể sửa tình trạng trống lịch của riêng bạn.",
   "edit_users_availability": "Sửa tình trạng trống lịch của người dùng: {{username}}",
+  "extensive_whitelabeling": "Hướng dẫn bắt đầu và hỗ trợ kỹ thuật chuyên biệt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

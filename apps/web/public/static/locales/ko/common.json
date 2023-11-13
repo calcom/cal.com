@@ -2098,5 +2098,6 @@
   "view_overlay_calendar_events": "예약 충돌을 방지하려면 캘린더 이벤트를 확인하십시오.",
   "lock_timezone_toggle_on_booking_page": "예약 페이지의 시간대 잠금",
   "description_lock_timezone_toggle_on_booking_page": "예약 페이지에서 시간대를 잠그는 기능은 대면 이벤트에 유용합니다.",
+  "extensive_whitelabeling": "전담 온보딩 및 엔지니어링 지원",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
