@@ -14,6 +14,9 @@ export function setupAndTeardown() {
     process.env.STRIPE_WEBHOOK_SECRET = "MOCK_STRIPE_WEBHOOK_SECRET";
     // We are setting it in vitest.config.ts because otherwise it's too late to set it.
     // process.env.DAILY_API_KEY = "MOCK_DAILY_API_KEY";
+
+    // Ensure that Rate Limiting isn't enforced for tests
+    delete process.env.UPSTASH_REDIS_REST_URL;
     mockNoTranslations();
     // mockEnableEmailFeature();
     enableEmailFeature();
