@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
+export const getServerSideProps = async (_req: NextApiRequest, _res: NextApiResponse) => {
   const targetUrl = "https://dashboard.stripe.com/settings/connect";
   return {
     redirect: {

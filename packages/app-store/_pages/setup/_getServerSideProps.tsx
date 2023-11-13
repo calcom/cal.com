@@ -7,6 +7,7 @@ export const AppSetupPageMap = {
   stripe: import("../../stripepayment/pages/setup/_getServerSideProps"),
 };
 
+// FIXME: To be removed, not used anymore
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const { slug } = ctx.params || {};
   if (typeof slug !== "string") return { notFound: true } as const;
@@ -17,7 +18,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if (!page.getServerSideProps) return { props: {} };
 
-  const props = await page.getServerSideProps(ctx);
+  // const props = await page.getServerSideProps(ctx);
 
-  return props;
+  return {};
 };

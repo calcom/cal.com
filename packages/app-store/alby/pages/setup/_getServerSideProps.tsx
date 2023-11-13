@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
@@ -6,10 +6,7 @@ import prisma from "@calcom/prisma";
 import { getAlbyKeys } from "../../lib/getAlbyKeys";
 import type { IAlbySetupProps } from "./index";
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
-
-  const { req, res } = ctx;
+export const getServerSideProps = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {

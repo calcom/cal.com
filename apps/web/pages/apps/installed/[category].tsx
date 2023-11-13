@@ -1,12 +1,13 @@
+import type { GetStaticPropsContext } from "next";
 import { useSearchParams } from "next/navigation";
-import { useReducer } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useReducer } from "react";
 import { z } from "zod";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, AppSkeletonLoader as SkeletonLoader, ShellSubHeading } from "@calcom/ui";
 import type { LucideIcon } from "@calcom/ui/components/icon";
 import {
@@ -124,6 +125,7 @@ type ModalState = {
 export default function InstalledApps() {
   const searchParams = useSearchParams();
   const { t } = useLocale();
+  const router = useRouter();
   const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
     // Exclude calendar and other from categoryList, we handle those slightly differently below
@@ -145,6 +147,19 @@ export default function InstalledApps() {
   const handleDisconnect = (credentialId: number, teamId?: number) => {
     updateData({ isOpen: true, credentialId, teamId });
   };
+
+  useEffect(() => {
+    // Perform the redirection if the return-to cookie is set
+    const returnTo = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("return-to="))
+      ?.split("=")[1];
+
+    if (returnTo) {
+      document.cookie = "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      router.push(returnTo);
+    }
+  }, [router]);
 
   return (
     <>
@@ -171,30 +186,21 @@ export default function InstalledApps() {
   );
 }
 
-// Server side rendering
-export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
-  // get return-to cookie and redirect if needed
-  const { cookies } = ctx.req;
-  if (cookies && cookies["return-to"]) {
-    const returnTo = cookies["return-to"];
-    if (returnTo) {
-      ctx.res.setHeader("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-      return {
-        redirect: {
-          destination: `${returnTo}`,
-          permanent: false,
-        },
-      };
-    }
-  }
+export function getStaticPaths() {
+  // Don't pre-render any paths, similar to SSR
+  return {
+    paths: [],
+    fallback: "blocking",
+  };
+}
+
+export async function getStaticProps(ctx: GetStaticPropsContext) {
   const params = querySchema.safeParse(ctx.params);
 
   if (!params.success) return { notFound: true };
 
   return {
-    props: {
-      category: params.data.category,
-    },
+    props: {},
   };
 }
 
