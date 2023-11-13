@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Bu kullanıcı katılımı tamamlamadı. Katılımı tamamlayana kadar uygunluk durumlarını ayarlayamazsınız.",
   "view_only_edit_availability": "Bu kullanıcının müsaitlik durumunu görüntülüyorsunuz. Yalnızca kendi uygunluk durumunuzu düzenleyebilirsiniz.",
   "edit_users_availability": "Kullanıcının müsaitlik durumunu düzenleyin: {{username}}",
+  "extensive_whitelabeling": "Özel işe alıştırma ve mühendislik desteği",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

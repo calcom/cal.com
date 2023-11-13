@@ -2098,5 +2098,6 @@
   "view_overlay_calendar_events": "طالع أحداث تقويمك لمنع التضارب بين الحجوزات.",
   "lock_timezone_toggle_on_booking_page": "قفل المنطقة الزمنية في صفحة الحجز",
   "description_lock_timezone_toggle_on_booking_page": "تقفل المنطقة الزمنية على صفحة الحجز، وهذا مفيد للأحداث وجهاً لوجه.",
+  "extensive_whitelabeling": "عملية انضمام ودعم هندسي مخصصين",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
