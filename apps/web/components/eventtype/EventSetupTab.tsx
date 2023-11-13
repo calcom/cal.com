@@ -241,22 +241,13 @@ export const EventSetupTab = (
 
     const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
     const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption | null>(null);
+
     return (
       <div className="w-full">
         <ul ref={animationRef} className="space-y-2">
           {locationFields.map((field, index) => {
             const eventLocationType = getEventLocationType(field.type);
-            const defaultLocation = formMethods.getValues("locations")?.find((location) => {
-              if (eventLocationType?.organizerInputType) {
-                return (
-                  location.type === eventLocationType?.type &&
-                  location[eventLocationType.defaultValueVariable] ===
-                    field?.[eventLocationType.defaultValueVariable]
-                );
-              } else {
-                return location.type === eventLocationType?.type;
-              }
-            });
+            const defaultLocation = field;
 
             const option = getLocationFromType(field.type, locationOptions);
 
@@ -338,6 +329,7 @@ export const EventSetupTab = (
                         name={eventLocationType.defaultValueVariable}
                         className="text-error my-1 ml-6 text-sm"
                         as="div"
+                        id="location-error"
                       />
                     </div>
                     <div className="ml-6">
