@@ -285,7 +285,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   Promise.allSettled(sendEmailPromises).then((results) => {
     results.forEach((result) => {
       if (result.status === "rejected") {
-        console.log("Email sending failed", result.reason);
+        logger.error("Email sending failed", result.reason);
       }
     });
   });
