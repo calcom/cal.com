@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Sì, elimina",
   "delete_account": "Elimina account",
   "confirm_delete_account": "Sì, elimina account",
-  "delete_account_confirmation_message": "Sei sicuro di voler eliminare il tuo account {{appName}}? Chiunque abbia il link del tuo account non potrà più utilizzarlo per prenotare e le preferenze che hai salvato andranno perse.",
+  "delete_account_confirmation_message": "Chiunque abbia il link del tuo account non potrà più utilizzarlo per prenotare e le preferenze che hai salvato andranno perse.",
   "integrations": "Integrazioni",
   "apps": "App",
   "apps_description": "Qui puoi trovare l'elenco delle tue app",
@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Questa organizzazione non ha ancora alcun team",
   "org_no_teams_yet_description": "Se sei un amministratore, assicurati di creare dei team da mostrare qui.",
   "set_up": "Imposta",
-  "set_up_your_profile": "Imposta il tuo profilo",
-  "set_up_your_profile_description": "Fai sapere agli utenti la tua posizione all'interno di {{orgName}} quando interagiscono con il tuo link pubblico.",
   "my_profile": "Il mio profilo",
   "my_settings": "Le mie impostazioni",
   "crm": "CRM",
@@ -2048,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Questo utente non ha completato l'onboarding. Non sarai in grado di impostare la sua disponibilità fino a quando non avrà completato l'onboarding.",
   "view_only_edit_availability": "Stai visualizzando la disponibilità di questo utente. Puoi solo modificare la tua disponibilità.",
   "edit_users_availability": "Modifica la disponibilità dell'utente: {{username}}",
+  "extensive_whitelabeling": "Assistenza per l'onboarding e supporto tecnico dedicati",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

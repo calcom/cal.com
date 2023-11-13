@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.3.3",
+  "version": "3.4.8",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -49,6 +49,7 @@
     "@radix-ui/react-collapsible": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-dropdown-menu": "^2.0.5",
+    "@radix-ui/react-hover-card": "^1.0.7",
     "@radix-ui/react-id": "^1.0.0",
     "@radix-ui/react-popover": "^1.0.2",
     "@radix-ui/react-radio-group": "^1.0.0",
@@ -56,6 +57,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
+    "@sentry/nextjs": "^7.73.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^4.3.9",
@@ -165,6 +167,7 @@
     "env-cmd": "^10.1.0",
     "module-alias": "^2.2.2",
     "msw": "^0.42.3",
+    "node-html-parser": "^6.1.10",
     "postcss": "^8.4.18",
     "tailwindcss": "^3.3.1",
     "tailwindcss-animate": "^1.0.6",

@@ -131,29 +131,27 @@ export default function TeamListItem(props: Props) {
               language: i18n.language,
               role: values.role,
               usernameOrEmail: values.emailOrUsername,
-              sendEmailInvitation: values.sendInviteEmail,
             },
             {
               onSuccess: async (data) => {
                 await utils.viewer.teams.get.invalidate();
                 setOpenMemberInvitationModal(false);
-                if (data.sendEmailInvitation) {
-                  if (Array.isArray(data.usernameOrEmail)) {
-                    showToast(
-                      t("email_invite_team_bulk", {
-                        userCount: data.usernameOrEmail.length,
-                      }),
-                      "success"
-                    );
-                    resetFields();
-                  } else {
-                    showToast(
-                      t("email_invite_team", {
-                        email: data.usernameOrEmail,
-                      }),
-                      "success"
-                    );
-                  }
+
+                if (Array.isArray(data.usernameOrEmail)) {
+                  showToast(
+                    t("email_invite_team_bulk", {
+                      userCount: data.usernameOrEmail.length,
+                    }),
+                    "success"
+                  );
+                  resetFields();
+                } else {
+                  showToast(
+                    t("email_invite_team", {
+                      email: data.usernameOrEmail,
+                    }),
+                    "success"
+                  );
                 }
               },
               onError: (error) => {
@@ -183,7 +181,8 @@ export default function TeamListItem(props: Props) {
       <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
           <Link
-            href={"/settings/teams/" + team.id + "/profile"}
+            data-testid="team-list-item-link"
+            href={`/settings/teams/${team.id}/profile`}
             className="flex-grow cursor-pointer truncate text-sm"
             title={`${team.name}`}>
             {teamInfo}
@@ -241,7 +240,7 @@ export default function TeamListItem(props: Props) {
                           `${
                             orgBranding
                               ? `${orgBranding.fullDomain}`
-                              : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
+                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
                           }/${team.slug}`
                         );
                         showToast(t("link_copied"), "success");
@@ -266,7 +265,7 @@ export default function TeamListItem(props: Props) {
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
-                          href={"/settings/teams/" + team.id + "/profile"}
+                          href={`/settings/teams/${team.id}/profile`}
                           StartIcon={Edit2}>
                           {t("edit_team") as string}
                         </DropdownItem>

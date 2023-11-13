@@ -16,10 +16,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
-  if (code && typeof code !== "string") {
+  if (typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
   }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
@@ -30,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
   if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
 
-  const redirect_uri = WEBAPP_URL_FOR_OAUTH + "/api/integrations/googlecalendar/callback";
+  const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
@@ -39,16 +40,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (code) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
-  }
 
-  await prisma.credential.create({
-    data: {
-      type: "google_calendar",
-      key,
-      userId: req.session.user.id,
-      appId: "google-calendar",
-    },
-  });
+    const credential = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key,
+        userId: req.session.user.id,
+        appId: "google-calendar",
+      },
+    });
+
+    // Set the primary calendar as the first selected calendar
+
+    // We can ignore this type error because we just validated the key when we init oAuth2Client
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    oAuth2Client.setCredentials(key);
+
+    const calendar = google.calendar({
+      version: "v3",
+      auth: oAuth2Client,
+    });
+
+    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
+
+    const primaryCal = cals.data.items?.find((cal) => cal.primary);
+
+    if (primaryCal?.id) {
+      await prisma.selectedCalendar.create({
+        data: {
+          userId: req.session.user.id,
+          externalId: primaryCal.id,
+          credentialId: credential.id,
+          integration: "google_calendar",
+        },
+      });
+    }
+  }
 
   if (state?.installGoogleVideo) {
     const existingGoogleMeetCredential = await prisma.credential.findFirst({
@@ -69,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       res.redirect(
-        getSafeRedirectUrl(CAL_URL + "/apps/installed/conferencing?hl=google-meet") ??
+        getSafeRedirectUrl(`${CAL_URL}/apps/installed/conferencing?hl=google-meet`) ??
           getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
       );
     }

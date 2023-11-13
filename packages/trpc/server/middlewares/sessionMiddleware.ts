@@ -92,7 +92,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   const orgMetadata = teamMetadataSchema.parse(user.organization?.metadata || {});
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
-  const locale = user?.locale || ctx.locale;
+  const locale = user?.locale ?? ctx.locale;
 
   const isOrgAdmin = !!user.organization?.members.length;
   // Want to reduce the amount of data being sent
@@ -102,7 +102,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   return {
     ...user,
     avatar:
-      `${WEBAPP_URL}/${user.username}/avatar.png?` + user.organizationId && `orgId=${user.organizationId}`,
+      `${WEBAPP_URL}/${user.username}/avatar.png?${user.organizationId}` && `orgId=${user.organizationId}`,
     organization: {
       ...user.organization,
       isOrgAdmin,

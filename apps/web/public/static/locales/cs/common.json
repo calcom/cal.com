@@ -826,7 +826,7 @@
   "confirm_delete_event_type": "Ano, odstranit",
   "delete_account": "Smazat účet",
   "confirm_delete_account": "Ano, smazat účet",
-  "delete_account_confirmation_message": "Opravdu chcete odstranit svůj účet na {{appName}}? Všichni, se kterými jste sdíleli odkaz na účet, přijdou o možnost vytvářet rezervace a vy přijdete o uložené předvolby.",
+  "delete_account_confirmation_message": "Všichni, se kterými jste sdíleli odkaz na účet, přijdou o možnost vytvářet rezervace a vy přijdete o uložené předvolby.",
   "integrations": "Integrace",
   "apps": "Aplikace",
   "apps_description": "Tady najdete seznam svých aplikací",
@@ -1957,8 +1957,6 @@
   "org_no_teams_yet": "Tato organizace zatím neobsahuje žádné týmy",
   "org_no_teams_yet_description": "Pokud jste správce, nezapomeňte vytvořit týmy, které se zde budou zobrazovat.",
   "set_up": "Nastavení",
-  "set_up_your_profile": "Nastavení profilu",
-  "set_up_your_profile_description": "Dejte lidem vědět, co v rámci organizace {{orgName}} děláte, pokud si otevřou váš veřejný odkaz.",
   "my_profile": "Můj profil",
   "my_settings": "Moje nastavení",
   "crm": "CRM",
@@ -2048,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Tento uživatel ještě nedokončil onboarding. Dokud nedokončí onboarding, dostupnost nebude možné nastavit.",
   "view_only_edit_availability": "Právě máte zobrazenou dostupnost tohoto uživatele. Upravovat lze pouze vlastní dostupnost.",
   "edit_users_availability": "Upravte dostupnost uživatele: {{username}}",
+  "extensive_whitelabeling": "Vyhrazená podpora zaškolovací a inženýrská podpora",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

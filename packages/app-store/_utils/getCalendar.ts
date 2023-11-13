@@ -10,7 +10,7 @@ interface CalendarApp {
   };
 }
 
-const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
+const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 /**
  * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)
@@ -42,7 +42,7 @@ export const getCalendar = async (credential: CredentialPayload | null): Promise
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
-  log.info("calendarApp", calendarApp.lib.CalendarService);
+  log.info("Got calendarApp", calendarApp.lib.CalendarService);
   const CalendarService = calendarApp.lib.CalendarService;
   return new CalendarService(credential);
 };

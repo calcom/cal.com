@@ -119,29 +119,26 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
-                  sendEmailInvitation: values.sendInviteEmail,
                 },
                 {
                   onSuccess: async (data) => {
                     await utils.viewer.teams.get.invalidate();
                     setMemberInviteModal(false);
-                    if (data.sendEmailInvitation) {
-                      if (Array.isArray(data.usernameOrEmail)) {
-                        showToast(
-                          t("email_invite_team_bulk", {
-                            userCount: data.usernameOrEmail.length,
-                          }),
-                          "success"
-                        );
-                        resetFields();
-                      } else {
-                        showToast(
-                          t("email_invite_team", {
-                            email: data.usernameOrEmail,
-                          }),
-                          "success"
-                        );
-                      }
+                    if (Array.isArray(data.usernameOrEmail)) {
+                      showToast(
+                        t("email_invite_team_bulk", {
+                          userCount: data.usernameOrEmail.length,
+                        }),
+                        "success"
+                      );
+                      resetFields();
+                    } else {
+                      showToast(
+                        t("email_invite_team", {
+                          email: data.usernameOrEmail,
+                        }),
+                        "success"
+                      );
                     }
                   },
                   onError: (error) => {
@@ -241,7 +238,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       )}
       data-testid="pending-member-item">
       <div className="mr-4 flex max-w-full space-x-2 overflow-hidden rtl:space-x-reverse">
-        <Avatar size="mdLg" imageSrc={bookerUrl + "/" + member.username + "/avatar.png"} alt="owner-avatar" />
+        <Avatar size="mdLg" imageSrc={`${bookerUrl}/${member.username}/avatar.png`} alt="owner-avatar" />
         <div className="max-w-full overflow-hidden">
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>

@@ -8,7 +8,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { createHttpServer, waitFor, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 async function getLabelText(field: Locator) {
   return await field.locator("label").first().locator("span").first().innerText();
@@ -215,13 +215,7 @@ test.describe("Manage Booking Questions", () => {
 async function runTestStepsCommonForTeamAndUserEventType(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  webhookReceiver: {
-    port: number;
-    close: () => import("http").Server;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    requestList: (import("http").IncomingMessage & { body?: any })[];
-    url: string;
-  }
+  webhookReceiver: Awaited<ReturnType<typeof addWebhook>>
 ) {
   await page.click('[href$="tabName=advanced"]');
 
@@ -311,12 +305,11 @@ async function runTestStepsCommonForTeamAndUserEventType(
             await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
 
-          await waitFor(() => {
-            expect(webhookReceiver.requestList.length).toBe(1);
-          });
+          await webhookReceiver.waitForRequestCount(1);
 
           const [request] = webhookReceiver.requestList;
 
+          // @ts-expect-error body is unknown
           const payload = request.body.payload;
 
           expect(payload.responses).toMatchObject({
@@ -667,9 +660,7 @@ async function expectWebhookToBeCalled(
     };
   }
 ) {
-  await waitFor(() => {
-    expect(webhookReceiver.requestList.length).toBe(1);
-  });
+  await webhookReceiver.waitForRequestCount(1);
   const [request] = webhookReceiver.requestList;
 
   const body = request.body;

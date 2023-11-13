@@ -85,20 +85,30 @@
     <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
     <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
     <span style="display: block"
-      ><a href="?only=prerender-test">Go to Pre-render test page only</a><small></small
+      ><a href="?only=prerender-test">Go to Prerender test page only</a><small></small
     ></span>
+    <span style="display: block"
+    ><a href="?only=preload-test">Go to Preload test page only</a><small></small
+  ></span>
     <button onclick="document.documentElement.style.colorScheme='dark'">Toggle Dark Scheme</button>
     <button onclick="document.documentElement.style.colorScheme='light'">Toggle Light Scheme</button>
     <div>
       <script>
         if (only === "all" || only === "prerender-test") {
           document.write(`
-          <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+          <button data-cal-namespace="e2ePrerenderLightTheme"  data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled"}' data-cal-link="free/30min">Book with Free User[Dark Theme]</button>
           <i
-            >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
+            >Corresponding Cal Link is being prerendered. Assuming that it would take you some time to click this
             as you are reading this text, it would open up super fast[If you are running a production build on
             local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
-            slow</i
+            slow. This should be used if you know beforehand which type of embed is going to be opened.</i
+          >`);
+        }
+        if (only === "all" || only === "preload-test") {
+          document.write(`
+          <button data-cal-namespace="preloadTest" data-cal-config='{"theme":"dark", "email":"preloaded-prefilled@example.com", "name": "Preloaded Prefilled"}' data-cal-link="free/30min">Book with Free User[Dark Theme]</button>
+          <i
+            >Corresponding Cal Link is being preloaded. That means that all the resources would be preloaded. This could be useful in preloading possible resources if you don't know before hand which type of embed you want to show</i
           >`);
         }
       </script>
@@ -110,6 +120,7 @@
       <a href="?only=ns:floatingButton">Floating Popup</a>
 
       <h2>Popup Examples</h2>
+      <button data-cal-namespace="e2ePopupLightTheme" data-cal-link="free" data-cal-config='{"theme":"light"}'>Book an event with Free[Light Theme]</button>
       <button data-cal-namespace="popupAutoTheme" data-cal-link="free">
         Book with Free User[Auto Theme]
       </button>

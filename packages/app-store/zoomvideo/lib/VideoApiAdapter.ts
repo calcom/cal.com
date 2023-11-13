@@ -12,6 +12,7 @@ import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapt
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
+import metadata from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
 /** @link https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate */
@@ -76,7 +77,7 @@ const zoomRefreshedTokenSchema = z.object({
 const zoomAuth = (credential: CredentialPayload) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
-    const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+    const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
 
     const response = await refreshOAuthTokens(
       async () =>
@@ -91,7 +92,7 @@ const zoomAuth = (credential: CredentialPayload) => {
             grant_type: "refresh_token",
           }),
         }),
-      "zoomvideo",
+      metadata.slug,
       credential.userId
     );
 
@@ -233,7 +234,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       method: "GET",
       ...options,
       headers: {
-        Authorization: "Bearer " + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         ...options?.headers,
       },
     });
@@ -284,7 +285,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
             url: result.join_url,
           };
         }
-        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
         console.error(err);
         /* Prevents meeting creation failure when Zoom Token is expired */

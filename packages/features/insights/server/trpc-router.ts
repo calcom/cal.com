@@ -3,6 +3,8 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
+import { randomString } from "@calcom/lib/random";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -1415,4 +1417,33 @@ export const insightsRouter = router({
 
       return eventTypeResult;
     }),
+  rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
+    const { startDate, endDate, teamId, userId, memberUserId, isAll, eventTypeId } = input;
+
+    const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
+    try {
+      // Get the data
+      const csvData = await EventsInsights.getCsvData({
+        startDate,
+        endDate,
+        teamId,
+        userId,
+        memberUserId,
+        isAll,
+        isOrgAdminOrOwner,
+        eventTypeId,
+        organizationId: ctx.user.organizationId || null,
+      });
+
+      const csvAsString = EventsInsights.objectToCsv(csvData);
+      const downloadAs = `Insights-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(endDate).format(
+        "YYYY-MM-DD"
+      )}-${randomString(10)}.csv`;
+
+      return { data: csvAsString, filename: downloadAs };
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+    return { data: "", filename: "" };
+  }),
 });

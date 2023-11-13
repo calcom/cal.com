@@ -1,10 +1,12 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar } from "@calcom/ui";
+import { Switch, Badge, Avatar, Button } from "@calcom/ui";
+import { Settings } from "@calcom/ui/components/icon";
 
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
@@ -27,6 +29,7 @@ export default function AppCard({
   teamId?: number;
   LockedIcon?: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled } = useAppContextWithSchema();
 
@@ -41,7 +44,7 @@ export default function AppCard({
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link
-            href={"/apps/" + app.slug}
+            href={`/apps/${app.slug}`}
             className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
             <img
               className={classNames(
@@ -111,8 +114,23 @@ export default function AppCard({
       </div>
       <div ref={animationRef}>
         {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
+
         {app?.isInstalled && switchChecked ? (
-          <div className="p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">{children}</div>
+          app.isSetupAlready === undefined || app.isSetupAlready ? (
+            <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
+              <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                <Settings className="text-default h-4 w-4" aria-hidden="true" />
+              </Link>
+              {children}
+            </div>
+          ) : (
+            <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
+              <p>{t("this_app_is_not_setup_already")}</p>
+              <Link href={`/apps/${app.slug}/setup`}>
+                <Button StartIcon={Settings}>{t("setup")}</Button>
+              </Link>
+            </div>
+          )
         ) : null}
       </div>
     </div>

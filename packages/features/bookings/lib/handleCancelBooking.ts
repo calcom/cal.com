@@ -102,6 +102,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
         },
       },
       uid: true,
+      id: true,
       eventTypeId: true,
       destinationCalendar: true,
       smsReminderNumber: true,
@@ -128,12 +129,21 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
   }
 
-  if (userId !== bookingToDelete.user?.id && bookingToDelete.startTime < new Date()) {
-    throw new HttpError({ statusCode: 400, message: "Cannot cancel past events" });
-  }
-
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
+  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
+    const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
+      if (host.user.id === userId) return true;
+    });
+
+    const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
+
+    if (!userIsHost && !userIsOwnerOfEventType) {
+      throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
+    }
   }
 
   // get webhooks
@@ -232,6 +242,7 @@ async function handler(req: CustomRequest) {
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
+    bookingId: bookingToDelete?.id,
     /* Include recurringEvent information only when cancelling all bookings */
     recurringEvent: allRemainingBookings
       ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
