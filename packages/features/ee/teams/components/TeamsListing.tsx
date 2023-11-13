@@ -103,6 +103,7 @@ export function TeamsListing() {
       )}
 
       <UpgradeTip
+        plan="team"
         title={t("calcom_is_better_with_team", { appName: APP_NAME })}
         description="add_your_team_members"
         features={features}
