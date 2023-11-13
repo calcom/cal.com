@@ -2047,5 +2047,6 @@
   "view_only_edit_availability_not_onboarded": "Este utilizador ainda não completou o processo de integração. Não poderá definir a respetiva disponibilidade até que este procedimento esteja concluído para este utilizador.",
   "view_only_edit_availability": "Está a visualizar a disponibilidade deste utilizador. Só pode editar a sua própria disponibilidade.",
   "edit_users_availability": "Editar a disponibilidade do utilizador: {{username}}",
+  "extensive_whitelabeling": "Apoio dedicado à integração e engenharia",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
