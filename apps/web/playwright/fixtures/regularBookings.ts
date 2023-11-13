@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { createUsersFixture } from "./users";
 
@@ -284,6 +285,10 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByTestId("confirm_cancel").click();
       await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
     },
+    confirmBooking: async (eventTypePage: Page) => {
+      await eventTypePage.getByTestId("confirm-book-button").click();
+      await eventTypePage.waitForURL("booking/**");
+    },
 
     fillAndConfirmBooking: async ({
       eventTypePage,
@@ -355,6 +360,38 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    createBookingWebhook: async (webhookReceiver: { url: string }, eventTitle: string) => {
+      const events = [
+        "Booking Canceled",
+        "Booking Created",
+        "Booking Rejected",
+        "Booking Requested",
+        "Booking Payment Initiated",
+        "Booking Rescheduled",
+        "Meeting Ended",
+        "Booking Paid",
+        "Recording Download Link Ready",
+      ];
+      await page.goto(`${WEBAPP_URL}/event-types`);
+      await page.getByText(eventTitle).click();
+
+      await page.getByTestId("vertical-tab-webhooks").click();
+
+      await page.getByTestId("new_webhook").click();
+      await page.getByLabel("Subscriber URL").fill(webhookReceiver.url);
+      await page.getByRole("button", { name: "Ping test" }).click();
+      page
+        .getByTestId("dialog-creation")
+        .locator("div")
+        .filter({ hasText: '{ "ok": true, "status": 200, "message": "{}" }' })
+        .nth(2);
+      await page.getByRole("button", { name: "Create Webhook" }).click();
+
+      page.getByText(webhookReceiver.url);
+      events.forEach((event) => {
+        page.getByText(event);
+      });
     },
   };
 }
