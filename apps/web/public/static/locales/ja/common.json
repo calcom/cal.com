@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "このユーザーはオンボーディングを完了していません。オンボーディングを完了するまで、ユーザーの空き状況は設定できません。",
   "view_only_edit_availability": "このユーザーの空き状況を表示しています。編集できるのは自分の空き状況だけです。",
   "edit_users_availability": "ユーザーの空き状況を編集：{{username}}",
+  "extensive_whitelabeling": "専用のオンボーディングサポートとエンジニアリングサポート",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

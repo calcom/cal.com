@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Ten użytkownik nie zakończył procesu wdrażania. Ustawienie jego dostępności będzie niedostępne, póki nie zakończy wdrażania.",
   "view_only_edit_availability": "Wyświetlasz dostępność tego użytkownika. Możesz edytować tylko własną dostępność.",
   "edit_users_availability": "Edytuj dostępność użytkownika: {{username}}",
+  "extensive_whitelabeling": "Dedykowane wsparcie w zakresie wdrożenia i obsługi technicznej",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
