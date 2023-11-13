@@ -1,6 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
+import { getOrganizerInputLocationsType } from "@calcom/app-store/locations";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
@@ -103,6 +104,29 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
+        }
+
+        if (field?.options) {
+          const organzierInputTypes = getOrganizerInputLocationsType();
+          const organzierInputObj: Record<string, number> = {};
+
+          field.options.forEach((f) => {
+            if (f.value in organzierInputObj) {
+              organzierInputObj[f.value]++;
+            } else {
+              organzierInputObj[f.value] = 1;
+            }
+          });
+
+          field.options = field.options.map((field) => {
+            return {
+              ...field,
+              value:
+                organzierInputTypes.includes(field.value) && organzierInputObj[field.value] > 1
+                  ? field.label
+                  : field.value,
+            };
+          });
         }
 
         return (

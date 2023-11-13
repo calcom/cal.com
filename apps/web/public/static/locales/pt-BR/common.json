@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Este usuário não concluiu a integração. Não será possível definir a disponibilidade antes de concluir a integração.",
   "view_only_edit_availability": "Você está vendo a disponibilidade deste usuário. Você só pode editar sua disponibilidade.",
   "edit_users_availability": "Editar disponibilidade do usuário: {{username}}",
+  "extensive_whitelabeling": "Marca própria abrangente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
