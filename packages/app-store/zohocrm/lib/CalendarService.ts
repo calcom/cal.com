@@ -108,13 +108,14 @@ export default class ZohoCrmCalendarService implements Calendar {
     }`;
   };
 
-  private createZohoEvent = async (event: CalendarEvent) => {
+  private createZohoEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
     const zohoEvent = {
       Event_Title: event.title,
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: this.getMeetingBody(event),
       Venue: getLocation(event),
+      Who_Id: contacts[0], // Link the first attendee as the primary Who_Id
     };
 
     return axios({
@@ -235,7 +236,7 @@ export default class ZohoCrmCalendarService implements Calendar {
   };
 
   async handleEventCreation(event: CalendarEvent, contacts: CalendarEvent["attendees"]) {
-    const meetingEvent = await this.createZohoEvent(event);
+    const meetingEvent = await this.createZohoEvent(event, contacts);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
       this.log.debug("event:creation:ok", { meetingEvent });
       return Promise.resolve({
@@ -259,7 +260,7 @@ export default class ZohoCrmCalendarService implements Calendar {
       if (contacts.data.length === event.attendees.length) {
         // all contacts are in Zoho CRM already.
         this.log.debug("contact:search:all", { event, contacts: contacts.data });
-        return await this.handleEventCreation(event, event.attendees);
+        return await this.handleEventCreation(event, contacts.data);
       } else {
         // Some attendees don't exist in ZohoCRM
         // Get the existing contacts' email to filter out
@@ -277,7 +278,10 @@ export default class ZohoCrmCalendarService implements Calendar {
         // Continue with event creation and association only when all contacts are present in Zoho
         if (createContacts.data?.data[0].status === "success") {
           this.log.debug("contact:creation:ok");
-          return await this.handleEventCreation(event, nonExistingContacts.concat(contacts));
+          return await this.handleEventCreation(
+            event,
+            [createContacts.data?.data[0]?.details].concat(contacts.data)
+          );
         }
         return Promise.reject({
           calError: "Something went wrong when creating non-existing attendees in ZohoCRM",
@@ -289,7 +293,7 @@ export default class ZohoCrmCalendarService implements Calendar {
       this.log.debug("contact:created", { createContacts });
       if (createContacts.data?.data[0].status === "success") {
         this.log.debug("contact:creation:ok");
-        return await this.handleEventCreation(event, event.attendees);
+        return await this.handleEventCreation(event, [createContacts.data.data[0].details]);
       }
     }
 

@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "此使用者尚未完成入門導覽。在對方完成入門導覽前，您將無法設定對方的可預約時間。",
   "view_only_edit_availability": "您正在查看此使用者的可預約時間。您只能編輯自己的可預約時間。",
   "edit_users_availability": "編輯使用者的可預約時間：{{username}}",
+  "extensive_whitelabeling": "專屬的入門和工程支援",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
