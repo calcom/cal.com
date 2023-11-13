@@ -196,6 +196,9 @@ export function createBookingPageFixture(page: Page) {
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
+    setResolution: async (width: number, height: number) => {
+      await page.setViewportSize({ width: width, height: height });
+    },
     addQuestion: async (
       questionType: string,
       identifier: string,
@@ -283,6 +286,14 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByTestId("cancel_reason").fill("Test cancel");
       await eventTypePage.getByTestId("confirm_cancel").click();
       await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
+    },
+
+    confirmBooking: async (eventTypePage: Page) => {
+      const confirmButton = "confirm-book-button";
+      await eventTypePage.getByTestId(confirmButton).click();
+      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
+      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
+      await expect(scheduleSuccessfullyPage).toBeVisible();
     },
 
     fillAndConfirmBooking: async ({
