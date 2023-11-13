@@ -6,6 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -277,7 +278,7 @@ export const createEvent = async (
         calError,
       })
     );
-    throw new Error("create_calendar_event_error");
+    throw new Error(ErrorCode.CreateCalendarEventFailure);
   }
   log.debug(
     "Created calendar event",
@@ -360,7 +361,7 @@ export const updateEvent = async (
         calError,
       })
     );
-    throw new Error("update_calendar_event_error");
+    throw new Error(ErrorCode.UpdateCalendarEventFailure);
   }
 
   if (Array.isArray(updatedResult)) {
@@ -411,7 +412,7 @@ export const deleteEvent = async ({
       })
     );
 
-    throw new Error("delete_calendar_event_error");
+    throw new Error(ErrorCode.DeleteCalendarEventFailure);
   }
 
   return Promise.resolve({});

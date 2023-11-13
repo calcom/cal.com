@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { sendAwaitingPaymentEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -287,7 +288,7 @@ export class PaymentService implements IAbstractPaymentService {
     } catch (error) {
       console.error(`Could not charge card for payment ${payment.id}`, error);
       log.error("Stripe: Could not charge card for paymentd", _bookingId, JSON.stringify(error));
-      throw new Error("couldnt_charge_card_error");
+      throw new Error(ErrorCode.ChargeCardFailure);
     }
   }
 

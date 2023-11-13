@@ -3,6 +3,7 @@ import type { Booking, Payment, PaymentOption, Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import type z from "zod";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -84,7 +85,7 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Ably: Payment could not be created", bookingId);
-      throw new Error("payment_not_created_error");
+      throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
   async update(): Promise<Payment> {

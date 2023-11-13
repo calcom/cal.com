@@ -4,6 +4,7 @@ import z from "zod";
 
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -91,7 +92,7 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Paypal: Payment could not be created for bookingId", bookingId);
-      throw new Error("payment_not_created_error");
+      throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
   async update(): Promise<Payment> {

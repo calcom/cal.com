@@ -220,7 +220,9 @@ export const BookEventFormChild = ({
         booking: responseData,
       });
     },
-    onError: (err, variables, ctx) => {
+    onError: (err, _, ctx) => {
+      console.log("response", err.response);
+      // TODO: Fix this type error
       const headers = ctx?.response?.headers;
       const vercelId = headers?.get("x-vercel-id");
       if (vercelId) {

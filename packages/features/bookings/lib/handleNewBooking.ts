@@ -53,6 +53,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -417,7 +418,7 @@ async function ensureAvailableUsers(
   }
   if (!availableUsers.length) {
     loggerWithEventDetails.error(`No available users found.`);
-    throw new Error("no_available_users_found_error");
+    throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   return availableUsers;
 }
@@ -540,7 +541,7 @@ async function getBookingData({
     return true;
   };
   if (!reqBodyWithEnd(reqBody)) {
-    throw new Error("request_body_end_time_internal_error");
+    throw new Error(ErrorCode.RequestBodyWithouEnd);
   }
   // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
@@ -630,6 +631,8 @@ async function handler(
   }
 ) {
   const { userId } = req;
+
+  throw new Error("hey");
 
   // handle dynamic user
   let eventType =
@@ -951,7 +954,7 @@ async function handler(
     if (
       availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
     ) {
-      throw new Error("Some of the hosts are unavailable for booking.");
+      throw new Error(ErrorCode.HostsUnavailableForBooking);
     }
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
@@ -1269,7 +1272,7 @@ async function handler(
       booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
       dayjs.utc(booking.startTime).format() === evt.startTime
     ) {
-      throw new HttpError({ statusCode: 409, message: "already_signed_up_for_this_booking_error" });
+      throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
     }
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
