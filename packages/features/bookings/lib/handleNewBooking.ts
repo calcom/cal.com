@@ -632,8 +632,6 @@ async function handler(
 ) {
   const { userId } = req;
 
-  throw new Error("hey");
-
   // handle dynamic user
   let eventType =
     !req.body.eventTypeId && !!req.body.eventTypeSlug
