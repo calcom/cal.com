@@ -34,7 +34,7 @@ type InviteMemberOptions = {
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `userId:${ctx.user.id}`,
+    identifier: `invitedBy:${ctx.user.id}`,
   });
 
   await checkPermissions({
