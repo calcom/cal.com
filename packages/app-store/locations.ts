@@ -427,3 +427,11 @@ export const getTranslatedLocation = (
 
   return translatedLocation;
 };
+
+export const getOrganizerInputLocationsType = () => {
+  const locationTypes: DefaultEventLocationType["type"][] = [];
+  const locations = defaultLocations.filter((location) => !!location.organizerInputType);
+  locations?.forEach((l) => locationTypes.push(l.type));
+
+  return locationTypes;
+};
