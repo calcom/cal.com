@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -32,6 +33,9 @@ type InviteMemberOptions = {
 };
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
+  await checkRateLimitAndThrowError({
+    identifier: `userId:${ctx.user.id}`,
+  });
 
   await checkPermissions({
     userId: ctx.user.id,
@@ -39,7 +43,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
     isOrg: input.isOrg,
   });
-  
+
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
 
