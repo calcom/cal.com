@@ -123,15 +123,18 @@ export type OrganizerUser = Awaited<ReturnType<typeof loadUsers>>[number] & {
   metadata?: Prisma.JsonValue;
 };
 export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
-export type RescheduleReason = Awaited<ReturnType<typeof getBookingData>>["rescheduleReason"];
-export type NoEmail = Awaited<ReturnType<typeof getBookingData>>["noEmail"];
-export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
-export type AdditionalNotes = Awaited<ReturnType<typeof getBookingData>>["notes"];
-export type ReqAppsStatus = Awaited<ReturnType<typeof getBookingData>>["appsStatus"];
-export type PaymentAppData = ReturnType<typeof getPaymentAppData>;
-export type SmsReminderNumber = Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
-export type EventTypeId = Awaited<ReturnType<typeof getBookingData>>["eventTypeId"];
+
+type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
+export type RescheduleReason = AwaitedBookingData["rescheduleReason"];
+export type NoEmail = AwaitedBookingData["noEmail"];
+export type AdditionalNotes = AwaitedBookingData["notes"];
+export type ReqAppsStatus = AwaitedBookingData["appsStatus"];
+export type SmsReminderNumber = AwaitedBookingData["smsReminderNumber"];
+export type EventTypeId = AwaitedBookingData["eventTypeId"];
 export type ReqBodyMetadata = ReqBodyWithEnd["metadata"];
+
+export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
+export type PaymentAppData = ReturnType<typeof getPaymentAppData>;
 
 export interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
@@ -620,17 +623,17 @@ async function createBooking({
   evt: CalendarEvent;
   eventType: NewBookingEventType;
   eventTypeId: EventTypeId;
-  eventTypeSlug: Awaited<ReturnType<typeof getBookingData>>["eventTypeSlug"];
+  eventTypeSlug: AwaitedBookingData["eventTypeSlug"];
   reqBodyUser: ReqBodyWithEnd["user"];
   reqBodyMetadata: ReqBodyMetadata;
   reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
   uid: short.SUUID;
   responses: ReqBodyWithEnd["responses"] | null;
   isConfirmedByDefault: IsConfirmedByDefault;
-  smsReminderNumber: Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
+  smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
   organizerUser: OrganizerUser;
   rescheduleReason: RescheduleReason;
-  bookerEmail: Awaited<ReturnType<typeof getBookingData>>["email"];
+  bookerEmail: AwaitedBookingData["email"];
   paymentAppData: ReturnType<typeof getPaymentAppData>;
 }) {
   if (originalRescheduledBooking) {
