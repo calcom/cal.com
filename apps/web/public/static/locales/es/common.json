@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Este usuario no ha completado la incorporación. No podrá establecer su disponibilidad hasta que haya completado la incorporación.",
   "view_only_edit_availability": "Está viendo la disponibilidad de este usuario. Sólo puede editar su propia disponibilidad.",
   "edit_users_availability": "Editar disponibilidad del usuario: {{username}}",
+  "extensive_whitelabeling": "Asistencia dedicada en materia de incorporación e ingeniería",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
