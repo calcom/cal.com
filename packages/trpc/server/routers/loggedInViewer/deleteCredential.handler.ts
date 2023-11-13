@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -328,52 +327,33 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
     }
   }
 
+  // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
+  // If it's a calendar remove it from the SelectedCalendars
+  if (credential.app?.categories.includes(AppCategories.calendar)) {
+    // Get the list of calendars that the user has selected for this integration
+    const calendar = await getCalendar(credential);
+
+    const calendars = await calendar?.listCalendars();
+
+    const calendarIds = calendars?.map((cal) => cal.externalId);
+    // See if the calendar still exists in the DB. If it does then assume other calendars of the same integration have not been deleted
+    // Find them and delete them
+
+    await prisma.selectedCalendar.deleteMany({
+      where: {
+        userId: user.id,
+        integration: credential.type as string,
+        externalId: {
+          in: calendarIds,
+        },
+      },
+    });
+  }
+
   // Validated that credential is user's above
   await prisma.credential.delete({
     where: {
       id: id,
     },
   });
-
-  // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
-  // If it's a calendar remove it from the SelectedCalendars
-  if (credential.app?.categories.includes(AppCategories.calendar)) {
-    const selectedCalendars = await prisma.selectedCalendar.findMany({
-      where: {
-        userId: user.id,
-        integration: credential.type as string,
-      },
-    });
-
-    if (selectedCalendars.length) {
-      const calendar = await getCalendar(credential);
-
-      const calendars = await calendar?.listCalendars();
-
-      if (calendars && calendars.length > 0) {
-        calendars.map(async (cal) => {
-          prisma.selectedCalendar
-            .delete({
-              where: {
-                userId_integration_externalId: {
-                  userId: user.id,
-                  externalId: cal.externalId,
-                  integration: cal.integration as string,
-                },
-              },
-            })
-            .catch((error) => {
-              if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-                console.log(
-                  `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId}. Could not find selected calendar.`
-                );
-              }
-              console.log(
-                `Error deleting selected calendars for user ${user.id} and calendar ${credential.appId} with error: ${error}`
-              );
-            });
-        });
-      }
-    }
-  }
 };
