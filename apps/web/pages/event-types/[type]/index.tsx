@@ -63,6 +63,10 @@ const EventAdvancedTab = dynamic(() =>
   import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
 );
 
+const EventInstantTab = dynamic(() =>
+  import("@components/eventtype/EventInstantTab").then((mod) => mod.EventInstantTab)
+);
+
 const EventRecurringTab = dynamic(() =>
   import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
 );
@@ -148,6 +152,7 @@ const querySchema = z.object({
       "availability",
       "apps",
       "limits",
+      "instant",
       "recurring",
       "team",
       "advanced",
@@ -408,6 +413,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    instant: <EventInstantTab eventType={eventType} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (

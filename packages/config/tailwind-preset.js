@@ -104,6 +104,7 @@ module.exports = {
       },
       animation: {
         "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
+        "fade-in-bottom": "fade-in-bottom cubic-bezier(.21,1.02,.73,1) forwards",
         spinning: "spinning 0.75s linear infinite",
       },
       boxShadow: {

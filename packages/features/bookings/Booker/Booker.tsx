@@ -17,6 +17,7 @@ import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
 import { Header } from "./components/Header";
+import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
@@ -226,6 +227,9 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
+        <div className="animate-fade-in-up my-2 opacity-0" style={{ animationDelay: "3s" }}>
+          <InstantBooking />
+        </div>
         <div
           ref={animationScope}
           className={classNames(

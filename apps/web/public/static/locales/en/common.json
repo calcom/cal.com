@@ -2113,5 +2113,8 @@
   "enterprise_description": "Upgrade to Enterprise to create your Organization",
   "create_your_org": "Create your Organization",
   "create_your_org_description": "Upgrade to Enterprise and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
+  "instant_tab_title": "Instant Booking",
+  "instant_event_tab_description": "Let people book immediately",
+  "uprade_to_create_instant_bookings": "Upgrade to Enterprise and let guests join an instant call that attendees can jump straight into",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

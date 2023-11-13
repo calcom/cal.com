@@ -101,6 +101,12 @@ function getNavigation(props: {
       info: `event_advanced_tab_description`,
     },
     {
+      name: "instant_tab_title",
+      href: `/event-types/${eventType.id}?tabName=instant`,
+      icon: Zap,
+      info: `instant_event_tab_description`,
+    },
+    {
       name: "recurring",
       href: `/event-types/${eventType.id}?tabName=recurring`,
       icon: Repeat,
