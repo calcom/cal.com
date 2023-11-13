@@ -330,21 +330,28 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
-    const calendar = await getCalendar(credential);
+    try {
+      const calendar = await getCalendar(credential);
 
-    const calendars = await calendar?.listCalendars();
+      const calendars = await calendar?.listCalendars();
 
-    const calendarIds = calendars?.map((cal) => cal.externalId);
+      const calendarIds = calendars?.map((cal) => cal.externalId);
 
-    await prisma.selectedCalendar.deleteMany({
-      where: {
-        userId: user.id,
-        integration: credential.type as string,
-        externalId: {
-          in: calendarIds,
+      await prisma.selectedCalendar.deleteMany({
+        where: {
+          userId: user.id,
+          integration: credential.type as string,
+          externalId: {
+            in: calendarIds,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.warn(
+        `Error deleting selected calendars for userId: ${user.id} integration: ${credential.type}`,
+        error
+      );
+    }
   }
 
   // Validated that credential is user's above
