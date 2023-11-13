@@ -51,10 +51,8 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -414,11 +412,7 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  recurringDatesInfo?: {
-    allRecurringDates: string[] | undefined;
-    currentRecurringIndex: number | undefined;
-  }
+  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType }
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
@@ -458,22 +452,7 @@ async function ensureAvailableUsers(
 
     let foundConflict = false;
     try {
-      if (
-        eventType.recurringEvent &&
-        recurringDatesInfo?.currentRecurringIndex === 0 &&
-        recurringDatesInfo.allRecurringDates
-      ) {
-        const allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
-        // Go through each date for the recurring event and check if each one's availability
-        // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
-        // running at the first unavailable time.
-        let i = 0;
-        while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], duration);
-        }
-      } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
-      }
+      foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
@@ -797,19 +776,16 @@ async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
     isNotAnApiCall = false,
+    skipAvailabilityCheck = false,
   }: {
     isNotAnApiCall?: boolean;
+    skipAvailabilityCheck?: boolean;
   } = {
     isNotAnApiCall: false,
+    skipAvailabilityCheck: false,
   }
 ) {
   const { userId } = req;
-  const userIp = getIP(req);
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: userIp,
-  });
 
   // handle dynamic user
   let eventType =
@@ -879,6 +855,7 @@ async function handler(
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
+      skipAvailabilityCheck,
       paymentAppData: {
         enabled: paymentAppData.enabled,
         price: paymentAppData.price,
@@ -998,7 +975,12 @@ async function handler(
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
     if (eventType.bookingLimits) {
-      await checkBookingLimits(eventType.bookingLimits as IntervalLimit, startAsDate, eventType.id);
+      await checkBookingLimits(
+        eventType.bookingLimits as IntervalLimit,
+        startAsDate,
+        eventType.id,
+        eventType.schedule?.timeZone
+      );
     }
     if (eventType.durationLimits) {
       await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
@@ -1033,7 +1015,7 @@ async function handler(
     }
   }
 
-  if (!eventType.seatsPerTimeSlot) {
+  if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
@@ -1046,14 +1028,10 @@ async function handler(
         }),
       },
       {
-        dateFrom: reqBody.start,
-        dateTo: reqBody.end,
+        dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+        dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
-      },
-      {
-        allRecurringDates,
-        currentRecurringIndex,
       }
     );
 
@@ -1114,7 +1092,6 @@ async function handler(
   const attendeeTimezone = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.timeZone : reqBody.timeZone;
 
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
-
   // use host default
   if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
@@ -2534,7 +2511,7 @@ async function handler(
         ...evt,
         ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
       },
-      isNotConfirmed: evt.requiresConfirmation || false,
+      isNotConfirmed: !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,

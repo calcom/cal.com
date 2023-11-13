@@ -41,7 +41,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
         <UserAvatarGroup size="sm" className="border-muted" users={shownUsers} />
       )}
 
-      <p className="text-subtle text-sm font-semibold">
+      <p className="text-subtle mt-2 text-sm font-semibold">
         {showOnlyProfileName
           ? profile.name
           : shownUsers
