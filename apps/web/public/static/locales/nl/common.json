@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Deze gebruiker heeft de onboarding nog niet voltooid. U kunt diens beschikbaarheid pas instellen nadat ze men de onboarding heeft voltooid.",
   "view_only_edit_availability": "U bekijkt de beschikbaarheid van deze gebruiker. U kunt alleen uw eigen beschikbaarheid bewerken.",
   "edit_users_availability": "Beschikbaarheid van gebruiker bewerken: {{username}}",
+  "extensive_whitelabeling": "Speciale onboarding en technische ondersteuning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
