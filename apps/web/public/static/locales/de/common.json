@@ -2076,5 +2076,6 @@
   "resend_invitation": "Einladung erneut senden",
   "invitation_resent": "Die Einladung wurde erneut gesendet.",
   "this_app_is_not_setup_already": "Diese App wurde noch nicht eingerichtet",
+  "extensive_whitelabeling": "Dedizierte Onboarding- und Engineeringsupport",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

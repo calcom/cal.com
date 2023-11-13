@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "משתמש זה לא השלים תהליך הטמעה. לא תהיה לך אפשרות להגדיר את הזמינות שלו עד שהוא יעשה זאת.",
   "view_only_edit_availability": "את/ה צופה בזמינות של משתמש זה. יש לך אפשרות לערוך רק את פרטי הזמינות שלך.",
   "edit_users_availability": "עריכת הזמינות של משתמש: {{username}}",
+  "extensive_whitelabeling": "תהליך הטמעה והנדסת תמיכה אישי",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2538,7 +2538,7 @@ async function handler(
         ...evt,
         ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
       },
-      isNotConfirmed: evt.requiresConfirmation || false,
+      isNotConfirmed: !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
