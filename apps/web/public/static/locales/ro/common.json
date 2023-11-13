@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Acest utilizator nu a finalizat integrarea. Nu-i veți putea seta disponibilitatea până când nu finalizează integrarea.",
   "view_only_edit_availability": "Vizualizați disponibilitatea acestui utilizator. Nu puteți edita decât disponibilitatea dvs. personală.",
   "edit_users_availability": "Editați disponibilitatea utilizatorului: {{username}}",
+  "extensive_whitelabeling": "Asistență dedicată pentru integrare și inginerie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2046,5 +2046,6 @@
   "view_only_edit_availability_not_onboarded": "Tento uživatel ještě nedokončil onboarding. Dokud nedokončí onboarding, dostupnost nebude možné nastavit.",
   "view_only_edit_availability": "Právě máte zobrazenou dostupnost tohoto uživatele. Upravovat lze pouze vlastní dostupnost.",
   "edit_users_availability": "Upravte dostupnost uživatele: {{username}}",
+  "extensive_whitelabeling": "Vyhrazená podpora zaškolovací a inženýrská podpora",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
