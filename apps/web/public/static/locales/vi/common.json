@@ -2091,6 +2091,10 @@
   "add_client": "Thêm khách hàng",
   "copy_client_secret_info": "Sau khi sao chép bí mật, bạn sẽ không thể xem nó được nữa",
   "add_new_client": "Thêm khách hàng mới",
+  "this_app_is_not_setup_already": "Ứng dụng này chưa được thiết lập",
+  "as_csv": "ở dạng CSV",
+  "overlay_my_calendar": "Phủ lên lịch của tôi",
+  "overlay_my_calendar_toc": "Bằng cách kết nối với lịch của bạn, bạn chấp thuận chính sách quyền riêng tư và điều khoản sử dụng của chúng tôi. Bạn có thể rút quyền truy cập bất kì lúc nào.",
   "extensive_whitelabeling": "Hướng dẫn bắt đầu và hỗ trợ kỹ thuật chuyên biệt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

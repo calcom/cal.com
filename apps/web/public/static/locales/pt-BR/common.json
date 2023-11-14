@@ -2071,6 +2071,8 @@
   "unauthorized": "Não autorizado",
   "access_cal_account": "{{clientName}} gostaria de acessar a sua conta {{appName}}",
   "select_account_team": "Selecionar conta ou equipe",
+  "allow_client_to": "Isso permitirá ao {{clientName}}",
+  "associate_with_cal_account": "Associar você com suas informações pessoais de {{clientName}}",
   "see_personal_info": "Veja suas informações pessoais, incluindo quaisquer informações pessoais disponibilizadas publicamente",
   "see_primary_email_address": "Veja seu endereço de e-mail principal",
   "connect_installed_apps": "Conecte-se aos seus aplicativos instalados",
@@ -2094,6 +2096,8 @@
   "overlay_my_calendar": "Sobrepor meu calendário",
   "overlay_my_calendar_toc": "Ao conectar-se à seu Calendário, você aceita nossa política de privacidade e termos de uso. Você pode revogar o acesso a qualquer momento.",
   "view_overlay_calendar_events": "Veja seus eventos do calendário para evitar conflito nos agendamentos.",
+  "lock_timezone_toggle_on_booking_page": "Bloquear fuso horário na página de reserva",
+  "description_lock_timezone_toggle_on_booking_page": "Bloquear o fuso horário na página de reservas, útil para eventos presenciais.",
   "extensive_whitelabeling": "Marca própria abrangente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
