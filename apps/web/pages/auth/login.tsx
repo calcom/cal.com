@@ -278,7 +278,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req, res, query } = context;
 
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
@@ -318,6 +318,24 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   }
 
   if (session) {
+    const { callbackUrl } = query;
+
+    if (callbackUrl) {
+      try {
+        const destination = getSafeRedirectUrl(callbackUrl as string);
+        if (destination) {
+          return {
+            redirect: {
+              destination,
+              permanent: false,
+            },
+          };
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     return {
       redirect: {
         destination: "/",
