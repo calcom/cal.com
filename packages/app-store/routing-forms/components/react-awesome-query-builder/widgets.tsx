@@ -194,6 +194,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   return (
     <Select
+      aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
         if (!item) {
