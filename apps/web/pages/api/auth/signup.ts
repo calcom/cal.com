@@ -5,15 +5,7 @@ import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHo
 import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-
-function ensureReqIsPost(req: RequestWithUsernameStatus) {
-  if (req.method !== "POST") {
-    throw new HttpError({
-      statusCode: 405,
-      message: "Method not allowed",
-    });
-  }
-}
+import { defaultHandler } from "@calcom/lib/server";
 
 function ensureSignupIsEnabled() {
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
@@ -24,10 +16,9 @@ function ensureSignupIsEnabled() {
   }
 }
 
-export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   // Use a try catch instead of returning res every time
   try {
-    ensureReqIsPost(req);
     ensureSignupIsEnabled();
 
     /**
@@ -48,3 +39,7 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
+export default defaultHandler({
+  POST: Promise.resolve({ default: handler }),
+});
