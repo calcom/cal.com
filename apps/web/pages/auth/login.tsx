@@ -321,13 +321,21 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
     const { callbackUrl } = query;
 
     if (callbackUrl) {
-      return {
-        redirect: {
-          destination: callbackUrl,
-          permanent: false,
-        },
-      };
+      try {
+        const destination = getSafeRedirectUrl(callbackUrl as string);
+        if (destination) {
+          return {
+            redirect: {
+              destination,
+              permanent: false,
+            },
+          };
+        }
+      } catch (e) {
+        console.warn(e);
+      }
     }
+
     return {
       redirect: {
         destination: "/",
