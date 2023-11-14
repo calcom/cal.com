@@ -5,6 +5,7 @@ import React from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
+import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/MainLayout";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
@@ -20,6 +21,7 @@ import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
@@ -78,6 +80,7 @@ export default function Bookings() {
   const { data: filterQuery } = useFilterQuery();
   const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
+  const user = useMeQuery().data;
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -119,7 +122,10 @@ export default function Bookings() {
       }
       shownBookings[booking.recurringEventId] = [booking];
     } else if (status === "upcoming") {
-      return new Date(booking.startTime).toDateString() !== new Date().toDateString();
+      return (
+        dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+        dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+      );
     }
     return true;
   };
@@ -132,7 +138,11 @@ export default function Bookings() {
         recurringInfoToday = page.recurringInfo.find(
           (info) => info.recurringEventId === booking.recurringEventId
         );
-        return new Date(booking.startTime).toDateString() === new Date().toDateString();
+
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
       })
     )[0] || [];
 
@@ -166,6 +176,12 @@ export default function Bookings() {
                             {bookingsToday.map((booking: BookingOutput) => (
                               <BookingListItem
                                 key={booking.id}
+                                loggedInUser={{
+                                  userId: user?.id,
+                                  userTimeZone: user?.timeZone,
+                                  userTimeFormat: user?.timeFormat,
+                                  userEmail: user?.email,
+                                }}
                                 listingStatus={status}
                                 recurringInfo={recurringInfoToday}
                                 {...booking}
@@ -190,6 +206,12 @@ export default function Bookings() {
                               return (
                                 <BookingListItem
                                   key={booking.id}
+                                  loggedInUser={{
+                                    userId: user?.id,
+                                    userTimeZone: user?.timeZone,
+                                    userTimeFormat: user?.timeFormat,
+                                    userEmail: user?.email,
+                                  }}
                                   listingStatus={status}
                                   recurringInfo={recurringInfo}
                                   {...booking}
