@@ -10,7 +10,7 @@ export const EventInstantTab = ({ eventType }: Pick<EventTypeSetupProps, "eventT
   const requirePayment = paymentAppData.price > 0;
 
   return (
-    <div className="">
+    <div>
       <InstantEventController paymentEnabled={requirePayment} eventType={eventType} />
     </div>
   );
