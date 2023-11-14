@@ -96,6 +96,7 @@ export type FormValues = {
   requiresConfirmation: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
+  instantEvent: InstantEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
