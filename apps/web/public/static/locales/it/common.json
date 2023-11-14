@@ -2084,7 +2084,12 @@
   "allow": "Consenti",
   "view_only_edit_availability_not_onboarded": "Questo utente non ha completato l'onboarding. Non sarai in grado di impostare la sua disponibilità fino a quando non avrà completato l'onboarding.",
   "view_only_edit_availability": "Stai visualizzando la disponibilità di questo utente. Puoi solo modificare la tua disponibilità.",
+  "you_can_override_calendar_in_advanced_tab": "Puoi configurare queste impostazioni su base per evento nelle impostazioni avanzate di ciascun tipo di evento.",
   "edit_users_availability": "Modifica la disponibilità dell'utente: {{username}}",
+  "resend_invitation": "Invia di nuovo l'invito",
+  "invitation_resent": "L'invito è stato inviato di nuovo.",
+  "add_client": "Aggiungi cliente",
+  "copy_client_secret_info": "Dopo aver copiato questa parola segreta non sarai più in grado di vederla",
   "extensive_whitelabeling": "Assistenza per l'onboarding e supporto tecnico dedicati",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
