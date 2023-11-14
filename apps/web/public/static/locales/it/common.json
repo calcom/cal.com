@@ -2090,6 +2090,11 @@
   "invitation_resent": "L'invito è stato inviato di nuovo.",
   "add_client": "Aggiungi cliente",
   "copy_client_secret_info": "Dopo aver copiato questa parola segreta non sarai più in grado di vederla",
+  "add_new_client": "Aggiungi nuovo cliente",
+  "this_app_is_not_setup_already": "Questa applicazione non è stata ancora impostata",
+  "as_csv": "come CSV",
+  "overlay_my_calendar": "Sovrapponi il mio calendario",
+  "overlay_my_calendar_toc": "Collegando il tuo calendario, accetti la nostra informativa sulla privacy e i termini di servizio. Puoi revocare l'accesso in qualsiasi momento.",
   "extensive_whitelabeling": "Assistenza per l'onboarding e supporto tecnico dedicati",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
