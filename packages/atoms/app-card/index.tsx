@@ -1,8 +1,12 @@
+import type { UserAdminTeams } from "@calcom/ee/teams/lib/getUserAdminTeams";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+
 type AppCardProps = {
-  app: any;
-  credentials?: any[];
+  app: App;
+  credentials?: Credential[];
   searchText?: string;
-  userAdminTeams?: any;
+  userAdminTeams?: UserAdminTeams;
 };
 
 export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
