@@ -9,15 +9,16 @@ import dayjs from "@calcom/dayjs";
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import { AvatarGroup, Button } from "@calcom/ui";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
 import { Header } from "./components/Header";
-import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
@@ -220,6 +221,13 @@ const BookerComponent = ({
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
+      {bookerState !== "booking" && (
+        <div
+          className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
+          style={{ animationDelay: "3s" }}>
+          <InstantBooking />
+        </div>
+      )}
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -227,9 +235,6 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
-        <div className="animate-fade-in-up my-2 opacity-0" style={{ animationDelay: "3s" }}>
-          <InstantBooking />
-        </div>
         <div
           ref={animationScope}
           className={classNames(
@@ -366,5 +371,46 @@ export const Booker = (props: BookerProps) => {
     <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />
     </LazyMotion>
+  );
+};
+
+export const InstantBooking = () => {
+  const { t } = useLocale();
+
+  return (
+    <div className=" bg-default border-subtle shadow-xs mx-2 flex items-center gap-3 rounded-xl border p-[6px] text-sm delay-1000">
+      <div className="relative flex items-center ps-1">
+        {/* TODO: max. show 4 people here */}
+        <AvatarGroup
+          size="sm"
+          className="relative"
+          items={[
+            {
+              image: "https://cal.com/stakeholder/peer.jpg",
+              alt: "Peer",
+              title: "Peer Richelsen",
+            },
+            {
+              image: "https://cal.com/stakeholder/bailey.jpg",
+              alt: "Bailey",
+              title: "Bailey Pumfleet",
+            },
+            {
+              image: "https://cal.com/stakeholder/alex-van-andel.jpg",
+              alt: "Alex",
+              title: "Alex Van Andel",
+            },
+          ]}
+        />
+        <div className="border-muted absolute -bottom-0.5 -right-1 h-2 w-2 rounded-full border bg-green-500" />
+      </div>
+      <div className="hidden sm:block">{t("dont_want_to_wait")}</div>
+      <div>
+        {/* TODO: onClick listener that takes data from the immediate time */}
+        <Button color="primary" size="sm" className="rounded-lg">
+          {t("call_immediately")}
+        </Button>
+      </div>
+    </div>
   );
 };
