@@ -142,7 +142,8 @@ const fillAllQuestions = async (eventTypePage: Page, questions: string[], option
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "multiselect":
-          await eventTypePage.locator("form svg").nth(4).click();
+          // select-dropdown
+          await eventTypePage.getByLabel("multi-select-dropdown").click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "number":
