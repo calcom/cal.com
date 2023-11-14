@@ -88,7 +88,7 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     select: async () => {
       if (customLocators.shouldChangeSelectLocator) {
-        await eventTypePage.getByLabel("select-dropdown").click();
+        await eventTypePage.getByLabel("select-dropdown").first().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
         await eventTypePage.getByLabel("select-dropdown").last().click();
