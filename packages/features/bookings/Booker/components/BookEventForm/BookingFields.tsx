@@ -1,7 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationsType } from "@calcom/app-store/locations";
+import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
@@ -107,14 +107,14 @@ export const BookingFields = ({
         }
 
         if (field?.options) {
-          const organzierInputTypes = getOrganizerInputLocationsType();
-          const organzierInputObj: Record<string, number> = {};
+          const organizerInputTypes = getOrganizerInputLocationTypes();
+          const organizerInputObj: Record<string, number> = {};
 
           field.options.forEach((f) => {
-            if (f.value in organzierInputObj) {
-              organzierInputObj[f.value]++;
+            if (f.value in organizerInputObj) {
+              organizerInputObj[f.value]++;
             } else {
-              organzierInputObj[f.value] = 1;
+              organizerInputObj[f.value] = 1;
             }
           });
 
@@ -122,7 +122,7 @@ export const BookingFields = ({
             return {
               ...field,
               value:
-                organzierInputTypes.includes(field.value) && organzierInputObj[field.value] > 1
+                organizerInputTypes.includes(field.value) && organizerInputObj[field.value] > 1
                   ? field.label
                   : field.value,
             };
