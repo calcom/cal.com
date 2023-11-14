@@ -1,8 +1,8 @@
 name: Pulumi Preview
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - staging
 
 jobs:
   pulumi-preview:
@@ -28,10 +28,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         
-      - name: pulumi dev preview 🚀
+      - name: pulumi dev deploy 🚀
         uses: pulumi/actions@v4 
         with:
-          command: preview
+          command: up
           cloud-url: ${{ secrets.DEV_PULUMI_S3_BUCKET }}
           stack-name: organization/cal-infra/${{ secrets.DEV_PULUMI_STACK_NAME }}
           work-dir: ./infra

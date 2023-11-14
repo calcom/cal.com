@@ -19,7 +19,6 @@ const certificateArn = baseConfig.require("certificateArn");
 if (!awsRegion) {
   throw new Error("AWS REGION IS NOT SET");
 }
-
 // Get Secrets
 const getAwsSecrets = async () => {
   const secretKeys: string[] = JSON.parse(baseConfig.require("secretKeys") ?? "[]");
@@ -152,6 +151,12 @@ const createDockerImage = ({
     repositoryUrl: repoUrl,
     dockerfile: dockerFilePath,
     path: buildContextPath,
+    env: {
+      DOCKER_BUILDKIT: "1",
+      DOCKER_DEFAULT_PLATFORM: "linux/arm64",
+      BUILDKIT_PROGRESS: "plain",
+    },
+    extraOptions: ["--platform", "linux/arm64"],
   });
   return image;
 };
