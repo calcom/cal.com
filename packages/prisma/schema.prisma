@@ -336,6 +336,7 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@index([token])
+  @@index([teamId])
 }
 
 model BookingReference {
