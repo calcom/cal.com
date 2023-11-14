@@ -10,7 +10,6 @@ import OrganizationMemberAvatar from "@calcom/features/ee/organizations/componen
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -78,31 +77,11 @@ type FormValues = {
   bio: string;
 };
 
-const checkIfItFallbackImage = (fetchedImgSrc?: string) => {
-  return !fetchedImgSrc || fetchedImgSrc.endsWith(AVATAR_FALLBACK);
-};
-
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { update } = useSession();
-
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
-
-  const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: async (userData) => {
-      try {
-        if (!userData.organization) {
-          const res = await fetch(userData.avatar);
-          if (res.url) setFetchedImgSrc(res.url);
-        } else {
-          setFetchedImgSrc("");
-        }
-      } catch (err) {
-        setFetchedImgSrc("");
-      }
-    },
-  });
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -251,7 +230,6 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
-        isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
         userAvatar={user.avatar}
         user={user}
         userOrganization={user.organization}
