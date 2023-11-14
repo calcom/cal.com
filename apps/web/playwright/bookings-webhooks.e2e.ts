@@ -91,10 +91,12 @@ const updateBody = (body: any) => {
 };
 
 test.describe("Add webhook on event type config", async () => {
-  test.beforeEach(({ users }) => users.deleteAll());
-  test("Create booking", async ({ page, users, bookingPage }) => {
-    const webhookReceiver = createHttpServer();
+  test.beforeEach(async ({ users }) => {
+    users.deleteAll();
     await loginUser(users);
+  });
+  test("Create booking", async ({ bookingPage }) => {
+    const webhookReceiver = createHttpServer();
     await bookingPage.createBookingWebhook(webhookReceiver, "30 min");
     const eventTypePage = await bookingPage.previewEventType();
     await bookEventOnThisPage(eventTypePage);
@@ -107,9 +109,8 @@ test.describe("Add webhook on event type config", async () => {
     webhookReceiver.close();
   });
 
-  test("Booking rescheduled", async ({ page, users, bookingPage }) => {
+  test("Booking rescheduled", async ({ bookingPage }) => {
     const webhookReceiver = createHttpServer();
-    await loginUser(users);
     await bookingPage.createBookingWebhook(webhookReceiver, "30 min");
     const eventTypePage = await bookingPage.previewEventType();
     await bookEventOnThisPage(eventTypePage);
@@ -125,9 +126,8 @@ test.describe("Add webhook on event type config", async () => {
     webhookReceiver.close();
   });
 
-  test("Booking canceled", async ({ page, users, bookingPage }) => {
+  test("Booking canceled", async ({ bookingPage }) => {
     const webhookReceiver = createHttpServer();
-    await loginUser(users);
     await bookingPage.createBookingWebhook(webhookReceiver, "30 min");
     const eventTypePage = await bookingPage.previewEventType();
     await bookEventOnThisPage(eventTypePage);
@@ -164,16 +164,11 @@ test.describe("Add webhook on event type config", async () => {
 
   test("Booking rejected", async ({ page, users, bookingPage }) => {
     const webhookReceiver = createHttpServer();
-    await loginUser(users);
     await bookingPage.createBookingWebhook(webhookReceiver, "Opt in");
     await page.goto(`/${users.get()[0].username}`);
     await bookOptinEvent(page);
 
-    await page.getByRole("link", { name: "Back to bookings" }).click();
-    await page.getByTestId("horizontal-tab-unconfirmed").click();
-
-    await page.getByText("Reject").click();
-    await page.getByTestId("rejection-confirm").click();
+    await bookingPage.rejectFirstBooking();
     await webhookReceiver.waitForRequestCount(3);
     const [_, _bookingCreatedRequest, bookingRejectedRequest] = webhookReceiver.requestList;
 
@@ -207,7 +202,6 @@ test.describe("Add webhook on event type config", async () => {
 
   test("Booking requested", async ({ page, users, bookingPage }) => {
     const webhookReceiver = createHttpServer();
-    await loginUser(users);
     await bookingPage.createBookingWebhook(webhookReceiver, "Opt in");
     await page.goto(`/${users.get()[0].username}`);
     await bookOptinEvent(page);

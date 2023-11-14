@@ -393,5 +393,11 @@ export function createBookingPageFixture(page: Page) {
         page.getByText(event);
       });
     },
+    rejectFirstBooking: async () => {
+      await page.goto("/bookings/unconfirmed");
+      await page.getByTestId("horizontal-tab-unconfirmed").click();
+      await page.getByTestId("booking-item").first().getByText("Reject").click();
+      await page.getByTestId("rejection-confirm").click();
+    },
   };
 }
