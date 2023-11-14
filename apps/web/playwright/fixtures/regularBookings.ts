@@ -138,7 +138,7 @@ const fillAllQuestions = async (eventTypePage: Page, questions: string[], option
           await eventTypePage.getByPlaceholder("Textarea test").fill("This is a sample text for textarea.");
           break;
         case "select":
-          await eventTypePage.locator("form svg").last().click();
+          await eventTypePage.getByLabel("select-dropdown").last().click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "multiselect":
