@@ -2080,6 +2080,8 @@
   "access_availability": "Leggere, modificare, eliminare la tua disponibilità",
   "access_bookings": "Leggere, modificare, eliminare le tue prenotazioni",
   "allow_client_to_do": "Consentire a {{clientName}} di farlo?",
+  "oauth_access_information": "Facendo clic su Consenti, consentirai a questa applicazione di usare i tuoi dati in conformità ai suoi termini di servizio e informativa sulla privacy. Puoi revocare l'accesso nelle impostazioni di {{appName}} nell'App Store.",
+  "allow": "Consenti",
   "view_only_edit_availability_not_onboarded": "Questo utente non ha completato l'onboarding. Non sarai in grado di impostare la sua disponibilità fino a quando non avrà completato l'onboarding.",
   "view_only_edit_availability": "Stai visualizzando la disponibilità di questo utente. Puoi solo modificare la tua disponibilità.",
   "edit_users_availability": "Modifica la disponibilità dell'utente: {{username}}",
