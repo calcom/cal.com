@@ -1,8 +1,8 @@
 name: Pulumi Preview
 on:
-  push:
+  pull_request:
     branches:
-      - staging
+      - main
 
 jobs:
   pulumi-preview:
