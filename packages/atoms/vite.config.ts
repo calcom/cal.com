@@ -1,7 +1,10 @@
+import react from "@vitejs/plugin-react";
+import path from "path";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  plugins: [react()],
   build: {
     lib: {
       entry: [resolve(__dirname, "booker/export.ts")],
@@ -23,6 +26,7 @@ export default defineConfig({
       fs: resolve("../../node_modules/rollup-plugin-node-builtins"),
       path: resolve("../../node_modules/rollup-plugin-node-builtins"),
       os: resolve("../../node_modules/rollup-plugin-node-builtins"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });
