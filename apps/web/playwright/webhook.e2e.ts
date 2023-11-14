@@ -108,7 +108,7 @@ test.describe("BOOKING_CREATED", async () => {
       triggerEvent: "BOOKING_CREATED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "30 min",
+        type: "30-min",
         title: "30 min between Nameless and Test Testson",
         description: "",
         additionalNotes: "",
@@ -236,7 +236,7 @@ test.describe("BOOKING_REJECTED", async () => {
       triggerEvent: "BOOKING_REJECTED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "Opt in",
+        type: "opt-in",
         title: "Opt in between Nameless and Test Testson",
         customInputs: {},
         startTime: "[redacted/dynamic]",
