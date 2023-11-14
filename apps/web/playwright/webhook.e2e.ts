@@ -357,7 +357,7 @@ test.describe("BOOKING_REQUESTED", async () => {
       triggerEvent: "BOOKING_REQUESTED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "Opt in",
+        type: "opt-in",
         title: "Opt in between Nameless and Test Testson",
         customInputs: {},
         startTime: "[redacted/dynamic]",
