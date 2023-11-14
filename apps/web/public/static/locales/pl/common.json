@@ -2084,6 +2084,7 @@
   "allow": "Zezwól",
   "view_only_edit_availability_not_onboarded": "Ten użytkownik nie zakończył procesu wdrażania. Ustawienie jego dostępności będzie niedostępne, póki nie zakończy wdrażania.",
   "view_only_edit_availability": "Wyświetlasz dostępność tego użytkownika. Możesz edytować tylko własną dostępność.",
+  "you_can_override_calendar_in_advanced_tab": "Możesz nadpisać to na podstawie wydarzeń w ustawieniach zaawansowanych przy każdym typie wydarzenia.",
   "edit_users_availability": "Edytuj dostępność użytkownika: {{username}}",
   "resend_invitation": "Ponownie wyślij zaproszenie",
   "invitation_resent": "Zaproszenie zostało wysłane ponownie.",
@@ -2096,6 +2097,7 @@
   "overlay_my_calendar_toc": "Łącząc się z kalendarzem, akceptujesz naszą politykę prywatności i warunki użytkowania. Możesz odwołać pozwolenie na dostęp w dowolnym momencie.",
   "view_overlay_calendar_events": "Zobacz wydarzenia kalendarza, aby zapobiec kolidującym rezerwacjom.",
   "lock_timezone_toggle_on_booking_page": "Zablokuj strefę czasową na stronie rezerwacji",
+  "description_lock_timezone_toggle_on_booking_page": "Aby zablokować strefę czasową na stronie rezerwacji (przydatne dla wydarzeń stacjonarnych).",
   "extensive_whitelabeling": "Dedykowane wsparcie w zakresie wdrożenia i obsługi technicznej",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
