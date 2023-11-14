@@ -7,7 +7,7 @@ import type { User, Team } from "@calcom/prisma/client";
  * It ensures that the wrong avatar isn't fetched by ensuring that organizationId is always passed
  */
 export const getUserAvatarUrl = (
-  user: Pick<User, "username" | "organizationId" | "avatarUrl"> | undefined
+  user: (Pick<User, "username" | "organizationId"> & { avatarUrl?: string | null }) | undefined
 ) => {
   if (user?.avatarUrl) {
     return user.avatarUrl;
@@ -20,7 +20,8 @@ export const getUserAvatarUrl = (
 };
 
 export const getOrgAvatarUrl = (
-  org: Pick<Team, "id" | "slug" | "logoUrl"> & {
+  org: Pick<Team, "id" | "slug"> & {
+    logoUrl?: string | null;
     requestedSlug: string | null;
   }
 ) => {
