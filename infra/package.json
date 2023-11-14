@@ -6,11 +6,11 @@
     "deploy-prod": "NODE_ENV=production pulumi up"
   },
   "devDependencies": {
-    "@types/node": "^16"
+    "@types/node": "^20.9.0"
   },
   "dependencies": {
-    "@pulumi/aws": "^5.0.0",
-    "@pulumi/awsx": "^1.0.0",
-    "@pulumi/pulumi": "^3.0.0"
+    "@pulumi/aws": "^6.8.0",
+    "@pulumi/awsx": "^2.1.1",
+    "@pulumi/pulumi": "^3.93.0"
   }
 }

@@ -150,11 +150,11 @@ const createDockerImage = ({
   const image = new awsx.ecr.Image(imageName, {
     repositoryUrl: repoUrl,
     dockerfile: dockerFilePath,
-    path: buildContextPath,
-    env: {
-      DOCKER_BUILDKIT: "1",
-      DOCKER_DEFAULT_PLATFORM: "linux/arm64",
-      BUILDKIT_PROGRESS: "plain",
+    context: buildContextPath,
+    platform: "linux/arm64",
+    builderVersion: "BuilderBuildKit",
+    args: {
+      BUILDKIT_INLINE_CACHE: "1",
     },
     extraOptions: ["--platform", "linux/arm64"],
   });
