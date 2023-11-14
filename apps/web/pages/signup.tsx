@@ -303,15 +303,17 @@ export default function Signup({
               </Button>
             </Form>
             {/* Continue with Social Logins */}
-            <div className="mt-6">
-              <div className="relative flex items-center">
-                <div className="border-subtle flex-grow border-t" />
-                <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
-                  {t("or_continue_with")}
-                </span>
-                <div className="border-subtle flex-grow border-t" />
+            {!isGoogleLoginEnabled && !isSAMLLoginEnabled ? null : (
+              <div className="mt-6">
+                <div className="relative flex items-center">
+                  <div className="border-subtle flex-grow border-t" />
+                  <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
+                    {t("or_continue_with")}
+                  </span>
+                  <div className="border-subtle flex-grow border-t" />
+                </div>
               </div>
-            </div>
+            )}
             {/* Social Logins */}
             {!token && (
               <div className="mt-6 grid gap-2 md:grid-cols-2">
