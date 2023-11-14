@@ -156,7 +156,6 @@ const createDockerImage = ({
     args: {
       BUILDKIT_INLINE_CACHE: "1",
     },
-    extraOptions: ["--platform", "linux/arm64"],
   });
   return image;
 };
