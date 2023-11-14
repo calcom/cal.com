@@ -2075,9 +2075,14 @@
   "see_primary_email_address": "Veja seu endereço de e-mail principal",
   "connect_installed_apps": "Conecte-se aos seus aplicativos instalados",
   "access_event_type": "Ler, editar, excluir os seus tipos de eventos",
+  "access_availability": "Ler, editar, excluir sua disponibilidade",
+  "access_bookings": "Ler, editar, excluir suas reservas",
+  "allow_client_to_do": "Permitir que {{clientName}} faça isto?",
+  "oauth_access_information": "Ao clicar em Permitir, você autoriza que este aplicativo use suas informações, de acordo com os termos de serviço e política de privacidade. Você pode remover o acesso na App Store do {{appName}}.",
   "allow": "Permitir",
   "view_only_edit_availability_not_onboarded": "Este usuário não concluiu a integração. Não será possível definir a disponibilidade antes de concluir a integração.",
   "view_only_edit_availability": "Você está vendo a disponibilidade deste usuário. Você só pode editar sua disponibilidade.",
+  "you_can_override_calendar_in_advanced_tab": "Você pode substituir isso por evento nas configurações Avançadas em cada tipo de evento.",
   "edit_users_availability": "Editar disponibilidade do usuário: {{username}}",
   "resend_invitation": "Reenviar convite",
   "invitation_resent": "O convite foi reenviado.",
@@ -2087,6 +2092,8 @@
   "this_app_is_not_setup_already": "Este app ainda não foi configurado",
   "as_csv": "como CSV",
   "overlay_my_calendar": "Sobrepor meu calendário",
+  "overlay_my_calendar_toc": "Ao conectar-se à seu Calendário, você aceita nossa política de privacidade e termos de uso. Você pode revogar o acesso a qualquer momento.",
+  "view_overlay_calendar_events": "Veja seus eventos do calendário para evitar conflito nos agendamentos.",
   "extensive_whitelabeling": "Marca própria abrangente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
