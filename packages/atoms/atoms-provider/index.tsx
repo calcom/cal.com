@@ -6,10 +6,8 @@ type AtomsProviderProps = {
   children: ReactNode;
 };
 
-// context for the api key value
 const ApiKeyContext = createContext("");
 
-// custom hook to simplify using the context
 export const useApiKey = () => useContext(ApiKeyContext);
 
 export function AtomsProvider({ apiKey, children }: AtomsProviderProps) {
