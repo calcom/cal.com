@@ -103,7 +103,6 @@ test.describe("BOOKING_CREATED", async () => {
     body.payload.videoCallData = dynamic;
     body.payload.appsStatus = dynamic;
     body.payload.metadata.videoCallUrl = dynamic;
-
     expect(body).toMatchObject({
       triggerEvent: "BOOKING_CREATED",
       createdAt: "[redacted/dynamic]",
