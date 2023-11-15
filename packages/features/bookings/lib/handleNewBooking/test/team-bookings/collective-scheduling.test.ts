@@ -355,7 +355,7 @@ describe("handleNewBooking", () => {
 
             await expect(async () => {
               await handleNewBooking(req);
-            }).rejects.toThrowError("Some of the hosts are unavailable for booking");
+            }).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
           },
           timeout
         );
