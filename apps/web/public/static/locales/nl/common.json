@@ -849,6 +849,7 @@
   "next_step": "Stap overslaan",
   "prev_step": "Vorige stap",
   "install": "Installeren",
+  "install_paid_app": "Abonneren",
   "installed": "Geinstalleerd",
   "active_install_one": "{{count}} actieve installatie",
   "active_install_other": "{{count}} actieve installaties",
