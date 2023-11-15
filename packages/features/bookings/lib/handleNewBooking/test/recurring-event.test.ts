@@ -16,6 +16,7 @@ import {
   mockCalendarToHaveNoBusySlots,
   getDate,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -23,10 +24,8 @@ import {
   expectBookingCreatedWebhookToHaveBeenFired,
   expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
-import { setupAndTeardown } from "./lib/setupAndTeardown";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
