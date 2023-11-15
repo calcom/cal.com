@@ -47,7 +47,7 @@ export function processWorkingHours({
     const startResult = dayjs.max(start, dateFrom.tz(timeZone));
     const endResult = dayjs.min(end, dateTo.tz(timeZone));
 
-    if (startResult.isAfter(endResult)) {
+    if (endResult.isBefore(startResult)) {
       // if an event ends before start, it's not a result.
       continue;
     }
