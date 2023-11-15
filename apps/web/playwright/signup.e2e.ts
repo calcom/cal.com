@@ -1,11 +1,11 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
-import { getEmailsReceivedByUser } from "playwright/lib/testUtils";
 
 import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
+import { getEmailsReceivedByUser } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -205,17 +205,15 @@ test.describe("Signup Flow Test", async () => {
     expect(await usernameField.inputValue()).toBe("rick-team");
     expect(await emailField.inputValue()).toBe("rick-team@example.com");
   });
-  test("Email verification sent if enabled", async ({ page, users, prisma, emails }) => {
+  test("Email verification sent if enabled", async ({ page, prisma, emails }) => {
     const emailVerifyFlag = await prisma.feature.findUnique({
       where: {
         slug: "email-verification",
       },
     });
 
-    // eslint-disable-next-line playwright/no-conditional-in-test
-    if (!emailVerifyFlag?.enabled) {
-      return;
-    }
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!emailVerifyFlag?.enabled);
 
     const username = "email-verify";
     const email = `${username}@example.com`;
