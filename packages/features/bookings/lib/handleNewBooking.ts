@@ -435,7 +435,6 @@ async function ensureAvailableUsers(
   if (!availableUsers.length) {
     throw new Error("No available users found.");
   }
-  console.log(`avaialbleUsers ${JSON.stringify(availableUsers)}`);
   return availableUsers;
 }
 
