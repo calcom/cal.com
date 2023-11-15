@@ -849,6 +849,7 @@
   "prev_step": "Étape précédente",
   "install": "Installer",
   "install_paid_app": "S'abonner",
+  "start_paid_trial": "Démarrer l'essai gratuit",
   "installed": "Installée",
   "active_install_one": "{{count}} installation active",
   "active_install_other": "{{count}} installations actives",
