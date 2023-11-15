@@ -680,6 +680,7 @@ export function expectBookingRequestRescheduledEmails({
       to: `${booker.email}`,
       ics: {
         filename: "event.ics",
+        method: "REQUEST",
       },
     },
     `${booker.email}`
@@ -693,6 +694,7 @@ export function expectBookingRequestRescheduledEmails({
       to: `${loggedInUser.email}`,
       ics: {
         filename: "event.ics",
+        method: "REQUEST",
       },
     },
     `${loggedInUser.email}`
@@ -1042,4 +1044,12 @@ export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { fro
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...to,
   });
+}
+
+export function expectICalUIDAsString(iCalUID: string | undefined | null) {
+  if (typeof iCalUID !== "string") {
+    throw new Error("iCalUID is not a string");
+  }
+
+  return iCalUID;
 }

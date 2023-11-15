@@ -49,6 +49,7 @@ import {
   expectBookingPaymentIntiatedWebhookToHaveBeenFired,
   expectBrokenIntegrationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
+  expectICalUIDAsString,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -200,6 +201,8 @@ describe("handleNewBooking", () => {
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
         });
 
+        const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
         expectSuccessfulBookingCreationEmails({
           booking: {
             uid: createdBooking.uid!,
@@ -208,7 +211,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: createdBooking.iCalUID,
+          iCalUID,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -352,6 +355,8 @@ describe("handleNewBooking", () => {
             calendarId: null,
           });
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -359,7 +364,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: createdBooking.iCalUID,
+            iCalUID,
           });
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -500,6 +505,8 @@ describe("handleNewBooking", () => {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
           });
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -507,7 +514,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: createdBooking.iCalUID,
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -764,6 +771,8 @@ describe("handleNewBooking", () => {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
           });
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -771,7 +780,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: createdBooking.iCalUID,
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -852,6 +861,8 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -859,8 +870,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            // Because no calendar was involved, we don't have an ics UID
-            iCalUID: createdBooking.iCalUID,
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1454,6 +1464,8 @@ describe("handleNewBooking", () => {
 
           expectWorkflowToBeTriggered();
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -1461,7 +1473,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: createdBooking.iCalUID,
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1745,6 +1757,8 @@ describe("handleNewBooking", () => {
 
         expectWorkflowToBeTriggered();
 
+        const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
         expectSuccessfulBookingCreationEmails({
           booking: {
             uid: createdBooking.uid!,
@@ -1752,7 +1766,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: createdBooking.iCalUID,
+          iCalUID,
         });
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,
