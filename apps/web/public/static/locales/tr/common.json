@@ -2074,9 +2074,17 @@
   "see_primary_email_address": "Birincil e-posta adresinizi görmek",
   "connect_installed_apps": "Yüklü uygulamalarınıza bağlanmak",
   "access_event_type": "Etkinlik türlerinizi okumak, düzenlemek, silmek",
+  "access_availability": "Müsaitlik durumunuzu okuma, düzenleme, silme",
+  "access_bookings": "Rezervasyonlarınızı okuma, düzenleme, silme",
+  "oauth_access_information": "İzin ver'i tıklayarak, bu uygulamanın bilgilerinizi hizmet şartlarına ve gizlilik politikasına uygun şekilde kullanmasına izin vermiş olursunuz. Bu erişim iznini {{appName}} Uygulama Mağazası'ndan kaldırabilirsiniz.",
+  "allow": "İzin ver",
   "view_only_edit_availability_not_onboarded": "Bu kullanıcı katılımı tamamlamadı. Katılımı tamamlayana kadar uygunluk durumlarını ayarlayamazsınız.",
   "view_only_edit_availability": "Bu kullanıcının müsaitlik durumunu görüntülüyorsunuz. Yalnızca kendi uygunluk durumunuzu düzenleyebilirsiniz.",
   "edit_users_availability": "Kullanıcının müsaitlik durumunu düzenleyin: {{username}}",
+  "invitation_resent": "Davetiye tekrar gönderildi.",
+  "this_app_is_not_setup_already": "Bu uygulama henüz kurulmadı",
+  "as_csv": "CSV olarak",
+  "overlay_my_calendar_toc": "Takviminize bağlanarak gizlilik politikamızı ve kullanım koşullarımızı kabul etmiş olursunuz. Erişimi istediğiniz zaman iptal edebilirsiniz.",
   "extensive_whitelabeling": "Özel işe alıştırma ve mühendislik desteği",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
