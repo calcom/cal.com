@@ -840,6 +840,7 @@
   "next_step": "Přeskočit krok",
   "prev_step": "Předchozí krok",
   "install": "Nainstalovat",
+  "install_paid_app": "Odebírat",
   "installed": "Nainstalováno",
   "active_install_one": "Aktivní instalace: {{count}}",
   "active_install_other": "Aktivní instalace: {{count}}",

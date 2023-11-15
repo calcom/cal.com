@@ -1,13 +1,13 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { getOrgFullOrigin, getSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
-import logger from "../../../logger";
+import { getTeam, getOrg } from "../../repository/team";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -24,6 +24,9 @@ export async function getTeamWithMembers(args: {
   isOrgView?: boolean;
 }) {
   const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+
+  // This should improve performance saving already app data found.
+  const appDataMap = new Map();
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -61,115 +64,100 @@ export async function getTeamWithMembers(args: {
       },
     },
   });
-  const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
-    id: true,
-    name: true,
-    slug: true,
-    ...(!!includeTeamLogo ? { logo: true } : {}),
-    bio: true,
-    hideBranding: true,
-    hideBookATeamMember: true,
-    isPrivate: true,
-    metadata: true,
-    parent: {
-      select: {
-        id: true,
-        slug: true,
-        name: true,
+  let lookupBy;
+
+  if (id) {
+    lookupBy = { id, havingMemberWithId: userId };
+  } else if (slug) {
+    lookupBy = { slug, havingMemberWithId: userId };
+  } else {
+    throw new Error("Must provide either id or slug");
+  }
+
+  const arg = {
+    lookupBy,
+    forOrgWithSlug: orgSlug ?? null,
+    isOrg: !!isOrgView,
+    teamSelect: {
+      id: true,
+      name: true,
+      slug: true,
+      ...(!!includeTeamLogo ? { logo: true } : {}),
+      bio: true,
+      hideBranding: true,
+      hideBookATeamMember: true,
+      isPrivate: true,
+      metadata: true,
+      parent: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+        },
       },
-    },
-    children: {
-      select: {
-        name: true,
-        slug: true,
+      children: {
+        select: {
+          name: true,
+          slug: true,
+        },
       },
-    },
-    members: {
-      select: {
-        accepted: true,
-        role: true,
-        disableImpersonation: true,
-        user: {
-          select: userSelect,
+      members: {
+        select: {
+          accepted: true,
+          role: true,
+          disableImpersonation: true,
+          user: {
+            select: userSelect,
+          },
+        },
+      },
+      theme: true,
+      brandColor: true,
+      darkBrandColor: true,
+      eventTypes: {
+        where: {
+          hidden: false,
+          schedulingType: {
+            not: SchedulingType.MANAGED,
+          },
+        },
+        select: {
+          users: {
+            select: userSelect,
+          },
+          metadata: true,
+          ...baseEventTypeSelect,
+        },
+      },
+      inviteTokens: {
+        select: {
+          token: true,
+          expires: true,
+          expiresInDays: true,
+          identifier: true,
         },
       },
     },
-    theme: true,
-    brandColor: true,
-    darkBrandColor: true,
-    eventTypes: {
-      where: {
-        hidden: false,
-        schedulingType: {
-          not: SchedulingType.MANAGED,
-        },
-      },
-      select: {
-        users: {
-          select: userSelect,
-        },
-        metadata: true,
-        ...baseEventTypeSelect,
-      },
-    },
-    inviteTokens: {
-      select: {
-        token: true,
-        expires: true,
-        expiresInDays: true,
-        identifier: true,
-      },
-    },
-  });
+  } as const;
 
-  const where: Prisma.TeamFindFirstArgs["where"] = {};
+  const teamOrOrg = isOrgView ? await getOrg(arg) : await getTeam(arg);
 
-  if (userId) where.members = { some: { userId } };
-  if (orgSlug && orgSlug !== slug) {
-    where.parent = getSlugOrRequestedSlug(orgSlug);
-  }
-  if (id) where.id = id;
-  if (slug) where.slug = slug;
-  if (isOrgView) {
-    // We must fetch only the organization here.
-    // Note that an organization and a team that doesn't belong to an organization, both have parentId null
-    // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
-    // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
-    where.metadata = {
-      path: ["isOrganization"],
-      equals: true,
-    };
-  }
+  if (!teamOrOrg) return null;
 
-  const teams = await prisma.team.findMany({
-    where,
-    select: teamSelect,
-  });
-
-  if (teams.length > 1) {
-    logger.error("Found more than one team/Org. We should be doing something wrong.", {
-      where,
-      teams: teams.map((team) => ({ id: team.id, slug: team.slug })),
-    });
-  }
-
-  const team = teams[0];
-  if (!team) return null;
-
-  // This should improve performance saving already app data found.
-  const appDataMap = new Map();
-  const members = team.members.map((obj) => {
-    const { credentials, ...restUser } = obj.user;
+  const members = teamOrOrg.members.map((m) => {
+    const { credentials, ...restUser } = m.user;
     return {
       ...restUser,
-      role: obj.role,
-      accepted: obj.accepted,
-      disableImpersonation: obj.disableImpersonation,
+      role: m.role,
+      accepted: m.accepted,
+      disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
-        ? obj.user.teams.filter((obj) => obj.team.slug !== orgSlug).map((obj) => obj.team.slug)
+        ? m.user.teams
+            .filter((membership) => membership.team.slug !== orgSlug)
+            .map((membership) => membership.team.slug)
         : null,
-      avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
-      orgOrigin: getOrgFullOrigin(obj.user.organization?.slug || ""),
+      avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
+      orgOrigin: getOrgFullOrigin(m.user.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -193,15 +181,15 @@ export async function getTeamWithMembers(args: {
     };
   });
 
-  const eventTypes = team.eventTypes.map((eventType) => ({
+  const eventTypes = teamOrOrg.eventTypes.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
   // Don't leak invite tokens to the frontend
-  const { inviteTokens, ...teamWithoutInviteTokens } = team;
+  const { inviteTokens, ...teamWithoutInviteTokens } = teamOrOrg;
 
   // Don't leak stripe payment ids
-  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const teamMetadata = teamOrOrg.metadata;
   const {
     paymentId: _,
     subscriptionId: __,
@@ -214,7 +202,7 @@ export async function getTeamWithMembers(args: {
     /** To prevent breaking we only return non-email attached token here, if we have one */
     inviteToken: inviteTokens.find(
       (token) =>
-        token.identifier === `invite-link-for-teamId-${team.id}` &&
+        token.identifier === `invite-link-for-teamId-${teamOrOrg.id}` &&
         token.expires > new Date(new Date().setHours(24))
     ),
     metadata: restTeamMetadata,
