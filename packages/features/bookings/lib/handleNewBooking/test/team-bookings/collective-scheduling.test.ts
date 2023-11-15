@@ -22,6 +22,7 @@ import {
   BookingLocations,
   getZoomAppCredential,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -30,10 +31,8 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { createMockNextJsRequest } from "../lib/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "../lib/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../lib/setupAndTeardown";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 

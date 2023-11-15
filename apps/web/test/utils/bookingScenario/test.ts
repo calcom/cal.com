@@ -67,10 +67,10 @@ export const testWithAndWithoutOrg = (
   _testWithAndWithoutOrg(description, fn, timeout, "run");
 };
 
-testWithAndWithoutOrg.only = ((description, fn) => {
-  _testWithAndWithoutOrg(description, fn, "only");
+testWithAndWithoutOrg.only = ((description, fn, timeout) => {
+  _testWithAndWithoutOrg(description, fn, timeout, "only");
 }) as typeof _testWithAndWithoutOrg;
 
-testWithAndWithoutOrg.skip = ((description, fn) => {
-  _testWithAndWithoutOrg(description, fn, "skip");
+testWithAndWithoutOrg.skip = ((description, fn, timeout) => {
+  _testWithAndWithoutOrg(description, fn, timeout, "skip");
 }) as typeof _testWithAndWithoutOrg;

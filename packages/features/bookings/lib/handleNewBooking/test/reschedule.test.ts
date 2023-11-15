@@ -24,6 +24,7 @@ import {
   getMockFailingAppStatus,
   getMockPassingAppStatus,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectBookingToBeInDatabase,
@@ -37,10 +38,8 @@ import {
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulVideoMeetingDeletionInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
-import { setupAndTeardown } from "./lib/setupAndTeardown";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
