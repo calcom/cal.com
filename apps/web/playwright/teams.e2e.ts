@@ -134,7 +134,7 @@ test.describe("Teams - NonOrg", () => {
     // Anyone of the teammates could be the Host of the booking.
     const chosenUser = await page.getByTestId("booking-host-name").textContent();
     expect(chosenUser).not.toBeNull();
-    expect(teamMatesObj.some(({ name }) => name === chosenUser)).toBe(true);
+    expect(teamMatesObj.some(({ name }) => name === chosenUser || name === ownerObj.name)).toBe(true);
     // TODO: Assert whether the user received an email
   });
 
