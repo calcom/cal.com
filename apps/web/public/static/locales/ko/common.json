@@ -849,6 +849,7 @@
   "next_step": "건너뛰기",
   "prev_step": "이전 단계",
   "install": "설치",
+  "install_paid_app": "구독",
   "installed": "설치됨",
   "active_install_one": "{{count}}개 활성 설치",
   "active_install_other": "{{count}}개 활성 설치",

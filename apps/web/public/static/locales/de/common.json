@@ -849,6 +849,7 @@
   "next_step": "Schritt überspringen",
   "prev_step": "Vorheriger Schritt",
   "install": "Installieren",
+  "install_paid_app": "Abonnieren",
   "installed": "Installiert",
   "active_install_one": "{{count}} aktive Installation",
   "active_install_other": "{{count}} aktive Installationen",
@@ -2088,6 +2089,8 @@
   "invitation_resent": "Die Einladung wurde erneut gesendet.",
   "this_app_is_not_setup_already": "Diese App wurde noch nicht eingerichtet",
   "as_csv": "als CSV",
+  "lock_timezone_toggle_on_booking_page": "Zeitzone auf der Buchungsseite sperren",
+  "description_lock_timezone_toggle_on_booking_page": "Um die Zeitzone auf der Buchungsseite zu sperren, nützlich für Termine in Person.",
   "extensive_whitelabeling": "Dedizierte Onboarding- und Engineeringsupport",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

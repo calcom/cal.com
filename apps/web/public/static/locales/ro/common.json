@@ -840,6 +840,7 @@
   "next_step": "Sari peste",
   "prev_step": "Pas anterior",
   "install": "Instalați",
+  "install_paid_app": "Abonare",
   "installed": "Instalat",
   "active_install_one": "{{count}} instalare activă",
   "active_install_other": "{{count}} (de) instalări active",
