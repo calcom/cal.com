@@ -370,7 +370,7 @@ test.describe("Teams - Org", () => {
         await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
         // All the teammates should be in the booking
-        for (const teammate of teamMatesObj.concat([{ name: ownerObj.name }])) {
+        for (const teammate of teamMatesObj.concat([{ name: owner.name || "" }])) {
           await expect(page.getByText(teammate.name, { exact: true })).toBeVisible();
         }
       }
