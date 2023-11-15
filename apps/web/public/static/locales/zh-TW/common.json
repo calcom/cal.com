@@ -2090,6 +2090,9 @@
   "invitation_resent": "邀請已重新傳送。",
   "add_client": "新增用戶端",
   "copy_client_secret_info": "密碼複製後即無法再查看",
+  "add_new_client": "新增客戶",
+  "this_app_is_not_setup_already": "此應用程式尚未完成設定",
+  "as_csv": "採 CSV 格式",
   "extensive_whitelabeling": "專屬的入門和工程支援",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
