@@ -849,6 +849,7 @@
   "next_step": "Пропустити крок",
   "prev_step": "Попередній крок",
   "install": "Установити",
+  "install_paid_app": "Підписатися",
   "installed": "Установлено",
   "active_install_one": "{{count}} активна інсталяція",
   "active_install_other": "Активних інсталяцій: {{count}}",
