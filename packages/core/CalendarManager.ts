@@ -6,7 +6,6 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -360,7 +359,6 @@ export const updateEvent = async (
         calError,
       })
     );
-    throw new Error(ErrorCode.UpdateCalendarEventFailure);
   }
 
   if (Array.isArray(updatedResult)) {
