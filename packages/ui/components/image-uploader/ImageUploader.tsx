@@ -167,7 +167,6 @@ export default function ImageUploader({
         // unset file on close
         if (!opened) {
           setFile(null);
-          setImageSrc(null);
         }
       }}>
       <DialogTrigger asChild>

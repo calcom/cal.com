@@ -142,7 +142,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             />
           </Form>
 
-          <div className="mt-6 flex flex-col gap-8">
+          <div className="mt-6 flex flex-col gap-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               title={t("disable_cal_branding", { appName: APP_NAME })}
