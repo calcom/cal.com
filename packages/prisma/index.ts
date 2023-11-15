@@ -59,9 +59,13 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
-export const readonlyPrisma = customPrisma({
-  datasources: { db: { url: process.env.INSIGHTS_DATABASE_URL } },
-});
+// This prisma instance is meant to be used only for READ operations.
+// If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
+export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
+  ? customPrisma({
+      datasources: { db: { url: process.env.INSIGHTS_DATABASE_URL } },
+    })
+  : prisma;
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
