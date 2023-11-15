@@ -2093,6 +2093,11 @@
   "add_new_client": "新增客戶",
   "this_app_is_not_setup_already": "此應用程式尚未完成設定",
   "as_csv": "採 CSV 格式",
+  "overlay_my_calendar": "覆蓋我的行事曆",
+  "overlay_my_calendar_toc": "連接至您的行事曆後，即表示您接受我們的隱私政策和使用條款。您隨時可撤回存取權限。",
+  "view_overlay_calendar_events": "查看您的行事曆活動，避免預約發生衝突。",
+  "lock_timezone_toggle_on_booking_page": "鎖定預約頁面的時區",
+  "description_lock_timezone_toggle_on_booking_page": "鎖定預約頁面的時區，安排實體活動時非常實用。",
   "extensive_whitelabeling": "專屬的入門和工程支援",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
