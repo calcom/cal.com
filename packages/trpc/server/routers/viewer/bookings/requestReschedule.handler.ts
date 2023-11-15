@@ -16,6 +16,8 @@ import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigg
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -36,11 +38,11 @@ type RequestRescheduleOptions = {
   };
   input: TRequestRescheduleInputSchema;
 };
-
+const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
-
+  log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
   const bookingToReschedule = await prisma.booking.findFirstOrThrow({
     select: {
       id: true,
@@ -98,6 +100,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
       throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
     }
+    log.debug(
+      "Request reschedule for team booking",
+      safeStringify({
+        teamId: bookingToReschedule.eventType?.teamId,
+      })
+    );
   }
   if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
@@ -220,6 +228,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     })
   );
 
+  log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
   // Send emails
   await sendRequestRescheduleEmail(builder.calendarEvent, {
     rescheduleLink: builder.rescheduleLink,

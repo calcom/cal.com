@@ -849,6 +849,7 @@
   "next_step": "Pomiń krok",
   "prev_step": "Poprzedni krok",
   "install": "Zainstaluj",
+  "install_paid_app": "Subskrybuj",
   "installed": "Zainstalowane",
   "active_install_one": "Aktywne instalacje: {{count}}",
   "active_install_other": "Aktywne instalacje: {{count}}",
