@@ -849,6 +849,8 @@
   "next_step": "Skip step",
   "prev_step": "Prev step",
   "install": "Install",
+  "install_paid_app": "Subscribe",
+  "start_paid_trial": "Start free Trial",
   "installed": "Installed",
   "active_install_one": "{{count}} active install",
   "active_install_other": "{{count}} active installs",
