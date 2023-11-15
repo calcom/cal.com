@@ -59,6 +59,10 @@ const prismaWithClientExtensions = prismaWithoutClientExtensions
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
+export const readonlyPrisma = customPrisma({
+  datasources: { db: { url: process.env.INSIGHTS_DATABASE_URL } },
+});
+
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
   globalForPrisma.prismaWithClientExtensions = prisma;
