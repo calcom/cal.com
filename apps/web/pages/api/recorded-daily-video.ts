@@ -76,31 +76,35 @@ const triggerWebhook = async ({
   await Promise.all(promises);
 };
 
+const testRequestSchema = z.object({
+  test: z.enum(["test"]),
+});
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
+  console.log("REQ>BODY", req.body, req.headers);
+
+  if (testRequestSchema.safeParse(req.body).success) {
+    return res.status(200).json({ message: "Test request successful" });
+  }
+
   const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
   if (!hmacSecret) {
     return res.status(405).json({ message: "No Daily Webhook Secret" });
   }
-  console.log("hmacSecret: ", hmacSecret);
-  const signature = `${req.headers["X-Webhook-Timestamp"]}.${JSON.stringify(req.body)}`;
-  console.log("webhook-timestamp: ", req.headers["X-Webhook-Timestamp"]);
-  console.log("signature: ", signature);
-  const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
-  console.log("base64DecodedSecret", base64DecodedSecret);
-  const hmac = createHmac("sha256", base64DecodedSecret);
-  console.log("hmac", hmac);
-  const computed_signature = hmac.update(signature).digest("base64");
-  console.log("computed_signature", computed_signature);
-  console.log("req.headers", req.headers["X-Webhook-Signature"]);
 
-  if (req.headers["X-Webhook-Signature"] !== computed_signature) {
+  const signature = `${req.headers["x-webhook-timestamp"]}.${JSON.stringify(req.body)}`;
+  const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
+  const hmac = createHmac("sha256", base64DecodedSecret);
+  const computed_signature = hmac.update(signature).digest("base64");
+
+  if (req.headers["x-webhook-signature"] !== computed_signature) {
     return res.status(403).json({ message: "Signature does not match" });
   }
 
-  const response = schema.safeParse(JSON.parse(req.body));
+  const response = schema.safeParse(req.body);
 
   if (!response.success || response.data.type !== "recording.ready-to-download") {
     return res.status(400).send({
@@ -108,13 +112,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
 
-  const { room_name, recording_id } = response.data.payload;
+  const { room_name, recording_id, status } = response.data.payload;
+
+  if (status !== "finished") {
+    return res.status(400).send({
+      message: "Recording not finished",
+    });
+  }
 
   try {
+    //  TODO: Search by ID
     const bookingReference = await prisma.bookingReference.findUniqueOrThrow({
-      where: { uid: room_name },
+      where: { type: "daily_video", uid: room_name, meetingId: room_name },
       select: { bookingId: true },
     });
+
+    console.log("bookingReference", bookingReference);
+
+    if (!bookingReference) {
+      return res.status(404).send({ message: "Booking reference not found" });
+    }
 
     const booking = await prisma.booking.findUniqueOrThrow({
       where: {
@@ -145,9 +162,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!booking || !(booking.location === DailyLocationType || booking.location.trim() === "")) {
+    console.log("BOOKING)_ADAS", booking);
+
+    if (!booking || !(booking.location === DailyLocationType || booking?.location?.trim() === "")) {
       return res.status(404).send({
-        message: `Booking of uid ${bookingUID} does not exist or does not contain daily video as location`,
+        message: `Booking of room_name ${room_name} does not exist or does not contain daily video as location`,
       });
     }
 
@@ -166,6 +185,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const attendeesList = await Promise.all(attendeesListPromises);
+    console.log("attendeesList", attendeesList);
 
     await prisma.booking.update({
       where: {
