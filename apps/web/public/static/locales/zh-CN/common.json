@@ -850,6 +850,7 @@
   "prev_step": "上一步",
   "install": "安装",
   "install_paid_app": "订阅",
+  "start_paid_trial": "开始免费试用",
   "installed": "已安装",
   "active_install_one": "{{count}} 个活动安装",
   "active_install_other": "{{count}} 个活动安装",
