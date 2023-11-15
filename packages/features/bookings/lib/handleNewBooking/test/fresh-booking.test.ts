@@ -37,6 +37,7 @@ import {
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -49,11 +50,9 @@ import {
   expectBrokenIntegrationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
-import { setupAndTeardown } from "./lib/setupAndTeardown";
-import { testWithAndWithoutOrg } from "./lib/test";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -940,7 +939,7 @@ describe("handleNewBooking", () => {
           });
           await handleNewBooking(req);
 
-          expectBrokenIntegrationEmails({ booker, organizer, emails });
+          expectBrokenIntegrationEmails({ organizer, emails });
 
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
