@@ -1,2 +1,2 @@
-export { AtomsProvider } from "./index";
+export { CalProvider } from "./index";
 export * from "../types";
