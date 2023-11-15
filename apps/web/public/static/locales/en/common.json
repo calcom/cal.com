@@ -56,6 +56,8 @@
   "a_refund_failed": "A refund failed",
   "awaiting_payment_subject": "Awaiting Payment: {{title}} on {{date}}",
   "meeting_awaiting_payment": "Your meeting is awaiting payment",
+  "dark_theme_contrast_error":"Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible.",
+  "light_theme_contrast_error":"Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible.",
   "help": "Help",
   "price": "Price",
   "paid": "Paid",

@@ -250,10 +250,7 @@ const AppearanceView = ({
                     />
                     {lightModeError ? (
                       <div className="mt-4">
-                        <Alert
-                          severity="warning"
-                          message="Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
-                        />
+                        <Alert severity="warning" message={t("light_theme_contrast_error")} />
                       </div>
                     ) : null}
                   </div>
@@ -282,10 +279,7 @@ const AppearanceView = ({
                     />
                     {darkModeError ? (
                       <div className="mt-4">
-                        <Alert
-                          severity="warning"
-                          message="Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
-                        />
+                        <Alert severity="warning" message={t("dark_theme_contrast_error")} />
                       </div>
                     ) : null}
                   </div>
