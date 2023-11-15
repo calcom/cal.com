@@ -125,7 +125,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       select: { bookingId: true },
     });
 
-    if (!bookingReference) {
+    if (!bookingReference || !bookingReference.bookingId) {
       return res.status(404).send({ message: "Booking reference not found" });
     }
 
