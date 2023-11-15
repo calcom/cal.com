@@ -706,6 +706,7 @@
   "next_step": "Hopp over trinn",
   "prev_step": "Forrige trinn",
   "install": "Installer",
+  "install_paid_app": "Abonner",
   "installed": "Installert",
   "active_install_one": "{{count}} aktiv installasjon",
   "active_install_other": "{{count}} aktive installasjoner",

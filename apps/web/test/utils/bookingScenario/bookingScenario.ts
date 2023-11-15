@@ -2,15 +2,15 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee, Booking } from "@prisma/client";
+import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
+import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -68,6 +68,14 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   credentials?: InputCredential[];
   organizationId?: number | null;
   selectedCalendars?: InputSelectedCalendar[];
+  teams?: {
+    membership: Partial<Membership>;
+    team: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }[];
   schedules: {
     // Allows giving id in the input directly so that it can be referenced somewhere else as well
     id?: number;
@@ -98,6 +106,7 @@ export type InputEventType = {
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
+  teamId?: number | null;
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
@@ -373,6 +382,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
       allUsers: await prismock.user.findMany({
         include: {
           credentials: true,
+          teams: true,
           schedules: {
             include: {
               availability: true,
@@ -385,9 +395,32 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   );
 }
 
+async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
+  log.silly("TestData: Creating Teams", JSON.stringify(teams));
+  await prismock.team.createMany({
+    data: teams,
+  });
+  const addedTeams = await prismock.team.findMany({
+    where: {
+      id: {
+        in: teams.map((team) => team.id),
+      },
+    },
+  });
+  log.silly(
+    "Added teams to Db",
+    safeStringify({
+      addedTeams,
+    })
+  );
+  return addedTeams;
+}
+
 async function addUsers(users: InputUser[]) {
-  const prismaUsersCreate = users.map((user) => {
-    const newUser = user;
+  const prismaUsersCreate = [];
+  for (let i = 0; i < users.length; i++) {
+    const newUser = users[i];
+    const user = users[i];
     if (user.schedules) {
       newUser.schedules = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -415,6 +448,22 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+
+    if (user.teams) {
+      const addedTeams = await addTeamsToDb(user.teams.map((team) => team.team));
+      newUser.teams = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.teams.map((team, index) => {
+            return {
+              teamId: addedTeams[index].id,
+              ...team.membership,
+            };
+          }),
+        },
+      };
+    }
     if (user.selectedCalendars) {
       newUser.selectedCalendars = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -425,8 +474,8 @@ async function addUsers(users: InputUser[]) {
       };
     }
 
-    return newUser;
-  });
+    prismaUsersCreate.push(newUser);
+  }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   await addUsersToDb(prismaUsersCreate);
@@ -739,6 +788,7 @@ export function getOrganizer({
   selectedCalendars,
   destinationCalendar,
   defaultScheduleId,
+  teams,
 }: {
   name: string;
   email: string;
@@ -748,6 +798,7 @@ export function getOrganizer({
   selectedCalendars?: InputSelectedCalendar[];
   defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  teams?: InputUser["teams"];
 }) {
   return {
     ...TestData.users.example,
@@ -760,6 +811,7 @@ export function getOrganizer({
     selectedCalendars,
     destinationCalendar,
     defaultScheduleId,
+    teams,
   };
 }
 
