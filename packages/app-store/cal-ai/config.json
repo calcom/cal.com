@@ -3,7 +3,6 @@
   "name": "Cal.ai",
   "slug": "cal-ai",
   "type": "cal-ai_automation",
-  "trial": 14,
   "logo": "icon.png",
   "url": "https://cal.ai",
   "variant": "automation",
@@ -14,5 +13,10 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "dirName": "cal-ai"
+  "dirName": "cal-ai",
+  "paid": {
+    "priceInUsd": 25,
+    "priceId": "price_1O1ziDH8UDiwIftkDHp3MCTP",
+    "mode": "subscription"
+  }
 }

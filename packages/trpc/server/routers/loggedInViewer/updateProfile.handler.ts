@@ -36,7 +36,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
-    avatar: await getAvatarToSet(input.avatar),
+    avatar: input.avatar ? await getAvatarToSet(input.avatar) : null,
     metadata: userMetadata,
   };
 

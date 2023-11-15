@@ -134,7 +134,7 @@ test.describe("Teams - NonOrg", () => {
     // Anyone of the teammates could be the Host of the booking.
     const chosenUser = await page.getByTestId("booking-host-name").textContent();
     expect(chosenUser).not.toBeNull();
-    expect(teamMatesObj.some(({ name }) => name === chosenUser)).toBe(true);
+    expect(teamMatesObj.concat([{ name: ownerObj.name }]).some(({ name }) => name === chosenUser)).toBe(true);
     // TODO: Assert whether the user received an email
   });
 
@@ -370,7 +370,7 @@ test.describe("Teams - Org", () => {
         await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
         // All the teammates should be in the booking
-        for (const teammate of teamMatesObj) {
+        for (const teammate of teamMatesObj.concat([{ name: owner.name || "" }])) {
           await expect(page.getByText(teammate.name, { exact: true })).toBeVisible();
         }
       }
@@ -412,7 +412,7 @@ test.describe("Teams - Org", () => {
     // Anyone of the teammates could be the Host of the booking.
     const chosenUser = await page.getByTestId("booking-host-name").textContent();
     expect(chosenUser).not.toBeNull();
-    expect(teamMatesObj.some(({ name }) => name === chosenUser)).toBe(true);
+    expect(teamMatesObj.concat([{ name: ownerObj.name }]).some(({ name }) => name === chosenUser)).toBe(true);
     // TODO: Assert whether the user received an email
   });
 });

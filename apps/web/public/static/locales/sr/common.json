@@ -849,6 +849,7 @@
   "next_step": "Preskoči korak",
   "prev_step": "Prethodni korak",
   "install": "Instaliraj",
+  "install_paid_app": "Prijavite se",
   "installed": "Instalirano",
   "active_install_one": "{{count}} aktivna instalacija",
   "active_install_other": "{{count}} aktivnih instalacija",
@@ -2098,5 +2099,6 @@
   "view_overlay_calendar_events": "Pregledajte događaje u vašem kalendaru da biste sprečili dvostruka zakazivanja.",
   "lock_timezone_toggle_on_booking_page": "Zaključajte vremensku zonu na stranici za zakazivanja",
   "description_lock_timezone_toggle_on_booking_page": "Za zaključavanje vremenske zone na stranici za zakazivanja, korisno za događaje licem u lice.",
+  "extensive_whitelabeling": "Posvećena podrška za uvodnu obuku i inženjering",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
