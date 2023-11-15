@@ -156,6 +156,7 @@ const createDockerImage = ({
     args: {
       BUILDKIT_INLINE_CACHE: "1",
     },
+    cacheFrom: [pulumi.interpolate`${repoUrl}:latest`],
   });
   return image;
 };

@@ -6,7 +6,7 @@ on:
 
 jobs:
   pulumi-preview:
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2204
 
     steps:
       - name: Checkout 🛎️
@@ -25,14 +25,9 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: 'linux/arm64'
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          platforms: 'linux/arm64'
+          platforms: arm64
         
-      - name: pulumi dev preview 🚀
+      - name: pulumi Dev Preview 🚀
         uses: pulumi/actions@v4 
         with:
           command: preview
