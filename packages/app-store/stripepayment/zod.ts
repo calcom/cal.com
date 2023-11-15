@@ -18,7 +18,6 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     currency: z.string(),
     paymentOption: paymentOptionEnum.optional(),
     enabled: z.boolean().optional(),
-    credentialId: z.number().optional(),
   })
 );
 
