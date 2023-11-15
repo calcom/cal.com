@@ -849,6 +849,7 @@
   "next_step": "Пропустить шаг",
   "prev_step": "Предыдущий шаг",
   "install": "Установить",
+  "install_paid_app": "Подписаться",
   "installed": "Установлено",
   "active_install_one": "Активные установки: {{count}}",
   "active_install_other": "Активные установки: {{count}}",

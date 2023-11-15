@@ -849,6 +849,7 @@
   "next_step": "Bỏ qua bước",
   "prev_step": "Bước trước",
   "install": "Cài đặt",
+  "install_paid_app": "Đăng ký",
   "installed": "Đã cài đặt",
   "active_install_one": "{{count}} cài đặt hoạt động",
   "active_install_other": "{{count}} cài đặt hoạt động",

@@ -840,6 +840,7 @@
   "next_step": "手順をスキップ",
   "prev_step": "前の手順",
   "install": "インストール",
+  "install_paid_app": "サブスクライブ",
   "installed": "インストール済み",
   "active_install_one": "{{count}} 件のアクティブなインストール",
   "active_install_other": "{{count}} 件のアクティブなインストール",
