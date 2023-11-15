@@ -7,16 +7,20 @@ import { apiKeysRouter } from "@calcom/trpc/server/routers/viewer/apiKeys/_route
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
-import { withPaidAppRedirect } from "../../_utils/paid-apps";
+import { withStripeCallback } from "../../_utils/paid-apps";
 import appConfig from "../config.json";
-
-const trialEndDate = new Date(Date.UTC(2023, 11, 1));
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
+  const slug = appConfig.slug;
+  const appType = appConfig.type;
 
-  // if date is in the future, we install normally.
-  if (new Date() < trialEndDate) {
+  const { checkoutId } = req.query as { checkoutId: string };
+  if (!checkoutId) {
+    return { url: `/apps/installed?error=${JSON.stringify({ message: "No Stripe Checkout Session ID" })}` };
+  }
+
+  const { url } = await withStripeCallback(checkoutId, slug, async ({ checkoutSession }) => {
     const ctx = await createContext({ req, res });
     const caller = apiKeysRouter.createCaller(ctx);
 
@@ -26,14 +30,17 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       appId: "cal-ai",
     });
 
-    await checkInstalled(appConfig.slug, session.user.id);
+    await checkInstalled(slug, session.user.id);
     await createDefaultInstallation({
-      appType: appConfig.type,
+      appType,
       userId: session.user.id,
-      slug: appConfig.slug,
+      slug,
       key: {
         apiKey,
       },
+      subscriptionId: checkoutSession.subscription?.toString(),
+      billingCycleStart: new Date().getDate(),
+      paymentStatus: "active",
     });
 
     await fetch(
@@ -50,20 +57,9 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     );
 
     return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "cal-ai" }) };
-  }
-
-  const redirectUrl = await withPaidAppRedirect({
-    appPaidMode: appConfig.paid.mode,
-    appSlug: appConfig.slug,
-    userId: session.user.id,
-    priceId: appConfig.paid.priceId,
   });
 
-  if (!redirectUrl) {
-    return res.status(500).json({ message: "Failed to create Stripe checkout session" });
-  }
-
-  return { url: redirectUrl };
+  return res.redirect(url);
 }
 
 export default defaultResponder(getHandler);
