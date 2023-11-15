@@ -1,7 +1,8 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
+import { getEmailsReceivedByUser } from "playwright/lib/testUtils";
 
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
@@ -203,5 +204,43 @@ test.describe("Signup Flow Test", async () => {
 
     expect(await usernameField.inputValue()).toBe("rick-team");
     expect(await emailField.inputValue()).toBe("rick-team@example.com");
+  });
+  test("Email verification sent if enabled", async ({ page, users, prisma, emails }) => {
+    const emailVerifyFlag = await prisma.feature.findUnique({
+      where: {
+        slug: "email-verification",
+      },
+    });
+
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!emailVerifyFlag?.enabled) {
+      return;
+    }
+
+    const username = "email-verify";
+    const email = `${username}@example.com`;
+    await page.goto("/signup");
+
+    // Fill form
+    await page.locator('input[name="username"]').fill(username);
+    await page.locator('input[name="email"]').fill(email);
+    await page.locator('input[name="password"]').fill("Password99!");
+
+    await page.click('button[type="submit"]');
+    await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+
+    const receivedEmails = await getEmailsReceivedByUser({
+      emails,
+      userEmail: email,
+    });
+
+    // We need to wait for emails to be sent
+    // eslint-disable-next-line playwright/no-wait-for-timeout
+    await page.waitForTimeout(5000);
+
+    expect(receivedEmails?.total).toBe(1);
+
+    const verifyEmail = receivedEmails?.items[0];
+    expect(verifyEmail?.subject).toBe(`${APP_NAME}: Verify your account`);
   });
 });
