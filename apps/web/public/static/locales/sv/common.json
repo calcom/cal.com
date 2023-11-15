@@ -849,6 +849,7 @@
   "next_step": "Hoppa över steg",
   "prev_step": "Föregående steg",
   "install": "Installera",
+  "install_paid_app": "Prenumerera",
   "installed": "Installerad",
   "active_install_one": "{{count}} aktiv installation",
   "active_install_other": "{{count}} aktiva installationer",

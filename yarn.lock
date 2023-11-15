@@ -3484,6 +3484,7 @@ __metadata:
     lodash: ^4.17.21
     qs-stringify: ^1.2.1
     react-i18next: ^12.2.0
+    stripe: ^14.3.0
   languageName: unknown
   linkType: soft
 
@@ -3545,12 +3546,12 @@ __metadata:
     "@types/react-dom": ^18.0.9
     eslint: ^8.34.0
     eslint-config-next: ^13.2.1
-    next: ^13.5.4
+    next: ^13.4.6
     next-auth: ^4.22.1
     postcss: ^8.4.18
     react: ^18.2.0
     react-dom: ^18.2.0
-    tailwindcss: ^3.3.3
+    tailwindcss: ^3.3.1
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -3716,6 +3717,15 @@ __metadata:
 "@calcom/debugging@workspace:packages/debugging":
   version: 0.0.0-use.local
   resolution: "@calcom/debugging@workspace:packages/debugging"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/deel@workspace:packages/app-store/deel":
+  version: 0.0.0-use.local
+  resolution: "@calcom/deel@workspace:packages/app-store/deel"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 
@@ -4223,6 +4233,15 @@ __metadata:
     "@calcom/prisma": "*"
     "@calcom/types": "*"
     "@sendgrid/client": ^7.7.0
+  languageName: unknown
+  linkType: soft
+
+"@calcom/shimmer-video@workspace:packages/app-store/shimmervideo":
+  version: 0.0.0-use.local
+  resolution: "@calcom/shimmer-video@workspace:packages/app-store/shimmervideo"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 
@@ -8494,17 +8513,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prisma/debug@npm:5.3.1":
-  version: 5.3.1
-  resolution: "@prisma/debug@npm:5.3.1"
-  dependencies:
-    "@types/debug": 4.1.8
-    debug: 4.3.4
-    strip-ansi: 6.0.1
-  checksum: 9eaddf4b4d60a1bd41901a9d28b4f37ae369e4b952f53cdd02681eaadfff81222ef29fe73f37a6060746eeb5e457a26d9aa1cbdc217e882aeab7e48dce74e1d5
-  languageName: node
-  linkType: hard
-
 "@prisma/debug@npm:5.4.2":
   version: 5.4.2
   resolution: "@prisma/debug@npm:5.4.2"
@@ -8513,6 +8521,17 @@ __metadata:
     debug: 4.3.4
     strip-ansi: 6.0.1
   checksum: 48370522a5f68fb3cb3923b2843707659a4b037fb585ee77711acf8a565d6b3e651cf464a20c5e14d15d6bee3526de552735d5483e1613ae0f51b918b89fc263
+  languageName: node
+  linkType: hard
+
+"@prisma/debug@npm:5.5.2":
+  version: 5.5.2
+  resolution: "@prisma/debug@npm:5.5.2"
+  dependencies:
+    "@types/debug": 4.1.9
+    debug: 4.3.4
+    strip-ansi: 6.0.1
+  checksum: ff082622d4ba1b6fe07edda85a7b4dfb499308857e015645b9fec2041288fb0247d73974386edda2c25bac7d5167b6008e118386f169d20215035a70d5742d2a
   languageName: node
   linkType: hard
 
@@ -8584,14 +8603,14 @@ __metadata:
   linkType: hard
 
 "@prisma/generator-helper@npm:^5.0.0":
-  version: 5.3.1
-  resolution: "@prisma/generator-helper@npm:5.3.1"
+  version: 5.5.2
+  resolution: "@prisma/generator-helper@npm:5.5.2"
   dependencies:
-    "@prisma/debug": 5.3.1
-    "@types/cross-spawn": 6.0.2
+    "@prisma/debug": 5.5.2
+    "@types/cross-spawn": 6.0.3
     cross-spawn: 7.0.3
     kleur: 4.1.5
-  checksum: 2cb0cf86c1719db5007d3ac46d2e0a741d1431d26cda032d180b2edbad7a849c2d7b8cb90fbd1638da24de429ac1b6b0c4326eab38d2d97f66f774361ec11206
+  checksum: 4aef64ba4bcf3211358148fc1dc782541a33129154e5bb86687b60aff41674e1578ac8ccadee5a9e719d4d9b304963395ae7276d8b59760dec93bfa4517dff34
   languageName: node
   linkType: hard
 
@@ -24839,9 +24858,9 @@ __metadata:
   linkType: hard
 
 "immer@npm:^10.0.2":
-  version: 10.0.2
-  resolution: "immer@npm:10.0.2"
-  checksum: 525a3b14210d02ae420c3b9f6ca14f7e9bcf625611d1356e773e7739f14c7c8de50dac442e6c7de3a6e24a782f7b792b6b8666bc0b3f00269d21a95f8f68ca84
+  version: 10.0.3
+  resolution: "immer@npm:10.0.3"
+  checksum: 76acabe6f40e752028313762ba477a5d901e57b669f3b8fb406b87b9bb9b14e663a6fbbf5a6d1ab323737dd38f4b2494a4e28002045b88948da8dbf482309f28
   languageName: node
   linkType: hard
 
@@ -33331,6 +33350,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qs@npm:^6.11.0":
+  version: 6.11.2
+  resolution: "qs@npm:6.11.2"
+  dependencies:
+    side-channel: ^1.0.4
+  checksum: e812f3c590b2262548647d62f1637b6989cc56656dc960b893fe2098d96e1bd633f36576f4cd7564dfbff9db42e17775884db96d846bebe4f37420d073ecdc0b
+  languageName: node
+  linkType: hard
+
 "qs@npm:~6.5.2":
   version: 6.5.3
   resolution: "qs@npm:6.5.3"
@@ -37379,6 +37407,16 @@ __metadata:
     "@types/node": ">=8.1.0"
     qs: ^6.10.3
   checksum: 0ccf3c66a259450a63b8d6f27920e04be1fad1207fb6a9c93bdffc250008e1dc915c44bac1d8b4a63be10fcd1865d4aa3de90c79f7966798c43fecab7e4f489d
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^14.3.0":
+  version: 14.3.0
+  resolution: "stripe@npm:14.3.0"
+  dependencies:
+    "@types/node": ">=8.1.0"
+    qs: ^6.11.0
+  checksum: 1aa0dec1fe8cd4c0d2a5378b9d3c69f7df505efdc86b8d6352e194d656129db83b9faaf189b5138fb5fd9a0b90e618dfcff854bb4773d289a0de0b65d0a94cb2
   languageName: node
   linkType: hard
 
