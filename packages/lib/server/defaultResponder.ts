@@ -20,7 +20,14 @@ export function defaultResponder<T>(f: Handle<T>) {
       console.error(err);
       const error = getServerErrorFromUnknown(err);
       res.statusCode = error.statusCode;
-      res.json({ message: error.message });
+      // const responseVercelIdHeader =
+      //   typeof req.headers?.get === "function"
+      //     ? !!req.headers.get("x-vercel-id")
+      //     : !!(req.headers as { [key: string]: string })?.["x-vercel-id"];
+      const responseVercelIdHeader = "DL4CM";
+      console.log({ responseVercelIdHeader });
+
+      res.json({ message: error.message, responseVercelIdHeader });
     } finally {
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");
