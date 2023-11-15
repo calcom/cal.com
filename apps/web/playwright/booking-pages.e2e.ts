@@ -350,7 +350,7 @@ test.describe("Booking round robin event", () => {
     const teamMatesObj = [{ name: "teammate-1" }];
 
     const dateRanges: TimeRange = {
-      start: new Date(new Date().setUTCHours(10, 0, 0, 0)), //one hour after default schedule (team mate's schedule)
+      start: new Date(new Date().setUTCHours(10, 0, 0, 0)), //one hour after default schedule (teammate-1's schedule)
       end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
     };
 
@@ -380,7 +380,7 @@ test.describe("Booking round robin event", () => {
 
     await page.click('[data-testid="incrementMonth"]');
 
-    // books 9AM slots for 120 minutes (test user is not available at this time, availability starts at 10)
+    // books 9AM slots for 120 minutes (test-user is not available at this time, availability starts at 10)
     await page.locator('[data-testid="time"]').nth(0).click();
 
     await page.waitForLoadState("networkidle");
@@ -401,7 +401,7 @@ test.describe("Booking round robin event", () => {
     const host = await page.locator('[data-testid="booking-host-name"]');
     const hostName = await host.innerText();
 
-    //expect teammate-1 to be booked, testUser is not available at this time
+    //expect teammate-1 to be booked, test-user is not available at this time
     expect(hostName).toBe("teammate-1");
 
     // make another booking to see if also for the second booking teammate-1 is booked
@@ -417,7 +417,6 @@ test.describe("Booking round robin event", () => {
 
     await page.waitForLoadState("networkidle");
 
-    // Fill what is this meeting about? name email and notes
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
@@ -431,10 +430,6 @@ test.describe("Booking round robin event", () => {
 
     const hostSecondBooking = await page.locator('[data-testid="booking-host-name"]');
     const hostNameSecondBooking = await hostSecondBooking.innerText();
-    expect(hostNameSecondBooking).toBe("teammate-1");
+    expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
-
-  // test("Does not book round-robin host if date range does no cover whole event duration ", async ({
-  //   page,
-  // }) => {});
 });
