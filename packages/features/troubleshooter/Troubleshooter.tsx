@@ -1,5 +1,4 @@
 import StickyBox from "react-sticky-box";
-import type { TroubleshooterProps } from "troubleshooter/types";
 
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -8,6 +7,7 @@ import { LargeCalendar } from "./components/LargeCalendar";
 import { TroubleshooterHeader } from "./components/TroubleshooterHeader";
 import { TroubleshooterSidebar } from "./components/TroubleshooterSidebar";
 import { useInitalizeTroubleshooterStore } from "./store";
+import type { TroubleshooterProps } from "./types";
 
 const extraDaysConfig = {
   desktop: 7,
