@@ -849,6 +849,7 @@
   "next_step": "跳過步驟",
   "prev_step": "上個步驟",
   "install": "安裝",
+  "install_paid_app": "訂閱",
   "installed": "已安裝",
   "active_install_one": "{{count}} 個有效安裝",
   "active_install_other": "{{count}} 個有效安裝",
