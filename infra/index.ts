@@ -147,11 +147,12 @@ const createDockerImage = ({
   buildContextPath: string;
 }) => {
   // Create Docker Image of Api and Store in Repo
-  const image = new awsx.ecr.Image(imageName, {
+  const image = new awsx.ecr.Image(`${imageName}:latest`, {
     repositoryUrl: repoUrl,
     dockerfile: dockerFilePath,
     context: buildContextPath,
     cacheFrom: [pulumi.interpolate`${repoUrl}:latest`],
+    platform: "linux/amd64",
   });
   return image;
 };
@@ -299,19 +300,10 @@ const createAutoScalingCpu = ({
   scaleOutCooldown: number;
 }) => {
   // Create Autoscaling for the ECS service, Scale when CPU > 75%
-
-  // Set Min and Max Number of Tasks
-  const autoscalingTarget = new aws.appautoscaling.Target(`${name}-scaling-target`, {
-    maxCapacity: maxCapacity, // maximum number of tasks
-    minCapacity: minCapacity, // minimum number of tasks
-    resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
-    scalableDimension: "ecs:service:DesiredCount",
-    serviceNamespace: "ecs",
-  });
   const autoscaling = new aws.appautoscaling.Policy(name, {
     serviceNamespace: "ecs",
     scalableDimension: "ecs:service:DesiredCount",
-    resourceId: autoscalingTarget.resourceId,
+    resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
     policyType: "TargetTrackingScaling",
     targetTrackingScalingPolicyConfiguration: {
       targetValue: cpuTargetValue,
@@ -321,6 +313,14 @@ const createAutoScalingCpu = ({
       scaleInCooldown,
       scaleOutCooldown,
     },
+  });
+  // Set Min and Max Number of Tasks
+  const autoscalingTarget = new aws.appautoscaling.Target(`${name}-scaling-target`, {
+    maxCapacity: maxCapacity, // maximum number of tasks
+    minCapacity: minCapacity, // minimum number of tasks
+    resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
+    scalableDimension: "ecs:service:DesiredCount",
+    serviceNamespace: "ecs",
   });
 
   return { autoscaling, autoscalingTarget };

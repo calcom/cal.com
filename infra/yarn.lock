@@ -519,7 +519,7 @@ __metadata:
   dependencies:
     "@pulumi/aws": ^6.8.0
     "@pulumi/awsx": ^2.1.1
-    "@pulumi/pulumi": ^3.93.0
+    "@pulumi/pulumi": ^3.94.0
     "@types/node": ^20.9.0
   languageName: unknown
   linkType: soft
@@ -864,9 +864,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pulumi/pulumi@npm:^3.93.0":
-  version: 3.93.0
-  resolution: "@pulumi/pulumi@npm:3.93.0"
+"@pulumi/pulumi@npm:^3.94.0":
+  version: 3.94.0
+  resolution: "@pulumi/pulumi@npm:3.94.0"
   dependencies:
     "@grpc/grpc-js": 1.9.6
     "@logdna/tail-file": ^2.0.6
@@ -893,7 +893,7 @@ __metadata:
     ts-node: ^7.0.1
     typescript: ~3.8.3
     upath: ^1.1.0
-  checksum: 7b0e21acbd7692f37b7b8cf4728cbdca33f8e733693e0c4d38a7a21b3bd4d7227354852bba0085da04cce2b11f1b49abfa39c8b477f3b1aee84af28023fcda5a
+  checksum: 99aa1ea86096a6f4972ecc96ff500f0580b2156f8886d5417edd496d2de504b626d1891c9ea765bbcd9495279372c88b6e45adc8c51aadaf183b5b1774e5678e
   languageName: node
   linkType: hard
 

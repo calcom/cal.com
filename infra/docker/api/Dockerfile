@@ -30,13 +30,10 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
     yarn config set httpTimeout 1200000 && \
     npx turbo prune --scope=@calcom/web --docker && \
-    npx turbo prune --scope=@calcom/api --docker
+    npx turbo prune --scope=@calcom/api --docker && \
+    yarn install && \
+    yarn turbo run build --filter=@calcom/api
 
-RUN yarn install 
-
-RUN yarn turbo run build --filter=@calcom/api
-
-    
 
 # Final stage
 FROM base
