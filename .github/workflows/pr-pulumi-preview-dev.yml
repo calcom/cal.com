@@ -1,4 +1,4 @@
-name: Pulumi Preview
+name: Pulumi Preview Dev
 on:
   pull_request:
     branches:
