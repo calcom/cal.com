@@ -517,22 +517,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/infra@workspace:."
   dependencies:
-    "@pulumi/aws": ^6.8.0
-    "@pulumi/awsx": ^2.1.1
-    "@pulumi/pulumi": ^3.94.0
+    "@pulumi/aws": ^6.0.0
+    "@pulumi/awsx": ^2.0.2
+    "@pulumi/pulumi": ^3.0.0
     "@types/node": ^20.9.0
   languageName: unknown
   linkType: soft
-
-"@grpc/grpc-js@npm:1.9.6":
-  version: 1.9.6
-  resolution: "@grpc/grpc-js@npm:1.9.6"
-  dependencies:
-    "@grpc/proto-loader": ^0.7.8
-    "@types/node": ">=12.12.47"
-  checksum: c02981af11e9749bb8f9a71f5f7e125740da9e6addb13b65d006d41d4d7a80d94b6daa45426c6832a2accfd6f9a925d45a4660a88bd908684446ffaf4fe76c68
-  languageName: node
-  linkType: hard
 
 "@grpc/grpc-js@npm:^1.8.16":
   version: 1.9.9
@@ -792,7 +782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pulumi/aws@npm:^6.7.0, @pulumi/aws@npm:^6.8.0":
+"@pulumi/aws@npm:^6.0.0, @pulumi/aws@npm:^6.7.0":
   version: 6.8.0
   resolution: "@pulumi/aws@npm:6.8.0"
   dependencies:
@@ -805,7 +795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pulumi/awsx@npm:^2.1.1":
+"@pulumi/awsx@npm:^2.0.2":
   version: 2.1.1
   resolution: "@pulumi/awsx@npm:2.1.1"
   dependencies:
@@ -861,39 +851,6 @@ __metadata:
     typescript: ~3.8.3
     upath: ^1.1.0
   checksum: c1e0b8bda5a36b101a54e98c4e47a214b8242facf8655722f44875166065f84a15ecf01b4e2247aaddada49125b1de6c7d11ff9b2b777813828c92ac2b0ad9b8
-  languageName: node
-  linkType: hard
-
-"@pulumi/pulumi@npm:^3.94.0":
-  version: 3.94.0
-  resolution: "@pulumi/pulumi@npm:3.94.0"
-  dependencies:
-    "@grpc/grpc-js": 1.9.6
-    "@logdna/tail-file": ^2.0.6
-    "@opentelemetry/api": ^1.2.0
-    "@opentelemetry/exporter-zipkin": ^1.6.0
-    "@opentelemetry/instrumentation": ^0.32.0
-    "@opentelemetry/instrumentation-grpc": ^0.32.0
-    "@opentelemetry/resources": ^1.6.0
-    "@opentelemetry/sdk-trace-base": ^1.6.0
-    "@opentelemetry/sdk-trace-node": ^1.6.0
-    "@opentelemetry/semantic-conventions": ^1.6.0
-    "@pulumi/query": ^0.3.0
-    execa: ^5.1.0
-    google-protobuf: ^3.5.0
-    ini: ^2.0.0
-    js-yaml: ^3.14.0
-    minimist: ^1.2.6
-    normalize-package-data: ^3.0.0
-    pkg-dir: ^7.0.0
-    read-package-tree: ^5.3.1
-    require-from-string: ^2.0.1
-    semver: ^7.5.2
-    source-map-support: ^0.5.6
-    ts-node: ^7.0.1
-    typescript: ~3.8.3
-    upath: ^1.1.0
-  checksum: 99aa1ea86096a6f4972ecc96ff500f0580b2156f8886d5417edd496d2de504b626d1891c9ea765bbcd9495279372c88b6e45adc8c51aadaf183b5b1774e5678e
   languageName: node
   linkType: hard
 
