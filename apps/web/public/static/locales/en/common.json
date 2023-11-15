@@ -1370,6 +1370,7 @@
   "event_name_info": "The event type name",
   "event_date_info": "The event date",
   "event_time_info": "The event start time",
+  "event_type_not_found":"EventType not Found",
   "location_info": "The location of the event",
   "additional_notes_info": "The additional notes of booking",
   "attendee_name_info": "The person booking's name",

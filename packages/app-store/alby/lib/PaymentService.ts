@@ -11,7 +11,7 @@ import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { albyCredentialKeysSchema } from "./albyCredentialKeysSchema";
 
-const log = logger.getSubLogger({ prefix: ["payment-service:ably"] });
+const log = logger.getSubLogger({ prefix: ["payment-service:alby"] });
 
 export class PaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof albyCredentialKeysSchema> | null;
@@ -40,7 +40,7 @@ export class PaymentService implements IAbstractPaymentService {
         },
       });
       if (!booking || !this.credentials?.account_lightning_address) {
-        throw new Error("Ably: Booking or Lightning address not found");
+        throw new Error("Alby: Booking or Lightning address not found");
       }
 
       const uid = uuidv4();
@@ -84,7 +84,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Ably: Payment could not be created", bookingId);
+      log.error("Alby: Payment could not be created", bookingId);
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }

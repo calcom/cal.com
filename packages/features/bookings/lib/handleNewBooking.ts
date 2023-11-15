@@ -680,7 +680,7 @@ async function handler(
   const tGuests = await getTranslation("en", "common");
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
-  if (!eventType) throw new HttpError({ statusCode: 404, message: "EventType not Found" });
+  if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -2681,7 +2681,7 @@ const findBookingQuery = async (bookingId: number) => {
 
   // This should never happen but it's just typescript safe
   if (!foundBooking) {
-    throw new Error("Internal Error. Couldn't found booking");
+    throw new Error("Internal Error. Couldn't find booking");
   }
 
   // Don't leak any sensitive data

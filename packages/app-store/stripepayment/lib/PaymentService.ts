@@ -286,8 +286,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      console.error(`Could not charge card for payment ${payment.id}`, error);
-      log.error("Stripe: Could not charge card for paymentd", _bookingId, JSON.stringify(error));
+      log.error("Stripe: Could not charge card for payment", _bookingId, JSON.stringify(error));
       throw new Error(ErrorCode.ChargeCardFailure);
     }
   }
