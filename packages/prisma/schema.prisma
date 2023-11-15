@@ -126,17 +126,23 @@ model EventType {
 }
 
 model Credential {
-  id                   Int                   @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   // @@type is deprecated
-  type                 String
-  key                  Json
-  user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId               Int?
-  team                 Team?                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId               Int?
-  app                  App?                  @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  type   String
+  key    Json
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId Int?
+  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId                String?
+  appId  String?
+
+  // paid apps
+  subscriptionId    String?
+  paymentStatus     String?
+  billingCycleStart Int?
+
   destinationCalendars DestinationCalendar[]
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
@@ -144,6 +150,7 @@ model Credential {
 
   @@index([userId])
   @@index([appId])
+  @@index([subscriptionId])
 }
 
 enum IdentityProvider {
