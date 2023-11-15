@@ -316,7 +316,7 @@ export default function Signup({
             )}
             {/* Social Logins */}
             {!token && (
-              <div className="mt-6 grid gap-2 md:grid-cols-2">
+              <div className="mt-6 flex flex-col gap-2 md:flex-row">
                 {isGoogleLoginEnabled ? (
                   <Button
                     color="secondary"
