@@ -1,20 +1,10 @@
-import type { UserAdminTeams } from "@calcom/ee/teams/lib/getUserAdminTeams";
-import type { AppFrontendPayload as App } from "@calcom/types/App";
-import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+import { Card } from "app-card/components/Card";
 
 type AppCardProps = {
-  app: App;
-  credentials?: Credential[];
-  searchText?: string;
-  userAdminTeams?: UserAdminTeams;
+  appName: string;
 };
 
-export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCardProps) {
-  return (
-    <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
-      <div className="flex">
-        <img src={app.logo} alt={`${app.name} Logo`} />
-      </div>
-    </div>
-  );
+export function AppCard({ appName }: AppCardProps) {
+  // TODO: fetch app based on appName prop and pass it down to dumb Card component
+  return <Card />;
 }
