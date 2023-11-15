@@ -76,6 +76,7 @@ const ChildrenEventTypesList = ({
       <div>
         <Label>{t("assign_to")}</Label>
         <ChildrenEventTypeSelect
+          aria-label="assignment-dropdown"
           onChange={(options) => {
             onChange &&
               onChange(
