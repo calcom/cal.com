@@ -33,15 +33,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
-  let credentialId: number;
-
-  if (eventType.teamId && app.teams.length) {
-    const teamCredential = app.teams.find((team) => team?.teamId === eventType.teamId);
-    credentialId = teamCredential?.credentialId ?? app.userCredentialIds[0];
-  } else {
-    credentialId = app.userCredentialIds[0];
-  }
-
   // make sure a currency is selected
   useEffect(() => {
     if (!currency && requirePayment) {
@@ -56,7 +47,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={requirePayment}
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
-        setAppData("credentialId", credentialId);
       }}
       description={<>Add bitcoin lightning payments to your events</>}>
       <>
