@@ -401,6 +401,25 @@ async function ensureAvailableUsers(
     }
 
     let foundConflict = false;
+
+    let dateRangeForBooking = false;
+
+    //check if event time is within the date range
+    for (const dateRange of dateRanges) {
+      if (
+        (dayjs.utc(input.dateFrom).isAfter(dateRange.start) ||
+          dayjs.utc(input.dateFrom).isSame(dateRange.start)) &&
+        (dayjs.utc(input.dateTo).isBefore(dateRange.end) || dayjs.utc(input.dateTo).isSame(dateRange.end))
+      ) {
+        dateRangeForBooking = true;
+        break;
+      }
+    }
+
+    if (!dateRangeForBooking) {
+      continue;
+    }
+
     try {
       foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
     } catch {
