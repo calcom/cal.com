@@ -30,6 +30,7 @@ export async function getBooking(bookingId: number) {
       ...bookingMinimalSelect,
       responses: true,
       eventType: true,
+      metadata: true,
       smsReminderNumber: true,
       location: true,
       eventTypeId: true,
