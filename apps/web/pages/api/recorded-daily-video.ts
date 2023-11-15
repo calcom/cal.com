@@ -84,7 +84,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
-  console.log("REQ>BODY", req.body, req.headers);
 
   if (testRequestSchema.safeParse(req.body).success) {
     return res.status(200).json({ message: "Test request successful" });
@@ -121,13 +120,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    //  TODO: Search by ID
-    const bookingReference = await prisma.bookingReference.findUniqueOrThrow({
+    const bookingReference = await prisma.bookingReference.findFirst({
       where: { type: "daily_video", uid: room_name, meetingId: room_name },
       select: { bookingId: true },
     });
-
-    console.log("bookingReference", bookingReference);
 
     if (!bookingReference) {
       return res.status(404).send({ message: "Booking reference not found" });
@@ -162,8 +158,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    console.log("BOOKING)_ADAS", booking);
-
     if (!booking || !(booking.location === DailyLocationType || booking?.location?.trim() === "")) {
       return res.status(404).send({
         message: `Booking of room_name ${room_name} does not exist or does not contain daily video as location`,
@@ -185,7 +179,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     const attendeesList = await Promise.all(attendeesListPromises);
-    console.log("attendeesList", attendeesList);
 
     await prisma.booking.update({
       where: {
