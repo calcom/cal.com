@@ -299,10 +299,19 @@ const createAutoScalingCpu = ({
   scaleOutCooldown: number;
 }) => {
   // Create Autoscaling for the ECS service, Scale when CPU > 75%
+
+  // Set Min and Max Number of Tasks
+  const autoscalingTarget = new aws.appautoscaling.Target(`${name}-scaling-target`, {
+    maxCapacity: maxCapacity, // maximum number of tasks
+    minCapacity: minCapacity, // minimum number of tasks
+    resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
+    scalableDimension: "ecs:service:DesiredCount",
+    serviceNamespace: "ecs",
+  });
   const autoscaling = new aws.appautoscaling.Policy(name, {
     serviceNamespace: "ecs",
     scalableDimension: "ecs:service:DesiredCount",
-    resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
+    resourceId: autoscalingTarget.resourceId,
     policyType: "TargetTrackingScaling",
     targetTrackingScalingPolicyConfiguration: {
       targetValue: cpuTargetValue,
@@ -312,14 +321,6 @@ const createAutoScalingCpu = ({
       scaleInCooldown,
       scaleOutCooldown,
     },
-  });
-  // Set Min and Max Number of Tasks
-  const autoscalingTarget = new aws.appautoscaling.Target(`${name}-scaling-target`, {
-    maxCapacity: maxCapacity, // maximum number of tasks
-    minCapacity: minCapacity, // minimum number of tasks
-    resourceId: pulumi.interpolate`service/${ecsClusterName}/${serviceName}`,
-    scalableDimension: "ecs:service:DesiredCount",
-    serviceNamespace: "ecs",
   });
 
   return { autoscaling, autoscalingTarget };
