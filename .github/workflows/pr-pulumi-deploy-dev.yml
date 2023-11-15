@@ -1,11 +1,11 @@
 name: Pulumi Deploy Dev
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - staging
 
 jobs:
-  pulumi-preview:
+  pulumi-deploy-dev:
     runs-on: buildjet-4vcpu-ubuntu-2204
 
     steps:
