@@ -151,11 +151,6 @@ const createDockerImage = ({
     repositoryUrl: repoUrl,
     dockerfile: dockerFilePath,
     context: buildContextPath,
-    platform: "linux/arm64",
-    builderVersion: "BuilderBuildKit",
-    args: {
-      BUILDKIT_INLINE_CACHE: "1",
-    },
     cacheFrom: [pulumi.interpolate`${repoUrl}:latest`],
   });
   return image;
@@ -254,7 +249,7 @@ const createFargateServiceWithSecrets = ({
       executionRole: { roleArn: taskRole.arn },
       logGroup: { skip: true },
       runtimePlatform: {
-        cpuArchitecture: "ARM64",
+        cpuArchitecture: "X86_64",
       },
       container: {
         name: serviceName,

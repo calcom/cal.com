@@ -21,11 +21,6 @@ jobs:
         run: |
           cd infra
           yarn install
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
         
       - name: Pulumi Dev Deploy 🚀
         uses: pulumi/actions@v4 
