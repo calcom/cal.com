@@ -278,7 +278,6 @@ export const createEvent = async (
         calError,
       })
     );
-    throw new Error(ErrorCode.CreateCalendarEventFailure);
   }
   log.debug(
     "Created calendar event",
@@ -411,8 +410,6 @@ export const deleteEvent = async ({
         event,
       })
     );
-
-    throw new Error(ErrorCode.DeleteCalendarEventFailure);
   }
 
   return Promise.resolve({});
