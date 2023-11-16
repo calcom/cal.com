@@ -2,14 +2,14 @@ import { forwardRef } from "react";
 import type { MutableRefObject } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
-import { APP_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
 import { Code, Trello } from "@calcom/ui/components/icon";
 
 import type { EmbedType, PreviewState, EmbedFramework } from "../types";
-import { Codes } from "./EmbedCodes";
+import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
 import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
@@ -193,7 +193,7 @@ const getEmbedTypeSpecificString = ({
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
       calLink,
-      ...(IS_SELF_HOSTED ? { calOrigin: embedCalOrigin } : null),
+      ...(doWeNeedCalOriginProp(embedCalOrigin) ? { calOrigin: embedCalOrigin } : null),
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({

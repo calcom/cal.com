@@ -104,10 +104,9 @@ function generateFiles() {
    * If a file has index.ts or index.tsx, it can be imported after removing the index.ts* part
    */
   function getModulePath(path: string, moduleName: string) {
-    return (
-      `./${path.replace(/\\/g, "/")}/` +
-      moduleName.replace(/\/index\.ts|\/index\.tsx/, "").replace(/\.tsx$|\.ts$/, "")
-    );
+    return `./${path.replace(/\\/g, "/")}/${moduleName
+      .replace(/\/index\.ts|\/index\.tsx/, "")
+      .replace(/\.tsx$|\.ts$/, "")}`;
   }
 
   type ImportConfig =

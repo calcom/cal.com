@@ -168,7 +168,7 @@ test.describe("Teams - NonOrg", () => {
       await expect(page.locator("[data-testid=alert]")).toBeVisible();
 
       // cleanup
-      const org = await owner.getOrg();
+      const org = await owner.getOrgMembership();
       await prisma.team.delete({ where: { id: org.teamId } });
     }
   });

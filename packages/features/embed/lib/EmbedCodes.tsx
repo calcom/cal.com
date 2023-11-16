@@ -1,8 +1,14 @@
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { CAL_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
 import { getDimension } from "./getDimension";
+
+export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
+  // If we are self hosted, calOrigin won't be app.cal.com so we need to pass it
+  // If we are not self hosted but it's still different from WEBAPP_URL and CAL_URL, we need to pass it -> It happens for organization booking URL at the moment
+  return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== CAL_URL);
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Codes = {
@@ -33,13 +39,9 @@ export const Codes = {
 	return <Cal
 	  calLink="${calLink}"
 	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-	  ${previewState.layout ? `config={{layout: '${previewState.layout}'}}` : ""}${
-        IS_SELF_HOSTED
-          ? `
-	  calOrigin="${embedCalOrigin}"
-	  calJsUrl="${embedLibUrl}"`
-          : ""
-      }
+	  ${previewState.layout ? `config={{layout: '${previewState.layout}'}}` : ""}
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
+	  ${IS_SELF_HOSTED ? `calJsUrl="${embedLibUrl}"` : ""}
 	/>;
   };`;
     },
@@ -53,7 +55,7 @@ export const Codes = {
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
-  export default function App() {
+  export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
 		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
@@ -77,7 +79,7 @@ export const Codes = {
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
-  export default function App() {
+  export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
 		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
@@ -85,7 +87,8 @@ export const Codes = {
 	  })();
 	}, [])
 	return <button
-	  data-cal-link="${calLink}"${IS_SELF_HOSTED ? `\ndata-cal-origin="${embedCalOrigin}"` : ""}
+	  data-cal-link="${calLink}"
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  data-cal-origin="${embedCalOrigin}"` : ""}
 	  ${`data-cal-config='${JSON.stringify({
       layout: previewState.layout,
     })}'`}
