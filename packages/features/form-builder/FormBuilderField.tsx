@@ -311,9 +311,8 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
-    const options = field.options.map((field) => {
-      return { ...field, value: field.value === "inPerson" ? field.label : field.value };
-    });
+
+    const options = field.options;
 
     return field.options.length ? (
       <WithLabel field={field} readOnly={readOnly}>
