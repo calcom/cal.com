@@ -16,7 +16,7 @@ test.describe("user can login & logout succesfully", async () => {
     // log in trail user
     await test.step("Log in", async () => {
       const user = await users.create();
-      await user.login();
+      await user.apiLogin();
 
       const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
 
