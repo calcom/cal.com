@@ -170,7 +170,6 @@ const MembersView = () => {
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
                 <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
-                <hr className="border-subtle my-8" />
               </>
             )}
 
@@ -183,10 +182,7 @@ const MembersView = () => {
             )}
 
             {team && (isAdmin || isOrgAdminOrOwner) && (
-              <>
-                <hr className="border-subtle my-8" />
-                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
-              </>
+              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
             )}
           </div>
           {showMemberInvitationModal && team && (
