@@ -1,8 +1,9 @@
 import type { EventType } from "@prisma/client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
 function getNewSeachParams(args: {
   query: Record<string, string | null | undefined | boolean>;
@@ -41,7 +42,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const bookingSuccessRedirect = ({
     successRedirectUrl,
     query,
