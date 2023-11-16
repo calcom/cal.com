@@ -26,6 +26,7 @@ const schemaAvailabilityCreateParams = z
     startTime: z.date().or(z.string()),
     endTime: z.date().or(z.string()),
     days: z.array(z.number()).optional(),
+    date: z.date().or(z.string()).optional(),
   })
   .strict();
 
@@ -34,6 +35,7 @@ const schemaAvailabilityEditParams = z
     startTime: z.date().or(z.string()).optional(),
     endTime: z.date().or(z.string()).optional(),
     days: z.array(z.number()).optional(),
+    date: z.date().or(z.string()).optional(),
   })
   .strict();
 
