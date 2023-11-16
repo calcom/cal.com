@@ -8,7 +8,7 @@ import type { AnyRouter } from "@trpc/server";
 /**
  * Creates an API handler executed by Next.js.
  */
-export async function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
+export function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
   return trpcNext.createNextApiHandler({
     router,
     /**
