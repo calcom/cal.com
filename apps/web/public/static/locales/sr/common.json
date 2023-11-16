@@ -849,6 +849,7 @@
   "next_step": "Preskoči korak",
   "prev_step": "Prethodni korak",
   "install": "Instaliraj",
+  "install_paid_app": "Prijavite se",
   "installed": "Instalirano",
   "active_install_one": "{{count}} aktivna instalacija",
   "active_install_other": "{{count}} aktivnih instalacija",

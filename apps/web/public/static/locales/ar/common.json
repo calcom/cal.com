@@ -849,6 +849,7 @@
   "next_step": "تخطي الخطوة",
   "prev_step": "الخطوة السابقة",
   "install": "تثبيت",
+  "install_paid_app": "اشتراك",
   "installed": "تم التثبيت",
   "active_install_one": "{{count}} تثبيت نشط",
   "active_install_other": "{{count}} تثبيت نشط",
