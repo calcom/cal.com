@@ -9,6 +9,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
@@ -69,7 +70,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation
-    if (usernameParam && session.user.email) {
+    if (usernameParam && session.user.email && IS_CALCOM) {
       const availability = await checkUsername(usernameParam, currentOrgDomain);
       if (availability.available && availability.premium) {
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
