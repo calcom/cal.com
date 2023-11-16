@@ -31,6 +31,7 @@ type AppListCardProps = {
   invalidCredential?: boolean;
   children?: ReactNode;
   credentialOwner?: CredentialOwner;
+  className?: string;
 } & ShouldHighlight;
 
 const schema = z.object({ hl: z.string().optional() });
@@ -49,6 +50,7 @@ export default function AppListCard(props: AppListCardProps) {
     invalidCredential,
     children,
     credentialOwner,
+    className,
   } = props;
   const {
     data: { hl },
@@ -82,7 +84,7 @@ export default function AppListCard(props: AppListCardProps) {
   }, [highlight, pathname, router, searchParams, shouldHighlight]);
 
   return (
-    <div className={classNames(highlight && "dark:bg-muted bg-yellow-100")}>
+    <div className={classNames(highlight && "dark:bg-muted bg-yellow-100", className)}>
       <div className="flex items-center gap-x-3 px-4 py-4 sm:px-6">
         {logo ? (
           <img
