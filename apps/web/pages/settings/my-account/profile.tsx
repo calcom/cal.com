@@ -72,7 +72,7 @@ interface DeleteAccountValues {
 
 type FormValues = {
   username: string;
-  avatar: string | null;
+  avatar: string;
   name: string;
   email: string;
   bio: string;
@@ -398,7 +398,7 @@ const ProfileForm = ({
 
   const profileFormSchema = z.object({
     username: z.string(),
-    avatar: z.string().nullable(),
+    avatar: z.string(),
     name: z
       .string()
       .trim()
@@ -420,7 +420,6 @@ const ProfileForm = ({
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
-
   return (
     <Form form={formMethods} handleSubmit={onSubmit}>
       <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
@@ -464,7 +463,7 @@ const ProfileForm = ({
                         <Button
                           color="secondary"
                           onClick={() => {
-                            formMethods.setValue("avatar", null, { shouldDirty: true });
+                            formMethods.setValue("avatar", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>
