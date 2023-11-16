@@ -11,6 +11,7 @@ import prisma from "@calcom/prisma";
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture } from "../fixtures/embeds";
+import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
 import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
@@ -19,6 +20,7 @@ import { createUsersFixture } from "../fixtures/users";
 
 export interface Fixtures {
   page: Page;
+  orgs: ReturnType<typeof createOrgsFixture>;
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
@@ -51,6 +53,10 @@ declare global {
  *  @see https://playwright.dev/docs/test-fixtures
  */
 export const test = base.extend<Fixtures>({
+  orgs: async ({ page }, use) => {
+    const orgsFixture = createOrgsFixture(page);
+    await use(orgsFixture);
+  },
   users: async ({ page, context, emails }, use, workerInfo) => {
     const usersFixture = createUsersFixture(page, emails, workerInfo);
     await use(usersFixture);

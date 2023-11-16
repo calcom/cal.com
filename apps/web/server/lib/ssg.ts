@@ -3,7 +3,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
@@ -31,14 +31,21 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
     transformer: superjson,
     ctx: {
       prisma,
+      insightsDb: readonlyPrisma,
       session: null,
       locale,
       i18n: _i18n,
     },
   });
 
-  // always preload i18n
-  await ssg.viewer.public.i18n.fetch({ locale, CalComVersion: CALCOM_VERSION });
+  // i18n translations are already retrieved from serverSideTranslations call, there is no need to run a i18n.fetch
+  // we can set query data directly to the queryClient
+  const queryKey = [
+    ["viewer", "public", "i18n"],
+    { input: { locale, CalComVersion: CALCOM_VERSION }, type: "query" },
+  ];
+
+  ssg.queryClient.setQueryData(queryKey, { i18n: _i18n });
 
   return ssg;
 }

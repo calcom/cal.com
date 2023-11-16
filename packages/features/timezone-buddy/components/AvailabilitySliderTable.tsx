@@ -33,6 +33,7 @@ function UpgradeTeamTip() {
 
   return (
     <UpgradeTip
+      plan="team"
       title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
       description="add_your_team_members"
       background="/tips/teams"
@@ -193,6 +194,7 @@ export function AvailabilitySliderTable() {
       <>
         <div className="relative">
           <DataTable
+            searchKey="member"
             tableContainerRef={tableContainerRef}
             columns={memorisedColumns}
             onRowMouseclick={(row) => {
