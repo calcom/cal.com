@@ -1,5 +1,5 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -9,6 +9,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
@@ -46,7 +47,7 @@ const newFormModalQuerySchema = z.object({
 export const useOpenModal = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const openModal = (option: z.infer<typeof newFormModalQuerySchema>) => {
     const newQuery = new URLSearchParams(searchParams ?? undefined);
     newQuery.set("dialog", "new-form");
