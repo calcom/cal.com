@@ -245,7 +245,7 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
