@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 import * as trpcNext from "@calcom/trpc/server/adapters/next";
 import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
 
@@ -8,7 +10,14 @@ import type { AnyRouter } from "@trpc/server";
 /**
  * Creates an API handler executed by Next.js.
  */
-export function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
+export async function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
+  const userIp = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: userIp,
+  });
+
   return trpcNext.createNextApiHandler({
     router,
     /**
