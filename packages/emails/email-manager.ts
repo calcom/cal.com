@@ -153,7 +153,19 @@ export const sendScheduledSeatsEmails = async (
   }
 
   if (!attendeeEmailDisabled) {
-    emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new AttendeeScheduledEmail(
+            {
+              ...calEvent,
+              ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
+            },
+            invitee,
+            showAttendees
+          )
+      )
+    );
   }
   await Promise.all(emailsToSend);
 };
