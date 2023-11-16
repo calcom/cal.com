@@ -16,7 +16,7 @@ const rateLimitMiddleware = middleware(async (opts) => {
     });
   }
 
-  return await opts.next();
+  return opts.next();
 });
 
 export default rateLimitMiddleware;
