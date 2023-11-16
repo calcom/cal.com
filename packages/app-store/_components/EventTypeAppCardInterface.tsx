@@ -1,6 +1,7 @@
 import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui";
 
@@ -14,6 +15,7 @@ export const EventTypeAppCard = (props: {
   setAppData: SetAppData;
   // For event type apps, get these props from shouldLockDisableProps
   LockedIcon?: JSX.Element | false;
+  eventTypeAppData: z.infer<typeof appDataSchemas>;
   disabled?: boolean;
 }) => {
   const { app, getAppData, setAppData, LockedIcon, disabled } = props;

@@ -47,10 +47,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
+  const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+
   const getAppDataSetter = (appId: EventTypeAppsList, credentialId?: number): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
-      const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
       const appData = allAppsDataFromForm[appId];
       setAllAppsData({
         ...allAppsDataFromForm,
@@ -81,6 +82,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           key={app.slug}
           app={app}
           eventType={eventType}
+          eventTypeAppData={allAppsDataFromForm}
           {...shouldLockDisableProps("apps")}
         />
       );
@@ -104,6 +106,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               },
             }}
             eventType={eventType}
+            eventTypeAppData={allAppsDataFromForm}
             {...shouldLockDisableProps("apps")}
           />
         );
@@ -152,6 +155,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
                   key={app.slug}
                   app={app}
                   eventType={eventType}
+                  eventTypeAppData={allAppsDataFromForm}
                   {...shouldLockDisableProps("apps")}
                 />
               );

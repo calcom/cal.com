@@ -18,7 +18,11 @@ import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  eventTypeAppData,
+}) {
   const pathname = usePathname();
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");

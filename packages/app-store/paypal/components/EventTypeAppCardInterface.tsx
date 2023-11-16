@@ -18,7 +18,11 @@ import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  eventTypeAppData,
+}) {
   const { asPath } = useRouter();
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
