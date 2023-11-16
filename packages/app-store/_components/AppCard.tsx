@@ -90,6 +90,7 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
+                  data-testid="app-switch"
                   disabled={!app.enabled || disabled}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
