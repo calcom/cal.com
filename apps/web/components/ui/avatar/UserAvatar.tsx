@@ -15,5 +15,5 @@ type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageS
  */
 export function UserAvatar(props: UserAvatarProps) {
   const { user, previewSrc = getUserAvatarUrl(user), ...rest } = props;
-  return <Avatar {...rest} alt={user.name || ""} imageSrc={previewSrc} />;
+  return <Avatar {...rest} alt={user.name || "Nameless User"} imageSrc={previewSrc} />;
 }
