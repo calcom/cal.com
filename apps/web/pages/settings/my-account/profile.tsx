@@ -236,7 +236,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
-        isFallbackImg={!user.avatarUrl && !avatarData.avatar}
+        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
