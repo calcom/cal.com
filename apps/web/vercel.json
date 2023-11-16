@@ -7,10 +7,10 @@
   ],
   "functions": {
     "pages/api/trpc/public/[trpc].ts": {
-      "memory": 3008
+      "memory": 768
     },
     "pages/api/trpc/slots/[trpc].ts": {
-      "memory": 3008
+      "memory": 768
     }
   }
 }
