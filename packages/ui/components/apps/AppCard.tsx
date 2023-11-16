@@ -39,8 +39,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const { t } = useLocale();
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-
-  const enabledOnTeams = doesAppSupportTeamInstall(app.categories, app.concurrentMeetings);
+  const enabledOnTeams = doesAppSupportTeamInstall({
+    appCategories: app.categories,
+    concurrentMeetings: app.concurrentMeetings,
+    isPaid: !!app.paid,
+  });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
@@ -120,6 +123,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
                       concurrentMeetings={app.concurrentMeetings}
+                      paid={app.paid}
                     />
                   );
                 }}
@@ -146,6 +150,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       appCategories={app.categories}
                       credentials={credentials}
                       concurrentMeetings={app.concurrentMeetings}
+                      paid={app.paid}
                       {...props}
                     />
                   );
@@ -174,6 +179,7 @@ const InstallAppButtonChild = ({
   appCategories,
   credentials,
   concurrentMeetings,
+  paid,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -181,6 +187,7 @@ const InstallAppButtonChild = ({
   appCategories: string[];
   credentials?: Credential[];
   concurrentMeetings?: boolean;
+  paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -200,7 +207,25 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
+  // Paid apps don't support team installs at the moment
+  // Also, cal.ai(the only paid app at the moment) doesn't support team install either
+  if (paid) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon={Plus}
+        data-testid="install-app-button"
+        {...props}>
+        {paid.trial ? t("start_paid_trial") : t("install_paid_app")}
+      </Button>
+    );
+  }
+
+  if (
+    !userAdminTeams?.length ||
+    !doesAppSupportTeamInstall({ appCategories, concurrentMeetings, isPaid: !!paid })
+  ) {
     return (
       <Button
         color="secondary"

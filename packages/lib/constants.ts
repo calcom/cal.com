@@ -106,3 +106,4 @@ export const APP_CREDENTIAL_SHARING_ENABLED =
 
 export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
+export const AB_TEST_BUCKET_PROBABILITY = Number(process.env.AB_TEST_BUCKET_PROBABILITY ?? "10");

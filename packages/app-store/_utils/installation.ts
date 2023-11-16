@@ -15,25 +15,36 @@ export async function checkInstalled(slug: string, userId: number) {
   }
 }
 
+type InstallationArgs = {
+  appType: string;
+  userId: number;
+  slug: string;
+  key?: Prisma.InputJsonValue;
+  teamId?: number;
+  subscriptionId?: string | null;
+  paymentStatus?: string | null;
+  billingCycleStart?: number | null;
+};
+
 export async function createDefaultInstallation({
   appType,
   userId,
   slug,
   key = {},
   teamId,
-}: {
-  appType: string;
-  userId: number;
-  slug: string;
-  key?: Prisma.InputJsonValue;
-  teamId?: number;
-}) {
+  billingCycleStart,
+  paymentStatus,
+  subscriptionId,
+}: InstallationArgs) {
   const installation = await prisma.credential.create({
     data: {
       type: appType,
       key,
       ...(teamId ? { teamId } : { userId }),
       appId: slug,
+      subscriptionId,
+      paymentStatus,
+      billingCycleStart,
     },
   });
   if (!installation) {

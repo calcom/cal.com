@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -368,7 +369,7 @@ describe("handleNewBooking", () => {
             }),
         });
 
-        expect(() => handleRecurringEventBooking(req, res)).rejects.toThrow("No available users found");
+        expect(() => handleRecurringEventBooking(req, res)).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
         // Actually the first booking goes through in this case but the status is still a failure. We should do a dry run to check if booking is possible  for the 2 slots and if yes, then only go for the actual booking otherwise fail the recurring bookign
       },
       timeout
