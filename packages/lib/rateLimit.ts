@@ -81,6 +81,12 @@ export function rateLimiter() {
       prefix: "ratelimit",
       limiter: Ratelimit.fixedWindow(20, "1d"),
     }),
+    trpc: new Ratelimit({
+      redis,
+      analytics: true,
+      prefix: "ratelimit",
+      limiter: Ratelimit.fixedWindow(500, "60s"),
+    }),
   };
 
   async function rateLimit({ rateLimitingType = "core", identifier }: RateLimitHelper) {
