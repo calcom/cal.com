@@ -326,19 +326,18 @@ export default function Signup({
                       formMethods.formState.errors.username ? "opacity-50" : ""
                     )}
                     onClick={async () => {
-                      if (!formMethods.getValues("username")) {
-                        formMethods.trigger("username");
+                      const username = formMethods.getValues("username");
+                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                      const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                      if (username) {
+                        // If username is present we save it in query params to check for premium
+                        const searchQueryParams = new URLSearchParams();
+                        searchQueryParams.set("username", formMethods.getValues("username"));
+                        localStorage.setItem("username", username);
+                        router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
                         return;
                       }
-                      const username = formMethods.getValues("username");
-                      const searchQueryParams = new URLSearchParams();
-                      searchQueryParams.set("username", formMethods.getValues("username"));
-                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                      localStorage.setItem("username", username);
-                      // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                      const googleAuthUrl = `${baseUrl}/auth/sso/google?${searchQueryParams.toString()}`;
-
-                      router.push(googleAuthUrl);
+                      router.push(GOOGLE_AUTH_URL);
                     }}>
                     <img className="text-emphasis mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
                     Google

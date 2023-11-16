@@ -70,9 +70,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation
-    if (usernameParam && session.user.email && IS_CALCOM) {
+    if (usernameParam && session.user.email) {
       const availability = await checkUsername(usernameParam, currentOrgDomain);
-      if (availability.available && availability.premium) {
+      if (availability.available && availability.premium && IS_CALCOM) {
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
           userEmail: session.user.email,
           username: usernameParam,
