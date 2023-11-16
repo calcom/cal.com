@@ -849,6 +849,7 @@
   "next_step": "Ignorar passo",
   "prev_step": "Passo anterior",
   "install": "Instalar",
+  "install_paid_app": "Subscrever",
   "installed": "Instalado",
   "active_install_one": "{{count}} instalação activa",
   "active_install_other": "{{count}} instalações activas",

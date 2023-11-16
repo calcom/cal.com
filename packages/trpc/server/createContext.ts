@@ -4,7 +4,7 @@ import type { Session } from "next-auth";
 import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import prisma from "@calcom/prisma";
+import prisma, { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
@@ -53,6 +53,7 @@ export type GetSessionFn =
 export async function createContextInner(opts: CreateInnerContextOptions) {
   return {
     prisma,
+    insightsDb: readonlyPrisma,
     ...opts,
   };
 }
