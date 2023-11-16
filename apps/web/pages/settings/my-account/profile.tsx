@@ -10,6 +10,7 @@ import OrganizationMemberAvatar from "@calcom/features/ee/organizations/componen
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -82,6 +83,11 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const { update } = useSession();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
+
+  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
+    enabled: !isLoading && !user?.avatarUrl,
+  });
+
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -213,7 +219,7 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: user.avatar || "",
+    avatar: getUserAvatarUrl(user),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -230,7 +236,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
-        userAvatar={user.avatar}
+        isFallbackImg={!user.avatarUrl && !avatarData.avatar}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -376,7 +382,6 @@ const ProfileForm = ({
   extraField,
   isLoading = false,
   isFallbackImg,
-  userAvatar,
   user,
   userOrganization,
 }: {
@@ -385,7 +390,6 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isLoading: boolean;
   isFallbackImg: boolean;
-  userAvatar: string;
   user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
@@ -425,7 +429,7 @@ const ProfileForm = ({
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => {
-              const showRemoveAvatarButton = !isFallbackImg || (value && userAvatar !== value);
+              const showRemoveAvatarButton = value === null ? false : !isFallbackImg;
               const organization =
                 userOrganization && userOrganization.id
                   ? {
@@ -452,7 +456,7 @@ const ProfileForm = ({
                         handleAvatarChange={(newAvatar) => {
                           formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                         }}
-                        imageSrc={value || undefined}
+                        imageSrc={value}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "primary"}
                       />
 

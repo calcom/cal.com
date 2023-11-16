@@ -61,7 +61,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
-    avatar: null, // DEPRECATED - always set the avatar to null to start removal.
     metadata: userMetadata,
   };
 

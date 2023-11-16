@@ -131,7 +131,7 @@ export default function ImageUploader({
   });
 
   useEffect(() => {
-    if (props.imageSrc) setImageSrc(props.imageSrc);
+    setImageSrc(props.imageSrc);
   }, [props.imageSrc]);
 
   const onInputFile = (e: FileEvent<HTMLInputElement>) => {
