@@ -30,6 +30,9 @@ import {
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendRescheduledSeatEmail,
+  sendRoundRobinCancelledEmails,
+  sendRoundRobinRescheduledEmails,
+  sendRoundRobinScheduledEmails,
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
@@ -2207,13 +2210,71 @@ async function handler(
     // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
     if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
       const copyEvent = cloneDeep(evt);
-      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
-      await sendRescheduledEmails({
+      const copyEventAdditionalInfo = {
         ...copyEvent,
         additionalInformation: metadata,
         additionalNotes, // Resets back to the additionalNote input and not the override value
         cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-      });
+      };
+      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
+
+      /*
+        handle emails for round robin
+          - if booked rr host is the same, then rescheduling email
+          - if new rr host is booked, then cancellation email to old host and confirmation email to new host
+      */
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        const originalBookingMemberEmails: Person[] = [];
+
+        for (const user of originalRescheduledBooking.attendees) {
+          const translate = await getTranslation(user.locale ?? "en", "common");
+          originalBookingMemberEmails.push({
+            name: user.name,
+            email: user.email,
+            timeZone: user.timeZone,
+            language: { translate, locale: user.locale ?? "en" },
+          });
+        }
+        if (originalRescheduledBooking.user) {
+          const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
+          originalBookingMemberEmails.concat({
+            ...originalRescheduledBooking.user,
+            name: originalRescheduledBooking.user.name || "",
+            language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
+          });
+        }
+
+        const newBookingMemberEmails: Person[] =
+          copyEvent.team?.members
+            .map((member) => member)
+            .concat(copyEvent.organizer)
+            .concat(copyEvent.attendees) || [];
+
+        // scheduled Emails
+        const newBookedMembers = newBookingMemberEmails.filter(
+          (member) =>
+            !originalBookingMemberEmails.find((originalMember) => originalMember.email === member.email)
+        );
+        // cancelled Emails
+        const cancelledMembers = originalBookingMemberEmails.filter(
+          (member) => !newBookingMemberEmails.find((newMember) => newMember.email === member.email)
+        );
+        // rescheduled Emails
+        const rescheduledMembers = newBookingMemberEmails.filter((member) =>
+          originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
+        );
+
+        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
+        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
+        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
+      } else {
+        await sendRescheduledEmails({
+          ...copyEvent,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+        });
+      }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
