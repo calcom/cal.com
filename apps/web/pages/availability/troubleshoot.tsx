@@ -4,7 +4,7 @@ import { getLayout } from "@calcom/features/troubleshooter/layout";
 import PageWrapper from "@components/PageWrapper";
 
 function TroubleshooterPage() {
-  return <Troubleshooter />;
+  return <Troubleshooter month={null} />;
 }
 
 TroubleshooterPage.getLayout = getLayout;
