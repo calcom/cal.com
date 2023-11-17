@@ -1,9 +1,9 @@
 node_modules
 .next
-public
 **/**/node_modules
 **/**/.next
-**/**/public
+apps/web/public
+apps/website/public
 
 *.lock
 *.log
