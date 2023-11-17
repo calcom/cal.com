@@ -71,6 +71,7 @@ Logout.PageWrapper = PageWrapper;
 export default Logout;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  setCsrfToken(context.res);
   const ssr = await ssrInit(context);
   // Deleting old cookie manually, remove this code after all existing cookies have expired
   context.res.setHeader(

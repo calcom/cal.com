@@ -30,6 +30,7 @@ signin.PageWrapper = PageWrapper;
 export default signin;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+  setCsrfToken(context.res);
   const { req, res } = context;
 
   const session = await getServerSession({ req, res });

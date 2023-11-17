@@ -5,6 +5,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { setCsrfToken } from "pages/api/auth/csrf";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -279,6 +280,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
+  setCsrfToken(context.res);
   const { req, res, query } = context;
 
   const session = await getServerSession({ req, res });
