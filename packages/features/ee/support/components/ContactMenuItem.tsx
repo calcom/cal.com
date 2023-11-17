@@ -24,8 +24,9 @@ export default function ContactMenuItem(props: ContactMenuItem) {
       ) : (
         <button
           tooltip={t("Upgrade to a teams plan to access support")}
-          className="ml-4 lg:ml-0"
-          onClick={() => router.push("/teams")}>
+          onClick={() => router.push("/teams")}
+          className="hover:bg-subtle hover:text-emphasis text-default flex w-full px-5 py-2 pr-4 text-sm font-medium">
+          {t("contact_support")}
           {t("upgrade")}
         </button>
       )}
