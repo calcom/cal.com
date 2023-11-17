@@ -1,4 +1,4 @@
-import type { GroupBase, InputProps, OptionProps } from "react-select";
+import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
