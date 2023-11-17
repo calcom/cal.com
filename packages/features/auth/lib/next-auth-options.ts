@@ -136,6 +136,11 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.IncorrectEmailPassword);
       }
 
+      // Locked users cannot login
+      if (user.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
+      }
+
       await checkRateLimitAndThrowError({
         identifier: user.email,
       });
