@@ -60,6 +60,20 @@ export const OptionComponent = <
   );
 };
 
+export const ControlComponent = <
+  Option,
+  IsMulti extends boolean,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>(
+  controlProps: ControlProps<Option, IsMulti, Group>
+) => {
+  return (
+    <span data-testid={controlProps.selectProps["data-testid"] ?? "select-control"}>
+      <reactSelectComponents.Control {...controlProps} />
+    </span>
+  );
+};
+
 // We need to override this component if we need a icon - we can't simpily override styles
 type IconLeadingProps = {
   icon: React.ReactNode;

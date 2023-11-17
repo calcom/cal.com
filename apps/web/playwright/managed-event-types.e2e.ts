@@ -72,7 +72,7 @@ test.describe("Managed Event Types tests", () => {
       await page.goto("/event-types");
       await page.getByTestId("event-types").locator('a[title="managed"]').click();
       await page.getByTestId("vertical-tab-assignment").click();
-      await page.locator('[aria-label="assignment-dropdown"]').click();
+      await page.getByTestId("assignment-dropdown").click();
 
       await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
@@ -81,7 +81,6 @@ test.describe("Managed Event Types tests", () => {
 
     await test.step("Managed event type can use Organizer's default app as location", async () => {
       await page.getByTestId("vertical-tab-event_setup_tab_title").click();
-      await expect(page.locator('[aria-label="Remove"]')).toBeVisible();
       await page.locator('[aria-label="Remove"]').click();
 
       await page.locator("#location-select").click();
