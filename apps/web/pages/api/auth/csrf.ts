@@ -1,21 +1,26 @@
 import { serialize } from "cookie";
 import { randomBytes } from "crypto";
+import type { ServerResponse } from "http";
 import type { NextApiRequest, NextApiResponse } from "next";
+
+export const setCsrfToken = (res: ServerResponse) => {
+  const token = randomBytes(28).toString("hex");
+  res.setHeader(
+    "Set-Cookie",
+    serialize("csrf_token", token, {
+      httpOnly: false, // important for reading cookie on the client
+      maxAge: undefined, // expire with session
+      sameSite: "strict",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+    })
+  );
+};
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log("✨ Getting CSRF token...");
   if (req.method === "GET") {
-    const token = randomBytes(28).toString("hex");
-    res.setHeader(
-      "Set-Cookie",
-      serialize("csrf_token", token, {
-        httpOnly: false, // important for reading cookie on the client
-        maxAge: undefined, // expire with session
-        sameSite: "strict",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      })
-    );
+    setCsrfToken(res);
     res.status(200).json({ message: "OK!" });
     res.end();
   } else {

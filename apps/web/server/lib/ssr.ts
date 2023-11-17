@@ -18,7 +18,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
   const ctx = await createContext(context);
   const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
-
+  ctx.req.headers["x-csrf-token"] = process.env.CSRF_SECRET;
   const ssr = createProxySSGHelpers({
     router: appRouter,
     transformer: superjson,

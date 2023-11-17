@@ -2,6 +2,7 @@ import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { setCsrfToken } from "pages/api/auth/csrf";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -274,6 +275,7 @@ export type UserPageProps = {
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
+  setCsrfToken(context.res);
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);

@@ -1,4 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
+import { setCsrfToken } from "pages/api/auth/csrf";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
@@ -103,7 +104,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   } else if (bookingUid) {
     booking = await getBookingForSeatedEvent(`${bookingUid}`);
   }
-
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
   const eventData = await ssr.viewer.public.event.fetch({
@@ -234,6 +234,7 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  setCsrfToken(context.res);
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 
