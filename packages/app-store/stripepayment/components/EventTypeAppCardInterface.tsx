@@ -8,6 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
+import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
 import { paymentOptions } from "../lib/constants";
 import {
   convertToSmallestCurrencyUnit,
@@ -21,7 +22,7 @@ type Option = { value: string; label: string };
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
-  eventTypeAppData,
+  eventTypeFormMetadata,
 }) {
   const pathname = usePathname();
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
@@ -36,6 +37,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata, true);
+
+  const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -70,7 +74,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      disableSwitch={shouldDisableSwitch}
+      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
       <>
         {recurringEventDefined && (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />

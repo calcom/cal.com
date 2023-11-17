@@ -2130,5 +2130,6 @@
   "enterprise_description": "Upgrade to Enterprise to create your Organization",
   "create_your_org": "Create your Organization",
   "create_your_org_description": "Upgrade to Enterprise and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
+  "other_payment_app_enabled": "You can only enable one payment app per event type",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

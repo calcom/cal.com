@@ -13,6 +13,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
+import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
 import type { appDataSchema } from "../zod";
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
@@ -21,7 +22,7 @@ type Option = { value: string; label: string };
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
-  eventTypeAppData,
+  eventTypeFormMetadata,
 }) {
   const { asPath } = useRouter();
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
@@ -42,6 +43,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata, true);
+
+  const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   useEffect(() => {
     if (requirePayment) {
@@ -62,7 +66,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      description={<>Add Paypal payment to your events</>}>
+      description={<>Add Paypal payment to your events</>}
+      disableSwitch={shouldDisableSwitch}
+      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
       <>
         {recurringEventDefined ? (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
