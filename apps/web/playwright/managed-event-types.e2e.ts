@@ -85,7 +85,7 @@ test.describe("Managed Event Types tests", () => {
       await page.locator('[aria-label="Remove"]').click();
 
       await page.locator("#location-select").click();
-      const optionText = await localize("en")("organizer_default_conferencing_app");
+      const optionText = (await localize("en"))("organizer_default_conferencing_app");
       await page.locator(`text=${optionText}`).click();
       await page.locator("[data-testid=update-eventtype]").click();
       await page.getByTestId("toast-success").waitFor();
