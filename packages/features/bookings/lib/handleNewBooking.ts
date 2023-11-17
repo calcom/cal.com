@@ -1076,7 +1076,6 @@ async function handler(
       },
     };
   });
-
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1884,6 +1883,7 @@ async function handler(
     evt.team = {
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
+      id: eventType.team?.id ?? 0,
     };
   }
 
