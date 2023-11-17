@@ -2079,6 +2079,7 @@
   "add_new_client": "Ajouter un nouveau client",
   "as_csv": "au format CSV",
   "overlay_my_calendar": "Superposer mon calendrier",
+  "overlay_my_calendar_toc": "En vous connectant à votre calendrier, vous acceptez notre politique de confidentialité et nos conditions d'utilisation. Vous pouvez révoquer cet accès à tout moment.",
   "view_overlay_calendar_events": "Consultez les événements de votre calendrier afin d'éviter les réservations incompatibles.",
   "lock_timezone_toggle_on_booking_page": "Verrouiller le fuseau horaire sur la page de réservation",
   "description_lock_timezone_toggle_on_booking_page": "Pour verrouiller le fuseau horaire sur la page de réservation, utile pour les événements en personne.",
