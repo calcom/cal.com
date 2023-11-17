@@ -44,6 +44,7 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
     },
     select: {
       id: true,
+      locked: true,
       email: true,
       username: true,
       name: true,

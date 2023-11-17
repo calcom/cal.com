@@ -105,6 +105,7 @@ const providers: Provider[] = [
           email: credentials.email.toLowerCase(),
         },
         select: {
+          locked: true,
           role: true,
           id: true,
           username: true,
