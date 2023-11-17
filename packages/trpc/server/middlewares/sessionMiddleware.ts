@@ -20,6 +20,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
+      // Locked users can't login
+      locked: false,
     },
     select: {
       id: true,
