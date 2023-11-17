@@ -8,6 +8,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { TRPCError } from "@trpc/server";
+
 import { isEmail } from "../util";
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import {
@@ -50,6 +52,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const translation = await getTranslation(input.language ?? "en", "common");
 
   const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
+
+  if (emailsToInvite.length > 25) {
+    throw new TRPCError({
+      code: "PAYLOAD_TOO_LARGE",
+      message: "Please invite 25 members at a time",
+    });
+  }
 
   for (const usernameOrEmail of emailsToInvite) {
     const connectionInfo = getOrgConnectionInfo({
