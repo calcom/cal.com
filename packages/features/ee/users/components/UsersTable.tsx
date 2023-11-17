@@ -92,7 +92,6 @@ function UsersTableBare() {
             ...page,
             rows: page.rows.map((row) => {
               const newUser = row;
-              console.log("newUser", newUser);
               if (row.id === userId) newUser.locked = locked;
               return newUser;
             }),
