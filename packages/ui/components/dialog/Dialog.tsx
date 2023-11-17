@@ -1,9 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import React, { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
 
@@ -27,7 +28,7 @@ const enum DIALOG_STATE {
 export function Dialog(props: DialogProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const newSearchParams = new URLSearchParams(searchParams ?? undefined);
   const { children, name, ...dialogProps } = props;
 
