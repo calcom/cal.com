@@ -121,6 +121,10 @@ function preprocess<T extends z.ZodType>({
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine(async (val) => {
+              if (val.startsWith("+61493") || val.startsWith("+610493")) {
+                const ausPhoneNumberRegex = /\+(61493|610493)\d{6}/;
+                return ausPhoneNumberRegex.test(val);
+              }
               const { isValidPhoneNumber } = await import("libphonenumber-js");
               return isValidPhoneNumber(val);
             });
