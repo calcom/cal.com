@@ -123,6 +123,7 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([scheduleId])
 }
 
 model Credential {

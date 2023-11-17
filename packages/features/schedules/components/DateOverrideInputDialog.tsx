@@ -82,21 +82,22 @@ const DateOverrideForm = ({
 
   const form = useForm({
     values: {
-      range: value
-        ? value.map((range) => ({
-            start: new Date(
-              dayjs
-                .utc()
-                .hour(range.start.getUTCHours())
-                .minute(range.start.getUTCMinutes())
-                .second(0)
-                .format()
-            ),
-            end: new Date(
-              dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
-            ),
-          }))
-        : defaultRanges,
+      range:
+        value && value[0].start.valueOf() !== value[0].end.valueOf()
+          ? value.map((range) => ({
+              start: new Date(
+                dayjs
+                  .utc()
+                  .hour(range.start.getUTCHours())
+                  .minute(range.start.getUTCMinutes())
+                  .second(0)
+                  .format()
+              ),
+              end: new Date(
+                dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
+              ),
+            }))
+          : defaultRanges,
     },
   });
 
@@ -128,7 +129,7 @@ const DateOverrideForm = ({
             ? selectedDates.map((date) => {
                 return {
                   start: date.utc(true).startOf("day").toDate(),
-                  end: date.utc(true).startOf("day").add(1, "day").toDate(),
+                  end: date.utc(true).startOf("day").toDate(),
                 };
               })
             : datesInRanges
