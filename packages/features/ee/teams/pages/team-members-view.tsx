@@ -1,7 +1,8 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -73,7 +74,7 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();

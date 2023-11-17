@@ -1,4 +1,4 @@
-import { useSearchParams } from "next/navigation";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
 /**
  * An alternative to Object.fromEntries that allows duplicate keys.
@@ -35,7 +35,7 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
  * @returns {Object} routerQuery
  */
 export const useRouterQuery = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? null);
   return routerQuery;
 };
