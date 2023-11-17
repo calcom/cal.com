@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
+import { localize } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -84,7 +85,8 @@ test.describe("Managed Event Types tests", () => {
       await page.locator('[aria-label="Remove"]').click();
 
       await page.locator("#location-select").click();
-      await page.locator("text=Organizer's default app").click();
+      const optionText = await localize("en")("organizer_default_conferencing_app");
+      await page.locator(`text=${optionText}`).click();
       await page.locator("[data-testid=update-eventtype]").click();
       await page.getByTestId("toast-success").waitFor();
       await page.waitForLoadState("networkidle");
@@ -116,7 +118,7 @@ test.describe("Managed Event Types tests", () => {
 });
 
 async function gotoBookingPage(page: Page) {
-  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+  const previewLink = await page.getByTestId("preview-button").getAttribute("href");
 
   await page.goto(previewLink ?? "");
 }
