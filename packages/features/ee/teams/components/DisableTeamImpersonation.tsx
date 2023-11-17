@@ -1,7 +1,8 @@
-import { classNames } from "@calcom/lib";
+import { useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, Switch } from "@calcom/ui";
+import { showToast, SettingsToggle } from "@calcom/ui";
 
 const DisableTeamImpersonation = ({
   teamId,
@@ -24,35 +25,23 @@ const DisableTeamImpersonation = ({
       await utils.viewer.teams.getMembershipbyUser.invalidate();
     },
   });
+  const [allowImpersonation, setAllowImpersonation] = useState(!query.data?.disableImpersonation ?? true);
   if (query.isLoading) return <></>;
 
   return (
     <>
-      <div className="flex flex-col justify-between sm:flex-row">
-        <div>
-          <div className="flex flex-row items-center">
-            <h2
-              className={classNames(
-                "font-cal mb-0.5 text-sm font-semibold leading-6",
-                disabled ? "text-muted " : "text-emphasis "
-              )}>
-              {t("user_impersonation_heading")}
-            </h2>
-          </div>
-          <p className={classNames("text-sm leading-5 ", disabled ? "text-gray-300" : "text-default")}>
-            {t("team_impersonation_description")}
-          </p>
-        </div>
-        <div className="mt-5 sm:mt-0 sm:self-center">
-          <Switch
-            disabled={disabled}
-            defaultChecked={!query.data?.disableImpersonation}
-            onCheckedChange={(isChecked) => {
-              mutation.mutate({ teamId, memberId, disableImpersonation: !isChecked });
-            }}
-          />
-        </div>
-      </div>
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("user_impersonation_heading")}
+        disabled={disabled || mutation?.isLoading}
+        description={t("team_impersonation_description")}
+        checked={allowImpersonation}
+        onCheckedChange={(_allowImpersonation) => {
+          setAllowImpersonation(_allowImpersonation);
+          mutation.mutate({ teamId, memberId, disableImpersonation: !_allowImpersonation });
+        }}
+        switchContainerClassName="mt-6"
+      />
     </>
   );
 };
