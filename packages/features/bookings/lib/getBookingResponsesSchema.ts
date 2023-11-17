@@ -122,6 +122,12 @@ function preprocess<T extends z.ZodType>({
           ? z.string()
           : z.string().refine(async (val) => {
               const { isValidPhoneNumber } = await import("libphonenumber-js");
+
+              // Allow Australian numbers starting with +61493 or +610493
+              if (val.startsWith("+61493") || val.startsWith("+610493")) {
+              return true;
+              }
+            
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
