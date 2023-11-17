@@ -3546,12 +3546,12 @@ __metadata:
     "@types/react-dom": ^18.0.9
     eslint: ^8.34.0
     eslint-config-next: ^13.2.1
-    next: ^13.4.6
+    next: ^13.5.4
     next-auth: ^4.22.1
     postcss: ^8.4.18
     react: ^18.2.0
     react-dom: ^18.2.0
-    tailwindcss: ^3.3.1
+    tailwindcss: ^3.3.3
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -4640,6 +4640,7 @@ __metadata:
     ts-node: ^10.9.1
     turndown: ^7.1.1
     typescript: ^4.9.4
+    universal-cookie: ^6.1.1
     uuid: ^8.3.2
     web3: ^1.7.5
     zod: ^3.22.2
@@ -12978,6 +12979,13 @@ __metadata:
   version: 0.4.1
   resolution: "@types/cookie@npm:0.4.1"
   checksum: 3275534ed69a76c68eb1a77d547d75f99fedc80befb75a3d1d03662fb08d697e6f8b1274e12af1a74c6896071b11510631ba891f64d30c78528d0ec45a9c1a18
+  languageName: node
+  linkType: hard
+
+"@types/cookie@npm:^0.5.1":
+  version: 0.5.4
+  resolution: "@types/cookie@npm:0.5.4"
+  checksum: bd9603ce5e9bcbe1c2c9fabe3d1b1da131f1db10a7fa0077b17eb06d59bf4a6192fbb890597e8e2295067a078aaf8299bc662bfe993e8c2d1ecd62f859317ece
   languageName: node
   linkType: hard
 
@@ -39734,6 +39742,16 @@ __metadata:
   version: 2.1.0
   resolution: "universal-base64@npm:2.1.0"
   checksum: 03bc6f7de04aee83038c26038cd2639f470fd9665f99b3613934c4ccde5d59047d45e34ea4c843ac582da83ea1b050bf8defba8eb390e566f0be314646ddbc9b
+  languageName: node
+  linkType: hard
+
+"universal-cookie@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "universal-cookie@npm:6.1.1"
+  dependencies:
+    "@types/cookie": ^0.5.1
+    cookie: ^0.5.0
+  checksum: 5c4d83f5879c5f133a51dadd080bf7a7a5c3a4b38695bb52ae560564884b84156d3c872abb1ade54a0ee00baf3870a59abc9907a4fa5bcf7a8d2d63af581c8e1
   languageName: node
   linkType: hard
 

@@ -129,6 +129,7 @@
     "superjson": "1.9.1",
     "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.1",
+    "universal-cookie": "^6.1.1",
     "uuid": "^8.3.2",
     "web3": "^1.7.5",
     "zod": "^3.22.2"

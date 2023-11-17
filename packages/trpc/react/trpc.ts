@@ -1,5 +1,6 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
+import Cookies from "universal-cookie";
 
 import { httpBatchLink } from "../client/links/httpBatchLink";
 import { httpLink } from "../client/links/httpLink";
@@ -11,6 +12,8 @@ import { createTRPCNext } from "../next";
 import type { TRPCClientErrorLike } from "../react";
 import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
 import type { AppRouter } from "../server/routers/_app";
+
+const cookies = new Cookies();
 
 /**
  * We deploy our tRPC router on multiple lambdas to keep number of imports as small as possible
@@ -68,19 +71,21 @@ const resolveEndpoint = (links: any) => {
   };
 };
 
+const getBaseUrl = () => {
+  if (typeof window !== "undefined") return ""; // browser should use relative url
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
+  return `${process.env.NEXT_PUBLIC_WEBAPP_URL}`;
+};
+
+const getCSRFToken = () => cookies.get("csrf_token") as string;
+
 /**
  * A set of strongly-typed React hooks from your `AppRouter` type signature with `createTRPCReact`.
  * @link https://trpc.io/docs/v10/react#2-create-trpc-hooks
  */
 export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSuspense">({
   config() {
-    const url =
-      typeof window !== "undefined"
-        ? "/api/trpc"
-        : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}/api/trpc`
-        : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
-
+    const url = `${getBaseUrl()}/api/trpc`;
     /**
      * If you want to use SSR, you need to use the server's full URL
      * @link https://trpc.io/docs/ssr
@@ -101,14 +106,46 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
           // when condition is true, use normal request
           true: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: `${url}/${endpoint}` })(runtime)])
+              ENDPOINTS.map((endpoint) => [
+                endpoint,
+                httpLink({
+                  url: `${url}/${endpoint}`,
+                  headers() {
+                    return {
+                      "x-csrf-token": getCSRFToken(),
+                    };
+                  },
+                  fetch(url, options) {
+                    return fetch(url, {
+                      ...options,
+                      credentials: "include",
+                    });
+                  },
+                })(runtime),
+              ])
             );
             return resolveEndpoint(links);
           },
           // when condition is false, use batch request
           false: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: `${url}/${endpoint}` })(runtime)])
+              ENDPOINTS.map((endpoint) => [
+                endpoint,
+                httpBatchLink({
+                  url: `${url}/${endpoint}`,
+                  headers() {
+                    return {
+                      "x-csrf-token": getCSRFToken(),
+                    };
+                  },
+                  fetch(url, options) {
+                    return fetch(url, {
+                      ...options,
+                      credentials: "include",
+                    });
+                  },
+                })(runtime),
+              ])
             );
             return resolveEndpoint(links);
           },
