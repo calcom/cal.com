@@ -1,22 +1,24 @@
+import type { NextApiRequest } from "next/types";
+
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_PRODUCTION_BUILD } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 
 import { middleware } from "../trpc";
 
-const rateLimitMiddleware = middleware(async (opts) => {
-  console.log(opts);
+const rateLimitMiddleware = middleware(async ({ ctx, next, path, meta }) => {
+  console.log(ctx, meta);
+  if (true) {
+    const userIp = ctx.req && getIP(ctx.req as NextApiRequest);
 
-  if (IS_PRODUCTION_BUILD) {
-    const userIp = getIP(req);
+    const identifier = userIp || ctx?.user?.id.toString();
 
     await checkRateLimitAndThrowError({
-      rateLimitingType: "trpc",
-      identifier: userIp,
+      rateLimitingType: "core",
+      identifier: `${path}.${identifier}`,
     });
   }
 
-  return opts.next();
+  return next();
 });
 
 export default rateLimitMiddleware;
