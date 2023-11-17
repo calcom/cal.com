@@ -1,8 +1,8 @@
-import { useSearchParams } from "next/navigation";
 import { useReducer } from "react";
 import { z } from "zod";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -122,7 +122,7 @@ type ModalState = {
 };
 
 export default function InstalledApps() {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
