@@ -2237,7 +2237,7 @@ async function handler(
         }
         if (originalRescheduledBooking.user) {
           const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
-          originalBookingMemberEmails.concat({
+          originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
