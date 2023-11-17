@@ -13,7 +13,7 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
+> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox"; "data-testid"?: string };
 
 export const Select = <
   Option,
