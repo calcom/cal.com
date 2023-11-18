@@ -4,16 +4,7 @@ import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Label,
-  Input,
-} from "@calcom/ui";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, Label, Input } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
@@ -33,13 +24,17 @@ export const VerifyCodeDialog = ({
   // Not using the mutation isLoading flag because after verifying we submit the underlying org creation form
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [value, onChange] = useState("");
+  const [value, setValue] = useState("");
 
   const digits = useDigitInput({
     acceptedCharacters: /^[0-9]$/,
     length: 6,
     value,
-    onChange,
+    onChange: useCallback((value: string) => {
+      // whenever there's a change in the input, we reset the error value.
+      setError("");
+      setValue(value);
+    }, []),
   });
 
   const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
@@ -70,21 +65,17 @@ export const VerifyCodeDialog = ({
 
   const verifyCode = useCallback(() => {
     setError("");
-    if (value === "") {
-      setError("The code is a required field");
+    setIsLoading(true);
+    if (isUserSessionRequiredToVerify) {
+      verifyCodeMutationUserSessionRequired.mutate({
+        code: value,
+        email,
+      });
     } else {
-      setIsLoading(true);
-      if (isUserSessionRequiredToVerify) {
-        verifyCodeMutationUserSessionRequired.mutate({
-          code: value,
-          email,
-        });
-      } else {
-        verifyCodeMutationUserSessionNotRequired.mutate({
-          code: value,
-          email,
-        });
-      }
+      verifyCodeMutationUserSessionNotRequired.mutate({
+        code: value,
+        email,
+      });
     }
   }, [
     email,
@@ -98,12 +89,12 @@ export const VerifyCodeDialog = ({
     // trim the input value because "react-digit-input" creates a string of the given length,
     // even when some digits are missing. And finally we use regex to check if the value consists
     // of 6 non-empty digits.
-    if (isLoading || !/^\d{6}$/.test(value.trim())) return;
+    if (error || isLoading || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-  }, [isLoading, value, verifyCode]);
+  }, [error, isLoading, value, verifyCode]);
 
-  useEffect(() => onChange(""), [isOpenDialog]);
+  useEffect(() => setValue(""), [isOpenDialog]);
 
   const digitClassName = "h-12 w-12 !text-xl text-center";
 
@@ -111,7 +102,7 @@ export const VerifyCodeDialog = ({
     <Dialog
       open={isOpenDialog}
       onOpenChange={(open) => {
-        onChange("");
+        setValue("");
         setError("");
         setIsOpenDialog(open);
       }}>
@@ -145,9 +136,6 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
-              <Button loading={isLoading} disabled={isLoading} onClick={verifyCode}>
-                {t("verify")}
-              </Button>
             </DialogFooter>
           </div>
         </div>
