@@ -221,7 +221,14 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0">
+      <DialogContent
+        enableOverflow={enableOverflow}
+        size="md"
+        className="p-0"
+        style={{
+          maxHeight: isMobile ? "80vh" : "90vh",
+          overflowY: "auto",
+        }}>
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
