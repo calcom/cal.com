@@ -89,7 +89,7 @@ const createTeamAndAddUser = async (
     hasSubteam,
     organizationId,
   }: {
-    user: { id: number; username: string | null; role?: MembershipRole };
+    user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
     isOrg?: boolean;
     hasSubteam?: true;
@@ -292,7 +292,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       if (scenario.hasTeam) {
         const team = await createTeamAndAddUser(
           {
-            user: { id: user.id, username: user.username, role: "OWNER" },
+            user: { id: user.id, email: user.email, username: user.username, role: "OWNER" },
             isUnpublished: scenario.isUnpublished,
             isOrg: scenario.isOrg,
             hasSubteam: scenario.hasSubteam,
