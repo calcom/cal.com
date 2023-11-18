@@ -10,7 +10,6 @@ import { FiltersContainer } from "@calcom/features/bookings/components/FiltersCo
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -133,9 +132,7 @@ export default function Bookings() {
         recurringInfoToday = page.recurringInfo.find(
           (info) => info.recurringEventId === booking.recurringEventId
         );
-        const formattedStartTime = formatTime(booking.startTime, user?.timeFormat, user?.timeZone);
-
-        return formattedStartTime.toDateString() === new Date().toDateString();
+        return new Date(booking.startTime).toDateString() === new Date().toDateString();
       })
     )[0] || [];
 
