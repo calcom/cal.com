@@ -71,25 +71,23 @@ export const authRouter = router({
     });
   }),
 
-  sendVerifyEmailCode: publicProcedure
-    .input(ZSendVerifyEmailCodeSchema)
-    .mutation(async ({ input, ctx: { req } }) => {
-      if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
-        UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode = await import("./sendVerifyEmailCode.handler").then(
-          (mod) => mod.sendVerifyEmailCodeHandler
-        );
-      }
+  sendVerifyEmailCode: publicProcedure.input(ZSendVerifyEmailCodeSchema).mutation(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
+      UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode = await import("./sendVerifyEmailCode.handler").then(
+        (mod) => mod.sendVerifyEmailCodeHandler
+      );
+    }
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
-        throw new Error("Failed to load handler");
-      }
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
+      throw new Error("Failed to load handler");
+    }
 
-      return UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode({
-        input,
-        req,
-      });
-    }),
+    return UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode({
+      input,
+      req: ctx.req,
+    });
+  }),
 
   resendVerifyEmail: authedProcedure.mutation(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.resendVerifyEmail) {
