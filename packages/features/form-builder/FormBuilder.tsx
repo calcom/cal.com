@@ -217,6 +217,7 @@ export const FormBuilder = function FormBuilder({
                         onClick={() => {
                           removeField(index);
                         }}
+                        data-testid="delete-field"
                         StartIcon={Trash2}
                       />
                     )}
