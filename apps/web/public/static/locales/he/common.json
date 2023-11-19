@@ -840,6 +840,7 @@
   "next_step": "לדלג על שלב זה",
   "prev_step": "לשלב הקודם",
   "install": "התקנה",
+  "install_paid_app": "הרשמה למינוי",
   "installed": "מותקן",
   "active_install_one": "התקנה פעילה {{count}}",
   "active_install_other": "{{count}} התקנות פעילות",
