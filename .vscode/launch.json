@@ -6,7 +6,7 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "yarn run dev",
-      "cwd": "${workspaceFolder}/apps/web",
+      "cwd": "${workspaceFolder}",
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
         "uriFormat": "%s",
