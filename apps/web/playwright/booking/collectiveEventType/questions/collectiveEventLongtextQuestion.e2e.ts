@@ -1,7 +1,6 @@
-import { localize } from "playwright/lib/testUtils";
-
 import { login } from "../../../fixtures/users";
 import { test } from "../../../lib/fixtures";
+import { localize } from "../../../lib/testUtils";
 
 test.beforeAll(async ({ page, bookingPage }) => {
   await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
