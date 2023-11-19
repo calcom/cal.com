@@ -5,8 +5,8 @@
       "name": "Next.js: debug full stack",
       "type": "node-terminal",
       "request": "launch",
-      "command": "yarn run dev",
-      "cwd": "${workspaceFolder}",
+      "command": "yarn dev",
+      "cwd": "${workspaceFolder}/apps/web",
       "autoAttachChildProcesses": true
     },
     {
