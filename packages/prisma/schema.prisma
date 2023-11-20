@@ -123,6 +123,7 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([scheduleId])
 }
 
 model Credential {
@@ -257,6 +258,9 @@ model User {
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
+
+  // Used to lock the user account
+  locked Boolean @default(false)
 
   @@unique([email])
   @@unique([email, username])
