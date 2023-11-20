@@ -182,6 +182,7 @@ type UserPayload = Prisma.UserGetPayload<{
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload => {
   return {
+    locked: false,
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),
