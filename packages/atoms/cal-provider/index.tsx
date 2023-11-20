@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 type CalProviderProps = {
   apiKey: string;
@@ -11,5 +11,30 @@ const ApiKeyContext = createContext("");
 export const useApiKey = () => useContext(ApiKeyContext);
 
 export function CalProvider({ apiKey, children }: CalProviderProps) {
-  return <ApiKeyContext.Provider value={apiKey}>{children}</ApiKeyContext.Provider>;
+  const [key, setKey] = useState("");
+
+  useEffect(() => {
+    async function verifyKey(key: string) {
+      try {
+        // here we'll call the /me endpoint in v2 to get user profile
+        // v2 is not ready yet thats why calling localhost for now
+        const response = await fetch(`http://localhost:3002/v1/me?apiKey=${key}`);
+
+        if (response.ok) {
+          setKey(apiKey);
+        }
+      } catch (error) {
+        console.error(error);
+        setKey("invalid_key");
+      }
+    }
+
+    if (apiKey.length === 0) {
+      setKey("no_key");
+    } else {
+      verifyKey(apiKey);
+    }
+  }, [apiKey]);
+
+  return <ApiKeyContext.Provider value={key}>{children}</ApiKeyContext.Provider>;
 }
