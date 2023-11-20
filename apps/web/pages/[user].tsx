@@ -82,7 +82,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         description={markdownStrippedBio}
         meeting={{
           title: markdownStrippedBio,
-          profile: { name: `${profile.name}`, image: null },
+          profile: { name: `${profile.name}`, image: user.avatarUrl || null },
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
@@ -245,7 +245,7 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -295,6 +295,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      avatarUrl: true,
       organizationId: true,
       organization: {
         select: {
@@ -363,6 +364,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     image: user.avatar,
     theme: user.theme,
     brandColor: user.brandColor,
+    avatarUrl: user.avatarUrl,
     darkBrandColor: user.darkBrandColor,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
@@ -397,6 +399,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
+        avatarUrl: user.avatarUrl,
         away: user.away,
         verified: user.verified,
       })),

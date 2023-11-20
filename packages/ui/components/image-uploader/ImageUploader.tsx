@@ -170,7 +170,11 @@ export default function ImageUploader({
         }
       }}>
       <DialogTrigger asChild>
-        <Button color={triggerButtonColor ?? "secondary"} type="button" className="py-1 text-sm">
+        <Button
+          color={triggerButtonColor ?? "secondary"}
+          type="button"
+          data-testid="open-upload-avatar-dialog"
+          className="py-1 text-sm">
           {buttonMsg}
         </Button>
       </DialogTrigger>
@@ -190,7 +194,9 @@ export default function ImageUploader({
               </div>
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
-            <label className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+            <label
+              data-testid="open-upload-image-filechooser"
+              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"
@@ -205,8 +211,10 @@ export default function ImageUploader({
         </div>
         <DialogFooter className="relative">
           <DialogClose color="minimal">{t("cancel")}</DialogClose>
-
-          <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
+          <DialogClose
+            data-testid="upload-avatar"
+            color="primary"
+            onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
         </DialogFooter>
