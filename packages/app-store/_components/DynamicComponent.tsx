@@ -13,7 +13,7 @@ export function DynamicComponent<T extends Record<string, React.ComponentType<an
   const Component = componentMap[dirName];
 
   return (
-    <div className={wrapperClassName || ""}>
+    <div data-testid={slug} className={wrapperClassName || ""}>
       <Component {...rest} />
     </div>
   );

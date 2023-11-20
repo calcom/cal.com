@@ -1,7 +1,9 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
+import { bookEventOnThisPage } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -355,6 +357,95 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    installRecommendedApp: async (appSlug: string) => {
+      await page.getByTestId(appSlug).getByRole("button", { name: "Add" }).click();
+      await page.getByTestId(appSlug).getByRole("switch").click();
+    },
+    fillAppTrackingId: async (trackingId: string, label = "Tracking ID") => {
+      await page.getByLabel(label).fill(trackingId);
+    },
+    fillQrCodeUrlParameters: async (opts: { fillText: string; users: UserFixture }) => {
+      const user = opts.users.get()[0];
+      await page.getByLabel("Additional URL parameters").click();
+      await page.getByLabel("Additional URL parameters").fill(opts.fillText);
+      await expect(
+        page.getByRole("link", { name: `${WEBAPP_URL}/${user.username}/30-min?test=test` }).first()
+      ).toHaveAttribute(
+        "href",
+        `https://api.qrserver.com/v1/create-qr-code/?size=256&data=${WEBAPP_URL}/${user.username}/30-min?test=test`
+      );
+    },
+    addGifFromSearch: async (search: string) => {
+      await page.getByRole("button", { name: "Add from Giphy" }).click();
+      await page.getByPlaceholder("Search Giphy").fill(search);
+      await page.getByRole("button", { name: "Search" }).click();
+      await page.getByRole("button", { name: "Add GIF" }).click();
+    },
+    addGifFromLink: async (giphyLink: string) => {
+      await page.getByRole("button", { name: "Add from Giphy" }).click();
+      await page.getByText("Add link from Giphy").click();
+      await page.getByPlaceholder("https://media.giphy.com/media/some-id/giphy.gif").fill(giphyLink);
+      await page.getByRole("button", { name: "Search" }).click();
+      await page.getByRole("button", { name: "Add GIF" }).click();
+    },
+    assertSelectedGif: async () => {
+      const gifSrc = await page.getByRole("img", { name: "Selected Gif Image" }).getAttribute("src");
+
+      await page.getByTestId("update-eventtype").click();
+      const pagePromise = page.waitForEvent("popup");
+      await page.getByTestId("preview-button").click();
+      const eventTypePage = await pagePromise;
+
+      await bookEventOnThisPage(eventTypePage);
+      expect(await eventTypePage.getByAltText("Gif from Giphy").getAttribute("src")).toBe(gifSrc);
+    },
+    fillPlausibleAppForm: async (users: UserFixture) => {
+      const user = users.get()[0];
+      await page
+        .getByPlaceholder("https://plausible.io/js/script.js")
+        .fill("https://plausible.io/js/script.local.js");
+      await page.getByPlaceholder("yourdomain.com").click();
+      await page.getByPlaceholder("yourdomain.com").fill(`${WEBAPP_URL}/${user.username}/30-min`);
+    },
+    assertGoogleAnalyticsRequest: async (eventTypePage: Page, trackingId: string) => {
+      await eventTypePage.route("https://www.google-analytics.com/g/collect**", (route) => {
+        expect(new URLSearchParams(route.request().url()).get("tid")).toBe(trackingId);
+        route.continue();
+      });
+    },
+    assertGoogleTagRequest: async (eventTypePage: Page, trackingId: string) => {
+      await eventTypePage.route(`https://www.googletagmanager.com/**}`, (route) => {
+        expect(route.request().url()).toBe(`https://www.googletagmanager.com/gtm.js?id=GTM-${trackingId}`);
+        route.continue();
+      });
+    },
+    assertPlausibleAnalyticsRequest: async (eventTypePage: Page, users: UserFixture) => {
+      const user = users.get()[0];
+      await eventTypePage.route("https://plausible.io/api/event", (route) => {
+        const body = JSON.parse(route.request().postData() || "{}");
+        body.u = "[redacted/dynamic]";
+        expect(body).toMatchObject({
+          n: "pageview",
+          u: "[redacted/dynamic]",
+          d: `${WEBAPP_URL}/${user.username}/30-min`,
+          r: null,
+        });
+        route.continue();
+      });
+    },
+    assertFathomAnalyticsRequest: async (eventTypePage: Page, users: UserFixture, trackingId: string) => {
+      await eventTypePage.route("https://cdn.usefathom.com**", (route) => {
+        const user = users.get()[0];
+        const urlParams = new URLSearchParams(route.request().url());
+        expect(urlParams.get("sid")).toBe(trackingId);
+        expect(urlParams.get("h")).toBe(WEBAPP_URL);
+        expect(urlParams.get("p")).toBe(`${user.username}/30-min`);
+        route.continue();
+      });
+    },
+    assertMetaPixelRequest: async (eventTypePage: Page) => {
+      await expect(eventTypePage.locator("#metapixel-0")).toHaveCount(1);
     },
   };
 }
