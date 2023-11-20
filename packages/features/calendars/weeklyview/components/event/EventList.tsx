@@ -50,7 +50,6 @@ export function EventList({ day }: Props) {
           const nextEvent = eventsArray[idx + 1];
           const prevEvent = eventsArray[idx - 1];
 
-
           if (!longestRef.current) {
             longestRef.current = {
               idx,
@@ -112,6 +111,7 @@ export function EventList({ day }: Props) {
             <div
               key={`${event.id}-${eventStart.toISOString()}`}
               className="absolute inset-x-1 "
+              data-testId={event.options?.["data-test-id"]}
               style={{
                 marginLeft,
                 zIndex,

@@ -13,5 +13,6 @@ export interface CalendarEvent {
     allDay?: boolean;
     borderColor?: string;
     className?: string;
+    "data-test-id"?: string;
   };
 }

@@ -85,6 +85,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           borderColor:
             event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",
           status: BookingStatus.ACCEPTED,
+          "data-test-id": "troubleshooter-busy-event",
         },
       };
     });
@@ -114,6 +115,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           options: {
             borderColor: "black",
             status: BookingStatus.ACCEPTED,
+            "data-test-id": "troubleshooter-busy-time",
           },
         });
       });
