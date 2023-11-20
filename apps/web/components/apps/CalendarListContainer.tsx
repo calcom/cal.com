@@ -84,7 +84,7 @@ function ConnectedCalendarsList(props: Props) {
         }
 
         return (
-          <div className="mt-6 rounded-lg border">
+          <div className="border-subtle mt-6 rounded-lg border">
             <div className="border-subtle border-b p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -112,7 +112,7 @@ function ConnectedCalendarsList(props: Props) {
                       title={item.integration.name}
                       logo={item.integration.logo}
                       description={item.primary?.email ?? item.integration.description}
-                      className="mt-4 rounded-lg border"
+                      className="border-subtle mt-4 rounded-lg border"
                       actions={
                         <div className="flex w-32 justify-end">
                           <DisconnectIntegration
