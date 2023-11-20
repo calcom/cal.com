@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { deleteUser } from "@calcom/features/users/lib/repository";
+import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
