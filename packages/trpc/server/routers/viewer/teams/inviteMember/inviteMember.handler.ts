@@ -65,7 +65,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const existingUsersEmails = existingUsersWithMembersips.map((user) => user.email);
   const newUsersEmails = emailsToInvite.filter((email) => !existingUsersEmails.includes(email));
 
-  // Deal with new users to create and add to team/org
+  // deal with users to create and invite to team/org
   if (newUsersEmails.length) {
     await createNewUsersConnectToOrgIfExists({
       usernamesOrEmails: newUsersEmails,
@@ -87,7 +87,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     }
   }
 
-  // Deal with existing users invited to join the team/org
+  // deal with existing users invited to join the team/org
   if (existingUsersWithMembersips.length) {
     const [usersToAutoJoin, regularUsers] = getUsersForMemberships({
       existingUsersWithMembersips,
@@ -95,7 +95,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       team,
     });
 
-    // deal with invited user with autojoin, create their membership in org
+    // invited user can autojoin, create their membership in org
     if (usersToAutoJoin.length) {
       await prisma.membership.createMany({
         data: usersToAutoJoin.map((userToAutoJoin) => ({
@@ -107,7 +107,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       });
     }
 
-    // deal with invited existing users without autojoin, create provisional memberships and send email
+    // invited users cannot autojoin, create provisional memberships and send email
     if (regularUsers.length) {
       await createProvisionalMemberships({
         input,
