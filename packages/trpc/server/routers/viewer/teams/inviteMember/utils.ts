@@ -18,6 +18,8 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
+type UserWithMembership = User & { teams: Pick<Membership, "userId" | "teamId" | "accepted">[] };
+
 export async function checkPermissions({
   userId,
   teamId,
@@ -376,7 +378,7 @@ export function shouldAutoJoinIfInOrg({
   invitee,
 }: {
   team: TeamWithParent;
-  invitee: User & { teams: Pick<Membership, "userId" | "teamId" | "accepted">[] };
+  invitee: UserWithMembership;
 }) {
   // Not a member of the org
   if (invitee.organizationId && invitee.organizationId !== team.parentId) {
@@ -403,7 +405,7 @@ export function shouldAutoJoinIfInOrg({
     autoJoined: true,
   };
 }
-
+// split invited users between ones that can autojoin and the others who cannot autojoin
 export const getUsersForMemberships = ({
   existingUsersWithMembersips,
   team,
@@ -411,7 +413,7 @@ export const getUsersForMemberships = ({
 }: {
   team: TeamWithParent;
   isOrg: boolean;
-  existingUsersWithMembersips: (User & { teams: Pick<Membership, "userId" | "teamId" | "accepted">[] })[];
+  existingUsersWithMembersips: UserWithMembership[];
 }) => {
   const usersToAutoJoin = [];
   const regularUsers = [];
@@ -430,4 +432,66 @@ export const getUsersForMemberships = ({
       : regularUsers.push(existingUserWithMembersips);
   }
   return [usersToAutoJoin, regularUsers];
+};
+
+export const sendTeamInviteEmails = async ({
+  existingUsersWithMembersips,
+  language,
+  currentUserTeamName,
+  currentUserName,
+  isOrg,
+}: {
+  language: TFunction;
+  existingUsersWithMembersips: UserWithMembership[];
+  currentUserTeamName?: string;
+  currentUserName?: string | null;
+  isOrg: boolean;
+}) => {
+  const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
+    let sendTo = user.email;
+    if (!isEmail(user.email)) {
+      sendTo = user.email;
+    }
+    // inform user of membership by email
+    if (currentUserName && currentUserTeamName) {
+      const inviteTeamOptions = {
+        joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
+        isCalcomMember: true,
+      };
+      /**
+       * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
+       * This only changes if the user is a CAL user and has not completed onboarding and has no password
+       */
+      if (!user.completedOnboarding && !user.password && user.identityProvider === "CAL") {
+        const token = randomBytes(32).toString("hex");
+        await prisma.verificationToken.create({
+          data: {
+            identifier: user.email,
+            token,
+            expires: new Date(new Date().setHours(168)), // +1 week
+          },
+        });
+
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+        inviteTeamOptions.isCalcomMember = false;
+      }
+
+      await sendTeamInviteEmail({
+        language,
+        from: currentUserName,
+        to: sendTo,
+        teamName: currentUserTeamName,
+        ...inviteTeamOptions,
+        isOrg: isOrg,
+      });
+    }
+  });
+
+  const sentEmails = await Promise.allSettled(sendEmailsPromises);
+
+  sentEmails.forEach((sentEmail) => {
+    if (sentEmail.status === "rejected") {
+      console.error("Could not send email to user", sentEmail.reason);
+    }
+  });
 };

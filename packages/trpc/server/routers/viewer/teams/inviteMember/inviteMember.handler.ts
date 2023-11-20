@@ -1,14 +1,10 @@
-import { randomBytes } from "crypto";
-
-import { sendTeamInviteEmail } from "@calcom/emails";
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { isEmail } from "../util";
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import {
   checkPermissions,
@@ -21,6 +17,7 @@ import {
   createNewUsersConnectToOrgIfExists,
   createProvisionalMemberships,
   getUsersForMemberships,
+  sendTeamInviteEmails,
 } from "./utils";
 
 type InviteMemberOptions = {
@@ -95,7 +92,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       team,
     });
 
-    // invited user can autojoin, create their membership in org
+    // invited users can autojoin, create their memberships in org
     if (usersToAutoJoin.length) {
       await prisma.membership.createMany({
         data: usersToAutoJoin.map((userToAutoJoin) => ({
@@ -113,47 +110,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         input,
         invitees: regularUsers,
       });
-
-      for (let index = 0; index < regularUsers.length; index++) {
-        const user = regularUsers[index];
-        let sendTo = user.email;
-        if (!isEmail(user.email)) {
-          sendTo = user.email;
-        }
-        // inform user of membership by email
-        if (ctx?.user?.name && team?.name) {
-          const inviteTeamOptions = {
-            joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
-            isCalcomMember: true,
-          };
-          /**
-           * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
-           * This only changes if the user is a CAL user and has not completed onboarding and has no password
-           */
-          if (!user.completedOnboarding && !user.password && user.identityProvider === "CAL") {
-            const token = randomBytes(32).toString("hex");
-            await prisma.verificationToken.create({
-              data: {
-                identifier: user.email,
-                token,
-                expires: new Date(new Date().setHours(168)), // +1 week
-              },
-            });
-
-            inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-            inviteTeamOptions.isCalcomMember = false;
-          }
-
-          await sendTeamInviteEmail({
-            language: translation,
-            from: ctx.user.name,
-            to: sendTo,
-            teamName: team.name,
-            ...inviteTeamOptions,
-            isOrg: input.isOrg,
-          });
-        }
-      }
+      await sendTeamInviteEmails({
+        currentUserName: ctx?.user?.name,
+        currentUserTeamName: team?.name,
+        existingUsersWithMembersips: regularUsers,
+        language: translation,
+        isOrg: input.isOrg,
+      });
     }
   }
 
