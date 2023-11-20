@@ -1,5 +1,3 @@
-import { useRouter } from "next/navigation";
-
 import { JOIN_DISCORD } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,7 +16,6 @@ interface ContactMenuItem {
 export default function ContactMenuItem(props: ContactMenuItem) {
   const { t } = useLocale();
   const { onHelpItemSelect } = props;
-  const router = useRouter();
   const { hasPaidPlan } = useHasPaidPlan();
   return (
     <>
