@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -7,6 +6,7 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -53,7 +53,7 @@ interface Props {
 }
 
 export default function TeamListItem(props: Props) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
   const team = props.team;
@@ -131,29 +131,27 @@ export default function TeamListItem(props: Props) {
               language: i18n.language,
               role: values.role,
               usernameOrEmail: values.emailOrUsername,
-              sendEmailInvitation: values.sendInviteEmail,
             },
             {
               onSuccess: async (data) => {
                 await utils.viewer.teams.get.invalidate();
                 setOpenMemberInvitationModal(false);
-                if (data.sendEmailInvitation) {
-                  if (Array.isArray(data.usernameOrEmail)) {
-                    showToast(
-                      t("email_invite_team_bulk", {
-                        userCount: data.usernameOrEmail.length,
-                      }),
-                      "success"
-                    );
-                    resetFields();
-                  } else {
-                    showToast(
-                      t("email_invite_team", {
-                        email: data.usernameOrEmail,
-                      }),
-                      "success"
-                    );
-                  }
+
+                if (Array.isArray(data.usernameOrEmail)) {
+                  showToast(
+                    t("email_invite_team_bulk", {
+                      userCount: data.usernameOrEmail.length,
+                    }),
+                    "success"
+                  );
+                  resetFields();
+                } else {
+                  showToast(
+                    t("email_invite_team", {
+                      email: data.usernameOrEmail,
+                    }),
+                    "success"
+                  );
                 }
               },
               onError: (error) => {

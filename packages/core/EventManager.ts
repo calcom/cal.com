@@ -97,7 +97,7 @@ export default class EventManager {
     // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials
-      .filter((cred) => cred.type.endsWith("_video"))
+      .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
       // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
       // We also don't have updatedAt or createdAt dates on credentials so this is the best we can do
@@ -654,7 +654,6 @@ export default class EventManager {
    */
   private async createVideoEvent(event: CalendarEvent) {
     const credential = this.getVideoCredential(event);
-
     if (credential) {
       return createMeeting(credential, event);
     } else {

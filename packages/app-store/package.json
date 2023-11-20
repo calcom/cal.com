@@ -25,7 +25,8 @@
     "@calcom/zoomvideo": "*",
     "lodash": "^4.17.21",
     "qs-stringify": "^1.2.1",
-    "react-i18next": "^12.2.0"
+    "react-i18next": "^12.2.0",
+    "stripe": "^14.3.0"
   },
   "devDependencies": {
     "@calcom/types": "*"

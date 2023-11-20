@@ -76,6 +76,31 @@ function UsersTableBare() {
     },
   });
 
+  const lockUserAccount = trpc.viewer.admin.lockUserAccount.useMutation({
+    onSuccess: ({ userId, locked }) => {
+      showToast(locked ? "User was locked" : "User was unlocked", "success");
+      utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
+        if (!cachedData) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
+        }
+        return {
+          ...cachedData,
+          pages: cachedData.pages.map((page) => ({
+            ...page,
+            rows: page.rows.map((row) => {
+              const newUser = row;
+              if (row.id === userId) newUser.locked = locked;
+              return newUser;
+            }),
+          })),
+        };
+      });
+    },
+  });
+
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -140,6 +165,11 @@ function UsersTableBare() {
                     <div className="text-subtle ml-4 font-medium">
                       <span className="text-default">{user.name}</span>
                       <span className="ml-3">/{user.username}</span>
+                      {user.locked && (
+                        <span className="ml-3">
+                          <Lock />
+                        </span>
+                      )}
                       <br />
                       <span className="break-all">{user.email}</span>
                     </div>
@@ -165,6 +195,12 @@ function UsersTableBare() {
                           id: "reset-password",
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
+                          icon: Lock,
+                        },
+                        {
+                          id: "lock-user",
+                          label: user.locked ? "Unlock User Account" : "Lock User Account",
+                          onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
                           icon: Lock,
                         },
                         {
