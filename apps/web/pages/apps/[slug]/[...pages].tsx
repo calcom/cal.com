@@ -1,21 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
+import React from "react";
 
-import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import prisma from "@calcom/prisma";
-import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";
 
 import PageWrapper from "@components/PageWrapper";
 
-import { ssrInit } from "@server/lib/ssr";
-
 type AppPageType = {
-  getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ((props: any) => JSX.Element) &
@@ -25,7 +18,6 @@ type AppPageType = {
 type Found = {
   notFound: false;
   Component: AppPageType["default"];
-  getServerSideProps: AppPageType["getServerSideProps"];
 };
 
 type NotFound = {
@@ -54,17 +46,18 @@ function getRoute(appName: string, pages: string[]) {
       notFound: true,
     } as NotFound;
   }
-  return { notFound: false, Component: appPage.default, ...appPage } as Found;
+  return { notFound: false, Component: appPage.default } as Found;
 }
 
 const AppPage: AppPageType["default"] = function AppPage(props) {
-  const appName = props.appName;
-  const params = useParamsWithFallback();
-  const pages = (params.pages || []) as string[];
+  const params = useParamsWithFallback() as { slug: string; pages?: string[] };
+  const appName = params.slug;
+  const pages = params.pages ?? [];
   const route = getRoute(appName, pages);
 
   const componentProps = {
     ...props,
+    appName,
     pages: pages.slice(1),
   };
 
@@ -101,74 +94,3 @@ AppPage.getLayout = (page, router) => {
 AppPage.PageWrapper = PageWrapper;
 
 export default AppPage;
-
-export async function getServerSideProps(
-  context: GetServerSidePropsContext<{
-    slug: string;
-    pages: string[];
-    appPages?: string[];
-  }>
-) {
-  const { params, req, res } = context;
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
-  const appName = params.slug;
-  const pages = params.pages;
-  const route = getRoute(appName, pages);
-  if (route.notFound) {
-    return route;
-  }
-  if (route.getServerSideProps) {
-    // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
-    // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
-    // We can write some validation logic later on that ensures that [...appPages].tsx file exists
-    params.appPages = pages.slice(1);
-    const session = await getServerSession({ req, res });
-    const user = session?.user;
-    const app = await getAppWithMetadata({ slug: appName });
-    if (!app) {
-      return {
-        notFound: true,
-      };
-    }
-
-    const result = await route.getServerSideProps(
-      context as GetServerSidePropsContext<{
-        slug: string;
-        pages: string[];
-        appPages: string[];
-      }>,
-      prisma,
-      user,
-      ssrInit
-    );
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    if (result.notFound) {
-      return {
-        notFound: true,
-      };
-    }
-    if (result.redirect) {
-      return {
-        redirect: result.redirect,
-      };
-    }
-    return {
-      props: {
-        appName,
-        appUrl: app.simplePath || `/apps/${appName}`,
-        ...result.props,
-      },
-    };
-  } else {
-    return {
-      props: {
-        appName,
-      },
-    };
-  }
-}
