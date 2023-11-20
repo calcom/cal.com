@@ -109,7 +109,6 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
       timeZone: true,
       eventType: {
         select: {
-          _count: true,
           id: true,
           eventName: true,
         },

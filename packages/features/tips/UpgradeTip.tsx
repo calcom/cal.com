@@ -13,6 +13,7 @@ export function UpgradeTip({
   buttons,
   isParentLoading,
   children,
+  plan,
 }: {
   dark?: boolean;
   title: string;
@@ -24,11 +25,16 @@ export function UpgradeTip({
   /**Chldren renders when the user is in a team */
   children: JSX.Element;
   isParentLoading?: ReactNode;
+  plan: "team" | "enterprise";
 }) {
   const { t } = useLocale();
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
+  const hasEnterprisePlan = false;
+  //const { isLoading , hasEnterprisePlan } = useHasEnterprisePlan();
 
-  if (hasTeamPlan) return children;
+  if (plan === "team" && hasTeamPlan) return children;
+
+  if (plan === "enterprise" && hasEnterprisePlan) return children;
 
   if (isLoading) return <>{isParentLoading}</>;
 

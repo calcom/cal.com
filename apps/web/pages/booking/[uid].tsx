@@ -4,7 +4,7 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -36,6 +36,7 @@ import {
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -98,7 +99,7 @@ export default function Success(props: SuccessProps) {
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -342,14 +343,17 @@ export default function Success(props: SuccessProps) {
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
-              "flex items-end justify-center px-4 pb-20 pt-4  sm:block sm:p-0"
+              "flex items-end justify-center px-4 pb-20 pt-4 sm:flex sm:p-0"
             )}>
             <div
-              className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : " inset-0")}
+              className={classNames(
+                "main my-4 flex flex-col transition-opacity sm:my-0 ",
+                isEmbed ? "" : " inset-0"
+              )}
               aria-hidden="true">
               <div
                 className={classNames(
-                  "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}

@@ -129,10 +129,6 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
   }
 
-  if (userId !== bookingToDelete.user?.id && bookingToDelete.startTime < new Date()) {
-    throw new HttpError({ statusCode: 400, message: "Cannot cancel past events" });
-  }
-
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
@@ -228,7 +224,7 @@ async function handler(req: CustomRequest) {
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
-    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
+    type: bookingToDelete?.eventType?.slug as string,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
     ...getCalEventResponses({
@@ -508,7 +504,7 @@ async function handler(req: CustomRequest) {
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
-      type: bookingToDelete?.eventType?.title as string,
+      type: bookingToDelete?.eventType?.slug as string,
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
       customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),

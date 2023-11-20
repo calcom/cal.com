@@ -82,7 +82,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         description={markdownStrippedBio}
         meeting={{
           title: markdownStrippedBio,
-          profile: { name: `${profile.name}`, image: null },
+          profile: { name: `${profile.name}`, image: user.avatarUrl || null },
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
@@ -245,7 +245,7 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -275,10 +275,7 @@ export type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
-    context.req.headers.host ?? "",
-    context.params?.orgSlug
-  );
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
@@ -298,6 +295,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      avatarUrl: true,
       organizationId: true,
       organization: {
         select: {
@@ -366,6 +364,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     image: user.avatar,
     theme: user.theme,
     brandColor: user.brandColor,
+    avatarUrl: user.avatarUrl,
     darkBrandColor: user.darkBrandColor,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
@@ -400,6 +399,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
+        avatarUrl: user.avatarUrl,
         away: user.away,
         verified: user.verified,
       })),

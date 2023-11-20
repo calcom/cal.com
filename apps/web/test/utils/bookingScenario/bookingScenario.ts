@@ -2,15 +2,15 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee, Booking } from "@prisma/client";
+import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
+import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -66,7 +66,16 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
   defaultScheduleId?: number | null;
   credentials?: InputCredential[];
+  organizationId?: number | null;
   selectedCalendars?: InputSelectedCalendar[];
+  teams?: {
+    membership: Partial<Membership>;
+    team: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }[];
   schedules: {
     // Allows giving id in the input directly so that it can be referenced somewhere else as well
     id?: number;
@@ -97,9 +106,13 @@ export type InputEventType = {
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
+  teamId?: number | null;
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
+  bookingLimits?: {
+    PER_DAY?: number;
+  };
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
 
 type WhiteListedBookingProps = {
@@ -198,6 +211,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
     timeZone: null,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
+    bookingLimits: {},
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
@@ -264,8 +278,21 @@ async function addBookingsToDb(
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
+
+  function getDateObj(time: string | Date) {
+    return time instanceof Date ? time : new Date(time);
+  }
+
+  // Make sure that we store the date in Date object always. This is to ensure consistency which Prisma does but not prismock
+  log.silly("Handling Prismock bug-3");
+  const fixedBookings = bookings.map((booking) => {
+    const startTime = getDateObj(booking.startTime);
+    const endTime = getDateObj(booking.endTime);
+    return { ...booking, startTime, endTime };
+  });
+
   await prismock.booking.createMany({
-    data: bookings,
+    data: fixedBookings,
   });
   log.silly(
     "TestData: Bookings as in DB",
@@ -355,6 +382,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
       allUsers: await prismock.user.findMany({
         include: {
           credentials: true,
+          teams: true,
           schedules: {
             include: {
               availability: true,
@@ -367,9 +395,32 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   );
 }
 
+async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
+  log.silly("TestData: Creating Teams", JSON.stringify(teams));
+  await prismock.team.createMany({
+    data: teams,
+  });
+  const addedTeams = await prismock.team.findMany({
+    where: {
+      id: {
+        in: teams.map((team) => team.id),
+      },
+    },
+  });
+  log.silly(
+    "Added teams to Db",
+    safeStringify({
+      addedTeams,
+    })
+  );
+  return addedTeams;
+}
+
 async function addUsers(users: InputUser[]) {
-  const prismaUsersCreate = users.map((user) => {
-    const newUser = user;
+  const prismaUsersCreate = [];
+  for (let i = 0; i < users.length; i++) {
+    const newUser = users[i];
+    const user = users[i];
     if (user.schedules) {
       newUser.schedules = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -397,6 +448,22 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+
+    if (user.teams) {
+      const addedTeams = await addTeamsToDb(user.teams.map((team) => team.team));
+      newUser.teams = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.teams.map((team, index) => {
+            return {
+              teamId: addedTeams[index].id,
+              ...team.membership,
+            };
+          }),
+        },
+      };
+    }
     if (user.selectedCalendars) {
       newUser.selectedCalendars = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -406,8 +473,9 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
-    return newUser;
-  });
+
+    prismaUsersCreate.push(newUser);
+  }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   await addUsersToDb(prismaUsersCreate);
@@ -444,6 +512,16 @@ export async function createBookingScenario(data: ScenarioData) {
   return {
     eventTypes,
   };
+}
+
+export async function createOrganization(orgData: { name: string; slug: string }) {
+  const org = await prismock.team.create({
+    data: {
+      name: orgData.name,
+      slug: orgData.slug,
+    },
+  });
+  return org;
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
@@ -710,6 +788,7 @@ export function getOrganizer({
   selectedCalendars,
   destinationCalendar,
   defaultScheduleId,
+  teams,
 }: {
   name: string;
   email: string;
@@ -719,9 +798,11 @@ export function getOrganizer({
   selectedCalendars?: InputSelectedCalendar[];
   defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  teams?: InputUser["teams"];
 }) {
   return {
     ...TestData.users.example,
+    organizationId: null as null | number,
     name,
     email,
     id,
@@ -730,27 +811,37 @@ export function getOrganizer({
     selectedCalendars,
     destinationCalendar,
     defaultScheduleId,
+    teams,
   };
 }
 
-export function getScenarioData({
-  organizer,
-  eventTypes,
-  usersApartFromOrganizer = [],
-  apps = [],
-  webhooks,
-  bookings,
-}: // hosts = [],
-{
-  organizer: ReturnType<typeof getOrganizer>;
-  eventTypes: ScenarioData["eventTypes"];
-  apps?: ScenarioData["apps"];
-  usersApartFromOrganizer?: ScenarioData["users"];
-  webhooks?: ScenarioData["webhooks"];
-  bookings?: ScenarioData["bookings"];
-  // hosts?: ScenarioData["hosts"];
-}) {
+export function getScenarioData(
+  {
+    organizer,
+    eventTypes,
+    usersApartFromOrganizer = [],
+    apps = [],
+    webhooks,
+    bookings,
+  }: // hosts = [],
+  {
+    organizer: ReturnType<typeof getOrganizer>;
+    eventTypes: ScenarioData["eventTypes"];
+    apps?: ScenarioData["apps"];
+    usersApartFromOrganizer?: ScenarioData["users"];
+    webhooks?: ScenarioData["webhooks"];
+    bookings?: ScenarioData["bookings"];
+    // hosts?: ScenarioData["hosts"];
+  },
+  org?: { id: number | null } | undefined | null
+) {
   const users = [organizer, ...usersApartFromOrganizer];
+  if (org) {
+    users.forEach((user) => {
+      user.organizationId = org.id;
+    });
+  }
+
   eventTypes.forEach((eventType) => {
     if (
       eventType.users?.filter((eventTypeUser) => {
@@ -897,6 +988,7 @@ export function mockCalendar(
               url: "https://UNUSED_URL",
             });
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           deleteEvent: async (...rest: any[]) => {
             log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
             // eslint-disable-next-line prefer-rest-params
@@ -1021,6 +1113,7 @@ export function mockVideoApp({
                   ...videoMeetingData,
                 });
               },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               deleteMeeting: async (...rest: any[]) => {
                 log.silly("MockVideoApiAdapter.deleteMeeting", JSON.stringify(rest));
                 deleteMeetingCalls.push({
@@ -1153,7 +1246,6 @@ export async function mockPaymentSuccessWebhookFromStripe({ externalId }: { exte
     await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }));
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
-
     webhookResponse = e as HttpError;
   }
   return { webhookResponse };
@@ -1169,7 +1261,7 @@ export function getExpectedCalEventForBookingRequest({
 }) {
   return {
     // keep adding more fields as needed, so that they can be verified in all scenarios
-    type: eventType.title,
+    type: eventType.slug,
     // Not sure why, but milliseconds are missing in cal Event.
     startTime: bookingRequest.start.replace(".000Z", "Z"),
     endTime: bookingRequest.end.replace(".000Z", "Z"),

@@ -161,8 +161,8 @@ const EmailStep = (props: { translationString: string; iconsrc: string }) => {
         style={{
           backgroundColor: "#E5E7EB",
           borderRadius: "48px",
-          height: "48px",
-          width: "48px",
+          minHeight: "48px",
+          minWidth: "48px",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
