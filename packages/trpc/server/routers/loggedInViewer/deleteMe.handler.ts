@@ -25,6 +25,15 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
     where: {
       email: ctx.user.email.toLowerCase(),
     },
+    select: {
+      identityProvider: true,
+      twoFactorEnabled: true,
+      twoFactorSecret: true,
+      password: true,
+      email: true,
+      metadata: true,
+      id: true,
+    },
   });
   if (!user) {
     throw new HttpError({ statusCode: 404, message: ErrorCode.UserNotFound });
