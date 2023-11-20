@@ -11,14 +11,16 @@ test.beforeAll(async ({ page, bookingPage }) => {
 
 test.describe("Booking With Long Text Question and Each Other Question", async () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
-  const shareText = (await localize("en"))("share_additional_notes");
 
   test.describe("Booking With Long Text Question and Address Question", () => {
     test("Long Text and Address required", async ({ bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await bookingPage.goToTab("event_advanced_tab_title");
       await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
       await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
       await bookingPage.updateEventType();
+
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
@@ -36,6 +38,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and Address not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -62,8 +66,9 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
   });
 
   test.describe("Booking With Long Text Question and checkbox group Question", () => {
-    const bookingOptions = { hasPlaceholder: false, isRequired: true };
     test("Long Text and checkbox group required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -90,6 +95,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and checkbox group not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -117,6 +124,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and checkbox Question", () => {
     test("Long Text and checkbox required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -142,6 +151,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
     test("Long Text required and checkbox not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -169,6 +180,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and Multi email Question", () => {
     test("Long Text and Multi email required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -200,6 +213,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and Multi email not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -227,6 +242,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and multiselect Question", () => {
     test("Long Text and multiselect text required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -253,6 +270,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and multiselect text not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -280,6 +299,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and Number Question", () => {
     test("Long Text and Number required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -306,6 +327,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and Number not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -333,6 +356,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and Radio group Question", () => {
     test("Long Text and Radio group required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -359,6 +384,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and Radio group not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -386,6 +413,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and Phone Question", () => {
     test("Long Text and phone required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -412,6 +441,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and Phone not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -439,6 +470,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
 
   test.describe("Booking With Long Text Question and Short text question", () => {
     test("Long Text and Short text required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
@@ -465,6 +498,8 @@ test.describe("Booking With Long Text Question and Each Other Question", async (
     });
 
     test("Long Text required and Short text not required", async ({ page, bookingPage }) => {
+      const shareText = (await localize("en"))("share_additional_notes");
+
       await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
 
       await page.goto("/event-types");
