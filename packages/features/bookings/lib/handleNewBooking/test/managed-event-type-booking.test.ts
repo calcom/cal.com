@@ -1,8 +1,7 @@
 import { describe } from "vitest";
 
 import { test } from "@calcom/web/test/fixtures/fixtures";
-
-import { setupAndTeardown } from "./lib/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 describe("handleNewBooking", () => {
   setupAndTeardown();
