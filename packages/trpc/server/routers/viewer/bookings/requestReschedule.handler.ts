@@ -177,7 +177,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   builder.init({
     title: bookingToReschedule.title,
     bookerUrl: await getBookerUrl(user),
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
     attendees: usersToPeopleType(
@@ -236,7 +236,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const evt: CalendarEvent = {
     title: bookingToReschedule?.title,
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     description: bookingToReschedule?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
     ...getCalEventResponses({

@@ -177,6 +177,7 @@ export const DialogTrigger = DialogPrimitive.Trigger;
 
 export function DialogClose(
   props: {
+    "data-testid"?: string;
     dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
     children?: ReactNode;
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -188,7 +189,10 @@ export function DialogClose(
   return (
     <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
       {/* This will require the i18n string passed in */}
-      <Button data-testid="dialog-rejection" color={props.color || "minimal"} {...props}>
+      <Button
+        data-testid={props["data-testid"] || "dialog-rejection"}
+        color={props.color || "minimal"}
+        {...props}>
         {props.children ? props.children : t("Close")}
       </Button>
     </DialogPrimitive.Close>

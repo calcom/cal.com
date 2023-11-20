@@ -1219,7 +1219,7 @@ async function handler(
 
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
-    type: eventType.title,
+    type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
