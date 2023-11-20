@@ -1,6 +1,6 @@
 /* eslint-disable playwright/no-conditional-in-test */
-import { loginUser } from "../fixtures/regularBookings";
-import { test } from "../lib/fixtures";
+import { loginUser } from "../../../fixtures/regularBookings";
+import { test } from "../../../lib/fixtures";
 
 test.describe("Booking With All Questions", () => {
   test.beforeEach(async ({ page, users, bookingPage }) => {
