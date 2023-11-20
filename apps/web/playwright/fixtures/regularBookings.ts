@@ -219,6 +219,13 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
+    makeEveryDayAvailable: async () => {
+      await page.goto("/availability");
+      await page.getByTestId("schedules").locator("div").first().click();
+      await page.locator("label").filter({ hasText: "Sunday" }).getByRole("switch").click();
+      await page.locator("label").filter({ hasText: "Saturday" }).getByRole("switch").click();
+      await page.getByRole("button", { name: "Save" }).click();
+    },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
     },
@@ -226,6 +233,23 @@ export function createBookingPageFixture(page: Page) {
       const eventtypePromise = page.waitForEvent("popup");
       await page.getByTestId("preview-button").click();
       return eventtypePromise;
+    },
+    createBookingForEachDate: async (options: {
+      bookingPage: Page;
+      date: string;
+      timezone: string;
+      isNextMonth?: boolean;
+    }) => {
+      const { bookingPage, date, isNextMonth } = options;
+      let { timezone } = options;
+      isNextMonth && (await bookingPage.getByTestId("incrementMonth").click());
+      await bookingPage.getByRole("button", { name: date, exact: true }).click();
+      await bookingPage.locator("span").filter({ hasText: "/" }).locator("svg").first().click();
+      timezone.includes(" ") && (timezone = timezone.replace(" ", "_"));
+      await bookingPage.getByTestId(`select-option-${timezone}`).click();
+      await bookingPage.getByTestId("time").first().click();
+      await bookingPage.getByTestId("confirm-book-button").click();
+      return bookingPage;
     },
     selectTimeSlot: async (eventTypePage: Page) => {
       await goToNextMonthIfNoAvailabilities(eventTypePage);
@@ -276,6 +300,10 @@ export function createBookingPageFixture(page: Page) {
 
     assertBookingRescheduled: async (page: Page) => {
       await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+    assertBookingDates: async (currentPage: Page, roleName: string) => {
+      await currentPage.getByRole("link", { name: "Back to bookings" }).click();
+      await expect(currentPage.getByRole("link", { name: roleName })).toBeVisible();
     },
 
     cancelBooking: async (eventTypePage: Page) => {
@@ -355,6 +383,11 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    checkUpdateTimezone: async () => {
+      if (await page.getByRole("button", { name: "Update timezone" }).isVisible()) {
+        page.getByRole("button", { name: "Update timezone" }).click();
+      }
     },
   };
 }
