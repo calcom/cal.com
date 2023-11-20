@@ -28,7 +28,6 @@ import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc";
 import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
@@ -153,6 +152,7 @@ export const BookEventFormChild = ({
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const [responseVercelIdHeader, setResponseVercelIdHeader] = useState<string | null>(null);
 
   const router = useRouter();
   const { t, i18n } = useLocale();
@@ -220,7 +220,12 @@ export const BookEventFormChild = ({
         booking: responseData,
       });
     },
-    onError: () => {
+    onError: (err, _, ctx) => {
+      // TODO:
+      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
+      // if (vercelId) {
+      //   setResponseVercelIdHeader(vercelId);
+      // }
       errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
@@ -390,7 +395,8 @@ export const BookEventFormChild = ({
                 bookingForm.formState.errors["globalError"],
                 createBookingMutation,
                 createRecurringBookingMutation,
-                t
+                t,
+                responseVercelIdHeader
               )}
             />
           </div>
@@ -438,16 +444,19 @@ const getError = (
   bookingMutation: UseMutationResult<any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recurringBookingMutation: UseMutationResult<any, any, any, any>,
-  t: TFunction
+  t: TFunction,
+  responseVercelIdHeader: string | null
 ) => {
   if (globalError) return globalError.message;
 
   const error = bookingMutation.error || recurringBookingMutation.error;
 
-  return error instanceof HttpError || error instanceof Error ? (
-    <>{t("can_you_try_again")}</>
+  return error.message ? (
+    <>
+      {responseVercelIdHeader ?? ""} {t(error.message)}
+    </>
   ) : (
-    "Unknown error"
+    <>{t("can_you_try_again")}</>
   );
 };
 

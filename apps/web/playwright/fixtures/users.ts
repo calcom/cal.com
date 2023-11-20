@@ -10,6 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Schedule } from "@calcom/types/schedule";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import { TimeZoneEnum } from "./types";
@@ -46,6 +47,7 @@ const createTeamEventType = async (
     schedulingType?: SchedulingType;
     teamEventTitle?: string;
     teamEventSlug?: string;
+    teamEventLength?: number;
   }
 ) => {
   return await prisma.eventType.create({
@@ -65,10 +67,16 @@ const createTeamEventType = async (
           id: user.id,
         },
       },
+      hosts: {
+        create: {
+          userId: user.id,
+          isFixed: scenario?.schedulingType === SchedulingType.COLLECTIVE ? true : false,
+        },
+      },
       schedulingType: scenario?.schedulingType ?? SchedulingType.COLLECTIVE,
       title: scenario?.teamEventTitle ?? `${teamEventTitle}-team-id-${team.id}`,
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
-      length: 30,
+      length: scenario?.teamEventLength ?? 30,
     },
   });
 };
@@ -135,6 +143,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
         teamEventSlug?: string;
+        teamEventLength?: number;
         isOrg?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
@@ -489,6 +498,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   // ignores adding the worker-index after username
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;
+  schedule?: Schedule;
 };
 
 // creates the actual user in the db.
@@ -520,7 +530,7 @@ const createUser = (
               timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
               availability: {
                 createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                  data: getAvailabilityFromSchedule(opts?.schedule ?? DEFAULT_SCHEDULE),
                 },
               },
             },
