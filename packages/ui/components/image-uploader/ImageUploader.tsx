@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
+import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { ButtonColor } from "../..";
@@ -120,19 +121,14 @@ export default function ImageUploader({
   buttonMsg,
   handleAvatarChange,
   triggerButtonColor,
-  ...props
+  imageSrc,
 }: ImageUploaderProps) {
   const { t } = useLocale();
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [{ result }, setFile] = useFileReader({
     method: "readAsDataURL",
   });
-
-  useEffect(() => {
-    if (props.imageSrc) setImageSrc(props.imageSrc);
-  }, [props.imageSrc]);
 
   const onInputFile = (e: FileEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) {
@@ -157,7 +153,6 @@ export default function ImageUploader({
           result as string /* result is always string when using readAsDataUrl */,
           croppedAreaPixels
         );
-        setImageSrc(croppedImage);
         handleAvatarChange(croppedImage);
       } catch (e) {
         console.error(e);
@@ -168,9 +163,12 @@ export default function ImageUploader({
 
   return (
     <Dialog
-      onOpenChange={
-        (opened) => !opened && setFile(null) // unset file on close
-      }>
+      onOpenChange={(opened) => {
+        // unset file on close
+        if (!opened) {
+          setFile(null);
+        }
+      }}>
       <DialogTrigger asChild>
         <Button color={triggerButtonColor ?? "secondary"} type="button" className="py-1 text-sm">
           {buttonMsg}
@@ -181,12 +179,11 @@ export default function ImageUploader({
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
               <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
-                {!imageSrc && (
+                {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                     {t("no_target", { target })}
                   </p>
-                )}
-                {imageSrc && (
+                ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img className="h-20 w-20 rounded-full" src={imageSrc} alt={target} />
                 )}
@@ -207,10 +204,11 @@ export default function ImageUploader({
           </div>
         </div>
         <DialogFooter className="relative">
+          <DialogClose color="minimal">{t("cancel")}</DialogClose>
+
           <DialogClose color="primary" onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
           </DialogClose>
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
