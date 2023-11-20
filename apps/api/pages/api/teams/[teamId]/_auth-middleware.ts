@@ -22,7 +22,11 @@ export async function checkPermissions(
   role: Prisma.MembershipWhereInput["role"] = MembershipRole.OWNER
 ) {
   const { userId, prisma, isAdmin } = req;
-  const { teamId } = schemaQueryTeamId.parse(req.query);
+  const { teamId } = schemaQueryTeamId.parse({
+    teamId: req.query.teamId,
+    version: req.query.version,
+    apiKey: req.query.apiKey,
+  });
   const args: Prisma.TeamFindFirstArgs = { where: { id: teamId } };
   /** If not ADMIN then we check if the actual user belongs to team and matches the required role */
   if (!isAdmin) args.where = { ...args.where, members: { some: { userId, role } } };
