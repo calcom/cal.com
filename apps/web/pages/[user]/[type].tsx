@@ -25,7 +25,7 @@ export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
-  queryDuration: string | string[] | null,
+  queryDuration: string | string[] | null | undefined,
   defaultValue: number
 ) => {
   if (!multipleDurationConfig) return null;
@@ -70,7 +70,7 @@ export default function Type({
          */
         duration={getMultipleDurationValue(
           eventData.metadata?.multipleDuration,
-          searchParams.get("duration"),
+          searchParams?.get("duration"),
           eventData.length
         )}
       />
