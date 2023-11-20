@@ -2409,6 +2409,7 @@ async function handler(
         sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
         sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
       } else {
+        // send normal rescheduled emails (non round robin event, where organizers stay the same)
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,
