@@ -1,10 +1,18 @@
 import { Troubleshooter } from "@calcom/features/troubleshooter/Troubleshooter";
 import { getLayout } from "@calcom/features/troubleshooter/layout";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HeadSeo } from "@calcom/ui/components/head-seo";
 
 import PageWrapper from "@components/PageWrapper";
 
 function TroubleshooterPage() {
-  return <Troubleshooter month={null} />;
+  const { t } = useLocale();
+  return (
+    <>
+      <HeadSeo title={t("troubleshoot")} description={t("troubleshoot_availability")} />
+      <Troubleshooter month={null} />
+    </>
+  );
 }
 
 TroubleshooterPage.getLayout = getLayout;
