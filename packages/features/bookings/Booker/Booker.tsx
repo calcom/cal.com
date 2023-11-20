@@ -43,6 +43,7 @@ const BookerComponent = ({
   hideBranding = false,
   isTeamEvent,
   entity,
+  durationConfig,
   duration,
   hashedLink,
 }: BookerProps) => {
@@ -147,7 +148,7 @@ const BookerComponent = ({
     layout: defaultLayout,
     isTeamEvent,
     org: entity.orgSlug,
-    durationConfig: event?.data?.metadata?.multipleDuration,
+    durationConfig,
   });
 
   useEffect(() => {
