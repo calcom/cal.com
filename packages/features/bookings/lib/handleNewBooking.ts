@@ -2177,15 +2177,25 @@ async function handler(
       );
     }
 
+    addVideoCallDataToEvt(originalRescheduledBooking.references);
+
+    //update original rescheduled booking (no seats event)
+    if (!eventType.seatsPerTimeSlot) {
+      await prisma.booking.update({
+        where: {
+          id: originalRescheduledBooking.id,
+        },
+        data: {
+          rescheduled: true,
+          status: BookingStatus.CANCELLED,
+        },
+      });
+    }
+
     const changedOrganizer =
       eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
       originalRescheduledBooking.userId !== evt.organizer.id;
 
-    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
-    // to the default description when we are sending the emails.
-    evt.description = eventType.description;
-    let isThereAnIntegrationError = false;
-    let metadata: AdditionalInformation = {};
     const updatedEvt = {
       ...evt,
       destinationCalendar: originalRescheduledBooking?.destinationCalendar
@@ -2195,13 +2205,44 @@ async function handler(
         : evt.destinationCalendar,
     };
 
-    // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
       updatedEvt,
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer
     );
+
+    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = eventType.description;
+
+    const isThereAnIntegrationError = results && results.some((res) => !res.success);
+
+    if (isThereAnIntegrationError) {
+      const error = {
+        errorCode: "BookingReschedulingMeetingFailed",
+        message: "Booking Rescheduling failed",
+      };
+
+      loggerWithEventDetails.error(
+        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
+        safeStringify({ error, results })
+      );
+    } else {
+      const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID
+        : calendarResult?.updatedEvent?.iCalUID || undefined;
+    }
+
+    const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
+      results,
+    });
+
+    let metadata: AdditionalInformation = {};
+    metadata = videoMetadata;
+    videoCallUrl = _videoCallUrl;
 
     //if organizer changed we need to create a new booking (reschedule only cancels the old one)
     if (changedOrganizer) {
@@ -2291,29 +2332,6 @@ async function handler(
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
-    isThereAnIntegrationError = results && results.some((res) => !res.success);
-    if (isThereAnIntegrationError) {
-      const error = {
-        errorCode: "BookingReschedulingMeetingFailed",
-        message: "Booking Rescheduling failed",
-      };
-
-      loggerWithEventDetails.error(
-        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
-        safeStringify({ error, results })
-      );
-    } else {
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
-    }
-    const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
-      results,
-    });
-    metadata = videoMetadata;
-    videoCallUrl = _videoCallUrl;
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
