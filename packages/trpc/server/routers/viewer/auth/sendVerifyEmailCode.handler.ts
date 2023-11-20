@@ -9,7 +9,7 @@ import type { TSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 
 type SendVerifyEmailCode = {
   input: TSendVerifyEmailCodeSchema;
-  req: TRPCContext["req"];
+  req: TRPCContext["req"] | undefined;
 };
 
 export const sendVerifyEmailCodeHandler = async ({ input, req }: SendVerifyEmailCode) => {
