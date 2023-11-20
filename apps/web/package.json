@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.4.6",
+  "version": "3.5.0",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -57,6 +57,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
+    "@sentry/nextjs": "^7.73.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^4.3.9",
@@ -167,6 +168,7 @@
     "module-alias": "^2.2.2",
     "msw": "^0.42.3",
     "node-html-parser": "^6.1.10",
+    "node-mocks-http": "^1.11.0",
     "postcss": "^8.4.18",
     "tailwindcss": "^3.3.1",
     "tailwindcss-animate": "^1.0.6",
