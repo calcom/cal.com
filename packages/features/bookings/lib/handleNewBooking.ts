@@ -93,7 +93,7 @@ import type {
   Person,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { EventResult, PartialReference } from "@calcom/types/EventManager";
+import type { CreateUpdateResult, EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
@@ -470,8 +470,26 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
           email: true,
           locale: true,
           timeZone: true,
+          destinationCalendar: true,
+          credentials: {
+            select: {
+              id: true,
+              userId: true,
+              key: true,
+              type: true,
+              teamId: true,
+              appId: true,
+              invalid: true,
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
       },
+      destinationCalendar: true,
       payment: true,
       references: true,
       workflowReminders: true,
@@ -903,6 +921,7 @@ async function handler(
 
   let originalRescheduledBooking: BookingType = null;
 
+  //this gets the orginal rescheduled booking
   if (rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
     bookingSeat = await prisma.bookingSeat.findUnique({
@@ -926,6 +945,7 @@ async function handler(
     }
   }
 
+  //checks what users are available
   if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
     const availableUsers = await ensureAvailableUsers(
       {
@@ -2146,6 +2166,7 @@ async function handler(
 
   let videoCallUrl;
 
+  //this is the actual rescheduling logic
   if (originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
@@ -2158,9 +2179,199 @@ async function handler(
       );
     }
 
+    const changedOrganizer =
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+      originalRescheduledBooking.userId !== evt.organizer.id;
+
+    //we need to cancel booking and create a new one if the organizer changes
+
     // Use EventManager to conditionally use all needed integrations.
-    addVideoCallDataToEvt(originalRescheduledBooking.references);
-    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
+
+    let updateManager: CreateUpdateResult;
+
+    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = eventType.description;
+    let isThereAnIntegrationError = false;
+    let metadata: AdditionalInformation = {};
+    if (!changedOrganizer) {
+      updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
+      results = updateManager.results;
+      referencesToCreate = updateManager.referencesToCreate;
+      isThereAnIntegrationError = results && results.some((res) => !res.success);
+      if (isThereAnIntegrationError) {
+        const error = {
+          errorCode: "BookingReschedulingMeetingFailed",
+          message: "Booking Rescheduling failed",
+        };
+
+        loggerWithEventDetails.error(
+          `EventManager.create failure in some of the integrations ${organizerUser.username}`,
+          safeStringify({ error, results })
+        );
+      } else {
+        const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+        evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+          ? calendarResult?.updatedEvent[0]?.iCalUID
+          : calendarResult?.updatedEvent?.iCalUID || undefined;
+      }
+      const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
+        results,
+      });
+      metadata = videoMetadata;
+      videoCallUrl = _videoCallUrl;
+    } else {
+      // todo: delete old booking
+      const newEvt = {
+        ...evt,
+        destinationCalendar: originalRescheduledBooking?.destinationCalendar
+          ? [originalRescheduledBooking?.destinationCalendar]
+          : originalRescheduledBooking?.user?.destinationCalendar
+          ? [originalRescheduledBooking?.user.destinationCalendar]
+          : evt.destinationCalendar,
+      };
+
+      const bookingCalendarReference = originalRescheduledBooking.references.filter((reference) =>
+        reference.type.includes("_calendar")
+      );
+
+      const apiDeletes = [];
+
+      if (bookingCalendarReference.length > 0) {
+        for (const reference of bookingCalendarReference) {
+          const { credentialId, uid, externalCalendarId } = reference;
+          // If the booking calendar reference contains a credentialId
+          if (credentialId) {
+            // Find the correct calendar credential under user credentials
+            let calendarCredential = originalRescheduledBooking.user?.credentials.find(
+              //todo; add credentials to user
+              (credential) => credential.id === credentialId
+            );
+            if (!calendarCredential) {
+              console.log("look for calendar credential in db");
+              // get credential from DB
+              const foundCalendarCredential = await prisma.credential.findUnique({
+                where: {
+                  id: credentialId,
+                },
+                select: credentialForCalendarServiceSelect,
+              });
+              if (foundCalendarCredential) {
+                calendarCredential = foundCalendarCredential;
+              }
+            }
+            if (calendarCredential) {
+              const calendar = await getCalendar(calendarCredential);
+              //we ignore recurring events for now
+              if (newEvt?.destinationCalendar) {
+                apiDeletes.push(calendar?.deleteEvent(uid, newEvt, externalCalendarId) as Promise<unknown>);
+              }
+            }
+          } else {
+            console.log("why are we in old logic");
+            // For bookings made before the refactor we go through the old behavior of running through each calendar credential
+            const calendarCredentials =
+              originalRescheduledBooking.user?.credentials.filter((credential) =>
+                credential.type.endsWith("_calendar")
+              ) || [];
+            for (const credential of calendarCredentials) {
+              const calendar = await getCalendar(credential);
+              apiDeletes.push(calendar?.deleteEvent(uid, newEvt, externalCalendarId) as Promise<unknown>);
+            }
+          }
+        }
+        await apiDeletes;
+      }
+
+      // Create new booking
+      // Use EventManager to conditionally use all needed integrations.
+
+      // todo: it has the wrong event name
+      const createManager = await eventManager.create(evt);
+
+      // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+      // to the default description when we are sending the emails.
+      evt.description = eventType.description;
+
+      results = createManager.results;
+      referencesToCreate = createManager.referencesToCreate;
+      videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
+      if (results.length > 0 && results.every((res) => !res.success)) {
+        const error = {
+          errorCode: "BookingCreatingMeetingFailed",
+          message: "Booking rescheduling failed",
+        };
+
+        loggerWithEventDetails.error(
+          `EventManager.create failure in some of the integrations ${organizerUser.username}`,
+          safeStringify({ error, results })
+        );
+      } else {
+        if (results.length) {
+          // Handle Google Meet results
+          // We use the original booking location since the evt location changes to daily
+          if (bookingLocation === MeetLocationType) {
+            const googleMeetResult = {
+              appName: GoogleMeetMetadata.name,
+              type: "conferencing",
+              uid: results[0].uid,
+              originalEvent: results[0].originalEvent,
+            };
+
+            // Find index of google_calendar inside createManager.referencesToCreate
+            const googleCalIndex = createManager.referencesToCreate.findIndex(
+              (ref) => ref.type === "google_calendar"
+            );
+            const googleCalResult = results[googleCalIndex];
+
+            if (!googleCalResult) {
+              loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+              results.push({
+                ...googleMeetResult,
+                success: false,
+                calWarnings: [tOrganizer("google_meet_warning")],
+              });
+            }
+
+            if (googleCalResult?.createdEvent?.hangoutLink) {
+              results.push({
+                ...googleMeetResult,
+                success: true,
+              });
+
+              // Add google_meet to referencesToCreate in the same index as google_calendar
+              createManager.referencesToCreate[googleCalIndex] = {
+                ...createManager.referencesToCreate[googleCalIndex],
+                meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              };
+
+              // Also create a new referenceToCreate with type video for google_meet
+              createManager.referencesToCreate.push({
+                type: "google_meet_video",
+                meetingUrl: googleCalResult.createdEvent.hangoutLink,
+                uid: googleCalResult.uid,
+                credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
+              });
+            } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+              results.push({
+                ...googleMeetResult,
+                success: false,
+              });
+            }
+          }
+          // TODO: Handle created event metadata more elegantly
+          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+          metadata.conferenceData = results[0].createdEvent?.conferenceData;
+          metadata.entryPoints = results[0].createdEvent?.entryPoints;
+          evt.appsStatus = handleAppsStatus(results, booking);
+          videoCallUrl =
+            metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+        }
+      }
+      //also make sure to watch out if booking is confirmed by default or not
+    }
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
@@ -2175,36 +2386,6 @@ async function handler(
       });
     }
 
-    // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
-    // to the default description when we are sending the emails.
-    evt.description = eventType.description;
-
-    results = updateManager.results;
-    referencesToCreate = updateManager.referencesToCreate;
-    const isThereAnIntegrationError = results && results.some((res) => !res.success);
-    if (isThereAnIntegrationError) {
-      const error = {
-        errorCode: "BookingReschedulingMeetingFailed",
-        message: "Booking Rescheduling failed",
-      };
-
-      loggerWithEventDetails.error(
-        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
-        safeStringify({ error, results })
-      );
-    } else {
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
-    }
-
-    const { metadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
-      results,
-    });
-
-    videoCallUrl = _videoCallUrl;
     evt.appsStatus = handleAppsStatus(results, booking);
 
     // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
