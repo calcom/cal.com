@@ -206,7 +206,7 @@ export const getBusyCalendarTimes = async (
   selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
-  const months = getMonths(dateFrom, dateTo);
+  // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
@@ -348,6 +348,19 @@ export const updateEvent = async (
           })
       : undefined;
 
+  if (!updatedResult) {
+    logger.error(
+      "updateEvent failed",
+      safeStringify({
+        success,
+        bookingRefUid,
+        credential: getPiiFreeCredential(credential),
+        originalEvent: getPiiFreeCalendarEvent(calEvent),
+        calError,
+      })
+    );
+  }
+
   if (Array.isArray(updatedResult)) {
     calWarnings = updatedResult.flatMap((res) => res.additionalInfo?.calWarnings ?? []);
   } else {
@@ -388,10 +401,11 @@ export const deleteEvent = async ({
   if (calendar) {
     return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
   } else {
-    log.warn(
+    log.error(
       "Could not do deleteEvent - No calendar adapter found",
       safeStringify({
         credential: getPiiFreeCredential(credential),
+        event,
       })
     );
   }

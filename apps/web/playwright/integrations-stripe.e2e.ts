@@ -1,6 +1,10 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 
+import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+
 import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
 import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
@@ -32,6 +36,95 @@ test.describe("Stripe integration", () => {
       await page.getByRole("list").getByRole("button").click();
       await expect(page.getByRole("button", { name: "Remove App" })).toBeVisible();
     });
+  });
+
+  test("when enabling Stripe, credentialId is included", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    await page.goto("/apps/installed");
+
+    await user.getPaymentCredential();
+
+    const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
+    await user.setupEventWithPrice(eventType);
+
+    // Need to wait for the DB to be updated with the metadata
+    await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
+
+    // Check event type metadata to see if credentialId is included
+    const eventTypeMetadata = await prisma.eventType.findFirst({
+      where: {
+        id: eventType.id,
+      },
+      select: {
+        metadata: true,
+      },
+    });
+
+    const metadata = EventTypeMetaDataSchema.parse(eventTypeMetadata?.metadata);
+
+    const stripeAppMetadata = metadata?.apps?.stripe;
+
+    expect(stripeAppMetadata).toHaveProperty("credentialId");
+    expect(typeof stripeAppMetadata?.credentialId).toBe("number");
+  });
+
+  test("when enabling Stripe, team credentialId is included", async ({ page, users }) => {
+    const ownerObj = { username: "pro-user", name: "pro-user" };
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(ownerObj, {
+      hasTeam: true,
+      teammates: teamMatesObj,
+      schedulingType: SchedulingType.COLLECTIVE,
+    });
+    await owner.apiLogin();
+    const { team } = await owner.getFirstTeam();
+    const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
+
+    const teamEvent = await owner.getFirstTeamEvent(team.id);
+
+    await page.goto("/apps/stripe");
+
+    /** We start the Stripe flow */
+    await Promise.all([
+      page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
+      page.click('[data-testid="install-app-button"]'),
+      page.click('[data-testid="anything else"]'),
+    ]);
+
+    await Promise.all([
+      page.waitForURL("/apps/installed/payment?hl=stripe"),
+      /** We skip filling Stripe forms (testing mode only) */
+      page.click('[id="skip-account-app"]'),
+    ]);
+
+    await owner.setupEventWithPrice(teamEvent);
+
+    // Need to wait for the DB to be updated with the metadata
+    await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
+
+    // Check event type metadata to see if credentialId is included
+    const eventTypeMetadata = await prisma.eventType.findFirst({
+      where: {
+        id: teamEvent.id,
+      },
+      select: {
+        metadata: true,
+      },
+    });
+
+    const metadata = EventTypeMetaDataSchema.parse(eventTypeMetadata?.metadata);
+
+    const stripeAppMetadata = metadata?.apps?.stripe;
+
+    expect(stripeAppMetadata).toHaveProperty("credentialId");
+    expect(typeof stripeAppMetadata?.credentialId).toBe("number");
   });
 
   test("Can book a paid booking", async ({ page, users }) => {
