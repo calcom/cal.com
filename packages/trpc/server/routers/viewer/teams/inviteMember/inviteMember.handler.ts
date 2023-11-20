@@ -62,9 +62,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     teamId: input.teamId,
     isOrg: input.isOrg,
   });
-  const newUsersEmails = emailsToInvite.filter(
-    (email) => !existingUsersWithMembersips.map((user) => user.email).includes(email)
-  );
+  const existingUsersEmails = existingUsersWithMembersips.map((user) => user.email);
+  const newUsersEmails = emailsToInvite.filter((email) => !existingUsersEmails.includes(email));
 
   // Deal with new users to create and add to team/org
   if (newUsersEmails.length) {
