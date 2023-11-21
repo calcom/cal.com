@@ -81,7 +81,6 @@ test.describe("Managed Event Types tests", () => {
 
     await test.step("Managed event type can use Organizer's default app as location", async () => {
       await page.getByTestId("vertical-tab-event_setup_tab_title").click();
-      // await page.locator('[aria-label="Remove"]').click();
 
       await page.locator("#location-select").click();
       const optionText = (await localize("en"))("organizer_default_conferencing_app");
