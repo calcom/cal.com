@@ -11959,6 +11959,9 @@ __metadata:
   linkType: hard
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7e7267261 (test: Add more orgs tests (#12241))
 "@types/js-yaml@npm:^4.0.0":
   version: 4.0.6
   resolution: "@types/js-yaml@npm:4.0.6"
@@ -11977,8 +11980,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 =======
 >>>>>>> 63bd5a6de (fix: use formbricks/api@v1.1 & set user with userId linked to feedback)
+=======
+>>>>>>> 7e7267261 (test: Add more orgs tests (#12241))
 "@types/jsforce@npm:^1.11.0":
   version: 1.11.0
   resolution: "@types/jsforce@npm:1.11.0"
