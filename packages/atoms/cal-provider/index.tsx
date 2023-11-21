@@ -17,8 +17,8 @@ export function CalProvider({ apiKey, children }: CalProviderProps) {
     async function verifyKey(key: string) {
       try {
         // here we'll call the /me endpoint in v2 to get user profile
-        // v2 is not ready yet thats why calling localhost for now
-        const response = await fetch(`http://localhost:3002/v1/me?apiKey=${key}`);
+        // v2 is not ready yet though
+        const response = await fetch(`/v1/me?apiKey=${key}`);
 
         if (response.ok) {
           setKey(apiKey);
