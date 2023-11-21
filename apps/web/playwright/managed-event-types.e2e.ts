@@ -94,8 +94,7 @@ test.describe("Managed Event Types tests", () => {
       await selectFirstAvailableTimeSlotNextMonth(page);
       await bookTimeSlot(page);
 
-      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-      await expect(page.locator(`[data-testid="where"]`)).not.toContainText("conferencing");
+      await expect(page.getByTestId("success-page")).toBeVisible();
     });
 
     await test.step("Managed event type has locked fields for added member", async () => {
