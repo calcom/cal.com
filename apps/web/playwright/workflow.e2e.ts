@@ -1,80 +1,77 @@
-import { expect } from "@playwright/test";
+import { MembershipRole, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
-import { WorkflowMethods } from "@calcom/prisma/enums";
-
+import { loginUser, loginUserWithTeam } from "./fixtures/regularBookings";
 import { test } from "./lib/fixtures";
-import { selectSecondAvailableTimeSlotNextMonth, todo } from "./lib/testUtils";
+import { bookEventOnThisPage } from "./lib/testUtils";
 
-test.afterEach(({ users }) => users.deleteAll());
+test.describe("Workflow Tab - Event Type", () => {
+  test.describe("Check the functionalities of the Workflow Tab", () => {
+    test.describe("User Workflows", () => {
+      test.beforeEach(async ({ page, users }) => {
+        await loginUser(users);
+        await page.goto("/workflows");
+      });
 
-test.describe("Workflow tests", () => {
-  test.describe("User Workflows", () => {
-    // Fixme: This test is failing because the listing isn't immediately updated after the workflow is created
-    test.fixme(
-      "Create default reminder workflow & trigger when event type is booked",
-      async ({ page, users }) => {
-        const user = await users.create();
+      test("Creating a new workflow", async ({ workflowPage }) => {
+        const { createWorkflow, assertListCount } = workflowPage;
+
+        await createWorkflow({ name: "" });
+        await assertListCount(3);
+      });
+
+      test("Editing an existing workflow", async ({ workflowPage }) => {
+        const { saveWorkflow, fillNameInput, editSelectedWorkflow, hasWorkflowInList } = workflowPage;
+
+        await editSelectedWorkflow("Test Workflow");
+        await fillNameInput("Edited Workflow");
+        await saveWorkflow();
+        await hasWorkflowInList("Edited Workflow");
+      });
+
+      test("Deleting an existing workflow", async ({ page, workflowPage }) => {
+        const { hasWorkflowInList, deleteAndConfirm, assertListCount } = workflowPage;
+        const firstWorkflow = page
+          .getByTestId("workflow-list")
+          .getByTestId(/workflow/)
+          .first();
+
+        await deleteAndConfirm(firstWorkflow);
+        await hasWorkflowInList("Edited Workflow", true);
+        await assertListCount(1);
+      });
+
+      test("Create an action and check if workflow is triggered", async ({ page, users, workflowPage }) => {
+        const { createWorkflow, assertWorkflowReminders } = workflowPage;
+        const [user] = users.get();
         const [eventType] = user.eventTypes;
-        await user.apiLogin();
-        await page.goto(`/workflows`);
 
-        await page.click('[data-testid="create-button"]');
+        await createWorkflow({ name: "A New Workflow", trigger: WorkflowTriggerEvents.NEW_EVENT });
+        await bookEventOnThisPage(page, `/${user.username}/${eventType.slug}`);
+        await assertWorkflowReminders(eventType.id, 1);
+      });
+    });
 
-        // select first event type
-        await page.getByText("Select...").click();
-        await page.getByText(eventType.title, { exact: true }).click();
+    test.describe("Team Workflows", () => {
+      test("Admin user", async ({ page, users, workflowPage }) => {
+        const { createWorkflow, assertListCount } = workflowPage;
 
-        // name workflow
-        await page.fill('[data-testid="workflow-name"]', "Test workflow");
+        await loginUserWithTeam(users, MembershipRole.ADMIN);
+        await page.goto("/workflows");
 
-        // save workflow
-        await page.click('[data-testid="save-workflow"]');
+        await createWorkflow({ name: "A New Workflow", isTeam: true });
+        await assertListCount(4);
+      });
 
-        // check if workflow is saved
-        await expect(page.locator('[data-testid="workflow-list"] > li')).toHaveCount(1);
+      test("Member user", async ({ page, users, workflowPage }) => {
+        const { hasReadonlyBadge, selectedWorkflowPage, workflowOptionsAreDisabled } = workflowPage;
 
-        // book event type
-        await page.goto(`/${user.username}/${eventType.slug}`);
-        await selectSecondAvailableTimeSlotNextMonth(page);
+        await loginUserWithTeam(users, MembershipRole.MEMBER);
+        await page.goto("/workflows");
 
-        await page.fill('[name="name"]', "Test");
-        await page.fill('[name="email"]', "test@example.com");
-        await page.press('[name="email"]', "Enter");
-
-        // Make sure booking is completed
-        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-        const booking = await prisma.booking.findFirst({
-          where: {
-            eventTypeId: eventType.id,
-          },
-        });
-
-        // check if workflow triggered
-        const workflowReminders = await prisma.workflowReminder.findMany({
-          where: {
-            bookingUid: booking?.uid ?? "",
-          },
-        });
-
-        expect(workflowReminders).toHaveLength(1);
-
-        const scheduledDate = dayjs(booking?.startTime).subtract(1, "day").toDate();
-
-        expect(workflowReminders[0].method).toBe(WorkflowMethods.EMAIL);
-        expect(workflowReminders[0].scheduledDate.toISOString()).toBe(scheduledDate.toISOString());
-      }
-    );
-
-    // add all other actions to this workflow and test if they triggered
-    // cancel booking and test if workflow reminders are deleted
-    // test all other triggers
-  });
-
-  test.describe("Team Workflows", () => {
-    todo("Admin can create and update team workflow");
-    todo("Members can not create and update team workflows");
+        await workflowOptionsAreDisabled("Team Workflow");
+        await selectedWorkflowPage("Team Workflow");
+        await hasReadonlyBadge();
+      });
+    });
   });
 });

@@ -17,6 +17,7 @@ import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
+import { createWorkflowPageFixture } from "../fixtures/workflows";
 
 export interface Fixtures {
   page: Page;
@@ -31,6 +32,7 @@ export interface Fixtures {
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
   clipboard: ReturnType<typeof createClipboardFixture>;
+  workflowPage: ReturnType<typeof createWorkflowPageFixture>;
 }
 
 declare global {
@@ -100,5 +102,9 @@ export const test = base.extend<Fixtures>({
   clipboard: async ({ page }, use) => {
     const clipboard = createClipboardFixture(page);
     await use(clipboard);
+  },
+  workflowPage: async ({ page }, use) => {
+    const workflowPage = createWorkflowPageFixture(page);
+    await use(workflowPage);
   },
 });
