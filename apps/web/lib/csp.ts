@@ -1,9 +1,11 @@
-import crypto from "crypto";
 import type { IncomingMessage, OutgoingMessage } from "http";
+import type { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+
+import { buildNonce } from "./buildNonce";
 
 function getCspPolicy(nonce: string) {
   //TODO: Do we need to explicitly define it in turbo.json
@@ -45,11 +47,12 @@ const isPagePathRequest = (url: URL) => {
   return !isNonPagePathPrefix.test(pathname) && !isFile.test(pathname);
 };
 
-export function csp(req: IncomingMessage | null, res: OutgoingMessage | null) {
+export function csp(req: IncomingMessage | NextRequest | null, res: OutgoingMessage | NextResponse | null) {
   if (!req) {
     return { nonce: undefined };
   }
-  const existingNonce = req.headers["x-nonce"];
+  const existingNonce = "cache" in req ? req.headers.get("x-nonce") : req.headers["x-nonce"];
+
   if (existingNonce) {
     const existingNoneParsed = z.string().safeParse(existingNonce);
     return { nonce: existingNoneParsed.success ? existingNoneParsed.data : "" };
@@ -59,7 +62,7 @@ export function csp(req: IncomingMessage | null, res: OutgoingMessage | null) {
   }
   const CSP_POLICY = process.env.CSP_POLICY;
   const cspEnabledForInstance = CSP_POLICY;
-  const nonce = crypto.randomBytes(16).toString("base64");
+  const nonce = buildNonce(crypto.getRandomValues(new Uint8Array(22)));
 
   const parsedUrl = new URL(req.url, "http://base_url");
   const cspEnabledForPage = cspEnabledForInstance && isPagePathRequest(parsedUrl);
@@ -70,17 +73,28 @@ export function csp(req: IncomingMessage | null, res: OutgoingMessage | null) {
   }
   // Set x-nonce request header to be used by `getServerSideProps` or similar fns and `Document.getInitialProps` to read the nonce from
   // It is generated for all page requests but only used by pages that need CSP
-  req.headers["x-nonce"] = nonce;
+
+  if ("cache" in req) {
+    req.headers.set("x-nonce", nonce);
+  } else {
+    req.headers["x-nonce"] = nonce;
+  }
 
   if (res) {
-    res.setHeader(
-      req.headers["x-csp-enforce"] === "true"
-        ? "Content-Security-Policy"
-        : "Content-Security-Policy-Report-Only",
-      getCspPolicy(nonce)
-        .replace(/\s{2,}/g, " ")
-        .trim()
-    );
+    const enforced =
+      "cache" in req ? req.headers.get("x-csp-enforce") === "true" : req.headers["x-csp-enforce"] === "true";
+
+    const name = enforced ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only";
+
+    const value = getCspPolicy(nonce)
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    if ("body" in res) {
+      res.headers.set(name, value);
+    } else {
+      res.setHeader(name, value);
+    }
   }
 
   return { nonce };

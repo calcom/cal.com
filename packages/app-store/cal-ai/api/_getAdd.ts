@@ -7,33 +7,63 @@ import { apiKeysRouter } from "@calcom/trpc/server/routers/viewer/apiKeys/_route
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { checkInstalled, createDefaultInstallation } from "../../_utils/installation";
+import { withPaidAppRedirect } from "../../_utils/paid-apps";
 import appConfig from "../config.json";
+
+const trialEndDate = new Date(Date.UTC(2023, 11, 1));
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
-  const slug = appConfig.slug;
-  const appType = appConfig.type;
 
-  const ctx = await createContext({ req, res });
-  const caller = apiKeysRouter.createCaller(ctx);
+  // if date is in the future, we install normally.
+  if (new Date() < trialEndDate) {
+    const ctx = await createContext({ req, res });
+    const caller = apiKeysRouter.createCaller(ctx);
 
-  const apiKey = await caller.create({
-    note: "Cal.ai",
-    expiresAt: null,
-    appId: "cal-ai",
-  });
+    const apiKey = await caller.create({
+      note: "Cal.ai",
+      expiresAt: null,
+      appId: "cal-ai",
+    });
 
-  await checkInstalled(slug, session.user.id);
-  await createDefaultInstallation({
-    appType,
+    await checkInstalled(appConfig.slug, session.user.id);
+    await createDefaultInstallation({
+      appType: appConfig.type,
+      userId: session.user.id,
+      slug: appConfig.slug,
+      key: {
+        apiKey,
+      },
+    });
+
+    await fetch(
+      `${process.env.NODE_ENV === "development" ? "http://localhost:3005" : "https://cal.ai"}/api/onboard`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: session.user.id,
+        }),
+      }
+    );
+
+    return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "cal-ai" }) };
+  }
+
+  const redirectUrl = await withPaidAppRedirect({
+    appPaidMode: appConfig.paid.mode,
+    appSlug: appConfig.slug,
     userId: session.user.id,
-    slug,
-    key: {
-      apiKey,
-    },
+    priceId: appConfig.paid.priceId,
   });
 
-  return { url: getInstalledAppPath({ variant: appConfig.variant, slug: "cal-ai" }) };
+  if (!redirectUrl) {
+    return res.status(500).json({ message: "Failed to create Stripe checkout session" });
+  }
+
+  return { url: redirectUrl };
 }
 
 export default defaultResponder(getHandler);

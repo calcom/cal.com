@@ -10,7 +10,7 @@ interface CalendarApp {
   };
 }
 
-const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
+const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 /**
  * @see [Using type predicates](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates)

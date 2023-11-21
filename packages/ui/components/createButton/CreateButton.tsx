@@ -1,6 +1,7 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "@calcom/ui";
 import {
@@ -40,7 +41,7 @@ export type CreateBtnProps = {
 export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const bookerUrl = useBookerUrl();
 
@@ -60,7 +61,7 @@ export function CreateButton(props: CreateBtnProps) {
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
     }
@@ -136,7 +137,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {searchParams.get("dialog") === "new" && CreateDialog}
+      {searchParams?.get("dialog") === "new" && CreateDialog}
     </>
   );
 }

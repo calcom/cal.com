@@ -10,7 +10,6 @@ import {
   bookOptinEvent,
   createHttpServer,
   selectFirstAvailableTimeSlotNextMonth,
-  waitFor,
   gotoRoutingLink,
   createUserWithSeatedEventAndAttendees,
 } from "./lib/testUtils";
@@ -78,10 +77,7 @@ test.describe("BOOKING_CREATED", async () => {
     await page.fill('[name="email"]', "test@example.com");
     await page.press('[name="email"]', "Enter");
 
-    // --- check that webhook was called
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,12 +103,11 @@ test.describe("BOOKING_CREATED", async () => {
     body.payload.videoCallData = dynamic;
     body.payload.appsStatus = dynamic;
     body.payload.metadata.videoCallUrl = dynamic;
-
     expect(body).toMatchObject({
       triggerEvent: "BOOKING_CREATED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "30 min",
+        type: "30-min",
         title: "30 min between Nameless and Test Testson",
         description: "",
         additionalNotes: "",
@@ -209,10 +204,8 @@ test.describe("BOOKING_REJECTED", async () => {
     await page.click('[data-testid="rejection-confirm"]');
     await page.waitForResponse((response) => response.url().includes("/api/trpc/bookings/confirm"));
 
-    // --- check that webhook was called
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await webhookReceiver.waitForRequestCount(1);
+
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
@@ -242,7 +235,7 @@ test.describe("BOOKING_REJECTED", async () => {
       triggerEvent: "BOOKING_REJECTED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "Opt in",
+        type: "opt-in",
         title: "Opt in between Nameless and Test Testson",
         customInputs: {},
         startTime: "[redacted/dynamic]",
@@ -332,9 +325,8 @@ test.describe("BOOKING_REQUESTED", async () => {
 
     // --- check that webhook was called
 
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await webhookReceiver.waitForRequestCount(1);
+
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
@@ -364,7 +356,7 @@ test.describe("BOOKING_REQUESTED", async () => {
       triggerEvent: "BOOKING_REQUESTED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "Opt in",
+        type: "opt-in",
         title: "Opt in between Nameless and Test Testson",
         customInputs: {},
         startTime: "[redacted/dynamic]",
@@ -442,9 +434,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     expect(newBooking).not.toBeNull();
 
     // --- check that webhook was called
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await webhookReceiver.waitForRequestCount(1);
 
     const [request] = webhookReceiver.requestList;
 
@@ -520,9 +510,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     expect(newBooking).not.toBeNull();
 
     // --- check that webhook was called
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await webhookReceiver.waitForRequestCount(1);
 
     const [firstRequest] = webhookReceiver.requestList;
 
@@ -541,9 +529,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await expect(page).toHaveURL(/.*booking/);
 
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(2);
-    });
+    await webhookReceiver.waitForRequestCount(2);
 
     const [_, secondRequest] = webhookReceiver.requestList;
 
@@ -597,9 +583,8 @@ test.describe("FORM_SUBMITTED", async () => {
     await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
     page.click('button[type="submit"]');
 
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+    await webhookReceiver.waitForRequestCount(1);
+
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;
@@ -656,9 +641,9 @@ test.describe("FORM_SUBMITTED", async () => {
     const fieldName = "name";
     await page.fill(`[data-testid="form-field-${fieldName}"]`, "John Doe");
     page.click('button[type="submit"]');
-    await waitFor(() => {
-      expect(webhookReceiver.requestList.length).toBe(1);
-    });
+
+    await webhookReceiver.waitForRequestCount(1);
+
     const [request] = webhookReceiver.requestList;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = request.body as any;

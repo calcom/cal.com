@@ -1,4 +1,4 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Badge, ListItemText, Avatar } from "@calcom/ui";
@@ -56,18 +57,22 @@ export default function AppListCard(props: AppListCardProps) {
   const router = useRouter();
   const [highlight, setHighlight] = useState(shouldHighlight && hl === slug);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (shouldHighlight && highlight) {
-      const timer = setTimeout(() => {
-        setHighlight(false);
+    if (shouldHighlight && highlight && searchParams !== null && pathname !== null) {
+      timeoutRef.current = setTimeout(() => {
         const _searchParams = new URLSearchParams(searchParams);
         _searchParams.delete("hl");
-        router.replace(`${pathname}?${_searchParams.toString()}`);
+        _searchParams.delete("category"); // this comes from params, not from search params
+
+        setHighlight(false);
+
+        const stringifiedSearchParams = _searchParams.toString();
+
+        router.replace(`${pathname}${stringifiedSearchParams !== "" ? `?${stringifiedSearchParams}` : ""}`);
       }, 3000);
-      timeoutRef.current = timer;
     }
     return () => {
       if (timeoutRef.current) {
@@ -75,8 +80,7 @@ export default function AppListCard(props: AppListCardProps) {
         timeoutRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [highlight, pathname, router, searchParams, shouldHighlight]);
 
   return (
     <div className={classNames(highlight && "dark:bg-muted bg-yellow-100")}>

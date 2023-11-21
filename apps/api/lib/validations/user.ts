@@ -4,6 +4,7 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
 
+import { isValidBase64Image } from "~/lib/utils/isValidBase64Image";
 import { timeZone } from "~/lib/validations/shared/timeZone";
 
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
@@ -75,6 +76,7 @@ export const schemaUserBaseBodyParams = User.pick({
   theme: true,
   defaultScheduleId: true,
   locale: true,
+  hideBranding: true,
   timeFormat: true,
   brandColor: true,
   darkBrandColor: true,
@@ -95,6 +97,7 @@ const schemaUserEditParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  hideBranding: z.boolean().optional(),
   timeZone: timeZone.optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
@@ -104,6 +107,7 @@ const schemaUserEditParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional().nullable(),
+  avatar: z.string().refine(isValidBase64Image).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -115,6 +119,7 @@ const schemaUserCreateParams = z.object({
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
+  hideBranding: z.boolean().optional(),
   timeZone: timeZone.optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
@@ -125,6 +130,7 @@ const schemaUserCreateParams = z.object({
     .nullable(),
   locale: z.nativeEnum(locales).optional(),
   createdDate: iso8601.optional(),
+  avatar: z.string().refine(isValidBase64Image).optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -157,6 +163,7 @@ export const schemaUserReadPublic = User.pick({
   defaultScheduleId: true,
   locale: true,
   timeFormat: true,
+  hideBranding: true,
   brandColor: true,
   darkBrandColor: true,
   allowDynamicBooking: true,

@@ -20,7 +20,7 @@ export enum timeUnitLowerCase {
   MINUTE = "minute",
   YEAR = "year",
 }
-const log = logger.getChildLogger({ prefix: ["[smsReminderManager]"] });
+const log = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
 
 export type AttendeeInBookingInfo = {
   name: string;

@@ -1,10 +1,10 @@
 import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Badge, Button, showToast } from "@calcom/ui";
@@ -20,7 +20,7 @@ export interface IAlbySetupProps {
 }
 
 export default function AlbySetup(props: IAlbySetupProps) {
-  const params = useSearchParams();
+  const params = useCompatSearchParams();
   if (params?.get("callback") === "true") {
     return <AlbySetupCallback />;
   }
@@ -30,15 +30,20 @@ export default function AlbySetup(props: IAlbySetupProps) {
 
 function AlbySetupCallback() {
   const [error, setError] = useState<string | null>(null);
-  const params = useSearchParams();
+  const searchParams = useCompatSearchParams();
+
   useEffect(() => {
+    if (!searchParams) {
+      return;
+    }
+
     if (!window.opener) {
       setError("Something went wrong. Opener not available. Please contact support@getalby.com");
       return;
     }
 
-    const code = params.get("code");
-    const error = params.get("error");
+    const code = searchParams?.get("code");
+    const error = searchParams?.get("error");
 
     if (!code) {
       setError("declined");
@@ -54,7 +59,7 @@ function AlbySetupCallback() {
       payload: { code },
     });
     window.close();
-  }, []);
+  }, [searchParams]);
 
   return (
     <div>

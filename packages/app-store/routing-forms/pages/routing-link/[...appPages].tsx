@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -9,6 +9,7 @@ import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -248,7 +249,7 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
 
   const isEmbed = params.appPages[1] === "embed";
 
@@ -296,12 +297,12 @@ export const getServerSideProps = async function getServerSideProps(
 };
 
 const usePrefilledResponse = (form: Props["form"]) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const prefillResponse: Response = {};
 
   // Prefill the form from query params
   form.fields?.forEach((field) => {
-    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean);
+    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean) ?? [];
     // We only want to keep arrays if the field is a multi-select
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 

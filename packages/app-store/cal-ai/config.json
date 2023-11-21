@@ -13,5 +13,10 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "dirName": "cal-ai"
+  "dirName": "cal-ai",
+  "paid": {
+    "priceInUsd": 25,
+    "priceId": "price_1O1ziDH8UDiwIftkDHp3MCTP",
+    "mode": "subscription"
+  }
 }

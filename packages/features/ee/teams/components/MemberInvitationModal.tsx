@@ -13,7 +13,6 @@ import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import {
   Button,
-  CheckboxField,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -53,7 +52,6 @@ type MembershipRoleOption = {
 export interface NewMemberForm {
   emailOrUsername: string | string[];
   role: MembershipRole;
-  sendInviteEmail: boolean;
 }
 
 type ModalMode = "INDIVIDUAL" | "BULK" | "ORGANIZATION";
@@ -143,11 +141,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     if (file) {
       const reader = new FileReader();
-
+      const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
       reader.onload = (e) => {
         const contents = e?.target?.result as string;
-        const values = contents?.split(",").map((email) => email.trim().toLocaleLowerCase());
-        newMemberFormMethods.setValue("emailOrUsername", values);
+        const lines = contents.split("\n");
+        const validEmails = [];
+        for (const line of lines) {
+          const columns = line.split(/,|;|\|| /);
+          for (const column of columns) {
+            const email = column.trim().toLowerCase();
+
+            if (emailRegex.test(email)) {
+              validEmails.push(email);
+              break; // Stop checking columns if a valid email is found in this line
+            }
+          }
+        }
+
+        newMemberFormMethods.setValue("emailOrUsername", validEmails);
       };
 
       reader.readAsText(file);
@@ -329,19 +340,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }}
                   />
                 </div>
-              )}
-            />
-            <Controller
-              name="sendInviteEmail"
-              control={newMemberFormMethods.control}
-              defaultValue={true}
-              render={() => (
-                <CheckboxField
-                  className="mr-0"
-                  defaultChecked={true}
-                  description={t("send_invite_email")}
-                  onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
-                />
               )}
             />
             {props.token && (

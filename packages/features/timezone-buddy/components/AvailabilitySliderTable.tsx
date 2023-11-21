@@ -8,7 +8,8 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Button, ButtonGroup, DataTable } from "@calcom/ui";
+import { Button, ButtonGroup, DataTable } from "@calcom/ui";
+import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";
@@ -18,6 +19,8 @@ import { TimeDial } from "./TimeDial";
 export interface SliderUser {
   id: number;
   username: string | null;
+  name: string | null;
+  organizationId: number;
   email: string;
   timeZone: string;
   role: MembershipRole;
@@ -30,6 +33,7 @@ function UpgradeTeamTip() {
 
   return (
     <UpgradeTip
+      plan="team"
       title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
       description="add_your_team_members"
       background="/tips/teams"
@@ -78,10 +82,17 @@ export function AvailabilitySliderTable() {
         accessorFn: (data) => data.email,
         header: "Member",
         cell: ({ row }) => {
-          const { username, email, timeZone } = row.original;
+          const { username, email, timeZone, name, organizationId } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
-              <Avatar size="sm" alt={username || email} imageSrc={`/${username}/avatar.png`} />
+              <UserAvatar
+                size="sm"
+                user={{
+                  username,
+                  name,
+                  organizationId,
+                }}
+              />
               <div className="">
                 <div className="text-emphasis max-w-64 truncate text-sm font-medium" title={email}>
                   {username || "No username"}
@@ -183,6 +194,7 @@ export function AvailabilitySliderTable() {
       <>
         <div className="relative">
           <DataTable
+            searchKey="member"
             tableContainerRef={tableContainerRef}
             columns={memorisedColumns}
             onRowMouseclick={(row) => {

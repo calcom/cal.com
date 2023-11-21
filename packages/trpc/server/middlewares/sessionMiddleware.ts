@@ -20,6 +20,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   const user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
+      // Locked users can't login
+      locked: false,
     },
     select: {
       id: true,
@@ -28,6 +30,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       email: true,
       emailVerified: true,
       bio: true,
+      avatarUrl: true,
       timeZone: true,
       weekStart: true,
       startTime: true,
@@ -92,7 +95,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   const orgMetadata = teamMetadataSchema.parse(user.organization?.metadata || {});
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
-  const locale = user?.locale || ctx.locale;
+  const locale = user?.locale ?? ctx.locale;
 
   const isOrgAdmin = !!user.organization?.members.length;
   // Want to reduce the amount of data being sent

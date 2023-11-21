@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
@@ -19,6 +19,7 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -65,7 +66,6 @@ import {
   MoreHorizontal,
   Trash,
   Upload,
-  User as UserIcon,
   Users,
 } from "@calcom/ui/components/icon";
 
@@ -73,6 +73,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
+import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -208,7 +209,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -299,7 +300,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams);
+    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
@@ -386,7 +387,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
           return (
             <li key={type.id}>
-              <div className="hover:bg-muted flex w-full items-center justify-between">
+              <div className="hover:bg-muted flex w-full items-center justify-between transition">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
@@ -399,23 +400,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
-                        <AvatarGroup
+                        <UserAvatarGroup
                           className="relative right-3 top-1"
                           size="sm"
                           truncateAfter={4}
-                          items={
-                            type?.users
-                              ? type.users.map(
-                                  (organizer: { name: string | null; username: string | null }) => ({
-                                    alt: organizer.name || "",
-                                    image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${
-                                      organizer.username
-                                    }/avatar.png`,
-                                    title: organizer.name || "",
-                                  })
-                                )
-                              : []
-                          }
+                          users={type?.users ?? []}
                         />
                       )}
                       {isManagedEventType && type?.children && type.children?.length > 0 && (
@@ -821,34 +810,6 @@ const Actions = () => {
   );
 };
 
-const SetupProfileBanner = ({ closeAction }: { closeAction: () => void }) => {
-  const { t } = useLocale();
-  const orgBranding = useOrgBranding();
-
-  return (
-    <Alert
-      className="my-4"
-      severity="info"
-      title={t("set_up_your_profile")}
-      message={t("set_up_your_profile_description", { orgName: orgBranding?.name })}
-      CustomIcon={UserIcon}
-      actions={
-        <div className="flex gap-1">
-          <Button color="minimal" className="text-sky-700 hover:bg-sky-100" onClick={closeAction}>
-            {t("dismiss")}
-          </Button>
-          <Button
-            color="secondary"
-            className="border-sky-700 bg-sky-50 text-sky-700 hover:border-sky-900 hover:bg-sky-200"
-            href="/getting-started">
-            {t("set_up")}
-          </Button>
-        </div>
-      }
-    />
-  );
-};
-
 const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
   const { t } = useLocale();
   return (
@@ -880,7 +841,7 @@ const Main = ({
   filters: ReturnType<typeof getTeamsFiltersFromQuery>;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
 
   if (!data || status === "loading") {
@@ -944,7 +905,7 @@ const Main = ({
 
 const EventTypesPage = () => {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
   const { data: user } = useMeQuery();
   const [showProfileBanner, setShowProfileBanner] = useState(false);
@@ -984,7 +945,6 @@ const EventTypesPage = () => {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      afterHeading={showProfileBanner && <SetupProfileBanner closeAction={closeBanner} />}
       beforeCTAactions={<Actions />}
       CTA={<CTA data={data} />}>
       <HeadSeo

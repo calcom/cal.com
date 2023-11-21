@@ -12,7 +12,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
@@ -362,7 +362,7 @@ function UserDropdown({ small }: UserDropdownProps) {
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
           className={classNames(
-            "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+            "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
           )}>
           <span
@@ -509,7 +509,7 @@ export type NavigationItemType = {
   }: {
     item: Pick<NavigationItemType, "href">;
     isChild?: boolean;
-    pathname: string;
+    pathname: string | null;
   }) => boolean;
 };
 
@@ -527,7 +527,7 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {
     name: "availability",
@@ -547,7 +547,7 @@ const navigation: NavigationItemType[] = [
     icon: Grid,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return path?.startsWith(item.href) && !path?.includes("routing-forms/");
+      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
     },
     child: [
       {
@@ -556,7 +556,9 @@ const navigation: NavigationItemType[] = [
         isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
-            path?.startsWith(item.href) && !path?.includes("routing-forms/") && !path?.includes("/installed")
+            (path?.startsWith(item.href) ?? false) &&
+            !(path?.includes("routing-forms/") ?? false) &&
+            !(path?.includes("/installed") ?? false)
           );
         },
       },
@@ -564,7 +566,8 @@ const navigation: NavigationItemType[] = [
         name: "installed_apps",
         href: "/apps/installed/calendar",
         isCurrent: ({ pathname: path }) =>
-          path?.startsWith("/apps/installed/") || path?.startsWith("/v2/apps/installed/"),
+          (path?.startsWith("/apps/installed/") ?? false) ||
+          (path?.startsWith("/v2/apps/installed/") ?? false),
       },
     ],
   },
@@ -577,7 +580,7 @@ const navigation: NavigationItemType[] = [
     name: "Routing Forms",
     href: "/apps/routing-forms/forms",
     icon: FileText,
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/"),
+    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
   },
   {
     name: "workflows",
@@ -631,7 +634,7 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
-  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) : false;
+  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) ?? false : false;
 };
 
 const NavigationItem: React.FC<{
@@ -655,7 +658,7 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+            "text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
             item.child ? `[&[aria-current='page']]:bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
             isChild
               ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
@@ -678,7 +681,7 @@ const NavigationItem: React.FC<{
               {item.badge && item.badge}
             </span>
           ) : (
-            <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
+            <SkeletonText className="h-[20px] w-full" />
           )}
         </Link>
       </Tooltip>
@@ -702,7 +705,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-2.5 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -758,7 +761,7 @@ const MobileNavigationMoreItem: React.FC<{
 
   return (
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
-      <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5">
+      <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
         <span className="text-default flex items-center font-semibold ">
           {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
           {isLocaleReady ? t(item.name) : <SkeletonText />}
@@ -794,7 +797,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrgFullDomain(orgBranding.slug) : "";
+    const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.username, user?.org?.id]);
 
@@ -894,7 +897,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 target={item.target}
                 className={classNames(
                   "text-left",
-                  "[&[aria-current='page']]:bg-emphasis  text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium",
+                  "[&[aria-current='page']]:bg-emphasis text-default justify-right group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
                   "[&[aria-current='page']]:text-emphasis mt-0.5 w-full text-sm",
                   isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : "",
                   index === 0 && "mt-3"
@@ -980,7 +983,7 @@ export function ShellMain(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-24 fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}

@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -22,12 +23,37 @@ import { TRPCError } from "@trpc/server";
 import { getDefaultScheduleId } from "../viewer/availability/util";
 import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
+const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
   };
   input: TUpdateProfileInputSchema;
+};
+
+const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
+  const objectKey = uuidv4();
+
+  await prisma.avatar.upsert({
+    where: {
+      teamId_userId: {
+        teamId: 0,
+        userId,
+      },
+    },
+    create: {
+      userId: userId,
+      data,
+      objectKey,
+    },
+    update: {
+      data,
+      objectKey,
+    },
+  });
+
+  return `/api/avatar/${objectKey}.png`;
 };
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
@@ -60,12 +86,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
       }
     }
-  }
-  if (input.avatar) {
-    data.avatar = await resizeBase64Image(input.avatar);
-  }
-  if (input.avatar === null) {
-    data.avatar = null;
   }
 
   if (isPremiumUsername) {
@@ -118,6 +138,15 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // when the email changes, the user needs to sign in again.
     signOutUser = true;
   }
+  // don't do anything if avatar is undefined.
+  if (typeof input.avatar !== "undefined") {
+    data.avatarUrl = input.avatar
+      ? await uploadAvatar({
+          avatar: await resizeBase64Image(input.avatar),
+          userId: user.id,
+        })
+      : null;
+  }
 
   const updatedUser = await prisma.user.update({
     where: {
@@ -133,6 +162,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       metadata: true,
       name: true,
       createdDate: true,
+      avatarUrl: true,
       locale: true,
       schedules: {
         select: {
@@ -190,28 +220,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     });
   }
-  // Revalidate booking pages
-  // Disabled because the booking pages are currently not using getStaticProps
-  /*const res = ctx.res as NextApiResponse;
-  if (typeof res?.revalidate !== "undefined") {
-    const eventTypes = await prisma.eventType.findMany({
-      where: {
-        userId: user.id,
-        team: null,
-      },
-      select: {
-        id: true,
-        slug: true,
-      },
-    });
-    // waiting for this isn't needed
-    Promise.all(
-      eventTypes.map((eventType) => res?.revalidate(`/new-booker/${ctx.user.username}/${eventType.slug}`))
-    )
-      .then(() => console.info("Booking pages revalidated"))
-      .catch((e) => console.error(e));
-  }*/
-  return { ...input, signOutUser, passwordReset };
+
+  // don't return avatar, we don't need it anymore.
+  delete input.avatar;
+
+  return { ...input, signOutUser, passwordReset, avatarUrl: updatedUser.avatarUrl };
 };
 
 const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {

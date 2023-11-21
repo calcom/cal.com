@@ -3,6 +3,7 @@ import { simpleParser } from "mailparser";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import prisma from "@calcom/prisma";
 
 import { env } from "../../../env.mjs";
@@ -13,6 +14,10 @@ import getHostFromHeaders from "../../../utils/host";
 import now from "../../../utils/now";
 import sendEmail from "../../../utils/sendEmail";
 import { verifyParseKey } from "../../../utils/verifyParseKey";
+
+// Allow receive loop to run for up to 30 seconds
+// Why so long? the rate determining API call (getAvailability, getEventTypes) can take up to 15 seconds at peak times so we give it a little extra time to complete.
+export const maxDuration = 30;
 
 /**
  * Verifies email signature and app authorization,
@@ -27,18 +32,37 @@ export const POST = async (request: NextRequest) => {
 
   const formData = await request.formData();
   const body = Object.fromEntries(formData);
-
-  // body.dkim looks like {@domain-com.22222222.gappssmtp.com : pass}
-  const signature = (body.dkim as string).includes(" : pass");
-
   const envelope = JSON.parse(body.envelope as string);
 
   const aiEmail = envelope.to[0];
+  const subject = body.subject || "";
+
+  try {
+    await checkRateLimitAndThrowError({
+      identifier: `ai:email:${envelope.from}`,
+      rateLimitingType: "ai",
+    });
+  } catch (error) {
+    await sendEmail({
+      subject: `Re: ${subject}`,
+      text: "Thanks for using Cal.ai! You've reached your daily limit. Please try again tomorrow.",
+      to: envelope.from,
+      from: aiEmail,
+    });
+
+    return new NextResponse("Exceeded rate limit", { status: 200 }); // Don't return 429 to avoid triggering retry logic in SendGrid
+  }
 
   // Parse email from mixed MIME type
   const parsed: ParsedMail = await simpleParser(body.email as Source);
 
   if (!parsed.text && !parsed.subject) {
+    await sendEmail({
+      subject: `Re: ${subject}`,
+      text: "Thanks for using Cal.ai! It looks like you forgot to include a message. Please try again.",
+      to: envelope.from,
+      from: aiEmail,
+    });
     return new NextResponse("Email missing text and subject", { status: 400 });
   }
 
@@ -55,14 +79,17 @@ export const POST = async (request: NextRequest) => {
         },
       },
     },
-    where: { email: envelope.from, credentials: { some: { appId: env.APP_ID } } },
+    where: { email: envelope.from },
   });
+
+  // body.dkim looks like {@domain-com.22222222.gappssmtp.com : pass}
+  const signature = (body.dkim as string).includes(" : pass");
 
   // User is not a cal.com user or is using an unverified email.
   if (!signature || !user) {
     await sendEmail({
-      html: `Thanks for your interest in Cal.ai! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address.`,
-      subject: `Re: ${body.subject}`,
+      html: `Thanks for your interest in Cal.ai! To get started, Make sure you have a <a href="https://cal.com/signup" target="_blank">cal.com</a> account with this email address and then install Cal.ai here: <a href="https://go.cal.com/ai" target="_blank">go.cal.com/ai</a>.`,
+      subject: `Re: ${subject}`,
       text: `Thanks for your interest in Cal.ai! To get started, Make sure you have a cal.com account with this email address. You can sign up for an account at: https://cal.com/signup`,
       to: envelope.from,
       from: aiEmail,
@@ -79,7 +106,7 @@ export const POST = async (request: NextRequest) => {
 
     await sendEmail({
       html: `Thanks for using Cal.ai! To get started, the app must be installed. <a href=${url} target="_blank">Click this link</a> to install it.`,
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: `Thanks for using Cal.ai! To get started, the app must be installed. Click this link to install the Cal.ai app: ${url}`,
       to: envelope.from,
       from: aiEmail,
@@ -106,7 +133,7 @@ export const POST = async (request: NextRequest) => {
 
   if ("error" in availability) {
     await sendEmail({
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: "Sorry, there was an error fetching your availability. Please try again.",
       to: user.email,
       from: aiEmail,
@@ -117,7 +144,7 @@ export const POST = async (request: NextRequest) => {
 
   if ("error" in eventTypes) {
     await sendEmail({
-      subject: `Re: ${body.subject}`,
+      subject: `Re: ${subject}`,
       text: "Sorry, there was an error fetching your event types. Please try again.",
       to: user.email,
       from: aiEmail,
@@ -135,8 +162,8 @@ export const POST = async (request: NextRequest) => {
     body: JSON.stringify({
       apiKey,
       userId: user.id,
-      message: parsed.text,
-      subject: parsed.subject,
+      message: parsed.text || "",
+      subject: parsed.subject || "",
       replyTo: aiEmail,
       user: {
         email: user.email,

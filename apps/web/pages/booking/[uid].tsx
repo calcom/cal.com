@@ -4,7 +4,7 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -36,6 +36,7 @@ import {
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -98,7 +99,7 @@ export default function Success(props: SuccessProps) {
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -115,6 +116,13 @@ export default function Success(props: SuccessProps) {
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
   const location = props.bookingInfo.location as ReturnType<typeof getEventLocationValue>;
+  let rescheduleLocation: string | undefined;
+  if (
+    typeof props.bookingInfo.responses.location === "object" &&
+    "optionValue" in props.bookingInfo.responses.location
+  ) {
+    rescheduleLocation = props.bookingInfo.responses.location.optionValue;
+  }
 
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     props?.bookingInfo?.metadata || {}
@@ -148,7 +156,7 @@ export default function Success(props: SuccessProps) {
   const [calculatedDuration, setCalculatedDuration] = useState<number | undefined>(undefined);
   const { requiresLoginToUpdate } = props;
   function setIsCancellationMode(value: boolean) {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
 
     if (value) {
       _searchParams.set("cancel", "true");
@@ -295,7 +303,14 @@ export default function Success(props: SuccessProps) {
     bookingInfo.status
   );
 
+  const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
+    rescheduleLocation ?? "",
+    t,
+    bookingInfo.status
+  );
+
   const providerName = guessEventLocationType(location)?.label;
+  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -328,14 +343,17 @@ export default function Success(props: SuccessProps) {
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
-              "flex items-end justify-center px-4 pb-20 pt-4  sm:block sm:p-0"
+              "flex items-end justify-center px-4 pb-20 pt-4 sm:flex sm:p-0"
             )}>
             <div
-              className={classNames("my-4 transition-opacity sm:my-0", isEmbed ? "" : " inset-0")}
+              className={classNames(
+                "main my-4 flex flex-col transition-opacity sm:my-0 ",
+                isEmbed ? "" : " inset-0"
+              )}
               aria-hidden="true">
               <div
                 className={classNames(
-                  "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
@@ -467,18 +485,50 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
-                          {locationToDisplay.startsWith("http") ? (
-                            <a
-                              href={locationToDisplay}
-                              target="_blank"
-                              title={locationToDisplay}
-                              className="text-default flex items-center gap-2 underline"
-                              rel="noreferrer">
-                              {providerName || "Link"}
-                              <ExternalLink className="text-default inline h-4 w-4" />
-                            </a>
+                          {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
+                            locationToDisplay.startsWith("http") ? (
+                              <a
+                                href={locationToDisplay}
+                                target="_blank"
+                                title={locationToDisplay}
+                                className="text-default flex items-center gap-2"
+                                rel="noreferrer">
+                                {providerName || "Link"}
+                                <ExternalLink className="text-default inline h-4 w-4" />
+                              </a>
+                            ) : (
+                              locationToDisplay
+                            )
                           ) : (
-                            locationToDisplay
+                            <>
+                              {!!formerTime &&
+                                (locationToDisplay.startsWith("http") ? (
+                                  <a
+                                    href={locationToDisplay}
+                                    target="_blank"
+                                    title={locationToDisplay}
+                                    className="text-default flex items-center gap-2 line-through"
+                                    rel="noreferrer">
+                                    {providerName || "Link"}
+                                    <ExternalLink className="text-default inline h-4 w-4" />
+                                  </a>
+                                ) : (
+                                  <p className="line-through">{locationToDisplay}</p>
+                                ))}
+                              {rescheduleLocationToDisplay.startsWith("http") ? (
+                                <a
+                                  href={rescheduleLocationToDisplay}
+                                  target="_blank"
+                                  title={rescheduleLocationToDisplay}
+                                  className="text-default flex items-center gap-2"
+                                  rel="noreferrer">
+                                  {rescheduleProviderName || "Link"}
+                                  <ExternalLink className="text-default inline h-4 w-4" />
+                                </a>
+                              ) : (
+                                rescheduleLocationToDisplay
+                              )}
+                            </>
                           )}
                         </div>
                       </>
@@ -1042,7 +1092,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const parsedQuery = querySchema.safeParse(context.query);
 
-  if (!parsedQuery.success) return { notFound: true };
+  if (!parsedQuery.success) return { notFound: true } as const;
   const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
 
   const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
@@ -1100,7 +1150,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!bookingInfoRaw) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -1109,7 +1159,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!eventTypeRaw) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
@@ -1130,7 +1180,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (!eventTypeRaw.owner)
       return {
         notFound: true,
-      };
+      } as const;
     eventTypeRaw.users.push({
       ...eventTypeRaw.owner,
     });

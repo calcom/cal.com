@@ -1,6 +1,7 @@
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
@@ -11,8 +12,8 @@ import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const EditWebhook = () => {
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const searchParams = useCompatSearchParams();
+  const id = searchParams?.get("id");
 
   if (!id) return <SkeletonContainer />;
 
@@ -61,6 +62,7 @@ function Component({ webhookId }: { webhookId: string }) {
         title={t("edit_webhook")}
         description={t("add_webhook_description", { appName: APP_NAME })}
         borderInShellHeader={true}
+        backButton
       />
       <WebhookForm
         noRoutingFormTriggers={false}
