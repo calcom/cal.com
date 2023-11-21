@@ -44,6 +44,7 @@ export async function getTeamWithMembers(args: {
         team: {
           select: {
             slug: true,
+            id: true,
           },
         },
       },
@@ -153,7 +154,7 @@ export async function getTeamWithMembers(args: {
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
         ? m.user.teams
-            .filter((membership) => membership.team.slug !== orgSlug)
+            .filter((membership) => membership.team.id !== teamOrOrg.id)
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,

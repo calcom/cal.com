@@ -71,7 +71,7 @@ export const authRouter = router({
     });
   }),
 
-  sendVerifyEmailCode: publicProcedure.input(ZSendVerifyEmailCodeSchema).mutation(async ({ input }) => {
+  sendVerifyEmailCode: publicProcedure.input(ZSendVerifyEmailCodeSchema).mutation(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode) {
       UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode = await import("./sendVerifyEmailCode.handler").then(
         (mod) => mod.sendVerifyEmailCodeHandler
@@ -85,6 +85,7 @@ export const authRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.sendVerifyEmailCode({
       input,
+      req: ctx.req,
     });
   }),
 
