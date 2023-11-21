@@ -18,7 +18,7 @@ export function CalProvider({ apiKey, children }: CalProviderProps) {
       try {
         // here we'll call the /me endpoint in v2 to get user profile
         // v2 is not ready yet though
-        const response = await fetch(`/v1/me?apiKey=${key}`);
+        const response = await fetch(`/v2/me?apiKey=${key}`);
 
         if (response.ok) {
           setKey(apiKey);
