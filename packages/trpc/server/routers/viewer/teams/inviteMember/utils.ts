@@ -238,11 +238,14 @@ export async function createProvisionalMemberships({
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
         const data = [];
+        // membership for the team
         data.push({
           teamId: input.teamId,
           userId: invitee.id,
           role: input.role as MembershipRole,
         });
+
+        // membership for the org
         if (parentId) {
           data.push({
             teamId: parentId,
@@ -256,15 +259,18 @@ export async function createProvisionalMemberships({
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       // Don't throw an error if the user is already a member of the team when inviting multiple users
-      console.log(Array.isArray(input.usernameOrEmail));
       if (!Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "This user is a member of this team / has a pending invitation.",
         });
-      } else {
-        console.log(`Trying to invite users already members of this team.`);
+      } else if (Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Trying to invite users already member of this team / have pending invitations",
+        });
       }
+      logger.error("Failed to create provisional memberships", input.teamId);
     } else throw e;
   }
 }
