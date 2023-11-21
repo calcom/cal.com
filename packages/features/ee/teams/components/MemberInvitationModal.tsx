@@ -97,7 +97,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     showToast(t("invite_link_copied"), "success");
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       (window as WindowWithClipboardValue).E2E_CLIPBOARD_VALUE = inviteLink;
-      console.log(window.E2E_CLIPBOARD_VALUE);
     }
   };
 

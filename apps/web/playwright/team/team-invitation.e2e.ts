@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { test } from "../lib/fixtures";
+import { localize } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -15,6 +16,7 @@ test.afterEach(async ({ users, emails, clipboard }) => {
 
 test.describe("Team", () => {
   test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
+    const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeam();
     await teamOwner.apiLogin();
@@ -23,9 +25,9 @@ test.describe("Team", () => {
 
     await test.step("To the team by email (external user)", async () => {
       const invitedUserEmail = `rick_${Date.now()}@domain-${Date.now()}.com`;
-      await page.locator('button:text("Add")').click();
+      await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator('button:text("Send Invite")').click();
+      await page.locator(`button:text("${t("send_invite")}")`).click();
       await page.waitForLoadState("networkidle");
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
@@ -51,12 +53,12 @@ test.describe("Team", () => {
 
       // Check required fields
       await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator(".text-red-700")).toHaveCount(3);
+      await expect(newPage.locator('[data-testid="hint-error"]')).toHaveCount(3);
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
-      await context.close();
       await newPage.close();
+      await context.close();
 
       // Check newly invited member is not pending anymore
       await page.bringToFront();
@@ -72,7 +74,7 @@ test.describe("Team", () => {
         email: `user-invite-${Date.now()}@domain.com`,
         password: "P4ssw0rd!",
       });
-      await page.locator('button:text("Add")').click();
+      await page.locator(`button:text("${t("add")}")`).click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
       const inviteLink = await clipboard.get();
       await page.waitForLoadState("networkidle");
@@ -83,7 +85,7 @@ test.describe("Team", () => {
       await inviteLinkPage.waitForLoadState("domcontentloaded");
 
       await inviteLinkPage.locator("button[type=submit]").click();
-      await expect(inviteLinkPage.locator(".text-red-700")).toHaveCount(2);
+      await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
 
       await inviteLinkPage.locator("input[name=email]").fill(user.email);
       await inviteLinkPage.locator("input[name=password]").fill(user.username || "P4ssw0rd!");
@@ -94,6 +96,7 @@ test.describe("Team", () => {
   });
 
   test("Invitation (verified)", async ({ browser, page, users, emails }) => {
+    const t = await localize("en");
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeam();
     await teamOwner.apiLogin();
@@ -102,9 +105,9 @@ test.describe("Team", () => {
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = `rick@example.com`;
-      await page.locator('button:text("Add")').click();
+      await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator('button:text("Send Invite")').click();
+      await page.locator(`button:text("${t("send_invite")}")`).click();
       await page.waitForLoadState("networkidle");
       await expectInvitationEmailToBeReceived(
         page,
