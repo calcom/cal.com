@@ -3,7 +3,6 @@ import { loginUser } from "../../../fixtures/regularBookings";
 import { test } from "../../../lib/fixtures";
 
 test.describe("Collective Booking With All Questions", () => {
-  test.beforeEach(async ({ page, users, bookingPage }) => {
     const teamEventTitle = "testevent";
     const userFixture = await users.create({ name: "testuser" }, { hasTeam: true, teamEventTitle });
     await userFixture.apiLogin();
