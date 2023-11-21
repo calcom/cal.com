@@ -1,11 +1,13 @@
 import type { Frame, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import type { API, Messages } from "mailhog";
+import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -277,4 +279,13 @@ export async function createUserWithSeatedEventAndAttendees(
     },
   });
   return { user, eventType, booking };
+}
+
+export function generateTotpCode(email: string) {
+  const secret = createHash("md5")
+    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
+
+  totp.options = { step: 90 };
+  return totp.generate(secret);
 }
