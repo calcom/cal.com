@@ -72,7 +72,10 @@ export class PaymentService implements IAbstractPaymentService {
           amount: payment.amount,
           externalId: invoice.paymentRequest,
           currency: payment.currency,
-          data: Object.assign({}, { invoice }) as unknown as Prisma.InputJsonValue,
+          data: Object.assign(
+            {},
+            { invoice: { ...invoice, isPaid: await invoice.isPaid() } }
+          ) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
           success: false,
@@ -84,7 +87,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Alby: Payment could not be created", bookingId);
+      log.error("Alby: Payment could not be created", bookingId, JSON.stringify(error));
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
