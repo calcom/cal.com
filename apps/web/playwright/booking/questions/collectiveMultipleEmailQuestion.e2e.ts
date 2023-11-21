@@ -1,22 +1,22 @@
-import { login } from "../../fixtures/users";
-import { test } from "../../lib/fixtures";
-import { localize } from "../../lib/testUtils";
+import { test } from "../../../lib/fixtures";
+import { localize } from "../../../lib/testUtils";
 
-test.beforeAll(async ({ page, bookingPage }) => {
-  await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-  await page.goto("/event-types");
-  await bookingPage.createTeam("Test Team");
-  await bookingPage.createTeamEventType("Test Collective Event Type", { isCollectiveType: true });
-});
-
-test.describe("Booking With Multiple Email Question and Each Other Question", async () => {
+test.describe("Booking With Multiple Email Question and Each Other Question", () => {
   const bookingOptions = { hasPlaceholder: true, isRequired: true };
 
-  test.describe("Booking With Multiple Email Question and Address Question", () => {
-    test("Multiple Email and Address required", async ({ bookingPage }) => {
-      const placeholder = (await localize("en"))("share_additional_notes");
+  test.beforeEach(async ({ users, page, bookingPage }) => {
+    const teamEventTitle = "testevent";
+    const userFixture = await users.create({ name: "testuser" }, { hasTeam: true, teamEventTitle });
+    await userFixture.apiLogin();
 
-      await bookingPage.goToTab("event_advanced_tab_title");
+    await page.goto("/event-types");
+    await bookingPage.goToEventType(teamEventTitle);
+    await bookingPage.goToTab("event_advanced_tab_title");
+  });
+
+  test.describe("Booking With Multiple Email Question and Address Question", () => {
+    test("Multiple Email required and Address required", async ({ bookingPage }) => {
+      const placeholder = (await localize("en"))("share_additional_notes");
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -42,24 +42,25 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email required and Address not required", async ({ page, bookingPage }) => {
+    test("Multiple Email and Address not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("address", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("address", "address-test", "address test", false, "address test");
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Address question (only multiemail required)",
+        fillText: "Test Multiple Email question and Address question (only Multiple Email required)",
         secondQuestion: "address",
         options: { ...bookingOptions, isRequired: false },
       });
@@ -70,28 +71,27 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
     });
   });
 
-  test.describe("Booking With Multiple Email Question and phone Question", () => {
-    const bookingOptions = { hasPlaceholder: false, isRequired: true };
-    test("Multiple Email and multiemail group required", async ({ page, bookingPage }) => {
+  test.describe("Booking With Multiple Email Question and checkbox group Question", () => {
+    test("Multiple Email required and checkbox group required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("address");
-      await bookingPage.addQuestion("phone", "phone-test", "phone test", true);
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", true);
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and phone question (both required)",
-        secondQuestion: "phone",
+        fillText: "Test Multiple Email question and checkbox group question (both required)",
+        secondQuestion: "checkbox",
         options: bookingOptions,
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -100,25 +100,26 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email and phone not required", async ({ page, bookingPage }) => {
+    test("Multiple Email and checkbox group not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("phone", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("checkbox", "checkbox-test", "checkbox test", false);
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
-        question: "phone",
-        fillText: "Test Multiple Email question and phone group question (only multiemail required)",
-        secondQuestion: "phone",
+        question: "multiemail",
+        fillText: "Test Multiple Email question and checkbox group question (only Multiple Email required)",
+        secondQuestion: "checkbox",
         options: { ...bookingOptions, isRequired: false },
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -129,24 +130,24 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
   });
 
   test.describe("Booking With Multiple Email Question and checkbox Question", () => {
-    test("Multiple Email and checkbox required", async ({ page, bookingPage }) => {
+    test("Multiple Email required and checkbox required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("checkbox");
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
       await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", true);
-
       await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
-        question: "checkbox",
+        question: "multiemail",
         fillText: "Test Multiple Email question and checkbox question (both required)",
         secondQuestion: "boolean",
         options: bookingOptions,
@@ -156,17 +157,19 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.cancelBooking(eventTypePage);
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
-    test("Multiple Email required and checkbox not required", async ({ page, bookingPage }) => {
+
+    test("Multiple Email and checkbox not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("boolean", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("boolean", "boolean-test", "boolean test", false);
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
@@ -183,73 +186,11 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
   });
-  test.describe("Booking With Multiple Email Question and Long Question", () => {
-    test("Multiple Email and long question required", async ({ page, bookingPage }) => {
+
+  test.describe("Booking With Multiple Email Question and Long text Question", () => {
+    test("Multiple Email required and Long text required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("boolean");
-      await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true);
-
-      await bookingPage.updateEventType();
-      const eventTypePage = await bookingPage.previewEventType();
-      await bookingPage.selectTimeSlot(eventTypePage);
-      await bookingPage.fillAndConfirmBooking({
-        eventTypePage,
-        placeholderText: placeholder,
-        question: "multiemail",
-        fillText: "Test Multiple Email question and long question question (both required)",
-        secondQuestion: "textarea",
-        options: bookingOptions,
-      });
-      await bookingPage.rescheduleBooking(eventTypePage);
-      await bookingPage.assertBookingRescheduled(eventTypePage);
-      await bookingPage.cancelBooking(eventTypePage);
-      await bookingPage.assertBookingCanceled(eventTypePage);
-    });
-    test("Multiple Email required and long question not required", async ({ page, bookingPage }) => {
-      const placeholder = (await localize("en"))("share_additional_notes");
-
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("textarea", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
-      const eventTypePage = await bookingPage.previewEventType();
-      await bookingPage.selectTimeSlot(eventTypePage);
-      await bookingPage.fillAndConfirmBooking({
-        eventTypePage,
-        placeholderText: placeholder,
-        question: "multiemail",
-        fillText: "Test Multiple Email question and long question (only multiemail required)",
-        secondQuestion: "textarea",
-        options: { ...bookingOptions, isRequired: false },
-      });
-      await bookingPage.rescheduleBooking(eventTypePage);
-      await bookingPage.assertBookingRescheduled(eventTypePage);
-      await bookingPage.cancelBooking(eventTypePage);
-      await bookingPage.assertBookingCanceled(eventTypePage);
-    });
-  });
-
-  test.describe("Booking With Multiple Email Question and Multi email Question", () => {
-    const bookingOptions = { hasPlaceholder: true, isRequired: true };
-    test("Multiple Email and Multi email required", async ({ page, bookingPage }) => {
-      const placeholder = (await localize("en"))("share_additional_notes");
-
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("textarea");
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -257,15 +198,16 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
         true,
         "multiemail test"
       );
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
+      await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Multi Email question (both required)",
-        secondQuestion: "multiemail",
+        fillText: "Test Multiple Email question and Long Text question (both required)",
+        secondQuestion: "textarea",
         options: bookingOptions,
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -274,25 +216,26 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email required and Multi email not required", async ({ page, bookingPage }) => {
+    test("Multiple Email and Long text not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("multiemail", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", false, "textarea test");
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Multi Email question (only multiemail required)",
-        secondQuestion: "multiemail",
+        fillText: "Test Multiple Email question and Long Text question (only Multiple Email required)",
+        secondQuestion: "textarea",
         options: { ...bookingOptions, isRequired: false },
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -303,25 +246,25 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
   });
 
   test.describe("Booking With Multiple Email Question and multiselect Question", () => {
-    test("Multiple Email and multiselect text required", async ({ page, bookingPage }) => {
+    test("Multiple Email required and multiselect text required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("multiemail");
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
       await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", true);
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Multi Multiple Email question (both required)",
+        fillText: "Test Multiple Email question and Multi Select question (both required)",
         secondQuestion: "multiselect",
         options: bookingOptions,
       });
@@ -331,24 +274,25 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email required and multiselect text not required", async ({ page, bookingPage }) => {
+    test("Multiple Email and multiselect text not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("multiselect", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", false);
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Multi Multiple Email question (only multiemail required)",
+        fillText: "Test Multiple Email question and Multi Select question (only  Multiple Email required)",
         secondQuestion: "multiselect",
         options: { ...bookingOptions, isRequired: false },
       });
@@ -360,18 +304,18 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
   });
 
   test.describe("Booking With Multiple Email Question and Number Question", () => {
-    test("Multiple Email and Number required", async ({ page, bookingPage }) => {
+    test("Multiple Email required and Number required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("multiselect");
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
       await bookingPage.addQuestion("number", "number-test", "number test", true, "number test");
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
@@ -388,24 +332,25 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email required and Number not required", async ({ page, bookingPage }) => {
+    test("Multiple Email and Number not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("number", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("number", "number-test", "number test", false, "number test");
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Number question (only multiemail required)",
+        fillText: "Test Multiple Email question and Number question (only Multiple Email required)",
         secondQuestion: "number",
         options: { ...bookingOptions, isRequired: false },
       });
@@ -416,73 +361,10 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
     });
   });
 
-  test.describe("Booking With Multiple Email Question and Radio group Question", () => {
-    test("Multiple Email and Radio group required", async ({ page, bookingPage }) => {
+  test.describe("Booking With Multiple email Question and phone Question", () => {
+    test("Multiple email required and Phone required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("number");
-      await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
-      const eventTypePage = await bookingPage.previewEventType();
-      await bookingPage.selectTimeSlot(eventTypePage);
-      await bookingPage.fillAndConfirmBooking({
-        eventTypePage,
-        placeholderText: placeholder,
-        question: "multiemail",
-        fillText: "Test Multiple Email question and Radio question (both required)",
-        secondQuestion: "radio",
-        options: bookingOptions,
-      });
-      await bookingPage.rescheduleBooking(eventTypePage);
-      await bookingPage.assertBookingRescheduled(eventTypePage);
-      await bookingPage.cancelBooking(eventTypePage);
-      await bookingPage.assertBookingCanceled(eventTypePage);
-    });
-
-    test("Multiple Email required and Radio group not required", async ({ page, bookingPage }) => {
-      const placeholder = (await localize("en"))("share_additional_notes");
-
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("radio", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
-      const eventTypePage = await bookingPage.previewEventType();
-      await bookingPage.selectTimeSlot(eventTypePage);
-      await bookingPage.fillAndConfirmBooking({
-        eventTypePage,
-        placeholderText: placeholder,
-        question: "multiemail",
-        fillText: "Test Multiple Email question and Radio question (only multiemail required)",
-        secondQuestion: "radio",
-        options: { ...bookingOptions, isRequired: false },
-      });
-      await bookingPage.rescheduleBooking(eventTypePage);
-      await bookingPage.assertBookingRescheduled(eventTypePage);
-      await bookingPage.cancelBooking(eventTypePage);
-      await bookingPage.assertBookingCanceled(eventTypePage);
-    });
-  });
-
-  test.describe("Booking With Multiple Email Question and select Question", () => {
-    test("Multiple Email and select required", async ({ page, bookingPage }) => {
-      const placeholder = (await localize("en"))("share_additional_notes");
-
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("radio");
       await bookingPage.addQuestion(
         "multiemail",
         "multiemail-test",
@@ -490,16 +372,16 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
         true,
         "multiemail test"
       );
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Select question (both required)",
-        secondQuestion: "select",
+        fillText: "Test Multiple Email question and Phone question (both required)",
+        secondQuestion: "phone",
         options: bookingOptions,
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -508,25 +390,26 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email required and select not required", async ({ page, bookingPage }) => {
+    test("Multiple email and Phone not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("multiemail", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("phone", "phone-test", "phone test", false, "phone test");
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Select question (only multiemail required)",
-        secondQuestion: "select",
+        fillText: "Test Multiple Email question and Phone question (both required)",
+        secondQuestion: "phone",
         options: { ...bookingOptions, isRequired: false },
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -536,27 +419,27 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
     });
   });
 
-  test.describe("Booking With Multiple Email Question and Short text question", () => {
-    test("Multiple Email and Short text required", async ({ page, bookingPage }) => {
+  test.describe("Booking With Multiple Email Question and Radio group Question", () => {
+    test("Multiple Email required and Radio group required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.removeQuestion("multiemail");
-      await bookingPage.addQuestion("text", "text-test", "text test", true, "text test");
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("radio", "radio-test", "radio test", true);
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Text question (both required)",
-        secondQuestion: "text",
+        fillText: "Test  Multiple Email question and Radio question (both required)",
+        secondQuestion: "radio",
         options: bookingOptions,
       });
       await bookingPage.rescheduleBooking(eventTypePage);
@@ -565,31 +448,149 @@ test.describe("Booking With Multiple Email Question and Each Other Question", as
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multiple Email required and Short text not required", async ({ page, bookingPage }) => {
+    test("Multiple Email and Radio group not required", async ({ bookingPage }) => {
       const placeholder = (await localize("en"))("share_additional_notes");
 
-      await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
-
-      await page.goto("/event-types");
-      await bookingPage.goToEventType("Test Collective Event Type");
-      await bookingPage.goToTab("event_advanced_tab_title");
-      await bookingPage.editQuestion("text", { shouldBeRequired: false });
-      await bookingPage.updateEventType({ shouldCheck: true, name: "Test Collective Event Type" });
-
+      await bookingPage.addQuestion(
+        "multiemail",
+        "multiemail-test",
+        "multiemail test",
+        true,
+        "multiemail test"
+      );
+      await bookingPage.addQuestion("radio", "radio-test", "radio test", false);
+      await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
       await bookingPage.fillAndConfirmBooking({
         eventTypePage,
         placeholderText: placeholder,
         question: "multiemail",
-        fillText: "Test Multiple Email question and Text question (only multiemail required)",
-        secondQuestion: "text",
+        fillText: "Test Multiple Email question and Radio question (only  Multiple Email required)",
+        secondQuestion: "radio",
         options: { ...bookingOptions, isRequired: false },
       });
       await bookingPage.rescheduleBooking(eventTypePage);
       await bookingPage.assertBookingRescheduled(eventTypePage);
       await bookingPage.cancelBooking(eventTypePage);
       await bookingPage.assertBookingCanceled(eventTypePage);
+    });
+
+    test.describe("Booking With Multiple Email Question and select Question", () => {
+      test("Multiple Email required and select required", async ({ bookingPage }) => {
+        const placeholder = (await localize("en"))("share_additional_notes");
+
+        await bookingPage.addQuestion(
+          "multiemail",
+          "multiemail-test",
+          "multiemail test",
+          true,
+          "multiemail test"
+        );
+        await bookingPage.addQuestion("select", "select-test", "select test", true, "select test");
+        await bookingPage.updateEventType();
+        const eventTypePage = await bookingPage.previewEventType();
+        await bookingPage.selectTimeSlot(eventTypePage);
+        await bookingPage.fillAndConfirmBooking({
+          eventTypePage,
+          placeholderText: placeholder,
+          question: "multiemail",
+          fillText: "Test Multiple Email question and Select question (both required)",
+          secondQuestion: "select",
+          options: bookingOptions,
+        });
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
+      });
+
+      test("Multiple Email and select not required", async ({ bookingPage }) => {
+        const placeholder = (await localize("en"))("share_additional_notes");
+
+        await bookingPage.addQuestion(
+          "multiemail",
+          "multiemail-test",
+          "multiemail test",
+          true,
+          "multiemail test"
+        );
+        await bookingPage.addQuestion("select", "select-test", "select test", false, "select test");
+        await bookingPage.updateEventType();
+        const eventTypePage = await bookingPage.previewEventType();
+        await bookingPage.selectTimeSlot(eventTypePage);
+        await bookingPage.fillAndConfirmBooking({
+          eventTypePage,
+          placeholderText: placeholder,
+          question: "multiemail",
+          fillText: "Test Multiple Email question and Select question (only Multiple Email required)",
+          secondQuestion: "select",
+          options: { ...bookingOptions, isRequired: false },
+        });
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
+      });
+    });
+
+    test.describe("Booking With Multiple Email Question and Short text question", () => {
+      test("Multiple Email required and Short text required", async ({ bookingPage }) => {
+        const placeholder = (await localize("en"))("share_additional_notes");
+
+        await bookingPage.addQuestion(
+          "multiemail",
+          "multiemail-test",
+          "multiemail test",
+          true,
+          "multiemail test"
+        );
+        await bookingPage.addQuestion("text", "text-test", "text test", true, "text test");
+        await bookingPage.updateEventType();
+        const eventTypePage = await bookingPage.previewEventType();
+        await bookingPage.selectTimeSlot(eventTypePage);
+        await bookingPage.fillAndConfirmBooking({
+          eventTypePage,
+          placeholderText: placeholder,
+          question: "multiemail",
+          fillText: "Test Multiple Email question and Text question (both required)",
+          secondQuestion: "text",
+          options: bookingOptions,
+        });
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
+      });
+
+      test("Multiple Email and Short text not required", async ({ bookingPage }) => {
+        const placeholder = (await localize("en"))("share_additional_notes");
+
+        await bookingPage.addQuestion(
+          "multiemail",
+          "multiemail-test",
+          "multiemail test",
+          true,
+          "multiemail test"
+        );
+        await bookingPage.addQuestion("text", "text-test", "text test", false, "text test");
+        await bookingPage.updateEventType();
+        const eventTypePage = await bookingPage.previewEventType();
+        await bookingPage.selectTimeSlot(eventTypePage);
+        await bookingPage.fillAndConfirmBooking({
+          eventTypePage,
+          placeholderText: placeholder,
+          question: "multiemail",
+          fillText: "Test Multiple Email question and Text question (only Multiple Email required)",
+          secondQuestion: "text",
+          options: { ...bookingOptions, isRequired: false },
+        });
+        await bookingPage.rescheduleBooking(eventTypePage);
+        await bookingPage.assertBookingRescheduled(eventTypePage);
+        await bookingPage.cancelBooking(eventTypePage);
+        await bookingPage.assertBookingCanceled(eventTypePage);
+      });
     });
   });
 });
+
