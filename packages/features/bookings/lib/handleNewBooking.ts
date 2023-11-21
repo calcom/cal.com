@@ -2216,6 +2216,9 @@ async function handler(
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
 
+    results = updateManager.results;
+    referencesToCreate = updateManager.referencesToCreate;
+
     const isThereAnIntegrationError = results && results.some((res) => !res.success);
 
     if (isThereAnIntegrationError) {
