@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -9,6 +9,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
@@ -22,7 +23,7 @@ import { ssrInit } from "@server/lib/ssr";
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function Provider(props: SSOProviderPageProps) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const router = useRouter();
 
   useEffect(() => {

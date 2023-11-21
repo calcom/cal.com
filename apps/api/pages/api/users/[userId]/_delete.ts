@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
@@ -41,10 +42,18 @@ export async function deleteHandler(req: NextApiRequest) {
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
   if (!isAdmin && query.userId !== req.userId) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
-  const user = await prisma.user.findUnique({ where: { id: query.userId } });
+  const user = await prisma.user.findUnique({
+    where: { id: query.userId },
+    select: {
+      id: true,
+      email: true,
+      metadata: true,
+    },
+  });
   if (!user) throw new HttpError({ statusCode: 404, message: "User not found" });
 
-  await prisma.user.delete({ where: { id: user.id } });
+  await deleteUser(user);
+
   return { message: `User with id: ${user.id} deleted successfully` };
 }
 
