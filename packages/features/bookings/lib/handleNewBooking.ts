@@ -2246,7 +2246,7 @@ async function handler(
 
     //if organizer changed we need to create a new booking (reschedule only cancels the old one)
     if (changedOrganizer) {
-      const createManager = await eventManager.create(evt);
+      const createManager = await eventManager.create({ ...evt, title: getEventName(eventNameObject) });
 
       // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
       // to the default description when we are sending the emails.
