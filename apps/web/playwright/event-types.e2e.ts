@@ -5,6 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -39,7 +40,7 @@ test.describe("Event Types A/B tests", () => {
 });
 
 test.describe("Event Types tests", () => {
-  test.describe("user", () => {
+  testBothFutureAndLegacyRoutes.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
       await user.apiLogin();
