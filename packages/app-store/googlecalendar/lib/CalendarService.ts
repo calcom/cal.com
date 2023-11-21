@@ -107,7 +107,7 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
-        this.log.error("Error updating Google credentials", JSON.stringify(err));
+        this.log.error("Error updating Google credentials", safeStringify(err));
         let message;
         if (err instanceof Error) message = err.message;
         else message = String(err);
