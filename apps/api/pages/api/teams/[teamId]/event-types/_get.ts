@@ -56,6 +56,14 @@ async function getHandler(req: NextApiRequest) {
             members: { some: { userId } },
           },
     },
+    include: {
+      customInputs: true,
+      team: { select: { slug: true } },
+      users: true,
+      hosts: { select: { userId: true, isFixed: true } },
+      owner: { select: { username: true, id: true } },
+      children: { select: { id: true, userId: true } },
+    },
   };
 
   const data = await prisma.eventType.findMany(args);
