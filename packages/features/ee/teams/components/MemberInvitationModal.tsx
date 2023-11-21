@@ -13,7 +13,6 @@ import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import {
   Button,
-  CheckboxField,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -26,6 +25,7 @@ import {
   TextAreaField,
 } from "@calcom/ui";
 import { Link } from "@calcom/ui/components/icon";
+import type { Window as WindowWithClipboardValue } from "@calcom/web/playwright/fixtures/clipboard";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -53,7 +53,6 @@ type MembershipRoleOption = {
 export interface NewMemberForm {
   emailOrUsername: string | string[];
   role: MembershipRole;
-  sendInviteEmail: boolean;
 }
 
 type ModalMode = "INDIVIDUAL" | "BULK" | "ORGANIZATION";
@@ -94,8 +93,15 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     const inviteLink =
       isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;
-    await navigator.clipboard.writeText(inviteLink);
-    showToast(t("invite_link_copied"), "success");
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      showToast(t("invite_link_copied"), "success");
+    } catch (e) {
+      if (process.env.NEXT_PUBLIC_IS_E2E) {
+        (window as WindowWithClipboardValue).E2E_CLIPBOARD_VALUE = inviteLink;
+      }
+      console.error(e);
+    }
   };
 
   const options: MembershipRoleOption[] = useMemo(() => {
@@ -342,19 +348,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }}
                   />
                 </div>
-              )}
-            />
-            <Controller
-              name="sendInviteEmail"
-              control={newMemberFormMethods.control}
-              defaultValue={true}
-              render={() => (
-                <CheckboxField
-                  className="mr-0"
-                  defaultChecked={true}
-                  description={t("send_invite_email")}
-                  onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
-                />
               )}
             />
             {props.token && (

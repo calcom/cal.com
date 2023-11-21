@@ -1,7 +1,7 @@
 import Head from "next/head";
-import { useSearchParams } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
 import { Copy } from "@calcom/ui/components/icon";
@@ -9,7 +9,7 @@ import { Copy } from "@calcom/ui/components/icon";
 import PageWrapper from "@components/PageWrapper";
 
 export default function Error500() {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
 
   return (

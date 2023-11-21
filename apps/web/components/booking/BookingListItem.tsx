@@ -32,8 +32,6 @@ import {
 } from "@calcom/ui";
 import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
 
-import useMeQuery from "@lib/hooks/useMeQuery";
-
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -45,14 +43,18 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
+  loggedInUser: {
+    userId: number | undefined;
+    userTimeZone: string | undefined;
+    userTimeFormat: number | null | undefined;
+    userEmail: string | undefined;
+  };
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
   const bookerUrl = useBookerUrl();
+  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
 
-  const user = query.data;
   const {
     t,
     i18n: { language },
@@ -215,7 +217,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const startTime = dayjs(booking.startTime)
-    .tz(user?.timeZone)
+    .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
@@ -261,13 +263,11 @@ function BookingListItem(booking: BookingItemProps) {
   const title = booking.title;
 
   const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
-  const checkForRecordingsButton =
-    !showRecordingsButtons && (booking.location === "integrations:daily" || booking?.location?.trim() === "");
 
   const showRecordingActions: ActionType[] = [
     {
-      id: checkForRecordingsButton ? "check_for_recordings" : "view_recordings",
-      label: checkForRecordingsButton ? t("check_for_recordings") : t("view_recordings"),
+      id: "view_recordings",
+      label: t("view_recordings"),
       onClick: () => {
         setViewRecordingsDialogIsOpen(true);
       },
@@ -298,12 +298,12 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {(showRecordingsButtons || checkForRecordingsButton) && (
+      {showRecordingsButtons && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
-          timeFormat={user?.timeFormat ?? null}
+          timeFormat={userTimeFormat ?? null}
         />
       )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
@@ -343,11 +343,11 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="cursor-pointer py-4">
               <div className="text-emphasis text-sm leading-6">{startTime}</div>
               <div className="text-subtle text-sm">
-                {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-                {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+                {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
                 <MeetingTimeInTimezones
-                  timeFormat={user?.timeFormat}
-                  userTimezone={user?.timeZone}
+                  timeFormat={userTimeFormat}
+                  userTimezone={userTimeZone}
                   startTime={booking.startTime}
                   endTime={booking.endTime}
                   attendees={booking.attendees}
@@ -374,7 +374,12 @@ function BookingListItem(booking: BookingItemProps) {
               ) : null}
               {recurringDates !== undefined && (
                 <div className="text-muted mt-2 text-sm">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
                 </div>
               )}
             </div>
@@ -387,11 +392,11 @@ function BookingListItem(booking: BookingItemProps) {
               <div className="flex w-full items-center justify-between sm:hidden">
                 <div className="text-emphasis text-sm leading-6">{startTime}</div>
                 <div className="text-subtle pr-2 text-sm">
-                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-                  {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
                   <MeetingTimeInTimezones
-                    timeFormat={user?.timeFormat}
-                    userTimezone={user?.timeZone}
+                    timeFormat={userTimeFormat}
+                    userTimezone={userTimeZone}
                     startTime={booking.startTime}
                     endTime={booking.endTime}
                     attendees={booking.attendees}
@@ -416,7 +421,12 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {recurringDates !== undefined && (
                 <div className="text-muted text-sm sm:hidden">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
                 </div>
               )}
             </div>
@@ -448,7 +458,7 @@ function BookingListItem(booking: BookingItemProps) {
                 <DisplayAttendees
                   attendees={booking.attendees}
                   user={booking.user}
-                  currentEmail={user?.email}
+                  currentEmail={userEmail}
                 />
               )}
               {isCancelled && booking.rescheduled && (
@@ -462,15 +472,13 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && userId === booking.user?.id && <TableActions actions={pendingActions} />}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          {(showRecordingsButtons || checkForRecordingsButton) && (
-            <TableActions actions={showRecordingActions} />
-          )}
+          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -490,12 +498,16 @@ function BookingListItem(booking: BookingItemProps) {
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
   recurringDates: Date[];
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
 }
 
-const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
+const RecurringBookingsTooltip = ({
+  booking,
+  recurringDates,
+  userTimeZone,
+  userTimeFormat,
+}: RecurringBookingsTooltipProps) => {
   const {
     t,
     i18n: { language },
@@ -527,7 +539,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                     .includes(aDate.toDateString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
-                    {formatTime(aDate, user?.timeFormat, user?.timeZone)}
+                    {formatTime(aDate, userTimeFormat, userTimeZone)}
                     {" - "}
                     {dayjs(aDate).locale(language).format("D MMMM YYYY")}
                   </p>
@@ -540,7 +552,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
-                    ? `${t("event_remaining", {
+                    ? `${t("event_remaining_other", {
                         count: recurringCount,
                       })}`
                     : getEveryFreqFor({
