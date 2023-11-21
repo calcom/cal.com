@@ -267,7 +267,7 @@ export async function createProvisionalMemberships({
       } else if (Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Trying to invite users already member of this team / have pending invitations",
+          message: "Trying to invite users already members of this team / have pending invitations",
         });
       }
       logger.error("Failed to create provisional memberships", input.teamId);
