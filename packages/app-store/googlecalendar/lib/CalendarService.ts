@@ -502,7 +502,7 @@ export default class GoogleCalendarService implements Calendar {
         return busyData;
       }
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", error);
+      this.log.error("There was an error contacting google calendar service: ", JSON.safeStringify(error));
       throw error;
     }
   }
@@ -524,7 +524,7 @@ export default class GoogleCalendarService implements Calendar {
           } satisfies IntegrationCalendar)
       );
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", error);
+      this.log.error("There was an error contacting google calendar service: ", JSON.safeStringify(error));
       throw error;
     }
   }

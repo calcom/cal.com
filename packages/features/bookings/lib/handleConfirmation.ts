@@ -65,7 +65,7 @@ export async function handleConfirmation(args: {
       message: "Booking failed",
     };
 
-    log.error(`Booking ${user.username} failed`, JSON.stringify({ error, results }));
+    log.error(`Booking ${user.username} failed`, JSON.safeStringify({ error, results }));
   } else {
     if (results.length) {
       // TODO: Handle created event metadata more elegantly

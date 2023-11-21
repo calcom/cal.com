@@ -91,7 +91,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Paypal: Payment could not be created for bookingId", bookingId);
+      log.error("Paypal: Payment could not be created for bookingId", bookingId, JSON.safeStringify(error));
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
@@ -170,7 +170,11 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Paypal: Payment method could not be collected for bookingId", bookingId);
+      log.error(
+        "Paypal: Payment method could not be collected for bookingId",
+        bookingId,
+        JSON.safeStringify(error)
+      );
       throw new Error("Paypal: Payment method could not be collected");
     }
   }

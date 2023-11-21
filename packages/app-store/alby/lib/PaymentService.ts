@@ -87,7 +87,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Alby: Payment could not be created", bookingId, JSON.stringify(error));
+      log.error("Alby: Payment could not be created", bookingId, JSON.safeStringify(error));
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }

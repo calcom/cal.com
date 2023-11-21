@@ -65,6 +65,6 @@ export async function handleBookingRequested(args: {
     await Promise.all(promises);
   } catch (error) {
     // Silently fail
-    log.error(error);
+    log.error("Error in handleBookingRequested", JSON.safeStringify(error));
   }
 }
