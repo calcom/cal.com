@@ -3,6 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import slugify from "@calcom/lib/slugify";
@@ -434,6 +435,15 @@ export const getUsersForMemberships = ({
   return [usersToAutoJoin, regularUsers];
 };
 
+export const sendEmails = async (emailPromises: Promise<void>[]) => {
+  const sentEmails = await Promise.allSettled(emailPromises);
+  sentEmails.forEach((sentEmail) => {
+    if (sentEmail.status === "rejected") {
+      logger.error("Could not send email to user");
+    }
+  });
+};
+
 export const sendTeamInviteEmails = async ({
   existingUsersWithMembersips,
   language,
@@ -476,7 +486,7 @@ export const sendTeamInviteEmails = async ({
         inviteTeamOptions.isCalcomMember = false;
       }
 
-      await sendTeamInviteEmail({
+      return sendTeamInviteEmail({
         language,
         from: currentUserName,
         to: sendTo,
@@ -487,11 +497,5 @@ export const sendTeamInviteEmails = async ({
     }
   });
 
-  const sentEmails = await Promise.allSettled(sendEmailsPromises);
-
-  sentEmails.forEach((sentEmail) => {
-    if (sentEmail.status === "rejected") {
-      console.error("Could not send email to user", sentEmail.reason);
-    }
-  });
+  await sendEmails(sendEmailsPromises);
 };

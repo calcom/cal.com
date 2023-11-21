@@ -18,6 +18,7 @@ import {
   createProvisionalMemberships,
   getUsersForMemberships,
   sendTeamInviteEmails,
+  sendEmails,
 } from "./utils";
 
 type InviteMemberOptions = {
@@ -71,9 +72,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       autoAcceptEmailDomain,
       parentId: team.parentId,
     });
-    for (let index = 0; index < newUsersEmails.length; index++) {
-      const usernameOrEmail = newUsersEmails[index];
-      await sendVerificationEmail({
+    const sendVerifEmailsPromises = newUsersEmails.map((usernameOrEmail) => {
+      return sendVerificationEmail({
         usernameOrEmail,
         team,
         translation,
@@ -81,7 +81,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         input,
         connectionInfo: orgConnectionInfoMap[usernameOrEmail],
       });
-    }
+    });
+    sendEmails(sendVerifEmailsPromises);
   }
 
   // deal with existing users invited to join the team/org
