@@ -7,6 +7,7 @@ import { sendAwaitingPaymentEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -132,7 +133,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Stripe: Payment could not be created", bookingId, JSON.safeStringify(error));
+      log.error("Stripe: Payment could not be created", bookingId, safeStringify(error));
       throw new Error("payment_not_created_error");
     }
   }
@@ -206,7 +207,7 @@ export class PaymentService implements IAbstractPaymentService {
       log.error(
         "Stripe: Payment method could not be collected for bookingId",
         bookingId,
-        JSON.safeStringify(error)
+        safeStringify(error)
       );
       throw new Error("Stripe: Payment method could not be collected");
     }
@@ -285,7 +286,7 @@ export class PaymentService implements IAbstractPaymentService {
 
       return paymentData;
     } catch (error) {
-      log.error("Stripe: Could not charge card for payment", _bookingId, JSON.safeStringify(error));
+      log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
       throw new Error(ErrorCode.ChargeCardFailure);
     }
   }
@@ -377,7 +378,7 @@ export class PaymentService implements IAbstractPaymentService {
       await this.stripe.paymentIntents.cancel(payment.externalId, { stripeAccount });
       return true;
     } catch (e) {
-      log.error("Stripe: Unable to delete Payment in stripe of paymentId", paymentId, JSON.safeStringify(e));
+      log.error("Stripe: Unable to delete Payment in stripe of paymentId", paymentId, safeStringify(e));
       return false;
     }
   }

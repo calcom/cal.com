@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
@@ -77,7 +78,7 @@ export async function addSubscription({
 
     log.error(
       `Error creating subscription for ${teamId ? `team ${teamId}` : `user ${userId}`}.`,
-      JSON.safeStringify(error)
+      safeStringify(error)
     );
   }
 }
@@ -161,7 +162,7 @@ export async function deleteSubscription({
       `Error deleting subscription for user ${
         teamId ? `team ${teamId}` : `userId ${userId}`
       }, webhookId ${webhookId}`,
-      JSON.safeStringify(err)
+      safeStringify(err)
     );
   }
 }
@@ -266,7 +267,7 @@ export async function listBookings(
 
     log.error(
       `Error retrieving list of bookings for ${teamId ? `team ${teamId}` : `user ${userId}`}.`,
-      JSON.safeStringify(err)
+      safeStringify(err)
     );
   }
 }

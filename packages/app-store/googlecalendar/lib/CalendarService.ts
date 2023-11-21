@@ -9,6 +9,7 @@ import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -106,6 +107,7 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
+        this.log.error("Error updating Google credentials", JSON.stringify(err));
         let message;
         if (err instanceof Error) message = err.message;
         else message = String(err);
@@ -502,7 +504,7 @@ export default class GoogleCalendarService implements Calendar {
         return busyData;
       }
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", JSON.safeStringify(error));
+      this.log.error("There was an error contacting google calendar service: ", safeStringify(error));
       throw error;
     }
   }
@@ -524,7 +526,7 @@ export default class GoogleCalendarService implements Calendar {
           } satisfies IntegrationCalendar)
       );
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", JSON.safeStringify(error));
+      this.log.error("There was an error contacting google calendar service: ", safeStringify(error));
       throw error;
     }
   }
