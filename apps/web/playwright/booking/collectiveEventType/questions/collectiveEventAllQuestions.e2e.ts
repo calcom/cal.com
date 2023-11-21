@@ -4,10 +4,12 @@ import { test } from "../../../lib/fixtures";
 
 test.describe("Collective Booking With All Questions", () => {
   test.beforeEach(async ({ page, users, bookingPage }) => {
-    await loginUser(users);
+    const teamEventTitle = "testevent";
+    const userFixture = await users.create({ name: "testuser" }, { hasTeam: true, teamEventTitle });
+    await userFixture.apiLogin();
+
     await page.goto("/event-types");
-    await bookingPage.createTeam("Test Team");
-    await bookingPage.createTeamEventType("Test Collective Event Type", { isCollectiveType: true });
+    await bookingPage.goToEventType(teamEventTitle);
     await bookingPage.goToTab("event_advanced_tab_title");
   });
 
