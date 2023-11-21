@@ -86,12 +86,14 @@ const createTeamAndAddUser = async (
     user,
     isUnpublished,
     isOrg,
+    isOrgVerified,
     hasSubteam,
     organizationId,
   }: {
-    user: { id: number; username: string | null; role?: MembershipRole };
+    user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
     isOrg?: boolean;
+    isOrgVerified?: boolean;
     hasSubteam?: true;
     organizationId?: number | null;
   },
@@ -103,7 +105,14 @@ const createTeamAndAddUser = async (
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
-    ...(isOrg ? { isOrganization: true } : {}),
+    ...(isOrg
+      ? {
+          isOrganization: true,
+          isOrganizationVerified: !!isOrgVerified,
+          orgAutoAcceptEmail: user.email.split("@")[1],
+          isOrganizationConfigured: false,
+        }
+      : {}),
   };
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
@@ -145,6 +154,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
         teamEventSlug?: string;
         teamEventLength?: number;
         isOrg?: boolean;
+        isOrgVerified?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
       } = {}
@@ -292,9 +302,10 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       if (scenario.hasTeam) {
         const team = await createTeamAndAddUser(
           {
-            user: { id: user.id, username: user.username, role: "OWNER" },
+            user: { id: user.id, email: user.email, username: user.username, role: "OWNER" },
             isUnpublished: scenario.isUnpublished,
             isOrg: scenario.isOrg,
+            isOrgVerified: scenario.isOrgVerified,
             hasSubteam: scenario.hasSubteam,
             organizationId: opts?.organizationId,
           },
@@ -410,6 +421,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     routingForms: user.routingForms,
     self,
     apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
+    /**
+     * @deprecated use apiLogin instead
+     */
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     logout: async () => {
       await page.goto("/auth/logout");
