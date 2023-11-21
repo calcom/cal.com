@@ -1261,7 +1261,7 @@ export function getExpectedCalEventForBookingRequest({
 }) {
   return {
     // keep adding more fields as needed, so that they can be verified in all scenarios
-    type: eventType.title,
+    type: eventType.slug,
     // Not sure why, but milliseconds are missing in cal Event.
     startTime: bookingRequest.start.replace(".000Z", "Z"),
     endTime: bookingRequest.end.replace(".000Z", "Z"),
