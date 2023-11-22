@@ -2216,9 +2216,7 @@ async function handler(
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
-
     const isThereAnIntegrationError = results && results.some((res) => !res.success);
-
     if (isThereAnIntegrationError) {
       const error = {
         errorCode: "BookingReschedulingMeetingFailed",
@@ -2249,7 +2247,7 @@ async function handler(
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
 
-      // location might changed and will be new create in eventManager.create (organizer default location)
+      // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
       const createManager = await eventManager.create(evt);
 
@@ -2324,7 +2322,7 @@ async function handler(
               });
             }
           }
-          // TODO: Handle created event metadata more elegantly
+
           metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
           metadata.conferenceData = results[0].createdEvent?.conferenceData;
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
@@ -2336,19 +2334,6 @@ async function handler(
             videoCallUrl;
         }
       }
-    }
-
-    //update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot) {
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-        },
-      });
     }
 
     evt.appsStatus = handleAppsStatus(results, booking);
