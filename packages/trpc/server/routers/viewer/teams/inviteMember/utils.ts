@@ -456,12 +456,14 @@ export const sendTeamInviteEmails = async ({
   currentUserTeamName,
   currentUserName,
   isOrg,
+  teamId,
 }: {
   language: TFunction;
   existingUsersWithMembersips: UserWithMembership[];
   currentUserTeamName?: string;
   currentUserName?: string | null;
   isOrg: boolean;
+  teamId: number;
 }) => {
   const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
     let sendTo = user.email;
@@ -485,6 +487,11 @@ export const sendTeamInviteEmails = async ({
             identifier: user.email,
             token,
             expires: new Date(new Date().setHours(168)), // +1 week
+            team: {
+              connect: {
+                id: teamId,
+              },
+            },
           },
         });
 

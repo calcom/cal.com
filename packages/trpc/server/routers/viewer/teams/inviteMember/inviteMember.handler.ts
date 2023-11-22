@@ -117,6 +117,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         existingUsersWithMembersips: regularUsers,
         language: translation,
         isOrg: input.isOrg,
+        teamId: team.id,
       });
     }
   }
