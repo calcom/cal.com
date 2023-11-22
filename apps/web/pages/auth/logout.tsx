@@ -1,6 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
-import { signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { destroy, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -20,14 +20,19 @@ type Props = inferSSRProps<typeof getServerSideProps>;
 export function Logout(props: Props) {
   const [btnLoading, setBtnLoading] = useState<boolean>(false);
   const { status } = useSession();
-  if (status === "authenticated") signOut({ redirect: false });
   const router = useRouter();
+
   useEffect(() => {
+    if (status === "authenticated") {
+      // Destroy the session and remove the session cookie
+      destroy();
+    }
+
     if (props.query?.survey === "true") {
       router.push(`${WEBSITE_URL}/cancellation`);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.query?.survey]);
+  }, [props.query?.survey, status]);
+
   const { t } = useLocale();
 
   const message = () => {
@@ -72,11 +77,6 @@ export default Logout;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
-  // Deleting old cookie manually, remove this code after all existing cookies have expired
-  context.res.setHeader(
-    "Set-Cookie",
-    "next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-  );
 
   return {
     props: {
