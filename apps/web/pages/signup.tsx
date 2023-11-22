@@ -85,7 +85,7 @@ function UsernameField({
   const debouncedUsername = useDebounce(username, 600);
 
   useEffect(() => {
-    if (formState.isSubmitted || formState.isSubmitting || formState.isSubmitSuccessful) return;
+    if (formState.isSubmitting || formState.isSubmitSuccessful) return;
 
     async function checkUsername() {
       if (!debouncedUsername) {
@@ -99,14 +99,7 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [
-    debouncedUsername,
-    setPremium,
-    setUsernameTaken,
-    formState.isSubmitting,
-    formState.isSubmitted,
-    formState.isSubmitSuccessful,
-  ]);
+  }, [debouncedUsername, setPremium, setUsernameTaken, formState.isSubmitting, formState.isSubmitSuccessful]);
 
   return (
     <div>
@@ -170,8 +163,10 @@ export default function Signup({
   const {
     register,
     watch,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting, errors, isSubmitSuccessful },
   } = formMethods;
+
+  const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
   const handleErrorsAndStripe = async (resp: Response) => {
     if (!resp.ok) {
@@ -300,7 +295,7 @@ export default function Signup({
               <Button
                 type="submit"
                 className="my-2 w-full justify-center"
-                loading={isSubmitting}
+                loading={loadingSubmitState}
                 disabled={
                   !!formMethods.formState.errors.username ||
                   !!formMethods.formState.errors.email ||
