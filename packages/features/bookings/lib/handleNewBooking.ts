@@ -1915,11 +1915,16 @@ async function handler(
     evt.recurringEvent = eventType.recurringEvent;
   }
 
+  const changedOrganizer =
+    !!originalRescheduledBooking &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    originalRescheduledBooking.userId !== evt.organizer.id;
+
   async function createBooking() {
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
       evt.description = originalRescheduledBooking?.description || evt.description;
-      evt.location = originalRescheduledBooking?.location || evt.location;
+      evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
     }
 
     const eventTypeRel = !eventTypeId
@@ -2192,21 +2197,14 @@ async function handler(
       });
     }
 
-    const changedOrganizer =
-      eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-      originalRescheduledBooking.userId !== evt.organizer.id;
-
-    const updatedEvt = {
-      ...evt,
-      destinationCalendar: originalRescheduledBooking?.destinationCalendar
-        ? [originalRescheduledBooking?.destinationCalendar]
-        : originalRescheduledBooking?.user?.destinationCalendar
-        ? [originalRescheduledBooking?.user.destinationCalendar]
-        : evt.destinationCalendar,
-    };
+    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+      ? [originalRescheduledBooking?.destinationCalendar]
+      : originalRescheduledBooking?.user?.destinationCalendar
+      ? [originalRescheduledBooking?.user.destinationCalendar]
+      : evt.destinationCalendar;
 
     const updateManager = await eventManager.reschedule(
-      updatedEvt,
+      evt,
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer
@@ -2249,7 +2247,11 @@ async function handler(
 
     //if organizer changed we need to create a new booking (reschedule only cancels the old one)
     if (changedOrganizer) {
-      const createManager = await eventManager.create({ ...evt, title: getEventName(eventNameObject) });
+      evt.title = getEventName(eventNameObject);
+
+      // location might changed and will be new create in eventManager.create (organizer default location)
+      evt.videoCallData = undefined;
+      const createManager = await eventManager.create(evt);
 
       // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
       // to the default description when we are sending the emails.
@@ -2328,13 +2330,13 @@ async function handler(
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
           evt.appsStatus = handleAppsStatus(results, booking);
           videoCallUrl =
-            metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+            metadata.hangoutLink ||
+            results[0].createdEvent?.url ||
+            organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+            videoCallUrl;
         }
       }
     }
-
-    results = updateManager.results;
-    referencesToCreate = updateManager.referencesToCreate;
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
@@ -2579,7 +2581,7 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt),
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
       }
     : undefined;
 
