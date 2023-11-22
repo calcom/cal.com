@@ -4,7 +4,7 @@ import { NextResponse, URLPattern } from "next/server";
 import z from "zod";
 
 const ROUTES: [URLPattern, boolean][] = [
-  ["/event-types", Boolean(process.env.APP_ROUTER_EVENT_TYPES_ENABLED)] as const,
+  ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
