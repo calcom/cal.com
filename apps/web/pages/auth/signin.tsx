@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getProviders, signIn, getCsrfToken } from "next-auth/react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { setCsrfToken } from "@calcom/features/auth/lib/set-csrf-token";
 import { Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
