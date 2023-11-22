@@ -71,6 +71,9 @@ export const generateTeamCheckoutSession = async ({
   return session;
 };
 
+/**
+ * Used to generate a checkout session when creating a new org (parent team) or backwards compatibility for old teams
+ */
 export const purchaseTeamSubscription = async (input: {
   teamId: number;
   seats: number;

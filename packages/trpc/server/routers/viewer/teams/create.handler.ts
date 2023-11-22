@@ -72,13 +72,16 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
   }
 
-  const checkoutSession = await generateCheckoutSession({
-    teamSlug: slug,
-    teamName: name,
-    userId: user.id,
-  });
+  // If the user is not a part of an org, then make them pay before creating the team
+  if (!isOrgChildTeamd) {
+    const checkoutSession = await generateCheckoutSession({
+      teamSlug: slug,
+      teamName: name,
+      userId: user.id,
+    });
 
-  return checkoutSession;
+    return checkoutSession;
+  }
 
   // Ensure that the user is not duplicating a requested team
   const duplicatedRequest = await prisma.team.findFirst({
