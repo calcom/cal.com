@@ -175,13 +175,9 @@ export const AddNewTeamMembersForm = ({
         className="w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
-          if (orgBranding) {
-            router.push("/settings/teams");
-          } else {
-            publishTeamMutation.mutate({ teamId });
-          }
+          router.push(`/settings/teams/${teamId}/profile`);
         }}>
-        {t(orgBranding ? "finish" : "team_publish")}
+        {t("finish")}
       </Button>
     </>
   );

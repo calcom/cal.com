@@ -1,3 +1,4 @@
+import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -10,8 +11,8 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
 import { useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Form, ImageUploader, TextField, Alert, Label } from "@calcom/ui";
-import { ArrowRight, Plus } from "@calcom/ui/components/icon";
+import { Button, Form, TextField, Alert } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import type { NewTeamFormValues } from "../lib/types";
@@ -128,35 +129,14 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="mb-8">
-          <Controller
-            control={newTeamFormMethods.control}
-            name="logo"
-            render={({ field: { value } }) => (
-              <>
-                <Label>{t("team_logo")}</Label>
-                <div className="flex items-center">
-                  <Avatar
-                    alt=""
-                    imageSrc={value}
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
-                    size="lg"
-                  />
-                  <div className="ms-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("update")}
-                      handleAvatarChange={(newAvatar: string) => {
-                        newTeamFormMethods.setValue("logo", newAvatar);
-                        createTeamMutation.reset();
-                      }}
-                      imageSrc={value}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+        <div className="mb-8 flex justify-center">
+          <Alert
+            severity="warning"
+            title={
+              <Trans i18nKey="create_new_team_billing">
+                In order to create a new team, you must purchase at one seat.
+              </Trans>
+            }
           />
         </div>
 
@@ -174,7 +154,7 @@ export const CreateANewTeamForm = () => {
             EndIcon={ArrowRight}
             type="submit"
             className="w-full justify-center">
-            {t("continue")}
+            {t("checkout")}
           </Button>
         </div>
       </Form>
