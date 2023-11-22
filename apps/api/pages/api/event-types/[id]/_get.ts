@@ -43,10 +43,21 @@ import getCalLink from "../_utils/getCalLink";
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
-  const { id } = schemaQueryIdParseInt.parse(query);
+
+  const parsedId = schemaQueryIdParseInt.safeParse(query);
+  const { id: slug } = schemaQueryIdAsString.parse(query);
+  if (isAdmin) return;
+
+  const idOrSlugQuery: { id?: int; slug?: string } = {};
+
+  if (parsedId.success) {
+    idOrSlugQuery.id = parsedId.data.id;
+  } else {
+    idOrSlugQuery.slug = slug;
+  }
 
   const eventType = await prisma.eventType.findUnique({
-    where: { id },
+    where: idOrSlugQuery,
     include: {
       customInputs: true,
       team: { select: { slug: true } },
