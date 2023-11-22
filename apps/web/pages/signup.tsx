@@ -307,7 +307,7 @@ export default function Signup({
               </Button>
             </Form>
             {/* Continue with Social Logins */}
-            {!isGoogleLoginEnabled && !isSAMLLoginEnabled ? null : (
+            {token || (!isGoogleLoginEnabled && !isSAMLLoginEnabled) ? null : (
               <div className="mt-6">
                 <div className="relative flex items-center">
                   <div className="border-subtle flex-grow border-t" />
