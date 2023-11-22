@@ -74,7 +74,7 @@ export class PaymentService implements IAbstractPaymentService {
           currency: payment.currency,
           data: Object.assign(
             {},
-            { invoice: { ...invoice, isPaid: await invoice.isPaid() } }
+            { invoice: { ...invoice, isPaid: false } }
           ) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
