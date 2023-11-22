@@ -85,6 +85,8 @@ function UsernameField({
   const debouncedUsername = useDebounce(username, 600);
 
   useEffect(() => {
+    if (formState.isSubmitted || formState.isSubmitting || formState.isSubmitSuccessful) return;
+
     async function checkUsername() {
       if (!debouncedUsername) {
         setPremium(false);
@@ -97,7 +99,14 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [debouncedUsername, setPremium, setUsernameTaken]);
+  }, [
+    debouncedUsername,
+    setPremium,
+    setUsernameTaken,
+    formState.isSubmitting,
+    formState.isSubmitted,
+    formState.isSubmitSuccessful,
+  ]);
 
   return (
     <div>
@@ -107,7 +116,7 @@ function UsernameField({
         data-testid="signup-usernamefield"
         addOnFilled={false}
       />
-      {!formState.isSubmitting && (
+      {(!formState.isSubmitting || !formState.isSubmitted) && (
         <div className="text-gray text-default flex items-center text-sm">
           <p className="flex items-center text-sm ">
             {usernameTaken ? (
