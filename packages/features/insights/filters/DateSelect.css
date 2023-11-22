@@ -11,6 +11,10 @@
   }
 }
 
+.recharts-cartesian-grid-horizontal line{
+  @apply stroke-emphasis
+}
+
 .tremor-DateRangePicker-button button{
   @apply !h-9 !max-h-9 border-default hover:border-emphasis
 }
