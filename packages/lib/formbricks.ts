@@ -9,22 +9,28 @@ enum Rating {
   "Extremely satisfied" = 4,
 }
 
-if (!process.env.FORMBRICKS_HOST_URL || !process.env.FORMBRICKS_ENVIRONMENT_ID)
-  throw new Error("Missing FORMBRICKS_HOST_URL or FORMBRICKS_ENVIRONMENT_ID env variable");
-const api = new FormbricksAPI({
-  apiHost: process.env.FORMBRICKS_HOST_URL,
-  environmentId: process.env.FORMBRICKS_ENVIRONMENT_ID,
-});
-
-export const sendFeedbackFormbricks = async (feedback: Feedback) => {
+export const sendFeedbackFormbricks = async (userId: number, feedback: Feedback) => {
+  if (!process.env.FORMBRICKS_HOST_URL || !process.env.FORMBRICKS_ENVIRONMENT_ID)
+    throw new Error("Missing FORMBRICKS_HOST_URL or FORMBRICKS_ENVIRONMENT_ID env variable");
+  const api = new FormbricksAPI({
+    apiHost: process.env.FORMBRICKS_HOST_URL,
+    environmentId: process.env.FORMBRICKS_ENVIRONMENT_ID,
+  });
   if (process.env.FORMBRICKS_FEEDBACK_SURVEY_ID) {
+    const formbricksUserId = userId.toString();
     await api.client.response.create({
       surveyId: process.env.FORMBRICKS_FEEDBACK_SURVEY_ID,
-      userId: `${feedback.username}`,
+      userId: formbricksUserId,
       finished: true,
       data: {
         "formbricks-share-comments-question": feedback.comment,
         "formbricks-rating-question": Rating[feedback.rating],
+      },
+    });
+    await api.client.people.update(formbricksUserId, {
+      attributes: {
+        email: feedback.email,
+        username: feedback.username,
       },
     });
   }

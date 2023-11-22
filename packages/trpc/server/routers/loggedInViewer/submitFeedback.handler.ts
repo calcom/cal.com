@@ -32,7 +32,7 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
     },
   });
   if (process.env.FORMBRICKS_HOST_URL && process.env.FORMBRICKS_ENVIRONMENT_ID)
-    sendFeedbackFormbricks(feedback);
+    sendFeedbackFormbricks(ctx.user.id, feedback);
 
   if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
 };
