@@ -324,7 +324,7 @@ export default function Signup({
                 {isGoogleLoginEnabled ? (
                   <Button
                     color="secondary"
-                    disabled={!!formMethods.formState.errors.username}
+                    disabled={!!formMethods.formState.errors.username || premiumUsername}
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
                       formMethods.formState.errors.username ? "opacity-50" : ""
@@ -343,14 +343,22 @@ export default function Signup({
                       }
                       router.push(GOOGLE_AUTH_URL);
                     }}>
-                    <img className="text-emphasis mr-2 h-5 w-5" src="/google-icon.svg" alt="" />
+                    <img
+                      className={classNames("text-emphasis  mr-2 h-5 w-5", premiumUsername && "opacity-50")}
+                      src="/google-icon.svg"
+                      alt=""
+                    />
                     Google
                   </Button>
                 ) : null}
                 {isSAMLLoginEnabled ? (
                   <Button
                     color="secondary"
-                    disabled={!!formMethods.formState.errors.username || !!formMethods.formState.errors.email}
+                    disabled={
+                      !!formMethods.formState.errors.username ||
+                      !!formMethods.formState.errors.email ||
+                      premiumUsername
+                    }
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
                       formMethods.formState.errors.username && formMethods.formState.errors.email

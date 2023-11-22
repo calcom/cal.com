@@ -5,6 +5,7 @@ import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHo
 import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 
 function ensureSignupIsEnabled() {
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
@@ -45,6 +46,7 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
     if (e instanceof HttpError) {
       return res.status(e.statusCode).json({ message: e.message });
     }
+    logger.error(e);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
