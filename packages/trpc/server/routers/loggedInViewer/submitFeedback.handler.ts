@@ -31,7 +31,8 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
       comment: comment,
     },
   });
-  if (process.env.FORMBRICKS) sendFeedbackFormbricks(feedback);
+  if (process.env.FORMBRICKS_HOST_URL && process.env.FORMBRICKS_ENVIRONMENT_ID)
+    sendFeedbackFormbricks(feedback);
 
   if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
 };

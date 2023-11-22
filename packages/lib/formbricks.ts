@@ -9,11 +9,11 @@ enum Rating {
   "Extremely satisfied" = 4,
 }
 
-if (!process.env.FORMBRICKS) throw new Error("Missing NEXT_PUBLIC_FORMBRICKS env variable");
-const [apiHost, environmentId] = process.env.FORMBRICKS.split("+");
+if (!process.env.FORMBRICKS_HOST_URL || !process.env.FORMBRICKS_ENVIRONMENT_ID)
+  throw new Error("Missing FORMBRICKS_HOST_URL or FORMBRICKS_ENVIRONMENT_ID env variable");
 const api = new FormbricksAPI({
-  apiHost,
-  environmentId,
+  apiHost: process.env.FORMBRICKS_HOST_URL,
+  environmentId: process.env.FORMBRICKS_ENVIRONMENT_ID,
 });
 
 export const sendFeedbackFormbricks = async (feedback: Feedback) => {
