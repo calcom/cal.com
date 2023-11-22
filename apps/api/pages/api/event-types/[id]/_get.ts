@@ -5,6 +5,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
@@ -44,10 +45,13 @@ import getCalLink from "../_utils/getCalLink";
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
-  const { id } = schemaQueryIdParseInt.parse(query);
+  const idParse = schemaQueryIdParseInt.safeParse(query);
+  const { id: slug } = schemaQueryIdAsString.parse(query);
 
-  const eventType = await prisma.eventType.findUnique({
-    where: { id },
+  const id = idParse.success ? idParse.data.id : undefined;
+
+  const eventType = await prisma.eventType.findFirst({
+    where: { OR: [{ id }, { slug }], AND: { users: { some: { id: req.userId } } } },
     include: {
       customInputs: true,
       team: { select: { slug: true } },
