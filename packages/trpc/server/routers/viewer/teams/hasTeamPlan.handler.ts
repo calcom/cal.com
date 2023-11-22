@@ -14,11 +14,6 @@ export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
     where: {
       accepted: true,
       userId,
-      team: {
-        slug: {
-          not: null,
-        },
-      },
     },
   });
   return { hasTeamPlan: !!hasTeamPlan };
