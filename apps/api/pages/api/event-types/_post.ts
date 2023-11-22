@@ -322,7 +322,7 @@ async function checkPermissions(req: NextApiRequest) {
       message: "ADMIN required for `teamId`",
     });
   /* Admin users are required to pass in a userId or teamId */
-  if (isAdmin && (!body.userId && !body.teamId))
+  if (isAdmin && !body.userId && !body.teamId)
     throw new HttpError({ statusCode: 400, message: "`userId` or `teamId` required" });
 }
 
