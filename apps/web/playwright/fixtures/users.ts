@@ -429,7 +429,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
-    apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
+    apiLogin: async (password?: string) =>
+      apiLogin({ ...(await self()), password: password || user.username }, store.page),
     /**
      * @deprecated use apiLogin instead
      */
