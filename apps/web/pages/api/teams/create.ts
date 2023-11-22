@@ -37,10 +37,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // Let's query to ensure that the team metadata carried over from the checkout session.
   const parseCheckoutSessionMetadata = checkoutSessionMetadataSchema.safeParse(checkoutSession.metadata);
-  console.log(
-    "🚀 ~ file: create.ts:41 ~ handler ~ parseCheckoutSessionMetadata:",
-    parseCheckoutSessionMetadata
-  );
 
   if (!parseCheckoutSessionMetadata.success) {
     console.error(
@@ -62,8 +58,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     teamSlug: checkoutSession?.metadata?.teamSlug ?? generateRandomString(),
     userId: checkoutSession.metadata.userId,
   };
-
-  console.log("🚀 ~ file: create.ts:53 ~ handler ~ checkoutSessionMetadata:", checkoutSessionMetadata);
 
   const team = await prisma.team.create({
     data: {
