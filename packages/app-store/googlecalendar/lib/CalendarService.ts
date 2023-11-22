@@ -107,7 +107,7 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
-        this.log.error("Error updating Google credentials", safeStringify(err));
+        this.log.error("Error Refreshing Google Token", safeStringify(err));
         let message;
         if (err instanceof Error) message = err.message;
         else message = String(err);
@@ -253,7 +253,10 @@ export default class GoogleCalendarService implements Calendar {
         iCalUID: event.data.iCalUID,
       };
     } catch (error) {
-      console.error("There was an error contacting google calendar service: ", error);
+      console.error(
+        "There was an error creating event in google calendar: ",
+        safeStringify({ error, selectedCalendar, credentialId })
+      );
       throw error;
     }
   }
@@ -334,7 +337,10 @@ export default class GoogleCalendarService implements Calendar {
       }
       return evt?.data;
     } catch (error) {
-      console.error("There was an error contacting google calendar service: ", error);
+      this.log.error(
+        "There was an error updating event in google calendar: ",
+        safeStringify({ error, event, uid })
+      );
       throw error;
     }
   }
@@ -356,6 +362,10 @@ export default class GoogleCalendarService implements Calendar {
       });
       return event?.data;
     } catch (error) {
+      this.log.error(
+        "There was an error deleting event from google calendar: ",
+        safeStringify({ error, event, externalCalendarId })
+      );
       const err = error as GoogleCalError;
       /**
        *  410 is when an event is already deleted on the Google cal before on cal.com
@@ -504,7 +514,10 @@ export default class GoogleCalendarService implements Calendar {
         return busyData;
       }
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", safeStringify(error));
+      this.log.error(
+        "There was an error getting availability from google calendar: ",
+        safeStringify({ error, selectedCalendars })
+      );
       throw error;
     }
   }
@@ -526,7 +539,7 @@ export default class GoogleCalendarService implements Calendar {
           } satisfies IntegrationCalendar)
       );
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", safeStringify(error));
+      this.log.error("There was an error getting calendars: ", safeStringify(error));
       throw error;
     }
   }
