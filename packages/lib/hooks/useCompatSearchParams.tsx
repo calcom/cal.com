@@ -9,7 +9,7 @@ export const useCompatSearchParams = () => {
     searchParams.delete(key);
 
     const param = params[key];
-    const paramArr = typeof param === "string" ? param.split("/") : param;
+    const paramArr = typeof param === "string" ? param.split("/") : Array.isArray(param) ? param : [];
 
     paramArr.forEach((p) => {
       searchParams.append(key, p);
