@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const data: StripeData = { ...response, default_currency: "" };
   if (response["stripe_user_id"]) {
     const account = await stripe.accounts.retrieve(response["stripe_user_id"]);
-    data["default_currency"] = account.default_currency;
+    data["default_currency"] = account.default_currency || "";
   }
 
   await createOAuthAppCredential(

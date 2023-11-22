@@ -70,5 +70,5 @@ export async function getStripeCustomerId(user: UserType): Promise<string> {
 
 const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY || "";
 export const stripe = new Stripe(stripePrivateKey, {
-  apiVersion: "2020-08-27",
+  apiVersion: "2023-10-16",
 });
