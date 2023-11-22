@@ -27,6 +27,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await fetch(job.subscriberUrl, {
         method: "POST",
         body: job.payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     } catch (error) {
       console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
