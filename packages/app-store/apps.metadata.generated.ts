@@ -13,6 +13,7 @@ import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import deel_config_json from "./deel/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -47,6 +48,7 @@ import riverside_config_json from "./riverside/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
+import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
 import skiff_config_json from "./skiff/config.json";
@@ -87,6 +89,7 @@ export const appStoreMetadata = {
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  deel: deel_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -121,6 +124,7 @@ export const appStoreMetadata = {
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   sendgrid: sendgrid_config_json,
+  shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
   skiff: skiff_config_json,
