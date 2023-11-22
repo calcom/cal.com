@@ -1,9 +1,9 @@
 import type { GetServerSidePropsContext } from "next";
-import { setCsrfToken } from "pages/api/auth/csrf";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { setCsrfToken } from "@calcom/features/auth/lib/set-csrf-token";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import {

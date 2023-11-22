@@ -2,7 +2,6 @@ import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { setCsrfToken } from "pages/api/auth/csrf";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -12,6 +11,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { setCsrfToken } from "@calcom/features/auth/lib/set-csrf-token";
 import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
