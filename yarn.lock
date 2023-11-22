@@ -3143,82 +3143,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-"@calcom/auth@workspace:apps/auth":
-  version: 0.0.0-use.local
-  resolution: "@calcom/auth@workspace:apps/auth"
-  dependencies:
-    "@auth/core": ^0.1.4
-    "@calcom/app-store": "*"
-    "@calcom/app-store-cli": "*"
-    "@calcom/config": "*"
-    "@calcom/core": "*"
-    "@calcom/dayjs": "*"
-    "@calcom/embed-core": "workspace:*"
-    "@calcom/embed-react": "workspace:*"
-    "@calcom/embed-snippet": "workspace:*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-    "@calcom/prisma": "*"
-    "@calcom/trpc": "*"
-    "@calcom/tsconfig": "*"
-    "@calcom/types": "*"
-    "@calcom/ui": "*"
-    "@types/node": 16.9.1
-    "@types/react": 18.0.26
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "@types/react-dom": ^18.0.9
-    eslint: ^8.34.0
-    eslint-config-next: ^13.2.1
-    next: ^13.4.6
-    next-auth: ^4.22.1
-    postcss: ^8.4.18
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    tailwindcss: ^3.3.1
-=======
-    "@types/react-dom": 18.0.9
-=======
-    "@types/react-dom": ^18.0.9
->>>>>>> 9a95a42e7 (Update yarn.lock)
-    eslint: ^8.34.0
-    eslint-config-next: ^13.2.1
-    next: ^13.4.6
-    next-auth: ^4.22.1
-    postcss: ^8.4.18
-    react: ^18.2.0
-    react-dom: ^18.2.0
-<<<<<<< HEAD
->>>>>>> 778a1cd31 (Update yarn.lock)
-=======
-    tailwindcss: ^3.3.1
->>>>>>> 9a95a42e7 (Update yarn.lock)
-=======
-    "@types/react-dom": 18.0.9
-    eslint: ^8.34.0
-    eslint-config-next: ^13.2.1
-    next: ^13.2.1
-    next-auth: ^4.20.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
->>>>>>> 8e1fa565b (Update yarn.lock)
-    typescript: ^4.9.4
-  languageName: unknown
-  linkType: soft
-
-<<<<<<< HEAD
-=======
->>>>>>> 63bd5a6de (fix: use formbricks/api@v1.1 & set user with userId linked to feedback)
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-=======
->>>>>>> c924abbac (fix: yarn lockfile)
 "@calcom/basecamp3@workspace:packages/app-store/basecamp3":
   version: 0.0.0-use.local
   resolution: "@calcom/basecamp3@workspace:packages/app-store/basecamp3"
@@ -7399,45 +7323,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-"@prisma/debug@npm:5.5.2":
-  version: 5.5.2
-  resolution: "@prisma/debug@npm:5.5.2"
-  dependencies:
-    "@types/debug": 4.1.9
-    debug: 4.3.4
-    strip-ansi: 6.0.1
-  checksum: ff082622d4ba1b6fe07edda85a7b4dfb499308857e015645b9fec2041288fb0247d73974386edda2c25bac7d5167b6008e118386f169d20215035a70d5742d2a
-  languageName: node
-  linkType: hard
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-"@prisma/engines-version@npm:4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81":
-  version: 4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81
-  resolution: "@prisma/engines-version@npm:4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81"
-  checksum: b42c6abe7c1928e546f15449e40ffa455701ef2ab1f62973628ecb4e19ff3652e34609a0d83196d1cbd0864adb44c55e082beec852b11929acf1c15fb57ca45a
-  languageName: node
-  linkType: hard
-
-<<<<<<< HEAD
->>>>>>> 778a1cd31 (Update yarn.lock)
-=======
->>>>>>> 9a95a42e7 (Update yarn.lock)
-=======
->>>>>>> 63bd5a6de (fix: use formbricks/api@v1.1 & set user with userId linked to feedback)
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-=======
->>>>>>> c924abbac (fix: yarn lockfile)
 "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574":
   version: 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
   resolution: "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574"
@@ -11989,53 +11874,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 7e7267261 (test: Add more orgs tests (#12241))
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-"@types/js-yaml@npm:^4.0.0":
-  version: 4.0.6
-  resolution: "@types/js-yaml@npm:4.0.6"
-  checksum: d4439ec2cc830d355c2a1d7508f49888931b2cfe59d786d27621edd530bf06314b1dceeaa759e21f9b035a0ff623a0ca306752ebb73df9485c02abe045bd962c
-<<<<<<< HEAD
-=======
 "@types/jsdom@npm:^21.1.3":
-  version: 21.1.6
-  resolution: "@types/jsdom@npm:21.1.6"
+  version: 21.1.4
+  resolution: "@types/jsdom@npm:21.1.4"
   dependencies:
     "@types/node": "*"
     "@types/tough-cookie": "*"
     parse5: ^7.0.0
-  checksum: d6fbaab3065ec0bc5b54ae2f15eb18f28045ffa5cece438f96f4bc86819fc8c547e96cede650d14516429dfdc45075b36a46c135849f868b1ae8281717c8e591
->>>>>>> c924abbac (fix: yarn lockfile)
+  checksum: 915f619111dadd8d1bb7f12b6736c9d2e486911e1aed086de5fb003e7e40ae1e368da322dc04f2122ef47faf40ca75b9315ae2df3e8011f882dcf84660fb0d68
   languageName: node
   linkType: hard
 
-=======
->>>>>>> fd72c64c5 (feat: integrate formbricks in help feedback box)
-"@types/jsdom@npm:^21.1.3":
-  version: 21.1.6
-  resolution: "@types/jsdom@npm:21.1.6"
-  dependencies:
-    "@types/node": "*"
-    "@types/tough-cookie": "*"
-    parse5: ^7.0.0
-  checksum: d6fbaab3065ec0bc5b54ae2f15eb18f28045ffa5cece438f96f4bc86819fc8c547e96cede650d14516429dfdc45075b36a46c135849f868b1ae8281717c8e591
-=======
->>>>>>> 8e1fa565b (Update yarn.lock)
-  languageName: node
-  linkType: hard
-
-<<<<<<< HEAD
-=======
->>>>>>> 63bd5a6de (fix: use formbricks/api@v1.1 & set user with userId linked to feedback)
-=======
->>>>>>> 7e7267261 (test: Add more orgs tests (#12241))
 "@types/jsforce@npm:^1.11.0":
   version: 1.11.0
   resolution: "@types/jsforce@npm:1.11.0"
