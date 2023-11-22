@@ -7,11 +7,11 @@ declare global {
 }
 
 export type Window = typeof window;
-//creates the single server fixture
+// creates the single server fixture
 export const createClipboardFixture = (page: Page) => {
   return {
     reset: async () => {
-      return await page.evaluate(() => {
+      await page.evaluate(() => {
         delete window.E2E_CLIPBOARD_VALUE;
       });
     },
@@ -24,17 +24,11 @@ export const createClipboardFixture = (page: Page) => {
 function getClipboardValue({ page }: { page: Page }) {
   return page.evaluate(() => {
     return new Promise<string>((resolve, reject) => {
-      const intervalId = setInterval(() => {
-        if (window.E2E_CLIPBOARD_VALUE) {
-          clearInterval(intervalId);
-          resolve(window.E2E_CLIPBOARD_VALUE);
-        }
+      setInterval(() => {
+        if (!window.E2E_CLIPBOARD_VALUE) return;
+        resolve(window.E2E_CLIPBOARD_VALUE);
       }, 500);
-
-      setTimeout(() => {
-        clearInterval(intervalId);
-        reject(new Error("Timeout"));
-      }, 5000);
+      setTimeout(() => reject(new Error("Timeout")), 1000);
     });
   });
 }

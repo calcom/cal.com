@@ -93,10 +93,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     const inviteLink =
       isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;
-    await navigator.clipboard.writeText(inviteLink);
-    showToast(t("invite_link_copied"), "success");
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      (window as WindowWithClipboardValue).E2E_CLIPBOARD_VALUE = inviteLink;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      showToast(t("invite_link_copied"), "success");
+    } catch (e) {
+      if (process.env.NEXT_PUBLIC_IS_E2E) {
+        (window as WindowWithClipboardValue).E2E_CLIPBOARD_VALUE = inviteLink;
+      }
+      console.error(e);
     }
   };
 
