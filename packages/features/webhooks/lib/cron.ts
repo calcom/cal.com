@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
@@ -19,15 +20,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         lte: dayjs().toISOString(),
       },
     },
+    include: {
+      webhook: true,
+    },
   });
 
   // run jobs
   for (const job of jobsToRun) {
     try {
-      await fetch(job.subscriberUrl, {
-        method: "POST",
-        body: job.payload,
-      });
+      if (job.webhook) {
+        const payload = JSON.parse(job.payload);
+        await sendPayload(
+          job?.webhook?.secret,
+          payload?.triggerEvent,
+          new Date().toISOString(),
+          job.webhook,
+          payload
+        );
+      } else {
+        await fetch(job.subscriberUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: job.payload,
+        });
+      }
     } catch (error) {
       console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
 

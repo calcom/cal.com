@@ -280,6 +280,7 @@ export async function scheduleTrigger(
         payload,
         startAfter: booking.endTime,
         subscriberUrl,
+        webhookId: subscriber.id,
       },
     });
 
