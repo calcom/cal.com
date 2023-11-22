@@ -125,7 +125,7 @@
     "sanitize-html": "^2.10.0",
     "schema-dts": "^1.1.0",
     "short-uuid": "^4.2.0",
-    "stripe": "^14.3.0",
+    "stripe": "^9.16.0",
     "superjson": "1.9.1",
     "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.1",

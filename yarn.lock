@@ -3484,7 +3484,7 @@ __metadata:
     lodash: ^4.17.21
     qs-stringify: ^1.2.1
     react-i18next: ^12.2.0
-    stripe: ^14.3.0
+    stripe: ^9.16.0
   languageName: unknown
   linkType: soft
 
@@ -4335,7 +4335,7 @@ __metadata:
     "@calcom/types": "*"
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
-    stripe: ^14.3.0
+    stripe: ^9.16.0
     ts-node: ^10.9.1
     uuid: ^8.3.2
     zod: ^3.22.2
@@ -4633,7 +4633,7 @@ __metadata:
     sanitize-html: ^2.10.0
     schema-dts: ^1.1.0
     short-uuid: ^4.2.0
-    stripe: ^14.3.0
+    stripe: ^9.16.0
     superjson: 1.9.1
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
@@ -4755,7 +4755,7 @@ __metadata:
     remark: ^14.0.2
     remark-html: ^14.0.1
     remeda: ^1.24.1
-    stripe: ^14.3.0
+    stripe: ^9.16.0
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     ts-node: ^10.9.1
@@ -33265,15 +33265,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.11.0":
-  version: 6.11.2
-  resolution: "qs@npm:6.11.2"
-  dependencies:
-    side-channel: ^1.0.4
-  checksum: e812f3c590b2262548647d62f1637b6989cc56656dc960b893fe2098d96e1bd633f36576f4cd7564dfbff9db42e17775884db96d846bebe4f37420d073ecdc0b
-  languageName: node
-  linkType: hard
-
 "qs@npm:~6.5.2":
   version: 6.5.3
   resolution: "qs@npm:6.5.3"
@@ -37325,13 +37316,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:^14.3.0":
-  version: 14.3.0
-  resolution: "stripe@npm:14.3.0"
+"stripe@npm:^9.16.0":
+  version: 9.16.0
+  resolution: "stripe@npm:9.16.0"
   dependencies:
     "@types/node": ">=8.1.0"
-    qs: ^6.11.0
-  checksum: 1aa0dec1fe8cd4c0d2a5378b9d3c69f7df505efdc86b8d6352e194d656129db83b9faaf189b5138fb5fd9a0b90e618dfcff854bb4773d289a0de0b65d0a94cb2
+    qs: ^6.10.3
+  checksum: d84eb9ef3fa0c50e1b62271bf822d3e9da22272ec7364ae8334db7277e42f657c42c10f6fa535c634c36081e17d1c8c5a1efc509b3747f84bfbe4cf2a94ade4b
   languageName: node
   linkType: hard
 
