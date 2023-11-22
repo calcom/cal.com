@@ -119,6 +119,11 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
               identifier: usernameOrEmail,
               token,
               expires: new Date(new Date().setHours(168)), // +1 week
+              team: {
+                connect: {
+                  id: team.id,
+                },
+              },
             },
           });
 
