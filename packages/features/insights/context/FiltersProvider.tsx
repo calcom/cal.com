@@ -1,8 +1,9 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 
 import type { FilterContextType } from "./provider";
@@ -21,7 +22,7 @@ const querySchema = z.object({
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
   const utils = trpc.useContext();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 

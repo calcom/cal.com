@@ -3,7 +3,7 @@ import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lu
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
@@ -18,8 +18,9 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -150,7 +151,7 @@ export default function Signup({
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
 
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const router = useRouter();
