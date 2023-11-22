@@ -3,6 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH, CAL_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -12,24 +14,23 @@ import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 let client_id = "";
 let client_secret = "";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
-    res.status(400).json({ message: "`code` must be a string" });
-    return;
+    throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
   }
 
   if (!req.session?.user?.id) {
-    return res.status(401).json({ message: "You must be logged in to do this" });
+    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
 
   const appKeys = await getAppKeysFromSlug("google-calendar");
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) return res.status(400).json({ message: "Google client_id missing." });
-  if (!client_secret) return res.status(400).json({ message: "Google client_secret missing." });
+  if (!client_id) throw new HttpError({ statusCode: 400, message: "Google client_id missing." });
+  if (!client_secret) throw new HttpError({ statusCode: 400, message: "Google client_secret missing." });
 
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
@@ -107,3 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
   );
 }
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+});
