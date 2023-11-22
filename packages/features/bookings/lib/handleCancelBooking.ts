@@ -227,6 +227,7 @@ async function handler(req: CustomRequest) {
     type: bookingToDelete?.eventType?.slug as string,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+    eventTypeId: bookingToDelete.eventTypeId as number,
     ...getCalEventResponses({
       bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
       booking: bookingToDelete,
