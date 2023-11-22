@@ -31,7 +31,7 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
       comment: comment,
     },
   });
-  if (process.env.FORMBRICKS) sendFeedbackFormbricks(rating, comment);
+  if (process.env.FORMBRICKS) sendFeedbackFormbricks(feedback);
 
   if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
 };

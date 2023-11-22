@@ -1,5 +1,7 @@
 import { FormbricksAPI } from "@formbricks/api";
 
+import type { Feedback } from "@calcom/emails/templates/feedback-email";
+
 enum Rating {
   "Extremely unsatisfied" = 1,
   "Unsatisfied" = 2,
@@ -14,15 +16,15 @@ const api = new FormbricksAPI({
   environmentId,
 });
 
-export const sendFeedbackFormbricks = async (rating: string, comment: string) => {
+export const sendFeedbackFormbricks = async (feedback: Feedback) => {
   if (process.env.FORMBRICKS_FEEDBACK_SURVEY_ID) {
     await api.client.response.create({
       surveyId: process.env.FORMBRICKS_FEEDBACK_SURVEY_ID,
-      personId: null,
+      userId: `${feedback.username}`,
       finished: true,
       data: {
-        "formbricks-share-comments-question": comment,
-        "formbricks-rating-question": Rating[rating],
+        "formbricks-share-comments-question": feedback.comment,
+        "formbricks-rating-question": Rating[feedback.rating],
       },
     });
   }
