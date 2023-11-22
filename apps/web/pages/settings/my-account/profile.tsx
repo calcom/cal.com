@@ -10,7 +10,7 @@ import OrganizationMemberAvatar from "@calcom/features/ee/organizations/componen
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -72,37 +72,22 @@ interface DeleteAccountValues {
 
 type FormValues = {
   username: string;
-  avatar: string | null;
+  avatar: string;
   name: string;
   email: string;
   bio: string;
-};
-
-const checkIfItFallbackImage = (fetchedImgSrc?: string) => {
-  return !fetchedImgSrc || fetchedImgSrc.endsWith(AVATAR_FALLBACK);
 };
 
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { update } = useSession();
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
-
-  const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: async (userData) => {
-      try {
-        if (!userData.organization) {
-          const res = await fetch(userData.avatar);
-          if (res.url) setFetchedImgSrc(res.url);
-        } else {
-          setFetchedImgSrc("");
-        }
-      } catch (err) {
-        setFetchedImgSrc("");
-      }
-    },
+  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
+    enabled: !isLoading && !user?.avatarUrl,
   });
+
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -234,7 +219,7 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: user.avatar || "",
+    avatar: getUserAvatarUrl(user),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -251,8 +236,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
-        isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
-        userAvatar={user.avatar}
+        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -398,7 +382,6 @@ const ProfileForm = ({
   extraField,
   isLoading = false,
   isFallbackImg,
-  userAvatar,
   user,
   userOrganization,
 }: {
@@ -407,7 +390,6 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isLoading: boolean;
   isFallbackImg: boolean;
-  userAvatar: string;
   user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
@@ -416,7 +398,7 @@ const ProfileForm = ({
 
   const profileFormSchema = z.object({
     username: z.string(),
-    avatar: z.string().nullable(),
+    avatar: z.string(),
     name: z
       .string()
       .trim()
@@ -438,7 +420,6 @@ const ProfileForm = ({
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
-
   return (
     <Form form={formMethods} handleSubmit={onSubmit}>
       <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
@@ -447,7 +428,7 @@ const ProfileForm = ({
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => {
-              const showRemoveAvatarButton = !isFallbackImg || (value && userAvatar !== value);
+              const showRemoveAvatarButton = value === null ? false : !isFallbackImg;
               const organization =
                 userOrganization && userOrganization.id
                   ? {
@@ -474,7 +455,7 @@ const ProfileForm = ({
                         handleAvatarChange={(newAvatar) => {
                           formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                         }}
-                        imageSrc={value || undefined}
+                        imageSrc={value}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "primary"}
                       />
 
@@ -482,7 +463,7 @@ const ProfileForm = ({
                         <Button
                           color="secondary"
                           onClick={() => {
-                            formMethods.setValue("avatar", null, { shouldDirty: true });
+                            formMethods.setValue("avatar", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>

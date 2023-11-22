@@ -717,6 +717,7 @@
   "next_step": "Spring trin over",
   "prev_step": "Forrige trin",
   "install": "Installér",
+  "install_paid_app": "Abonnér",
   "installed": "Installeret",
   "active_install_one": "{{count}} aktiv installation",
   "active_install_other": "{{count}} aktive installationer",

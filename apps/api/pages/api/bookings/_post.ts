@@ -205,8 +205,8 @@ import { defaultResponder } from "@calcom/lib/server";
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin } = req;
   if (isAdmin) req.userId = req.body.userId || userId;
-  const booking = await handleNewBooking(req);
-  return booking;
+
+  return await handleNewBooking(req);
 }
 
 export default defaultResponder(handler);
