@@ -1,3 +1,5 @@
+import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -12,6 +14,31 @@ type CreateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TCreateInputSchema;
+};
+
+const generateCheckoutSession = async ({
+  teamSlug,
+  teamName,
+  userId,
+}: {
+  teamId: number;
+  seats: number;
+  userId: number;
+}) => {
+  if (!IS_TEAM_BILLING_ENABLED) return;
+
+  const checkoutSession = await generateTeamCheckoutSession({
+    teamSlug,
+    teamName,
+    userId,
+  });
+
+  if (!checkoutSession.url)
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed retrieving a checkout session URL.",
+    });
+  return { url: checkoutSession.url, message: "Payment required to publish team" };
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
@@ -44,6 +71,14 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
   }
+
+  const checkoutSession = await generateCheckoutSession({
+    teamSlug: slug,
+    teamName: name,
+    userId: user.id,
+  });
+
+  return checkoutSession;
 
   // Ensure that the user is not duplicating a requested team
   const duplicatedRequest = await prisma.team.findFirst({

@@ -8,7 +8,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Form, ImageUploader, TextField, Alert, Label } from "@calcom/ui";
 import { ArrowRight, Plus } from "@calcom/ui/components/icon";
@@ -42,8 +42,8 @@ export const CreateANewTeamForm = () => {
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
-      telemetry.event(telemetryEventTypes.team_created);
-      router.push(`/settings/teams/${data.id}/onboard-members`);
+      // telemetry.event(telemetryEventTypes.team_created);
+      router.push(data.url);
     },
     onError: (err) => {
       if (err.message === "team_url_taken") {
