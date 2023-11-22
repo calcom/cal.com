@@ -87,6 +87,7 @@ export const sendScheduledEmails = async (
             new AttendeeScheduledEmail(
               {
                 ...calEvent,
+                ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
                 ...(eventNameObject && {
                   title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
                 }),
@@ -183,7 +184,19 @@ export const sendScheduledSeatsEmails = async (
   }
 
   if (!attendeeEmailDisabled) {
-    emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new AttendeeScheduledEmail(
+            {
+              ...calEvent,
+              ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
+            },
+            invitee,
+            showAttendees
+          )
+      )
+    );
   }
   await Promise.all(emailsToSend);
 };

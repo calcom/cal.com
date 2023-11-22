@@ -1,6 +1,8 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
+import classNames from "@calcom/lib/classNames";
+import { Tooltip } from "@calcom/ui";
 
 import type { CalendarEvent } from "../../types/events";
 
@@ -13,7 +15,7 @@ type EventProps = {
 };
 
 const eventClasses = cva(
-  "group flex h-full w-full flex-col overflow-y-auto rounded-[4px] px-[6px] py-1 text-xs font-semibold  leading-5 ",
+  "group flex h-full w-full overflow-y-auto rounded-[6px] px-[6px] text-xs font-semibold leading-5 opacity-80",
   {
     variants: {
       status: {
@@ -62,23 +64,41 @@ export function Event({
   const Component = onEventClick ? "button" : "div";
 
   return (
-    <Component
-      onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
-      className={eventClasses({
-        status: options?.status,
-        disabled,
-        selected,
-        borderColor,
-      })}
-      style={styles}>
-      <div className="w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4">
-        {event.title}
-      </div>
-      {eventDuration > 30 && (
-        <p className="text-subtle text-left text-[10px] leading-none">
-          {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
-        </p>
-      )}
-    </Component>
+    <Tooltip content={event.title}>
+      <Component
+        onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
+        className={classNames(
+          eventClasses({
+            status: options?.status,
+            disabled,
+            selected,
+            borderColor,
+          }),
+          eventDuration > 30 && "flex-col py-1",
+          options?.className
+        )}
+        style={styles}>
+        <div
+          className={classNames(
+            "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
+            eventDuration <= 30 && "items-center"
+          )}>
+          <span>{event.title}</span>
+          {eventDuration <= 30 && !event.options?.hideTime && (
+            <p className="text-subtle w-full whitespace-nowrap text-left text-[10px] leading-none">
+              {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+            </p>
+          )}
+        </div>
+        {eventDuration > 30 && !event.options?.hideTime && (
+          <p className="text-subtle text-left text-[10px] leading-none">
+            {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+          </p>
+        )}
+        {eventDuration > 45 && event.description && (
+          <p className="text-subtle text-left text-[10px] leading-none">{event.description}</p>
+        )}
+      </Component>
+    </Tooltip>
   );
 }
