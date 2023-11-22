@@ -73,7 +73,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   // If the user is not a part of an org, then make them pay before creating the team
-  if (!isOrgChildTeamd) {
+  if (!isOrgChildTeam) {
     const checkoutSession = await generateCheckoutSession({
       teamSlug: slug,
       teamName: name,
