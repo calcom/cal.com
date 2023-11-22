@@ -132,7 +132,7 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  private authedCalendar = async () => {
+  public authedCalendar = async () => {
     const myGoogleAuth = await this.auth.getToken();
     const calendar = google.calendar({
       version: "v3",
