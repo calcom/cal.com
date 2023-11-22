@@ -29,7 +29,7 @@
 }
 
 .tremor-DropdownItem-root{
-  @apply !h-9 !max-h-9
+  @apply !h-9 !max-h-9 bg-default hover:bg-subtle text-default hover:text-emphasis
 }
 
 .tremor-DateRangePicker-calendarButtonText,
