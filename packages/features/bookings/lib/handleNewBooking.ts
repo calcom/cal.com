@@ -2197,6 +2197,8 @@ async function handler(
       });
     }
 
+    const newDesinationCalendar = evt.destinationCalendar;
+
     evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
       : originalRescheduledBooking?.user?.destinationCalendar
@@ -2245,6 +2247,7 @@ async function handler(
 
     //if organizer changed we need to create a new booking (reschedule only cancels the old one)
     if (changedOrganizer) {
+      evt.destinationCalendar = newDesinationCalendar;
       evt.title = getEventName(eventNameObject);
 
       // location might changed and will be new created in eventManager.create (organizer default location)
