@@ -32,7 +32,10 @@ export function UpgradeTip({
   const hasEnterprisePlan = false;
   //const { isLoading , hasEnterprisePlan } = useHasEnterprisePlan();
 
-  if (plan === "team" && hasTeamPlan) return children;
+  // figure out how to check for unpublished team (idea: fetch all teams and check for !team.slug)
+  const hasUnpublishedTeam = true;
+
+  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return children;
 
   if (plan === "enterprise" && hasEnterprisePlan) return children;
 
