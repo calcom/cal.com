@@ -5,6 +5,7 @@
     "paths": {
       "~/*": ["modules/*"],
       "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]

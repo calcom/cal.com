@@ -36,7 +36,7 @@ test.describe("Routing Forms", () => {
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.locator("text=ERROR 404")).toBeVisible();
+      await expect(page.locator("text=This page could not be found")).toBeVisible();
     });
 
     test("should be able to edit the form", async ({ page }) => {

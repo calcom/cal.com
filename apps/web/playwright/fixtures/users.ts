@@ -396,6 +396,15 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       await prisma.user.delete({ where: { id } });
       store.users = store.users.filter((b) => b.id !== id);
     },
+    set: async (email: string) => {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: userIncludes,
+      });
+      const userFixture = createUserFixture(user, store.page);
+      store.users.push(userFixture);
+      return userFixture;
+    },
   };
 };
 
@@ -420,7 +429,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
-    apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
+    apiLogin: async (password?: string) =>
+      apiLogin({ ...(await self()), password: password || user.username }, store.page),
     /**
      * @deprecated use apiLogin instead
      */
