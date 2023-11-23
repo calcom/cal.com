@@ -11,24 +11,41 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Teams - NonOrg", () => {
   test.afterEach(({ users }) => users.deleteAll());
-  test("Can create teams via Wizard", async ({ page, users }) => {
+
+  test("Can fill out team creation page to checkout", async ({ page, users }) => {
     const user = await users.create();
     const inviteeEmail = `${user.username}+invitee@example.com`;
     await user.apiLogin();
     await page.goto("/teams");
 
-    await test.step("Can create team", async () => {
-      // Click text=Create Team
-      await page.locator("text=Create Team").click();
-      await page.waitForURL("/settings/teams/new");
-      // Fill input[name="name"]
-      await page.locator('input[name="name"]').fill(`${user.username}'s Team`);
-      // Click text=Continue
-      await page.locator("text=Continue").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members$/i);
-      await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+    let isStripeCheckoutVisited = false;
+    page.on("request", (request) => {
+      // Check if the URL of the request includes 'checkout.stripe.com'
+      if (request.url().includes("checkout.stripe.com")) {
+        isStripeCheckoutVisited = true;
+      }
     });
+    // Click text=Create Team
+    await page.locator("text=Create Team").click();
+    await page.waitForURL("/settings/teams/new");
+    // Fill input[name="name"]
+    await page.locator('input[name="name"]').fill(`${user.username}'s Team`);
+    // Click text=Continue
+    await page.locator("text=Checkout").click();
+
+    await page.waitForNavigation();
+
+    expect(page.url()).toContain("checkout.stripe.com");
+  });
+
+  test("Team Onboarding Invite Members", async ({ page, users }) => {
+    const user = await users.create(undefined, { hasTeam: true, isUnpublished: false });
+    const { team } = await user.getFirstTeam();
+    const inviteeEmail = `${user.username}+invitee@example.com`;
+
+    await user.apiLogin();
+
+    page.goto(`/settings/teams/${team.id}/onboard-members`);
 
     await test.step("Can add members", async () => {
       // Click [data-testid="new-member-button"]
@@ -50,8 +67,8 @@ test.describe("Teams - NonOrg", () => {
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
-    await test.step("Can publish team", async () => {
-      await page.locator("text=Publish team").click();
+    await test.step("Finishing brings you to team profile page", async () => {
+      await page.locator("text=Finish").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
