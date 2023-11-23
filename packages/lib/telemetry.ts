@@ -18,6 +18,7 @@ export const telemetryEventTypes = {
   onboardingFinished: "onboarding_finished",
   onboardingStarted: "onboarding_started",
   signup: "signup",
+  team_checkout_session_created: "team_checkout_session_created",
   team_created: "team_created",
   slugReplacementAction: "slug_replacement_action",
   org_created: "org_created",

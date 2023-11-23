@@ -10,6 +10,7 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/telemetry";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -33,11 +34,21 @@ type FormValues = {
 const AddNewTeamMembers = () => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
+  const telemetry = useTelemetry();
+
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
     { teamId },
     { enabled: session.status === "authenticated" }
   );
+
+  useEffect(() => {
+    const { event } = router.query;
+    if (event === "team_created") {
+      telemetry.event(telemetryEventTypes.team_created);
+    }
+  }, []);
+
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;

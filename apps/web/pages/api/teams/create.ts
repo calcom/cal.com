@@ -84,7 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   // closeComUpdateTeam(prevTeam, team);
 
   // redirect to team screen
-  res.redirect(302, `/settings/teams/${team.id}/onboard-members?telemetry=team_created`);
+  res.redirect(302, `/settings/teams/${team.id}/onboard-members?event=team_created`);
 }
 
 export default defaultHandler({
