@@ -35,7 +35,6 @@ const AddNewTeamMembers = () => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
   const telemetry = useTelemetry();
-  const router = useRouter();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
@@ -44,7 +43,7 @@ const AddNewTeamMembers = () => {
   );
 
   useEffect(() => {
-    const { event } = router.query;
+    const event = searchParams?.get("event");
     if (event === "team_created") {
       telemetry.event(telemetryEventTypes.team_created);
     }
