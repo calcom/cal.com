@@ -12,8 +12,13 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "../../ee/workflows/lib/allowDisablingStandardEmails";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -31,10 +36,17 @@ export async function handleConfirmation(args: {
       length: number;
       price: number;
       requiresConfirmation: boolean;
+      metadata?: Prisma.JsonValue;
       title: string;
       teamId?: number | null;
       parentId?: number | null;
+      workflows?: {
+        workflow: Workflow & {
+          steps: WorkflowStep[];
+        };
+      }[];
     } | null;
+    metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
     userId: number | null;
@@ -45,6 +57,7 @@ export async function handleConfirmation(args: {
   const eventManager = new EventManager(user);
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
+  const metadata: AdditionalInformation = {};
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -54,8 +67,6 @@ export async function handleConfirmation(args: {
 
     log.error(`Booking ${user.username} failed`, JSON.stringify({ error, results }));
   } else {
-    const metadata: AdditionalInformation = {};
-
     if (results.length) {
       // TODO: Handle created event metadata more elegantly
       metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
@@ -63,7 +74,34 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      await sendScheduledEmails({ ...evt, additionalInformation: metadata });
+      const eventType = booking.eventType;
+      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+      let isHostConfirmationEmailsDisabled = false;
+      let isAttendeeConfirmationEmailDisabled = false;
+
+      const workflows = eventType?.workflows?.map((workflow) => workflow.workflow);
+
+      if (workflows) {
+        isHostConfirmationEmailsDisabled =
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+        isAttendeeConfirmationEmailDisabled =
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+        if (isHostConfirmationEmailsDisabled) {
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+        }
+
+        if (isAttendeeConfirmationEmailDisabled) {
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+        }
+      }
+
+      await sendScheduledEmails(
+        { ...evt, additionalInformation: metadata },
+        undefined,
+        isHostConfirmationEmailsDisabled,
+        isAttendeeConfirmationEmailDisabled
+      );
     } catch (error) {
       log.error(error);
     }
@@ -97,6 +135,8 @@ export async function handleConfirmation(args: {
     } | null;
   }[] = [];
 
+  const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
@@ -118,6 +158,10 @@ export async function handleConfirmation(args: {
             create: scheduleResult.referencesToCreate,
           },
           paid,
+          metadata: {
+            ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
+            videoCallUrl,
+          },
         },
         select: {
           eventType: {
@@ -169,6 +213,7 @@ export async function handleConfirmation(args: {
         references: {
           create: scheduleResult.referencesToCreate,
         },
+        metadata: { ...(typeof booking.metadata === "object" ? booking.metadata : {}), videoCallUrl },
       },
       select: {
         eventType: {
@@ -218,8 +263,6 @@ export async function handleConfirmation(args: {
         const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
 
         const isFirstBooking = index === 0;
-        const videoCallUrl =
-          bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
 
         await scheduleWorkflowReminders({
           workflows: updatedBookings[index]?.eventType?.workflows || [],

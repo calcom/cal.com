@@ -849,6 +849,7 @@
   "next_step": "Hoppa över steg",
   "prev_step": "Föregående steg",
   "install": "Installera",
+  "install_paid_app": "Prenumerera",
   "installed": "Installerad",
   "active_install_one": "{{count}} aktiv installation",
   "active_install_other": "{{count}} aktiva installationer",
@@ -1097,6 +1098,7 @@
   "developer_documentation": "Utvecklardokumentation",
   "get_in_touch": "Kontakta oss",
   "contact_support": "Kontakta support",
+  "community_support": "Communitysupport",
   "feedback": "Feedback",
   "submitted_feedback": "Tack för din feedback!",
   "feedback_error": "Det gick inte att skicka feedback",
@@ -2098,5 +2100,6 @@
   "view_overlay_calendar_events": "Se dina kalenderhändelser för att förhindra krockade bokningar.",
   "lock_timezone_toggle_on_booking_page": "Lås tidszon på bokningssidan",
   "description_lock_timezone_toggle_on_booking_page": "För att låsa tidszonen på bokningssidan, användbart för personliga händelser.",
+  "extensive_whitelabeling": "Dedikerad registrering och teknisk support",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

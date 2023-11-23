@@ -6,7 +6,7 @@ import { Badge, Button, showToast } from "@calcom/ui";
 import { Activity } from "@calcom/ui/components/icon";
 
 export default function WebhookTestDisclosure() {
-  const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
+  const [subscriberUrl, webhookSecret]: [string, string] = useWatch({ name: ["subscriberUrl", "secret"] });
   const payloadTemplate = useWatch({ name: "payloadTemplate" }) || null;
   const { t } = useLocale();
   const mutation = trpc.viewer.webhook.testTrigger.useMutation({
@@ -27,7 +27,9 @@ export default function WebhookTestDisclosure() {
           color="secondary"
           disabled={mutation.isLoading || !subscriberUrl}
           StartIcon={Activity}
-          onClick={() => mutation.mutate({ url: subscriberUrl, type: "PING", payloadTemplate })}>
+          onClick={() =>
+            mutation.mutate({ url: subscriberUrl, secret: webhookSecret, type: "PING", payloadTemplate })
+          }>
           {t("ping_test")}
         </Button>
       </div>
