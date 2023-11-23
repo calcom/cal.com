@@ -8,7 +8,6 @@ import { expect } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import { DEFAULT_TIMEZONE_BOOKER } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -17,7 +16,8 @@ import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
-import type { InputEventType } from "./bookingScenario";
+import type { InputEventType, getOrganizer } from "./bookingScenario";
+import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 
 // This is too complex at the moment, I really need to simplify this.
 // Maybe we can replace the exact match with a partial match approach that would be easier to maintain but we would still need Dayjs to do the timezone conversion
@@ -66,7 +66,7 @@ type ExpectedEmail = {
   // };
   ics?: {
     filename: string;
-    iCalUID: string;
+    iCalUID?: string;
     recurrence?: Recurrence;
   };
   /**
@@ -96,7 +96,7 @@ expect.extend({
       logger.silly("All Emails", JSON.stringify({ numEmails: emailsToLog.length, emailsToLog }));
       return {
         pass: false,
-        message: () => `No email sent to ${to}`,
+        message: () => `No email sent to ${to}. All emails are ${JSON.stringify(emailsToLog)}`,
       };
     }
     const ics = testEmail.icalEvent;
@@ -105,9 +105,10 @@ expect.extend({
 
     let isToAddressExpected = true;
     const isIcsFilenameExpected = expectedEmail.ics ? ics?.filename === expectedEmail.ics.filename : true;
-    const isIcsUIDExpected = expectedEmail.ics
-      ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
-      : true;
+    const isIcsUIDExpected =
+      expectedEmail.ics && expectedEmail.ics.iCalUID
+        ? !!(icsObject ? icsObject[expectedEmail.ics.iCalUID] : null)
+        : true;
     const emailDom = parse(testEmail.html);
 
     const actualEmailContent = {
@@ -172,7 +173,7 @@ expect.extend({
     if (expectedEmail.noIcs && ics) {
       return {
         pass: false,
-        message: () => `${isNot ? "" : "Not"} expected ics file`,
+        message: () => `${isNot ? "" : "Not"} expected ics file ${JSON.stringify(ics)}`,
       };
     }
 
@@ -584,6 +585,7 @@ export function expectSuccessfulBookingRescheduledEmails({
     `${booker.name} <${booker.email}>`
   );
 }
+
 export function expectAwaitingPaymentEmails({
   emails,
   booker,
@@ -627,6 +629,59 @@ export function expectBookingRequestedEmails({
       noIcs: true,
     },
     `${booker.email}`
+  );
+}
+
+export function expectBookingRequestRescheduledEmails({
+  emails,
+  loggedInUser,
+  booker,
+  booking,
+  bookNewTimePath,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: ReturnType<typeof getOrganizer>;
+  loggedInUser: {
+    email: string;
+    name: string;
+  };
+  booker: { email: string; name: string };
+  booking: { uid: string; urlOrigin?: string };
+  bookNewTimePath: string;
+}) {
+  const bookingUrlOrigin = booking.urlOrigin || WEBAPP_URL;
+
+  expect(emails).toHaveEmail(
+    {
+      titleTag: "rescheduled_event_type_subject",
+      heading: "request_reschedule_booking",
+      subHeading: "request_reschedule_subtitle",
+      links: [
+        {
+          href: `${bookingUrlOrigin}${bookNewTimePath}?rescheduleUid=${booking.uid}`,
+          text: "Book a new time",
+        },
+      ],
+      to: `${booker.email}`,
+      ics: {
+        filename: "event.ics",
+      },
+    },
+    `${booker.email}`
+  );
+
+  expect(emails).toHaveEmail(
+    {
+      titleTag: "rescheduled_event_type_subject",
+      heading: "request_reschedule_title_organizer",
+      subHeading: "request_reschedule_subtitle_organizer",
+      to: `${loggedInUser.email}`,
+      ics: {
+        filename: "event.ics",
+      },
+    },
+    `${loggedInUser.email}`
   );
 }
 

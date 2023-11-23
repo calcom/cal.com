@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -8,6 +8,7 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -30,7 +31,7 @@ type FormValues = {
 };
 
 const AddNewTeamMembers = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const session = useSession();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
@@ -49,7 +50,7 @@ export const AddNewTeamMembersForm = ({
   defaultValues: FormValues;
   teamId: number;
 }) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
