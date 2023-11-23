@@ -253,7 +253,7 @@ export default class GoogleCalendarService implements Calendar {
         iCalUID: event.data.iCalUID,
       };
     } catch (error) {
-      console.error(
+      this.log.error(
         "There was an error creating event in google calendar: ",
         safeStringify({ error, selectedCalendar, credentialId })
       );
