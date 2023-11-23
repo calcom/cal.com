@@ -5,7 +5,11 @@ type ConnectCalendarProps = {
   calendar: "google" | "outlook";
 };
 
-// TODO: figure out event handler flow for different calendars
+// TODO: implement flow for connecting to different calendars
+// ideally when you click the connect calendar button it redirects the user to an accounts.google page
+// this page asks the user permission for us to access their account
+// after the user grants us all permissions we need to redirect the user back to where they started
+// hopefully to the page wherever the button is situated
 
 export function ConnectCalendar({ calendar }: ConnectCalendarProps) {
   const key = useApiKey();
@@ -20,7 +24,7 @@ export function ConnectCalendar({ calendar }: ConnectCalendarProps) {
 
   return (
     <>
-      <ConnectButton />
+      <ConnectButton>Connect {calendar}</ConnectButton>
     </>
   );
 }
