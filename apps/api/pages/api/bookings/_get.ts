@@ -162,6 +162,10 @@ function buildWhereClause(
 
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
+
+  const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined;
+  const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : undefined;
+
   const args: Prisma.BookingFindManyArgs = {};
   args.include = {
     attendees: true,
@@ -203,6 +207,25 @@ async function handler(req: NextApiRequest) {
     }
     args.where = buildWhereClause(userId, attendeeEmails, [], []);
   }
+
+  if (dateFrom && dateTo) {
+    args.where = {
+      ...args.where,
+      startTime: { gte: dateFrom },
+      endTime: { lte: dateTo },
+    };
+  } else if (dateFrom) {
+    args.where = {
+      ...args.where,
+      startTime: { gte: dateFrom },
+    };
+  } else if (dateTo) {
+    args.where = {
+      ...args.where,
+      endTime: { lte: dateTo },
+    };
+  }
+
   const data = await prisma.booking.findMany(args);
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }

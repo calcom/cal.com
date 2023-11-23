@@ -22,6 +22,8 @@ const fetchBookings = async ({
   const params = {
     apiKey,
     userId: userId.toString(),
+    dateFrom: new Date(from).getTime().toString(),
+    dateTo: new Date(to).getTime().toString(),
   };
 
   const urlParams = new URLSearchParams(params);
@@ -40,11 +42,9 @@ const fetchBookings = async ({
 
   const bookings: Booking[] = data.bookings
     .filter((booking: Booking) => {
-      const afterFrom = new Date(booking.startTime).getTime() > new Date(from).getTime();
-      const beforeTo = new Date(booking.endTime).getTime() < new Date(to).getTime();
       const notCancelled = booking.status !== BOOKING_STATUS.CANCELLED;
 
-      return afterFrom && beforeTo && notCancelled;
+      return notCancelled;
     })
     .map(({ endTime, eventTypeId, id, startTime, status, title }: Booking) => ({
       endTime,
