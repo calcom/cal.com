@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { scopes } from "./add";
 
 let client_id = "";
 let client_secret = "";
@@ -37,10 +38,26 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
   let key = "";
+  let invalid = false;
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
+
+    // Check that the has granted all permissions
+    const grantedScopes = key.scope;
+    for (const scope of scopes) {
+      if (!grantedScopes.includes(scope)) {
+        if (!state?.fromApp) {
+          throw new HttpError({
+            statusCode: 400,
+            message: "You must grant all permissions to use this integration",
+          });
+        } else {
+          invalid = true;
+        }
+      }
+    }
 
     const credential = await prisma.credential.create({
       data: {
@@ -48,8 +65,16 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         key,
         userId: req.session.user.id,
         appId: "google-calendar",
+        invalid,
       },
     });
+
+    if (invalid) {
+      res.redirect(
+        getSafeRedirectUrl(state?.returnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+      );
+    }
 
     // Set the primary calendar as the first selected calendar
 

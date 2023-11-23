@@ -57,6 +57,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
             { variant: variables && variables.variant, slug: variables && variables.slug },
             location.search
           ),
+      fromApp: true,
       ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
       ...(teamId && { teamId }),
     };

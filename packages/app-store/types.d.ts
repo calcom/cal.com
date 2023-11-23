@@ -8,6 +8,7 @@ export type IntegrationOAuthCallbackState = {
   returnTo: string;
   installGoogleVideo?: boolean;
   teamId?: number;
+  fromApp?: boolean;
 };
 
 export type CredentialOwner = {
