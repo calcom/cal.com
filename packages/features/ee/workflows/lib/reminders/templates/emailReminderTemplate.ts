@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
-import { TimeFormat } from "@calcom/lib/timeFormat";
+import { TimeFormat, detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
 const emailReminderTemplate = (
@@ -15,7 +15,7 @@ const emailReminderTemplate = (
   name?: string,
   isBrandingDisabled?: boolean
 ) => {
-  const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
+  const currentTimeFormat = detectBrowserTimeFormat || TimeFormat.TWELVE_HOUR;
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 
   let eventDate = "";
