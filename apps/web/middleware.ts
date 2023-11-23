@@ -1,13 +1,20 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import type { NextMiddleware } from "next/server";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-const middleware: NextMiddleware = async (req) => {
+import { csp } from "@lib/csp";
+
+import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+
+const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
+
+  requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -32,6 +39,18 @@ const middleware: NextMiddleware = async (req) => {
   }
 
   const res = routingForms.handle(url);
+
+  const { nonce } = csp(req, res ?? null);
+
+  if (!process.env.CSP_POLICY) {
+    req.headers.set("x-csp", "not-opted-in");
+  } else if (!req.headers.get("x-csp")) {
+    // If x-csp not set by gSSP, then it's initialPropsOnly
+    req.headers.set("x-csp", "initialPropsOnly");
+  } else {
+    req.headers.set("x-csp", nonce ?? "");
+  }
+
   if (res) {
     return res;
   }
@@ -44,6 +63,12 @@ const middleware: NextMiddleware = async (req) => {
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
     requestHeaders.set("x-csp-enforce", "true");
   }
+
+  requestHeaders.set("x-pathname", url.pathname);
+
+  const locale = await getLocale(req);
+
+  requestHeaders.set("x-locale", locale);
 
   return NextResponse.next({
     request: {
@@ -74,11 +99,13 @@ export const config = {
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+    "/event-types",
+    "/future/event-types/",
   ],
 };
 
 export default collectEvents({
-  middleware,
+  middleware: abTestMiddlewareFactory(middleware),
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,
