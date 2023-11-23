@@ -143,6 +143,17 @@ const createTeamAndAddUser = async (
 export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
+    buildForSignup: (opts?: Pick<CustomUserOpts, "email" | "username" | "useExactUsername" | "password">) => {
+      const uname =
+        opts?.useExactUsername && opts?.username
+          ? opts.username
+          : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+      return {
+        username: uname,
+        email: opts?.email ?? `${uname}@example.com`,
+        password: opts?.password ?? uname,
+      };
+    },
     create: async (
       opts?: CustomUserOpts | null,
       scenario: {
