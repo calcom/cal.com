@@ -87,7 +87,7 @@ function applyTemplate(template: string, data: WebhookDataType, contentType: Con
   return compiled;
 }
 
-function jsonParse(jsonString: string) {
+export function jsonParse(jsonString: string) {
   try {
     return JSON.parse(jsonString);
   } catch (e) {

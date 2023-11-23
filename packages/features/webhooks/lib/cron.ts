@@ -5,6 +5,8 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { jsonParse } from "./sendPayload";
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -28,7 +30,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         method: "POST",
         body: job.payload,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":
+            !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
         },
       });
     } catch (error) {
