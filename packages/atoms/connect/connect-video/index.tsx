@@ -20,7 +20,7 @@ export function ConnectVideo({ app }: ConnectVideoProps) {
 
   return (
     <>
-      <ConnectButton />
+      <ConnectButton>Connect {app}</ConnectButton>
     </>
   );
 }
