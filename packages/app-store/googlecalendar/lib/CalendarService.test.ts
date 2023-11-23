@@ -78,17 +78,15 @@ test("Calendar Cache is being called", async () => {
 
   // prismaMock.calendarCache.create.mock.
   const calendarService = new CalendarService(testCredential);
-  // @ts-expect-error authedCalendar is a private method, hence the TS error
-  vi.spyOn(calendarService, "authedCalendar").mockReturnValue(
-    // @ts-expect-error trust me bro
-    {
-      freebusy: {
-        query: vi.fn().mockReturnValue({
-          data: testFreeBusyResponse,
-        }),
-      },
-    }
-  );
+  vi.spyOn(calendarService, "authedCalendar").mockReturnValue({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore - Mocking the authedCalendar so can't return the actual response
+    freebusy: {
+      query: vi.fn().mockReturnValue({
+        data: testFreeBusyResponse,
+      }),
+    },
+  });
 
   await calendarService.getAvailability(new Date().toISOString(), new Date().toISOString(), [
     testSelectedCalendar,
