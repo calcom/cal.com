@@ -248,7 +248,7 @@ test.describe("Signup Flow Test", async () => {
     // Cleanup specific to this test
     // Clean up the user and token
     await prisma.user.deleteMany({ where: { email: userToCreate.email } });
-    await prisma.verificationToken.deleteMany({ where: { identifier: userToCreate.email } });
+    await prisma.verificationToken.deleteMany({ where: { identifier: createdtoken.identifier } });
     await prisma.team.deleteMany({ where: { id: createdtoken.teamId! } });
   });
   test("Email verification sent if enabled", async ({ page, prisma, emails, users, features }) => {
