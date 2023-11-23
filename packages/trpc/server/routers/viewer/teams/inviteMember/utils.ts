@@ -19,7 +19,7 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
-export type UserWithMembership = User & { teams: Pick<Membership, "userId" | "teamId" | "accepted">[] };
+export type UserWithMembership = User & { teams?: Pick<Membership, "userId" | "teamId" | "accepted">[] };
 
 export async function checkPermissions({
   userId,
@@ -70,75 +70,95 @@ export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   return emailsToInvite;
 }
 
-export async function getUserToInviteOrThrowIfExists({
-  usernameOrEmail,
-  teamId,
-  isOrg,
-}: {
-  usernameOrEmail: string;
-  teamId: number;
-  isOrg?: boolean;
-}) {
-  // Check if user exists in ORG or exists all together
-
-  const orgWhere = isOrg && {
-    organizationId: teamId,
-  };
-  const invitee = await prisma.user.findFirst({
-    where: {
-      OR: [{ username: usernameOrEmail, ...orgWhere }, { email: usernameOrEmail }],
-    },
-  });
-
-  // We throw on error cause we can't have two users in the same org with the same username
-  if (isOrg && invitee) {
+export function validateInviteeCanBeInvited(
+  invitee: UserWithMembership,
+  team: TeamWithParent,
+  isOrg: boolean
+) {
+  const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
+  if (alreadyInvited) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Email ${usernameOrEmail} already exists, you can't invite existing users.`,
+      code: "BAD_REQUEST",
+      message: `${invitee.email} has already been invited.`,
     });
   }
 
-  return invitee;
+  const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
+  // invitee is invited to the org's team and is already part of the organization
+  if (invitee.organizationId && team.parentId && invitee.organizationId === team.parentId) {
+    return;
+  }
+
+  // user invited to join a team inside an org, but has not accepted invite to org yet
+  if (team.parentId && orgMembership && !orgMembership.accepted) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `User ${invitee.username} needs to accept the invitation to join your organization first.`,
+    });
+  }
+
+  // user is invited to join a team which is not in his organization
+  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `User ${invitee.username} is already a member of another organization.`,
+    });
+  }
+
+  if (invitee && isOrg) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
+    });
+  }
+
+  if (team.parentId && invitee) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `You cannot add a user that already exists in Cal.com to an organization's team. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
+    });
+  }
 }
 
-export async function getUsersToInviteOrThrowIfExists({
+export async function getUsersToInvite({
   usernameOrEmail,
-  teamId,
-  isOrg,
+  isInvitedToOrg,
+  team,
 }: {
   usernameOrEmail: string[];
-  teamId: number;
-  isOrg?: boolean;
-}) {
-  // Check if user exists in ORG or exists all together
-
-  const orgWhere = isOrg && {
-    organizationId: teamId,
+  isInvitedToOrg: boolean;
+  team: TeamWithParent;
+}): Promise<UserWithMembership[]> {
+  const orgWhere = isInvitedToOrg && {
+    organizationId: team.id,
   };
-  const invitees = await prisma.user.findMany({
+  const memberships = [];
+  if (isInvitedToOrg) {
+    memberships.push({ teamId: team.id });
+  } else {
+    memberships.push({ teamId: team.id });
+    team.parentId && memberships.push({ teamId: team.parentId });
+  }
+
+  const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [{ username: { in: usernameOrEmail }, ...orgWhere }, { email: { in: usernameOrEmail } }],
     },
-    include: { teams: { select: { teamId: true, userId: true, accepted: true }, where: { teamId: teamId } } },
+    include: {
+      teams: {
+        select: { teamId: true, userId: true, accepted: true },
+        where: {
+          OR: memberships,
+        },
+      },
+    },
   });
 
-  // We throw on error cause we can't have two users in the same org with the same username
-  if (isOrg && invitees.length) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Emails: ${usernameOrEmail.toString()} already exist, you can't invite existing users.`,
-    });
-  }
+  invitees.forEach((invitee) => {
+    validateInviteeCanBeInvited(invitee, team, isInvitedToOrg);
+  });
 
   return invitees;
-}
-
-export function checkInputEmailIsValid(email: string) {
-  if (!isEmail(email))
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Invite failed because ${email} is not a valid email address`,
-    });
 }
 
 export function getOrgConnectionInfo({
@@ -331,26 +351,6 @@ export async function sendVerificationEmail({
   }
 }
 
-export function throwIfInviteIsToOrgAndUserExists(invitee: User, team: TeamWithParent, isOrg: boolean) {
-  if (invitee.organizationId && invitee.organizationId === team.parentId) {
-    return;
-  }
-
-  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} is already a member of another organization.`,
-    });
-  }
-
-  if ((invitee && isOrg) || (team.parentId && invitee)) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
-    });
-  }
-}
-
 export function getIsOrgVerified(
   isOrg: boolean,
   team: Team & {
@@ -400,7 +400,7 @@ export function shouldAutoJoinIfInOrg({
     };
   }
 
-  const orgMembership = invitee.teams.find((membership) => membership.teamId === team.parentId);
+  const orgMembership = invitee.teams?.find((membership) => membership.teamId === team.parentId);
 
   if (!orgMembership?.accepted) {
     return {
@@ -416,10 +416,8 @@ export function shouldAutoJoinIfInOrg({
 export const getUsersForMemberships = ({
   existingUsersWithMembersips,
   team,
-  isOrg,
 }: {
   team: TeamWithParent;
-  isOrg: boolean;
   existingUsersWithMembersips: UserWithMembership[];
 }) => {
   const usersToAutoJoin = [];
@@ -427,7 +425,6 @@ export const getUsersForMemberships = ({
 
   for (let index = 0; index < existingUsersWithMembersips.length; index++) {
     const existingUserWithMembersips = existingUsersWithMembersips[index];
-    throwIfInviteIsToOrgAndUserExists(existingUserWithMembersips, team, isOrg);
 
     const shouldAutoJoinOrgTeam = shouldAutoJoinIfInOrg({
       invitee: existingUserWithMembersips,

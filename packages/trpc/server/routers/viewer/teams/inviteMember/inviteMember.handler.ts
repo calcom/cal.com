@@ -13,7 +13,7 @@ import {
   getOrgConnectionInfo,
   getIsOrgVerified,
   sendVerificationEmail,
-  getUsersToInviteOrThrowIfExists,
+  getUsersToInvite,
   createNewUsersConnectToOrgIfExists,
   createProvisionalMemberships,
   getUsersForMemberships,
@@ -55,14 +55,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
-  const existingUsersWithMembersips = await getUsersToInviteOrThrowIfExists({
+  const existingUsersWithMembersips = await getUsersToInvite({
     usernameOrEmail: emailsToInvite,
-    teamId: input.teamId,
-    isOrg: input.isOrg,
+    isInvitedToOrg: input.isOrg,
+    team,
   });
   const existingUsersEmails = existingUsersWithMembersips.map((user) => user.email);
   const newUsersEmails = emailsToInvite.filter((email) => !existingUsersEmails.includes(email));
-
   // deal with users to create and invite to team/org
   if (newUsersEmails.length) {
     await createNewUsersConnectToOrgIfExists({
@@ -89,7 +88,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   if (existingUsersWithMembersips.length) {
     const [usersToAutoJoin, regularUsers] = getUsersForMemberships({
       existingUsersWithMembersips,
-      isOrg: input.isOrg,
       team,
     });
 
