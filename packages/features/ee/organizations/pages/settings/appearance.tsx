@@ -1,60 +1,20 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
+import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
-import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  Button,
-  ColorPicker,
-  Form,
-  Meta,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  SettingsToggle,
-  Alert,
-} from "@calcom/ui";
-
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return (
-    <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
-        <SkeletonText className="h-8 w-1/3" />
-      </div>
-      <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">
-        <div className="flex items-center justify-center">
-          <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-          <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-          <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-        </div>
-        <div className="flex justify-between">
-          <SkeletonText className="h-8 w-1/3" />
-          <SkeletonText className="h-8 w-1/3" />
-        </div>
-
-        <SkeletonText className="h-8 w-full" />
-      </div>
-      <div className="rounded-b-xl">
-        <SectionBottomActions align="end">
-          <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-        </SectionBottomActions>
-      </div>
-    </SkeletonContainer>
-  );
-};
+import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -100,11 +60,13 @@ const OrgAppearanceView = ({
       await utils.viewer.organizations.listCurrent.invalidate();
 
       showToast(t("your_team_updated_successfully"), "success");
-      brandColorsFormMethods.reset({
-        brandColor: res.data.brandColor as string,
-        darkBrandColor: res.data.darkBrandColor as string,
-      });
-      resetOrgThemeReset({ theme: res.data.theme as string | undefined });
+      if (res) {
+        brandColorsFormMethods.reset({
+          brandColor: res.data.brandColor as string,
+          darkBrandColor: res.data.darkBrandColor as string,
+        });
+        resetOrgThemeReset({ theme: res.data.theme as string | undefined });
+      }
     },
   });
 
@@ -116,7 +78,7 @@ const OrgAppearanceView = ({
     <LicenseRequired>
       <Meta
         title={t("appearance")}
-        description={t("appearance_team_description")}
+        description={t("appearance_org_description")}
         borderInShellHeader={false}
       />
       {isAdminOrOwner ? (
@@ -175,8 +137,8 @@ const OrgAppearanceView = ({
             }}>
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
-              orgBrandColor={currentOrg?.brandColor}
-              orgDarkBrandColor={currentOrg?.darkBrandColor}
+              brandColor={currentOrg?.brandColor}
+              darkBrandColor={currentOrg?.darkBrandColor}
             />
           </Form>
 
@@ -190,7 +152,7 @@ const OrgAppearanceView = ({
               setHideBrandingValue(checked);
               mutation.mutate({ hideBranding: checked });
             }}
-            switchContainerClassName="border-subtle mt-6 rounded-xl border py-6 px-4 sm:px-6"
+            switchContainerClassName="mt-6"
           />
         </div>
       ) : (
@@ -199,126 +161,6 @@ const OrgAppearanceView = ({
         </div>
       )}
     </LicenseRequired>
-  );
-};
-
-const BrandColorsForm = ({
-  onSubmit,
-  orgBrandColor,
-  orgDarkBrandColor,
-}: {
-  onSubmit: (values: BrandColorsFormValues) => void;
-  orgBrandColor: string | undefined;
-  orgDarkBrandColor: string | undefined;
-}) => {
-  const { t } = useLocale();
-  const brandColorsFormMethods = useFormContext();
-  const {
-    formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
-    handleSubmit,
-  } = brandColorsFormMethods;
-
-  const [isCustomBrandColorChecked, setIsCustomBrandColorChecked] = useState(
-    orgBrandColor !== DEFAULT_LIGHT_BRAND_COLOR || orgDarkBrandColor !== DEFAULT_DARK_BRAND_COLOR
-  );
-  const [darkModeError, setDarkModeError] = useState(false);
-  const [lightModeError, setLightModeError] = useState(false);
-  return (
-    <div className="mt-6">
-      <SettingsToggle
-        toggleSwitchAtTheEnd={true}
-        title={t("custom_brand_colors")}
-        description={t("customize_your_brand_colors")}
-        checked={isCustomBrandColorChecked}
-        onCheckedChange={(checked) => {
-          setIsCustomBrandColorChecked(checked);
-          if (!checked) {
-            onSubmit({
-              brandColor: DEFAULT_LIGHT_BRAND_COLOR,
-              darkBrandColor: DEFAULT_DARK_BRAND_COLOR,
-            });
-          }
-        }}
-        childrenClassName="lg:ml-0"
-        switchContainerClassName={classNames(
-          "py-6 px-4 sm:px-6 border-subtle rounded-xl border",
-          isCustomBrandColorChecked && "rounded-b-none"
-        )}>
-        <div className="border-subtle flex flex-col gap-6 border-x p-6">
-          <Controller
-            name="brandColor"
-            control={brandColorsFormMethods.control}
-            defaultValue={orgBrandColor}
-            render={() => (
-              <div>
-                <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
-                <ColorPicker
-                  defaultValue={orgBrandColor || DEFAULT_LIGHT_BRAND_COLOR}
-                  resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
-                  onChange={(value) => {
-                    try {
-                      checkWCAGContrastColor("#ffffff", value);
-                      setLightModeError(false);
-                      brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
-                    } catch (err) {
-                      setLightModeError(false);
-                    }
-                  }}
-                />
-                {lightModeError ? (
-                  <div className="mt-4">
-                    <Alert
-                      severity="warning"
-                      message="Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
-                    />
-                  </div>
-                ) : null}
-              </div>
-            )}
-          />
-
-          <Controller
-            name="darkBrandColor"
-            control={brandColorsFormMethods.control}
-            defaultValue={orgDarkBrandColor}
-            render={() => (
-              <div className="mt-6 sm:mt-0">
-                <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
-                <ColorPicker
-                  defaultValue={orgDarkBrandColor || DEFAULT_DARK_BRAND_COLOR}
-                  resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
-                  onChange={(value) => {
-                    try {
-                      checkWCAGContrastColor("#101010", value);
-                      setDarkModeError(false);
-                      brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
-                    } catch (err) {
-                      setDarkModeError(true);
-                    }
-                  }}
-                />
-                {darkModeError ? (
-                  <div className="mt-4">
-                    <Alert
-                      severity="warning"
-                      message="Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible."
-                    />
-                  </div>
-                ) : null}
-              </div>
-            )}
-          />
-        </div>
-        <SectionBottomActions align="end">
-          <Button
-            disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
-            color="primary"
-            type="submit">
-            {t("update")}
-          </Button>
-        </SectionBottomActions>
-      </SettingsToggle>
-    </div>
   );
 };
 
@@ -332,7 +174,7 @@ const OrgAppearanceViewWrapper = () => {
   });
 
   if (isLoading) {
-    return <SkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />;
+    return <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_org_description")} />;
   }
 
   if (!currentOrg) return null;

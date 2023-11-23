@@ -141,25 +141,6 @@ const OrgProfileView = () => {
             </div>
           </div>
         )}
-        {/* Disable Org disbanding */}
-        {/* <hr className="border-subtle my-8 border" />
-             <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
-            {currentOrganisation?.user.role === "OWNER" ? (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button color="destructive" className="border" StartIcon={Trash2}>
-                    {t("disband_org")}
-                  </Button>
-                </DialogTrigger>
-                <ConfirmationDialogContent
-                  variety="danger"
-                  title={t("disband_org")}
-                  confirmBtnText={t("confirm")}
-                  onConfirm={deleteTeam}>
-                  {t("disband_org_confirmation_message")}
-                </ConfirmationDialogContent>
-              </Dialog>
-            ) : null} */}
         {/* LEAVE ORG should go above here ^ */}
       </>
     </LicenseRequired>
