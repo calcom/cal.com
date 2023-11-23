@@ -19,7 +19,7 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
-type UserWithMembership = User & { teams: Pick<Membership, "userId" | "teamId" | "accepted">[] };
+export type UserWithMembership = User & { teams: Pick<Membership, "userId" | "teamId" | "accepted">[] };
 
 export async function checkPermissions({
   userId,

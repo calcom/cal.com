@@ -43,7 +43,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
   const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
-  const orgConnectionInfoMap = emailsToInvite.reduce((acc, email) => {
+  const orgConnectInfoByEmail = emailsToInvite.reduce((acc, email) => {
     return {
       ...acc,
       [email]: getOrgConnectionInfo({
@@ -68,7 +68,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     await createNewUsersConnectToOrgIfExists({
       usernamesOrEmails: newUsersEmails,
       input,
-      connectionInfoMap: orgConnectionInfoMap,
+      connectionInfoMap: orgConnectInfoByEmail,
       autoAcceptEmailDomain,
       parentId: team.parentId,
     });
@@ -79,7 +79,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         translation,
         ctx,
         input,
-        connectionInfo: orgConnectionInfoMap[usernameOrEmail],
+        connectionInfo: orgConnectInfoByEmail[usernameOrEmail],
       });
     });
     sendEmails(sendVerifEmailsPromises);

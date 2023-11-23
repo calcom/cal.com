@@ -8,6 +8,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TeamWithParent } from "./types";
+import type { UserWithMembership } from "./utils";
 import {
   checkInputEmailIsValid,
   checkPermissions,
@@ -15,7 +16,7 @@ import {
   getIsOrgVerified,
   getOrgConnectionInfo,
   throwIfInviteIsToOrgAndUserExists,
-  createAndAutoJoinIfInOrg,
+  shouldAutoJoinIfInOrg,
 } from "./utils";
 
 vi.mock("@calcom/lib/server/queries", () => {
@@ -60,6 +61,7 @@ const mockedTeam: TeamWithParent = {
   parentId: null,
   parent: null,
   isPrivate: false,
+  logoUrl: "",
 };
 
 const mockUser: User = {
@@ -98,6 +100,21 @@ const mockUser: User = {
   role: "USER",
   disableImpersonation: false,
   organizationId: null,
+  avatarUrl: null,
+  backupCodes: null,
+  allowSEOIndexing: null,
+  receiveMonthlyDigestEmail: null,
+  locked: false,
+};
+
+const userInTeamAccepted: UserWithMembership = {
+  ...mockUser,
+  teams: [{ teamId: mockedTeam.id, accepted: true, userId: mockUser.id }],
+};
+
+const userInTeamNotAccepted: UserWithMembership = {
+  ...mockUser,
+  teams: [{ teamId: mockedTeam.id, accepted: false, userId: mockUser.id }],
 };
 
 describe("Invite Member Utils", () => {
@@ -312,24 +329,36 @@ describe("Invite Member Utils", () => {
       expect(() => throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)).not.toThrow();
     });
   });
-  describe("createAndAutoJoinIfInOrg", () => {
+  describe("shouldAutoJoinIfInOrg", () => {
     it("should return autoJoined: false if the user is not in the same organization as the team", async () => {
-      const result = await createAndAutoJoinIfInOrg({
+      const result = await shouldAutoJoinIfInOrg({
         team: mockedTeam,
-        role: MembershipRole.ADMIN,
-        invitee: mockUser,
+        invitee: userInTeamAccepted,
       });
       expect(result).toEqual({ autoJoined: false });
     });
 
     it("should return autoJoined: false if the team does not have a parent organization", async () => {
-      const result = await createAndAutoJoinIfInOrg({
+      const result = await shouldAutoJoinIfInOrg({
         team: { ...mockedTeam, parentId: null },
-        role: MembershipRole.ADMIN,
-        invitee: mockUser,
+        invitee: userInTeamAccepted,
       });
       expect(result).toEqual({ autoJoined: false });
     });
-    // TODO: Add test for when the user is already a member of the organization - need to mock prisma response value
+
+    it("should return `autoJoined: false` if team has parent organization and invitee has not accepted membership to organization", async () => {
+      const result = await shouldAutoJoinIfInOrg({
+        team: { ...mockedTeam, parentId: mockedTeam.id },
+        invitee: { ...userInTeamNotAccepted, organizationId: mockedTeam.id },
+      });
+      expect(result).toEqual({ autoJoined: false });
+    });
+    it("should return `autoJoined: true` if team has parent organization and invitee has accepted membership to organization", async () => {
+      const result = await shouldAutoJoinIfInOrg({
+        team: { ...mockedTeam, parentId: mockedTeam.id },
+        invitee: { ...userInTeamAccepted, organizationId: mockedTeam.id },
+      });
+      expect(result).toEqual({ autoJoined: true });
+    });
   });
 });
