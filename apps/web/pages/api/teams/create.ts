@@ -44,20 +44,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       parseCheckoutSessionMetadata.error,
       checkoutSession.id
     );
-
-    if (!checkoutSession.metadata.userId) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Can't publish team/org without userId",
-      });
-    }
   }
 
-  const checkoutSessionMetadata = parseCheckoutSessionMetadata.data ?? {
-    teamName: checkoutSession?.metadata?.teamName ?? generateRandomString(),
-    teamSlug: checkoutSession?.metadata?.teamSlug ?? generateRandomString(),
-    userId: checkoutSession.metadata.userId,
-  };
+  if (!checkoutSession.metadata?.userId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Can't publish team/org without userId",
+    });
+  }
+
+  const checkoutSessionMetadata = parseCheckoutSessionMetadata.success
+    ? parseCheckoutSessionMetadata.data
+    : {
+        teamName: checkoutSession?.metadata?.teamName ?? generateRandomString(),
+        teamSlug: checkoutSession?.metadata?.teamSlug ?? generateRandomString(),
+        userId: checkoutSession.metadata.userId,
+      };
 
   const team = await prisma.team.create({
     data: {
@@ -65,7 +67,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       slug: checkoutSessionMetadata.teamSlug,
       members: {
         create: {
-          userId: checkoutSessionMetadata.userId,
+          userId: checkoutSessionMetadata.userId as number,
           role: MembershipRole.OWNER,
           accepted: true,
         },
@@ -82,7 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   // closeComUpdateTeam(prevTeam, team);
 
   // redirect to team screen
-  res.redirect(302, `/settings/teams/${team.id}/onboard-members`);
+  res.redirect(302, `/settings/teams/${team.id}/onboard-members?telemetry=team_created`);
 }
 
 export default defaultHandler({
