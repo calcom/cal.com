@@ -49,14 +49,9 @@
 <img width="100%" alt="booking-screen" src="https://github.com/calcom/cal.com/assets/8019099/407e727e-ff19-4ca4-bcae-049dca05cf02">
 
 # Scheduling infrastructure for absolutely everyone
+🗓️ The open-source Calendly alternative, Cal.com, puts you in charge of your data, workflow, and appearance! Calendly and similar scheduling tools have been incredible for streamlining our lives, handling everything from business meetings to yoga classes and family calls. However, many tools lack control and customization.
 
-The open source Calendly alternative. You are in charge
-of your own data, workflow, and appearance.
-
-Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes, and even calls with our families. However, most tools are very limited in terms of control and customization.
-
-That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
-
+Enter Cal.com! 🚀 Whether self-hosted or hosted by us, it's designed to be white-labeled, API-driven, and deployable on your domain. Enjoy full control of your events and data. It's scheduling made personal! 💻📅 #CalendlyAlternative #SchedulingRevolution
 ## Recognition
 
 #### [Hacker News](https://news.ycombinator.com/from?site=cal.com)
