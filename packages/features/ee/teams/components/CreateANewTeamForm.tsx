@@ -9,7 +9,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
-import { useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, TextField, Alert } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
