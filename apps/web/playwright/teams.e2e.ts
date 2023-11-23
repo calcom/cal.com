@@ -39,7 +39,7 @@ test.describe("Teams - NonOrg", () => {
   });
 
   test("Team Onboarding Invite Members", async ({ page, users }) => {
-    const user = await users.create(undefined, { hasTeam: true, isUnpublished: false });
+    const user = await users.create(undefined, { hasTeam: true });
     const { team } = await user.getFirstTeam();
     const inviteeEmail = `${user.username}+invitee@example.com`;
 
