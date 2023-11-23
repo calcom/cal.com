@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
-import { randomString } from "@calcom/lib/random";
 import dayjs from "@calcom/dayjs";
+import { randomString } from "@calcom/lib/random";
 
 import type { createUsersFixture } from "./users";
 
