@@ -44,8 +44,11 @@ export const CreateANewTeamForm = () => {
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
       // telemetry.event(telemetryEventTypes.team_created);
-      if (data.url) {
+      // URL will be provided if user has to go to checkout page
+      if (data && "url" in data) {
         router.push(data.url);
+      } else if (data && "id" in data) {
+        router.push(`/settings/teams/${data.id}/onboard-members`);
       }
     },
     onError: (err) => {
