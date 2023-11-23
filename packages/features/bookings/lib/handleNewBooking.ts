@@ -1001,8 +1001,11 @@ async function handler(
   const attendeeTimezone = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.timeZone : reqBody.timeZone;
 
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
+
+  const isManagedEventType = !!eventType.parentId;
+
   // use host default
-  if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
@@ -1076,7 +1079,6 @@ async function handler(
       },
     };
   });
-
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1103,7 +1105,7 @@ async function handler(
 
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
-    type: eventType.title,
+    type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
@@ -1884,6 +1886,7 @@ async function handler(
     evt.team = {
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
+      id: eventType.team?.id ?? 0,
     };
   }
 

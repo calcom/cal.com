@@ -204,7 +204,7 @@ export function createBookingPageFixture(page: Page) {
       placeholder?: string
     ) => {
       await page.getByTestId("add-field").click();
-      await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("test-field-type").click();
       await page.getByTestId(`select-option-${questionType}`).click();
       await page.getByLabel("Identifier").dblclick();
       await page.getByLabel("Identifier").fill(identifier);
