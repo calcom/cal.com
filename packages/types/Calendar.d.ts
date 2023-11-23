@@ -160,6 +160,7 @@ export interface CalendarEvent {
   team?: {
     name: string;
     members: TeamMember[];
+    id: number;
   };
   location?: string | null;
   conferenceCredentialId?: number;
