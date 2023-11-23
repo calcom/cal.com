@@ -21,8 +21,8 @@ const generateCheckoutSession = async ({
   teamName,
   userId,
 }: {
-  teamId: number;
-  seats: number;
+  teamSlug: string;
+  teamName: string;
   userId: number;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) return;
