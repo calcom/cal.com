@@ -8,6 +8,7 @@ import { describe, expect, test, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 
@@ -148,7 +149,7 @@ describe.skipIf(true)("POST /api/bookings", () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
-          message: "No available users found.",
+          message: ErrorCode.NoAvailableUsersFound,
         })
       );
     });
