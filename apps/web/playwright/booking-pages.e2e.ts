@@ -1,6 +1,8 @@
 import { expect } from "@playwright/test";
 
 import { randomString } from "@calcom/lib/random";
+import { SchedulingType } from "@calcom/prisma/client";
+import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test } from "./lib/fixtures";
 import {
@@ -340,5 +342,94 @@ test.describe("Booking on different layouts", () => {
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
+});
+
+test.describe("Booking round robin event", () => {
+  test.beforeEach(async ({ page, users }) => {
+    const teamMatesObj = [{ name: "teammate-1" }];
+
+    const dateRanges: TimeRange = {
+      start: new Date(new Date().setUTCHours(10, 0, 0, 0)), //one hour after default schedule (teammate-1's schedule)
+      end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+    };
+
+    const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
+
+    const testUser = await users.create(
+      { username: "test-user", name: "Test User", email: "testuser@example.com", schedule },
+      {
+        hasTeam: true,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        teamEventLength: 120,
+        teammates: teamMatesObj,
+      }
+    );
+    const team = await testUser.getFirstTeam();
+    await page.goto(`/team/${team.team.slug}`);
+  });
+
+  test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
+    const [testUser] = users.get();
+    testUser.apiLogin();
+
+    const team = await testUser.getFirstTeam();
+
+    // Click first event type (round robin)
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+
+    // books 9AM slots for 120 minutes (test-user is not available at this time, availability starts at 10)
+    await page.locator('[data-testid="time"]').nth(0).click();
+
+    await page.waitForLoadState("networkidle");
+
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const host = await page.locator('[data-testid="booking-host-name"]');
+    const hostName = await host.innerText();
+
+    //expect teammate-1 to be booked, test-user is not available at this time
+    expect(hostName).toBe("teammate-1");
+
+    // make another booking to see if also for the second booking teammate-1 is booked
+    await page.goto(`/team/${team.team.slug}`);
+
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.click('[data-testid="incrementMonth"]');
+    await page.click('[data-testid="incrementMonth"]');
+
+    // Again book a 9AM slot for 120 minutes where test-user is not available
+    await page.locator('[data-testid="time"]').nth(0).click();
+
+    await page.waitForLoadState("networkidle");
+
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const hostSecondBooking = await page.locator('[data-testid="booking-host-name"]');
+    const hostNameSecondBooking = await hostSecondBooking.innerText();
+    expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
 });

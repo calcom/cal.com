@@ -21,7 +21,16 @@ export const schemaSchedulePublic = z
   .merge(
     z.object({
       availability: z
-        .array(Availability.pick({ id: true, eventTypeId: true, days: true, startTime: true, endTime: true }))
+        .array(
+          Availability.pick({
+            id: true,
+            eventTypeId: true,
+            date: true,
+            days: true,
+            startTime: true,
+            endTime: true,
+          })
+        )
         .transform((v) =>
           v.map((item) => ({
             ...item,

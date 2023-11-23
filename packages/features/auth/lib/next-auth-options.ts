@@ -105,6 +105,7 @@ const providers: Provider[] = [
           email: credentials.email.toLowerCase(),
         },
         select: {
+          locked: true,
           role: true,
           id: true,
           username: true,
@@ -134,6 +135,11 @@ const providers: Provider[] = [
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
+
+      // Locked users cannot login
+      if (user.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
       }
 
       await checkRateLimitAndThrowError({

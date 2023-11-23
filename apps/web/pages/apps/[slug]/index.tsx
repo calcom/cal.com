@@ -79,6 +79,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       isTemplate={data.isTemplate}
       dependencies={data.dependencies}
       concurrentMeetings={data.concurrentMeetings}
+      paid={data.paid}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={

@@ -6,6 +6,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
+import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
@@ -52,6 +53,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -362,7 +364,8 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
-  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType }
+  input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
+  loggerWithEventDetails: Logger<unknown>
 ) {
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
@@ -401,6 +404,25 @@ async function ensureAvailableUsers(
     }
 
     let foundConflict = false;
+
+    let dateRangeForBooking = false;
+
+    //check if event time is within the date range
+    for (const dateRange of dateRanges) {
+      if (
+        (dayjs.utc(input.dateFrom).isAfter(dateRange.start) ||
+          dayjs.utc(input.dateFrom).isSame(dateRange.start)) &&
+        (dayjs.utc(input.dateTo).isBefore(dateRange.end) || dayjs.utc(input.dateTo).isSame(dateRange.end))
+      ) {
+        dateRangeForBooking = true;
+        break;
+      }
+    }
+
+    if (!dateRangeForBooking) {
+      continue;
+    }
+
     try {
       foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, duration);
     } catch {
@@ -414,7 +436,8 @@ async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    throw new Error("No available users found.");
+    loggerWithEventDetails.error(`No available users found.`);
+    throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   return availableUsers;
 }
@@ -537,7 +560,7 @@ async function getBookingData({
     return true;
   };
   if (!reqBodyWithEnd(reqBody)) {
-    throw new Error("Internal Error.");
+    throw new Error(ErrorCode.RequestBodyWithouEnd);
   }
   // reqBody.end is no longer an optional property.
   if ("customInputs" in reqBody) {
@@ -672,10 +695,11 @@ async function handler(
 
   const fullName = getFullName(bookerName);
 
+  // Why are we only using "en" locale
   const tGuests = await getTranslation("en", "common");
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
-  if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+  if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -916,7 +940,8 @@ async function handler(
         dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
         timeZone: reqBody.timeZone,
         originalRescheduledBooking,
-      }
+      },
+      loggerWithEventDetails
     );
 
     const luckyUsers: typeof users = [];
@@ -946,7 +971,7 @@ async function handler(
     if (
       availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
     ) {
-      throw new Error("Some of the hosts are unavailable for booking.");
+      throw new Error(ErrorCode.HostsUnavailableForBooking);
     }
     // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
@@ -976,8 +1001,11 @@ async function handler(
   const attendeeTimezone = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.timeZone : reqBody.timeZone;
 
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
+
+  const isManagedEventType = !!eventType.parentId;
+
   // use host default
-  if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
@@ -1051,7 +1079,6 @@ async function handler(
       },
     };
   });
-
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1078,7 +1105,7 @@ async function handler(
 
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
-    type: eventType.title,
+    type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
@@ -1264,7 +1291,7 @@ async function handler(
       booking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
       dayjs.utc(booking.startTime).format() === evt.startTime
     ) {
-      throw new HttpError({ statusCode: 409, message: "Already signed up for this booking." });
+      throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
     }
 
     // There are two paths here, reschedule a booking with seats and booking seats without reschedule
@@ -1859,6 +1886,7 @@ async function handler(
     evt.team = {
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
+      id: eventType.team?.id ?? 0,
     };
   }
 
@@ -2675,7 +2703,7 @@ const findBookingQuery = async (bookingId: number) => {
 
   // This should never happen but it's just typescript safe
   if (!foundBooking) {
-    throw new Error("Internal Error.");
+    throw new Error("Internal Error. Couldn't find booking");
   }
 
   // Don't leak any sensitive data
