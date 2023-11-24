@@ -68,8 +68,7 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="flex gap-2">
-        {!isMyLink && <OverlayCalendarContainer />}
-        {isMyLink && (
+        {isMyLink ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button
               color="primary"
@@ -78,6 +77,8 @@ export function Header({
               {t("need_help")}
             </Button>
           </Tooltip>
+        ) : (
+          <OverlayCalendarContainer />
         )}
         <LayoutToggleWithData />
       </div>
