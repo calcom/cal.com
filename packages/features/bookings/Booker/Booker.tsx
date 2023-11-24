@@ -248,6 +248,7 @@ const BookerComponent = ({
               )}>
               <Header
                 username={username}
+                eventSlug={eventSlug}
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                 isMobile={isMobile}

@@ -21,12 +21,14 @@ export function Header({
   enabledLayouts,
   nextSlots,
   username,
+  eventSlug,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
   nextSlots: number;
   username: string;
+  eventSlug: string;
 }) {
   const { t, i18n } = useLocale();
   const session = useSession();
@@ -72,7 +74,7 @@ export function Header({
             <Button
               color="primary"
               target="_blank"
-              href={`${WEBAPP_URL}/availability/troubleshoot?eventType=`}>
+              href={`${WEBAPP_URL}/availability/troubleshoot?eventType=${eventSlug}`}>
               {t("need_help")}
             </Button>
           </Tooltip>
