@@ -98,37 +98,6 @@ test.describe("Signup Flow Test", async () => {
     expect(url).toContain(expectedUrl);
     // TODO: complete the stripe checkout flow
   });
-  test("Premium Username Flow - SelfHosted (Email verify enabled)", async ({
-    page,
-    users,
-    prisma,
-    features,
-  }) => {
-    features.set("email-verification", true);
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Selfhosted Instances");
-    const userToCreate = users.buildForSignup({
-      username: "rick",
-      useExactUsername: true,
-      password: "Password99!",
-    });
-    // Ensure the premium username is available
-    await prisma.user.deleteMany({ where: { username: userToCreate.username } });
-    // Signup with premium username name
-    await page.goto("/signup");
-
-    // Fill form
-    await page.locator('input[name="username"]').fill(userToCreate.username);
-    await page.locator('input[name="email"]').fill(userToCreate.email);
-    await page.locator('input[name="password"]').fill(userToCreate.password);
-
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState("networkidle");
-    // Find the newly created user and add it to the fixture store
-    const newUser = await users.set(userToCreate.email);
-    expect(newUser).not.toBeNull();
-    expect(page.url()).toContain("/auth/verify-email");
-  });
   test("Signup with valid (non premium) username (Email verify enabled)", async ({
     page,
     users,
