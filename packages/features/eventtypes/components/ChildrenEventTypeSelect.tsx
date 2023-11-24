@@ -106,6 +106,7 @@ export const ChildrenEventTypeSelect = ({
                     {children.created && children.owner.username && (
                       <Tooltip content={t("preview")}>
                         <Button
+                          data-testid="preview-button"
                           color="secondary"
                           target="_blank"
                           variant="icon"
