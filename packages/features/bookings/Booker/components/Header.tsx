@@ -3,9 +3,10 @@ import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, ToggleGroup } from "@calcom/ui";
+import { Button, ButtonGroup, ToggleGroup, Tooltip } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -60,6 +61,11 @@ export function Header({
     return (
       <div className="flex gap-2">
         <OverlayCalendarContainer />
+        <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
+          <Button color="primary" target="_blank" href={`${WEBAPP_URL}/availability/troubleshoot?eventType=`}>
+            {t("need_help")}
+          </Button>
+        </Tooltip>
         <LayoutToggleWithData />
       </div>
     );

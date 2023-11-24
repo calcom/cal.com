@@ -10,7 +10,9 @@ function TroubleshooterPage() {
   return (
     <>
       <HeadSeo title={t("troubleshoot")} description={t("troubleshoot_availability")} />
-      <Troubleshooter month={null} />
+      <div>
+        <Troubleshooter month={null} />
+      </div>
     </>
   );
 }

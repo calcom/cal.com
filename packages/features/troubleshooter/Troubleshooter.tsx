@@ -27,7 +27,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
     <>
       <div
         className={classNames(
-          "text-default grid min-h-full w-full flex-col items-center overflow-clip ",
+          "text-default fixed inset-0 grid min-h-full w-full flex-col items-center overflow-clip ",
           isMobile
             ? "[--troublehooster-meta-width:0px]"
             : "[--troublehooster-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
@@ -51,7 +51,7 @@ const TroubleshooterComponent = ({ month }: TroubleshooterProps) => {
             <TroubleshooterHeader extraDays={extraDays} isMobile={isMobile} />
           </div>
           <StickyBox key="meta" className={classNames("relative z-10")}>
-            <div className="">
+            <div className="ps-6">
               <TroubleshooterSidebar />
             </div>
           </StickyBox>
