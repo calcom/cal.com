@@ -1,4 +1,3 @@
-import type { NextApiRequest } from "next";
 import { z } from "zod";
 
 import {
@@ -11,7 +10,7 @@ import getBookingResponsesSchema from "./getBookingResponsesSchema";
 import type { getEventTypesFromDB } from "./handleNewBooking";
 
 const getBookingDataSchema = (
-  req: NextApiRequest,
+  rescheduleUid: string | undefined,
   isNotAnApiCall: boolean,
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
@@ -19,7 +18,7 @@ const getBookingDataSchema = (
     eventType: {
       bookingFields: eventType.bookingFields,
     },
-    view: req.body.rescheduleUid ? "reschedule" : "booking",
+    view: rescheduleUid ? "reschedule" : "booking",
   });
   const bookingDataSchema = isNotAnApiCall
     ? extendedBookingCreateBody.merge(

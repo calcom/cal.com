@@ -366,7 +366,11 @@ type IsFixedAwareUser = User & {
   organization: { slug: string };
 };
 
-const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: NextApiRequest) => {
+const loadUsers = async (
+  eventType: NewBookingEventType,
+  dynamicUserList: string[],
+  reqHeadersHost: string | undefined
+) => {
   try {
     if (!eventType.id) {
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
@@ -376,7 +380,7 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       const users = await prisma.user.findMany({
         where: {
           username: { in: dynamicUserList },
-          organization: userOrgQuery(req.headers.host ? req.headers.host.replace(/^https?:\/\//, "") : ""),
+          organization: userOrgQuery(reqHeadersHost ? reqHeadersHost.replace(/^https?:\/\//, "") : ""),
         },
         select: {
           ...userSelect.select,
@@ -535,7 +539,7 @@ async function getBookingData({
   isNotAnApiCall: boolean;
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
 }) {
-  const bookingDataSchema = getBookingDataSchema(req, isNotAnApiCall, eventType);
+  const bookingDataSchema = getBookingDataSchema(req.body?.rescheduleUid, isNotAnApiCall, eventType);
 
   const reqBody = await bookingDataSchema.parseAsync(req.body);
 
@@ -925,7 +929,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req);
+  })[] = await loadUsers(eventType, dynamicUserList, req.headers.host);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
