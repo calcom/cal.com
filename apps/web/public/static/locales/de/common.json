@@ -155,7 +155,7 @@
   "webhook_updated_successfully": "Webhook erfolgreich aktualisiert!",
   "webhook_removed_successfully": "Webhook erfolgreich entfernt!",
   "payload_template": "Payload Vorlage",
-  "dismiss": "Abbrechen",
+  "dismiss": "Ignorieren",
   "no_data_yet": "Noch keine Daten",
   "ping_test": "Pingtest",
   "add_to_homescreen": "Fügen Sie diese App Ihrem Startbildschirm für schnelleren Zugriff hinzu.",
