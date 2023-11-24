@@ -96,7 +96,7 @@ export const tips = [
   {
     id: 12,
     thumbnailUrl:
-      "https://ph-files.imgix.net/46d376e1-f897-40fc-9921-c64de971ee13.jpeg?auto=compress&codec=mozjpeg&cs=strip&auto=format&w=390&h=220&fit=max&dpr=2",
+      "https://cal.com/og-image-cal-ai.jpg",
     mediaLink: "https://go.cal.com/cal-ai",
     title: "Cal.ai",
     description: "Your personal AI scheduling assistant",
