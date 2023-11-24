@@ -44,6 +44,7 @@ type AppsRouterHandlerCache = {
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
+  getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -339,6 +340,21 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.getCalVideoRecordings({ ctx, input });
     }),
+
+  getUserTopBanners: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUserTopBanners) {
+      UNSTABLE_HANDLER_CACHE.getUserTopBanners = (
+        await import("./getUserTopBanners.handler")
+      ).getUserTopBannersHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUserTopBanners) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getUserTopBanners({ ctx });
+  }),
 
   getDownloadLinkOfCalVideoRecordings: authedProcedure
     .input(ZGetDownloadLinkOfCalVideoRecordingsInputSchema)

@@ -1,13 +1,17 @@
 import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, TopBanner } from "@calcom/ui";
 
-export function OrgUpgradeBanner() {
+export function OrgUpgradeBanner({
+  data,
+}: {
+  data: RouterOutputs["viewer"]["getUserTopBanners"]["orgUpgradeBanner"];
+}) {
   const { t } = useLocale();
   const router = useRouter();
-  const { data } = trpc.viewer.organizations.checkIfOrgNeedsUpgrade.useQuery();
   const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);

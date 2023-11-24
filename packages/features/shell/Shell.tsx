@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, { cloneElement, Fragment, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
@@ -21,10 +21,10 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
+import { TOP_BANNER_HEIGTH } from "@calcom/lib/constants";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
-import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
@@ -131,38 +131,13 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
-function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
-  const bannerRef = useRef<HTMLDivElement | null>(null);
-
-  useIsomorphicLayoutEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      const { offsetHeight } = entries[0].target as HTMLElement;
-      setBannersHeight(offsetHeight);
-    });
-
-    const currentBannerRef = bannerRef.current;
-
-    if (currentBannerRef) {
-      resizeObserver.observe(currentBannerRef);
-    }
-
-    return () => {
-      if (currentBannerRef) {
-        resizeObserver.unobserve(currentBannerRef);
-      }
-    };
-  }, [bannerRef]);
-
-  return (
-    <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-      <TeamsUpgradeBanner />
-      <OrgUpgradeBanner />
-      <ImpersonatingBanner />
-      <AdminPasswordBanner />
-      <VerifyEmailBanner />
-    </div>
-  );
-}
+const BannerComponent = {
+  teamUpgradeBanner: (props) => <TeamsUpgradeBanner {...props} />,
+  orgUpgradeBanner: (props) => <OrgUpgradeBanner {...props} />,
+  verifyEmailBanner: (props) => <VerifyEmailBanner {...props} />,
+  adminPasswordBanner: (props) => <AdminPasswordBanner {...props} />,
+  impersonationBanner: (props) => <ImpersonatingBanner {...props} />,
+};
 
 function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
@@ -188,9 +163,34 @@ function useRedirectToOnboardingIfNeeded() {
   };
 }
 
+const useBanners = () => {
+  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: userSession } = useSession();
+
+  if (isLoading || !userSession) return null;
+
+  const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
+  const userImpersonatedByUID = userSession?.user.impersonatedByUID;
+
+  const userSessionBanners = {
+    adminPasswordBanner: isUserInactiveAdmin ? userSession : undefined,
+    impersonationBanner: userImpersonatedByUID ? userSession : undefined,
+  };
+
+  const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
+
+  const activeBanners = Object.entries(allBanners).filter(([_, value]) => {
+    return value !== undefined && (!Array.isArray(value) || value.length > 0);
+  });
+
+  return activeBanners;
+};
+
 const Layout = (props: LayoutProps) => {
-  const [bannersHeight, setBannersHeight] = useState<number>(0);
+  const banners = useBanners();
+
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+  const bannersHeight = (banners?.length ?? 0) * TOP_BANNER_HEIGTH;
 
   return (
     <>
@@ -207,7 +207,15 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <AppTop setBannersHeight={setBannersHeight} />
+        {banners && (
+          <div className="sticky top-0 z-10 w-full divide-y divide-black">
+            {banners.map(([key, data]) => {
+              const Banner = BannerComponent[key];
+              return <Banner data={data} key={key} />;
+            })}
+          </div>
+        )}
+
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer ? (
             cloneElement(props.SidebarContainer, { bannersHeight })
