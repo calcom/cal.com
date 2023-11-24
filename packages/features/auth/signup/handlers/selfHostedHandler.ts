@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsername } from "@calcom/lib/validateUsername";
@@ -107,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } else {
-    if (IS_CALCOM) {
+    if (IS_PREMIUM_USERNAME_ENABLED) {
       const checkUsername = await checkPremiumUsername(username);
       if (checkUsername.premium) {
         res.status(422).json({

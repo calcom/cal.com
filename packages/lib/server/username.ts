@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
-import { IS_CALCOM } from "../constants";
+import { IS_PREMIUM_USERNAME_ENABLED } from "../constants";
 import notEmpty from "../notEmpty";
 
 const cachedData: Set<string> = new Set();
@@ -44,7 +44,7 @@ export async function isBlacklisted(username: string) {
   return cachedData.has(username);
 }
 
-export const isPremiumUserName = IS_CALCOM
+export const isPremiumUserName = IS_PREMIUM_USERNAME_ENABLED
   ? async (username: string) => {
       return username.length <= 4 || isBlacklisted(username);
     }
