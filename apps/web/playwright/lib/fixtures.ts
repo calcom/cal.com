@@ -105,6 +105,7 @@ export const test = base.extend<Fixtures>({
   },
   features: async ({ page }, use) => {
     const features = createFeatureFixture(page);
+    features.init();
     await use(features);
   },
 });

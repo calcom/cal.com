@@ -1,16 +1,19 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
-import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
+import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-const SKIP_PREMIUM_USERNAME = !!IS_CALCOM;
+const SKIP_PREMIUM_USERNAME = !!IS_PREMIUM_USERNAME_ENABLED;
 
 test.describe("Signup Flow Test", async () => {
+  test.beforeEach(async ({ features }) => {
+    features.reset();
+  });
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
   });
@@ -67,7 +70,6 @@ test.describe("Signup Flow Test", async () => {
     });
   });
   test("Premium Username Flow - creates stripe checkout", async ({ page, users, prisma }) => {
-    // @sean-brydon: This test will never run on CI nor locally because of the IS_CALCOM check. We need to figure out a way to test this.
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!SKIP_PREMIUM_USERNAME, "Only run on Cal.com");
     const userToCreate = users.buildForSignup({
@@ -98,7 +100,13 @@ test.describe("Signup Flow Test", async () => {
     expect(url).toContain(expectedUrl);
     // TODO: complete the stripe checkout flow
   });
-  test("Premium Username Flow - SelfHosted", async ({ page, users, prisma }) => {
+  test("Premium Username Flow - SelfHosted (Email verify enabled)", async ({
+    page,
+    users,
+    prisma,
+    features,
+  }) => {
+    features.set("email-verification", true);
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(SKIP_PREMIUM_USERNAME, "Only run on Selfhosted Instances");
     const userToCreate = users.buildForSignup({
@@ -123,8 +131,45 @@ test.describe("Signup Flow Test", async () => {
     expect(newUser).not.toBeNull();
     expect(page.url()).toContain("/auth/verify-email");
   });
+  test("Premium Username Flow - SelfHosted (Email verify disabled)", async ({
+    page,
+    users,
+    prisma,
+    features,
+  }) => {
+    features.set("email-verification", false);
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(SKIP_PREMIUM_USERNAME, "Only run on Selfhosted Instances");
+    const userToCreate = users.buildForSignup({
+      username: "rick",
+      useExactUsername: true,
+      password: "Password99!",
+    });
+    // Ensure the premium username is available
+    await prisma.user.deleteMany({ where: { username: userToCreate.username } });
+    // Signup with premium username name
+    await page.goto("/signup");
 
-  test("Signup with valid (non premium) username", async ({ page, users }) => {
+    // Fill form
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    await page.click('button[type="submit"]');
+    await page.waitForURL((url) => url.pathname.includes("/getting-started"));
+    // Find the newly created user and add it to the fixture store
+    const newUser = await users.set(userToCreate.email);
+    expect(newUser).not.toBeNull();
+    expect(page.url()).toContain("/auth/verify-email");
+  });
+
+  test("Signup with valid (non premium) username (Email verify enabled)", async ({
+    page,
+    users,
+    features,
+  }) => {
+    features.set("email-verification", true);
+
     const userToCreate = users.buildForSignup({
       username: "rick-jones",
       password: "Password99!",
@@ -139,6 +184,34 @@ test.describe("Signup Flow Test", async () => {
 
     await page.click('button[type="submit"]');
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+    // Find the newly created user and add it to the fixture store
+    const newUser = await users.set(userToCreate.email);
+    expect(newUser).not.toBeNull();
+
+    // Check that the URL matches the expected URL
+    expect(page.url()).toContain("/auth/verify-email");
+  });
+  test("Signup with valid (non premium) username (Email verify disabled)", async ({
+    page,
+    users,
+    features,
+  }) => {
+    features.set("email-verification", false);
+
+    const userToCreate = users.buildForSignup({
+      username: "rick-jones",
+      password: "Password99!",
+    });
+
+    await page.goto("/signup");
+
+    // Fill form
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
+
+    await page.click('button[type="submit"]');
+    await page.waitForURL((url) => url.pathname.includes("/getting-started"));
     // Find the newly created user and add it to the fixture store
     const newUser = await users.set(userToCreate.email);
     expect(newUser).not.toBeNull();
@@ -213,7 +286,11 @@ test.describe("Signup Flow Test", async () => {
     await prisma.verificationToken.deleteMany({ where: { identifier: userToCreate.email } });
     await prisma.team.deleteMany({ where: { id: createdtoken.teamId! } });
   });
-  test("Email verification sent if enabled", async ({ page, prisma, emails, users }) => {
+  test("Email verification sent if enabled", async ({ page, prisma, emails, users, features }) => {
+    const EmailVerifyFlag = features.get("email-verification")?.enabled;
+
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(!EmailVerifyFlag || !IS_MAILHOG_ENABLED, "Skipping check - Email verify disabled");
     // Ensure email verification before testing (TODO: this could break other tests but we can fix that later)
     await prisma.feature.update({
       where: { slug: "email-verification" },

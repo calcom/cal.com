@@ -3,7 +3,7 @@ import type { NextApiResponse } from "next";
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
 import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
@@ -38,7 +38,7 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
      * TODO: (SEAN) - Extract a lot of the logic from calcomHandler into a separate file and import it into both handlers.
      * @zomars: We need to be able to test this with E2E. They way it's done RN it will never run on CI.
      */
-    if (IS_CALCOM) {
+    if (IS_PREMIUM_USERNAME_ENABLED) {
       return await calcomSignupHandler(req, res);
     }
 
