@@ -637,6 +637,21 @@ function getCustomInputsResponses(
   return customInputsResponses;
 }
 
+function getICalSequence(originalRescheduledBooking: BookingType | null) {
+  // If new booking set the sequence to 0
+  if (!originalRescheduledBooking) {
+    return 0;
+  }
+
+  // If rescheduling and there is no sequence set, assume sequence should be 1
+  if (!originalRescheduledBooking.iCalSequence) {
+    return 1;
+  }
+
+  // If rescheduling then increment sequence by 1
+  return originalRescheduledBooking.iCalSequence + 1;
+}
+
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
@@ -1107,11 +1122,7 @@ async function handler(
     uid,
   });
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
-  const iCalSequence = originalRescheduledBooking?.iCalSequence
-    ? originalRescheduledBooking.iCalSequence + 1
-    : originalRescheduledBooking
-    ? 1
-    : 0;
+  const iCalSequence = getICalSequence(originalRescheduledBooking);
 
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
