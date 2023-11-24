@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -23,10 +24,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   // run jobs
   for (const job of jobsToRun) {
+
+    const parsedJobPayload = JSON.parse(job.payload) as {
+      id: number; // booking id
+      endTime: string;
+      scheduledJobs: string[];
+      triggerEvent: string;
+    };
+
     try {
+      const options = {}
+      if (parsedJobPayload.triggerEvent == WebhookTriggerEvents.MEETING_ENDED) {
+        options["headers"] = {
+          "Content-Type": "application/json"
+        }
+      }
+
       await fetch(job.subscriberUrl, {
         method: "POST",
         body: job.payload,
+        ...options
       });
     } catch (error) {
       console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
@@ -49,13 +66,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.json({ ok: false });
       }
     }
-
-    const parsedJobPayload = JSON.parse(job.payload) as {
-      id: number; // booking id
-      endTime: string;
-      scheduledJobs: string[];
-      triggerEvent: string;
-    };
 
     // clean finished job
     await prisma.webhookScheduledTriggers.delete({
