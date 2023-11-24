@@ -2,7 +2,6 @@ import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
 import { APP_NAME, IS_CALCOM } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser } from "./lib/testUtils";
@@ -14,30 +13,6 @@ const SKIP_PREMIUM_USERNAME = !!IS_CALCOM;
 test.describe("Signup Flow Test", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
-    /**
-     * Delete specifically created users for this test
-     * as they are not deleted by the above fixture
-     * (As they are not created by the fixture)
-     */
-    await users.deleteByEmail("rick@example.com");
-    await users.deleteByEmail("rick-jones@example.com");
-    // Clean up the user and token
-    await prisma.user.deleteMany({
-      where: {
-        email: "rick-team@example.com",
-      },
-    });
-    await prisma.verificationToken.deleteMany({
-      where: {
-        identifier: "rick-team@example.com",
-      },
-    });
-
-    await prisma.team.deleteMany({
-      where: {
-        name: "Rick's Team",
-      },
-    });
   });
   test("Username is taken", async ({ page, users }) => {
     // log in trail user
@@ -68,7 +43,7 @@ test.describe("Signup Flow Test", async () => {
   test("Email is taken", async ({ page, users }) => {
     // log in trail user
     await test.step("Sign up", async () => {
-      await users.create({
+      const user = await users.create({
         username: "pro",
       });
 
@@ -78,7 +53,7 @@ test.describe("Signup Flow Test", async () => {
 
       // Fill form
       await page.locator('input[name="username"]').fill("randomuserwhodoesntexist");
-      await page.locator('input[name="email"]').fill("pro@example.com");
+      await page.locator('input[name="email"]').fill(user.email);
       await page.locator('input[name="password"]').fill("Password99!");
 
       // Submit form
@@ -91,17 +66,25 @@ test.describe("Signup Flow Test", async () => {
       expect(alertMessageInner).toContain(alertMessageInner);
     });
   });
-  test("Premium Username Flow - creates stripe checkout", async ({ page, users }) => {
+  test("Premium Username Flow - creates stripe checkout", async ({ page, users, prisma }) => {
+    // @sean-brydon: This test will never run on CI nor locally because of the IS_CALCOM check. We need to figure out a way to test this.
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!SKIP_PREMIUM_USERNAME, "Only run on Cal.com");
+    const userToCreate = users.buildForSignup({
+      username: "rock",
+      useExactUsername: true,
+      password: "Password99!",
+    });
+    // Ensure the premium username is available
+    await prisma.user.deleteMany({ where: { username: userToCreate.username } });
 
     // Signup with premium username name
     await page.goto("/signup");
 
     // Fill form
-    await page.locator('input[name="username"]').fill("rick");
-    await page.locator('input[name="email"]').fill("rick@example.com");
-    await page.locator('input[name="password"]').fill("Password99!");
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
 
@@ -115,34 +98,50 @@ test.describe("Signup Flow Test", async () => {
     expect(url).toContain(expectedUrl);
     // TODO: complete the stripe checkout flow
   });
-  test("Premium Username Flow - SelfHosted", async ({ page, users }) => {
+  test("Premium Username Flow - SelfHosted", async ({ page, users, prisma }) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(SKIP_PREMIUM_USERNAME, "Only run on Selfhosted Instances");
-
+    const userToCreate = users.buildForSignup({
+      username: "rick",
+      useExactUsername: true,
+      password: "Password99!",
+    });
+    // Ensure the premium username is available
+    await prisma.user.deleteMany({ where: { username: userToCreate.username } });
     // Signup with premium username name
     await page.goto("/signup");
 
     // Fill form
-    await page.locator('input[name="username"]').fill("rick");
-    await page.locator('input[name="email"]').fill("rick@example.com");
-    await page.locator('input[name="password"]').fill("Password99!");
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
-
+    // Find the newly created user and add it to the fixture store
+    const newUser = await users.set(userToCreate.email);
+    expect(newUser).not.toBeNull();
     expect(page.url()).toContain("/auth/verify-email");
   });
 
   test("Signup with valid (non premium) username", async ({ page, users }) => {
+    const userToCreate = users.buildForSignup({
+      username: "rick-jones",
+      password: "Password99!",
+    });
+
     await page.goto("/signup");
 
     // Fill form
-    await page.locator('input[name="username"]').fill("rick-jones");
-    await page.locator('input[name="email"]').fill("rick-jones@example.com");
-    await page.locator('input[name="password"]').fill("Password99!");
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+    // Find the newly created user and add it to the fixture store
+    const newUser = await users.set(userToCreate.email);
+    expect(newUser).not.toBeNull();
 
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
@@ -152,8 +151,8 @@ test.describe("Signup Flow Test", async () => {
     await page.goto(signupUrlWithParams);
 
     // Fill form
-    const usernameInput = await page.locator('input[name="username"]');
-    const emailInput = await page.locator('input[name="email"]');
+    const usernameInput = page.locator('input[name="username"]');
+    const emailInput = page.locator('input[name="email"]');
 
     expect(await usernameInput.inputValue()).toBe("rick-jones");
     expect(await emailInput.inputValue()).toBe("rick-jones@example.com");
@@ -161,17 +160,20 @@ test.describe("Signup Flow Test", async () => {
   test("Signup with token prefils correct fields", async ({ page, users, prisma }) => {
     //Create a user and create a token
     const token = randomBytes(32).toString("hex");
+    const userToCreate = users.buildForSignup({
+      username: "rick-team",
+    });
 
     // @shivram we can probably create a fixture for this logic.
     const createdtoken = await prisma.verificationToken.create({
       data: {
-        identifier: "rick-team@example.com",
+        identifier: userToCreate.email,
         token,
         expires: new Date(new Date().setHours(168)), // +1 week
         team: {
           create: {
             name: "Rick's Team",
-            slug: "ricks-team",
+            slug: `${userToCreate.username}-team`,
           },
         },
       },
@@ -180,8 +182,8 @@ test.describe("Signup Flow Test", async () => {
     // create a user with the same email as the token
     const rickTeamUser = await prisma.user.create({
       data: {
-        email: "rick-team@example.com",
-        username: "rick-team",
+        email: userToCreate.email,
+        username: userToCreate.username,
       },
     });
 
@@ -202,34 +204,43 @@ test.describe("Signup Flow Test", async () => {
     const usernameField = page.locator('input[name="username"]');
     const emailField = page.locator('input[name="email"]');
 
-    expect(await usernameField.inputValue()).toBe("rick-team");
-    expect(await emailField.inputValue()).toBe("rick-team@example.com");
+    expect(await usernameField.inputValue()).toBe(userToCreate.username);
+    expect(await emailField.inputValue()).toBe(userToCreate.email);
+
+    // Cleanup specific to this test
+    // Clean up the user and token
+    await prisma.user.deleteMany({ where: { email: userToCreate.email } });
+    await prisma.verificationToken.deleteMany({ where: { identifier: userToCreate.email } });
+    await prisma.team.deleteMany({ where: { id: createdtoken.teamId! } });
   });
-  test("Email verification sent if enabled", async ({ page, prisma, emails }) => {
-    const emailVerifyFlag = await prisma.feature.findUnique({
-      where: {
-        slug: "email-verification",
-      },
+  test("Email verification sent if enabled", async ({ page, prisma, emails, users }) => {
+    // Ensure email verification before testing (TODO: this could break other tests but we can fix that later)
+    await prisma.feature.update({
+      where: { slug: "email-verification" },
+      data: { enabled: true },
+    });
+    const userToCreate = users.buildForSignup({
+      username: "email-verify",
+      password: "Password99!",
     });
 
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!emailVerifyFlag?.enabled);
-
-    const username = "email-verify";
-    const email = `${username}@example.com`;
     await page.goto("/signup");
 
     // Fill form
-    await page.locator('input[name="username"]').fill(username);
-    await page.locator('input[name="email"]').fill(email);
-    await page.locator('input[name="password"]').fill("Password99!");
+    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="email"]').fill(userToCreate.email);
+    await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
+
     await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+    // Find the newly created user and add it to the fixture store
+    const newUser = await users.set(userToCreate.email);
+    expect(newUser).not.toBeNull();
 
     const receivedEmails = await getEmailsReceivedByUser({
       emails,
-      userEmail: email,
+      userEmail: userToCreate.email,
     });
 
     // We need to wait for emails to be sent
