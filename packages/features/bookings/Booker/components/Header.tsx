@@ -56,16 +56,23 @@ export function Header({
     );
   };
 
+  const isMyLink = true; // TODO: check for if the user is the owner of the link
+
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
       <div className="flex gap-2">
         <OverlayCalendarContainer />
-        <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
-          <Button color="primary" target="_blank" href={`${WEBAPP_URL}/availability/troubleshoot?eventType=`}>
-            {t("need_help")}
-          </Button>
-        </Tooltip>
+        {isMyLink && (
+          <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
+            <Button
+              color="primary"
+              target="_blank"
+              href={`${WEBAPP_URL}/availability/troubleshoot?eventType=`}>
+              {t("need_help")}
+            </Button>
+          </Tooltip>
+        )}
         <LayoutToggleWithData />
       </div>
     );
