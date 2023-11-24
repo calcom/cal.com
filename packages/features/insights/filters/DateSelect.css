@@ -1,6 +1,7 @@
 .custom-date > .tremor-DateRangePicker-root > .tremor-DateRangePicker-button {
   box-shadow: none;
   width: 100%;
+  background-color: transparent;
 }
 
 /* Media query for screens larger than 768px */
@@ -10,9 +11,25 @@
   }
 }
 
+.recharts-cartesian-grid-horizontal line{
+  @apply stroke-emphasis
+}
+
+.tremor-DateRangePicker-button button{
+  @apply !h-9 !max-h-9 border-default hover:border-emphasis
+}
+
 .tremor-DateRangePicker-calendarButton,
 .tremor-DateRangePicker-dropdownButton {
   @apply border-subtle bg-default focus-within:ring-emphasis hover:border-subtle dark:focus-within:ring-emphasis hover:bg-subtle text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-0;
+}
+
+.tremor-DateRangePicker-dropdownModal{
+  @apply divide-none
+}
+
+.tremor-DropdownItem-root{
+  @apply !h-9 !max-h-9 bg-default hover:bg-subtle text-default hover:text-emphasis
 }
 
 .tremor-DateRangePicker-calendarButtonText,
@@ -20,13 +37,56 @@
   @apply text-default;
 }
 
-.tremor-DateRangePicker-calendarModal,
-.tremor-DateRangePicker-dropdownModal {
-  @apply dark:invert;
+.tremor-DateRangePicker-calendarHeaderText{
+  @apply !text-default
 }
 
+.tremor-DateRangePicker-calendarHeader svg{
+  @apply text-default
+}
+
+.tremor-DateRangePicker-calendarHeader button{
+  @apply hover:bg-emphasis shadow-none focus:ring-0
+}
+
+
+.tremor-DateRangePicker-calendarHeader button:hover svg{
+  @apply text-emphasis
+}
+
+.tremor-DateRangePicker-calendarButtonIcon{
+  @apply text-default
+}
+
+.tremor-DateRangePicker-calendarModal,
+.tremor-DateRangePicker-dropdownModal {
+  @apply bg-default border-subtle shadow-dropdown
+}
+
+.tremor-DateRangePicker-calendarBodyDate button{
+  @apply text-default  hover:bg-emphasis
+}
+
+.tremor-DateRangePicker-calendarBodyDate button:disabled,
+.tremor-DateRangePicker-calendarBodyDate button[disabled]{
+  @apply opacity-25
+}
+
+.tremor-DateRangePicker-calendarHeader button{
+  @apply border-default text-default
+}
+
+.tremor-DateRangePicker-calendarBodyDate .bg-gray-100{
+  @apply bg-subtle
+}
+
+.tremor-DateRangePicker-calendarBodyDate .bg-gray-500{
+  @apply !bg-brand-default text-inverted
+}
+
+
 .tremor-Card-root {
-  @apply p-5;
+  @apply p-5 bg-default;
 }
 
 .tremor-TableCell-root {
