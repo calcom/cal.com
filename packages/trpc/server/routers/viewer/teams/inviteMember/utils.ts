@@ -159,8 +159,6 @@ export async function getUsersToInvite({
       password: true,
       completedOnboarding: true,
       identityProvider: true,
-    },
-    include: {
       teams: {
         select: { teamId: true, userId: true, accepted: true },
         where: {
@@ -174,7 +172,6 @@ export async function getUsersToInvite({
   invitees.forEach((invitee) => {
     validateInviteeEligibility(invitee, team, isInvitedToOrg);
   });
-
   return invitees;
 }
 
