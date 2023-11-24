@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -19,13 +20,17 @@ export function Header({
   isMobile,
   enabledLayouts,
   nextSlots,
+  username,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
   nextSlots: number;
+  username: string;
 }) {
   const { t, i18n } = useLocale();
+  const session = useSession();
+
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
@@ -55,8 +60,7 @@ export function Header({
       <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
     );
   };
-
-  const isMyLink = true; // TODO: check for if the user is the owner of the link
+  const isMyLink = username === session?.data?.user.username; // TODO: check for if the user is the owner of the link
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
