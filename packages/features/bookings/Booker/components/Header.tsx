@@ -68,7 +68,7 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="flex gap-2">
-        <OverlayCalendarContainer />
+        {!isMyLink && <OverlayCalendarContainer />}
         {isMyLink && (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button
