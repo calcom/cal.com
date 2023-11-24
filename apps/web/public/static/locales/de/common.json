@@ -1996,7 +1996,7 @@
   "insights_all_org_filter": "Alle Apps",
   "insights_team_filter": "Team: {{teamName}}",
   "insights_user_filter": "Benutzer: {{userName}}",
-  "insights_subtitle": "Sehen Sie sich Buchungs-Insights zu Ihren Termine an",
+  "insights_subtitle": "Erfahren Sie mehr über Ihre Termine und Ihr Team",
   "location_options": "{{locationCount}} Veranstaltungsort-Optionen",
   "custom_plan": "Maßgeschneiderter Tarif",
   "email_embed": "E-Mail Einbettung",
