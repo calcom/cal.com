@@ -13,6 +13,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Fetch platform branch
+      run: git fetch origin platform
+
     - name: Sync with main
       run: |
         git checkout platform
