@@ -1,0 +1,20 @@
+name: Sync platform branch with the main branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Sync with main
+      run: |
+        git checkout platform
+        git pull origin main
+        git push origin platform
