@@ -116,7 +116,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   : null
               }
             />
-            <h1 className="font-cal text-emphasis mb-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
