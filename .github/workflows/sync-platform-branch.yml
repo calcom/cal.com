@@ -19,5 +19,5 @@ jobs:
     - name: Sync with main
       run: |
         git checkout platform
-        git pull origin main
+        git pull origin main --no-rebase
         git push origin platform
