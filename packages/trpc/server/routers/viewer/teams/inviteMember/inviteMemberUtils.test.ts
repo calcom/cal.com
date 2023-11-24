@@ -2,20 +2,18 @@ import { describe, it, vi, expect } from "vitest";
 
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import type { User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TeamWithParent } from "./types";
-import type { UserWithMembership } from "./utils";
+import type { Invitee, UserWithMembership } from "./utils";
 import {
-  checkInputEmailIsValid,
   checkPermissions,
   getEmailsToInvite,
   getIsOrgVerified,
   getOrgConnectionInfo,
-  throwIfInviteIsToOrgAndUserExists,
+  validateInviteeEligibility,
   shouldAutoJoinIfInOrg,
 } from "./utils";
 
@@ -64,47 +62,14 @@ const mockedTeam: TeamWithParent = {
   logoUrl: "",
 };
 
-const mockUser: User = {
+const mockUser: Invitee = {
   id: 4,
   username: "pro",
-  name: "Pro Example",
   email: "pro@example.com",
-  emailVerified: new Date(),
   password: "",
-  bio: null,
-  avatar: null,
-  timeZone: "Europe/London",
-  weekStart: "Sunday",
-  startTime: 0,
-  endTime: 1440,
-  bufferTime: 0,
-  hideBranding: false,
-  theme: null,
-  createdDate: new Date(),
-  trialEndsAt: null,
-  defaultScheduleId: null,
   completedOnboarding: true,
-  locale: "en",
-  timeFormat: 12,
-  twoFactorSecret: null,
-  twoFactorEnabled: false,
   identityProvider: "CAL",
-  identityProviderId: null,
-  invitedTo: null,
-  brandColor: "#292929",
-  darkBrandColor: "#fafafa",
-  away: false,
-  allowDynamicBooking: true,
-  metadata: null,
-  verified: false,
-  role: "USER",
-  disableImpersonation: false,
   organizationId: null,
-  avatarUrl: null,
-  backupCodes: null,
-  allowSEOIndexing: null,
-  receiveMonthlyDigestEmail: null,
-  locked: false,
 };
 
 const userInTeamAccepted: UserWithMembership = {
@@ -151,20 +116,7 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual(["test1@example.com", "test2@example.com"]);
     });
   });
-  describe("checkInputEmailIsValid", () => {
-    it("should throw a TRPCError with code BAD_REQUEST if the email is invalid", () => {
-      const invalidEmail = "invalid-email";
-      expect(() => checkInputEmailIsValid(invalidEmail)).toThrow(TRPCError);
-      expect(() => checkInputEmailIsValid(invalidEmail)).toThrowError(
-        "Invite failed because invalid-email is not a valid email address"
-      );
-    });
 
-    it("should not throw an error if the email is valid", () => {
-      const validEmail = "valid-email@example.com";
-      expect(() => checkInputEmailIsValid(validEmail)).not.toThrow();
-    });
-  });
   describe("getOrgConnectionInfo", () => {
     const orgAutoAcceptDomain = "example.com";
     const usersEmail = "user@example.com";
@@ -287,8 +239,8 @@ describe("Invite Member Utils", () => {
     });
   });
 
-  describe("throwIfInviteIsToOrgAndUserExists", () => {
-    const invitee: User = {
+  describe("validateInviteeEligibility: Check if user can be invited to the team/org", () => {
+    const invitee: Invitee = {
       ...mockUser,
       id: 1,
       username: "testuser",
@@ -298,7 +250,7 @@ describe("Invite Member Utils", () => {
     const isOrg = false;
 
     it("should not throw when inviting an existing user to the same organization", () => {
-      const inviteeWithOrg: User = {
+      const inviteeWithOrg: Invitee = {
         ...invitee,
         organizationId: 2,
       };
@@ -306,10 +258,10 @@ describe("Invite Member Utils", () => {
         ...mockedTeam,
         parentId: 2,
       };
-      expect(() => throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)).not.toThrow();
+      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).not.toThrow();
     });
     it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
-      const inviteeWithOrg: User = {
+      const inviteeWithOrg: Invitee = {
         ...invitee,
         organizationId: 2,
       };
@@ -317,16 +269,16 @@ describe("Invite Member Utils", () => {
         ...mockedTeam,
         parentId: 3,
       };
-      expect(() => throwIfInviteIsToOrgAndUserExists(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
+      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
     });
 
     it("should throw a TRPCError with code FORBIDDEN if the invitee already exists in Cal.com and is being invited to an organization", () => {
       const isOrg = true;
-      expect(() => throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)).toThrow(TRPCError);
+      expect(() => validateInviteeEligibility(invitee, mockedTeam, isOrg)).toThrow(TRPCError);
     });
 
     it("should not throw an error if the invitee does not already belong to another organization and is not being invited to an organization", () => {
-      expect(() => throwIfInviteIsToOrgAndUserExists(invitee, mockedTeam, isOrg)).not.toThrow();
+      expect(() => validateInviteeEligibility(invitee, mockedTeam, isOrg)).not.toThrow();
     });
   });
   describe("shouldAutoJoinIfInOrg", () => {

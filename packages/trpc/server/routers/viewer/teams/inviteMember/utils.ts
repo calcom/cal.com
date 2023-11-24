@@ -19,7 +19,14 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
-export type UserWithMembership = User & { teams?: Pick<Membership, "userId" | "teamId" | "accepted">[] };
+export type Invitee = Pick<
+  User,
+  "id" | "email" | "organizationId" | "username" | "password" | "identityProvider" | "completedOnboarding"
+>;
+
+export type UserWithMembership = Invitee & {
+  teams?: Pick<Membership, "userId" | "teamId" | "accepted">[];
+};
 
 export async function checkPermissions({
   userId,
@@ -70,7 +77,7 @@ export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
   return emailsToInvite;
 }
 
-export function validateInviteeCanBeInvited(
+export function validateInviteeEligibility(
   invitee: UserWithMembership,
   team: TeamWithParent,
   isOrg: boolean
@@ -144,6 +151,15 @@ export async function getUsersToInvite({
     where: {
       OR: [{ username: { in: usernameOrEmail }, ...orgWhere }, { email: { in: usernameOrEmail } }],
     },
+    select: {
+      id: true,
+      email: true,
+      organizationId: true,
+      username: true,
+      password: true,
+      completedOnboarding: true,
+      identityProvider: true,
+    },
     include: {
       teams: {
         select: { teamId: true, userId: true, accepted: true },
@@ -154,8 +170,9 @@ export async function getUsersToInvite({
     },
   });
 
+  // Check if the users found in the database can be invited to join the team/org
   invitees.forEach((invitee) => {
-    validateInviteeCanBeInvited(invitee, team, isInvitedToOrg);
+    validateInviteeEligibility(invitee, team, isInvitedToOrg);
   });
 
   return invitees;
@@ -251,7 +268,7 @@ export async function createProvisionalMemberships({
   parentId,
 }: {
   input: InviteMemberOptions["input"];
-  invitees: User[];
+  invitees: UserWithMembership[];
   parentId?: number;
 }) {
   try {
