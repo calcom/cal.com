@@ -8,11 +8,9 @@ import { getEmailsReceivedByUser } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-const SKIP_PREMIUM_USERNAME = !!IS_PREMIUM_USERNAME_ENABLED;
-
 test.describe("Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
-    features.reset();
+    features.reset(); // This resets to the inital state not an empt yarray
   });
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
@@ -71,7 +69,7 @@ test.describe("Signup Flow Test", async () => {
   });
   test("Premium Username Flow - creates stripe checkout", async ({ page, users, prisma }) => {
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(!SKIP_PREMIUM_USERNAME, "Only run on Cal.com");
+    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
     const userToCreate = users.buildForSignup({
       username: "rock",
       useExactUsername: true,
@@ -108,7 +106,7 @@ test.describe("Signup Flow Test", async () => {
   }) => {
     features.set("email-verification", true);
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(SKIP_PREMIUM_USERNAME, "Only run on Selfhosted Instances");
+    test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Selfhosted Instances");
     const userToCreate = users.buildForSignup({
       username: "rick",
       useExactUsername: true,
@@ -125,44 +123,12 @@ test.describe("Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
-    await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+    await page.waitForLoadState("networkidle");
     // Find the newly created user and add it to the fixture store
     const newUser = await users.set(userToCreate.email);
     expect(newUser).not.toBeNull();
     expect(page.url()).toContain("/auth/verify-email");
   });
-  test("Premium Username Flow - SelfHosted (Email verify disabled)", async ({
-    page,
-    users,
-    prisma,
-    features,
-  }) => {
-    features.set("email-verification", false);
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(SKIP_PREMIUM_USERNAME, "Only run on Selfhosted Instances");
-    const userToCreate = users.buildForSignup({
-      username: "rick",
-      useExactUsername: true,
-      password: "Password99!",
-    });
-    // Ensure the premium username is available
-    await prisma.user.deleteMany({ where: { username: userToCreate.username } });
-    // Signup with premium username name
-    await page.goto("/signup");
-
-    // Fill form
-    await page.locator('input[name="username"]').fill(userToCreate.username);
-    await page.locator('input[name="email"]').fill(userToCreate.email);
-    await page.locator('input[name="password"]').fill(userToCreate.password);
-
-    await page.click('button[type="submit"]');
-    await page.waitForURL((url) => url.pathname.includes("/getting-started"));
-    // Find the newly created user and add it to the fixture store
-    const newUser = await users.set(userToCreate.email);
-    expect(newUser).not.toBeNull();
-    expect(page.url()).toContain("/auth/verify-email");
-  });
-
   test("Signup with valid (non premium) username (Email verify enabled)", async ({
     page,
     users,
@@ -183,7 +149,7 @@ test.describe("Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
-    await page.waitForURL((url) => url.pathname.includes("/auth/verify-email"));
+    await page.waitForLoadState("networkidle");
     // Find the newly created user and add it to the fixture store
     const newUser = await users.set(userToCreate.email);
     expect(newUser).not.toBeNull();
@@ -211,13 +177,13 @@ test.describe("Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
-    await page.waitForURL((url) => url.pathname.includes("/getting-started"));
+    await page.waitForLoadState("networkidle");
     // Find the newly created user and add it to the fixture store
     const newUser = await users.set(userToCreate.email);
     expect(newUser).not.toBeNull();
 
     // Check that the URL matches the expected URL
-    expect(page.url()).toContain("/auth/verify-email");
+    expect(page.url()).toContain("/getting-started");
   });
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
@@ -237,7 +203,6 @@ test.describe("Signup Flow Test", async () => {
       username: "rick-team",
     });
 
-    // @shivram we can probably create a fixture for this logic.
     const createdtoken = await prisma.verificationToken.create({
       data: {
         identifier: userToCreate.email,

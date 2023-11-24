@@ -16,6 +16,7 @@ export const createFeatureFixture = (page: Page) => {
       const features = await prisma.feature.findMany();
       store.features = features;
       initalFeatures = features;
+      return features;
     },
     getAll: () => store.features,
     get: (slug: FeatureSlugs) => store.features.find((b) => b.slug === slug),
@@ -40,8 +41,8 @@ export const createFeatureFixture = (page: Page) => {
     set: async (slug: FeatureSlugs, enabled: boolean) => {
       const feature = store.features.find((b) => b.slug === slug);
       if (feature) {
-        await prisma.feature.update({ where: { slug }, data: { enabled } });
         store.features = store.features.map((b) => (b.slug === slug ? { ...b, enabled } : b));
+        await prisma.feature.update({ where: { slug }, data: { enabled } });
       }
     },
     reset: () => (store.features = initalFeatures),
