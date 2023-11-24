@@ -19,6 +19,7 @@ import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
+import CalendarCredentialBanner from "@calcom/features/users/components/CalendarCredentialBanner";
 import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
 import { TOP_BANNER_HEIGTH } from "@calcom/lib/constants";
@@ -137,6 +138,7 @@ const BannerComponent = {
   verifyEmailBanner: (props) => <VerifyEmailBanner {...props} />,
   adminPasswordBanner: (props) => <AdminPasswordBanner {...props} />,
   impersonationBanner: (props) => <ImpersonatingBanner {...props} />,
+  calendarCredentialBanner: (props) => <CalendarCredentialBanner {...props} />,
 };
 
 function useRedirectToOnboardingIfNeeded() {
