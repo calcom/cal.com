@@ -33,7 +33,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     };
 
     try {
-      const options = {}
+      const options = {} as {
+        headers?: {
+          [key: string]: string;
+        }
+      }
+
       if (parsedJobPayload.triggerEvent == WebhookTriggerEvents.MEETING_ENDED) {
         options["headers"] = {
           "Content-Type": "application/json"
