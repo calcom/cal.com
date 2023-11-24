@@ -16,7 +16,7 @@ export const DateSelect = () => {
   const startValue = startDate?.toDate() || null;
   const endValue = endDate?.toDate() || null;
   return (
-    <div className="custom-date w-full sm:w-auto">
+    <div className="custom-date max-w-96 w-full sm:w-auto">
       <DateRangePicker
         value={[startValue, endValue, range]}
         defaultValue={[startValue, endValue, range]}
@@ -63,7 +63,6 @@ export const DateSelect = () => {
         minDate={currentDate.subtract(2, "year").toDate()}
         maxDate={currentDate.toDate()}
         color="gray"
-        className="h-[42px]"
       />
     </div>
   );
