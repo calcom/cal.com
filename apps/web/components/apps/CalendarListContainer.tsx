@@ -1,10 +1,12 @@
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { Fragment } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import CalendarListCustom from "@calcom/features/calendars/CalendarListCustom";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
-import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import DestinationCalendarComponent from "@calcom/features/calendars/DestinationCalendar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -14,13 +16,13 @@ import {
   List,
   AppSkeletonLoader as SkeletonLoader,
   ShellSubHeading,
+  showToast,
 } from "@calcom/ui";
-import { Calendar, Plus } from "@calcom/ui/components/icon";
+import { Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import AppListCard from "@components/AppListCard";
-import AdditionalCalendarSelector from "@components/apps/AdditionalCalendarSelector";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 
 type Props = {
@@ -113,10 +115,13 @@ function ConnectedCalendarsList(props: Props) {
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
                                 name={cal.name || "Nameless calendar"}
-                                type={item.integration.type}
+                                // type={item.integration.type}
                                 isChecked={cal.isSelected}
+                                onCheckedChange={(params: boolean) => {
+                                  // setTimeout(() => { }, 2000);
+                                }}
                                 destination={cal.externalId === props.destinationCalendarId}
-                                credentialId={cal.credentialId}
+                                // credentialId={cal.credentialId}
                               />
                             ))}
                           </ul>
@@ -172,11 +177,85 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
     ]);
   const query = trpc.viewer.connectedCalendars.useQuery();
   const installedCalendars = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
-  const mutation = trpc.viewer.setDestinationCalendar.useMutation({
+  const setDestinationCalendarMutation = trpc.viewer.setDestinationCalendar.useMutation({
     onSuccess: () => {
       utils.viewer.connectedCalendars.invalidate();
     },
   });
+  const deleteCredentialMutation = trpc.viewer.deleteCredential.useMutation({
+    onSuccess: () => {
+      showToast(t("app_removed_successfully"), "success");
+    },
+    onError: () => {
+      showToast(t("error_removing_app"), "error");
+    },
+    async onSettled() {
+      await utils.viewer.connectedCalendars.invalidate();
+    },
+  });
+
+  const removeCalendar = async (id: number) => {
+    deleteCredentialMutation.mutate({ id });
+  };
+  const toggleCalendarSwitch = useMutation<
+    unknown,
+    unknown,
+    {
+      isOn: boolean;
+      externalId: string;
+      credentialId: number;
+      type: string;
+      title: string;
+    }
+  >(
+    async ({
+      isOn,
+      externalId,
+      credentialId,
+      type,
+    }: {
+      isOn: boolean;
+      externalId: string;
+      credentialId: number;
+      type: string;
+    }) => {
+      const body = {
+        integration: type,
+        externalId: externalId,
+      };
+      if (isOn) {
+        const res = await fetch("/api/availability/calendar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...body, credentialId }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Something went wrong");
+        }
+      } else {
+        const res = await fetch(`/api/availability/calendar?${new URLSearchParams(body)}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Something went wrong");
+        }
+      }
+    },
+    {
+      async onSettled() {
+        await utils.viewer.integrations.invalidate();
+        await utils.viewer.connectedCalendars.invalidate();
+      },
+    }
+  );
+
   return (
     <QueryCell
       query={query}
@@ -185,8 +264,8 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
         return (
           <>
             {!!data.connectedCalendars.length || !!installedCalendars.data?.items.length ? (
-              <>
-                {heading && (
+              <div className="flex flex-col gap-8">
+                {/* {heading && (
                   <div className="border-default flex flex-col gap-6 rounded-md border p-7">
                     <ShellSubHeading
                       title={t("calendar")}
@@ -196,7 +275,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (
                             <div className="flex items-center">
-                              <AdditionalCalendarSelector isLoading={mutation.isLoading} />
+                              <AdditionalCalendarSelector isLoading={false} />
                             </div>
                           )}
                         </div>
@@ -217,23 +296,60 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                         </div>
                         <div className="justify-end md:w-6/12">
                           <DestinationCalendarSelector
-                            onChange={mutation.mutate}
+                            onChange={()=>{}}
                             hidePlaceholder
-                            isLoading={mutation.isLoading}
+                            isLoading={false}
                             value={data.destinationCalendar?.externalId}
                             hideAdvancedText
                           />
                         </div>
                       </div>
                     </div>
-                    <ConnectedCalendarsList
-                      onChanged={onChanged}
-                      fromOnboarding={fromOnboarding}
-                      destinationCalendarId={data.destinationCalendar?.externalId}
-                    />
+
                   </div>
-                )}
-              </>
+                )} */}
+                <DestinationCalendarComponent
+                  onChange={setDestinationCalendarMutation.mutate}
+                  isLoading={setDestinationCalendarMutation.isLoading}
+                  value={data.destinationCalendar?.externalId}
+                />
+                <CalendarListCustom
+                  data={data}
+                  onCalendarRemove={removeCalendar}
+                  onCalendarSwitchToggle={async ({
+                    isOn,
+                    credentialId,
+                    externalId,
+                    type,
+                    title,
+                  }: {
+                    isOn: boolean;
+                    credentialId: number;
+                    externalId: string;
+                    type: string;
+                    title: string;
+                  }) => {
+                    await toggleCalendarSwitch.mutateAsync(
+                      {
+                        isOn,
+                        credentialId,
+                        externalId,
+                        type,
+                        title,
+                      },
+                      {
+                        onError: () => showToast(`Something went wrong when toggling "${title}""`, "error"),
+                      }
+                    );
+                  }}
+                />
+
+                {/* <ConnectedCalendarsList
+                  onChanged={onChanged}
+                  fromOnboarding={fromOnboarding}
+                  destinationCalendarId={data.destinationCalendar?.externalId}
+                /> */}
+              </div>
             ) : fromOnboarding ? (
               <>
                 {!!query.data?.connectedCalendars.length && (

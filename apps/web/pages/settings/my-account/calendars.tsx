@@ -1,31 +1,23 @@
+import { useMutation } from "@tanstack/react-query";
 import { Trans } from "next-i18next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useReducer } from "react";
 
-import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
-import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
-import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import CalendarListCustom from "@calcom/features/calendars/CalendarListCustom";
+import DestinationCalendarComponent from "@calcom/features/calendars/DestinationCalendar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
-  Badge,
   Button,
   EmptyScreen,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemTitle,
   Meta,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   showToast,
-  Label,
 } from "@calcom/ui";
 import { Plus, Calendar } from "@calcom/ui/components/icon";
 
@@ -66,8 +58,17 @@ const CalendarsView = () => {
 
   const utils = trpc.useContext();
 
-  const query = trpc.viewer.connectedCalendars.useQuery();
-
+  const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
+    refetchInterval: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    onSuccess(data) {
+      console.log("On success");
+      dispatch({ type: "initalSetup", value: data });
+    },
+  });
+  // const { data } = query;
   const [selectedDestinationCalendarOption, setSelectedDestinationCalendar] = useState<{
     integration: string;
     externalId: string;
@@ -94,6 +95,133 @@ const CalendarsView = () => {
     },
   });
 
+  type connectedCalendarsType = (typeof query.data.connectedCalendars)[number];
+  type FormStateType = {
+    connectedCalendars: (connectedCalendarsType & { removed?: boolean })[];
+  };
+  const [state, dispatch] = useReducer(
+    (
+      prevState: FormStateType,
+      action: { type: "delete" | "toggle"; id: number | string } | { type: "initalSetup"; value: any }
+    ) => {
+      if (prevState !== undefined) {
+        const tempState = JSON.parse(JSON.stringify(prevState)) as FormStateType;
+        if (action.type === "toggle") {
+          tempState.connectedCalendars?.map((calType) => {
+            calType.calendars?.map((cal) => {
+              if (cal.externalId === action.id) {
+                cal.isSelected = !cal.isSelected;
+              }
+            });
+          });
+        } else if (action.type === "delete") {
+          tempState.connectedCalendars?.map((calType) => {
+            if (calType.credentialId === action.id) {
+              calType.removed = true;
+            }
+          });
+        }
+        return tempState;
+      } else if (action.type === "initalSetup") return action.value;
+      else return prevState;
+    },
+    query.data as FormStateType
+  );
+  const [isUpdatingConnectedCalendars, setIsUpdatingConnectedCalendars] = useState(false);
+
+  const deleteCalendarMutation = trpc.viewer.deleteCredential.useMutation();
+  const toggleCalendarSwitch = useMutation<
+    unknown,
+    unknown,
+    {
+      isOn: boolean;
+      externalId: string;
+      credentialId: number;
+      type: string;
+      title: string;
+    }
+  >(
+    async ({
+      isOn,
+      externalId,
+      credentialId,
+      type,
+    }: {
+      isOn: boolean;
+      externalId: string;
+      credentialId: number;
+      type: string;
+    }) => {
+      const body = {
+        integration: type,
+        externalId: externalId,
+      };
+      console.log({ isOn, externalId, credentialId, type });
+      if (isOn) {
+        const res = await fetch("/api/availability/calendar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...body, credentialId }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Something went wrong");
+        }
+      } else {
+        const res = await fetch(`/api/availability/calendar?${new URLSearchParams(body)}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Something went wrong");
+        }
+      }
+    }
+  );
+  const updateConnectedCalendars = async () => {
+    setIsUpdatingConnectedCalendars(true);
+    state.connectedCalendars.map(async (calType, i) => {
+      if (calType.removed === true) {
+        await deleteCalendarMutation.mutateAsync({ id: calType.credentialId });
+      } else {
+        calType.calendars.map(async (cal, j) => {
+          if (cal.isSelected !== query.data?.connectedCalendars[i].calendars[j].isSelected) {
+            // toggledCalendars.push({
+            //   type: cal.type,
+            //   externalId: cal.externalId,
+            //   credentialId: cal.credentialId,
+            //   isOn: cal.isSelected,
+            // });
+            await toggleCalendarSwitch.mutateAsync(
+              {
+                type: calType.integration.type,
+                externalId: cal.externalId,
+                credentialId: cal.credentialId,
+                isOn: cal.isSelected,
+              },
+              {
+                onError: () => showToast(`Something went wrong when toggling "${cal.name}""`, "error"),
+              }
+            );
+          }
+        });
+      }
+    });
+
+    setIsUpdatingConnectedCalendars(false);
+    query.refetch();
+  };
+
+  // useEffect(() => {
+  //   console.log("Refetch");
+  //   dispatch({ type: "initalSetup", value: query.data });
+  // }, [query]);
+
   return (
     <>
       <Meta
@@ -110,7 +238,7 @@ const CalendarsView = () => {
             selectedDestinationCalendarOption?.externalId === query?.data?.destinationCalendar?.externalId;
           return data.connectedCalendars.length ? (
             <div>
-              <div className="border-subtle mt-8 rounded-t-lg border px-4 py-6 sm:px-6">
+              {/* <div className="border-subtle mt-8 rounded-t-lg border px-4 py-6 sm:px-6">
                 <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
                   {t("add_to_calendar")}
                 </h2>
@@ -128,7 +256,17 @@ const CalendarsView = () => {
                     isLoading={mutation.isLoading}
                   />
                 </div>
-              </div>
+              </div> */}
+              <DestinationCalendarComponent
+                hidePlaceholder
+                value={selectedDestinationCalendarOption?.externalId}
+                onChange={(option) => {
+                  setSelectedDestinationCalendar(option);
+                }}
+                isLoading={mutation.isLoading}
+                isForm
+              />
+
               <SectionBottomActions align="end">
                 <Button
                   loading={mutation.isLoading}
@@ -141,7 +279,7 @@ const CalendarsView = () => {
                 </Button>
               </SectionBottomActions>
 
-              <div className="border-subtle mt-8 rounded-t-lg border px-4 py-6 sm:px-6">
+              {/* <div className="border-subtle mt-8 rounded-t-lg border px-4 py-6 sm:px-6">
                 <h4 className="text-emphasis text-base font-semibold leading-5">
                   {t("check_for_conflicts")}
                 </h4>
@@ -162,7 +300,7 @@ const CalendarsView = () => {
                         className="mb-4 mt-4"
                         actions={
                           <>
-                            {/* @TODO: add a reconnect button, that calls add api and delete old credential */}
+                            @TODO: add a reconnect button, that calls add api and delete old credential
                             <DisconnectIntegration
                               credentialId={item.credentialId}
                               trashIcon
@@ -217,11 +355,14 @@ const CalendarsView = () => {
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}
-                                credentialId={cal.credentialId}
+                                // credentialId={cal.credentialId}
+                                onCheckedChange={(params: boolean) => {
+                                  setTimeout(() => { }, 2000);
+                                }}
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
                                 name={cal.name || "Nameless calendar"}
-                                type={item.integration.type}
+                                // type={item.integration.type}
                                 isChecked={
                                   cal.isSelected || cal.externalId === data?.destinationCalendar?.externalId
                                 }
@@ -233,7 +374,30 @@ const CalendarsView = () => {
                     )}
                   </Fragment>
                 ))}
-              </List>
+              </List> */}
+              <CalendarListCustom
+                isForm
+                data={state}
+                onCalendarRemove={(id: number) => dispatch({ type: "delete", id })}
+                onCalendarSwitchToggle={({
+                  externalId,
+                }: {
+                  isOn: boolean;
+                  title: string;
+                  externalId: string;
+                  credentialId: number;
+                  type: string;
+                }) => dispatch({ type: "toggle", id: externalId })}
+              />
+              <SectionBottomActions align="end">
+                <Button
+                  loading={isUpdatingConnectedCalendars}
+                  disabled={state === undefined || JSON.stringify(state) === JSON.stringify(data)}
+                  color="primary"
+                  onClick={updateConnectedCalendars}>
+                  {t("update")}
+                </Button>
+              </SectionBottomActions>
             </div>
           ) : (
             <EmptyScreen

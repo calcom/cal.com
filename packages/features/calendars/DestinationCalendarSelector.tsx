@@ -9,7 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Select, Badge } from "@calcom/ui";
 import { Check } from "@calcom/ui/components/icon";
 
-interface Props {
+export interface DestinationCalendarSelectorProps {
   onChange: (value: { externalId: string; integration: string }) => void;
   isLoading?: boolean;
   hidePlaceholder?: boolean;
@@ -55,7 +55,7 @@ const DestinationCalendarSelector = ({
   hideAdvancedText,
   maxWidth,
   destinationCalendar,
-}: Props): JSX.Element | null => {
+}: DestinationCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery();
   const [selectedOption, setSelectedOption] = useState<{
