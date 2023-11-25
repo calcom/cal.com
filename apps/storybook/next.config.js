@@ -1,3 +1,4 @@
+#test
 const withBundleAnalyzer = require("@next/bundle-analyzer");
 
 const plugins = [];
