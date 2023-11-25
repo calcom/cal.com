@@ -1,10 +1,11 @@
 // import { debounce } from "lodash";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -57,8 +58,8 @@ function MembersList(props: MembersListProps) {
 const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const teamId = Number(searchParams?.get("id"));
+  const params = useParamsWithFallback();
+  const teamId = Number(params.id);
   const session = useSession();
   const utils = trpc.useContext();
   const [offset, setOffset] = useState<number>(1);
