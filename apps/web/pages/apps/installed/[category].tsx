@@ -54,7 +54,6 @@ const IntegrationsContainer = ({
     automation: Share2,
     analytics: BarChart,
     payment: CreditCard,
-    web3: BarChart, // deprecated
     other: Grid,
     video: Video, // deprecated
     messaging: Mail,
