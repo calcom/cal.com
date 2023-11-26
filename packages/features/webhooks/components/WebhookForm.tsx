@@ -16,15 +16,19 @@ export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
 export type WebhookFormData = {
   id?: string;
   subscriberUrl: string;
+  urlSlug: string;
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
-  secret: string | null;
+  secret: string;
   payloadTemplate: string | undefined | null;
+  utcOffset: string;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
   changeSecret: boolean;
   newSecret: string;
+  urlSlug: string;
+  utcOffset: string;
 };
 
 type WebhookTriggerEventOptions = readonly { value: WebhookTriggerEvents; label: string }[];
@@ -74,13 +78,16 @@ const WebhookForm = (props: {
         : props.webhook.eventTriggers,
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
+      utcOffset: props?.webhook?.utcOffset || "-7",
     },
   });
 
   const [useCustomTemplate, setUseCustomTemplate] = useState(false);
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
+  const [urlSlug, setUrlSlug] = useState("");
   const hasSecretKey = !!props?.webhook?.secret;
+  const [utcOffset, setUtcOffset] = useState("");
   // const currentSecret = props?.webhook?.secret;
 
   useEffect(() => {
@@ -92,7 +99,7 @@ const WebhookForm = (props: {
   return (
     <Form
       form={formMethods}
-      handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
+      handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret, urlSlug, utcOffset })}>
       <div className="border-subtle border-x p-6">
         <Controller
           name="subscriberUrl"
@@ -107,7 +114,10 @@ const WebhookForm = (props: {
                 required
                 type="url"
                 onChange={(e) => {
+                  const url = e?.target.value;
                   formMethods.setValue("subscriberUrl", e?.target.value, { shouldDirty: true });
+                  const urlSlug = url.split("/").pop() || "";
+                  setUrlSlug(urlSlug);
                   if (hasTemplateIntegration({ url: e.target.value })) {
                     setUseCustomTemplate(true);
                     formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }), {
@@ -257,6 +267,21 @@ const WebhookForm = (props: {
                 />
               )}
             </>
+          )}
+        />
+        <Controller
+          name="utcOffset"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <div className="mt-6">
+              <TextField
+                name="utcOffset"
+                label={t("utc_offset")}
+                labelClassName="font-medium text-emphasis font-sm"
+                value={value}
+                onChange={(e) => setUtcOffset(e.target.value)}
+              />
+            </div>
           )}
         />
       </div>

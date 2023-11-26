@@ -10,6 +10,8 @@ const schemaWebhookBaseBodyParams = Webhook.pick({
   active: true,
   subscriberUrl: true,
   payloadTemplate: true,
+  urlSlug: true,
+  utcOffset: true,
 });
 
 export const schemaWebhookCreateParams = z
@@ -21,6 +23,8 @@ export const schemaWebhookCreateParams = z
     eventTypeId: z.number().optional(),
     userId: z.number().optional(),
     secret: z.string().optional().nullable(),
+    urlSlug: z.string().optional(),
+    utcOffset: z.number().optional(),
     // API shouldn't mess with Apps webhooks yet (ie. Zapier)
     // appId: z.string().optional().nullable(),
   })
