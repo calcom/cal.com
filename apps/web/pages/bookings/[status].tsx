@@ -97,7 +97,7 @@ export default function Bookings() {
     }
   );
 
-  // Animate page (tab) tranistions to look smoothing
+  // Animate page (tab) transitions to look smoothing
 
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
