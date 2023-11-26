@@ -1,5 +1,7 @@
 import type { IncomingMessage } from "http";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { getAvailableSlots } from "./util";
 
@@ -13,5 +15,8 @@ interface ContextForGetSchedule extends Record<string, unknown> {
 }
 
 export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
+  const { req, res } = ctx;
+  const session = await getServerSession({ req, res });
+  input.bookerUserId = session?.user?.id;
   return await getAvailableSlots({ ctx, input });
 };

@@ -407,6 +407,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           eventType,
           currentSeats,
           rescheduleUid: input.rescheduleUid,
+          bookerUserId: input?.bookerUserId,
           currentBookings: currentBookingsAllUsers
             .filter(
               (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)

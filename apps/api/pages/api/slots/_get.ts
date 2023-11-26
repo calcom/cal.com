@@ -12,6 +12,8 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const input = getScheduleSchema.parse(req.query);
+    const session = await getServerSession({ req, res });
+    input.bookerUserId = session?.user?.id;
     return await getAvailableSlots({ ctx: await createContext({ req, res }), input });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (cause) {

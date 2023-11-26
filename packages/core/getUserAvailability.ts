@@ -117,30 +117,52 @@ export const getCurrentSeats = async (
   eventTypeId: number,
   dateFrom: Dayjs,
   dateTo: Dayjs,
-  userId: number
+  userId?: number
 ) => {
-  const bookingIds = await getUserBookings(userId);
-  const validBookingIds = bookingIds.filter((id) => id !== null) as number[];
-  return await prisma.booking.findMany({
-    where: {
-      id: { in: validBookingIds },
-      eventTypeId,
-      startTime: {
-        gte: dateFrom.format(),
-        lte: dateTo.format(),
+  if (userId) {
+    const bookingIds = await getUserBookings(userId);
+    const validBookingIds = bookingIds.filter((id) => id !== null) as number[];
+    return await prisma.booking.findMany({
+      where: {
+        id: { in: validBookingIds },
+        eventTypeId,
+        startTime: {
+          gte: dateFrom.format(),
+          lte: dateTo.format(),
+        },
+        status: BookingStatus.ACCEPTED,
       },
-      status: BookingStatus.ACCEPTED,
-    },
-    select: {
-      uid: true,
-      startTime: true,
-      _count: {
-        select: {
-          attendees: true,
+      select: {
+        uid: true,
+        startTime: true,
+        _count: {
+          select: {
+            attendees: true,
+          },
         },
       },
-    },
-  });
+    });
+  } else {
+    return await prisma.booking.findMany({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: dateFrom.format(),
+          lte: dateTo.format(),
+        },
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        _count: {
+          select: {
+            attendees: true,
+          },
+        },
+      },
+    });
+  }
 };
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
@@ -163,6 +185,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     eventType?: EventType;
     currentSeats?: CurrentSeats;
     rescheduleUid?: string | null;
+    bookerUserId?: number;
     currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
       eventType: Pick<
         PrismaEventType,
@@ -199,8 +222,10 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
-  if (!currentSeats && eventType?.seatsPerTimeSlot && userId !== undefined) {
-    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, userId);
+  console.log("*********************************************");
+  console.log(initialData?.bookerUserId);
+  if (!currentSeats && eventType?.seatsPerTimeSlot) {
+    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, initialData?.bookerUserId);
   }
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
