@@ -116,7 +116,7 @@ const OrgProfileView = () => {
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="flex-grow">
               <div>
-                <Label className="text-emphasis">{t("org_name")}</Label>
+                <Label className="text-emphasis">{t("organization_name")}</Label>
                 <p className="text-default text-sm">{currentOrganisation?.name}</p>
               </div>
               {!isBioEmpty && (
@@ -245,7 +245,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             <div className="mt-8">
               <TextField
                 name="name"
-                label={t("org_name")}
+                label={t("organization_name")}
                 value={value}
                 onChange={(e) => {
                   form.setValue("name", e?.target.value, { shouldDirty: true });
@@ -261,7 +261,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             <div className="mt-8">
               <TextField
                 name="slug"
-                label={t("org_url")}
+                label={t("organization_url")}
                 value={value}
                 disabled
                 addOnSuffix={`.${subdomainSuffix()}`}

@@ -97,7 +97,7 @@ export const TeamAndSelfList = () => {
                 isAll: true,
               });
             }}
-            label={t("insights_all_org_filter")}
+            label={t("all")}
           />
         )}
 
