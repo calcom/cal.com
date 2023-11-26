@@ -96,12 +96,13 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
+            isEmbed ? "border-booker border-booker-width bg-default rounded-md border" : "",
             "max-w-3xl px-4 py-24"
           )}>
-          <div className="mb-8 text-center">
+          <div className="p-4">
             <OrganizationMemberAvatar
               size="xl"
+              reflection
               user={{
                 organizationId: profile.organization?.id,
                 name: profile.name,
@@ -117,7 +118,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   : null
               }
             />
-            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis my-2 text-3xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />

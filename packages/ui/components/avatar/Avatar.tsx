@@ -21,6 +21,7 @@ export type AvatarProps = {
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
   indicator?: React.ReactNode;
   "data-testid"?: string;
+  reflection: boolean;
 };
 
 const sizesPropsBySize = {
@@ -31,38 +32,51 @@ const sizesPropsBySize = {
   md: "w-8 h-8 min-w-8 min-h-8", // 32px
   mdLg: "w-10 h-10 min-w-10 min-h-10", //40px
   lg: "w-16 h-16 min-w-16 min-h-16", // 64px
-  xl: "w-24 h-24 min-w-24 min-h-24", // 96px
+  xl: "w-24 h-24 min-w-24 min-h-24 ring-4 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10", // 96px
 } as const;
 
 export function Avatar(props: AvatarProps) {
-  const { imageSrc, size = "md", alt, title, href, indicator } = props;
+  const { imageSrc, size = "md", alt, title, href, indicator, reflection } = props;
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
   let avatar = (
-    <AvatarPrimitive.Root
-      data-testid={props?.["data-testid"]}
-      className={classNames(
-        "bg-emphasis item-center relative inline-flex aspect-square justify-center rounded-full align-top",
-        indicator ? "overflow-visible" : "overflow-hidden",
-        props.className,
-        sizesPropsBySize[size]
-      )}>
-      <>
-        <AvatarPrimitive.Image
+    <>
+      {/* {reflection && (
+        <img
+          className="min-w-5xl absolute left-0 hidden w-[150%] -translate-y-3/4 rounded-full opacity-10 blur-2xl dark:block"
           src={imageSrc ?? undefined}
-          alt={alt}
-          className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
+          alt="Shadow of Avatar"
         />
-        <AvatarPrimitive.Fallback
-          delayMs={600}
-          asChild={props.asChild}
-          className="flex h-full items-center justify-center">
-          <>
-            {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
-          </>
-        </AvatarPrimitive.Fallback>
-        {indicator}
-      </>
-    </AvatarPrimitive.Root>
+      )} */}
+      <AvatarPrimitive.Root
+        data-testid={props?.["data-testid"]}
+        className={classNames(
+          "bg-emphasis item-center relative inline-flex aspect-square justify-center rounded-full align-top",
+          indicator ? "overflow-visible" : "overflow-hidden",
+          props.className,
+          sizesPropsBySize[size]
+        )}>
+        <>
+          <AvatarPrimitive.Image
+            src={imageSrc ?? undefined}
+            alt={alt}
+            className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
+          />
+          <AvatarPrimitive.Fallback
+            delayMs={600}
+            asChild={props.asChild}
+            className="flex h-full items-center justify-center">
+            <>
+              {props.fallback ? (
+                props.fallback
+              ) : (
+                <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />
+              )}
+            </>
+          </AvatarPrimitive.Fallback>
+          {indicator}
+        </>
+      </AvatarPrimitive.Root>
+    </>
   );
 
   if (href) {

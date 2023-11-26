@@ -4,6 +4,7 @@ import { getOrgAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
 
 type OrganizationMemberAvatarProps = React.ComponentProps<typeof UserAvatar> & {
+  reflection?: boolean;
   organization: {
     id: number;
     slug: string | null;
@@ -19,6 +20,7 @@ const OrganizationMemberAvatar = ({
   user,
   organization,
   previewSrc,
+  reflection,
   ...rest
 }: OrganizationMemberAvatarProps) => {
   return (
@@ -26,6 +28,7 @@ const OrganizationMemberAvatar = ({
       data-testid="organization-avatar"
       size={size}
       user={user}
+      reflection={reflection}
       previewSrc={previewSrc}
       indicator={
         organization ? (
