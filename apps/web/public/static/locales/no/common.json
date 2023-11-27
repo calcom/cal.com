@@ -706,7 +706,6 @@
   "next_step": "Hopp over trinn",
   "prev_step": "Forrige trinn",
   "install": "Installer",
-  "install_paid_app": "Abonner",
   "installed": "Installert",
   "active_install_one": "{{count}} aktiv installasjon",
   "active_install_other": "{{count}} aktive installasjoner",
@@ -1035,9 +1034,6 @@
   "attendee_name_variable": "Deltaker",
   "event_date_variable": "Hendelsesdato",
   "event_time_variable": "Tidspunkt for hendelse",
-  "timezone_variable": "Tidssone",
-  "location_variable": "Sted",
-  "additional_notes_variable": "Tilleggsinformasjon",
   "app_upgrade_description": "For å bruke denne funksjonen må du oppgradere til en Pro-konto.",
   "invalid_number": "Ugyldig telefonnummer",
   "navigate": "Naviger",
@@ -1390,6 +1386,5 @@
   "install_google_calendar": "Installer Google Kalender",
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
-  "booking_confirmation_failed": "Booking-bekreftelse feilet",
-  "insights_all_org_filter": "Alt"
+  "booking_confirmation_failed": "Booking-bekreftelse feilet"
 }

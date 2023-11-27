@@ -717,7 +717,6 @@
   "next_step": "Spring trin over",
   "prev_step": "Forrige trin",
   "install": "Installér",
-  "install_paid_app": "Abonnér",
   "installed": "Installeret",
   "active_install_one": "{{count}} aktiv installation",
   "active_install_other": "{{count}} aktive installationer",
@@ -1055,9 +1054,6 @@
   "attendee_name_variable": "Deltager",
   "event_date_variable": "Dato for begivenhed",
   "event_time_variable": "Tidspunkt for begivenhed",
-  "timezone_variable": "Tidszone",
-  "location_variable": "Placering",
-  "additional_notes_variable": "Yderligere bemærkninger",
   "app_upgrade_description": "For at bruge denne funktion skal du opgradere til en Pro-konto.",
   "invalid_number": "Ugyldigt telefonnummer",
   "navigate": "Navigér",
@@ -1537,6 +1533,5 @@
   "no_responses_yet": "Ingen svar endnu",
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
-  "verify": "Bekræft",
-  "insights_all_org_filter": "Alle"
+  "verify": "Bekræft"
 }
