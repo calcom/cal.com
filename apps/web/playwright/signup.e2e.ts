@@ -98,13 +98,7 @@ test.describe("Signup Flow Test", async () => {
     expect(url).toContain(expectedUrl);
     // TODO: complete the stripe checkout flow
   });
-  test("Signup with valid (non premium) username (Email verify enabled)", async ({
-    page,
-    users,
-    features,
-  }) => {
-    features.set("email-verification", true);
-
+  test("Signup with valid (non premium) username", async ({ page, users, features }) => {
     const userToCreate = users.buildForSignup({
       username: "rick-jones",
       password: "Password99!",
@@ -125,34 +119,6 @@ test.describe("Signup Flow Test", async () => {
 
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
-  });
-  test("Signup with valid (non premium) username (Email verify disabled)", async ({
-    page,
-    users,
-    features,
-  }) => {
-    features.set("email-verification", false);
-
-    const userToCreate = users.buildForSignup({
-      username: "rick-jones",
-      password: "Password99!",
-    });
-
-    await page.goto("/signup");
-
-    // Fill form
-    await page.locator('input[name="username"]').fill(userToCreate.username);
-    await page.locator('input[name="email"]').fill(userToCreate.email);
-    await page.locator('input[name="password"]').fill(userToCreate.password);
-
-    await page.click('button[type="submit"]');
-    await page.waitForLoadState("networkidle");
-    // Find the newly created user and add it to the fixture store
-    const newUser = await users.set(userToCreate.email);
-    expect(newUser).not.toBeNull();
-
-    // Check that the URL matches the expected URL
-    expect(page.url()).toContain("/getting-started");
   });
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
