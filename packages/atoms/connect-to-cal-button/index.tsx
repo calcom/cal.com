@@ -1,4 +1,5 @@
 import { useApiKey } from "cal-provider";
+import { ConnectButton } from "connect-to-cal-button/Button";
 
 // This atom will initiate the oAuth connection process to the users of the platform
 // the user would be redirected to grant oAuth permission page after the user has clicked on Connect Atom
@@ -9,6 +10,7 @@ export function ConnectToCal() {
 
   const handleClick = () => {
     // TODO: need to provide correct callbackUrl below
+    // the callbackUrl here should be of the OAuth permissions page
     window.location.href = "https://app.cal.com/auth/login?callbackUrl=";
   };
 
@@ -22,7 +24,7 @@ export function ConnectToCal() {
 
   return (
     <>
-      <button onClick={handleClick}>Connect to Cal.com</button>
+      <ConnectButton onClick={handleClick}>Connect to Cal.com</ConnectButton>
     </>
   );
 }
