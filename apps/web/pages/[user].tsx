@@ -54,6 +54,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     // So it doesn't display in the Link (and make tests fail)
     user: _user,
     orgSlug: _orgSlug,
+    redirect: _redirect,
     ...query
   } = useRouterQuery();
 
@@ -116,7 +117,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   : null
               }
             />
-            <h1 className="font-cal text-emphasis mb-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
@@ -387,6 +388,16 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
+
+  // if profile only has one public event-type, redirect to it
+  if (eventTypes.length === 1 && context.query.redirect !== "false") {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/${user.username}/${eventTypes[0].slug}`,
+      },
+    };
+  }
 
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
