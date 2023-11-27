@@ -73,10 +73,10 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     multiselect: async () => {
       if (customLocators.shouldChangeMultiSelectLocator) {
-        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByLabel("multi-select-dropdown").click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
-        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByLabel("multi-select-dropdown").last().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       }
     },
@@ -88,10 +88,10 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     select: async () => {
       if (customLocators.shouldChangeSelectLocator) {
-        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByLabel("select-dropdown").first().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
-        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByLabel("select-dropdown").last().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       }
     },
@@ -138,11 +138,12 @@ const fillAllQuestions = async (eventTypePage: Page, questions: string[], option
           await eventTypePage.getByPlaceholder("Textarea test").fill("This is a sample text for textarea.");
           break;
         case "select":
-          await eventTypePage.locator("form svg").last().click();
+          await eventTypePage.getByLabel("select-dropdown").last().click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "multiselect":
-          await eventTypePage.locator("form svg").nth(4).click();
+          // select-dropdown
+          await eventTypePage.getByLabel("multi-select-dropdown").click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "number":
@@ -204,7 +205,7 @@ export function createBookingPageFixture(page: Page) {
       placeholder?: string
     ) => {
       await page.getByTestId("add-field").click();
-      await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("test-field-type").click();
       await page.getByTestId(`select-option-${questionType}`).click();
       await page.getByLabel("Identifier").dblclick();
       await page.getByLabel("Identifier").fill(identifier);

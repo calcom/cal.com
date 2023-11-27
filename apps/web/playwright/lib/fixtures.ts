@@ -4,10 +4,12 @@ import type { API } from "mailhog";
 import mailhog from "mailhog";
 
 import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
+import { createClipboardFixture } from "../fixtures/clipboard";
 import { createEmbedsFixture } from "../fixtures/embeds";
 import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
@@ -28,6 +30,7 @@ export interface Fixtures {
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
+  clipboard: ReturnType<typeof createClipboardFixture>;
 }
 
 declare global {
@@ -85,11 +88,17 @@ export const test = base.extend<Fixtures>({
       const mailhogAPI = mailhog();
       await use(mailhogAPI);
     } else {
+      //FIXME: Ideally we should error out here. If someone is running tests with mailhog disabled, they should be aware of it
+      logger.warn("Mailhog is not enabled - Skipping Emails verification");
       await use(undefined);
     }
   },
   bookingPage: async ({ page }, use) => {
     const bookingPage = createBookingPageFixture(page);
     await use(bookingPage);
+  },
+  clipboard: async ({ page }, use) => {
+    const clipboard = createClipboardFixture(page);
+    await use(clipboard);
   },
 });

@@ -37,7 +37,7 @@ type SignupProps = inferSSRProps<typeof getServerSideProps>;
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
 const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
-  const [emailUser, emailDomain] = email.split("@");
+  const [emailUser, emailDomain = ""] = email.split("@");
   const username =
     emailDomain === autoAcceptEmailDomain
       ? slugify(emailUser)
@@ -143,7 +143,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                     methods.clearErrors("apiError");
                   }
 
-                  if (methods.getValues().username === undefined && isOrgInviteByLink && orgAutoAcceptEmail) {
+                  if (!methods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
                     methods.setValue(
                       "username",
                       getOrgUsernameFromEmail(methods.getValues().email, orgAutoAcceptEmail)
