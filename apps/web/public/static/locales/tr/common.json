@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Rezervasyon sayfasında saat dilimini kilitle",
   "description_lock_timezone_toggle_on_booking_page": "Rezervasyon sayfasında saat dilimini kilitlemek kişisel etkinlikler için kullanışlıdır.",
   "extensive_whitelabeling": "Özel işe alıştırma ve mühendislik desteği",
+  "need_help": "Yardıma mı ihtiyacınız var?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

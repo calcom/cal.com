@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Khoá múi giờ trên trang lịch hẹn",
   "description_lock_timezone_toggle_on_booking_page": "Để khoá múi giờ trên trang lịch hẹn, hữu dụng cho những sự kiện đích thân tham dự.",
   "extensive_whitelabeling": "Hướng dẫn bắt đầu và hỗ trợ kỹ thuật chuyên biệt",
+  "need_help": "Cần hỗ trợ?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
