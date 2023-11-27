@@ -2121,6 +2121,7 @@
   "manage_availability_schedules":"Manage availability schedules",
   "lock_timezone_toggle_on_booking_page": "Lock timezone on booking page",
   "description_lock_timezone_toggle_on_booking_page" : "To lock the timezone on booking page, useful for in-person events.",
+  "number_in_international_format": "Please enter number in international format.",
   "install_calendar":"Install Calendar",
   "branded_subdomain": "Branded Subdomain",
   "branded_subdomain_description": "Get your own branded subdomain, such as acme.cal.com",
