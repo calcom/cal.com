@@ -61,6 +61,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const userMetadata = handleUserMetadata({ ctx, input });
   const data: Prisma.UserUpdateInput = {
     ...input,
+    // DO NOT OVERWRITE AVATAR.
+    avatar: undefined,
     metadata: userMetadata,
   };
 
@@ -138,14 +140,21 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // when the email changes, the user needs to sign in again.
     signOutUser = true;
   }
-  // don't do anything if avatar is undefined.
-  if (typeof input.avatar !== "undefined") {
-    data.avatarUrl = input.avatar
-      ? await uploadAvatar({
-          avatar: await resizeBase64Image(input.avatar),
-          userId: user.id,
-        })
-      : null;
+  // if defined AND a base 64 string, upload and set the avatar URL
+  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
+    const avatar = await resizeBase64Image(input.avatar);
+    data.avatarUrl = await uploadAvatar({
+      avatar,
+      userId: user.id,
+    });
+    // as this is still used in the backwards compatible endpoint, we also write it here
+    // to ensure no data loss.
+    data.avatar = avatar;
+  }
+  // Unset avatar url if avatar is empty string.
+  if ("" === input.avatar) {
+    data.avatarUrl = null;
+    data.avatar = null;
   }
 
   const updatedUser = await prisma.user.update({
