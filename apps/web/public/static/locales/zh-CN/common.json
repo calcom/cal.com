@@ -2092,5 +2092,6 @@
   "lock_timezone_toggle_on_booking_page": "在预约页面上锁定时区",
   "description_lock_timezone_toggle_on_booking_page": "在预约页面上锁定时区，这对面对面活动非常有用。",
   "extensive_whitelabeling": "专门的入门和工程支持",
+  "need_help": "需要帮助？",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

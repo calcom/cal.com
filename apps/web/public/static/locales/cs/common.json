@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Uzamčení časového pásma na stránce rezervace",
   "description_lock_timezone_toggle_on_booking_page": "Uzamčení časového pásma na stránce rezervace (užitečné pro osobní události).",
   "extensive_whitelabeling": "Vyhrazená podpora zaškolovací a inženýrská podpora",
+  "need_help": "Potřebujete pomoc?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -480,7 +480,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       }
       return membership;
     },
-    getOrg: async () => {
+    getOrgMembership: async () => {
       return prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
@@ -491,7 +491,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: { team: { select: { children: true, metadata: true, name: true } } },
+        include: {
+          team: {
+            include: {
+              children: true,
+            },
+          },
+        },
       });
     },
     getFirstEventAsOwner: async () =>

@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Lås tidszon på bokningssidan",
   "description_lock_timezone_toggle_on_booking_page": "För att låsa tidszonen på bokningssidan, användbart för personliga händelser.",
   "extensive_whitelabeling": "Dedikerad registrering och teknisk support",
+  "need_help": "Behöver du hjälp?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

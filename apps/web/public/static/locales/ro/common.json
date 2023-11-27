@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Blocare fus orar pe pagina de rezervare",
   "description_lock_timezone_toggle_on_booking_page": "Pentru a bloca fusul orar pe pagina de rezervare, util pentru evenimentele în persoană.",
   "extensive_whitelabeling": "Asistență dedicată pentru integrare și inginerie",
+  "need_help": "Aveți nevoie de ajutor?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
