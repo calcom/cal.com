@@ -112,7 +112,7 @@ export const CreateANewTeamForm = () => {
                 label={t("team_url")}
                 addOnLeading={`${
                   orgBranding
-                    ? orgBranding.fullDomain.replace("https://", "").replace("http://", "") + "/"
+                    ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}/`
                     : `${extractDomainFromWebsiteUrl}/team/`
                 }`}
                 value={value}

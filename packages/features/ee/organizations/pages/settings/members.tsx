@@ -11,24 +11,6 @@ const MembersView = () => {
     <LicenseRequired>
       <Meta title={t("organization_members")} description={t("organization_description")} />
       <div>
-        {/* {team && (
-              <>
-                {isInviteOpen && (
-                  <TeamInviteList
-                    teams={[
-                      {
-                        id: team.id,
-                        accepted: team.membership.accepted || false,
-                        logo: team.logo,
-                        name: team.name,
-                        slug: team.slug,
-                        role: team.membership.role,
-                      },
-                    ]}
-                  />
-                )}
-              </>
-            )} */}
         <UserListTable />
       </div>
     </LicenseRequired>

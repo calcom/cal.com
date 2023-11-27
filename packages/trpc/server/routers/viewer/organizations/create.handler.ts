@@ -7,12 +7,7 @@ import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import {
-  IS_TEAM_BILLING_ENABLED,
-  RESERVED_SUBDOMAINS,
-  IS_PRODUCTION,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -72,17 +67,17 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  const slugCollisions = await prisma.team.findFirst({
+  // An org doesn't have a parentId. A team that isn't part of an org also doesn't have a parentId.
+  // So, an org can't have the same slug as a non-org team.
+  // There is a unique index on [slug, parentId] in Team because we don't add the slug to the team always. We only add metadata.requestedSlug in some cases. So, DB won't prevent creation of such an organization.
+  const hasANonOrgTeamOrOrgWithSameSlug = await prisma.team.findFirst({
     where: {
       slug: slug,
-      metadata: {
-        path: ["isOrganization"],
-        equals: true,
-      },
+      parentId: null,
     },
   });
 
-  if (slugCollisions || RESERVED_SUBDOMAINS.includes(slug))
+  if (hasANonOrgTeamOrOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
@@ -175,7 +170,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     return { user: { ...createOwnerOrg, password } };
   } else {
-    if (!IS_PRODUCTION) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")

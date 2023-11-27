@@ -160,12 +160,14 @@ export interface CalendarEvent {
   team?: {
     name: string;
     members: TeamMember[];
+    id: number;
   };
   location?: string | null;
   conferenceCredentialId?: number;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  bookingId?: number;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
   requiresConfirmation?: boolean | null;

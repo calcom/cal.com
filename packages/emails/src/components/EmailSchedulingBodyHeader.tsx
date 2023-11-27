@@ -11,19 +11,19 @@ export const getHeadImage = (headerType: BodyHeadType): string => {
   switch (headerType) {
     case "checkCircle":
       return IS_PRODUCTION
-        ? BASE_URL + "/emails/checkCircle@2x.png"
+        ? `${BASE_URL}/emails/checkCircle@2x.png`
         : "https://app.cal.com/emails/checkCircle@2x.png";
     case "xCircle":
       return IS_PRODUCTION
-        ? BASE_URL + "/emails/xCircle@2x.png"
+        ? `${BASE_URL}/emails/xCircle@2x.png`
         : "https://app.cal.com/emails/xCircle@2x.png";
     case "calendarCircle":
       return IS_PRODUCTION
-        ? BASE_URL + "/emails/calendarCircle@2x.png"
+        ? `${BASE_URL}/emails/calendarCircle@2x.png`
         : "https://app.cal.com/emails/calendarCircle@2x.png";
     case "teamCircle":
       return IS_PRODUCTION
-        ? BASE_URL + "/emails/teamCircle@2x.png"
+        ? `${BASE_URL}/emails/teamCircle@2x.png`
         : "https://app.cal.com/emails/teamCircle@2x.png";
   }
 };

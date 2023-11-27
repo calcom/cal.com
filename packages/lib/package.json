@@ -27,7 +27,7 @@
     "rrule": "^2.7.1",
     "tailwind-merge": "^1.13.2",
     "tsdav": "2.0.3",
-    "tslog": "^3.2.1",
+    "tslog": "^4.9.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

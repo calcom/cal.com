@@ -17,7 +17,10 @@ const UsersAddView = () => {
     onSuccess: async () => {
       showToast("User added successfully", "success");
       await utils.viewer.users.list.invalidate();
-      router.replace(pathname?.replace("/add", ""));
+
+      if (pathname !== null) {
+        router.replace(pathname.replace("/add", ""));
+      }
     },
     onError: (err) => {
       console.error(err.message);

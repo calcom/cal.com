@@ -29,9 +29,10 @@ interface AppListProps {
   variant?: AppCategories;
   data: RouterOutputs["viewer"]["integrations"];
   handleDisconnect: (credentialId: number) => void;
+  listClassName?: string;
 }
 
-export const AppList = ({ data, handleDisconnect, variant }: AppListProps) => {
+export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
   const utils = trpc.useContext();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
@@ -155,7 +156,7 @@ export const AppList = ({ data, handleDisconnect, variant }: AppListProps) => {
   const { t } = useLocale();
   return (
     <>
-      <List>
+      <List className={listClassName}>
         {cardsForAppsWithTeams.map((apps) => apps.map((cards) => cards))}
         {data.items
           .filter((item) => item.invalidCredentialIds)

@@ -22,7 +22,7 @@ async function getHandler(req: NextApiRequest) {
 
   const params = {
     app_id,
-    redirect_uri: WEBAPP_URL + "/api/integrations/larkcalendar/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/larkcalendar/callback`,
     state,
   };
 

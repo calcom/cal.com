@@ -12,7 +12,7 @@ export function Message({
     if (message.showInProgressIndicator) {
       const interval = setInterval(() => {
         setProgressText((progressText) => {
-          return progressText.length > 3 ? "" : progressText + ".";
+          return progressText.length > 3 ? "" : `${progressText}.`;
         });
       }, 1000);
       return () => {

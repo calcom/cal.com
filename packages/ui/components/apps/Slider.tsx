@@ -13,7 +13,7 @@ import { SkeletonText } from "../skeleton";
 const SliderButton: FC<ComponentProps<"button">> = (props) => {
   const { children, ...rest } = props;
   return (
-    <button className="hover:bg-subtle text-default rounded p-2.5" {...rest}>
+    <button className="hover:bg-subtle text-default rounded p-2.5 transition" {...rest}>
       {children}
     </button>
   );

@@ -16,6 +16,8 @@ export type ParseRefreshTokenResponse<S extends z.ZodTypeAny> =
 
 const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
   let refreshTokenResponse;
+  const credentialSyncingEnabled =
+    APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
   if (APP_CREDENTIAL_SHARING_ENABLED && process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT) {
     refreshTokenResponse = minimumTokenResponseSchema.safeParse(response);
   } else {
@@ -26,7 +28,7 @@ const parseRefreshTokenResponse = (response: any, schema: z.ZodTypeAny) => {
     throw new Error("Invalid refreshed tokens were returned");
   }
 
-  if (!refreshTokenResponse.data.refresh_token) {
+  if (!refreshTokenResponse.data.refresh_token && credentialSyncingEnabled) {
     refreshTokenResponse.data.refresh_token = "refresh_token";
   }
 

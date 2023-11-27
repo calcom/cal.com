@@ -96,7 +96,9 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
 
   // Remove all query params from the URL
   function removeAllQueryParams() {
-    router.replace(pathname);
+    if (pathname !== null) {
+      router.replace(pathname);
+    }
   }
 
   return {

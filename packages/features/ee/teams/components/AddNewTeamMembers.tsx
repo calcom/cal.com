@@ -1,5 +1,5 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -8,6 +8,7 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -30,7 +31,7 @@ type FormValues = {
 };
 
 const AddNewTeamMembers = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const session = useSession();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
@@ -49,7 +50,7 @@ export const AddNewTeamMembersForm = ({
   defaultValues: FormValues;
   teamId: number;
 }) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
@@ -119,29 +120,26 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
-                  sendEmailInvitation: values.sendInviteEmail,
                 },
                 {
                   onSuccess: async (data) => {
                     await utils.viewer.teams.get.invalidate();
                     setMemberInviteModal(false);
-                    if (data.sendEmailInvitation) {
-                      if (Array.isArray(data.usernameOrEmail)) {
-                        showToast(
-                          t("email_invite_team_bulk", {
-                            userCount: data.usernameOrEmail.length,
-                          }),
-                          "success"
-                        );
-                        resetFields();
-                      } else {
-                        showToast(
-                          t("email_invite_team", {
-                            email: data.usernameOrEmail,
-                          }),
-                          "success"
-                        );
-                      }
+                    if (Array.isArray(data.usernameOrEmail)) {
+                      showToast(
+                        t("email_invite_team_bulk", {
+                          userCount: data.usernameOrEmail.length,
+                        }),
+                        "success"
+                      );
+                      resetFields();
+                    } else {
+                      showToast(
+                        t("email_invite_team", {
+                          email: data.usernameOrEmail,
+                        }),
+                        "success"
+                      );
                     }
                   },
                   onError: (error) => {
@@ -241,7 +239,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       )}
       data-testid="pending-member-item">
       <div className="mr-4 flex max-w-full space-x-2 overflow-hidden rtl:space-x-reverse">
-        <Avatar size="mdLg" imageSrc={bookerUrl + "/" + member.username + "/avatar.png"} alt="owner-avatar" />
+        <Avatar size="mdLg" imageSrc={`${bookerUrl}/${member.username}/avatar.png`} alt="owner-avatar" />
         <div className="max-w-full overflow-hidden">
           <div className="flex space-x-1">
             <p>{member.name || member.email || t("team_member")}</p>

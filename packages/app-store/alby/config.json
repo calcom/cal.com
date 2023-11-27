@@ -4,14 +4,15 @@
   "slug": "alby",
   "type": "alby_payment",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://getalby.com",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "Alby",
   "email": "support@getalby.com",
   "description": "Your Bitcoin & Nostr companion for the web. Use Alby to charge Satoshi for your Cal.com meetings.\r",
+  "extendsFeature": "EventType",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "basic",
+  "__template": "event-type-app-card",
   "dirName": "alby"
 }

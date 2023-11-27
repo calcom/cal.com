@@ -19,7 +19,7 @@ export const getNormalizedAppMetadata = (appMeta: RawAppStoreMetaData[keyof RawA
     dirName,
     __template: "",
     ...appMeta,
-  } as AppStoreMetaData[keyof AppStoreMetaData];
+  } as Omit<AppStoreMetaData[keyof AppStoreMetaData], "dirName"> & { dirName: string };
   metadata.logo = getAppAssetFullPath(metadata.logo, {
     dirName,
     isTemplate: metadata.isTemplate,

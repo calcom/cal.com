@@ -22,6 +22,7 @@ export type WebhookDataType = CalendarEvent &
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
+    rescheduleId?: number;
     rescheduleUid?: string;
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;

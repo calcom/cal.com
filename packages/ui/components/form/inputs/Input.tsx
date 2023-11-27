@@ -99,7 +99,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block w-full rounded-md border px-3 py-2 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block w-full rounded-md border px-3 py-2 text-sm transition focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -126,8 +126,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     label = t(props.name as string),
     labelProps,
     /** Prevents displaying untranslated placeholder keys */
-    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
-      ? t(props.name + "_placeholder")
+    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+      ? `${props.name}_placeholder`
       : "",
     ...passThrough
   } = props;

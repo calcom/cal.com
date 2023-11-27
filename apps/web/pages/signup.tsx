@@ -1,18 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -37,7 +37,7 @@ type SignupProps = inferSSRProps<typeof getServerSideProps>;
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
 const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
-  const [emailUser, emailDomain] = email.split("@");
+  const [emailUser, emailDomain = ""] = email.split("@");
   const username =
     emailDomain === autoAcceptEmailDomain
       ? slugify(emailUser)
@@ -53,7 +53,7 @@ function addOrUpdateQueryParam(url: string, key: string, value: string) {
 }
 
 export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoAcceptEmail }: SignupProps) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
   const flags = useFlagMap();
@@ -143,7 +143,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                     methods.clearErrors("apiError");
                   }
 
-                  if (methods.getValues().username === undefined && isOrgInviteByLink && orgAutoAcceptEmail) {
+                  if (!methods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
                     methods.setValue(
                       "username",
                       getOrgUsernameFromEmail(methods.getValues().email, orgAutoAcceptEmail)
@@ -159,7 +159,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
                     <TextField
                       addOnLeading={
                         orgSlug
-                          ? `${getOrgFullDomain(orgSlug, { protocol: true })}/`
+                          ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
                           : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
                       }
                       {...register("username")}
@@ -281,7 +281,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/auth/login?callbackUrl=" + `${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
       },
     };
   }

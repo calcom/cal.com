@@ -7,6 +7,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
+import InfoBadge from "@calcom/web/components/ui/InfoBadge";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -126,6 +127,8 @@ const WithLabel = ({
   readOnly: boolean;
   children: React.ReactNode;
 }) => {
+  const { t } = useLocale();
+
   return (
     <div>
       {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
@@ -133,11 +136,12 @@ const WithLabel = ({
       {/* Component itself managing it's label should remove these checks */}
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
-          <Label className="!mb-0">
+          <Label className="!mb-0 flex">
             <span>{field.label}</span>
             <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
+            {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
           </Label>
         </div>
       )}
@@ -311,9 +315,8 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
-    const options = field.options.map((field) => {
-      return { ...field, value: field.value === "inPerson" ? field.label : field.value };
-    });
+
+    const options = field.options;
 
     return field.options.length ? (
       <WithLabel field={field} readOnly={readOnly}>

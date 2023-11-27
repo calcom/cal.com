@@ -86,6 +86,7 @@ const commons = {
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
+  lockTimeZoneToggleOnBookingPage: false,
   requiresConfirmation: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,

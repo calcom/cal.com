@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 
-const log = logger.getChildLogger({ prefix: [`[[redactError]`] });
+const log = logger.getSubLogger({ prefix: [`[[redactError]`] });
 
 function shouldRedact<T extends Error>(error: T) {
   return (

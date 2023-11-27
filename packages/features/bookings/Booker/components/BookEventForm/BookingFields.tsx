@@ -1,6 +1,8 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
+import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,10 +15,12 @@ export const BookingFields = ({
   locations,
   rescheduleUid,
   isDynamicGroupBooking,
+  bookingData,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
+  bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
 }) => {
   const { t } = useLocale();
@@ -32,7 +36,9 @@ export const BookingFields = ({
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         let readOnly =
-          (field.editable === "system" || field.editable === "system-but-optional") && !!rescheduleUid;
+          (field.editable === "system" || field.editable === "system-but-optional") &&
+          !!rescheduleUid &&
+          bookingData !== null;
 
         let hidden = !!field.hidden;
         const fieldViews = field.views;
@@ -42,6 +48,9 @@ export const BookingFields = ({
         }
 
         if (field.name === SystemField.Enum.rescheduleReason) {
+          if (bookingData === null) {
+            return null;
+          }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
           readOnly = false;
         }
@@ -64,9 +73,16 @@ export const BookingFields = ({
           hidden = isDynamicGroupBooking ? true : !!field.hidden;
         }
 
-        // We don't show `notes` field during reschedule
-        if (field.name === SystemField.Enum.notes && !!rescheduleUid) {
+        // We don't show `notes` field during reschedule but since it's a query param we better valid if rescheduleUid brought any bookingData
+        if (field.name === SystemField.Enum.notes && bookingData !== null) {
           return null;
+        }
+
+        // Attendee location field can be edited during reschedule
+        if (field.name === SystemField.Enum.location) {
+          if (locationResponse?.value === "attendeeInPerson" || "phone") {
+            readOnly = false;
+          }
         }
 
         // Dynamically populate location field options
@@ -88,6 +104,29 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
+        }
+
+        if (field?.options) {
+          const organizerInputTypes = getOrganizerInputLocationTypes();
+          const organizerInputObj: Record<string, number> = {};
+
+          field.options.forEach((f) => {
+            if (f.value in organizerInputObj) {
+              organizerInputObj[f.value]++;
+            } else {
+              organizerInputObj[f.value] = 1;
+            }
+          });
+
+          field.options = field.options.map((field) => {
+            return {
+              ...field,
+              value:
+                organizerInputTypes.includes(field.value) && organizerInputObj[field.value] > 1
+                  ? field.label
+                  : field.value,
+            };
+          });
         }
 
         return (

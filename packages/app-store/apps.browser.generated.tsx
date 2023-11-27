@@ -11,6 +11,7 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  "cal-ai": dynamic(() => import("./cal-ai/components/AppSettingsInterface")),
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
@@ -20,6 +21,7 @@ export const AppSettingsComponentsMap = {
   zapier: dynamic(() => import("./zapier/components/AppSettingsInterface")),
 };
 export const EventTypeAddonMap = {
+  alby: dynamic(() => import("./alby/components/EventTypeAppCardInterface")),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
