@@ -72,7 +72,12 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               hideBranding: true,
             },
           },
-          teamId: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -153,11 +158,10 @@ async function handler(req: CustomRequest) {
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: bookingToDelete.eventType?.teamId ?? null },
+      team: { id: bookingToDelete.eventType?.team?.id ?? null },
       parentId: bookingToDelete?.eventType?.parentId ?? null,
     },
   });
-
   const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
 
   const subscriberOptions = {
@@ -229,6 +233,7 @@ async function handler(req: CustomRequest) {
     type: bookingToDelete?.eventType?.slug as string,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+    eventTypeId: bookingToDelete.eventTypeId as number,
     ...getCalEventResponses({
       bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
       booking: bookingToDelete,
@@ -256,7 +261,9 @@ async function handler(req: CustomRequest) {
       ? [bookingToDelete?.user.destinationCalendar]
       : [],
     cancellationReason: cancellationReason,
-    ...(teamMembers && { team: { name: "", members: teamMembers } }),
+    ...(teamMembers && {
+      team: { name: bookingToDelete?.eventType?.team?.name || "Nameless", members: teamMembers, id: teamId! },
+    }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -413,7 +420,7 @@ async function handler(req: CustomRequest) {
   if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push({
       ...FAKE_DAILY_CREDENTIAL,
-      teamId: bookingToDelete.eventType?.teamId || null,
+      teamId: bookingToDelete.eventType?.team?.id || null,
     });
   }
 
@@ -545,10 +552,10 @@ async function handler(req: CustomRequest) {
     let eventTypeOwnerId;
     if (bookingToDelete.eventType?.owner) {
       eventTypeOwnerId = bookingToDelete.eventType.owner.id;
-    } else if (bookingToDelete.eventType?.teamId) {
+    } else if (bookingToDelete.eventType?.team?.id) {
       const teamOwner = await prisma.membership.findFirst({
         where: {
-          teamId: bookingToDelete.eventType.teamId,
+          teamId: bookingToDelete.eventType?.team.id,
           role: MembershipRole.OWNER,
         },
         select: {

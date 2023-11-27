@@ -105,8 +105,6 @@ async function getIdentityData(req: NextApiRequest) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const identity = await getIdentityData(req);
   const img = identity?.avatar;
-  // We cache for one day
-  res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=60");
   // If image isn't set or links to this route itself, use default avatar
   if (!img) {
     if (identity?.org) {

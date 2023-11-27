@@ -30,6 +30,9 @@ import {
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendRescheduledSeatEmail,
+  sendRoundRobinCancelledEmails,
+  sendRoundRobinRescheduledEmails,
+  sendRoundRobinScheduledEmails,
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
@@ -468,8 +471,26 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
           email: true,
           locale: true,
           timeZone: true,
+          destinationCalendar: true,
+          credentials: {
+            select: {
+              id: true,
+              userId: true,
+              key: true,
+              type: true,
+              teamId: true,
+              appId: true,
+              invalid: true,
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
         },
       },
+      destinationCalendar: true,
       payment: true,
       references: true,
       workflowReminders: true,
@@ -679,8 +700,6 @@ async function handler(
   };
   const {
     recurringCount,
-    allRecurringDates,
-    currentRecurringIndex,
     noEmail,
     eventTypeId,
     eventTypeSlug,
@@ -916,6 +935,7 @@ async function handler(
 
   let originalRescheduledBooking: BookingType = null;
 
+  //this gets the orginal rescheduled booking
   if (rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
     bookingSeat = await prisma.bookingSeat.findUnique({
@@ -939,6 +959,7 @@ async function handler(
     }
   }
 
+  //checks what users are available
   if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
     const availableUsers = await ensureAvailableUsers(
       {
@@ -1017,8 +1038,11 @@ async function handler(
   const attendeeTimezone = attendeeInfoOnReschedule ? attendeeInfoOnReschedule.timeZone : reqBody.timeZone;
 
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
+
+  const isManagedEventType = !!eventType.parentId;
+
   // use host default
-  if (isTeamEventType && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
@@ -1092,7 +1116,6 @@ async function handler(
       },
     };
   });
-
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1909,6 +1932,7 @@ async function handler(
     evt.team = {
       members: teamMembers,
       name: eventType.team?.name || "Nameless",
+      id: eventType.team?.id ?? 0,
     };
   }
 
@@ -1919,11 +1943,16 @@ async function handler(
     evt.recurringEvent = eventType.recurringEvent;
   }
 
+  const changedOrganizer =
+    !!originalRescheduledBooking &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    originalRescheduledBooking.userId !== evt.organizer.id;
+
   async function createBooking() {
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
       evt.description = originalRescheduledBooking?.description || evt.description;
-      evt.location = originalRescheduledBooking?.location || evt.location;
+      evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
     }
 
     const eventTypeRel = !eventTypeId
@@ -2170,6 +2199,7 @@ async function handler(
 
   let videoCallUrl;
 
+  //this is the actual rescheduling logic
   if (originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
@@ -2182,9 +2212,7 @@ async function handler(
       );
     }
 
-    // Use EventManager to conditionally use all needed integrations.
     addVideoCallDataToEvt(originalRescheduledBooking.references);
-    const updateManager = await eventManager.reschedule(evt, originalRescheduledBooking.uid);
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
@@ -2198,6 +2226,21 @@ async function handler(
         },
       });
     }
+
+    const newDesinationCalendar = evt.destinationCalendar;
+
+    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+      ? [originalRescheduledBooking?.destinationCalendar]
+      : originalRescheduledBooking?.user?.destinationCalendar
+      ? [originalRescheduledBooking?.user.destinationCalendar]
+      : evt.destinationCalendar;
+
+    const updateManager = await eventManager.reschedule(
+      evt,
+      originalRescheduledBooking.uid,
+      undefined,
+      changedOrganizer
+    );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2218,23 +2261,179 @@ async function handler(
       );
     }
 
-    const { metadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
+    const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
       results,
     });
 
+    let metadata: AdditionalInformation = {};
+    metadata = videoMetadata;
     videoCallUrl = _videoCallUrl;
+
+    //if organizer changed we need to create a new booking (reschedule only cancels the old one)
+    if (changedOrganizer) {
+      evt.destinationCalendar = newDesinationCalendar;
+      evt.title = getEventName(eventNameObject);
+
+      // location might changed and will be new created in eventManager.create (organizer default location)
+      evt.videoCallData = undefined;
+      const createManager = await eventManager.create(evt);
+
+      // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+      // to the default description when we are sending the emails.
+      evt.description = eventType.description;
+
+      results = createManager.results;
+      referencesToCreate = createManager.referencesToCreate;
+      videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
+      if (results.length > 0 && results.every((res) => !res.success)) {
+        const error = {
+          errorCode: "BookingCreatingMeetingFailed",
+          message: "Booking rescheduling failed",
+        };
+
+        loggerWithEventDetails.error(
+          `EventManager.create failure in some of the integrations ${organizerUser.username}`,
+          safeStringify({ error, results })
+        );
+      } else {
+        if (results.length) {
+          // Handle Google Meet results
+          // We use the original booking location since the evt location changes to daily
+          if (bookingLocation === MeetLocationType) {
+            const googleMeetResult = {
+              appName: GoogleMeetMetadata.name,
+              type: "conferencing",
+              uid: results[0].uid,
+              originalEvent: results[0].originalEvent,
+            };
+
+            // Find index of google_calendar inside createManager.referencesToCreate
+            const googleCalIndex = createManager.referencesToCreate.findIndex(
+              (ref) => ref.type === "google_calendar"
+            );
+            const googleCalResult = results[googleCalIndex];
+
+            if (!googleCalResult) {
+              loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+              results.push({
+                ...googleMeetResult,
+                success: false,
+                calWarnings: [tOrganizer("google_meet_warning")],
+              });
+            }
+
+            if (googleCalResult?.createdEvent?.hangoutLink) {
+              results.push({
+                ...googleMeetResult,
+                success: true,
+              });
+
+              // Add google_meet to referencesToCreate in the same index as google_calendar
+              createManager.referencesToCreate[googleCalIndex] = {
+                ...createManager.referencesToCreate[googleCalIndex],
+                meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              };
+
+              // Also create a new referenceToCreate with type video for google_meet
+              createManager.referencesToCreate.push({
+                type: "google_meet_video",
+                meetingUrl: googleCalResult.createdEvent.hangoutLink,
+                uid: googleCalResult.uid,
+                credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
+              });
+            } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+              results.push({
+                ...googleMeetResult,
+                success: false,
+              });
+            }
+          }
+
+          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+          metadata.conferenceData = results[0].createdEvent?.conferenceData;
+          metadata.entryPoints = results[0].createdEvent?.entryPoints;
+          evt.appsStatus = handleAppsStatus(results, booking);
+          videoCallUrl =
+            metadata.hangoutLink ||
+            results[0].createdEvent?.url ||
+            organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+            videoCallUrl;
+        }
+      }
+    }
+
     evt.appsStatus = handleAppsStatus(results, booking);
 
     // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
     if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
       const copyEvent = cloneDeep(evt);
-      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
-      await sendRescheduledEmails({
+      const copyEventAdditionalInfo = {
         ...copyEvent,
         additionalInformation: metadata,
         additionalNotes, // Resets back to the additionalNote input and not the override value
         cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-      });
+      };
+      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
+
+      /*
+        handle emails for round robin
+          - if booked rr host is the same, then rescheduling email
+          - if new rr host is booked, then cancellation email to old host and confirmation email to new host
+      */
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        const originalBookingMemberEmails: Person[] = [];
+
+        for (const user of originalRescheduledBooking.attendees) {
+          const translate = await getTranslation(user.locale ?? "en", "common");
+          originalBookingMemberEmails.push({
+            name: user.name,
+            email: user.email,
+            timeZone: user.timeZone,
+            language: { translate, locale: user.locale ?? "en" },
+          });
+        }
+        if (originalRescheduledBooking.user) {
+          const translate = await getTranslation(originalRescheduledBooking.user.locale ?? "en", "common");
+          originalBookingMemberEmails.push({
+            ...originalRescheduledBooking.user,
+            name: originalRescheduledBooking.user.name || "",
+            language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
+          });
+        }
+
+        const newBookingMemberEmails: Person[] =
+          copyEvent.team?.members
+            .map((member) => member)
+            .concat(copyEvent.organizer)
+            .concat(copyEvent.attendees) || [];
+
+        // scheduled Emails
+        const newBookedMembers = newBookingMemberEmails.filter(
+          (member) =>
+            !originalBookingMemberEmails.find((originalMember) => originalMember.email === member.email)
+        );
+        // cancelled Emails
+        const cancelledMembers = originalBookingMemberEmails.filter(
+          (member) => !newBookingMemberEmails.find((newMember) => newMember.email === member.email)
+        );
+        // rescheduled Emails
+        const rescheduledMembers = newBookingMemberEmails.filter((member) =>
+          originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
+        );
+
+        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
+        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
+        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
+      } else {
+        // send normal rescheduled emails (non round robin event, where organizers stay the same)
+        await sendRescheduledEmails({
+          ...copyEvent,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+        });
+      }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -2406,7 +2605,7 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt),
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
       }
     : undefined;
 
