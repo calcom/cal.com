@@ -84,7 +84,7 @@ export const TeamInviteEmail = (
           })}
         </>
       </p>
-
+      {/* 
       {!props.isCalcomMember && (
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           <EmailStep
@@ -120,7 +120,7 @@ export const TeamInviteEmail = (
             }
           />
         </div>
-      )}
+      )} */}
 
       <div className="">
         <p
