@@ -166,6 +166,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
+      aria-label="multi-select-dropdown"
       className="mb-2"
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
@@ -193,6 +194,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   return (
     <Select
+      aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
         if (!item) {
