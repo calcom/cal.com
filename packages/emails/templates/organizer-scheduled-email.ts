@@ -70,7 +70,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     return icsEvent.value;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const clonedCalEvent = cloneDeep(this.calEvent);
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
@@ -83,7 +83,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
       subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
-      html: renderEmail("OrganizerScheduledEmail", {
+      html: await renderEmail("OrganizerScheduledEmail", {
         calEvent: clonedCalEvent,
         attendee: this.calEvent.organizer,
         teamMember: this.teamMember,

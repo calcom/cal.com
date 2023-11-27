@@ -1,8 +1,11 @@
 import Page from "@pages/settings/admin/users/[id]/edit";
-import { trpc } from "app/_trpc/client";
+import { getServerCaller } from "app/_trpc/serverClient";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
 import { z } from "zod";
+
+import prisma from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
@@ -13,8 +16,13 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   if (!input.success) {
     title = "Editing user";
   } else {
-    // @ts-expect-error Property 'useSuspenseQuery' does not exist on type
-    const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId: input.data.id });
+    const req = {
+      headers: headers(),
+      cookies: cookies(),
+    };
+
+    // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest'
+    const data = await getServerCaller({ req, prisma }).viewer.users.get({ userId: input.data.id });
     const { user } = data;
     title = `Editing user: ${user.username}`;
   }
