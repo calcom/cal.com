@@ -55,6 +55,7 @@ const IntegrationsContainer = ({
     analytics: BarChart,
     payment: CreditCard,
     other: Grid,
+    web3: CreditCard, // deprecated
     video: Video, // deprecated
     messaging: Mail,
     crm: Contact,
