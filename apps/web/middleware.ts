@@ -1,13 +1,16 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import type { NextMiddleware } from "next/server";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "@lib/csp";
 
-const middleware: NextMiddleware = async (req) => {
+import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+
+const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
 
@@ -61,6 +64,12 @@ const middleware: NextMiddleware = async (req) => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
+  requestHeaders.set("x-pathname", url.pathname);
+
+  const locale = await getLocale(req);
+
+  requestHeaders.set("x-locale", locale);
+
   return NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -90,11 +99,13 @@ export const config = {
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+    "/event-types",
+    "/future/event-types/",
   ],
 };
 
 export default collectEvents({
-  middleware,
+  middleware: abTestMiddlewareFactory(middleware),
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,

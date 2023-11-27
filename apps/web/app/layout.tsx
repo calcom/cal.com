@@ -1,84 +1,63 @@
-import type { Metadata } from "next";
-import { headers as nextHeaders, cookies as nextCookies } from "next/headers";
+import { dir } from "i18next";
+import { headers, cookies } from "next/headers";
 import Script from "next/script";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
+import { prepareRootMetadata } from "@lib/metadata";
+
 import "../styles/globals.css";
 
-export const metadata: Metadata = {
-  icons: {
-    icon: [
-      {
-        sizes: "32x32",
-        url: "/api/logo?type=favicon-32",
-      },
-      {
-        sizes: "16x16",
-        url: "/api/logo?type=favicon-16",
-      },
-    ],
-    apple: {
-      sizes: "180x180",
-      url: "/api/logo?type=apple-touch-icon",
+export const generateMetadata = () =>
+  prepareRootMetadata({
+    twitterCreator: "@calcom",
+    twitterSite: "@calcom",
+    robots: {
+      index: false,
+      follow: false,
     },
-    other: [
-      {
-        url: "/safari-pinned-tab.svg",
-        rel: "mask-icon",
-      },
-    ],
-  },
-  manifest: "/site.webmanifest",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f9fafb" },
-    { media: "(prefers-color-scheme: dark)", color: "#1C1C1C" },
-  ],
-  other: {
-    "msapplication-TileColor": "#000000",
-  },
-};
+  });
 
-const getInitialProps = async (
-  url: string,
-  headers: ReturnType<typeof nextHeaders>,
-  cookies: ReturnType<typeof nextCookies>
-) => {
+const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
 
   const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
-  // @ts-expect-error we cannot access ctx.req in app dir, however headers and cookies are only properties needed to extract the locale
-  const newLocale = await getLocale({ headers, cookies });
-  let direction = "ltr";
-
-  try {
-    const intlLocale = new Intl.Locale(newLocale);
-    // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
-    direction = intlLocale.textInfo?.direction;
-  } catch (e) {
-    console.error(e);
-  }
+  const req = { headers: headers(), cookies: cookies() };
+  const newLocale = await getLocale(req);
+  const direction = dir(newLocale);
 
   return { isEmbed, embedColorScheme, locale: newLocale, direction };
 };
 
+const getFallbackProps = () => ({
+  locale: "en",
+  direction: "ltr",
+  isEmbed: false,
+  embedColorScheme: false,
+});
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const headers = nextHeaders();
-  const cookies = nextCookies();
+  const h = headers();
 
-  const fullUrl = headers.get("x-url") ?? "";
-  const nonce = headers.get("x-csp") ?? "";
+  const fullUrl = h.get("x-url") ?? "";
+  const nonce = h.get("x-csp") ?? "";
 
-  const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps(fullUrl, headers, cookies);
+  const isSSG = !fullUrl;
+
+  const { locale, direction, isEmbed, embedColorScheme } = isSSG
+    ? getFallbackProps()
+    : await getInitialProps(fullUrl);
+
   return (
     <html
       lang={locale}
       dir={direction}
-      style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
+      style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      data-nextjs-router="app">
       <head nonce={nonce}>
         {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
           // eslint-disable-next-line @next/next/no-sync-scripts
