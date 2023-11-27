@@ -16,7 +16,7 @@ import {
   getUsersToInvite,
   createNewUsersConnectToOrgIfExists,
   createProvisionalMemberships,
-  getUsersForMemberships,
+  groupUsersByJoinability,
   sendTeamInviteEmails,
   sendEmails,
 } from "./utils";
@@ -86,15 +86,15 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   // deal with existing users invited to join the team/org
   if (existingUsersWithMembersips.length) {
-    const [usersToAutoJoin, regularUsers] = getUsersForMemberships({
+    const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
       existingUsersWithMembersips,
       team,
     });
 
     // invited users can autojoin, create their memberships in org
-    if (usersToAutoJoin.length) {
+    if (autoJoinUsers.length) {
       await prisma.membership.createMany({
-        data: usersToAutoJoin.map((userToAutoJoin) => ({
+        data: autoJoinUsers.map((userToAutoJoin) => ({
           userId: userToAutoJoin.id,
           teamId: team.id,
           accepted: true,

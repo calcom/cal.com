@@ -403,31 +403,23 @@ export function shouldAutoJoinIfInOrg({
 }) {
   // Not a member of the org
   if (invitee.organizationId && invitee.organizationId !== team.parentId) {
-    return {
-      autoJoined: false,
-    };
+    return false;
   }
   // team is an Org
   if (!team.parentId) {
-    return {
-      autoJoined: false,
-    };
+    return false;
   }
 
   const orgMembership = invitee.teams?.find((membership) => membership.teamId === team.parentId);
 
   if (!orgMembership?.accepted) {
-    return {
-      autoJoined: false,
-    };
+    return false;
   }
 
-  return {
-    autoJoined: true,
-  };
+  return true;
 }
 // split invited users between ones that can autojoin and the others who cannot autojoin
-export const getUsersForMemberships = ({
+export const groupUsersByJoinability = ({
   existingUsersWithMembersips,
   team,
 }: {
@@ -440,15 +432,16 @@ export const getUsersForMemberships = ({
   for (let index = 0; index < existingUsersWithMembersips.length; index++) {
     const existingUserWithMembersips = existingUsersWithMembersips[index];
 
-    const shouldAutoJoinOrgTeam = shouldAutoJoinIfInOrg({
+    const canAutojoin = shouldAutoJoinIfInOrg({
       invitee: existingUserWithMembersips,
       team,
     });
 
-    shouldAutoJoinOrgTeam.autoJoined
+    canAutojoin
       ? usersToAutoJoin.push(existingUserWithMembersips)
       : regularUsers.push(existingUserWithMembersips);
   }
+
   return [usersToAutoJoin, regularUsers];
 };
 

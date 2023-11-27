@@ -249,7 +249,7 @@ describe("Invite Member Utils", () => {
     };
     const isOrg = false;
 
-    it("should not throw when inviting an existing user to the same organization", () => {
+    it("should not throw when inviting to an organization's team an existing org user", () => {
       const inviteeWithOrg: Invitee = {
         ...invitee,
         organizationId: 2,
@@ -260,6 +260,32 @@ describe("Invite Member Utils", () => {
       };
       expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).not.toThrow();
     });
+
+    it("should throw a TRPCError when inviting a user who is already a member of the org", () => {
+      const inviteeWithOrg: Invitee = {
+        ...invitee,
+        organizationId: 1,
+      };
+      const teamWithOrg = {
+        ...mockedTeam,
+        id: 1,
+      };
+      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
+    });
+
+    it("should throw a TRPCError when inviting a user who is already a member of the team", () => {
+      const inviteeWithOrg: UserWithMembership = {
+        ...invitee,
+        organizationId: null,
+        teams: [{ teamId: 1, accepted: true, userId: invitee.id }],
+      };
+      const teamWithOrg = {
+        ...mockedTeam,
+        id: 1,
+      };
+      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg, isOrg)).toThrow(TRPCError);
+    });
+
     it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
       const inviteeWithOrg: Invitee = {
         ...invitee,
@@ -287,7 +313,7 @@ describe("Invite Member Utils", () => {
         team: mockedTeam,
         invitee: userInTeamAccepted,
       });
-      expect(result).toEqual({ autoJoined: false });
+      expect(result).toEqual(false);
     });
 
     it("should return autoJoined: false if the team does not have a parent organization", async () => {
@@ -295,7 +321,7 @@ describe("Invite Member Utils", () => {
         team: { ...mockedTeam, parentId: null },
         invitee: userInTeamAccepted,
       });
-      expect(result).toEqual({ autoJoined: false });
+      expect(result).toEqual(false);
     });
 
     it("should return `autoJoined: false` if team has parent organization and invitee has not accepted membership to organization", async () => {
@@ -303,14 +329,14 @@ describe("Invite Member Utils", () => {
         team: { ...mockedTeam, parentId: mockedTeam.id },
         invitee: { ...userInTeamNotAccepted, organizationId: mockedTeam.id },
       });
-      expect(result).toEqual({ autoJoined: false });
+      expect(result).toEqual(false);
     });
     it("should return `autoJoined: true` if team has parent organization and invitee has accepted membership to organization", async () => {
       const result = await shouldAutoJoinIfInOrg({
         team: { ...mockedTeam, parentId: mockedTeam.id },
         invitee: { ...userInTeamAccepted, organizationId: mockedTeam.id },
       });
-      expect(result).toEqual({ autoJoined: true });
+      expect(result).toEqual(true);
     });
   });
 });
