@@ -12,7 +12,7 @@ import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/Syn
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsername } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
@@ -146,7 +146,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
           create: {
             userId: user.id,
             teamId: team.id,
-            role: "MEMBER",
+            role: MembershipRole.MEMBER,
             accepted: true,
           },
         });

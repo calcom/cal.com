@@ -8,7 +8,7 @@ import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateUsername } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           create: {
             userId: user.id,
             teamId: team.id,
-            role: "MEMBER",
+            role: MembershipRole.MEMBER,
             accepted: true,
           },
         });
