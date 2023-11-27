@@ -556,7 +556,7 @@ describe("getBookingResponsesSchema", () => {
       const parsedResponses = await schema.safeParseAsync({
         email: "test@test.com",
         name: "test",
-        testPhone: "+61493123456",
+        testPhone: "+919999999999",
       });
       expect(parsedResponses.success).toBe(true);
       if (!parsedResponses.success) {
@@ -565,7 +565,7 @@ describe("getBookingResponsesSchema", () => {
       expect(parsedResponses.data).toEqual({
         email: "test@test.com",
         name: "test",
-        testPhone: "+61493123456",
+        testPhone: "+919999999999",
       });
     });
 
