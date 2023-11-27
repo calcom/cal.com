@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    validateUsernameForTeam({ username, email: userEmail, teamId: foundToken?.teamId });
+    await validateUsernameForTeam({ username, email: userEmail, teamId: foundToken?.teamId });
   } else {
     const userValidation = await validateUsername(username, userEmail);
     if (!userValidation.isValid) {
@@ -77,12 +77,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           });
         }
-
-        const membership = await tx.membership.update({
+        const membership = await tx.membership.upsert({
           where: {
             userId_teamId: { userId: user.id, teamId: team.id },
           },
-          data: {
+          update: {
+            accepted: true,
+          },
+          create: {
+            userId: user.id,
+            teamId: team.id,
+            role: "MEMBER",
             accepted: true,
           },
         });
