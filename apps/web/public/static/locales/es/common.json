@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Bloquear la zona horaria en la página de reserva",
   "description_lock_timezone_toggle_on_booking_page": "Bloquear la zona horaria en la página de reserva, es útil para eventos en persona.",
   "extensive_whitelabeling": "Asistencia dedicada en materia de incorporación e ingeniería",
+  "need_help": "¿Necesita ayuda?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

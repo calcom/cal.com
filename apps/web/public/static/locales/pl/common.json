@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Zablokuj strefę czasową na stronie rezerwacji",
   "description_lock_timezone_toggle_on_booking_page": "Aby zablokować strefę czasową na stronie rezerwacji (przydatne dla wydarzeń stacjonarnych).",
   "extensive_whitelabeling": "Dedykowane wsparcie w zakresie wdrożenia i obsługi technicznej",
+  "need_help": "Potrzebujesz pomocy?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
