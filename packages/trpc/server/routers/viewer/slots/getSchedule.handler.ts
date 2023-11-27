@@ -1,5 +1,4 @@
-import type { IncomingMessage } from "http";
-import type { NextApiResponse } from "next";
+import type { IncomingMessage, ServerResponse } from "http";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
@@ -13,7 +12,7 @@ export type GetScheduleOptions = {
 
 interface ContextForGetSchedule extends Record<string, unknown> {
   req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
-  res?: NextApiResponse;
+  res?: ServerResponse;
 }
 
 export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
