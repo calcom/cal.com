@@ -1,11 +1,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, ToggleGroup } from "@calcom/ui";
+import { Button, ButtonGroup, ToggleGroup, Tooltip } from "@calcom/ui";
 import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
@@ -18,13 +20,19 @@ export function Header({
   isMobile,
   enabledLayouts,
   nextSlots,
+  username,
+  eventSlug,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
   nextSlots: number;
+  username: string;
+  eventSlug: string;
 }) {
   const { t, i18n } = useLocale();
+  const session = useSession();
+
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
@@ -54,12 +62,24 @@ export function Header({
       <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
     );
   };
+  const isMyLink = username === session?.data?.user.username; // TODO: check for if the user is the owner of the link
 
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
       <div className="flex gap-2">
-        <OverlayCalendarContainer />
+        {isMyLink ? (
+          <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
+            <Button
+              color="primary"
+              target="_blank"
+              href={`${WEBAPP_URL}/availability/troubleshoot?eventType=${eventSlug}`}>
+              {t("need_help")}
+            </Button>
+          </Tooltip>
+        ) : (
+          <OverlayCalendarContainer />
+        )}
         <LayoutToggleWithData />
       </div>
     );
