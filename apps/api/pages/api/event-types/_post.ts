@@ -322,7 +322,7 @@ async function checkPermissions(req: NextApiRequest) {
     body.teamId &&
     !isAdmin &&
     !(await canUserAccessTeamWithRole(req.prisma, req.userId, isAdmin, body.teamId, {
-      in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+      in: [MembershipRole.OWNER, MembershipRole.ADMIN],
     }))
   )
     throw new HttpError({
