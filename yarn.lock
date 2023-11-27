@@ -3190,6 +3190,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.14.5, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.18.6":
+  version: 7.23.4
+  resolution: "@babel/runtime@npm:7.23.4"
+  dependencies:
+    regenerator-runtime: ^0.14.0
+  checksum: 8eb6a6b2367f7d60e7f7dd83f477cc2e2fdb169e5460694d7614ce5c730e83324bcf29251b70940068e757ad1ee56ff8073a372260d90cad55f18a825caf97cd
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.21.0":
   version: 7.23.1
   resolution: "@babel/runtime@npm:7.23.1"
@@ -3543,15 +3552,13 @@ __metadata:
     "@calcom/ui": "*"
     "@types/node": 16.9.1
     "@types/react": 18.0.26
-    "@types/react-dom": ^18.0.9
+    "@types/react-dom": 18.0.9
     eslint: ^8.34.0
     eslint-config-next: ^13.2.1
-    next: ^13.4.6
-    next-auth: ^4.22.1
-    postcss: ^8.4.18
+    next: ^13.2.1
+    next-auth: ^4.20.1
     react: ^18.2.0
     react-dom: ^18.2.0
-    tailwindcss: ^3.3.3
     typescript: ^4.9.4
   languageName: unknown
   linkType: soft
@@ -3645,7 +3652,7 @@ __metadata:
     "@calcom/ui": "*"
     "@headlessui/react": ^1.5.0
     "@heroicons/react": ^1.0.6
-    "@prisma/client": ^5.4.2
+    "@prisma/client": ^4.13.0
     "@tailwindcss/forms": ^0.5.2
     "@types/node": 16.9.1
     "@types/react": 18.0.26
@@ -3653,21 +3660,21 @@ __metadata:
     chart.js: ^3.7.1
     client-only: ^0.0.1
     eslint: ^8.34.0
-    next: ^13.4.6
-    next-auth: ^4.22.1
-    next-i18next: ^13.2.2
+    next: ^13.2.1
+    next-auth: ^4.20.1
+    next-i18next: ^11.3.0
     postcss: ^8.4.18
-    prisma: ^5.4.2
+    prisma: ^4.13.0
     prisma-field-encryption: ^1.4.0
     react: ^18.2.0
     react-chartjs-2: ^4.0.1
     react-dom: ^18.2.0
     react-hook-form: ^7.43.3
-    react-live-chat-loader: ^2.8.1
+    react-live-chat-loader: ^2.7.3
     swr: ^1.2.2
-    tailwindcss: ^3.3.3
+    tailwindcss: ^3.2.1
     typescript: ^4.9.4
-    zod: ^3.22.2
+    zod: ^3.20.2
   languageName: unknown
   linkType: soft
 
@@ -8478,6 +8485,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/client@npm:^4.13.0":
+  version: 4.16.2
+  resolution: "@prisma/client@npm:4.16.2"
+  dependencies:
+    "@prisma/engines-version": 4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81
+  peerDependencies:
+    prisma: "*"
+  peerDependenciesMeta:
+    prisma:
+      optional: true
+  checksum: 38e1356644a764946c69c8691ea4bbed0ba37739d833a435625bd5435912bed4b9bdd7c384125f3a4ab8128faf566027985c0f0840a42741c338d72e40b5d565
+  languageName: node
+  linkType: hard
+
 "@prisma/client@npm:^5.4.2":
   version: 5.4.2
   resolution: "@prisma/client@npm:5.4.2"
@@ -8536,10 +8557,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/engines-version@npm:4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81":
+  version: 4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81
+  resolution: "@prisma/engines-version@npm:4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81"
+  checksum: b42c6abe7c1928e546f15449e40ffa455701ef2ab1f62973628ecb4e19ff3652e34609a0d83196d1cbd0864adb44c55e082beec852b11929acf1c15fb57ca45a
+  languageName: node
+  linkType: hard
+
 "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574":
   version: 5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574
   resolution: "@prisma/engines-version@npm:5.4.1-2.ac9d7041ed77bcc8a8dbd2ab6616b39013829574"
   checksum: 493f84e8856bf214c64177f879f7009740156492a3e1b42cd02e91eec273a5d290bfdde9ca32c361cd8a0616a33d903163582a51e44a79a6b6b318f72130517f
+  languageName: node
+  linkType: hard
+
+"@prisma/engines@npm:4.16.2":
+  version: 4.16.2
+  resolution: "@prisma/engines@npm:4.16.2"
+  checksum: f423e6092c3e558cd089a68ae87459fba7fd390c433df087342b3269c3b04163965b50845150dfe47d01f811781bfff89d5ae81c95ca603c59359ab69ebd810f
   languageName: node
   linkType: hard
 
@@ -24668,10 +24703,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"i18next-fs-backend@npm:^1.1.4":
+  version: 1.2.0
+  resolution: "i18next-fs-backend@npm:1.2.0"
+  checksum: da74d20f2b007f8e34eaf442fa91ad12aaff3b9891e066c6addd6d111b37e370c62370dfbc656730ab2f8afd988f2e7ea1c48301ebb19ccb716fb5965600eddf
+  languageName: node
+  linkType: hard
+
 "i18next-fs-backend@npm:^2.1.1":
   version: 2.1.3
   resolution: "i18next-fs-backend@npm:2.1.3"
   checksum: df3586f0958b5967674fa46aa7a579276156328b3f25e744c125b98bbeb8330c7a18a513a6224841e5732860c7bd54cb4a04b8d5a9eb521046dc37c254b67349
+  languageName: node
+  linkType: hard
+
+"i18next@npm:^21.8.13":
+  version: 21.10.0
+  resolution: "i18next@npm:21.10.0"
+  dependencies:
+    "@babel/runtime": ^7.17.2
+  checksum: f997985e2d4d15a62a0936a82ff6420b97f3f971e776fe685bdd50b4de0cb4dc2198bc75efe6b152844794ebd5040d8060d6d152506a687affad534834836d81
   languageName: node
   linkType: hard
 
@@ -26340,6 +26391,15 @@ __metadata:
   bin:
     jiti: bin/jiti.js
   checksum: 7924062b5675142e3e272a27735be84b7bfc0a0eb73217fc2dcafa034f37c4f7b4b9ffc07dd98bcff0f739a8811ce1544db205ae7e97b1c86f0df92c65ce3c72
+  languageName: node
+  linkType: hard
+
+"jiti@npm:^1.19.1":
+  version: 1.21.0
+  resolution: "jiti@npm:1.21.0"
+  bin:
+    jiti: bin/jiti.js
+  checksum: a7bd5d63921c170eaec91eecd686388181c7828e1fa0657ab374b9372bfc1f383cf4b039e6b272383d5cb25607509880af814a39abdff967322459cca41f2961
   languageName: node
   linkType: hard
 
@@ -30069,6 +30129,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-auth@npm:^4.20.1":
+  version: 4.24.5
+  resolution: "next-auth@npm:4.24.5"
+  dependencies:
+    "@babel/runtime": ^7.20.13
+    "@panva/hkdf": ^1.0.2
+    cookie: ^0.5.0
+    jose: ^4.11.4
+    oauth: ^0.9.15
+    openid-client: ^5.4.0
+    preact: ^10.6.3
+    preact-render-to-string: ^5.1.19
+    uuid: ^8.3.2
+  peerDependencies:
+    next: ^12.2.5 || ^13 || ^14
+    nodemailer: ^6.6.5
+    react: ^17.0.2 || ^18
+    react-dom: ^17.0.2 || ^18
+  peerDependenciesMeta:
+    nodemailer:
+      optional: true
+  checksum: 7cc49385123690ccb908f4552b75012717c4e45205a9fdc7cf48cd730dbcc7823a3e33e2a2073ecf1edae5c1980123f68678fd4af9198ea21ab0decb630cc71e
+  languageName: node
+  linkType: hard
+
 "next-auth@npm:^4.22.1":
   version: 4.22.1
   resolution: "next-auth@npm:4.22.1"
@@ -30133,6 +30218,24 @@ __metadata:
     react: ">= 17.0.2"
     react-i18next: ^12.2.0
   checksum: 4c3aa5bbbc12964ed6f61f37d33f4319abd04932d6871baba9f209183952b286470fff80f90a94ccddba736c8fb13a9238effa1e8247dfb08e2239cbdc4fb769
+  languageName: node
+  linkType: hard
+
+"next-i18next@npm:^11.3.0":
+  version: 11.3.0
+  resolution: "next-i18next@npm:11.3.0"
+  dependencies:
+    "@babel/runtime": ^7.18.6
+    "@types/hoist-non-react-statics": ^3.3.1
+    core-js: ^3
+    hoist-non-react-statics: ^3.3.2
+    i18next: ^21.8.13
+    i18next-fs-backend: ^1.1.4
+    react-i18next: ^11.18.0
+  peerDependencies:
+    next: ">= 10.0.0"
+    react: ">= 16.8.0"
+  checksum: fbce97a4fbf9ad846c08652471a833c7f173c3e7ddc7cafa1423625b4a684715bb85f76ae06fe9cbed3e70f12b8e78e2459e5bc1a3c3f5c517743f17648f8939
   languageName: node
   linkType: hard
 
@@ -30217,7 +30320,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^13.4.6":
+"next@npm:^13.2.1, next@npm:^13.4.6":
   version: 13.5.6
   resolution: "next@npm:13.5.6"
   dependencies:
@@ -32891,6 +32994,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prisma@npm:^4.13.0":
+  version: 4.16.2
+  resolution: "prisma@npm:4.16.2"
+  dependencies:
+    "@prisma/engines": 4.16.2
+  bin:
+    prisma: build/index.js
+    prisma2: build/index.js
+  checksum: 1d0ed616abd7f8de22441e333b976705f1cb05abcb206965df3fc6a7ea03911ef467dd484a4bc51fdc6cff72dd9857b9852be5f232967a444af0a98c49bfdb76
+  languageName: node
+  linkType: hard
+
 "prisma@npm:^5.4.2":
   version: 5.4.2
   resolution: "prisma@npm:5.4.2"
@@ -33788,6 +33903,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-i18next@npm:^11.18.0":
+  version: 11.18.6
+  resolution: "react-i18next@npm:11.18.6"
+  dependencies:
+    "@babel/runtime": ^7.14.5
+    html-parse-stringify: ^3.0.1
+  peerDependencies:
+    i18next: ">= 19.0.0"
+    react: ">= 16.8.0"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 624c0a0313fac4e0d18560b83c99a8bd0a83abc02e5db8d01984e0643ac409d178668aa3a4720d01f7a0d9520d38598dcbff801d6f69a970bae67461de6cd852
+  languageName: node
+  linkType: hard
+
 "react-i18next@npm:^12.2.0":
   version: 12.3.1
   resolution: "react-i18next@npm:12.3.1"
@@ -33908,6 +34041,15 @@ __metadata:
   version: 3.0.4
   resolution: "react-lifecycles-compat@npm:3.0.4"
   checksum: a904b0fc0a8eeb15a148c9feb7bc17cec7ef96e71188280061fc340043fd6d8ee3ff233381f0e8f95c1cf926210b2c4a31f38182c8f35ac55057e453d6df204f
+  languageName: node
+  linkType: hard
+
+"react-live-chat-loader@npm:^2.7.3":
+  version: 2.8.2
+  resolution: "react-live-chat-loader@npm:2.8.2"
+  peerDependencies:
+    react: ^16.14.0 || ^17.0.0 || ^18.0.0
+  checksum: 30de0d27693f1c80641347f0efc9c846e0c8d52231eb3181b68d684ef580764d3bd8393d77ff61f3066af5cc65977fc1a108726965181ddbbd6a0feb0a9ebcb9
   languageName: node
   linkType: hard
 
@@ -37772,6 +37914,39 @@ __metadata:
   version: 2.6.0
   resolution: "tailwindcss-radix@npm:2.6.0"
   checksum: aff1c66f49dfac864367306890ba72b269244e6515da9914f61e9404a7c8ff38b879635e56775952239ef5ef537b301e443c0e1f53a3c5f92ee6ca4a0306a462
+  languageName: node
+  linkType: hard
+
+"tailwindcss@npm:^3.2.1":
+  version: 3.3.5
+  resolution: "tailwindcss@npm:3.3.5"
+  dependencies:
+    "@alloc/quick-lru": ^5.2.0
+    arg: ^5.0.2
+    chokidar: ^3.5.3
+    didyoumean: ^1.2.2
+    dlv: ^1.1.3
+    fast-glob: ^3.3.0
+    glob-parent: ^6.0.2
+    is-glob: ^4.0.3
+    jiti: ^1.19.1
+    lilconfig: ^2.1.0
+    micromatch: ^4.0.5
+    normalize-path: ^3.0.0
+    object-hash: ^3.0.0
+    picocolors: ^1.0.0
+    postcss: ^8.4.23
+    postcss-import: ^15.1.0
+    postcss-js: ^4.0.1
+    postcss-load-config: ^4.0.1
+    postcss-nested: ^6.0.1
+    postcss-selector-parser: ^6.0.11
+    resolve: ^1.22.2
+    sucrase: ^3.32.0
+  bin:
+    tailwind: lib/cli.js
+    tailwindcss: lib/cli.js
+  checksum: e04bb3bb7f9f17e9b6db0c7ace755ef0d6d05bff36ebeb9e5006e13c018ed5566f09db30a1a34380e38fa93ebbb4ae0e28fe726879d5e9ddd8c5b52bffd26f14
   languageName: node
   linkType: hard
 
@@ -41952,6 +42127,13 @@ __metadata:
   peerDependencies:
     zod: ^3.21.4
   checksum: 899c1f461fb6547c0b08a265c82040c250be9b88d3f408f2f3ff77a418fdfad7549077e589d418fccb312c1f6d555c3c7217b199cc9072762e1fab20716dd2a6
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.20.2":
+  version: 3.22.4
+  resolution: "zod@npm:3.22.4"
+  checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
   languageName: node
   linkType: hard
 
