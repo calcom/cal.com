@@ -1,8 +1,9 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, startTransition } from "react";
 
 import { trpc } from "@calcom/trpc";
 import { SelectField } from "@calcom/ui";
 
+import { getQueryParam } from "../../bookings/Booker/utils/query-param";
 import { useTroubleshooterStore } from "../store";
 
 export function EventTypeSelect() {
@@ -10,7 +11,7 @@ export function EventTypeSelect() {
   const selectedEventType = useTroubleshooterStore((state) => state.event);
   const setSelectedEventType = useTroubleshooterStore((state) => state.setEvent);
 
-  // const selectedEventQueryParam = getQueryParam("eventType");
+  const selectedEventQueryParam = getQueryParam("eventType");
 
   const options = useMemo(() => {
     if (!eventTypes) return [];
@@ -23,7 +24,7 @@ export function EventTypeSelect() {
   }, [eventTypes]);
 
   useEffect(() => {
-    if (!selectedEventType && eventTypes && eventTypes[0]) {
+    if (!selectedEventType && eventTypes && eventTypes[0] && !selectedEventQueryParam) {
       const { id, slug, length } = eventTypes[0];
       setSelectedEventType({
         id,
@@ -33,6 +34,26 @@ export function EventTypeSelect() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypes]);
+
+  useEffect(() => {
+    if (selectedEventQueryParam) {
+      // ensure that the update is deferred until the Suspense boundary has finished hydrating
+      startTransition(() => {
+        const foundEventType = eventTypes?.find((et) => et.slug === selectedEventQueryParam);
+        if (foundEventType) {
+          const { id, slug, length } = foundEventType;
+          setSelectedEventType({ id, slug, duration: length });
+        } else if (eventTypes && eventTypes[0]) {
+          const { id, slug, length } = eventTypes[0];
+          setSelectedEventType({
+            id,
+            slug,
+            duration: length,
+          });
+        }
+      });
+    }
+  }, [eventTypes, selectedEventQueryParam, setSelectedEventType]);
 
   return (
     <SelectField
