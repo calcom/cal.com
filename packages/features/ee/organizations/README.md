@@ -23,13 +23,22 @@ From the [Original RFC](https://github.com/calcom/cal.com/issues/7142):
     1. `sudo npx hostile app.cal.local`
     2. Add it yourself
 
-4.  Add `acme.cal.local` to host file given that the org create for it will be `acme`, otherwise do this for whatever slug will be assigned to the org. This is needed to test org-related public URLs, such as sub-teams, members and event-types.
+To load cal video organization meeting links locally (app.cal.local/video/[uid]). you would have to access local nextjs server using HTTPS
 
-5.  Be sure to be logged in with any type of user and visit `/settings/organizations/new` and follow setup steps with the slug matching the org slug from step 3
+- `brew install mkcert`
+- `mkcert -install`
+- `mkcert app.cal.local` (This will generate two pem (`app.cal.local.pem` and `app.cal.local-key.pem`) files in your home directory)
 
-6.  Log in as admin and go to Settings and under Organizations you will need to accept the newly created organization in order to be operational
+- Move both of these pem files to apps/web.
+- You can start the local server using `cd apps/web && yarn dev:https`.
 
-7.  After finishing the org creation, you will be automatically logged in as the owner of the organization, and the app will be shown in organization mode
+6.  Add `acme.cal.local` to host file given that the org create for it will be `acme`, otherwise do this for whatever slug will be assigned to the org. This is needed to test org-related public URLs, such as sub-teams, members and event-types.
+
+7.  Be sure to be logged in with any type of user and visit `/settings/organizations/new` and follow setup steps with the slug matching the org slug from step 3
+
+8.  Log in as admin and go to Settings and under Organizations you will need to accept the newly created organization in order to be operational
+
+9.  After finishing the org creation, you will be automatically logged in as the owner of the organization, and the app will be shown in organization mode
 
 ## DNS setup
 
