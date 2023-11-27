@@ -50,7 +50,10 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
             return (
               <li
                 key={key}
-                className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
+                data-testid="hint-error"
+                className={
+                  error !== undefined ? (submitted ? "bg-yellow-200 text-red-700" : "") : "text-green-600"
+                }>
                 {error !== undefined ? (
                   submitted ? (
                     <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
@@ -72,7 +75,9 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   // errors exist, not custom ones, just show them as is
   if (fieldErrors) {
     return (
-      <div className="text-gray mt-2 flex items-center gap-x-2 text-sm text-red-700">
+      <div
+        data-testid="field-error"
+        className="text-gray mt-2 flex items-center gap-x-2 text-sm text-red-700">
         <div>
           <Info className="h-3 w-3" />
         </div>
