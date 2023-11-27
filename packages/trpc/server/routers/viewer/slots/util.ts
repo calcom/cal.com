@@ -265,7 +265,7 @@ export function getRegularOrDynamicEventType(
     : getEventType(input, organizationDetails);
 }
 
-export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions, bookerUserId?: number) {
   const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
@@ -407,7 +407,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           eventType,
           currentSeats,
           rescheduleUid: input.rescheduleUid,
-          bookerUserId: input?.bookerUserId,
+          bookerUserId,
           currentBookings: currentBookingsAllUsers
             .filter(
               (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)

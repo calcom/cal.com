@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "http";
+import type { NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
@@ -12,11 +13,11 @@ export type GetScheduleOptions = {
 
 interface ContextForGetSchedule extends Record<string, unknown> {
   req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+  res?: NextApiResponse;
 }
 
 export const getScheduleHandler = async ({ ctx, input }: GetScheduleOptions) => {
-  const { req, res } = ctx;
-  const session = await getServerSession({ req, res });
-  input.bookerUserId = session?.user?.id;
-  return await getAvailableSlots({ ctx, input });
+  let session;
+  if (ctx?.req && ctx?.res) session = await getServerSession({ req: ctx?.req, res: ctx?.res });
+  return await getAvailableSlots({ ctx, input }, session?.user?.id);
 };

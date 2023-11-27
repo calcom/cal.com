@@ -222,8 +222,6 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
-  console.log("*********************************************");
-  console.log(initialData?.bookerUserId);
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
     currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, initialData?.bookerUserId);
   }
