@@ -348,6 +348,18 @@ export default function Signup({
                     color="secondary"
                     disabled={!!formMethods.formState.errors.username || premiumUsername}
                     loading={isGoogleLoading}
+                    StartIcon={() => (
+                      <>
+                        <img
+                          className={classNames(
+                            "text-emphasis  mr-2 h-5 w-5",
+                            premiumUsername && "opacity-50"
+                          )}
+                          src="/google-icon.svg"
+                          alt=""
+                        />
+                      </>
+                    )}
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
                       formMethods.formState.errors.username ? "opacity-50" : ""
@@ -368,11 +380,6 @@ export default function Signup({
                       setIsGoogleLoading(false);
                       router.push(GOOGLE_AUTH_URL);
                     }}>
-                    <img
-                      className={classNames("text-emphasis  mr-2 h-5 w-5", premiumUsername && "opacity-50")}
-                      src="/google-icon.svg"
-                      alt=""
-                    />
                     Google
                   </Button>
                 ) : null}
