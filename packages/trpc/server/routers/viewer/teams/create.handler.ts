@@ -25,7 +25,10 @@ const generateCheckoutSession = async ({
   teamName: string;
   userId: number;
 }) => {
-  if (!IS_TEAM_BILLING_ENABLED) return;
+  if (!IS_TEAM_BILLING_ENABLED) {
+    console.info("Team billing is disabled, not generating a checkout session.");
+    return;
+  }
 
   const checkoutSession = await generateTeamCheckoutSession({
     teamSlug,
@@ -80,7 +83,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       userId: user.id,
     });
 
-    return checkoutSession;
+    // If there is a checkout session, return it. Otherwise, it means it's disabled.
+    if (checkoutSession) return checkoutSession;
   }
 
   // Ensure that the user is not duplicating a requested team
