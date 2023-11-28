@@ -30,7 +30,8 @@ type EventDetailCustomBlock = {
   name: string;
 };
 
-type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
+type EventDetailsProps = EventDetailsPropsBase &
+  (EventDetailDefaultBlock | EventDetailCustomBlock) & { rescheduleUid: string | null };
 
 interface EventMetaProps {
   icon?: React.FC<{ className: string }> | string;
@@ -108,7 +109,11 @@ export const EventMetaBlock = ({
  * const MyCustomBlock = () => <div>Something nice</div>;
  * <EventDetails event={event} blocks={[EventDetailBlocks.LOCATION, MyCustomBlock]} />
  */
-export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
+export const EventDetails = ({
+  event,
+  blocks = defaultEventDetailsBlocks,
+  rescheduleUid,
+}: EventDetailsProps) => {
   const { t } = useLocale();
 
   return (
@@ -144,7 +149,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.OCCURENCES:
-            if (!event.recurringEvent) return null;
+            if (!event.recurringEvent || rescheduleUid) return null;
 
             return (
               <EventMetaBlock key={block} icon={RefreshCcw}>
