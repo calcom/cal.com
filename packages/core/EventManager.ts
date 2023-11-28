@@ -389,8 +389,6 @@ export default class EventManager {
         const createdEvent = await this.create(newEvent);
         results.push(...createdEvent.results);
         bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
-
-        // New event is created in handleNewBooking
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
