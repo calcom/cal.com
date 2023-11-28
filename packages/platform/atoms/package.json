@@ -1,11 +1,11 @@
 {
-  "name": "@calcom/atoms",
+  "name": "@calcom/platform-atoms",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "description": "Cal.com Atoms",
   "authors": "Cal.com, Inc.",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "scripts": {
     "build": "node build.mjs"
   },
@@ -21,6 +21,7 @@
   },
   "main": "./index",
   "dependencies": {
+    "@calcom/ui": "*",
     "@radix-ui/react-slot": "^1.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
