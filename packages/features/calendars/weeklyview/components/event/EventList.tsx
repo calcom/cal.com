@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -18,6 +19,14 @@ export function EventList({ day }: Props) {
     }),
     shallow
   );
+
+  // Use a ref so we dont trigger a re-render
+  const longestRef = useRef<{
+    start: Date;
+    end: Date;
+    duration: number;
+    idx: number;
+  } | null>(null);
 
   return (
     <>
@@ -41,47 +50,59 @@ export function EventList({ day }: Props) {
           const nextEvent = eventsArray[idx + 1];
           const prevEvent = eventsArray[idx - 1];
 
-          // Check for overlapping events since this is sorted it should just work.
-          if (nextEvent) {
-            const nextEventStart = dayjs(nextEvent.start);
-            const nextEventEnd = dayjs(nextEvent.end);
-            // check if next event starts before this event ends
-            if (nextEventStart.isBefore(eventEnd)) {
-              // figure out which event has the longest duration
-              const nextEventDuration = nextEventEnd.diff(nextEventStart, "minutes");
-              if (nextEventDuration > eventDuration) {
+          if (!longestRef.current) {
+            longestRef.current = {
+              idx,
+              start: eventStart.toDate(),
+              end: eventEnd.toDate(),
+              duration: eventDuration,
+            };
+          } else if (
+            eventDuration > longestRef.current.duration &&
+            eventStart.isBetween(longestRef.current.start, longestRef.current.end)
+          ) {
+            longestRef.current = {
+              idx,
+              start: eventStart.toDate(),
+              end: eventEnd.toDate(),
+              duration: eventDuration,
+            };
+          }
+          // By default longest event doesnt have any styles applied
+          if (longestRef.current.idx !== idx) {
+            if (nextEvent) {
+              // If we have a next event
+              const nextStart = dayjs(nextEvent.start);
+              // If the next event is inbetween the longest start and end make 65% width
+              if (nextStart.isBetween(longestRef.current.start, longestRef.current.end)) {
                 zIndex = 65;
-
                 marginLeft = "auto";
-                // 8 looks like a really random number but we need to take into account the bordersize on the event.
-                // Logically it should be 5% but this causes a bit of a overhang which we don't want.
-                right = 8;
+                right = 4;
+                width = width / 2;
+
+                // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
+                // close start times
+              } else if (nextStart.isBetween(eventStart.add(-5, "minutes"), eventStart.add(5, "minutes"))) {
+                zIndex = 65;
+                marginLeft = "auto";
+                right = 4;
                 width = width / 2;
               }
-            }
+            } else if (prevEvent) {
+              const prevStart = dayjs(prevEvent.start);
 
-            if (nextEventStart.isSame(eventStart)) {
-              zIndex = 66;
+              // If the next event is inbetween the longest start and end make 65% width
 
-              marginLeft = "auto";
-              right = 8;
-              width = width / 2;
-            }
-          } else if (prevEvent) {
-            const prevEventStart = dayjs(prevEvent.start);
-            const prevEventEnd = dayjs(prevEvent.end);
-            // check if next event starts before this event ends
-            if (prevEventEnd.isAfter(eventStart)) {
-              // figure out which event has the longest duration
-              const prevEventDuration = prevEventEnd.diff(prevEventStart, "minutes");
-              if (prevEventDuration > eventDuration) {
+              if (prevStart.isBetween(longestRef.current.start, longestRef.current.end)) {
                 zIndex = 65;
                 marginLeft = "auto";
-                right = 8;
+                right = 4;
+                // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
+                // close start times (Inverse of above )
+              } else if (eventStart.isBetween(prevStart.add(5, "minutes"), prevStart.add(-5, "minutes"))) {
+                zIndex = 65;
+                right = 4;
                 width = width / 2;
-                if (eventDuration >= 30) {
-                  width = 80;
-                }
               }
             }
           }
@@ -90,6 +111,7 @@ export function EventList({ day }: Props) {
             <div
               key={`${event.id}-${eventStart.toISOString()}`}
               className="absolute inset-x-1 "
+              data-testId={event.options?.["data-test-id"]}
               style={{
                 marginLeft,
                 zIndex,

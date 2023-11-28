@@ -125,6 +125,7 @@ export default function CreateEventTypeDialog({
         }),
         "success"
       );
+      form.reset();
     },
     onError: (err) => {
       if (err instanceof HttpError) {

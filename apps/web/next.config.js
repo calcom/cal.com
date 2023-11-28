@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
@@ -70,13 +71,21 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 const informAboutDuplicateTranslations = () => {
-  const valueSet = new Set();
+  const valueMap = {};
 
   for (const key in englishTranslation) {
-    if (valueSet.has(englishTranslation[key])) {
-      console.warn("\x1b[33mDuplicate value found in:", "\x1b[0m", key);
+    const value = englishTranslation[key];
+
+    if (valueMap[value]) {
+      console.warn(
+        "\x1b[33mDuplicate value found in common.json keys:",
+        "\x1b[0m ",
+        key,
+        "and",
+        valueMap[value]
+      );
     } else {
-      valueSet.add(englishTranslation[key]);
+      valueMap[value] = key;
     }
   }
 };
@@ -92,6 +101,7 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
 const matcherConfigRootPath = {
   has: [
     {
@@ -546,5 +556,14 @@ const nextConfig = {
     return redirects;
   },
 };
+
+if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  nextConfig["sentry"] = {
+    autoInstrumentServerFunctions: true,
+    hideSourceMaps: true,
+  };
+
+  plugins.push(withSentryConfig);
+}
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
