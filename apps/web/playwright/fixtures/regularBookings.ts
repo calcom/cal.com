@@ -194,8 +194,11 @@ const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
 
 export function createBookingPageFixture(page: Page) {
   return {
-    goToEventType: async (eventType: string, page?: Page) => {
-      await page?.getByRole("link", { name: eventType }).click();
+    goToEventType: async (eventType: string) => {
+      await page.getByRole("link", { name: eventType }).click();
+    },
+    goToPage: async (pageName: string, page: Page) => {
+      await page.getByRole("link", { name: pageName }).click();
     },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();

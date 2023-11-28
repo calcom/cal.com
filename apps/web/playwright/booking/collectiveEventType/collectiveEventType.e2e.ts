@@ -18,7 +18,7 @@ test.describe("Create a Team, a Collective Event Type and Book a Meeting", () =>
     await bookingPage.selectTimeSlot(eventTypePage);
 
     await bookingPage.confirmBooking(eventTypePage);
-    await bookingPage.goToEventType("Back to bookings", eventTypePage);
+    await bookingPage.goToPage("Back to bookings", eventTypePage);
     await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamName);
     await bookingPage.assertBookingWithCorrectTitleAndDescription(eventTypePage, {
       profileName: "testuser",
@@ -42,7 +42,7 @@ test.describe("Create a Team, a Collective Event Type and Book a Meeting", () =>
     await bookingPage.selectTimeSlot(eventTypePage);
     await bookingPage.addGuests(eventTypePage, { guests: ["test@example.com"] });
     await bookingPage.confirmBooking(eventTypePage);
-    await bookingPage.goToEventType("Back to bookings", eventTypePage);
+    await bookingPage.goToPage("Back to bookings", eventTypePage);
     await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamName);
     await bookingPage.assertBookingWithCorrectTitleAndDescription(eventTypePage, {
       profileName: "testuser",
