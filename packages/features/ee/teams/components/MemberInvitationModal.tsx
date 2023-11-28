@@ -25,7 +25,6 @@ import {
   TextAreaField,
 } from "@calcom/ui";
 import { Link } from "@calcom/ui/components/icon";
-import type { Window as WindowWithClipboardValue } from "@calcom/web/playwright/fixtures/clipboard";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -91,9 +90,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       await navigator.clipboard.writeText(inviteLink);
       showToast(t("invite_link_copied"), "success");
     } catch (e) {
-      if (process.env.NEXT_PUBLIC_IS_E2E) {
-        (window as WindowWithClipboardValue).E2E_CLIPBOARD_VALUE = inviteLink;
-      }
       console.error(e);
     }
   };

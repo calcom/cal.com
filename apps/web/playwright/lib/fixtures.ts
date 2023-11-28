@@ -29,7 +29,6 @@ export interface Fixtures {
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
-  clipboard: ReturnType<typeof createClipboardFixture>;
 }
 
 declare global {
