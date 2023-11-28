@@ -59,6 +59,7 @@ const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
+  const locale = input.locale || user.locale;
   const data: Prisma.UserUpdateInput = {
     ...input,
     // DO NOT OVERWRITE AVATAR.
@@ -73,7 +74,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
   if (layoutError) {
-    const t = await getTranslation("en", "common");
+    const t = await getTranslation(locale, "common");
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
@@ -85,7 +86,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       const response = await checkUsername(username);
       isPremiumUsername = response.premium;
       if (!response.available) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+        const t = await getTranslation(locale, "common");
+        throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
   }
