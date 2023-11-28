@@ -143,6 +143,17 @@ const createTeamAndAddUser = async (
 export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
+    buildForSignup: (opts?: Pick<CustomUserOpts, "email" | "username" | "useExactUsername" | "password">) => {
+      const uname =
+        opts?.useExactUsername && opts?.username
+          ? opts.username
+          : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+      return {
+        username: uname,
+        email: opts?.email ?? `${uname}@example.com`,
+        password: opts?.password ?? uname,
+      };
+    },
     create: async (
       opts?: CustomUserOpts | null,
       scenario: {
@@ -396,6 +407,15 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       await prisma.user.delete({ where: { id } });
       store.users = store.users.filter((b) => b.id !== id);
     },
+    deleteByEmail: async (email: string) => {
+      // Use deleteMany instead of delete to avoid the findUniqueOrThrow error that happens before the delete
+      await prisma.user.deleteMany({
+        where: {
+          email,
+        },
+      });
+      store.users = store.users.filter((b) => b.email !== email);
+    },
     set: async (email: string) => {
       const user = await prisma.user.findUniqueOrThrow({
         where: { email },
@@ -460,7 +480,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       }
       return membership;
     },
-    getOrg: async () => {
+    getOrgMembership: async () => {
       return prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
@@ -471,7 +491,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: { team: { select: { children: true, metadata: true, name: true } } },
+        include: {
+          team: {
+            include: {
+              children: true,
+            },
+          },
+        },
       });
     },
     getFirstEventAsOwner: async () =>
