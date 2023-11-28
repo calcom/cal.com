@@ -8,6 +8,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Switch } from "@calcom/ui";
 import { Settings } from "@calcom/ui/components/icon";

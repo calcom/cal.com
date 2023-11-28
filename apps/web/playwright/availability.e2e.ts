@@ -40,6 +40,7 @@ test.describe("Availablity tests", () => {
       const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
       const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
       await page.goto(troubleshooterURL);
+      await page.waitForLoadState("networkidle");
       await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
     });
   });
