@@ -14,7 +14,7 @@ test.afterEach(async ({ users, emails, clipboard }) => {
 test.describe("Organization", () => {
   test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
-    const { team: org } = await orgOwner.getOrg();
+    const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
     await page.goto("/settings/organizations/members");
     await page.waitForLoadState("networkidle");
@@ -92,7 +92,7 @@ test.describe("Organization", () => {
 
   test("Invitation (verified)", async ({ browser, page, users, emails }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
-    const { team: org } = await orgOwner.getOrg();
+    const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
     await page.goto("/settings/organizations/members");
     await page.waitForLoadState("networkidle");

@@ -1,5 +1,5 @@
-import { useApiKey } from "cal-provider";
-import { ConnectButton } from "connect-to-cal-button/Button";
+import { useApiKey } from "../cal-provider";
+import { ConnectButton } from "../connect-to-cal-button/Button";
 
 // This atom will initiate the oAuth connection process to the users of the platform
 // the user would be redirected to grant oAuth permission page after the user has clicked on Connect Atom
@@ -9,9 +9,8 @@ export function ConnectToCal() {
   const key = useApiKey();
 
   const handleClick = () => {
-    // TODO: need to provide correct callbackUrl below
-    // the callbackUrl here should be of the OAuth permissions page
-    window.location.href = "https://app.cal.com/auth/login?callbackUrl=";
+    // TODO: the url to redirect should include a client_id and redirect_uri
+    window.location.href = `https://app.cal.com/auth/login?client_id=%${key}&redirect_uri=`;
   };
 
   if (key === "no_key") {

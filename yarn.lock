@@ -3354,9 +3354,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/api@workspace:apps/api":
+"@calcom/api-proxy@workspace:apps/api":
   version: 0.0.0-use.local
-  resolution: "@calcom/api@workspace:apps/api"
+  resolution: "@calcom/api-proxy@workspace:apps/api"
+  dependencies:
+    connect: ^3.7.0
+    http: ^0.0.1-security
+    http-proxy-middleware: ^2.0.6
+  languageName: unknown
+  linkType: soft
+
+"@calcom/api@workspace:apps/api/v1":
+  version: 0.0.0-use.local
+  resolution: "@calcom/api@workspace:apps/api/v1"
   dependencies:
     "@calcom/app-store": "*"
     "@calcom/core": "*"
@@ -3441,27 +3451,6 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/atoms@workspace:packages/atoms":
-  version: 0.0.0-use.local
-  resolution: "@calcom/atoms@workspace:packages/atoms"
-  dependencies:
-    "@radix-ui/react-slot": ^1.0.2
-    "@rollup/plugin-node-resolve": ^15.0.1
-    "@types/node": ^20.10.0
-    "@types/react": 18.0.26
-    "@types/react-dom": ^18.0.9
-    "@vitejs/plugin-react": ^2.2.0
-    class-variance-authority: ^0.7.0
-    clsx: ^2.0.0
-    lucide-react: ^0.293.0
-    rollup-plugin-node-builtins: ^2.1.2
-    tailwind-merge: ^2.0.0
-    tailwindcss-animate: ^1.0.7
-    typescript: ^4.9.4
-    vite: ^4.1.2
   languageName: unknown
   linkType: soft
 
@@ -4071,6 +4060,40 @@ __metadata:
     typescript: ^5.1.3
     winston: ^3.11.0
     zod: ^3.22.4
+  languageName: unknown
+  linkType: soft
+
+"@calcom/platform-atoms@workspace:packages/platform/atoms":
+  version: 0.0.0-use.local
+  resolution: "@calcom/platform-atoms@workspace:packages/platform/atoms"
+  dependencies:
+    "@calcom/ui": "*"
+    "@radix-ui/react-slot": ^1.0.2
+    "@rollup/plugin-node-resolve": ^15.0.1
+    "@types/node": ^20.10.0
+    "@types/react": 18.0.26
+    "@types/react-dom": ^18.0.9
+    "@vitejs/plugin-react": ^2.2.0
+    class-variance-authority: ^0.7.0
+    clsx: ^2.0.0
+    lucide-react: ^0.293.0
+    rollup-plugin-node-builtins: ^2.1.2
+    tailwind-merge: ^2.0.0
+    tailwindcss-animate: ^1.0.7
+    typescript: ^4.9.4
+    vite: ^4.1.2
+  languageName: unknown
+  linkType: soft
+
+"@calcom/platform-types@workspace:packages/platform/types":
+  version: 0.0.0-use.local
+  resolution: "@calcom/platform-types@workspace:packages/platform/types"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/platform-utils@workspace:packages/platform/utils":
+  version: 0.0.0-use.local
+  resolution: "@calcom/platform-utils@workspace:packages/platform/utils"
   languageName: unknown
   linkType: soft
 
@@ -12815,6 +12838,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/http-proxy@npm:^1.17.8":
+  version: 1.17.14
+  resolution: "@types/http-proxy@npm:1.17.14"
+  dependencies:
+    "@types/node": "*"
+  checksum: 491320bce3565bbb6c7d39d25b54bce626237cfb6b09e60ee7f77b56ae7c6cbad76f08d47fe01eaa706781124ee3dfad9bb737049254491efd98ed1f014c4e83
+  languageName: node
+  linkType: hard
+
 "@types/is-ci@npm:^3.0.0":
   version: 3.0.0
   resolution: "@types/is-ci@npm:3.0.0"
@@ -18291,6 +18323,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"connect@npm:^3.7.0":
+  version: 3.7.0
+  resolution: "connect@npm:3.7.0"
+  dependencies:
+    debug: 2.6.9
+    finalhandler: 1.1.2
+    parseurl: ~1.3.3
+    utils-merge: 1.0.1
+  checksum: 96e1c4effcf219b065c7823e57351c94366d2e2a6952fa95e8212bffb35c86f1d5a3f9f6c5796d4cd3a5fdda628368b1c3cc44bf19c66cfd68fe9f9cab9177e2
+  languageName: node
+  linkType: hard
+
 "consola@npm:^2.15.0":
   version: 2.15.3
   resolution: "consola@npm:2.15.3"
@@ -21459,7 +21503,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventemitter3@npm:^4.0.1, eventemitter3@npm:^4.0.4":
+"eventemitter3@npm:^4.0.0, eventemitter3@npm:^4.0.1, eventemitter3@npm:^4.0.4":
   version: 4.0.7
   resolution: "eventemitter3@npm:4.0.7"
   checksum: 1875311c42fcfe9c707b2712c32664a245629b42bb0a5a84439762dd0fd637fc54d078155ea83c2af9e0323c9ac13687e03cfba79b03af9f40c89b4960099374
@@ -22163,6 +22207,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"finalhandler@npm:1.1.2, finalhandler@npm:~1.1.2":
+  version: 1.1.2
+  resolution: "finalhandler@npm:1.1.2"
+  dependencies:
+    debug: 2.6.9
+    encodeurl: ~1.0.2
+    escape-html: ~1.0.3
+    on-finished: ~2.3.0
+    parseurl: ~1.3.3
+    statuses: ~1.5.0
+    unpipe: ~1.0.0
+  checksum: 617880460c5138dd7ccfd555cb5dde4d8f170f4b31b8bd51e4b646bb2946c30f7db716428a1f2882d730d2b72afb47d1f67cc487b874cb15426f95753a88965e
+  languageName: node
+  linkType: hard
+
 "finalhandler@npm:1.2.0":
   version: 1.2.0
   resolution: "finalhandler@npm:1.2.0"
@@ -22175,21 +22234,6 @@ __metadata:
     statuses: 2.0.1
     unpipe: ~1.0.0
   checksum: 92effbfd32e22a7dff2994acedbd9bcc3aa646a3e919ea6a53238090e87097f8ef07cced90aa2cc421abdf993aefbdd5b00104d55c7c5479a8d00ed105b45716
-  languageName: node
-  linkType: hard
-
-"finalhandler@npm:~1.1.2":
-  version: 1.1.2
-  resolution: "finalhandler@npm:1.1.2"
-  dependencies:
-    debug: 2.6.9
-    encodeurl: ~1.0.2
-    escape-html: ~1.0.3
-    on-finished: ~2.3.0
-    parseurl: ~1.3.3
-    statuses: ~1.5.0
-    unpipe: ~1.0.0
-  checksum: 617880460c5138dd7ccfd555cb5dde4d8f170f4b31b8bd51e4b646bb2946c30f7db716428a1f2882d730d2b72afb47d1f67cc487b874cb15426f95753a88965e
   languageName: node
   linkType: hard
 
@@ -22329,6 +22373,16 @@ __metadata:
   dependencies:
     tslib: ^1.9.3
   checksum: 3b25b06bb8e23a3a826a8eda89e547593a688486df531db92f6b767d96d397dc1efed4529ec3a44cb3ec1fbdd44abe50a30d0ce498f732501b36f5f18b619003
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.0.0":
+  version: 1.15.3
+  resolution: "follow-redirects@npm:1.15.3"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 584da22ec5420c837bd096559ebfb8fe69d82512d5585004e36a3b4a6ef6d5905780e0c74508c7b72f907d1fa2b7bd339e613859e9c304d0dc96af2027fd0231
   languageName: node
   linkType: hard
 
@@ -24333,6 +24387,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"http-proxy-middleware@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "http-proxy-middleware@npm:2.0.6"
+  dependencies:
+    "@types/http-proxy": ^1.17.8
+    http-proxy: ^1.18.1
+    is-glob: ^4.0.1
+    is-plain-obj: ^3.0.0
+    micromatch: ^4.0.2
+  peerDependencies:
+    "@types/express": ^4.17.13
+  peerDependenciesMeta:
+    "@types/express":
+      optional: true
+  checksum: 2ee85bc878afa6cbf34491e972ece0f5be0a3e5c98a60850cf40d2a9a5356e1fc57aab6cff33c1fc37691b0121c3a42602d2b1956c52577e87a5b77b62ae1c3a
+  languageName: node
+  linkType: hard
+
+"http-proxy@npm:^1.18.1":
+  version: 1.18.1
+  resolution: "http-proxy@npm:1.18.1"
+  dependencies:
+    eventemitter3: ^4.0.0
+    follow-redirects: ^1.0.0
+    requires-port: ^1.0.0
+  checksum: f5bd96bf83e0b1e4226633dbb51f8b056c3e6321917df402deacec31dd7fe433914fc7a2c1831cf7ae21e69c90b3a669b8f434723e9e8b71fd68afe30737b6a5
+  languageName: node
+  linkType: hard
+
 "http-signature@npm:~1.2.0":
   version: 1.2.0
   resolution: "http-signature@npm:1.2.0"
@@ -24351,6 +24434,13 @@ __metadata:
     quick-lru: ^5.1.1
     resolve-alpn: ^1.2.0
   checksum: 5da05aa2c77226ac9cc82c616383f59c8f31b79897b02ecbe44b09714be1fca1f21bb184e672a669ca2830eefea4edac5f07e71c00cb5a8c5afec8e5a20cfaf7
+  languageName: node
+  linkType: hard
+
+"http@npm:^0.0.1-security":
+  version: 0.0.1-security
+  resolution: "http@npm:0.0.1-security"
+  checksum: c45a4e2771b5679b479b24150216e0b423d5bf2f94062c91b4b5e5347ed3f18b8c049e220df6e328c34ac5aab0d020600a05a9ea954bc7a7efc04d8dde7aada0
   languageName: node
   linkType: hard
 
@@ -25462,6 +25552,13 @@ __metadata:
   version: 2.1.0
   resolution: "is-plain-obj@npm:2.1.0"
   checksum: cec9100678b0a9fe0248a81743041ed990c2d4c99f893d935545cfbc42876cbe86d207f3b895700c690ad2fa520e568c44afc1605044b535a7820c1d40e38daa
+  languageName: node
+  linkType: hard
+
+"is-plain-obj@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "is-plain-obj@npm:3.0.0"
+  checksum: a6ebdf8e12ab73f33530641972a72a4b8aed6df04f762070d823808303e4f76d87d5ea5bd76f96a7bbe83d93f04ac7764429c29413bd9049853a69cb630fb21c
   languageName: node
   linkType: hard
 

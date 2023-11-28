@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -89,7 +90,9 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   if (req.isAdmin) return true;
   if (eventType?.teamId) {
     req.query.teamId = String(eventType.teamId);
-    await canAccessTeamEventOrThrow(req, "MEMBER");
+    await canAccessTeamEventOrThrow(req, {
+      in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
+    });
   }
   if (eventType?.userId === req.userId) return true; // is owner.
   throw new HttpError({ statusCode: 403, message: "Forbidden" });
