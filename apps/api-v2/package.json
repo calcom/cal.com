@@ -1,15 +1,15 @@
 {
-  "name": "api-v2",
+  "name": "@calcom/platform-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Platform API for Cal.com",
+  "author": "Cal.com Inc.",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -20,11 +20,23 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@calcom/prisma": "*",
     "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.0.0",
+    "@prisma/client": "^5.6.0",
+    "dotenv": "^16.3.1",
+    "nest-winston": "^1.9.4",
+    "nestjs-zod": "^3.0.0",
+    "passport": "^0.7.0",
+    "prisma": "^5.6.0",
+    "prisma-kysely": "^1.7.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "winston": "^3.11.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

@@ -2,5 +2,5 @@ const rootConfig = require("../../packages/config/prettier-preset");
 
 module.exports = {
   ...rootConfig,
-  importOrderParserPlugins: ["typescript", "decorators"],
+  importOrderParserPlugins: ["typescript", "decorators-legacy"],
 };
