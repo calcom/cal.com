@@ -49,7 +49,7 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   useEffect(() => {
     if (parsedQuerySchema.success && parsedQuerySchema.data) {
       Object.entries(parsedQuerySchema.data).forEach(([key, value]) => {
-        if (key in unparsedQuery) return;
+        if (key in unparsedQuery || !value) return;
         const search = new URLSearchParams(parsedQuery);
         search.set(String(key), String(value));
         router.replace(`${pathname}?${search.toString()}`);
