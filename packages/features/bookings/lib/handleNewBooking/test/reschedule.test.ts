@@ -37,7 +37,7 @@ import {
   expectBookingRequestedWebhookToHaveBeenFired,
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulVideoMeetingDeletionInCalendar,
-  expectSuccessfulRoudRobinReschedulingEmails,
+  expectSuccessfulRoundRobinReschedulingEmails,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -1692,7 +1692,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoudRobinReschedulingEmails({
+          expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
@@ -1842,7 +1842,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoudRobinReschedulingEmails({
+          expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
             emails,
