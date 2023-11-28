@@ -1,8 +1,5 @@
 "use client";
 
-import type { GetServerSidePropsContext } from "next";
-import { headers, cookies } from "next/headers";
-
 import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
@@ -25,51 +22,7 @@ import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-import { buildLegacyCtx } from "../../lib/buildLegacyCtx";
-
-type Params = {
-  [key: string]: string | string[] | undefined;
-};
-
-type PageProps = {
-  params: Params;
-};
-
-InsightsPage.PageWrapper = PageWrapper;
-InsightsPage.getLayout = getLayout;
-
-// If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async () => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-
-  if (flags.insights === false) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {},
-  };
-};
-
-async function getData(props: GetServerSidePropsContext) {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-
-  if (flags.insights === false) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {};
-}
-
-export default async function InsightsPage({ params }: PageProps) {
-  const legacyCtx = buildLegacyCtx(params, headers(), cookies());
-  await getData(legacyCtx);
+export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
 
@@ -149,3 +102,22 @@ export default async function InsightsPage({ params }: PageProps) {
     </div>
   );
 }
+
+InsightsPage.PageWrapper = PageWrapper;
+InsightsPage.getLayout = getLayout;
+
+// If feature flag is disabled, return not found on getServerSideProps
+export const getServerSideProps = async () => {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
+
+  if (flags.insights === false) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {},
+  };
+};
