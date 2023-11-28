@@ -13,7 +13,7 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
 export type CreateInnerContextOptions = {
-  sourceIp: string;
+  sourceIp?: string;
   session?: Session | null;
   locale: string;
   user?:

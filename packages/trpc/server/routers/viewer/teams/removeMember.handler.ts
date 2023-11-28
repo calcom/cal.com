@@ -15,7 +15,7 @@ type RemoveMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
-    sourceIp: string;
+    sourceIp?: string;
   };
   input: TRemoveMemberInputSchema;
 };
