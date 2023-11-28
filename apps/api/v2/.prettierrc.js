@@ -1,4 +1,4 @@
-const rootConfig = require("../../packages/config/prettier-preset");
+const rootConfig = require("../../../packages/config/prettier-preset");
 
 module.exports = {
   ...rootConfig,

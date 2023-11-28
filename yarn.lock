@@ -4034,9 +4034,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-api@workspace:apps/api-v2":
+"@calcom/platform-api@workspace:apps/api/v2":
   version: 0.0.0-use.local
-  resolution: "@calcom/platform-api@workspace:apps/api-v2"
+  resolution: "@calcom/platform-api@workspace:apps/api/v2"
   dependencies:
     "@calcom/prisma": "*"
     "@nestjs/cli": ^10.0.0

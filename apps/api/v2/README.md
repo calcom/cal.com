@@ -32,6 +32,12 @@
 $ yarn install
 ```
 
+## Prisma setup
+
+```bash
+$ yarn prisma generate
+```
+
 ## Running the app
 
 ```bash
