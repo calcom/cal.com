@@ -4755,7 +4755,7 @@ __metadata:
     remark: ^14.0.2
     remark-html: ^14.0.1
     remeda: ^1.24.1
-    stripe: ^9.16.0
+    stripe: ^14.5.0
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     ts-node: ^10.9.1
@@ -33265,6 +33265,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"qs@npm:^6.11.0":
+  version: 6.11.2
+  resolution: "qs@npm:6.11.2"
+  dependencies:
+    side-channel: ^1.0.4
+  checksum: e812f3c590b2262548647d62f1637b6989cc56656dc960b893fe2098d96e1bd633f36576f4cd7564dfbff9db42e17775884db96d846bebe4f37420d073ecdc0b
+  languageName: node
+  linkType: hard
+
 "qs@npm:~6.5.2":
   version: 6.5.3
   resolution: "qs@npm:6.5.3"
@@ -37313,6 +37322,16 @@ __metadata:
     "@types/node": ">=8.1.0"
     qs: ^6.10.3
   checksum: 0ccf3c66a259450a63b8d6f27920e04be1fad1207fb6a9c93bdffc250008e1dc915c44bac1d8b4a63be10fcd1865d4aa3de90c79f7966798c43fecab7e4f489d
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^14.5.0":
+  version: 14.5.0
+  resolution: "stripe@npm:14.5.0"
+  dependencies:
+    "@types/node": ">=8.1.0"
+    qs: ^6.11.0
+  checksum: ad2f0205d1b0ce4691bf54dfd0953e197b2fb3c37c489e9f1799dfa75fbd21a49cb5ddb7bcf0a708242db565500ba494927e321aee91980f360c389a60048a0c
   languageName: node
   linkType: hard
 
