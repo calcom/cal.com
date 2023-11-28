@@ -72,6 +72,7 @@ function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
     suspense: true,
+    refetchOnWindowFocus: false,
   });
   const { fromOnboarding, isLoading } = props;
   return (
