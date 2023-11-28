@@ -17,7 +17,7 @@ test.describe("Workflow tests", () => {
       async ({ page, users }) => {
         const user = await users.create();
         const [eventType] = user.eventTypes;
-        await user.login();
+        await user.apiLogin();
         await page.goto(`/workflows`);
 
         await page.click('[data-testid="create-button"]');

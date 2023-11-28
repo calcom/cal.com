@@ -54,6 +54,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     // So it doesn't display in the Link (and make tests fail)
     user: _user,
     orgSlug: _orgSlug,
+    redirect: _redirect,
     ...query
   } = useRouterQuery();
 
@@ -82,7 +83,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         description={markdownStrippedBio}
         meeting={{
           title: markdownStrippedBio,
-          profile: { name: `${profile.name}`, image: null },
+          profile: { name: `${profile.name}`, image: user.avatarUrl || null },
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
@@ -116,7 +117,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   : null
               }
             />
-            <h1 className="font-cal text-emphasis mb-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
@@ -245,7 +246,7 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -295,6 +296,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      avatarUrl: true,
       organizationId: true,
       organization: {
         select: {
@@ -363,6 +365,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     image: user.avatar,
     theme: user.theme,
     brandColor: user.brandColor,
+    avatarUrl: user.avatarUrl,
     darkBrandColor: user.darkBrandColor,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
@@ -386,6 +389,16 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
 
+  // if profile only has one public event-type, redirect to it
+  if (eventTypes.length === 1 && context.query.redirect !== "false") {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/${user.username}/${eventTypes[0].slug}`,
+      },
+    };
+  }
+
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
@@ -397,6 +410,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
+        avatarUrl: user.avatarUrl,
         away: user.away,
         verified: user.verified,
       })),

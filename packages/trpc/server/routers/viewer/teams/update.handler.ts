@@ -86,4 +86,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Sync Services: Close.com
   if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
+
+  return {
+    logo: updatedTeam.logo,
+    name: updatedTeam.name,
+    bio: updatedTeam.bio,
+    slug: updatedTeam.slug,
+    theme: updatedTeam.theme,
+    brandColor: updatedTeam.brandColor,
+    darkBrandColor: updatedTeam.darkBrandColor,
+  };
 };

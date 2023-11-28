@@ -13,6 +13,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -37,6 +38,7 @@ import {
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -49,11 +51,9 @@ import {
   expectBrokenIntegrationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { createMockNextJsRequest } from "./lib/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "./lib/getMockRequestDataForBooking";
-import { setupAndTeardown } from "./lib/setupAndTeardown";
-import { testWithAndWithoutOrg } from "./lib/test";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -940,7 +940,7 @@ describe("handleNewBooking", () => {
           });
           await handleNewBooking(req);
 
-          expectBrokenIntegrationEmails({ booker, organizer, emails });
+          expectBrokenIntegrationEmails({ organizer, emails });
 
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -1025,7 +1025,7 @@ describe("handleNewBooking", () => {
             });
 
             await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-              "No available users found"
+              ErrorCode.NoAvailableUsersFound
             );
           },
           timeout
@@ -1112,7 +1112,7 @@ describe("handleNewBooking", () => {
             });
 
             await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
-              "No available users found"
+              ErrorCode.NoAvailableUsersFound
             );
           },
           timeout
@@ -1240,7 +1240,7 @@ describe("handleNewBooking", () => {
        * NOTE: We might want to think about making the bookings get ACCEPTED automatically if the booker is the organizer of the event-type. This is a design decision it seems for now.
        */
       test(
-        `should make a fresh booking in PENDING state even when the booker is the organizer of the event-type 
+        `should make a fresh booking in PENDING state even when the booker is the organizer of the event-type
         1. Should create a booking in the database with status PENDING
         2. Should send emails to the booker as well as organizer for booking request and awaiting approval
         3. Should trigger BOOKING_REQUESTED webhook

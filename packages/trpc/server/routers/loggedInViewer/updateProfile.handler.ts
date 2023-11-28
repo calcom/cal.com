@@ -1,8 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
@@ -31,12 +32,38 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
+const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
+  const objectKey = uuidv4();
+
+  await prisma.avatar.upsert({
+    where: {
+      teamId_userId: {
+        teamId: 0,
+        userId,
+      },
+    },
+    create: {
+      userId: userId,
+      data,
+      objectKey,
+    },
+    update: {
+      data,
+      objectKey,
+    },
+  });
+
+  return `/api/avatar/${objectKey}.png`;
+};
+
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
+  const locale = input.locale || user.locale;
   const data: Prisma.UserUpdateInput = {
     ...input,
-    avatar: await getAvatarToSet(input.avatar),
+    // DO NOT OVERWRITE AVATAR.
+    avatar: undefined,
     metadata: userMetadata,
   };
 
@@ -47,7 +74,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
   if (layoutError) {
-    const t = await getTranslation("en", "common");
+    const t = await getTranslation(locale, "common");
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
@@ -59,7 +86,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       const response = await checkUsername(username);
       isPremiumUsername = response.premium;
       if (!response.available) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+        const t = await getTranslation(locale, "common");
+        throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
   }
@@ -84,7 +112,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // @TODO: iterate if stripeSubscriptions.hasMore is true
     const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
       (subscription) =>
-        subscription.items.data[0].price.product === getPremiumPlanProductId() &&
+        subscription.items.data[0].price.id === getPremiumMonthlyPlanPriceId() &&
         subscription.status === "active"
     );
 
@@ -114,6 +142,22 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // when the email changes, the user needs to sign in again.
     signOutUser = true;
   }
+  // if defined AND a base 64 string, upload and set the avatar URL
+  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
+    const avatar = await resizeBase64Image(input.avatar);
+    data.avatarUrl = await uploadAvatar({
+      avatar,
+      userId: user.id,
+    });
+    // as this is still used in the backwards compatible endpoint, we also write it here
+    // to ensure no data loss.
+    data.avatar = avatar;
+  }
+  // Unset avatar url if avatar is empty string.
+  if ("" === input.avatar) {
+    data.avatarUrl = null;
+    data.avatar = null;
+  }
 
   const updatedUser = await prisma.user.update({
     where: {
@@ -129,6 +173,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       metadata: true,
       name: true,
       createdDate: true,
+      avatarUrl: true,
       locale: true,
       schedules: {
         select: {
@@ -186,28 +231,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     });
   }
-  // Revalidate booking pages
-  // Disabled because the booking pages are currently not using getStaticProps
-  /*const res = ctx.res as NextApiResponse;
-  if (typeof res?.revalidate !== "undefined") {
-    const eventTypes = await prisma.eventType.findMany({
-      where: {
-        userId: user.id,
-        team: null,
-      },
-      select: {
-        id: true,
-        slug: true,
-      },
-    });
-    // waiting for this isn't needed
-    Promise.all(
-      eventTypes.map((eventType) => res?.revalidate(`/new-booker/${ctx.user.username}/${eventType.slug}`))
-    )
-      .then(() => console.info("Booking pages revalidated"))
-      .catch((e) => console.error(e));
-  }*/
-  return { ...input, signOutUser, passwordReset };
+
+  // don't return avatar, we don't need it anymore.
+  delete input.avatar;
+
+  return { ...input, signOutUser, passwordReset, avatarUrl: updatedUser.avatarUrl };
 };
 
 const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {
@@ -230,17 +258,3 @@ const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
   // Required so we don't override and delete saved values
   return { ...userMetadata, ...cleanMetadata };
 };
-
-async function getAvatarToSet(avatar: string | null | undefined) {
-  if (avatar === null || avatar === undefined) {
-    return avatar;
-  }
-
-  if (!avatar.startsWith("data:image")) {
-    // Non Base64 avatar currently could only be the dynamic avatar URL(i.e. /{USER}/avatar.png). If we allow setting that URL, we would get infinite redirects on /user/avatar.ts endpoint
-    log.warn("Non Base64 avatar, ignored it", { avatar });
-    // `undefined` would not ignore the avatar, but `null` would remove it. So, we return `undefined` here.
-    return undefined;
-  }
-  return await resizeBase64Image(avatar);
-}

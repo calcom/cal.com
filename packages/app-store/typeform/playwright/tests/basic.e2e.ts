@@ -16,7 +16,7 @@ const installApps = async (page: Page, users: Fixtures["users"]) => {
       hasTeam: true,
     }
   );
-  await user.login();
+  await user.apiLogin();
   await page.goto(`/apps/typeform`);
   await page.click('[data-testid="install-app-button"]');
   (await page.waitForSelector('[data-testid="install-app-button-personal"]')).click();

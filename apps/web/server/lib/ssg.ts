@@ -3,7 +3,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
@@ -31,6 +31,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
     transformer: superjson,
     ctx: {
       prisma,
+      insightsDb: readonlyPrisma,
       session: null,
       locale,
       i18n: _i18n,
