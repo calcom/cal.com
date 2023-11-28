@@ -4,6 +4,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -353,7 +354,7 @@ describe("handleNewBooking", () => {
 
             await expect(async () => {
               await handleNewBooking(req);
-            }).rejects.toThrowError("Some of the hosts are unavailable for booking");
+            }).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
           },
           timeout
         );
@@ -666,7 +667,7 @@ describe("handleNewBooking", () => {
 
             await expect(async () => {
               await handleNewBooking(req);
-            }).rejects.toThrowError("No available users found.");
+            }).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
         );

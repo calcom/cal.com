@@ -9,8 +9,8 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -82,19 +82,12 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { update } = useSession();
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string>("");
-
-  const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: async (userData) => {
-      try {
-        const res = await fetch(userData.avatar);
-        if (res.url) setFetchedImgSrc(res.url);
-      } catch (err) {
-        setFetchedImgSrc("");
-      }
-    },
+  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
+    enabled: !isLoading && !user?.avatarUrl,
   });
+
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -226,7 +219,7 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: fetchedImgSrc || "",
+    avatar: getUserAvatarUrl(user),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -243,6 +236,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
+        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -387,6 +381,7 @@ const ProfileForm = ({
   onSubmit,
   extraField,
   isLoading = false,
+  isFallbackImg,
   user,
   userOrganization,
 }: {
@@ -394,6 +389,7 @@ const ProfileForm = ({
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
   isLoading: boolean;
+  isFallbackImg: boolean;
   user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
@@ -432,7 +428,7 @@ const ProfileForm = ({
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => {
-              const showRemoveAvatarButton = !checkIfItFallbackImage(value);
+              const showRemoveAvatarButton = value === null ? false : !isFallbackImg;
               const organization =
                 userOrganization && userOrganization.id
                   ? {

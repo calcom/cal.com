@@ -25,6 +25,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
     avatar: getUserAvatarUrl(user),
+    avatarUrl: user.avatarUrl,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
     defaultScheduleId: user.defaultScheduleId,
