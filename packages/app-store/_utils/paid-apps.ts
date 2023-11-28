@@ -40,6 +40,8 @@ export const withPaidAppRedirect = async ({
       ? {
           subscription_data: {
             trial_period_days: trialDays,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore - trial_settings isn't available cc @erik
             trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
           },
         }

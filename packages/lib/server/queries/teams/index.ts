@@ -214,16 +214,17 @@ export async function getTeamWithMembers(args: {
 
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
-  return (
-    (await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId,
-        accepted: true,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-      },
-    })) || false
-  );
+  const team = await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+    },
+    include: { team: true },
+  });
+  if (!team) return false;
+  return team;
 }
 
 export async function isTeamOwner(userId: number, teamId: number) {

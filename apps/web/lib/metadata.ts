@@ -28,7 +28,6 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
       {
         rel: "icon-mask",
         url: "/safari-pinned-tab.svg",
-        // @ts-expect-error TODO available in the never Next.js version
         color: "#000000",
       },
       {
