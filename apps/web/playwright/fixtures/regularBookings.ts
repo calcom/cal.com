@@ -3,6 +3,7 @@ import { expect, type Page } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 import { randomString } from "@calcom/lib/random";
 
+import { localize } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -19,6 +20,8 @@ type BookingOptions = {
   isAllRequired?: boolean;
   isMultiSelect?: boolean;
 };
+
+type teamBookingtypes = { isManagedType?: boolean; isRoundRobinType?: boolean; isCollectiveType?: boolean };
 
 interface QuestionActions {
   [key: string]: () => Promise<void>;
@@ -234,11 +237,11 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
-    updateEventType: async (options?: { shouldCheck: boolean }) => {
+    updateEventType: async (options?: { shouldCheck: boolean; name: string }) => {
       await page.getByTestId("update-eventtype").click();
       options?.shouldCheck &&
         (await expect(
-          page.getByRole("button", { name: "Test Managed Event Type event type updated successfully" })
+          page.getByRole("button", { name: `${options?.name} event type updated successfully` })
         ).toBeVisible());
     },
     previewEventType: async () => {
@@ -283,14 +286,6 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      await eventTypePage.waitForTimeout(400);
-      if (
-        await eventTypePage.getByRole("heading", { name: "Could not reschedule the meeting." }).isVisible()
-      ) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      }
     },
 
     assertBookingRescheduled: async (page: Page) => {
@@ -345,19 +340,17 @@ export function createBookingPageFixture(page: Page) {
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
       await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(400);
-      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await fillQuestion(eventTypePage, question, customLocators);
-        options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
-        await eventTypePage.getByTestId(confirmButton).click();
-      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    checkField: async (question: string) => {
+
+    checkField: async (question: string, options?: { isOptional: boolean }) => {
+      if (options?.isOptional) {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Optional")).toBeVisible();
+      } else {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Required")).toBeVisible();
+      }
       await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
     },
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
@@ -376,39 +369,69 @@ export function createBookingPageFixture(page: Page) {
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
     createTeam: async (name: string) => {
-      await page.getByRole("link", { name: "Teams" }).click();
+      const teamsText = (await localize("en"))("teams");
+      const continueText = (await localize("en"))("continue");
+      const publishTeamText = (await localize("en"))("team_publish");
+
+      await page.getByRole("link", { name: teamsText }).click();
       await page.getByTestId("new-team-btn").click();
       await page.getByPlaceholder("Acme Inc.").click();
       await page.getByPlaceholder("Acme Inc.").fill(`${name}-${randomString(3)}`);
-      await page.getByRole("button", { name: "Continue" }).click();
-      await page.getByRole("button", { name: "Publish team" }).click();
+      await page.getByRole("button", { name: continueText }).click();
+      await page.getByRole("button", { name: publishTeamText }).click();
 
       await page.getByTestId("vertical-tab-Back").click();
     },
-    createManagedEventType: async (name: string) => {
+    createTeamEventType: async (name: string, options: teamBookingtypes) => {
       await page.getByTestId("new-event-type").click();
       await page.getByTestId("option-0").click();
+
+      // We first simulate to create a default event type to check if managed option is not available
+
+      const managedEventDescription = (await localize("en"))("managed_event_description");
+      const roundRobinEventDescription = (await localize("en"))("round_robin_description");
+      const collectiveEventDescription = (await localize("en"))("collective_description");
+      const quickChatText = (await localize("en"))("quick_chat");
+      await expect(page.locator("div").filter({ hasText: managedEventDescription })).toBeHidden();
       await page.getByTestId("dialog-rejection").click();
 
-      // We first simulate to creste a default event type to check if managed option is not available
-      await expect(
-        page
-          .locator("div")
-          .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
-      ).toBeHidden();
       await page.getByTestId("new-event-type").click();
       await page.getByTestId("option-team-1").click();
-      await page.getByPlaceholder("Quick Chat").fill(name);
-      await page
-        .locator("div")
-        .filter({ hasText: "Managed EventCreate & distribute event types in bulk to team members" })
-        .getByRole("radio")
-        .last()
-        .click();
-      await expect(
-        page.getByText('"username" will be filled by the username of the members assigned')
-      ).toBeVisible();
-      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByPlaceholder(quickChatText).fill(name);
+      if (options.isCollectiveType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Collective${collectiveEventDescription}` })
+          .getByRole("radio")
+          .first()
+          .click();
+      }
+
+      if (options.isRoundRobinType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Round Robin${roundRobinEventDescription}` })
+          .getByRole("radio")
+          .nth(1)
+          .click();
+      }
+
+      if (options.isManagedType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Managed Event${managedEventDescription}` })
+          .getByRole("radio")
+          .last()
+          .click();
+
+        const managedEventClarification = (await localize("en"))("managed_event_url_clarification");
+        await expect(page.getByText(managedEventClarification)).toBeVisible();
+      }
+
+      const continueText = (await localize("en"))("continue");
+
+      await page.getByRole("button", { name: continueText }).click();
+      await expect(page.getByRole("button", { name: "event type created successfully" })).toBeVisible();
       await page.getByTestId("update-eventtype").click();
     },
     removeManagedEventType: async () => {
@@ -420,104 +443,36 @@ export function createBookingPageFixture(page: Page) {
         .click();
 
       // Check if the correct messages is showed in the dialog
-      await expect(
-        page.getByText("Members assigned to this event type will also have their event types deleted.")
-      ).toBeVisible();
-      await expect(
-        page.getByText("Anyone who they've shared their link with will no longer be able to book using it")
-      ).toBeVisible();
-      await page.getByRole("button", { name: "Yes, delete" }).click();
+      const deleteManagedEventTypeDescription = (await localize("en"))(
+        "delete_managed_event_type_description"
+      );
+      const confirmDeleteEventTypeText = (await localize("en"))("confirm_delete_event_type");
+      await expect(page.getByText(deleteManagedEventTypeDescription)).toBeVisible();
+      await page.getByRole("button", { name: confirmDeleteEventTypeText }).click();
 
       // Check if the correct image is showed when there is no event type
       await expect(page.getByTestId("empty-screen")).toBeVisible();
     },
     assertManagedEventTypeDeleted: async () => {
-      await expect(page.getByRole("button", { name: "Event type deleted successfully" })).toBeVisible();
+      const eventTypeDeletedText = (await localize("en"))("event_type_deleted_successfully");
+      await expect(page.getByRole("button", { name: eventTypeDeletedText })).toBeVisible();
     },
     deleteTeam: async () => {
-      await page.getByRole("link", { name: "Teams" }).click();
-      await page.getByRole("link", { name: "Team Logo Test Team" }).click();
-      await page.getByRole("button", { name: "Disband Team" }).click();
-      await page.getByRole("button", { name: "Yes, disband team" }).click();
+      const teamsText = (await localize("en"))("teams");
+      const teamLogoText = (await localize("en"))("team_logo");
+      const disbandTeamText = (await localize("en"))("disband_team");
+      const confirmDisbandTeamText = (await localize("en"))("confirm_disband_team");
+      await page.getByRole("link", { name: teamsText }).click();
+      await page.getByRole("link", { name: `${teamLogoText} Test Team` }).click();
+      await page.getByRole("button", { name: disbandTeamText }).click();
+      await page.getByRole("button", { name: confirmDisbandTeamText }).click();
 
       // Check if the correct image is showed when there is no team
       await expect(page.getByRole("img", { name: "Cal.com is better with teams" })).toBeVisible();
     },
     assertTeamDeleted: async () => {
-      await expect(
-        page.getByRole("button", { name: "Your team has been disbanded successfully" })
-      ).toBeVisible();
-    },
-    checkField: async (question: string, options?: { isOptional: boolean }) => {
-      if (options?.isOptional) {
-        await expect(page.getByTestId(`field-${question}-test`).getByText("Optional")).toBeVisible();
-      } else {
-        await expect(page.getByTestId(`field-${question}-test`).getByText("Required")).toBeVisible();
-      }
-      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
-    },
-    fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
-      const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
-
-      if (options.isAllRequired) {
-        for (const question of questions) {
-          switch (question) {
-            case "email":
-              await eventTypePage.getByPlaceholder("Email").click();
-              await eventTypePage.getByPlaceholder("Email").fill(EMAIL);
-              break;
-            case "phone":
-              await eventTypePage.getByPlaceholder("Phone test").click();
-              await eventTypePage.getByPlaceholder("Phone test").fill(PHONE);
-              break;
-            case "address":
-              await eventTypePage.getByPlaceholder("Address test").click();
-              await eventTypePage.getByPlaceholder("Address test").fill("123 Main St, City, Country");
-              break;
-            case "textarea":
-              await eventTypePage.getByPlaceholder("Textarea test").click();
-              await eventTypePage
-                .getByPlaceholder("Textarea test")
-                .fill("This is a sample text for textarea.");
-              break;
-            case "select":
-              await eventTypePage.locator("form svg").last().click();
-              await eventTypePage.getByTestId("select-option-Option 1").click();
-              break;
-            case "multiselect":
-              await eventTypePage.locator("form svg").nth(4).click();
-              await eventTypePage.getByTestId("select-option-Option 1").click();
-              break;
-            case "number":
-              await eventTypePage.getByLabel("number test").click();
-              await eventTypePage.getByLabel("number test").fill("123");
-              break;
-            case "radio":
-              await eventTypePage.getByRole("radiogroup").getByText("Option 1").check();
-              break;
-            case "text":
-              await eventTypePage.getByPlaceholder("Text test").click();
-              await eventTypePage.getByPlaceholder("Text test").fill("Sample text");
-              break;
-            case "checkbox":
-              await eventTypePage.getByLabel("Option 1").first().check();
-              await eventTypePage.getByLabel("Option 2").first().check();
-              break;
-            case "boolean":
-              await eventTypePage.getByLabel(`${question} test`).check();
-              break;
-            case "multiemail":
-              await eventTypePage.getByRole("button", { name: "multiemail test" }).click();
-              await eventTypePage.getByPlaceholder("multiemail test").fill(EMAIL);
-              break;
-          }
-        }
-      }
-
-      await eventTypePage.getByTestId(confirmButton).click();
-      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
-      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
-      await expect(scheduleSuccessfullyPage).toBeVisible();
+      const teamDisbandedText = (await localize("en"))("your_team_disbanded_successfully");
+      await expect(page.getByRole("button", { name: teamDisbandedText })).toBeVisible();
     },
   };
 }
