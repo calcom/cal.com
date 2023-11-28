@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture } from "../fixtures/embeds";
+import { createFeatureFixture } from "../fixtures/features";
 import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
 import { createBookingPageFixture } from "../fixtures/regularBookings";
@@ -29,6 +30,7 @@ export interface Fixtures {
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
+  features: ReturnType<typeof createFeatureFixture>;
 }
 
 declare global {
@@ -94,5 +96,10 @@ export const test = base.extend<Fixtures>({
   bookingPage: async ({ page }, use) => {
     const bookingPage = createBookingPageFixture(page);
     await use(bookingPage);
+  },
+  features: async ({ page }, use) => {
+    const features = createFeatureFixture(page);
+    await features.init();
+    await use(features);
   },
 });
