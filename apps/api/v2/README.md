@@ -38,6 +38,10 @@ $ yarn install
 $ yarn prisma generate
 ```
 
+## Env setup
+
+Copy `.env.example` to `.env` and fill values.
+
 ## Running the app
 
 ```bash
