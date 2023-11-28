@@ -17,7 +17,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       <Skeleton
         title={name}
         as="p"
-        className="max-w-36 min-h-4 truncate text-xl font-semibold"
+        className="max-w-36 min-h-4 truncate font-semibold"
         loadingClassName="ms-3">
         {name}
       </Skeleton>

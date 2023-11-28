@@ -93,6 +93,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 </label>
                 <Select
                   variant="default"
+                  data-testid="paypal-currency-select"
                   options={currencyOptions}
                   value={selectedCurrency}
                   className="text-black"
@@ -112,6 +113,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   Payment option
                 </label>
                 <Select<Option>
+                  data-testid="paypal-payment-option-select"
                   defaultValue={
                     paymentOptionSelectValue
                       ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }

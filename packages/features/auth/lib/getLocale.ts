@@ -2,9 +2,11 @@ import { parse } from "accept-language-parser";
 import { lookup } from "bcp-47-match";
 import type { GetTokenParams } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
+import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 //@ts-expect-error no type definitions
-import { i18n } from "@calcom/web/next-i18next.config";
+import { i18n } from "@calcom/config/next-i18next.config";
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
@@ -17,9 +19,16 @@ import { i18n } from "@calcom/web/next-i18next.config";
  * token has expired (30 days). This should be fine as we call `/auth/session`
  * frequently enough on the client-side to keep the session alive.
  */
-export const getLocale = async (req: GetTokenParams["req"]): Promise<string> => {
+export const getLocale = async (
+  req:
+    | GetTokenParams["req"]
+    | {
+        cookies: ReadonlyRequestCookies;
+        headers: ReadonlyHeaders;
+      }
+): Promise<string> => {
   const token = await getToken({
-    req,
+    req: req as GetTokenParams["req"],
   });
 
   const tokenLocale = token?.["locale"];
