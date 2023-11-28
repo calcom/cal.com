@@ -203,6 +203,13 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="install-app-button"]');
 }
 
+export async function getInviteLink(page: Page) {
+  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
+  const json = await response.json();
+  // @ts-expect-error trust me bro
+  const date = json[0].result.data.json.inviteLink as string;
+}
+
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,

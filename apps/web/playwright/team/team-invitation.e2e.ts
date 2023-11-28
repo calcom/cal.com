@@ -3,19 +3,18 @@ import { expect } from "@playwright/test";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { test } from "../lib/fixtures";
-import { localize } from "../lib/testUtils";
+import { localize, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails, clipboard }) => {
-  clipboard.reset();
+test.afterEach(async ({ users, emails }) => {
   await users.deleteAll();
   emails?.deleteAll();
 });
 
 test.describe("Team", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
+  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeam();
@@ -76,8 +75,7 @@ test.describe("Team", () => {
       });
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await clipboard.get();
-      await page.waitForLoadState("networkidle");
+      const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();

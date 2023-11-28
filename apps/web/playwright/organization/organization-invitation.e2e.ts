@@ -1,18 +1,18 @@
 import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
+import { getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails, clipboard }) => {
-  clipboard.reset();
+test.afterEach(async ({ users, emails }) => {
   await users.deleteAll();
   emails?.deleteAll();
 });
 
 test.describe("Organization", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
+  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
@@ -69,9 +69,8 @@ test.describe("Organization", () => {
       // Get the invite link
       await page.locator('button:text("Add")').click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await clipboard.get();
-      await page.waitForLoadState("networkidle");
 
+      const inviteLink = await getInviteLink(page);
       // Follow invite link in new window
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
