@@ -14,6 +14,6 @@ type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageS
  * It is aware of the user's organization to correctly show the avatar from the correct URL
  */
 export function UserAvatar(props: UserAvatarProps) {
-  const { user, previewSrc, ...rest } = props;
-  return <Avatar {...rest} alt={user.name || ""} imageSrc={previewSrc ?? getUserAvatarUrl(user)} />;
+  const { user, previewSrc = getUserAvatarUrl(user), ...rest } = props;
+  return <Avatar {...rest} alt={user.name || "Nameless User"} imageSrc={previewSrc} />;
 }

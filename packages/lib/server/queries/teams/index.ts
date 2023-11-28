@@ -44,6 +44,7 @@ export async function getTeamWithMembers(args: {
         team: {
           select: {
             slug: true,
+            id: true,
           },
         },
       },
@@ -153,7 +154,7 @@ export async function getTeamWithMembers(args: {
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
         ? m.user.teams
-            .filter((membership) => membership.team.slug !== orgSlug)
+            .filter((membership) => membership.team.id !== teamOrOrg.id)
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
@@ -213,16 +214,17 @@ export async function getTeamWithMembers(args: {
 
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
-  return (
-    (await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId,
-        accepted: true,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-      },
-    })) || false
-  );
+  const team = await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+    },
+    include: { team: true },
+  });
+  if (!team) return false;
+  return team;
 }
 
 export async function isTeamOwner(userId: number, teamId: number) {

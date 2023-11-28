@@ -192,6 +192,7 @@ model User {
   password            String?
   bio                 String?
   avatar              String?
+  avatarUrl           String?
   timeZone            String               @default("Europe/London")
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
@@ -279,6 +280,7 @@ model Team {
   /// @zod.min(1)
   slug                String?
   logo                String?
+  logoUrl             String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
@@ -1010,4 +1012,18 @@ model TempOrgRedirect {
   updatedAt DateTime     @updatedAt
 
   @@unique([from, type, fromOrgId])
+}
+
+model Avatar {
+  // e.g. NULL(0), organization ID or team logo
+  teamId    Int    @default(0)
+  // Avatar, NULL(0) if team logo
+  userId    Int    @default(0)
+  // base64 string
+  data      String
+  // different every time to pop the cache.
+  objectKey String @unique
+
+  @@unique([teamId, userId])
+  @@map(name: "avatars")
 }

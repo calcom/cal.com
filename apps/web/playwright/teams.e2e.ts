@@ -168,7 +168,7 @@ test.describe("Teams - NonOrg", () => {
       await expect(page.locator("[data-testid=alert]")).toBeVisible();
 
       // cleanup
-      const org = await owner.getOrg();
+      const org = await owner.getOrgMembership();
       await prisma.team.delete({ where: { id: org.teamId } });
     }
   });
@@ -351,7 +351,7 @@ test.describe("Teams - Org", () => {
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator('[data-testid="404-page"]')).toBeVisible();
+    await expect(page.locator("text=This page could not be found")).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,
