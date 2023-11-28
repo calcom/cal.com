@@ -547,6 +547,45 @@ export function expectCalendarEventCreationFailureEmails({
   );
 }
 
+export function expectSuccessfulRoudRobinReschedulingEmails({
+  emails,
+  newOrganizer,
+  prevOrganizer,
+}: {
+  emails: Fixtures["emails"];
+  newOrganizer: { email: string; name: string };
+  prevOrganizer: { email: string; name: string };
+}) {
+  if (newOrganizer !== prevOrganizer) {
+    // new organizer should recieve scheduling emails
+    expect(emails).toHaveEmail(
+      {
+        heading: "new_event_scheduled",
+        to: `${newOrganizer.email}`,
+      },
+      `${newOrganizer.email}`
+    );
+
+    // old organizer should recieve cancelled emails
+    expect(emails).toHaveEmail(
+      {
+        heading: "event_request_cancelled",
+        to: `${prevOrganizer.email}`,
+      },
+      `${prevOrganizer.email}`
+    );
+  } else {
+    // organizer should recieve rescheduled emails
+    expect(emails).toHaveEmail(
+      {
+        heading: "event_has_been_rescheduled",
+        to: `${newOrganizer.email}`,
+      },
+      `${newOrganizer.email}`
+    );
+  }
+}
+
 export function expectSuccessfulBookingRescheduledEmails({
   emails,
   organizer,
