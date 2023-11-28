@@ -286,14 +286,6 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      await eventTypePage.waitForTimeout(400);
-      if (
-        await eventTypePage.getByRole("heading", { name: "Could not reschedule the meeting." }).isVisible()
-      ) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      }
     },
 
     assertBookingRescheduled: async (page: Page) => {
@@ -348,14 +340,6 @@ export function createBookingPageFixture(page: Page) {
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
       await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(400);
-      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await fillQuestion(eventTypePage, question, customLocators);
-        options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
-        await eventTypePage.getByTestId(confirmButton).click();
-      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
@@ -462,7 +446,7 @@ export function createBookingPageFixture(page: Page) {
       const deleteManagedEventTypeDescription = (await localize("en"))(
         "delete_managed_event_type_description"
       );
-      const confirmDeleteEventTypeText = (await localize("en"))("deleteManagedEventTypeDescription");
+      const confirmDeleteEventTypeText = (await localize("en"))("confirm_delete_event_type");
       await expect(page.getByText(deleteManagedEventTypeDescription)).toBeVisible();
       await page.getByRole("button", { name: confirmDeleteEventTypeText }).click();
 
