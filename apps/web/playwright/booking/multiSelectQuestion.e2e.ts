@@ -253,9 +253,9 @@ test.describe("Booking With Multi Select Question and Each Other Question", () =
       await bookingPage.assertBookingCanceled(eventTypePage);
     });
 
-    test("Multi Select and multiselect text not required", async ({ bookingPage }) => {
+    test("Multi Select and Phone text not required", async ({ bookingPage }) => {
       await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", true);
-      await bookingPage.addQuestion("multiselect", "multiselect-test", "multiselect test", false);
+      await bookingPage.addQuestion("phone", "phone-test", "phone test", false, "phone test");
       await bookingPage.updateEventType();
       const eventTypePage = await bookingPage.previewEventType();
       await bookingPage.selectTimeSlot(eventTypePage);
