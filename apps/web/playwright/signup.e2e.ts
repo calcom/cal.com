@@ -72,26 +72,25 @@ test.describe("Signup Flow Test", async () => {
     test.skip(!IS_PREMIUM_USERNAME_ENABLED, "Only run on Cal.com");
     const userToCreate = users.buildForSignup({
       username: "rock",
-      useExactUsername: true,
       password: "Password99!",
     });
     // Ensure the premium username is available
-    await prisma.user.deleteMany({ where: { username: userToCreate.username } });
+    await prisma.user.deleteMany({ where: { username: "rock" } });
 
     // Signup with premium username name
     await page.goto("/signup");
 
     // Fill form
-    await page.locator('input[name="username"]').fill(userToCreate.username);
+    await page.locator('input[name="username"]').fill("rock");
     await page.locator('input[name="email"]').fill(userToCreate.email);
     await page.locator('input[name="password"]').fill(userToCreate.password);
 
     await page.click('button[type="submit"]');
 
     // Check that stripe checkout is present
-    const expectedUrl = "https://checkout.stripe.com"; // Adjust the expected URL
+    const expectedUrl = "https://checkout.stripe.com";
 
-    await page.waitForURL((url) => url.pathname.includes(expectedUrl));
+    await page.waitForURL((url) => url.href.startsWith(expectedUrl));
     const url = page.url();
 
     // Check that the URL matches the expected URL
