@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Blocca fuso orario nella pagina di prenotazione",
   "description_lock_timezone_toggle_on_booking_page": "Per bloccare il fuso orario nella pagina di prenotazione, utile per gli eventi di persona.",
   "extensive_whitelabeling": "Assistenza per l'onboarding e supporto tecnico dedicati",
+  "need_help": "Hai bisogno di aiuto?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

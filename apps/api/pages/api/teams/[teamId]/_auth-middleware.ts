@@ -22,7 +22,11 @@ export async function checkPermissions(
   role: Prisma.MembershipWhereInput["role"] = MembershipRole.OWNER
 ) {
   const { userId, prisma, isAdmin } = req;
-  const { teamId } = schemaQueryTeamId.parse(req.query);
+  const { teamId } = schemaQueryTeamId.parse({
+    teamId: req.query.teamId,
+    version: req.query.version,
+    apiKey: req.query.apiKey,
+  });
   return canUserAccessTeamWithRole(prisma, userId, isAdmin, teamId, role);
 }
 

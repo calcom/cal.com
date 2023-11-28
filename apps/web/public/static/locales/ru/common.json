@@ -2091,5 +2091,6 @@
   "lock_timezone_toggle_on_booking_page": "Заблокируйте часовой пояс на странице бронирования",
   "description_lock_timezone_toggle_on_booking_page": "Блокировка часового пояса на странице бронирования подходит для личных событий.",
   "extensive_whitelabeling": "Индивидуальная техподдержка и помощь при онбординге",
+  "need_help": "Нужна помощь?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

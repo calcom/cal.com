@@ -2128,5 +2128,9 @@
   "enterprise_description": "Upgrade to Enterprise to create your Organization",
   "create_your_org": "Create your Organization",
   "create_your_org_description": "Upgrade to Enterprise and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
+  "troubleshooter_tooltip": "Open the troubleshooter and figure out what is wrong with your schedule",
+  "need_help": "Need help?",
+  "troubleshooter": "Troubleshooter",
+  "please_install_a_calendar": "Please install a calendar",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

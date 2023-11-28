@@ -1386,5 +1386,6 @@
   "install_google_calendar": "Installer Google Kalender",
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
-  "booking_confirmation_failed": "Booking-bekreftelse feilet"
+  "booking_confirmation_failed": "Booking-bekreftelse feilet",
+  "need_help": "Trenger du hjelp?"
 }
