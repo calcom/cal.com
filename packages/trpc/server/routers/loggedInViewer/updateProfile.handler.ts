@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
@@ -110,7 +110,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // @TODO: iterate if stripeSubscriptions.hasMore is true
     const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
       (subscription) =>
-        subscription.items.data[0].price.product === getPremiumPlanProductId() &&
+        subscription.items.data[0].price.id === getPremiumMonthlyPlanPriceId() &&
         subscription.status === "active"
     );
 
