@@ -1,20 +1,20 @@
 import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
+import { getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails, clipboard }) => {
-  clipboard.reset();
+test.afterEach(async ({ users, emails }) => {
   await users.deleteAll();
   emails?.deleteAll();
 });
 
 test.describe("Organization", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
+  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
-    const { team: org } = await orgOwner.getOrg();
+    const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
     await page.goto("/settings/organizations/members");
     await page.waitForLoadState("networkidle");
@@ -69,9 +69,8 @@ test.describe("Organization", () => {
       // Get the invite link
       await page.locator('button:text("Add")').click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await clipboard.get();
-      await page.waitForLoadState("networkidle");
 
+      const inviteLink = await getInviteLink(page);
       // Follow invite link in new window
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
@@ -92,13 +91,13 @@ test.describe("Organization", () => {
 
   test("Invitation (verified)", async ({ browser, page, users, emails }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
-    const { team: org } = await orgOwner.getOrg();
+    const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
     await page.goto("/settings/organizations/members");
     await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (internal user)", async () => {
-      const invitedUserEmail = `rick@example.com`;
+      const invitedUserEmail = `rick-${Date.now()}@example.com`;
       await page.locator('button:text("Add")').click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator('button:text("Send invite")').click();
@@ -110,7 +109,7 @@ test.describe("Organization", () => {
         `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`
       );
 
-      // Check newly invited member exists and is pending
+      // Check newly invited member exists and is not pending
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
