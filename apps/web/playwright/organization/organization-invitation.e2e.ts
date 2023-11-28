@@ -97,7 +97,7 @@ test.describe("Organization", () => {
     await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (internal user)", async () => {
-      const invitedUserEmail = `rick@example.com`;
+      const invitedUserEmail = `rick-${Date.now()}@example.com`;
       await page.locator('button:text("Add")').click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator('button:text("Send invite")').click();
@@ -109,7 +109,7 @@ test.describe("Organization", () => {
         `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`
       );
 
-      // Check newly invited member exists and is pending
+      // Check newly invited member exists and is not pending
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);

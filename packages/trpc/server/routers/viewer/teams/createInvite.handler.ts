@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -21,6 +22,23 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   const membership = await isTeamAdmin(ctx.user.id, teamId);
 
   if (!membership || !membership?.team) throw new TRPCError({ code: "UNAUTHORIZED" });
+  const teamMetadata = teamMetadataSchema.parse(membership.team.metadata);
+  const isOrg = !!(membership.team?.parentId === null && teamMetadata?.isOrganization);
+  const orgMembers = await getMembersHandler({
+    ctx,
+    input: { teamIdToExclude: teamId, distinctUser: true },
+  });
+
+  if (input.token) {
+    const existingToken = await prisma.verificationToken.findFirst({
+      where: { token: input.token, identifier: `invite-link-for-teamId-${teamId}`, teamId },
+    });
+    if (!existingToken) throw new TRPCError({ code: "NOT_FOUND" });
+    return {
+      token: existingToken.token,
+      inviteLink: await getInviteLink(existingToken.token, isOrg, orgMembers?.length),
+    };
+  }
 
   const token = randomBytes(32).toString("hex");
   await prisma.verificationToken.create({
@@ -31,21 +49,13 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
       teamId,
     },
   });
-  const isOrg = membership.team?.parentId !== null;
 
-  async function getInviteLink() {
-    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-    if (!isOrg) return teamInviteLink;
-    // Only fetch if is not an org
-    const orgMembers = await getMembersHandler({
-      ctx,
-      input: { teamIdToExclude: teamId, distinctUser: true },
-    });
-    if (!orgMembers) return teamInviteLink;
-    if (orgMembers.length < 1) return teamInviteLink;
-    return orgInviteLink;
-  }
-
-  return { token, inviteLink: await getInviteLink() };
+  return { token, inviteLink: await getInviteLink(token, isOrg, orgMembers?.length) };
 };
+
+async function getInviteLink(token = "", isOrg = false, orgMembers = 0) {
+  const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+  const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+  if (isOrg || orgMembers > 0) return orgInviteLink;
+  return teamInviteLink;
+}
