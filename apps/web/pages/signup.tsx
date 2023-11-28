@@ -161,6 +161,7 @@ export default function Signup({
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
@@ -318,6 +319,8 @@ export default function Signup({
                 disabled={
                   !!formMethods.formState.errors.username ||
                   !!formMethods.formState.errors.email ||
+                  !formMethods.getValues("email") ||
+                  !formMethods.getValues("password") ||
                   usernameTaken
                 }>
                 {premiumUsername && !usernameTaken
@@ -344,11 +347,13 @@ export default function Signup({
                   <Button
                     color="secondary"
                     disabled={!!formMethods.formState.errors.username || premiumUsername}
+                    loading={isGoogleLoading}
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
                       formMethods.formState.errors.username ? "opacity-50" : ""
                     )}
                     onClick={async () => {
+                      setIsGoogleLoading(true);
                       const username = formMethods.getValues("username");
                       const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
                       const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
@@ -360,6 +365,7 @@ export default function Signup({
                         router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
                         return;
                       }
+                      setIsGoogleLoading(false);
                       router.push(GOOGLE_AUTH_URL);
                     }}>
                     <img
