@@ -395,20 +395,19 @@ const loadUsers = async (
       });
 
       return users;
-    } else {
-      const hosts = eventType.hosts || [];
-
-      if (!Array.isArray(hosts)) {
-        throw new Error("eventType.hosts is not properly defined.");
-      }
-
-      const users = hosts.map(({ user, isFixed }) => ({
-        ...user,
-        isFixed,
-      }));
-
-      return users.length ? users : eventType.users;
     }
+    const hosts = eventType.hosts || [];
+
+    if (!Array.isArray(hosts)) {
+      throw new Error("eventType.hosts is not properly defined.");
+    }
+
+    const users = hosts.map(({ user, isFixed }) => ({
+      ...user,
+      isFixed,
+    }));
+
+    return users.length ? users : eventType.users;
   } catch (error) {
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
       throw new HttpError({ statusCode: 400, message: error.message });
