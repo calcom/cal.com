@@ -18,7 +18,7 @@ test.describe("Test the timezone behavior in specific cases", () => {
     const bookingSchedulingPage = await bookingPage.previewEventType();
     await bookingPage.selectTimezone("America/New York", bookingSchedulingPage);
     await bookingPage.assertRightTimezone("America/New York", bookingSchedulingPage);
-    await bookingPage.selectFirstAvailableTime(bookingSchedulingPage);
+    await bookingPage.selectTimeSlot(bookingSchedulingPage);
 
     // Check if the correct timezone is displayed and if the meeting was scheduled successfully
     await bookingPage.assertRightTimezone("America/New York", bookingSchedulingPage, {
