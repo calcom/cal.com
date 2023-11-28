@@ -67,6 +67,16 @@ const FEATURES = [
   },
 ];
 
+const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
+  const [emailUser, emailDomain = ""] = email.split("@");
+  const username =
+    emailDomain === autoAcceptEmailDomain
+      ? slugify(emailUser)
+      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+
+  return username;
+};
+
 function UsernameField({
   username,
   setPremium,
@@ -147,6 +157,7 @@ export default function Signup({
   orgSlug,
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
+  orgAutoAcceptEmail,
 }: SignupProps) {
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
@@ -261,7 +272,14 @@ export default function Signup({
               className="flex flex-col gap-4"
               form={formMethods}
               handleSubmit={async (values) => {
-                await signUp(values);
+                let updatedValues = values;
+                if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
+                  updatedValues = {
+                    ...values,
+                    username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
+                  };
+                }
+                await signUp(updatedValues);
               }}>
               {/* Username */}
               <UsernameField
