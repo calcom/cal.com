@@ -81,8 +81,11 @@ test.describe("Organization", () => {
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator(".text-red-700")).toHaveCount(4); // email + 3 password hints
 
+      const dateNow = Date.now();
+
       // Happy path
-      await inviteLinkPage.locator("input[name=email]").fill(`rick@domain-${Date.now()}.com`);
+      await inviteLinkPage.locator("input[name=username]").fill(`rick-${dateNow}`);
+      await inviteLinkPage.locator("input[name=email]").fill(`rick@domain-${dateNow}.com`);
       await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await inviteLinkPage.locator("button[type=submit]").click();
       await inviteLinkPage.waitForURL("/getting-started");
