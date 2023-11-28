@@ -1,25 +1,34 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
+import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
+import getStripe from "@calcom/app-store/stripepayment/lib/client";
+import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
-import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { classNames } from "@calcom/lib";
+import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert, Button, EmailField, HeadSeo, PasswordField, TextField } from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, Alert } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -34,7 +43,29 @@ type FormValues = z.infer<typeof signupSchema>;
 
 type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
-const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
+const FEATURES = [
+  {
+    title: "connect_all_calendars",
+    description: "connect_all_calendars_description",
+    i18nOptions: {
+      appName: APP_NAME,
+    },
+    icon: CalendarHeart,
+  },
+  {
+    title: "set_availability",
+    description: "set_availbility_description",
+    icon: Users,
+  },
+  {
+    title: "share_a_link_or_embed",
+    description: "share_a_link_or_embed_description",
+    icon: Link2,
+    i18nOptions: {
+      appName: APP_NAME,
+    },
+  },
+];
 
 const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
   const [emailUser, emailDomain = ""] = email.split("@");
@@ -46,31 +77,124 @@ const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) =
   return username;
 };
 
+function UsernameField({
+  username,
+  setPremium,
+  premium,
+  setUsernameTaken,
+  usernameTaken,
+  ...props
+}: React.ComponentProps<typeof TextField> & {
+  username: string;
+  setPremium: (value: boolean) => void;
+  premium: boolean;
+  usernameTaken: boolean;
+  setUsernameTaken: (value: boolean) => void;
+}) {
+  const { t } = useLocale();
+  const { register, formState } = useFormContext<FormValues>();
+  const debouncedUsername = useDebounce(username, 600);
+
+  useEffect(() => {
+    if (formState.isSubmitting || formState.isSubmitSuccessful) return;
+
+    async function checkUsername() {
+      if (!debouncedUsername) {
+        setPremium(false);
+        setUsernameTaken(false);
+        return;
+      }
+      fetchUsername(debouncedUsername).then(({ data }) => {
+        setPremium(data.premium);
+        setUsernameTaken(!data.available);
+      });
+    }
+    checkUsername();
+  }, [debouncedUsername, setPremium, setUsernameTaken, formState.isSubmitting, formState.isSubmitSuccessful]);
+
+  return (
+    <div>
+      <TextField
+        {...props}
+        {...register("username")}
+        data-testid="signup-usernamefield"
+        addOnFilled={false}
+      />
+      {(!formState.isSubmitting || !formState.isSubmitted) && (
+        <div className="text-gray text-default flex items-center text-sm">
+          <p className="flex items-center text-sm ">
+            {usernameTaken ? (
+              <div className="text-error">
+                <Info className="mr-1 inline-block h-4 w-4" />
+                {t("already_in_use_error")}
+              </div>
+            ) : premium ? (
+              <div data-testid="premium-username-warning">
+                <StarIcon className="mr-1 inline-block h-4 w-4" />
+                {t("premium_username", {
+                  price: getPremiumPlanPriceValue(),
+                })}
+              </div>
+            ) : null}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
+
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
   const param = `${key}=${encodeURIComponent(value)}`;
   return `${url}${separator}${param}`;
 }
 
-export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoAcceptEmail }: SignupProps) {
+export default function Signup({
+  prepopulateFormValues,
+  token,
+  orgSlug,
+  isGoogleLoginEnabled,
+  isSAMLLoginEnabled,
+  orgAutoAcceptEmail,
+}: SignupProps) {
+  const [premiumUsername, setPremiumUsername] = useState(false);
+  const [usernameTaken, setUsernameTaken] = useState(false);
+
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
+  const router = useRouter();
   const flags = useFlagMap();
-  const methods = useForm<FormValues>({
-    mode: "onChange",
+  const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
-    defaultValues: prepopulateFormValues,
+    defaultValues: prepopulateFormValues satisfies FormValues,
+    mode: "onChange",
   });
   const {
     register,
-    formState: { errors, isSubmitting },
-  } = methods;
+    watch,
+    formState: { isSubmitting, errors, isSubmitSuccessful },
+  } = formMethods;
 
-  const handleErrors = async (resp: Response) => {
+  const loadingSubmitState = isSubmitSuccessful || isSubmitting;
+
+  const handleErrorsAndStripe = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json();
-      throw new Error(err.message);
+      if (err.checkoutSessionId) {
+        const stripe = await getStripe();
+        if (stripe) {
+          console.log("Redirecting to stripe checkout");
+          const { error } = await stripe.redirectToCheckout({
+            sessionId: err.checkoutSessionId,
+          });
+          console.warn(error.message);
+        }
+      } else {
+        throw new Error(err.message);
+      }
     }
   };
 
@@ -88,7 +212,7 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
       },
       method: "POST",
     })
-      .then(handleErrors)
+      .then(handleErrorsAndStripe)
       .then(async () => {
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
         const verifyOrGettingStarted = flags["email-verification"] ? "auth/verify-email" : "getting-started";
@@ -106,108 +230,261 @@ export default function Signup({ prepopulateFormValues, token, orgSlug, orgAutoA
         });
       })
       .catch((err) => {
-        methods.setError("apiError", { message: err.message });
+        formMethods.setError("apiError", { message: err.message });
       });
   };
 
   return (
-    <>
-      <div
-        className="bg-muted flex min-h-screen flex-col justify-center "
-        style={
-          {
-            "--cal-brand": "#111827",
-            "--cal-brand-emphasis": "#101010",
-            "--cal-brand-text": "white",
-            "--cal-brand-subtle": "#9CA3AF",
-          } as CSSProperties
-        }
-        aria-labelledby="modal-title"
-        role="dialog"
-        aria-modal="true">
+    <div
+      className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center"
+      style={
+        {
+          "--cal-brand": "#111827",
+          "--cal-brand-emphasis": "#101010",
+          "--cal-brand-text": "white",
+          "--cal-brand-subtle": "#9CA3AF",
+        } as CSSProperties
+      }>
+      <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-lg 2xl:border ">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="font-cal text-emphasis text-center text-3xl font-extrabold">
-            {t("create_your_account")}
-          </h2>
-        </div>
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-default mx-2 p-6 shadow sm:rounded-lg lg:p-8">
-            <FormProvider {...methods}>
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
+        <div className="flex w-full flex-col px-4 py-6 sm:px-16 md:px-24 2xl:px-28">
+          {/* Header */}
+          {errors.apiError && (
+            <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
+          )}
+          <div className="flex flex-col gap-1">
+            <h1 className="font-cal text-[28px] ">
+              {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
+            </h1>
+            {IS_CALCOM ? (
+              <p className="text-subtle text-base font-medium leading-6">{t("cal_signup_description")}</p>
+            ) : (
+              <p className="text-subtle text-base font-medium leading-6">
+                {t("calcom_explained", {
+                  appName: APP_NAME,
+                })}
+              </p>
+            )}
+          </div>
+          {/* Form Container */}
+          <div className="mt-10">
+            <Form
+              className="flex flex-col gap-4"
+              form={formMethods}
+              handleSubmit={async (values) => {
+                let updatedValues = values;
+                if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
+                  updatedValues = {
+                    ...values,
+                    username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
+                  };
+                }
+                await signUp(updatedValues);
+              }}>
+              {/* Username */}
+              <UsernameField
+                label={t("username")}
+                username={watch("username")}
+                premium={premiumUsername}
+                usernameTaken={usernameTaken}
+                setUsernameTaken={(value) => setUsernameTaken(value)}
+                data-testid="signup-usernamefield"
+                setPremium={(value) => setPremiumUsername(value)}
+                addOnLeading={
+                  orgSlug
+                    ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
+                    : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                }
+              />
+              {/* Email */}
+              <TextField
+                {...register("email")}
+                label={t("email")}
+                type="email"
+                data-testid="signup-emailfield"
+              />
 
-                  if (methods.formState?.errors?.apiError) {
-                    methods.clearErrors("apiError");
-                  }
-
-                  if (!methods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
-                    methods.setValue(
-                      "username",
-                      getOrgUsernameFromEmail(methods.getValues().email, orgAutoAcceptEmail)
-                    );
-                  }
-                  methods.handleSubmit(signUp)(event);
-                }}
-                className="bg-default space-y-6">
-                {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
-                {}
-                <div className="space-y-4">
-                  {!isOrgInviteByLink && (
-                    <TextField
-                      addOnLeading={
-                        orgSlug
-                          ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
-                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+              {/* Password */}
+              <PasswordField
+                data-testid="signup-passwordfield"
+                label={t("password")}
+                {...register("password")}
+                hintErrors={["caplow", "min", "num"]}
+              />
+              <Button
+                type="submit"
+                className="my-2 w-full justify-center"
+                loading={loadingSubmitState}
+                disabled={
+                  !!formMethods.formState.errors.username ||
+                  !!formMethods.formState.errors.email ||
+                  usernameTaken
+                }>
+                {premiumUsername && !usernameTaken
+                  ? `Create Account for ${getPremiumPlanPriceValue()}`
+                  : t("create_account")}
+              </Button>
+            </Form>
+            {/* Continue with Social Logins */}
+            {token || (!isGoogleLoginEnabled && !isSAMLLoginEnabled) ? null : (
+              <div className="mt-6">
+                <div className="relative flex items-center">
+                  <div className="border-subtle flex-grow border-t" />
+                  <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
+                    {t("or_continue_with")}
+                  </span>
+                  <div className="border-subtle flex-grow border-t" />
+                </div>
+              </div>
+            )}
+            {/* Social Logins */}
+            {!token && (
+              <div className="mt-6 flex flex-col gap-2 md:flex-row">
+                {isGoogleLoginEnabled ? (
+                  <Button
+                    color="secondary"
+                    disabled={!!formMethods.formState.errors.username || premiumUsername}
+                    className={classNames(
+                      "w-full justify-center rounded-md text-center",
+                      formMethods.formState.errors.username ? "opacity-50" : ""
+                    )}
+                    onClick={async () => {
+                      const username = formMethods.getValues("username");
+                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                      const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                      if (username) {
+                        // If username is present we save it in query params to check for premium
+                        const searchQueryParams = new URLSearchParams();
+                        searchQueryParams.set("username", formMethods.getValues("username"));
+                        localStorage.setItem("username", username);
+                        router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
+                        return;
                       }
-                      {...register("username")}
-                      disabled={!!orgSlug}
-                      required
+                      router.push(GOOGLE_AUTH_URL);
+                    }}>
+                    <img
+                      className={classNames("text-emphasis  mr-2 h-5 w-5", premiumUsername && "opacity-50")}
+                      src="/google-icon.svg"
+                      alt=""
                     />
-                  )}
-                  <EmailField
-                    {...register("email")}
-                    disabled={prepopulateFormValues?.email}
-                    className="disabled:bg-emphasis disabled:hover:cursor-not-allowed"
-                  />
-                  <PasswordField
-                    labelProps={{
-                      className: "block text-sm font-medium text-default",
-                    }}
-                    {...register("password")}
-                    hintErrors={["caplow", "min", "num"]}
-                    className="border-default mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-                  />
-                </div>
-                <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Button type="submit" loading={isSubmitting} className="w-full justify-center">
-                    {t("create_account")}
+                    Google
                   </Button>
-                  {!token && (
-                    <Button
-                      color="secondary"
-                      className="w-full justify-center"
-                      onClick={() =>
-                        signIn("Cal.com", {
-                          callbackUrl: searchParams?.get("callbackUrl")
-                            ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-                            : `${WEBAPP_URL}/getting-started`,
-                        })
-                      }>
-                      {t("login_instead")}
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </FormProvider>
+                ) : null}
+                {isSAMLLoginEnabled ? (
+                  <Button
+                    color="secondary"
+                    disabled={
+                      !!formMethods.formState.errors.username ||
+                      !!formMethods.formState.errors.email ||
+                      premiumUsername
+                    }
+                    className={classNames(
+                      "w-full justify-center rounded-md text-center",
+                      formMethods.formState.errors.username && formMethods.formState.errors.email
+                        ? "opacity-50"
+                        : ""
+                    )}
+                    onClick={() => {
+                      if (!formMethods.getValues("username")) {
+                        formMethods.trigger("username");
+                      }
+                      if (!formMethods.getValues("email")) {
+                        formMethods.trigger("email");
+                        return;
+                      }
+                      const username = formMethods.getValues("username");
+                      localStorage.setItem("username", username);
+                      const sp = new URLSearchParams();
+                      // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                      sp.set("username", formMethods.getValues("username"));
+                      sp.set("email", formMethods.getValues("email"));
+                      router.push(
+                        `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                      );
+                    }}>
+                    <ShieldCheckIcon className="mr-2 h-5 w-5" />
+                    {t("saml_sso")}
+                  </Button>
+                ) : null}
+              </div>
+            )}
+          </div>
+          {/* Already have an account & T&C */}
+          <div className="mt-6">
+            <div className="flex flex-col text-sm">
+              <Link href="/auth/login" className="text-emphasis hover:underline">
+                {t("already_have_account")}
+              </Link>
+              <div className="text-subtle">
+                By signing up, you agree to our{" "}
+                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
+                  Terms of Service{" "}
+                </Link>
+                <span>and</span>{" "}
+                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
+                  Privacy Policy.
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-subtle border-subtle hidden w-full flex-col justify-between rounded-l-2xl py-12 pl-12 lg:flex">
+          {IS_CALCOM && (
+            <div className="mb-12 mr-12 grid h-full w-full grid-cols-4 gap-4 ">
+              <div className="">
+                <img src="/product-cards/trustpilot.svg" className="h-[54px] w-full" alt="#" />
+              </div>
+              <div>
+                <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="#" />
+              </div>
+              <div>
+                <img src="/product-cards/producthunt.svg" className="h-[54px] w-full" alt="#" />
+              </div>
+            </div>
+          )}
+          <div
+            className="rounded-2xl border-y border-l border-dashed border-[#D1D5DB5A] py-[6px] pl-[6px]"
+            style={{
+              backgroundColor: "rgba(236,237,239,0.9)",
+            }}>
+            <img src="/mock-event-type-list.svg" alt="#" className="" />
+          </div>
+          <div className="mr-12 mt-8 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
+            {!IS_CALCOM &&
+              FEATURES.map((feature) => (
+                <>
+                  <div className="flex flex-col leading-none">
+                    <div className="text-emphasis items-center">
+                      <feature.icon className="mb-1 h-4 w-4" />
+                      <span className="text-sm font-medium">{t(feature.title)}</span>
+                    </div>
+                    <div className="text-subtle text-sm">
+                      <p>
+                        {t(
+                          feature.description,
+                          feature.i18nOptions && {
+                            ...feature.i18nOptions,
+                          }
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ))}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
+
+const querySchema = z.object({
+  username: z
+    .string()
+    .optional()
+    .transform((val) => val || ""),
+  email: z.string().email().optional(),
+});
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
@@ -222,6 +499,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     prepopulateFormValues: undefined,
   };
 
+  // username + email prepopulated from query params
+  const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
+
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
     return {
       notFound: true,
@@ -231,7 +511,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
-      props: JSON.parse(JSON.stringify(props)),
+      props: JSON.parse(
+        JSON.stringify({
+          ...props,
+          prepopulateFormValues: {
+            username: preFillusername || null,
+            email: prefilEmail || null,
+          },
+        })
+      ),
     };
   }
 
