@@ -47,7 +47,7 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/platform-api#build": {
+    "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
       "env": ["NODE_ENV", "API_PORT", "DATABASE_READ_URL", "DATABSE_WRITE_URL", "LOG_LEVEL"]
     },

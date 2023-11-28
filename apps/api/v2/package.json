@@ -1,5 +1,5 @@
 {
-  "name": "@calcom/platform-api",
+  "name": "@calcom/api-v2",
   "version": "0.0.1",
   "description": "Platform API for Cal.com",
   "author": "Cal.com Inc.",
