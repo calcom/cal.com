@@ -1,34 +1,39 @@
 import OldPage from "@pages/insights/index";
 import { _generateMetadata } from "app/_utils";
-import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
-import { headers, cookies } from "next/headers";
+import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "",
-    () => ""
+    () => "Insights",
+    (t) => t("insights_subtitle")
   );
 
-type PageProps = Readonly<{
-  params: Params;
-}>;
+async function getData() {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const flags = await getFeatureFlagMap(prisma);
 
-const Page = async ({ params }: PageProps) => {
+  if (flags.insights === false) {
+    return notFound();
+  }
+
+  return {};
+}
+
+const Page = async () => {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
 
-  const legacyCtx = buildLegacyCtx(params, headers(), cookies());
-  const props = await getData(legacyCtx);
+  await getData();
 
   return (
     <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null}>
-      <OldPage {...props} />
+      <OldPage />
     </PageWrapper>
   );
 };
