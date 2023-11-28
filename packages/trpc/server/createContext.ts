@@ -13,7 +13,7 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
 export type CreateInnerContextOptions = {
-  sourceIp?: string;
+  sourceIp: string;
   session?: Session | null;
   locale: string;
   user?:
@@ -69,7 +69,7 @@ export const createContext = async ({ req, res }: CreateContextOptions, sessionG
 
   // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.
   // TODO: @sean - figure out a way to make getIP be happy with trpc req. params
-  const sourceIp = await getIP(req as NextApiRequest);
+  const sourceIp = getIP(req as NextApiRequest);
   const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
   const contextInner = await createContextInner({ locale, session, sourceIp });
   return {
