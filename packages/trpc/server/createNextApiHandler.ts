@@ -64,7 +64,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         const cacheRules = {
           session: "no-cache",
 
-          i18n: `max-age=${ONE_YEAR_IN_SECONDS}`,
+          i18n: process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
           "slots.getSchedule": `no-cache`,

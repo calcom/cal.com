@@ -164,7 +164,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
 
   const user = initialData?.user || (await getUser(where));
 
-  if (!user) throw new HttpError({ statusCode: 404, message: "No user found" });
+  if (!user) throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
   log.debug(
     "getUserAvailability for user",
     safeStringify({ user: { id: user.id }, slot: { dateFrom, dateTo } })

@@ -13,6 +13,7 @@
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "start": "PORT=3002 next start",
+    "docker-start-api": "PORT=80 next start",
     "type-check": "tsc --pretty --noEmit"
   },
   "devDependencies": {
@@ -29,7 +30,7 @@
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/trpc": "*",
-    "@sentry/nextjs": "^7.20.0",
+    "@sentry/nextjs": "^7.73.0",
     "bcryptjs": "^2.4.3",
     "memory-cache": "^0.2.0",
     "next": "^13.4.6",

@@ -402,7 +402,6 @@ test.describe("Booking With Phone Question and Each Other Question", () => {
     });
 
     test.describe("Booking With Phone Question and Short text question", () => {
-      const bookingOptions = { hasPlaceholder: true, isRequired: true };
       test("Phone and Short text required", async ({ bookingPage }) => {
         await bookingPage.addQuestion("phone", "phone-test", "phone test", true, "phone test");
         await bookingPage.addQuestion("text", "text-test", "text test", true, "text test");

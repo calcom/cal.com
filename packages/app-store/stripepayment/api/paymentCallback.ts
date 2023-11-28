@@ -3,6 +3,7 @@ import z from "zod";
 
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -22,7 +23,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { callbackUrl, checkoutSessionId } = querySchema.parse(req.query);
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
 
-  if (!stripeCustomer) return { message: "Stripe customer not found or deleted" };
+  if (!stripeCustomer)
+    throw new HttpError({
+      statusCode: 404,
+      message: "Stripe customer not found or deleted",
+      url: req.url,
+      method: req.method,
+    });
 
   // first let's try to find user by metadata stripeCustomerId
   let user = await prisma.user.findFirst({
@@ -43,10 +50,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
   }
 
+  if (!user)
+    throw new HttpError({ statusCode: 404, message: "User not found", url: req.url, method: req.method });
+
   if (checkoutSession.payment_status === "paid" && stripeCustomer.metadata.username) {
     try {
-      if (!user) return { message: "User not found" };
-
       await prisma.user.update({
         data: {
           username: stripeCustomer.metadata.username,
@@ -61,10 +69,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     } catch (error) {
       console.error(error);
-      return {
+      throw new HttpError({
+        statusCode: 400,
+        url: req.url,
+        method: req.method,
         message:
           "We have received your payment. Your premium username could still not be reserved. Please contact support@cal.com and mention your premium username",
-      };
+      });
     }
   }
   callbackUrl.searchParams.set("paymentStatus", checkoutSession.payment_status);

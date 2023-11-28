@@ -221,6 +221,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                             hidePlaceholder
                             isLoading={mutation.isLoading}
                             value={data.destinationCalendar?.externalId}
+                            hideAdvancedText
                           />
                         </div>
                       </div>

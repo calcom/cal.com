@@ -1054,9 +1054,6 @@
   "attendee_name_variable": "Deltager",
   "event_date_variable": "Dato for begivenhed",
   "event_time_variable": "Tidspunkt for begivenhed",
-  "timezone_variable": "Tidszone",
-  "location_variable": "Placering",
-  "additional_notes_variable": "Yderligere bemærkninger",
   "app_upgrade_description": "For at bruge denne funktion skal du opgradere til en Pro-konto.",
   "invalid_number": "Ugyldigt telefonnummer",
   "navigate": "Navigér",
@@ -1537,5 +1534,5 @@
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
   "verify": "Bekræft",
-  "insights_all_org_filter": "Alle"
+  "need_help": "Brug for hjælp?"
 }

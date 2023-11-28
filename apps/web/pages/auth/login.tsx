@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -17,6 +17,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -53,7 +54,7 @@ export default function Login({
   totpEmail,
 }: // eslint-disable-next-line @typescript-eslint/ban-types
 inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z
@@ -97,9 +98,9 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
-    </a>
+    </Link>
   );
 
   const TwoFactorFooter = (
@@ -278,7 +279,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req, res, query } = context;
 
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
@@ -318,6 +319,24 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   }
 
   if (session) {
+    const { callbackUrl } = query;
+
+    if (callbackUrl) {
+      try {
+        const destination = getSafeRedirectUrl(callbackUrl as string);
+        if (destination) {
+          return {
+            redirect: {
+              destination,
+              permanent: false,
+            },
+          };
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     return {
       redirect: {
         destination: "/",

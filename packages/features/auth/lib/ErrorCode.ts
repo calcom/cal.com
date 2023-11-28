@@ -16,4 +16,5 @@ export enum ErrorCode {
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
   RateLimitExceeded = "rate-limit-exceeded",
   SocialIdentityProviderRequired = "social-identity-provider-required",
+  UserAccountLocked = "user-account-locked",
 }

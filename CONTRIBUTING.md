@@ -2,7 +2,18 @@
 
 Contributions are what makes the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-- Before jumping into a PR be sure to search [existing PRs](https://github.com/calcom/cal.com/pulls) or [issues](https://github.com/calcom/cal.com/issues) for an open or closed item that relates to your submission.
+## House rules
+
+- Before submitting a new issue or PR, check if it already exists in [issues](https://github.com/calcom/cal.com/issues) or [PRs](https://github.com/calcom/cal.com/pulls).
+- GitHub issues: take note of the `🚨 needs approval` label.
+  - **For Contributors**:
+    - Feature Requests: Wait for a core member to approve and remove the `🚨 needs approval` label before you start coding or submit a PR.
+    - Bugs, Security, Performance, Documentation, etc.: You can start coding immediately, even if the `🚨 needs approval` label is present. This label mainly concerns feature requests.
+  - **Our Process**:
+    - Issues from non-core members automatically receive the `🚨 needs approval` label.
+    - We greatly value new feature ideas. To ensure consistency in the product's direction, they undergo review and approval.
+
+
 
 ## Priorities
 
