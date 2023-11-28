@@ -1,12 +1,15 @@
 import { login } from "../fixtures/users";
 import { test } from "../lib/fixtures";
+import { localize } from "../lib/testUtils";
 
 test.describe("Test the timezone behavior in specific cases", () => {
   test("Change timezone in booking page", async ({ page, bookingPage }) => {
+    const backToBookingsText = (await localize("en"))("back_to_bookings");
+
     await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
     await page.goto("/event-types");
     await bookingPage.checkUpdateTimezone();
-    await bookingPage.goToEventTypePage();
+    await page.goto("/event-types");
 
     // Create a new event type
     await bookingPage.createRegularEventType("15 min test timezone");
@@ -22,7 +25,7 @@ test.describe("Test the timezone behavior in specific cases", () => {
       inConfirmationPage: true,
       shouldConfirmBooking: true,
     });
-    await bookingPage.goToEventType("Back to bookings", bookingSchedulingPage);
+    await bookingPage.goToPage(backToBookingsText, bookingSchedulingPage);
 
     // Check if the icon globe is displayed in the bookings page and if the correct timezone is displayed when we click on it
     await bookingPage.assertCorrectTimezoneInGlobeButton("America/New York", bookingSchedulingPage);

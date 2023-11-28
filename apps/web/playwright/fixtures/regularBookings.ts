@@ -191,11 +191,14 @@ const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
 
 export function createBookingPageFixture(page: Page) {
   return {
-    goToEventTypePage: async (page?: Page) => {
-      page?.goto("/event-types");
+    goToEventTypePage: async (page: Page) => {
+      page.goto("/event-types");
     },
-    goToEventType: async (eventType: string, page?: Page) => {
-      await page?.getByRole("link", { name: eventType }).first().click();
+    goToEventType: async (eventType: string) => {
+      await page.getByRole("link", { name: eventType }).first().click();
+    },
+    goToPage: async (pageName: string, page: Page) => {
+      await page.getByRole("link", { name: pageName }).click();
     },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
@@ -238,13 +241,8 @@ export function createBookingPageFixture(page: Page) {
     clickReschedule: async () => {
       await page.getByText("Reschedule").click();
     },
-    navigateToAvailableTimeSlot: async () => {
-      while (await page.getByRole("button", { name: "View next" }).isVisible()) {
-        await page.getByRole("button", { name: "View next" }).click();
-      }
-    },
-    selectFirstAvailableTime: async (page?: Page) => {
-      await page?.getByTestId("time").first().click();
+    selectFirstAvailableTime: async () => {
+      await page.getByTestId("time").first().click();
     },
 
     fillRescheduleReasonAndConfirm: async () => {
