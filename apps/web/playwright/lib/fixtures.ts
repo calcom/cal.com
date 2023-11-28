@@ -9,7 +9,6 @@ import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
-import { createClipboardFixture } from "../fixtures/clipboard";
 import { createEmbedsFixture } from "../fixtures/embeds";
 import { createFeatureFixture } from "../fixtures/features";
 import { createOrgsFixture } from "../fixtures/orgs";
@@ -31,7 +30,6 @@ export interface Fixtures {
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
-  clipboard: ReturnType<typeof createClipboardFixture>;
   features: ReturnType<typeof createFeatureFixture>;
 }
 
@@ -98,10 +96,6 @@ export const test = base.extend<Fixtures>({
   bookingPage: async ({ page }, use) => {
     const bookingPage = createBookingPageFixture(page);
     await use(bookingPage);
-  },
-  clipboard: async ({ page }, use) => {
-    const clipboard = createClipboardFixture(page);
-    await use(clipboard);
   },
   features: async ({ page }, use) => {
     const features = createFeatureFixture(page);
