@@ -258,7 +258,7 @@ export async function createNewUsersConnectToOrgIfExists({
         }
       }
     },
-    { maxWait: 5000, timeout: 10000 }
+    { timeout: 10000 }
   );
 }
 
