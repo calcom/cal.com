@@ -10,6 +10,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -65,7 +66,7 @@ export async function handleConfirmation(args: {
       message: "Booking failed",
     };
 
-    log.error(`Booking ${user.username} failed`, JSON.stringify({ error, results }));
+    log.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
   } else {
     if (results.length) {
       // TODO: Handle created event metadata more elegantly

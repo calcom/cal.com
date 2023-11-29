@@ -88,7 +88,7 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
-export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
+export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES;
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 
@@ -115,3 +115,10 @@ export const AB_TEST_BUCKET_PROBABILITY = defaultOnNaN(
   parseInt(process.env.AB_TEST_BUCKET_PROBABILITY ?? "10", 10),
   10
 );
+
+export const IS_PREMIUM_USERNAME_ENABLED =
+  (IS_CALCOM || (process.env.NEXT_PUBLIC_IS_E2E && IS_STRIPE_ENABLED)) &&
+  process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY;
+
+// Max number of invites to join a team/org that can be sent at once
+export const MAX_NB_INVITES = 100;
