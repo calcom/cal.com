@@ -24,7 +24,7 @@ export default class BaseEmail {
     return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
   public async sendEmail() {
@@ -38,17 +38,27 @@ export default class BaseEmail {
     if (process.env.INTEGRATION_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
-      setTestEmail(this.getNodeMailerPayload());
+      setTestEmail(await this.getNodeMailerPayload());
       console.log(
         "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
       );
       return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
-    const payload = this.getNodeMailerPayload();
+    const payload = await this.getNodeMailerPayload();
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
-      headers: this.getMailerOptions().headers,
+      headers: {
+        "X-SMTPAPI": JSON.stringify({
+          filters: {
+            bypass_list_management: {
+              settings: {
+                enable: 1,
+              },
+            },
+          },
+        }),
+      },
       ...payload,
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
@@ -74,7 +84,6 @@ export default class BaseEmail {
     return {
       transport: serverConfig.transport,
       from: serverConfig.from,
-      headers: serverConfig.headers,
     };
   }
 
