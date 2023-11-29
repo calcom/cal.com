@@ -10,7 +10,7 @@ const loadConfig = (): AppConfig => {
     },
     db: {
       readUrl: process.env.DATABASE_READ_URL,
-      writeUrl: process.env.DATABSE_WRITE_URL,
+      writeUrl: process.env.DATABASE_WRITE_URL,
     },
   };
 };
