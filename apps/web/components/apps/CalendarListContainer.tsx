@@ -14,8 +14,9 @@ import {
   List,
   AppSkeletonLoader as SkeletonLoader,
   ShellSubHeading,
+  Label,
 } from "@calcom/ui";
-import { Calendar, Plus } from "@calcom/ui/components/icon";
+import { Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -27,6 +28,7 @@ type Props = {
   onChanged: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
+  isLoading?: boolean;
 };
 
 function CalendarList(props: Props) {
@@ -70,8 +72,9 @@ function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
     suspense: true,
+    refetchOnWindowFocus: false,
   });
-  const { fromOnboarding } = props;
+  const { fromOnboarding, isLoading } = props;
   return (
     <QueryCell
       query={query}
@@ -82,74 +85,94 @@ function ConnectedCalendarsList(props: Props) {
         }
 
         return (
-          <List>
-            {data.connectedCalendars.map((item) => (
-              <Fragment key={item.credentialId}>
-                {item.calendars ? (
-                  <AppListCard
-                    shouldHighlight
-                    slug={item.integration.slug}
-                    title={item.integration.name}
-                    logo={item.integration.logo}
-                    description={item.primary?.email ?? item.integration.description}
-                    actions={
-                      <div className="flex w-32 justify-end">
-                        <DisconnectIntegration
-                          credentialId={item.credentialId}
-                          trashIcon
-                          onSuccess={props.onChanged}
-                          buttonProps={{ className: "border border-default" }}
-                        />
-                      </div>
-                    }>
-                    <div className="border-subtle border-t">
-                      {!fromOnboarding && (
-                        <>
-                          <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
-                          <ul className="space-y-4 px-5 py-4">
-                            {item.calendars.map((cal) => (
-                              <CalendarSwitch
-                                key={cal.externalId}
-                                externalId={cal.externalId}
-                                title={cal.name || "Nameless calendar"}
-                                name={cal.name || "Nameless calendar"}
-                                type={item.integration.type}
-                                isChecked={cal.isSelected}
-                                destination={cal.externalId === props.destinationCalendarId}
-                                credentialId={cal.credentialId}
-                              />
-                            ))}
-                          </ul>
-                        </>
-                      )}
+          <div className="border-subtle mt-6 rounded-lg border">
+            <div className="border-subtle border-b p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-emphasis text-base font-semibold leading-5">
+                    {t("check_for_conflicts")}
+                  </h4>
+                  <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row xl:space-x-5">
+                  {!!data.connectedCalendars.length && (
+                    <div className="flex items-center">
+                      <AdditionalCalendarSelector isLoading={isLoading} />
                     </div>
-                  </AppListCard>
-                ) : (
-                  <Alert
-                    severity="warning"
-                    title={t("something_went_wrong")}
-                    message={
-                      <span>
-                        <Link href={`/apps/${item.integration.slug}`}>{item.integration.name}</Link>:{" "}
-                        {t("calendar_error")}
-                      </span>
-                    }
-                    iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
-                    actions={
-                      <div className="flex w-32 justify-end md:pr-1">
-                        <DisconnectIntegration
-                          credentialId={item.credentialId}
-                          trashIcon
-                          onSuccess={props.onChanged}
-                          buttonProps={{ className: "border border-default" }}
-                        />
+                  )}
+                </div>
+              </div>
+            </div>
+            <List noBorderTreatment className="p-6 pt-2">
+              {data.connectedCalendars.map((item) => (
+                <Fragment key={item.credentialId}>
+                  {item.calendars ? (
+                    <AppListCard
+                      shouldHighlight
+                      slug={item.integration.slug}
+                      title={item.integration.name}
+                      logo={item.integration.logo}
+                      description={item.primary?.email ?? item.integration.description}
+                      className="border-subtle mt-4 rounded-lg border"
+                      actions={
+                        <div className="flex w-32 justify-end">
+                          <DisconnectIntegration
+                            credentialId={item.credentialId}
+                            trashIcon
+                            onSuccess={props.onChanged}
+                            buttonProps={{ className: "border border-default" }}
+                          />
+                        </div>
+                      }>
+                      <div className="border-subtle border-t">
+                        {!fromOnboarding && (
+                          <>
+                            <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
+                            <ul className="space-y-4 px-5 py-4">
+                              {item.calendars.map((cal) => (
+                                <CalendarSwitch
+                                  key={cal.externalId}
+                                  externalId={cal.externalId}
+                                  title={cal.name || "Nameless calendar"}
+                                  name={cal.name || "Nameless calendar"}
+                                  type={item.integration.type}
+                                  isChecked={cal.isSelected}
+                                  destination={cal.externalId === props.destinationCalendarId}
+                                  credentialId={cal.credentialId}
+                                />
+                              ))}
+                            </ul>
+                          </>
+                        )}
                       </div>
-                    }
-                  />
-                )}
-              </Fragment>
-            ))}
-          </List>
+                    </AppListCard>
+                  ) : (
+                    <Alert
+                      severity="warning"
+                      title={t("something_went_wrong")}
+                      message={
+                        <span>
+                          <Link href={`/apps/${item.integration.slug}`}>{item.integration.name}</Link>:{" "}
+                          {t("calendar_error")}
+                        </span>
+                      }
+                      iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
+                      actions={
+                        <div className="flex w-32 justify-end md:pr-1">
+                          <DisconnectIntegration
+                            credentialId={item.credentialId}
+                            trashIcon
+                            onSuccess={props.onChanged}
+                            buttonProps={{ className: "border border-default" }}
+                          />
+                        </div>
+                      }
+                    />
+                  )}
+                </Fragment>
+              ))}
+            </List>
+          </div>
         );
       }}
     />
@@ -187,42 +210,28 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
             {!!data.connectedCalendars.length || !!installedCalendars.data?.items.length ? (
               <>
                 {heading && (
-                  <div className="border-default flex flex-col gap-6 rounded-md border p-7">
-                    <ShellSubHeading
-                      title={t("calendar")}
-                      subtitle={t("installed_app_calendar_description")}
-                      className="mb-0 flex flex-wrap items-center gap-4 sm:flex-nowrap md:mb-3 md:gap-0"
-                      actions={
-                        <div className="flex flex-col xl:flex-row xl:space-x-5">
-                          {!!data.connectedCalendars.length && (
-                            <div className="flex items-center">
-                              <AdditionalCalendarSelector isLoading={mutation.isLoading} />
-                            </div>
-                          )}
-                        </div>
-                      }
-                    />
-                    <div className="bg-muted border-subtle flex justify-between rounded-md border p-4">
-                      <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
-                        <div className="bg-default border-subtle relative rounded-md border p-1.5">
-                          <Calendar className="text-default h-8 w-8" strokeWidth="1" />
-                          <Plus
-                            className="text-emphasis absolute left-4 top-1/2 ml-0.5 mt-[1px] h-2 w-2"
-                            strokeWidth="4"
-                          />
-                        </div>
-                        <div className="md:w-6/12">
-                          <h1 className="text-emphasis text-sm font-semibold">{t("create_events_on")}</h1>
-                          <p className="text-default text-sm font-normal">{t("set_calendar")}</p>
-                        </div>
-                        <div className="justify-end md:w-6/12">
-                          <DestinationCalendarSelector
-                            onChange={mutation.mutate}
-                            hidePlaceholder
-                            isLoading={mutation.isLoading}
-                            value={data.destinationCalendar?.externalId}
-                            hideAdvancedText
-                          />
+                  <>
+                    <div className="border-subtle mb-6 mt-8 rounded-lg border">
+                      <div className="p-6">
+                        <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
+                          {t("add_to_calendar")}
+                        </h2>
+
+                        <p className="text-subtle text-sm leading-tight">
+                          {t("add_to_calendar_description")}
+                        </p>
+                      </div>
+                      <div className="border-t">
+                        <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
+                          <div>
+                            <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
+                            <DestinationCalendarSelector
+                              hidePlaceholder
+                              value={data.destinationCalendar?.externalId}
+                              onChange={mutation.mutate}
+                              isLoading={mutation.isLoading}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -230,8 +239,9 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       onChanged={onChanged}
                       fromOnboarding={fromOnboarding}
                       destinationCalendarId={data.destinationCalendar?.externalId}
+                      isLoading={mutation.isLoading}
                     />
-                  </div>
+                  </>
                 )}
               </>
             ) : fromOnboarding ? (
