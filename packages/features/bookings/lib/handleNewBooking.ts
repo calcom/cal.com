@@ -2208,11 +2208,18 @@ async function handler(
       ? [originalRescheduledBooking?.user.destinationCalendar]
       : evt.destinationCalendar;
 
+    if (changedOrganizer) {
+      evt.title = getEventName(eventNameObject);
+      // location might changed and will be new created in eventManager.create (organizer default location)
+      evt.videoCallData = undefined;
+    }
+
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
       undefined,
-      changedOrganizer
+      changedOrganizer,
+      newDesinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -2221,24 +2228,12 @@ async function handler(
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
-    const isThereAnIntegrationError = results && results.some((res) => !res.success);
-    if (isThereAnIntegrationError) {
-      const error = {
-        errorCode: "BookingReschedulingMeetingFailed",
-        message: "Booking Rescheduling failed",
-      };
 
-      loggerWithEventDetails.error(
-        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
-        safeStringify({ error, results })
-      );
-    } else {
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
+    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
-      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-        ? calendarResult?.updatedEvent[0]?.iCalUID
-        : calendarResult?.updatedEvent?.iCalUID || undefined;
-    }
+    // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
+    // to the default description when we are sending the emails.
+    evt.description = eventType.description;
 
     const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
       results,
@@ -2248,98 +2243,88 @@ async function handler(
     metadata = videoMetadata;
     videoCallUrl = _videoCallUrl;
 
-    //if organizer changed we need to create a new booking (reschedule only cancels the old one)
-    if (changedOrganizer) {
-      evt.destinationCalendar = newDesinationCalendar;
-      evt.title = getEventName(eventNameObject);
+    const isThereAnIntegrationError = results && results.some((res) => !res.success);
 
-      // location might changed and will be new created in eventManager.create (organizer default location)
-      evt.videoCallData = undefined;
-      const createManager = await eventManager.create(evt);
+    if (isThereAnIntegrationError) {
+      const error = {
+        errorCode: "BookingReschedulingMeetingFailed",
+        message: "Booking Rescheduling failed",
+      };
 
-      // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
-      // to the default description when we are sending the emails.
-      evt.description = eventType.description;
+      loggerWithEventDetails.error(
+        `EventManager.reschedule failure in some of the integrations ${organizerUser.username}`,
+        safeStringify({ error, results })
+      );
+    } else {
+      if (results.length) {
+        // Handle Google Meet results
+        // We use the original booking location since the evt location changes to daily
+        if (bookingLocation === MeetLocationType) {
+          const googleMeetResult = {
+            appName: GoogleMeetMetadata.name,
+            type: "conferencing",
+            uid: results[0].uid,
+            originalEvent: results[0].originalEvent,
+          };
 
-      results = createManager.results;
-      referencesToCreate = createManager.referencesToCreate;
-      videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+          // Find index of google_calendar inside createManager.referencesToCreate
+          const googleCalIndex = updateManager.referencesToCreate.findIndex(
+            (ref) => ref.type === "google_calendar"
+          );
+          const googleCalResult = results[googleCalIndex];
 
-      if (results.length > 0 && results.every((res) => !res.success)) {
-        const error = {
-          errorCode: "BookingCreatingMeetingFailed",
-          message: "Booking rescheduling failed",
-        };
-
-        loggerWithEventDetails.error(
-          `EventManager.create failure in some of the integrations ${organizerUser.username}`,
-          safeStringify({ error, results })
-        );
-      } else {
-        if (results.length) {
-          // Handle Google Meet results
-          // We use the original booking location since the evt location changes to daily
-          if (bookingLocation === MeetLocationType) {
-            const googleMeetResult = {
-              appName: GoogleMeetMetadata.name,
-              type: "conferencing",
-              uid: results[0].uid,
-              originalEvent: results[0].originalEvent,
-            };
-
-            // Find index of google_calendar inside createManager.referencesToCreate
-            const googleCalIndex = createManager.referencesToCreate.findIndex(
-              (ref) => ref.type === "google_calendar"
-            );
-            const googleCalResult = results[googleCalIndex];
-
-            if (!googleCalResult) {
-              loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
-              results.push({
-                ...googleMeetResult,
-                success: false,
-                calWarnings: [tOrganizer("google_meet_warning")],
-              });
-            }
-
-            if (googleCalResult?.createdEvent?.hangoutLink) {
-              results.push({
-                ...googleMeetResult,
-                success: true,
-              });
-
-              // Add google_meet to referencesToCreate in the same index as google_calendar
-              createManager.referencesToCreate[googleCalIndex] = {
-                ...createManager.referencesToCreate[googleCalIndex],
-                meetingUrl: googleCalResult.createdEvent.hangoutLink,
-              };
-
-              // Also create a new referenceToCreate with type video for google_meet
-              createManager.referencesToCreate.push({
-                type: "google_meet_video",
-                meetingUrl: googleCalResult.createdEvent.hangoutLink,
-                uid: googleCalResult.uid,
-                credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
-              });
-            } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
-              results.push({
-                ...googleMeetResult,
-                success: false,
-              });
-            }
+          if (!googleCalResult) {
+            loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+            results.push({
+              ...googleMeetResult,
+              success: false,
+              calWarnings: [tOrganizer("google_meet_warning")],
+            });
           }
 
-          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-          metadata.conferenceData = results[0].createdEvent?.conferenceData;
-          metadata.entryPoints = results[0].createdEvent?.entryPoints;
-          evt.appsStatus = handleAppsStatus(results, booking);
-          videoCallUrl =
-            metadata.hangoutLink ||
-            results[0].createdEvent?.url ||
-            organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
-            videoCallUrl;
+          if (googleCalResult?.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: true,
+            });
+
+            // Add google_meet to referencesToCreate in the same index as google_calendar
+            updateManager.referencesToCreate[googleCalIndex] = {
+              ...updateManager.referencesToCreate[googleCalIndex],
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+            };
+
+            // Also create a new referenceToCreate with type video for google_meet
+            updateManager.referencesToCreate.push({
+              type: "google_meet_video",
+              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              uid: googleCalResult.uid,
+              credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
+            });
+          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+            });
+          }
         }
+
+        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+        metadata.conferenceData = results[0].createdEvent?.conferenceData;
+        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        evt.appsStatus = handleAppsStatus(results, booking);
+        videoCallUrl =
+          metadata.hangoutLink ||
+          results[0].createdEvent?.url ||
+          organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          videoCallUrl;
       }
+
+      const calendarResult = results.find((result) => result.type.includes("_calendar"));
+
+      evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+        ? calendarResult?.updatedEvent[0]?.iCalUID
+        : calendarResult?.updatedEvent?.iCalUID || undefined;
     }
 
     evt.appsStatus = handleAppsStatus(results, booking);
