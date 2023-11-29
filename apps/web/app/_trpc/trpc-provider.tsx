@@ -34,6 +34,7 @@ const ENDPOINTS = [
   "workflows",
   "appsRouter",
   "googleWorkspace",
+  "oAuth",
 ] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 
