@@ -64,6 +64,23 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
+  if (url.pathname.startsWith("/future/apps/installed")) {
+    const returnTo = req.cookies.get("return-to")?.value;
+    if (returnTo !== undefined) {
+      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+
+      let validPathname = returnTo;
+
+      try {
+        validPathname = new URL(returnTo).pathname;
+      } catch (e) {}
+
+      const nextUrl = url.clone();
+      nextUrl.pathname = validPathname;
+      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+    }
+  }
+
   requestHeaders.set("x-pathname", url.pathname);
 
   const locale = await getLocale(req);
