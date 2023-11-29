@@ -8,6 +8,7 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/settings/admin/:path*", process.env.APP_ROUTER_SETTINGS_ADMIN_ENABLED === "1"] as const,
   ["/apps/:slug", Boolean(process.env.APP_ROUTER_APPS_SLUG_ENABLED)] as const,
   ["/apps/:slug/setup", Boolean(process.env.APP_ROUTER_APPS_SLUG_SETUP_ENABLED)] as const,
+  ["/video/:path*", process.env.APP_ROUTER_VIDEO_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
