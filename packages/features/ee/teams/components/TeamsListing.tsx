@@ -92,8 +92,6 @@ export function TeamsListing() {
     return <SkeletonLoaderTeamList />;
   }
 
-  console.log(teams.length > 0);
-
   return (
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
