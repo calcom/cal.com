@@ -50,7 +50,7 @@ test.describe("Teams - NonOrg", () => {
 
     await test.step("Finishing brings you to team profile page", async () => {
       await page.locator("[data-testid=publish-button]").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
@@ -195,7 +195,7 @@ test.describe("Teams - NonOrg", () => {
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       // Click text=Continue
       await page.locator("[data-testid=publish-button]").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can access user and team with same slug", async () => {
@@ -285,44 +285,39 @@ test.describe("Teams - Org", () => {
       // TODO: Figure out a way to make this more reliable
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
     });
 
     await test.step("Can add members", async () => {
-      // Click [data-testid="new-member-button"]
-      await page.locator('[data-testid="new-member-button"]').click();
-      // Fill [placeholder="email\@example\.com"]
+      await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
-      // Click [data-testid="invite-new-member-button"]
-      await page.locator('[data-testid="invite-new-member-button"]').click();
+      await page.getByTestId("invite-new-member-button").click();
       await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
+      expect(await page.getByTestId("pending-member-item").count()).toBe(2);
     });
 
     await test.step("Can remove members", async () => {
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
-
-      const lastRemoveMemberButton = page.locator('[data-testid="remove-member-button"]').last();
+      expect(await page.getByTestId("pending-member-item").count()).toBe(2);
+      const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
       await page.waitForLoadState("networkidle");
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
+      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
 
       // Cleanup here since this user is created without our fixtures.
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
     await test.step("Can finish team creation", async () => {
-      await page.locator("[data-testid=publish-button]").click();
-      await page.waitForURL("/settings/teams/**");
+      await page.getByTestId("publish-button").click();
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
-      await page.locator('[data-testid="team-list-item-link"]').click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
-      await page.locator("text=Disband Team").click();
-      await page.locator("text=Yes, disband team").click();
+      await page.getByTestId("disband-team-button").click();
+      await page.getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");
       expect(await page.locator(`text=${user.username}'s Team`).count()).toEqual(0);
     });
@@ -367,13 +362,13 @@ test.describe("Teams - Org", () => {
         await page.goto(`/team/${team.slug}/${teamEventSlug}`);
         await selectFirstAvailableTimeSlotNextMonth(page);
         await bookTimeSlot(page);
-        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.getByTestId("success-page")).toBeVisible();
 
         // The title of the booking
         const BookingTitle = `${teamEventTitle} between ${team.name} and ${testName}`;
-        await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+        await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
         // The booker should be in the attendee list
-        await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+        await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 
         // All the teammates should be in the booking
         for (const teammate of teamMatesObj.concat([{ name: owner.name || "" }])) {
@@ -410,11 +405,11 @@ test.describe("Teams - Org", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
     // The person who booked the meeting should be in the attendee list
-    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+    await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
 
     // The title of the booking
     const BookingTitle = `${teamEventTitle} between ${team.name} and ${testName}`;
-    await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
 
     // Since all the users have the same leastRecentlyBooked value
     // Anyone of the teammates could be the Host of the booking.

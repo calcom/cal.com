@@ -34,7 +34,7 @@ const flag = isTeamBillingEnabledClient
     };
 
 export const CreateANewTeamForm = () => {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const params = useParamsWithFallback();
@@ -93,7 +93,10 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <>
                 <TextField
-                  disabled={createTeamMutation.isLoading}
+                  disabled={
+                    /* E2e is too fast and it tries to fill this way before the form is ready */
+                    !isLocaleReady || createTeamMutation.isLoading
+                  }
                   className="mt-2"
                   placeholder="Acme Inc."
                   name="name"

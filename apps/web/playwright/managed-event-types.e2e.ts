@@ -40,7 +40,7 @@ test.describe("Managed Event Types tests", () => {
       await page.getByTestId("pending-member-list").locator("li:nth-child(2)").waitFor();
       // and publish
       await page.locator("[data-testid=publish-button]").click();
-      await page.waitForURL("/settings/teams/**");
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
       // Going to create an event type
       await page.goto("/event-types");
       await page.getByTestId("new-event-type").click();
