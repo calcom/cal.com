@@ -119,3 +119,6 @@ export const AB_TEST_BUCKET_PROBABILITY = defaultOnNaN(
 export const IS_PREMIUM_USERNAME_ENABLED =
   (IS_CALCOM || (process.env.NEXT_PUBLIC_IS_E2E && IS_STRIPE_ENABLED)) &&
   process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY;
+
+// Max number of invites to join a team/org that can be sent at once
+export const MAX_NB_INVITES = 100;
