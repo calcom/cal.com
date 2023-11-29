@@ -122,21 +122,23 @@ function UsernameField({
       />
       {(!formState.isSubmitting || !formState.isSubmitted) && (
         <div className="text-gray text-default flex items-center text-sm">
-          <p className="flex items-center text-sm ">
+          <div className="text-sm ">
             {usernameTaken ? (
-              <div className="text-error">
+              <div className="text-error flex items-center">
                 <Info className="mr-1 inline-block h-4 w-4" />
-                {t("already_in_use_error")}
+                <p>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
-              <div data-testid="premium-username-warning">
+              <div data-testid="premium-username-warning" className="flex items-center">
                 <StarIcon className="mr-1 inline-block h-4 w-4" />
-                {t("premium_username", {
-                  price: getPremiumPlanPriceValue(),
-                })}
+                <p>
+                  {t("premium_username", {
+                    price: getPremiumPlanPriceValue(),
+                  })}
+                </p>
               </div>
             ) : null}
-          </p>
+          </div>
         </div>
       )}
     </div>
