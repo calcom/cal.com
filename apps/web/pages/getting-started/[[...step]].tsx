@@ -231,7 +231,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 };
 
-OnboardingPage.isThemeSupported = false;
 OnboardingPage.PageWrapper = PageWrapper;
 
 export default OnboardingPage;
