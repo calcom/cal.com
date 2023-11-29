@@ -107,7 +107,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           dir="ltr"
           className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
