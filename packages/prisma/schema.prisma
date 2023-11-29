@@ -1036,7 +1036,6 @@ model PlatformOAuthClient {
   name          String
   client_secret String
   permissions   Int
-  user_ids      Int[]
   users         User[]
   logo          String?
   redirect_uris String[]
