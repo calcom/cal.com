@@ -103,12 +103,14 @@ export const config = {
     "/future/event-types/",
     "/settings/admin/:path*",
     "/future/settings/admin/:path*",
-
     "/apps/:slug/",
     "/future/apps/:slug/",
-
     "/apps/:slug/setup/",
     "/future/apps/:slug/setup/",
+    "/apps/categories/",
+    "/future/apps/categories/",
+    "/apps/categories/:category/",
+    "/future/apps/categories/:category/",
   ],
 };
 
