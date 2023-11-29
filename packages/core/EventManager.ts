@@ -324,7 +324,8 @@ export default class EventManager {
     event: CalendarEvent,
     rescheduleUid: string,
     newBookingId?: number,
-    changedOrganizer?: boolean
+    changedOrganizer?: boolean,
+    newDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -371,6 +372,7 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
+    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -380,7 +382,13 @@ export default class EventManager {
       if (changedOrganizer) {
         log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
         await this.deleteEventsAndMeetings({ booking, event });
-        // New event is created in handleNewBooking
+
+        log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
+
+        const newEvent = { ...evt, destinationCalendar: newDestinationCalendar };
+        const createdEvent = await this.create(newEvent);
+        results.push(...createdEvent.results);
+        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
@@ -427,7 +435,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: [...booking.references],
+      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
     };
   }
 

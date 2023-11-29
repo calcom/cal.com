@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -130,7 +130,6 @@
     "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.1",
     "uuid": "^8.3.2",
-    "web3": "^1.7.5",
     "zod": "^3.22.2"
   },
   "devDependencies": {
