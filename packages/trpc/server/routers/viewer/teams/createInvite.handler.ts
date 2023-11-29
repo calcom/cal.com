@@ -59,3 +59,5 @@ async function getInviteLink(token = "", isOrg = false, orgMembers = 0) {
   if (isOrg || orgMembers > 0) return orgInviteLink;
   return teamInviteLink;
 }
+
+export default createInviteHandler;
