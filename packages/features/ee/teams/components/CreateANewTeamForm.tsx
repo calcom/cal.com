@@ -1,17 +1,17 @@
-import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
-import { useTelemetry, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, TextField, Alert } from "@calcom/ui";
+import { Alert, Button, Form, TextField } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
@@ -21,6 +21,17 @@ const querySchema = z.object({
   returnTo: z.string().optional(),
   slug: z.string().optional(),
 });
+
+const isTeamBillingEnabledClient = !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
+const flag = isTeamBillingEnabledClient
+  ? {
+      telemetryEvent: telemetryEventTypes.team_checkout_session_created,
+      submitLabel: "checkout",
+    }
+  : {
+      telemetryEvent: telemetryEventTypes.team_created,
+      submitLabel: "continue",
+    };
 
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
@@ -43,13 +54,8 @@ export const CreateANewTeamForm = () => {
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
-      telemetry.event(telemetryEventTypes.team_checkout_session_created);
-      // URL will be provided if user has to go to checkout page
-      if (data && "url" in data) {
-        router.push(data.url);
-      } else if (data && "id" in data) {
-        router.push(`/settings/teams/${data.id}/onboard-members`);
-      }
+      telemetry.event(flag.telemetryEvent);
+      router.push(data.url);
     },
     onError: (err) => {
       if (err.message === "team_url_taken") {
@@ -87,6 +93,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <>
                 <TextField
+                  disabled={createTeamMutation.isLoading}
                   className="mt-2"
                   placeholder="Acme Inc."
                   name="name"
@@ -134,17 +141,6 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="mb-8 flex justify-center">
-          <Alert
-            severity="warning"
-            title={
-              <Trans i18nKey="create_new_team_billing">
-                In order to create a new team, you must purchase at one seat.
-              </Trans>
-            }
-          />
-        </div>
-
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={createTeamMutation.isLoading}
@@ -159,7 +155,7 @@ export const CreateANewTeamForm = () => {
             EndIcon={ArrowRight}
             type="submit"
             className="w-full justify-center">
-            {t("checkout")}
+            {t(flag.submitLabel)}
           </Button>
         </div>
       </Form>

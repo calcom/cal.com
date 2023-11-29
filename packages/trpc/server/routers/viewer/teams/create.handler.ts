@@ -1,5 +1,5 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -84,29 +84,15 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     });
 
     // If there is a checkout session, return it. Otherwise, it means it's disabled.
-    if (checkoutSession) return checkoutSession;
+    if (checkoutSession)
+      return {
+        url: checkoutSession.url,
+        message: checkoutSession.message,
+        team: null,
+      };
   }
 
-  // Ensure that the user is not duplicating a requested team
-  const duplicatedRequest = await prisma.team.findFirst({
-    where: {
-      members: {
-        some: {
-          userId: ctx.user.id,
-        },
-      },
-      metadata: {
-        path: ["requestedSlug"],
-        equals: slug,
-      },
-    },
-  });
-
-  if (duplicatedRequest) {
-    return duplicatedRequest;
-  }
-
-  const createTeam = await prisma.team.create({
+  const createdTeam = await prisma.team.create({
     data: {
       ...(isOrgChildTeam ? { slug } : {}),
       name,
@@ -128,7 +114,11 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   });
 
   // Sync Services: Close.com
-  closeComUpsertTeamUser(createTeam, ctx.user, MembershipRole.OWNER);
+  closeComUpsertTeamUser(createdTeam, ctx.user, MembershipRole.OWNER);
 
-  return createTeam;
+  return {
+    url: `${WEBAPP_URL}/settings/teams/${createdTeam.id}/onboard-members`,
+    message: "Team billing is disabled, not generating a checkout session.",
+    team: createdTeam,
+  };
 };

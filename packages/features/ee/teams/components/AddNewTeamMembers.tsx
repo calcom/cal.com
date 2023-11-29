@@ -181,6 +181,7 @@ export const AddNewTeamMembersForm = ({
       )}
       <hr className="border-subtle my-6" />
       <Button
+        data-testid="publish-button"
         EndIcon={!orgBranding ? ArrowRight : undefined}
         color="primary"
         className="w-full justify-center"
