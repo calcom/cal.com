@@ -1554,7 +1554,7 @@
   "enter_email_or_username": "Enter an email or username",
   "enter_email": "Enter an email",
   "enter_emails": "Enter emails",
-  "too_many_emails": "You are limited to inviting a maximum of {{nbUsers}} users at once.",
+  "too_many_invites": "You are limited to inviting a maximum of {{nbUsers}} users at once.",
   "team_name_taken": "This name is already taken",
   "must_enter_team_name": "Must enter a team name",
   "team_url_required": "Must enter a team URL",

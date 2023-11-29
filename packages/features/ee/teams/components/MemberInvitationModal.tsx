@@ -253,7 +253,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       if (Array.isArray(value) && value.some((email) => !isEmail(email)))
                         return t("enter_emails");
                       if (Array.isArray(value) && value.length > MAX_NB_INVITES)
-                        return t("too_many_emails", { nbUsers: MAX_NB_INVITES });
+                        return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
                       if (typeof value === "string" && !isEmail(value)) return t("enter_email");
                     },
                   }}
