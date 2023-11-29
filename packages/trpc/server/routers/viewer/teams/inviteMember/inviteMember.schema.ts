@@ -26,7 +26,6 @@ export const ZInviteMemberInputSchema = z.object({
     .refine(
       (value) => {
         if (Array.isArray(value)) {
-          console.log(value.some((email) => !z.string().email().safeParse(email).success));
           return !value.some((email) => !z.string().email().safeParse(email).success);
         }
         return true;
