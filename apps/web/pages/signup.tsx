@@ -355,7 +355,10 @@ export default function Signup({
                       router.push(GOOGLE_AUTH_URL);
                     }}>
                     <img
-                      className={classNames("text-emphasis  mr-2 h-5 w-5", premiumUsername && "opacity-50")}
+                      className={classNames(
+                        "text-emphasis mr-2  h-5 w-5 dark:invert",
+                        premiumUsername && "opacity-50"
+                      )}
                       src="/google-icon.svg"
                       alt=""
                     />
