@@ -217,46 +217,49 @@ export async function createNewUsersConnectToOrgIfExists({
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  await prisma.$transaction(async (tx) => {
-    for (let index = 0; index < usernamesOrEmails.length; index++) {
-      const usernameOrEmail = usernamesOrEmails[index];
-      const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
-      const [emailUser, emailDomain] = usernameOrEmail.split("@");
-      const username =
-        emailDomain === autoAcceptEmailDomain
-          ? slugify(emailUser)
-          : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+  await prisma.$transaction(
+    async (tx) => {
+      for (let index = 0; index < usernamesOrEmails.length; index++) {
+        const usernameOrEmail = usernamesOrEmails[index];
+        const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
+        const [emailUser, emailDomain] = usernameOrEmail.split("@");
+        const username =
+          emailDomain === autoAcceptEmailDomain
+            ? slugify(emailUser)
+            : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
 
-      const createdUser = await tx.user.create({
-        data: {
-          username,
-          email: usernameOrEmail,
-          verified: true,
-          invitedTo: input.teamId,
-          organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
-          teams: {
-            create: {
-              teamId: input.teamId,
-              role: input.role as MembershipRole,
-              accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+        const createdUser = await tx.user.create({
+          data: {
+            username,
+            email: usernameOrEmail,
+            verified: true,
+            invitedTo: input.teamId,
+            organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+            teams: {
+              create: {
+                teamId: input.teamId,
+                role: input.role as MembershipRole,
+                accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+              },
             },
           },
-        },
-      });
-
-      // We also need to create the membership in the parent org if it exists
-      if (parentId) {
-        await tx.membership.create({
-          data: {
-            teamId: parentId,
-            userId: createdUser.id,
-            role: input.role as MembershipRole,
-            accepted: autoAccept,
-          },
         });
+
+        // We also need to create the membership in the parent org if it exists
+        if (parentId) {
+          await tx.membership.create({
+            data: {
+              teamId: parentId,
+              userId: createdUser.id,
+              role: input.role as MembershipRole,
+              accepted: autoAccept,
+            },
+          });
+        }
       }
-    }
-  });
+    },
+    { timeout: 10000 }
+  );
 }
 
 export async function createProvisionalMemberships({
