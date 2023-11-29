@@ -30,3 +30,5 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   });
   return token;
 };
+
+export default createInviteHandler;

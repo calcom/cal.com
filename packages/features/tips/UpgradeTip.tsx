@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { classNames } from "@calcom/lib";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 
 export function UpgradeTip({
   dark,
@@ -29,11 +30,12 @@ export function UpgradeTip({
 }) {
   const { t } = useLocale();
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
+  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
+
   const hasEnterprisePlan = false;
   //const { isLoading , hasEnterprisePlan } = useHasEnterprisePlan();
 
-  // figure out how to check for unpublished team (idea: fetch all teams and check for !team.slug)
-  const hasUnpublishedTeam = true;
+  const hasUnpublishedTeam = !!data?.[0];
 
   if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return children;
 

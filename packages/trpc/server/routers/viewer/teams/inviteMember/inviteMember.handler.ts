@@ -152,3 +152,5 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   }
   return input;
 };
+
+export default inviteMemberHandler;

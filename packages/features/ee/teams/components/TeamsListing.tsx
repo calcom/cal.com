@@ -102,7 +102,6 @@ export function TeamsListing() {
           <TeamList teams={invites} pending />
         </div>
       )}
-      {/* TODO: Also show teams that have no slug here, so we can show unpublished teams */}
       <UpgradeTip
         plan="team"
         title={t("calcom_is_better_with_team", { appName: APP_NAME })}

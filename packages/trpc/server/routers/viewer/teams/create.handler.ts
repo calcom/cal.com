@@ -90,3 +90,5 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   return createTeam;
 };
+
+export default createHandler;
