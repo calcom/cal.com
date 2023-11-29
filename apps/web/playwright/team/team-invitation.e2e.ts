@@ -51,6 +51,10 @@ test.describe("Team", () => {
       await newPage.waitForLoadState("networkidle");
 
       // Check required fields
+      const button = newPage.locator("button[type=submit][disabled]");
+      await expect(button).toBeVisible(); // email + 3 password hints
+
+      // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
