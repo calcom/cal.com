@@ -102,6 +102,37 @@ export const sendScheduledEmails = async (
   await Promise.all(emailsToSend);
 };
 
+// for rescheduled round robin booking that assigned new members
+export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const teamMember of members) {
+    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, teamMember })));
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendRoundRobinRescheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const teamMember of members) {
+    emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent, teamMember })));
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const teamMember of members) {
+    emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent, teamMember })));
+  }
+
+  await Promise.all(emailsToSend);
+};
+
 export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
 
