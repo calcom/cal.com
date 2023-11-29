@@ -629,11 +629,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (addedSteps) {
-    const eventTypesToCreateReminders = activeOn.map((activeEventType) => {
-      if (activeEventType && !newEventTypes.includes(activeEventType)) {
-        return activeEventType;
-      }
-    });
+    const eventTypesToCreateReminders = activeOn.filter(
+      (eventType) => eventType && !newEventTypes.includes(eventType)
+    );
+
     const promiseAddedSteps = addedSteps.map(async (step) => {
       if (step) {
         const { senderName, ...newStep } = step;
