@@ -19,6 +19,8 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
+export const MAX_NB_INVITES = 100;
+
 export type Invitee = Pick<
   User,
   "id" | "email" | "organizationId" | "username" | "password" | "identityProvider" | "completedOnboarding"
