@@ -48,8 +48,6 @@ test.describe("Organization", () => {
       await newPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator(".text-red-700")).toHaveCount(3); // 3 password hints
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");

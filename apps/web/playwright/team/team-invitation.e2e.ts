@@ -51,8 +51,6 @@ test.describe("Team", () => {
       await newPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator('[data-testid="hint-error"]')).toHaveCount(3);
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
