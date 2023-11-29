@@ -1,9 +1,15 @@
-import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
 import { test } from "./lib/fixtures";
-import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
-import { localize } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  fillStripeTestCheckout,
+  localize,
+  selectFirstAvailableTimeSlotNextMonth,
+} from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -21,18 +27,20 @@ test.describe("Managed Event Types tests", () => {
 
     await test.step("Managed event option exists for team admin", async () => {
       // Filling team creation form wizard
-      await page.locator('input[name="name"]').waitFor();
       await page.locator('input[name="name"]').fill(`${adminUser.username}'s Team`);
-      await page.locator("text=Continue").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members$/i);
+      await page.click("[type=submit]");
+      // TODO: Figure out a way to make this more reliable
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       await page.getByTestId("new-member-button").click();
       await page.locator('[placeholder="email\\@example\\.com"]').fill(`${memberUser.username}@example.com`);
       await page.getByTestId("invite-new-member-button").click();
       // wait for the second member to be added to the pending-member-list.
       await page.getByTestId("pending-member-list").locator("li:nth-child(2)").waitFor();
       // and publish
-      await page.locator("text=Publish team").click();
-      await page.waitForURL("/settings/teams/**");
+      await page.locator("[data-testid=publish-button]").click();
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
       // Going to create an event type
       await page.goto("/event-types");
       await page.getByTestId("new-event-type").click();

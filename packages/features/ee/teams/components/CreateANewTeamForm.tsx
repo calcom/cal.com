@@ -4,14 +4,15 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Form, ImageUploader, TextField, Alert, Label } from "@calcom/ui";
-import { ArrowRight, Plus } from "@calcom/ui/components/icon";
+import { Alert, Button, Form, TextField } from "@calcom/ui";
+import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import type { NewTeamFormValues } from "../lib/types";
@@ -21,8 +22,19 @@ const querySchema = z.object({
   slug: z.string().optional(),
 });
 
+const isTeamBillingEnabledClient = !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
+const flag = isTeamBillingEnabledClient
+  ? {
+      telemetryEvent: telemetryEventTypes.team_checkout_session_created,
+      submitLabel: "checkout",
+    }
+  : {
+      telemetryEvent: telemetryEventTypes.team_created,
+      submitLabel: "continue",
+    };
+
 export const CreateANewTeamForm = () => {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const params = useParamsWithFallback();
@@ -42,8 +54,8 @@ export const CreateANewTeamForm = () => {
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
-      telemetry.event(telemetryEventTypes.team_created);
-      router.push(`/settings/teams/${data.id}/onboard-members`);
+      telemetry.event(flag.telemetryEvent);
+      router.push(data.url);
     },
     onError: (err) => {
       if (err.message === "team_url_taken") {
@@ -81,6 +93,10 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <>
                 <TextField
+                  disabled={
+                    /* E2e is too fast and it tries to fill this way before the form is ready */
+                    !isLocaleReady || createTeamMutation.isLoading
+                  }
                   className="mt-2"
                   placeholder="Acme Inc."
                   name="name"
@@ -128,38 +144,6 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="mb-8">
-          <Controller
-            control={newTeamFormMethods.control}
-            name="logo"
-            render={({ field: { value } }) => (
-              <>
-                <Label>{t("team_logo")}</Label>
-                <div className="flex items-center">
-                  <Avatar
-                    alt=""
-                    imageSrc={value}
-                    fallback={<Plus className="text-subtle h-6 w-6" />}
-                    size="lg"
-                  />
-                  <div className="ms-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="avatar-upload"
-                      buttonMsg={t("update")}
-                      handleAvatarChange={(newAvatar: string) => {
-                        newTeamFormMethods.setValue("logo", newAvatar);
-                        createTeamMutation.reset();
-                      }}
-                      imageSrc={value}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          />
-        </div>
-
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={createTeamMutation.isLoading}
@@ -174,7 +158,7 @@ export const CreateANewTeamForm = () => {
             EndIcon={ArrowRight}
             type="submit"
             className="w-full justify-center">
-            {t("continue")}
+            {t(flag.submitLabel)}
           </Button>
         </div>
       </Form>
