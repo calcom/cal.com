@@ -94,7 +94,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const createdTeam = await prisma.team.create({
     data: {
-      ...(isOrgChildTeam ? { slug } : {}),
+      slug,
       name,
       logo,
       members: {
@@ -104,11 +104,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           accepted: true,
         },
       },
-      metadata: !isOrgChildTeam
-        ? {
-            requestedSlug: slug,
-          }
-        : undefined,
       ...(isOrgChildTeam && { parentId: user.organizationId }),
     },
   });

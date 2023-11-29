@@ -175,12 +175,9 @@ test.describe("Teams - NonOrg", () => {
   });
 
   test("Can create team with same name as user", async ({ page, users }) => {
+    const user = await users.create();
     // Name to be used for both user and team
-    const userToCreate = users.buildForSignup({ username: "test-unique-name" });
-    const uniqueName = userToCreate.username;
-    // Ensure existing team with same name is deleted before test
-    await prisma.team.deleteMany({ where: { slug: uniqueName } });
-    const user = await users.create({ username: uniqueName, useExactUsername: true });
+    const uniqueName = user.username!;
     await user.apiLogin();
     await page.goto("/teams");
 
@@ -318,7 +315,7 @@ test.describe("Teams - Org", () => {
 
     await test.step("Can finish team creation", async () => {
       await page.locator("[data-testid=publish-button]").click();
-      await page.waitForURL("/settings/teams");
+      await page.waitForURL("/settings/teams/**");
     });
 
     await test.step("Can disband team", async () => {
