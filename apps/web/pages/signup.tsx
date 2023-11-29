@@ -379,7 +379,6 @@ export default function Signup({
                         router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
                         return;
                       }
-                      setIsGoogleLoading(false);
                       router.push(GOOGLE_AUTH_URL);
                     }}>
                     Google
