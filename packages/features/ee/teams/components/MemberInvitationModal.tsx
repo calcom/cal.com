@@ -6,11 +6,12 @@ import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
+import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import {
   Button,
   Dialog,
@@ -199,7 +200,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </Label>
           <ToggleGroup
             isFullWidth={true}
-            onValueChange={(val) => setModalInputMode(val as ModalMode)}
+            onValueChange={(val) => {
+              setModalInputMode(val as ModalMode);
+              newMemberFormMethods.clearErrors();
+            }}
             defaultValue={modalImportMode}
             options={toggleGroupOptions}
           />
@@ -213,8 +217,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 name="emailOrUsername"
                 control={newMemberFormMethods.control}
                 rules={{
-                  required: t("enter_email_or_username"),
+                  required: isOrg ? t("enter_email") : t("enter_email_or_username"),
                   validate: (value) => {
+                    // orgs can only invite members by email
+                    if (typeof value === "string" && isOrg && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string")
                       return validateUniqueInvite(value) || t("member_already_invited");
                   },
@@ -241,7 +247,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}
                   rules={{
-                    required: t("enter_email_or_username"),
+                    required: t("enter_email"),
+                    validate: (value) => {
+                      if (Array.isArray(value) && value.some((email) => !isEmail(email)))
+                        return t("enter_emails");
+                      if (Array.isArray(value) && value.length > MAX_NB_INVITES)
+                        return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
+                      if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                    },
                   }}
                   render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <>
