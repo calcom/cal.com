@@ -267,3 +267,31 @@ test.describe("Insights", async () => {
     await download.saveAs("./" + "test-insights.csv");
   });
 });
+
+test.describe("Insights A/B tests", () => {
+  test("should point to the /future/insights page", async ({ page, users, context }) => {
+    await context.addCookies([
+      {
+        name: "x-calcom-future-routes-override",
+        value: "1",
+        url: "http://localhost:3000",
+      },
+    ]);
+    const user = await users.create();
+    await user.apiLogin();
+
+    await page.goto("/insights");
+
+    await page.waitForLoadState();
+
+    const dataNextJsRouter = await page.evaluate(() =>
+      window.document.documentElement.getAttribute("data-nextjs-router")
+    );
+
+    expect(dataNextJsRouter).toEqual("app");
+
+    const locator = page.getByRole("heading", { name: "Insights" });
+
+    await expect(locator).toBeVisible();
+  });
+});

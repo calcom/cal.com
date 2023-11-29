@@ -101,6 +101,8 @@ export const config = {
     "/apps/routing_forms/:path*",
     "/event-types",
     "/future/event-types/",
+    "/insights",
+    "/future/insights/",
     "/settings/admin/:path*",
     "/future/settings/admin/:path*",
   ],
