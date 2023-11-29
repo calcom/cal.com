@@ -194,7 +194,11 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon={Trash2}>
+              <Button
+                color="destructive"
+                className="border"
+                StartIcon={Trash2}
+                data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>
