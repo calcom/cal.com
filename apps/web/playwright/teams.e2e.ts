@@ -317,7 +317,7 @@ test.describe("Teams - Org", () => {
     });
 
     await test.step("Can finish team creation", async () => {
-      await page.locator("text=Finish").click();
+      await page.locator("[data-testid=publish-button]").click();
       await page.waitForURL("/settings/teams");
     });
 
