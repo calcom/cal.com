@@ -11,7 +11,6 @@ test.describe("Managed Booking With All Questions", () => {
     await bookingPage.goToTab("event_advanced_tab_title");
   });
 
-  const bookingOptions = { isAllRequired: true };
   const allQuestions = [
     "phone",
     "address",
