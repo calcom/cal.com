@@ -204,6 +204,7 @@ export default function Signup({
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
+    setClickObserve(true);
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
         ...data,
@@ -234,6 +235,7 @@ export default function Signup({
       })
       .catch((err) => {
         formMethods.setError("apiError", { message: err.message });
+        setClickObserve(false);
       });
   };
 
@@ -377,6 +379,7 @@ export default function Signup({
                         return;
                       }
                       router.push(GOOGLE_AUTH_URL);
+                      setClickObserve(false);
                     }}>
                     Google
                   </Button>
@@ -387,7 +390,8 @@ export default function Signup({
                     disabled={
                       !!formMethods.formState.errors.username ||
                       !!formMethods.formState.errors.email ||
-                      premiumUsername
+                      premiumUsername ||
+                      clickObserve
                     }
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
@@ -396,11 +400,13 @@ export default function Signup({
                         : ""
                     )}
                     onClick={() => {
+                      setClickObserve(true);
                       if (!formMethods.getValues("username")) {
                         formMethods.trigger("username");
                       }
                       if (!formMethods.getValues("email")) {
                         formMethods.trigger("email");
+                        setClickObserve(false);
                         return;
                       }
                       const username = formMethods.getValues("username");
