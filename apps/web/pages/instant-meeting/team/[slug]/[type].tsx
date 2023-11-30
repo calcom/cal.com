@@ -1,9 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
-import { shallow } from "zustand/shallow";
 
 import { Booker } from "@calcom/atoms";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
@@ -29,12 +27,6 @@ export default function Type({
   entity,
   duration,
 }: PageProps) {
-  // const { timeFormat, timezone } = useTimePreferences();
-
-  const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
-    (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
-    shallow
-  );
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
