@@ -61,6 +61,11 @@ const DEFAULT_CHROMIUM = {
   locale: "en-US",
   /** If navigation takes more than this, then something's wrong, let's fail fast. */
   navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
+  // viewport: null,
+  // launchOptions: {
+  //   args: ["--start-maximized"]
+  // },
+  // deviceScaleFactor: undefined,  
 };
 
 const config: PlaywrightTestConfig = {
