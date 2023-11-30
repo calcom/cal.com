@@ -1,6 +1,10 @@
 {
   "name": "@calcom/platform-utils",
   "version": "0.0.0",
-  "private": true,
-  "main": "index.js"
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "@calcom/platform-const": "*",
+    "@calcom/platform-types": "*"
+  }
 }
