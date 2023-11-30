@@ -36,7 +36,16 @@ export class OAuthClientController {
   ) {
     const userId = res.locals.apiKey?.userId;
     this.logger.log(`Creating OAuth Client with data: ${JSON.stringify(createOAuthClientDto)}`);
-    return this.oauthClientRepository.createOAuthClient(userId, createOAuthClientDto);
+
+    const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(
+      userId,
+      createOAuthClientDto
+    );
+
+    return {
+      id,
+      client_secret,
+    };
   }
 
   @Get("/")
