@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
