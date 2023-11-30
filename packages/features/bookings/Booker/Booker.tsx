@@ -1,5 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -47,6 +48,7 @@ const BookerComponent = ({
   entity,
   duration,
   hashedLink,
+  isInstantMeeting = false,
 }: BookerProps) => {
   /**
    * Prioritize dateSchedule load
@@ -150,6 +152,7 @@ const BookerComponent = ({
     isTeamEvent,
     org: entity.orgSlug,
     durationConfig: event?.data?.metadata?.multipleDuration,
+    isInstantMeeting,
   });
 
   useEffect(() => {
@@ -296,6 +299,7 @@ const BookerComponent = ({
                   }
                 }}
                 hashedLink={hashedLink}
+                isInstantMeeting={isInstantMeeting}
               />
             </BookerSection>
 
@@ -376,6 +380,7 @@ export const Booker = (props: BookerProps) => {
 
 export const InstantBooking = () => {
   const { t } = useLocale();
+  const router = useRouter();
 
   return (
     <div className=" bg-default border-subtle mx-2 block items-center gap-3 rounded-xl border p-[6px] text-sm shadow-sm delay-1000 sm:flex">
@@ -409,7 +414,15 @@ export const InstantBooking = () => {
       </div>
       <div className="mt-2 sm:mt-0">
         {/* TODO: onClick listener that takes data from the immediate time */}
-        <Button color="primary" size="sm" className="w-full justify-center rounded-lg sm:w-auto">
+        <Button
+          color="primary"
+          onClick={() => {
+            const currentPath = router.asPath;
+            const newPath = `/instant-meeting${currentPath}`;
+            router.push(newPath);
+          }}
+          size="sm"
+          className="w-full justify-center rounded-lg sm:w-auto">
           {t("connect_now")}
         </Button>
       </div>

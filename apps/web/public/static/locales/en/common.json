@@ -430,6 +430,7 @@
   "browse_api_documentation": "Browse our API documentation",
   "leverage_our_api": "Leverage our API for full control and customizability.",
   "create_webhook": "Create Webhook",
+  "instant_meeting_created":"Instant Meeting Created",
   "booking_cancelled": "Booking Canceled",
   "booking_rescheduled": "Booking Rescheduled",
   "recording_ready": "Recording Download Link Ready",

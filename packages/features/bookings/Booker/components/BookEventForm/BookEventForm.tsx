@@ -19,6 +19,7 @@ import {
   mapBookingToMutationInput,
   mapRecurringBookingToMutationInput,
   useTimePreferences,
+  createInstantBooking,
 } from "@calcom/features/bookings/lib";
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
@@ -41,11 +42,12 @@ import { FormSkeleton } from "./Skeleton";
 type BookEventFormProps = {
   onCancel?: () => void;
   hashedLink?: string | null;
+  isInstantMeeting?: boolean;
 };
 
 type DefaultValues = Record<string, unknown>;
 
-export const BookEventForm = ({ onCancel, hashedLink }: BookEventFormProps) => {
+export const BookEventForm = ({ onCancel, hashedLink, isInstantMeeting }: BookEventFormProps) => {
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
@@ -115,6 +117,7 @@ export const BookEventForm = ({ onCancel, hashedLink }: BookEventFormProps) => {
       eventQuery={eventQuery}
       rescheduleUid={rescheduleUid}
       hashedLink={hashedLink}
+      isInstantMeeting={isInstantMeeting}
     />
   );
 };
@@ -126,12 +129,14 @@ export const BookEventFormChild = ({
   eventQuery,
   rescheduleUid,
   hashedLink,
+  isInstantMeeting,
 }: BookEventFormProps & {
   initialValues: DefaultValues;
   isRescheduling: boolean;
   eventQuery: ReturnType<typeof useEvent>;
   rescheduleUid: string | null;
   hashedLink?: string | null;
+  isInstantMeeting?: boolean;
 }) => {
   const eventType = eventQuery.data;
   const bookingFormSchema = z
@@ -219,6 +224,20 @@ export const BookEventFormChild = ({
         query,
         booking: responseData,
       });
+    },
+    onError: (err, _, ctx) => {
+      // TODO:
+      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
+      // if (vercelId) {
+      //   setResponseVercelIdHeader(vercelId);
+      // }
+      errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
+    },
+  });
+
+  const createInstantBookingMutation = useMutation(createInstantBooking, {
+    onSuccess: (responseData) => {
+      console.log("responseData", responseData);
     },
     onError: (err, _, ctx) => {
       // TODO:
@@ -344,7 +363,9 @@ export const BookEventFormChild = ({
       hashedLink,
     };
 
-    if (eventQuery.data?.recurringEvent?.freq && recurringEventCount) {
+    if (isInstantMeeting) {
+      createInstantBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
+    } else if (eventQuery.data?.recurringEvent?.freq && recurringEventCount) {
       createRecurringBookingMutation.mutate(
         mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
       );
@@ -402,22 +423,32 @@ export const BookEventFormChild = ({
           </div>
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
-          {!!onCancel && (
-            <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
-              {t("back")}
+          {isInstantMeeting ? (
+            <Button type="submit" color="primary">
+              {t("confirm")}
             </Button>
+          ) : (
+            <>
+              {!!onCancel && (
+                <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                  {t("back")}
+                </Button>
+              )}
+              <Button
+                type="submit"
+                color="primary"
+                loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+                data-testid={
+                  rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
+                }>
+                {rescheduleUid && bookingData
+                  ? t("reschedule")
+                  : renderConfirmNotVerifyEmailButtonCond
+                  ? t("confirm")
+                  : t("verify_email_email_button")}
+              </Button>
+            </>
           )}
-          <Button
-            type="submit"
-            color="primary"
-            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
-            data-testid={rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"}>
-            {rescheduleUid && bookingData
-              ? t("reschedule")
-              : renderConfirmNotVerifyEmailButtonCond
-              ? t("confirm")
-              : t("verify_email_email_button")}
-          </Button>
         </div>
       </Form>
       <VerifyCodeDialog

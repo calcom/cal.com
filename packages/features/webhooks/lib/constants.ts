@@ -13,6 +13,7 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.BOOKING_REQUESTED,
     WebhookTriggerEvents.BOOKING_REJECTED,
     WebhookTriggerEvents.RECORDING_READY,
+    WebhookTriggerEvents.INSTANT_MEETING,
   ] as const,
   "routing-forms": [WebhookTriggerEvents.FORM_SUBMITTED] as const,
 };

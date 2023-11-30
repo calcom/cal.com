@@ -241,7 +241,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
   return false;
 }
 
-const getEventTypesFromDB = async (eventTypeId: number) => {
+export const getEventTypesFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
@@ -476,7 +476,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-async function getBookingData({
+export async function getBookingData({
   req,
   isNotAnApiCall,
   eventType,
@@ -605,7 +605,7 @@ async function getBookingData({
   }
 }
 
-function getCustomInputsResponses(
+export function getCustomInputsResponses(
   reqBody: {
     responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];

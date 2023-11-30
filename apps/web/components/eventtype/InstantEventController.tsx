@@ -85,6 +85,13 @@ export default function InstantEventController({ eventType, paymentEnabled }: In
                   {instantEventState && (
                     <div data-testid="instant-event-collapsible" className="text-sm">
                       <div className="flex items-center">TODO: Add Zapier stuff here</div>
+                      <Button
+                        onClick={() => {
+                          console.log("test");
+                        }}
+                        color="secondary">
+                        Test
+                      </Button>
                     </div>
                   )}
                 </div>
