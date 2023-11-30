@@ -18,6 +18,7 @@ test.describe("Google Calendar", async () => {
     let qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }>;
     test.beforeAll(async () => {
       let runIntegrationTest = false;
+      let errorMessage = "Could not run test";
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
@@ -33,7 +34,8 @@ test.describe("Google Calendar", async () => {
             id: true,
           },
         });
-        test.skip(!qaGCalCredential, "Google QA credential not found");
+        if (!qaGCalCredential) errorMessage = "QA credential not found";
+        // test.skip(!qaGCalCredential, "Google QA credential not found");
 
         const qaUserQuery = await prisma.user.findFirstOrThrow({
           where: {
@@ -44,17 +46,19 @@ test.describe("Google Calendar", async () => {
           },
         });
 
-        test.skip(!qaUserQuery, "QA user not found");
+        if (!qaUserQuery) errorMessage = "QA user not found";
+        // test.skip(!qaUserQuery, "QA user not found");
 
         assertValueExists(qaUserQuery.username, "qaUsername");
         qaUsername = qaUserQuery.username;
 
-        test.skip(!qaUsername, "QA username not found");
+        if (!qaUsername) errorMessage = "QA username not found";
+        // test.skip(!qaUsername, "QA username not found");
 
         if (qaGCalCredential && qaUsername) runIntegrationTest = true;
       }
 
-      test.skip(!runIntegrationTest, "QA user not found");
+      test.skip(!runIntegrationTest, errorMessage);
     });
 
     test.beforeEach(async ({ page, users }) => {
