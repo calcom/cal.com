@@ -248,7 +248,7 @@ export default function Signup({
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }>
-      <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
+      <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         <div className="flex w-full flex-col px-4 pt-6 sm:px-16 md:px-20 2xl:px-28">
           {/* Header */}
@@ -421,7 +421,7 @@ export default function Signup({
             )}
           </div>
           {/* Already have an account & T&C */}
-          <div className="flex h-full flex-col justify-end text-xs">
+          <div className="mt-10 flex h-full flex-col justify-end text-xs">
             <div className="flex flex-col text-sm">
               <div className="flex gap-1">
                 <p className="text-subtle">{t("already_have_account")}</p>
@@ -429,7 +429,7 @@ export default function Signup({
                   {t("sign_in")}
                 </Link>
               </div>
-              <div className="text-subtle ">
+              <div className="text-subtle">
                 By signing up, you agree to our{" "}
                 <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
                   Terms{" "}
