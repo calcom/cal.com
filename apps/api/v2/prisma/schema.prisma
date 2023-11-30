@@ -11,23 +11,6 @@ generator client {
   previewFeatures = ["views"]
 }
 
-generator zod {
-  provider      = "zod-prisma"
-  output        = "./zod"
-  imports       = "./zod-utils"
-  relationModel = "default"
-}
-
-generator kysely {
-  provider = "prisma-kysely"
-  output   = "../kysely"
-  fileName = "types.ts"
-}
-
-generator enums {
-  provider = "ts-node --transpile-only ./enum-generator"
-}
-
 enum SchedulingType {
   ROUND_ROBIN @map("roundRobin")
   COLLECTIVE  @map("collective")
@@ -267,8 +250,7 @@ model User {
   //linkedUsers          User[]                  @relation("linked_account")*/
 
   // Used to lock the user account
-  locked               Boolean               @default(false)
-  platformOAuthClients PlatformOAuthClient[]
+  locked Boolean @default(false)
 
   @@unique([email])
   @@unique([email, username])
@@ -1033,17 +1015,4 @@ model Avatar {
 
   @@unique([teamId, userId])
   @@map(name: "avatars")
-}
-
-// Platform
-
-model PlatformOAuthClient {
-  id            String   @id @default(cuid())
-  name          String
-  client_secret String
-  permissions   Int
-  users         User[]
-  logo          String?
-  redirect_uris String[]
-  // add connection to Access Codes
 }
