@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { classNames } from "@calcom/lib";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 
 export function UpgradeTip({
   dark,
@@ -29,10 +30,14 @@ export function UpgradeTip({
 }) {
   const { t } = useLocale();
   const { isLoading, hasTeamPlan } = useHasTeamPlan();
+  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
+
   const hasEnterprisePlan = false;
   //const { isLoading , hasEnterprisePlan } = useHasEnterprisePlan();
 
-  if (plan === "team" && hasTeamPlan) return children;
+  const hasUnpublishedTeam = !!data?.[0];
+
+  if (plan === "team" && (hasTeamPlan || hasUnpublishedTeam)) return children;
 
   if (plan === "enterprise" && hasEnterprisePlan) return children;
 
@@ -44,7 +49,7 @@ export function UpgradeTip({
         <picture className="absolute min-h-[295px] w-full rounded-lg object-cover">
           <source srcSet={`${background}-dark.jpg`} media="(prefers-color-scheme: dark)" />
           <img
-            className="absolute min-h-[295px] w-full rounded-lg object-cover object-left md:object-center select-none"
+            className="absolute min-h-[295px] w-full select-none rounded-lg object-cover object-left md:object-center"
             src={`${background}.jpg`}
             loading="lazy"
             alt={title}
