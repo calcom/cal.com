@@ -240,11 +240,6 @@ export const BookEventFormChild = ({
       console.log("responseData", responseData);
     },
     onError: (err, _, ctx) => {
-      // TODO:
-      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
-      // if (vercelId) {
-      //   setResponseVercelIdHeader(vercelId);
-      // }
       errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
