@@ -102,7 +102,6 @@ export function TeamsListing() {
           <TeamList teams={invites} pending />
         </div>
       )}
-
       <UpgradeTip
         plan="team"
         title={t("calcom_is_better_with_team", { appName: APP_NAME })}
