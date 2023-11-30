@@ -1,8 +1,9 @@
+import { type Params } from "app/_types";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 // returns query object same as ctx.query but for app dir
-export const getQuery = (url: string, params: Record<string, string | string[]>) => {
+export const getQuery = (url: string, params: Params) => {
   if (!url.length) {
     return params;
   }
@@ -13,11 +14,7 @@ export const getQuery = (url: string, params: Record<string, string | string[]>)
   return { ...searchParamsObj, ...params };
 };
 
-export const buildLegacyCtx = (
-  headers: ReadonlyHeaders,
-  cookies: ReadonlyRequestCookies,
-  params: Record<string, string | string[]>
-) => {
+export const buildLegacyCtx = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies, params: Params) => {
   return {
     query: getQuery(headers.get("x-url") ?? "", params),
     params,
