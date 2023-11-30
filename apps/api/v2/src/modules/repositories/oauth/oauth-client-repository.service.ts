@@ -9,27 +9,25 @@ import type { z } from "nestjs-zod/z";
 export class OAuthClientRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createOAuthClient(userId: number, data: z.infer<typeof CreateOAuthClientSchema>) {
+  async createOAuthClient(data: z.infer<typeof CreateOAuthClientSchema>) {
     return this.dbWrite.prisma.platformOAuthClient.create({
-      data: {
-        ...data,
-      },
+      ...data,
     });
   }
 
-  async getOAuthClients(userId: number) {
+  async getOAuthClient(clientId: string) {
+    return this.dbRead.prisma.platformOAuthClient.findUnique({
+      where: { id: clientId },
+    });
+  }
+
+  async getUserOAuthClients(userId: number) {
     return this.dbRead.prisma.platformOAuthClient.findMany({
       where: {
         users: {
           some: { id: userId },
         },
       },
-    });
-  }
-
-  async getOAuthClientById(clientId: string) {
-    return this.dbRead.prisma.platformOAuthClient.findUnique({
-      where: { id: clientId },
     });
   }
 
