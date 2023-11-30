@@ -248,21 +248,21 @@ export default function Signup({
           "--cal-brand-subtle": "#9CA3AF",
         } as CSSProperties
       }>
-      <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-lg 2xl:border ">
+      <div className="bg-muted 2xl:border-subtle grid max-h-[800px] w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
-        <div className="flex w-full flex-col px-4 py-6 sm:px-16 md:px-24 2xl:px-28">
+        <div className="flex w-full flex-col px-4 pt-6 sm:px-16 md:px-20 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
           )}
-          <div className="flex flex-col gap-1">
-            <h1 className="font-cal text-[28px] ">
+          <div className="flex flex-col gap-2">
+            <h1 className="font-cal text-[28px] leading-none ">
               {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
             </h1>
             {IS_CALCOM ? (
-              <p className="text-subtle text-base font-medium leading-6">{t("cal_signup_description")}</p>
+              <p className="text-subtle text-base font-medium leading-5">{t("cal_signup_description")}</p>
             ) : (
-              <p className="text-subtle text-base font-medium leading-6">
+              <p className="text-subtle text-base font-medium leading-5">
                 {t("calcom_explained", {
                   appName: APP_NAME,
                 })}
@@ -424,17 +424,20 @@ export default function Signup({
             )}
           </div>
           {/* Already have an account & T&C */}
-          <div className="mt-6">
+          <div className="flex h-full flex-col justify-end text-xs">
             <div className="flex flex-col text-sm">
-              <Link href="/auth/login" className="text-emphasis hover:underline">
-                {t("already_have_account")}
-              </Link>
-              <div className="text-subtle">
+              <div className="flex gap-1">
+                <p className="text-subtle">{t("already_have_account")}</p>
+                <Link href="/auth/login" className="text-emphasis hover:underline">
+                  {t("sign_in")}
+                </Link>
+              </div>
+              <div className="text-subtle ">
                 By signing up, you agree to our{" "}
                 <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
-                  Terms of Service{" "}
+                  Terms{" "}
                 </Link>
-                <span>and</span>{" "}
+                <span>&</span>{" "}
                 <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
                   Privacy Policy.
                 </Link>
@@ -442,7 +445,12 @@ export default function Signup({
             </div>
           </div>
         </div>
-        <div className="bg-subtle border-subtle hidden w-full flex-col justify-between rounded-l-2xl py-12 pl-12 lg:flex">
+        <div
+          className="border-subtle hidden w-full flex-col justify-between rounded-l-2xl border py-12 pl-12 lg:flex"
+          style={{
+            background:
+              "radial-gradient(162.05% 170% at 109.58% 35%, rgba(102, 117, 147, 0.7) 0%, rgba(212, 212, 213, 0.4) 100%) ",
+          }}>
           {IS_CALCOM && (
             <div className="mb-12 mr-12 grid h-full w-full grid-cols-4 gap-4 ">
               <div className="">
@@ -457,7 +465,7 @@ export default function Signup({
             </div>
           )}
           <div
-            className="rounded-2xl border-y border-l border-dashed border-[#D1D5DB5A] py-[6px] pl-[6px]"
+            className="border-default rounded-bl-2xl rounded-br-none rounded-tl-2xl border-dashed py-[6px] pl-[6px]"
             style={{
               backgroundColor: "rgba(236,237,239,0.9)",
             }}>
