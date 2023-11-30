@@ -1,5 +1,5 @@
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { OAuthClientRepository } from "@/modules/repositories/oAuth/cal/oauth-client-repository.service";
+import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
 import { Module } from "@nestjs/common";
 
 @Module({

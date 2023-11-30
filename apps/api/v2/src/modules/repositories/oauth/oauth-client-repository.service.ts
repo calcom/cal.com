@@ -1,4 +1,4 @@
-import type { CreateOAuthClientSchema } from "@/modules/oAuth/cal/dtos/create-oauth-client";
+import type { CreateOAuthClientSchema } from "@/modules/oauth/dtos/create-oauth-client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";

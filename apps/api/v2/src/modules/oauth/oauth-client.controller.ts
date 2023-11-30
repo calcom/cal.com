@@ -1,6 +1,6 @@
-import { CreateOAuthClientDto } from "@/modules/oAuth/cal/dtos/create-oauth-client";
-import { UpdateOAuthClientDto } from "@/modules/oAuth/cal/dtos/update-oauth-client";
-import { OAuthClientRepository } from "@/modules/repositories/oAuth/cal/oauth-client-repository.service";
+import { CreateOAuthClientDto } from "@/modules/oauth/dtos/create-oauth-client";
+import { UpdateOAuthClientDto } from "@/modules/oauth/dtos/update-oauth-client";
+import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
 import { Response } from "@/types";
 import {
   Body,
@@ -20,7 +20,7 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
-@Controller("oauth-clients")
+@Controller("oauth-client")
 export class OAuthClientController {
   private readonly logger = new Logger("OAuthClientController");
 
