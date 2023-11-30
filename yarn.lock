@@ -4613,15 +4613,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-types@workspace:packages/platform/types":
+"@calcom/platform-constants@*, @calcom/platform-constants@workspace:packages/platform/constants":
+  version: 0.0.0-use.local
+  resolution: "@calcom/platform-constants@workspace:packages/platform/constants"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/platform-types@*, @calcom/platform-types@workspace:packages/platform/types":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-types@workspace:packages/platform/types"
+  dependencies:
+    "@calcom/platform-constants": "*"
   languageName: unknown
   linkType: soft
 
 "@calcom/platform-utils@workspace:packages/platform/utils":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-utils@workspace:packages/platform/utils"
+  dependencies:
+    "@calcom/platform-constants": "*"
+    "@calcom/platform-types": "*"
   languageName: unknown
   linkType: soft
 
