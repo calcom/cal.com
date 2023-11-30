@@ -353,10 +353,7 @@ export default function Signup({
                     StartIcon={() => (
                       <>
                         <img
-                          className={classNames(
-                            "text-emphasis  mr-2 h-5 w-5",
-                            premiumUsername && "opacity-50"
-                          )}
+                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
                           src="/google-icon.svg"
                           alt=""
                         />
