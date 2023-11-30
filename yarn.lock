@@ -4613,9 +4613,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-const@*, @calcom/platform-const@workspace:packages/platform/constants":
+"@calcom/platform-constants@*, @calcom/platform-constants@workspace:packages/platform/constants":
   version: 0.0.0-use.local
-  resolution: "@calcom/platform-const@workspace:packages/platform/constants"
+  resolution: "@calcom/platform-constants@workspace:packages/platform/constants"
   languageName: unknown
   linkType: soft
 
@@ -4623,7 +4623,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/platform-types@workspace:packages/platform/types"
   dependencies:
-    "@calcom/platform-const": "*"
+    "@calcom/platform-constants": "*"
   languageName: unknown
   linkType: soft
 
@@ -4631,7 +4631,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/platform-utils@workspace:packages/platform/utils"
   dependencies:
-    "@calcom/platform-const": "*"
+    "@calcom/platform-constants": "*"
     "@calcom/platform-types": "*"
   languageName: unknown
   linkType: soft

@@ -1,5 +1,5 @@
 {
-  "name": "@calcom/platform-const",
+  "name": "@calcom/platform-constants",
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts"

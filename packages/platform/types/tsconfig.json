@@ -1,8 +1,7 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "target": "es5",
-    "jsx": "preserve",
+    "target": "ES6",
     "resolveJsonModule": true
   },
   "include": ["."],

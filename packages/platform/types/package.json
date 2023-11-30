@@ -4,6 +4,6 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "dependencies": {
-    "@calcom/platform-const": "*"
+    "@calcom/platform-constants": "*"
   }
 }
