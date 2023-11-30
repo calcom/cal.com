@@ -242,11 +242,11 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId("field-add-save").click();
     },
 
-    updateEventType: async (options?: { shouldCheck: boolean }) => {
+    updateEventType: async (options?: { shouldCheck: boolean; name: string }) => {
       await page.getByTestId("update-eventtype").click();
       options?.shouldCheck &&
         (await expect(
-          page.getByRole("button", { name: "Test Managed Event Type event type updated successfully" })
+          page.getByRole("button", { name: `${options.name} event type updated successfully` })
         ).toBeVisible());
     },
 
@@ -561,7 +561,7 @@ export function createBookingPageFixture(page: Page) {
       const redirectSwitchText = (await localize("en"))("redirect_success_booking");
       const placeholder = (await localize("en"))("external_redirect_url");
       const lockedFieldsAdminDescription = (await localize("en"))("locked_fields_admin_description");
-
+      const redirectUrlWarning = (await localize("en"))("redirect_url_warning");
       await expect(
         page
           .getByRole("group")
@@ -581,6 +581,8 @@ export function createBookingPageFixture(page: Page) {
       await expect(redirectSwitch).toBeVisible();
       await redirectSwitch.click();
       await expect(page.getByPlaceholder(placeholder)).toBeVisible();
+      await page.getByPlaceholder(placeholder).fill("https://cal.com");
+      await expect(page.getByText(redirectUrlWarning)).toBeVisible();
     },
 
     checkEnablePrivateUrl: async () => {
@@ -613,16 +615,12 @@ export function createBookingPageFixture(page: Page) {
       ).toBeVisible();
       page.locator("label").filter({ hasText: offerSeats }).locator("div").hover();
       await expect(page.getByText(lockedFieldsAdminDescription)).toBeVisible();
-      const seatSwitch = page.getByTestId("offer-seats-toggle");
-
-      await expect(seatSwitch).toBeVisible();
-      await seatSwitch.click();
+      await page.getByTestId("offer-seats-toggle").click();
 
       const seatSwitchField = page.getByLabel(seatSwitchText);
       await seatSwitchField.fill("3");
       await expect(seatSwitchField).toHaveValue("3");
       await expect(page.getByLabel(shareAttendeeText)).toBeVisible();
-      await seatSwitch.click();
     },
 
     checkLockTimezone: async () => {
@@ -651,14 +649,13 @@ export function createBookingPageFixture(page: Page) {
       await lockSwitch.click();
     },
 
-    checkEventType: async (withOfferseats: boolean) => {
+    checkEventType: async (options: { withOfferseats: boolean }) => {
       const seatsText = (await localize("en"))("seats");
       const requiresConfirmationText = (await localize("en"))("requires_confirmation");
-      const managed = (await localize("en"))("managed");
 
-      withOfferseats
-        ? await expect(page.locator(`text=${managed} ${seatsText}`)).toBeTruthy()
-        : await expect(page.locator(`text=${managed} ${requiresConfirmationText}`)).toBeTruthy();
+      options.withOfferseats
+        ? await expect(page.getByText(seatsText).last()).toBeVisible()
+        : await expect(page.getByText(requiresConfirmationText).last()).toBeVisible();
     },
 
     assertBookingIsVisible: async (name: string) => {
