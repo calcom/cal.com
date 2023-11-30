@@ -517,8 +517,8 @@ const RecurringBookingsTooltip = ({
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toDateString())
-        .includes(recurringDate.toDateString())
+        .map((date) => date.toString())
+        .includes(recurringDate.toString())
     );
   }).length;
 
@@ -535,8 +535,8 @@ const RecurringBookingsTooltip = ({
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toDateString())
-                    .includes(aDate.toDateString());
+                    .map((date) => date.toString())
+                    .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, userTimeFormat, userTimeZone)}
