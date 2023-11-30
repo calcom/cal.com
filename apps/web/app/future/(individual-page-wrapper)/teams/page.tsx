@@ -56,7 +56,7 @@ const Page = async ({ params }: PageProps) => {
       nonce={nonce}
       themeBasis={null}
       dehydratedState={props.dehydratedState}>
-      <OldPage {...props} />
+      <OldPage />
     </PageWrapper>
   );
 };
