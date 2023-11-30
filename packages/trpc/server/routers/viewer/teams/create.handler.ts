@@ -117,3 +117,5 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     team: createdTeam,
   };
 };
+
+export default createHandler;
