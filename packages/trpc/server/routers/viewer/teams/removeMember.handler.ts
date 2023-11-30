@@ -121,3 +121,5 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   closeComDeleteTeamMembership(membership.user);
   if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
 };
+
+export default removeMemberHandler;

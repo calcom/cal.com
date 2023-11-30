@@ -130,18 +130,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     )
     .flat();
 
-  const newActiveEventTypes = activeOn.filter((eventType) => {
-    if (
+  const newActiveEventTypes = activeOn.filter(
+    (eventType) =>
       !oldActiveOnEventTypes ||
       !oldActiveOnEventTypes
         .map((oldEventType) => {
           return oldEventType.eventTypeId;
         })
         .includes(eventType)
-    ) {
-      return eventType;
-    }
-  });
+  );
 
   //check if new event types belong to user or team
   for (const newEventTypeId of newActiveEventTypes) {
@@ -177,11 +174,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
-  const removedEventTypes = oldActiveOnEventTypeIds.filter((eventTypeId) => {
-    if (!activeOnWithChildren.includes(eventTypeId)) {
-      return eventTypeId;
-    }
-  });
+  const removedEventTypes = oldActiveOnEventTypeIds.filter(
+    (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
+  );
 
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
@@ -471,11 +466,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
       //cancel all reminders of step and create new ones (not for newEventTypes)
-      const remindersToUpdate = remindersFromStep.filter((reminder) => {
-        if (reminder.booking?.eventTypeId && !newEventTypes.includes(reminder.booking?.eventTypeId)) {
-          return reminder;
-        }
-      });
+      const remindersToUpdate = remindersFromStep.filter(
+        (reminder) => reminder.booking?.eventTypeId && !newEventTypes.includes(reminder.booking?.eventTypeId)
+      );
 
       //cancel all workflow reminders from steps that were edited
       // FIXME: async calls into ether
@@ -488,11 +481,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
         }
       });
-      const eventTypesToUpdateReminders = activeOn.filter((eventTypeId) => {
-        if (!newEventTypes.includes(eventTypeId)) {
-          return eventTypeId;
-        }
-      });
+
+      const eventTypesToUpdateReminders = activeOn.filter(
+        (eventTypeId) => !newEventTypes.includes(eventTypeId)
+      );
       if (
         eventTypesToUpdateReminders &&
         (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT)
@@ -629,11 +621,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (addedSteps) {
-    const eventTypesToCreateReminders = activeOn.map((activeEventType) => {
-      if (activeEventType && !newEventTypes.includes(activeEventType)) {
-        return activeEventType;
-      }
-    });
+    const eventTypesToCreateReminders = activeOn.filter(
+      (activeEventType) => activeEventType && !newEventTypes.includes(activeEventType)
+    );
     const promiseAddedSteps = addedSteps.map(async (step) => {
       if (step) {
         const { senderName, ...newStep } = step;
