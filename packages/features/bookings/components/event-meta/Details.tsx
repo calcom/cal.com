@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import React from "react";
 
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,8 +31,7 @@ type EventDetailCustomBlock = {
   name: string;
 };
 
-type EventDetailsProps = EventDetailsPropsBase &
-  (EventDetailDefaultBlock | EventDetailCustomBlock) & { rescheduleUid: string | null };
+type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
 
 interface EventMetaProps {
   icon?: React.FC<{ className: string }> | string;
@@ -109,12 +109,9 @@ export const EventMetaBlock = ({
  * const MyCustomBlock = () => <div>Something nice</div>;
  * <EventDetails event={event} blocks={[EventDetailBlocks.LOCATION, MyCustomBlock]} />
  */
-export const EventDetails = ({
-  event,
-  blocks = defaultEventDetailsBlocks,
-  rescheduleUid,
-}: EventDetailsProps) => {
+export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
 
   return (
     <>

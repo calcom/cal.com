@@ -104,7 +104,7 @@ export const EventMeta = () => {
                 />
               </EventMetaBlock>
             )}
-            <EventDetails event={event} rescheduleUid={rescheduleUid} />
+            <EventDetails event={event} />
 
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
