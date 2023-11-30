@@ -42,6 +42,7 @@ export class OAuthClientController {
   @Get("/")
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
+  @HttpCode(HttpStatus.OK)
   async getOAuthClients(@Res({ passthrough: true }) res: Response) {
     const userId = res.locals.apiKey?.userId;
     return this.oauthClientRepository.getUserOAuthClients(userId);
@@ -50,6 +51,7 @@ export class OAuthClientController {
   @Get("/:clientId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
+  @HttpCode(HttpStatus.OK)
   async getOAuthClientById(@Param("clientId") clientId: string) {
     return this.oauthClientRepository.getOAuthClient(clientId);
   }
@@ -57,6 +59,7 @@ export class OAuthClientController {
   @Put("/:clientId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
+  @HttpCode(HttpStatus.OK)
   async updateOAuthClient(
     @Param("clientId") clientId: string,
     @Body() updateOAuthClientDto: UpdateOAuthClientDto
@@ -68,6 +71,7 @@ export class OAuthClientController {
   @Delete("/:clientId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOAuthClient(@Param("clientId") clientId: string) {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     return this.oauthClientRepository.deleteOAuthClient(clientId);
