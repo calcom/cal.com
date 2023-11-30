@@ -41,3 +41,5 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
     }));
 };
+
+export default listHandler;

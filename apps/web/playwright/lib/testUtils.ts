@@ -295,3 +295,11 @@ export function generateTotpCode(email: string) {
   totp.options = { step: 90 };
   return totp.generate(secret);
 }
+
+export async function fillStripeTestCheckout(page: Page) {
+  await page.fill("[name=cardNumber]", "4242424242424242");
+  await page.fill("[name=cardExpiry]", "12/30");
+  await page.fill("[name=cardCvc]", "111");
+  await page.fill("[name=billingName]", "Stripe Stripeson");
+  await page.click(".SubmitButton--complete-Shimmer");
+}
