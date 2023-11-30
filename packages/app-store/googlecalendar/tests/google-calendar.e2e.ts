@@ -22,6 +22,9 @@ test.describe("Google Calendar", async () => {
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
+      test.skip(!process.env.E2E_TEST_CALCOM_QA_EMAIL, "QA email not found");
+      test.skip(!process.env.E2E_TEST_CALCOM_QA_PASSWORD, "QA password not found");
+
       if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
         qaGCalCredential = await prisma.credential.findFirstOrThrow({
           where: {
