@@ -20,7 +20,7 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
-@Controller("oauth-client")
+@Controller("oauth-clients")
 export class OAuthClientController {
   private readonly logger = new Logger("OAuthClientController");
 
@@ -44,14 +44,14 @@ export class OAuthClientController {
   @UseGuards(AuthGuard("api-key"))
   async getOAuthClients(@Res({ passthrough: true }) res: Response) {
     const userId = res.locals.apiKey?.userId;
-    return this.oauthClientRepository.getOAuthClients(userId);
+    return this.oauthClientRepository.getUserOAuthClients(userId);
   }
 
   @Get("/:clientId")
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   async getOAuthClientById(@Param("clientId") clientId: string) {
-    return this.oauthClientRepository.getOAuthClientById(clientId);
+    return this.oauthClientRepository.getOAuthClient(clientId);
   }
 
   @Put("/:clientId")
