@@ -12,6 +12,7 @@
     "start": "PORT=4200 next start"
   },
   "dependencies": {
+    "@types/swagger-ui-react": "^4.18.3",
     "highlight.js": "^11.6.0",
     "isarray": "2.0.5",
     "next": "^13.4.6",
