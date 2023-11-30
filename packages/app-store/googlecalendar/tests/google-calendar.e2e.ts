@@ -33,6 +33,7 @@ test.describe("Google Calendar", async () => {
             id: true,
           },
         });
+        test.skip(!qaGCalCredential, "Google QA credential not found");
 
         const qaUserQuery = await prisma.user.findFirstOrThrow({
           where: {
@@ -43,8 +44,12 @@ test.describe("Google Calendar", async () => {
           },
         });
 
+        test.skip(!qaUserQuery, "QA user not found");
+
         assertValueExists(qaUserQuery.username, "qaUsername");
         qaUsername = qaUserQuery.username;
+
+        test.skip(!qaUsername, "QA username not found");
 
         if (qaGCalCredential && qaUsername) runIntegrationTest = true;
       }
