@@ -144,7 +144,7 @@ const updateMeeting = async (
   if (!updatedMeeting) {
     log.error(
       "updateMeeting failed",
-      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+      safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
       appName: credential.appId || "",
