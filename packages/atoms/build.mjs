@@ -22,11 +22,6 @@ const promises = libraries.map(async (lib) => {
       },
       emptyOutDir: false,
     },
-    resolve: {
-      alias: {
-        crypto: require.resolve("rollup-plugin-node-builtins"),
-      },
-    },
   });
 });
 await Promise.all(promises);
