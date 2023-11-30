@@ -1,5 +1,4 @@
-import { addDecorator } from "@storybook/react";
-import { AppRouterContext } from "next/dist/shared/lib/app-router-context";
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { I18nextProvider } from "react-i18next";
 
 import "../styles/globals.css";
@@ -29,13 +28,25 @@ export const parameters = {
     },
   },
   i18n,
+  nextjs: {
+    appDirectory: true,
+    router: {
+      pathname: "/",
+      asPath: "/",
+      query: {},
+      push() {},
+      Provider: AppRouterContext.Provider,
+    },
+  },
 };
 
-addDecorator((storyFn) => (
-  <I18nextProvider i18n={i18n}>
-    <div style={{ margin: "2rem" }}>{storyFn()}</div>
-  </I18nextProvider>
-));
+export const decorators = [
+  (Story) => (
+    <I18nextProvider i18n={i18n}>
+      <div style={{ margin: "2rem" }}>{Story()}</div>
+    </I18nextProvider>
+  ),
+];
 
 window.getEmbedNamespace = () => {
   const url = new URL(document.URL);

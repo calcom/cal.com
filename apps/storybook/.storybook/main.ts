@@ -1,6 +1,7 @@
-const path = require("path");
+import type { StorybookConfig } from "@storybook/nextjs";
+import path, { dirname, join } from "path";
 
-module.exports = {
+const config: StorybookConfig = {
   stories: [
     "../intro.stories.mdx",
     "../../../packages/ui/components/**/*.stories.mdx",
@@ -8,27 +9,25 @@ module.exports = {
     "../../../packages/features/**/*.stories.mdx",
     "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
   ],
+
   addons: [
-    "@storybook/addon-links",
-    "@storybook/addon-essentials",
-    "@storybook/addon-interactions",
-    "storybook-addon-rtl-direction",
-    "storybook-react-i18next",
-    "storybook-addon-next",
-    "storybook-addon-next-router",
-    /*{
-      name: "storybook-addon-next",
-      options: {
-        nextConfigPath: path.resolve(__dirname, "../../web/next.config.js"),
-      },
-    },*/
+    getAbsolutePath("@storybook/addon-links"),
+    getAbsolutePath("@storybook/addon-essentials"),
+    getAbsolutePath("@storybook/addon-interactions"),
+    getAbsolutePath("storybook-addon-rtl-direction"),
+    getAbsolutePath("storybook-react-i18next"),
+    getAbsolutePath("@storybook/addon-mdx-gfm"),
   ],
-  framework: "@storybook/react",
-  core: {
-    builder: "webpack5",
+
+  framework: {
+    name: getAbsolutePath("@storybook/nextjs") as "@storybook/nextjs",
+    options: {},
   },
+
   staticDirs: ["../public"],
-  webpackFinal: async (config, { configType }) => {
+
+  webpackFinal: async (config) => {
+    config.resolve = config.resolve || {};
     config.resolve.fallback = {
       fs: false,
       assert: false,
@@ -56,6 +55,8 @@ module.exports = {
       zlib: false,
     };
 
+    config.module = config.module || {};
+    config.module.rules = config.module.rules || [];
     config.module.rules.push({
       test: /\.css$/,
       use: [
@@ -72,5 +73,16 @@ module.exports = {
 
     return config;
   },
-  typescript: { reactDocgen: "react-docgen" },
+
+  typescript: { reactDocgen: "react-docgen-typescript" },
+
+  docs: {
+    autodocs: true,
+  },
 };
+
+export default config;
+
+function getAbsolutePath(value) {
+  return dirname(require.resolve(join(value, "package.json")));
+}
