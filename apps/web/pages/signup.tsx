@@ -241,7 +241,7 @@ export default function Signup({
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
-        <div className="flex w-full flex-col justify-center px-4 py-6 sm:px-16 md:px-20 2xl:px-28">
+        <div className="flex w-full flex-col px-4 pt-6 sm:px-16 md:px-20 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
