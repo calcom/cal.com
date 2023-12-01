@@ -42,3 +42,5 @@ export const getUpgradeableHandler = async ({ ctx }: GetUpgradeableOptions) => {
   });
   return teams;
 };
+
+export default getUpgradeableHandler;
