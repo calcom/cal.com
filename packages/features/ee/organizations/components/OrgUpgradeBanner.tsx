@@ -5,11 +5,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, TopBanner } from "@calcom/ui";
 
-export function OrgUpgradeBanner({
-  data,
-}: {
+export type OrgUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["getUserTopBanners"]["orgUpgradeBanner"];
-}) {
+};
+
+export function OrgUpgradeBanner({ data }: OrgUpgradeBannerProps) {
   const { t } = useLocale();
   const router = useRouter();
   const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({

@@ -5,11 +5,11 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { showToast, TopBanner } from "@calcom/ui";
 
-export function TeamsUpgradeBanner({
-  data,
-}: {
+export type TeamsUpgradeBannerProps = {
   data: RouterOutputs["viewer"]["getUserTopBanners"]["teamUpgradeBanner"];
-}) {
+};
+
+export function TeamsUpgradeBanner({ data }: TeamsUpgradeBannerProps) {
   const { t } = useLocale();
   const router = useRouter();
 

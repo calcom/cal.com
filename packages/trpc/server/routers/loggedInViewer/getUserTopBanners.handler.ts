@@ -59,7 +59,8 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   return {
     teamUpgradeBanner: teamUpgradeBanner.status === "fulfilled" ? teamUpgradeBanner.value : [],
     orgUpgradeBanner: orgUpgradeBanner.status === "fulfilled" ? orgUpgradeBanner.value : [],
-    verifyEmailBanner: verifyEmailBanner.status === "fulfilled" ? verifyEmailBanner.value : undefined,
+    verifyEmailBanner:
+      verifyEmailBanner.status === "fulfilled" ? !verifyEmailBanner.value.isVerified : undefined,
     calendarCredentialBanner:
       calendarCredentialBanner.status === "fulfilled" ? calendarCredentialBanner.value : undefined,
   };

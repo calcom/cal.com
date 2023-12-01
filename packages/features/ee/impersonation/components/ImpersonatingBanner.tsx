@@ -1,9 +1,11 @@
-import type { useSession } from "next-auth/react";
+import type { Session } from "next-auth/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui";
 
-function ImpersonatingBanner({ data }: { data: ReturnType<(typeof useSession)["data"]> }) {
+export type ImpersonatingBannerProps = { data: Session };
+
+function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
   const { t } = useLocale();
 
   if (!data?.user.impersonatedByUID) return null;

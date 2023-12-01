@@ -7,11 +7,11 @@ import { Mail } from "@calcom/ui/components/icon";
 
 import { useFlagMap } from "../../flags/context/provider";
 
-function VerifyEmailBanner({
-  data,
-}: {
+export type VerifyEmailBannerProps = {
   data: RouterOutputs["viewer"]["getUserTopBanners"]["verifyEmailBanner"];
-}) {
+};
+
+function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
   const flags = useFlagMap();
   const { t } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();

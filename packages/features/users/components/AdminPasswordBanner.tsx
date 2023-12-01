@@ -1,10 +1,12 @@
-import type { useSession } from "next-auth/react";
+import type { Session } from "next-auth/react";
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui";
 
-function AdminPasswordBanner({ data }: { data: ReturnType<(typeof useSession)["data"]> }) {
+export type AdminPasswordBannerProps = { data: Session };
+
+function AdminPasswordBanner({ data }: AdminPasswordBannerProps) {
   const { t } = useLocale();
 
   if (data?.user.role !== "INACTIVE_ADMIN") return null;

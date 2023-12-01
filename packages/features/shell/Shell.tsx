@@ -10,19 +10,30 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
-import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+import ImpersonatingBanner, {
+  type ImpersonatingBannerProps,
+} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import {
+  OrgUpgradeBanner,
+  type OrgUpgradeBannerProps,
+} from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
-import CalendarCredentialBanner from "@calcom/features/users/components/CalendarCredentialBanner";
-import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
+import AdminPasswordBanner, {
+  type AdminPasswordBannerProps,
+} from "@calcom/features/users/components/AdminPasswordBanner";
+import CalendarCredentialBanner, {
+  type CalendarCredentialBannerProps,
+} from "@calcom/features/users/components/CalendarCredentialBanner";
+import VerifyEmailBanner, {
+  type VerifyEmailBannerProps,
+} from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGTH } from "@calcom/lib/constants";
+import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -132,13 +143,23 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
-const BannerComponent = {
-  teamUpgradeBanner: (props) => <TeamsUpgradeBanner {...props} />,
-  orgUpgradeBanner: (props) => <OrgUpgradeBanner {...props} />,
-  verifyEmailBanner: (props) => <VerifyEmailBanner {...props} />,
-  adminPasswordBanner: (props) => <AdminPasswordBanner {...props} />,
-  impersonationBanner: (props) => <ImpersonatingBanner {...props} />,
-  calendarCredentialBanner: (props) => <CalendarCredentialBanner {...props} />,
+type BannerType =
+  | "teamUpgradeBanner"
+  | "orgUpgradeBanner"
+  | "verifyEmailBanner"
+  | "adminPasswordBanner"
+  | "impersonationBanner"
+  | "calendarCredentialBanner";
+
+type Component = JSX.Element;
+
+const BannerComponent: Record<BannerType, Component> = {
+  teamUpgradeBanner: (props: TeamsUpgradeBannerProps) => <TeamsUpgradeBanner {...props} />,
+  orgUpgradeBanner: (props: OrgUpgradeBannerProps) => <OrgUpgradeBanner {...props} />,
+  verifyEmailBanner: (props: VerifyEmailBannerProps) => <VerifyEmailBanner {...props} />,
+  adminPasswordBanner: (props: AdminPasswordBannerProps) => <AdminPasswordBanner {...props} />,
+  impersonationBanner: (props: ImpersonatingBannerProps) => <ImpersonatingBanner {...props} />,
+  calendarCredentialBanner: (props: CalendarCredentialBannerProps) => <CalendarCredentialBanner {...props} />,
 };
 
 function useRedirectToOnboardingIfNeeded() {
@@ -182,7 +203,7 @@ const useBanners = () => {
   const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
 
   const activeBanners = Object.entries(allBanners).filter(([_, value]) => {
-    return value !== undefined && (!Array.isArray(value) || value.length > 0);
+    return value && (!Array.isArray(value) || value.length > 0);
   });
 
   return activeBanners;
@@ -192,7 +213,10 @@ const Layout = (props: LayoutProps) => {
   const banners = useBanners();
 
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
-  const bannersHeight = (banners?.length ?? 0) * TOP_BANNER_HEIGTH;
+
+  const bannersHeight = useMemo(() => {
+    return (banners?.length ?? 0) * TOP_BANNER_HEIGHT;
+  }, [banners]);
 
   return (
     <>
@@ -804,6 +828,7 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
+  console.log("bannersHeight", bannersHeight);
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
