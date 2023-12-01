@@ -39,7 +39,6 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
   // Use a try catch instead of returning res every time
   try {
     ensureReqIsPost(req);
-
     ensureSignupIsEnabled(req);
 
     /**
