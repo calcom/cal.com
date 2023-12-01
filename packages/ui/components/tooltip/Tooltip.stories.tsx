@@ -1,4 +1,3 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { VariantRow, VariantsTable } from "@calcom/storybook/components";
@@ -21,20 +20,18 @@ export const Default: Story = {
     content: "Copy me!",
   },
   render: (_, { parameters: { content, hoverMsg, alertMsg } }) => (
-    <TooltipProvider>
-      <VariantsTable titles={[]}>
-        <VariantRow variant="Default">
-          <Tooltip content={`${hoverMsg}`}>
-            <span
-              className="dark:text-darkgray-50 bg-brand-default dark:bg-darkgray-900 rounded-md p-2 text-gray-100 hover:cursor-pointer"
-              onClick={() => {
-                alert(`${alertMsg}`);
-              }}>
-              {content}
-            </span>
-          </Tooltip>
-        </VariantRow>
-      </VariantsTable>
-    </TooltipProvider>
+    <VariantsTable titles={[]}>
+      <VariantRow variant="Default">
+        <Tooltip content={`${hoverMsg}`}>
+          <span
+            className="dark:text-darkgray-50 bg-brand-default dark:bg-darkgray-900 rounded-md p-2 text-gray-100 hover:cursor-pointer"
+            onClick={() => {
+              alert(`${alertMsg}`);
+            }}>
+            {content}
+          </span>
+        </Tooltip>
+      </VariantRow>
+    </VariantsTable>
   ),
 };

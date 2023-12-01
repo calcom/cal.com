@@ -4,11 +4,13 @@ import path, { dirname, join } from "path";
 const config: StorybookConfig = {
   stories: [
     "../intro.stories.mdx",
-    "../../../packages/ui/components/**/*.stories.mdx", // for old SB6 stories
-    "../../../packages/ui/components/**/*.docs.mdx", // for new SB7 docs
-    "../../../packages/atoms/**/*.stories.mdx",
-    "../../../packages/features/**/*.stories.mdx",
-    "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)", // for new SB7 stories
+    "../../../packages/ui/components/**/*.stories.mdx", // legacy SB6 stories
+    "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/ui/components/**/*.docs.mdx",
+    "../../../packages/features/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/features/**/*.docs.mdx",
+    "../../../packages/atoms/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/atoms/**/*.docs.mdx",
   ],
 
   addons: [
@@ -17,7 +19,6 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-interactions"),
     getAbsolutePath("storybook-addon-rtl-direction"),
     getAbsolutePath("storybook-react-i18next"),
-    getAbsolutePath("@storybook/addon-mdx-gfm"),
   ],
 
   framework: {
