@@ -1581,6 +1581,7 @@
   "enable_apps": "Apps inschakelen",
   "enable_apps_description": "Schakel apps in die gebruikers kunnen integreren met {{appName}}",
   "purchase_license": "Koop een licentie",
+  "already_have_account": "Heeft u al een account?",
   "already_have_key": "Ik heb al een code:",
   "already_have_key_suggestion": "Kopieer hier uw bestaande CALCOM_LICENSE_KEY-omgevingsvariabele.",
   "app_is_enabled": "{{appName}} is ingeschakeld",

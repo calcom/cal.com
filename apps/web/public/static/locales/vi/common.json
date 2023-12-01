@@ -1581,6 +1581,7 @@
   "enable_apps": "Kích hoạt ứng dụng",
   "enable_apps_description": "Kích hoạt những ứng dụng mà người dùng có thể tích hợp với {{appName}}",
   "purchase_license": "Mua một giấy phép",
+  "already_have_account": "Bạn đã có sẵn tài khoản?",
   "already_have_key": "Tôi đã có một khoá:",
   "already_have_key_suggestion": "Vui lòng sao chép biến số môi trường CALCOM_LICENSE_KEY hiện có của bạn tại đây.",
   "app_is_enabled": "{{appName}} đã được kích hoạt",

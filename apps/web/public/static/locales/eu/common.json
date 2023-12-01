@@ -752,6 +752,7 @@
   "enter_email_or_username": "Sartu email edo erabiltzaile izen bat",
   "team_name_taken": "Izen hau dagoeneko hartua dago",
   "must_enter_team_name": "Taldearentzat izen bat behar da",
+  "already_have_account": "Baduzu kontua dagoeneko?",
   "fill_this_field": "Mesedez, bete ezazu eremu hau",
   "options": "Aukerak",
   "add_an_option": "Gehitu aukera bat",
