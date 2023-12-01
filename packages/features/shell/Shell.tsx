@@ -153,7 +153,7 @@ type BannerTypeProps = {
 };
 
 type BannerComponent = {
-  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element;
+  [Key in BannerTypeProps]: (props: BannerTypeProps[Key]) => JSX.Element;
 };
 
 const BannerComponent: BannerComponent = {
@@ -192,6 +192,7 @@ function useRedirectToOnboardingIfNeeded() {
 const useBanners = () => {
   const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
+  console.log("AdminPasswordBanner", userSession);
 
   if (isLoading || !userSession) return null;
 
