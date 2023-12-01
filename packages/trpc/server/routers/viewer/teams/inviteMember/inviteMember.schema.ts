@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MAX_NB_INVITES } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export const ZInviteMemberInputSchema = z.object({
@@ -15,13 +16,13 @@ export const ZInviteMemberInputSchema = z.object({
     .refine(
       (value) => {
         if (Array.isArray(value)) {
-          if (value.length > 100) {
+          if (value.length > MAX_NB_INVITES) {
             return false;
           }
         }
         return true;
       },
-      { message: "You are limited to inviting a maximum of 100 users at once." }
+      { message: `You are limited to inviting a maximum of ${MAX_NB_INVITES} users at once.` }
     )
     .refine(
       (value) => {

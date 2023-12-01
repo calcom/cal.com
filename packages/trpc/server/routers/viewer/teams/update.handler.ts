@@ -97,3 +97,5 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: updatedTeam.darkBrandColor,
   };
 };
+
+export default updateHandler;
