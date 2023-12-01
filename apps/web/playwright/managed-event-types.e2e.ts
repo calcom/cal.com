@@ -1,6 +1,9 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "./lib/testUtils";
+import { localize } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());
 
@@ -69,15 +72,34 @@ test.describe("Managed Event Types tests", () => {
       await page.goto("/event-types");
       await page.getByTestId("event-types").locator('a[title="managed"]').click();
       await page.getByTestId("vertical-tab-assignment").click();
-      await page.locator('[class$="control"]').filter({ hasText: "Select..." }).click();
+      await page.getByTestId("assignment-dropdown").click();
+
       await page.getByTestId(`select-option-${memberUser.id}`).click();
       await page.locator('[type="submit"]').click();
       await page.getByTestId("toast-success").waitFor();
+    });
 
-      await adminUser.logout();
+    await test.step("Managed event type can use Organizer's default app as location", async () => {
+      await page.getByTestId("vertical-tab-event_setup_tab_title").click();
+
+      await page.locator("#location-select").click();
+      const optionText = (await localize("en"))("organizer_default_conferencing_app");
+      await page.locator(`text=${optionText}`).click();
+      await page.locator("[data-testid=update-eventtype]").click();
+      await page.getByTestId("toast-success").waitFor();
+      await page.waitForLoadState("networkidle");
+
+      await page.getByTestId("vertical-tab-assignment").click();
+      await gotoBookingPage(page);
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page);
+
+      await expect(page.getByTestId("success-page")).toBeVisible();
     });
 
     await test.step("Managed event type has locked fields for added member", async () => {
+      await adminUser.logout();
+
       // Coming back as member user to see if there is a managed event present after assignment
       await memberUser.apiLogin();
       await page.goto("/event-types");
@@ -91,3 +113,9 @@ test.describe("Managed Event Types tests", () => {
     });
   });
 });
+
+async function gotoBookingPage(page: Page) {
+  const previewLink = await page.getByTestId("preview-button").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
+}

@@ -110,7 +110,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                 {t("currency")}
               </label>
               <Select
-                data-testid="currency-select-stripe"
+                data-testid="stripe-currency-select"
                 variant="default"
                 options={currencyOptions}
                 value={selectedCurrency}
@@ -129,6 +129,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                 Payment option
               </label>
               <Select<Option>
+                data-testid="stripe-payment-option-select"
                 defaultValue={
                   paymentOptionSelectValue
                     ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }

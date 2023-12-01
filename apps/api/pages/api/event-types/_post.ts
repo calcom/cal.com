@@ -299,7 +299,7 @@ async function postHandler(req: NextApiRequest) {
     data.hosts = { createMany: { data: hosts } };
   }
 
-  const eventType = await prisma.eventType.create({ data });
+  const eventType = await prisma.eventType.create({ data, include: { hosts: true } });
 
   return {
     event_type: schemaEventTypeReadPublic.parse(eventType),
@@ -316,8 +316,13 @@ async function checkPermissions(req: NextApiRequest) {
       statusCode: 401,
       message: "ADMIN required for `userId`",
     });
+  if (!isAdmin && body.teamId)
+    throw new HttpError({
+      statusCode: 401,
+      message: "ADMIN required for `teamId`",
+    });
   /* Admin users are required to pass in a userId or teamId */
-  if (isAdmin && (!body.userId || !body.teamId))
+  if (isAdmin && !body.userId && !body.teamId)
     throw new HttpError({ statusCode: 400, message: "`userId` or `teamId` required" });
 }
 
