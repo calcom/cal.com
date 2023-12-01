@@ -17,7 +17,6 @@ runs:
         key-3: ${{ github.event.pull_request.number || github.ref }}
         # Ensures production-build.yml will always be fresh
         key-4: ${{ github.sha }}
-        NODE_OPTIONS: "--max-old-space-size=8192"
       with:
         path: |
           ${{ github.workspace }}/apps/web/.next
@@ -25,6 +24,8 @@ runs:
           **/.turbo/**
           **/dist/**
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-    - run: yarn build
+    - run: |
+        export NODE_OPTIONS="--max_old_space_size=8192"
+        yarn build
       if: steps.cache-build.outputs.cache-hit != 'true'
       shell: bash
