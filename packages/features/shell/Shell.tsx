@@ -207,11 +207,10 @@ const useBanners = () => {
 
   const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
 
-  const activeBanners: Array<[keyof BannerTypeProps, unknown]> = Object.entries(allBanners).filter(
-    ([_, value]) => {
+  const activeBanners: Array<[keyof BannerTypeProps, BannerTypeProps[keyof BannerTypeProps]["data"]]> =
+    Object.entries(allBanners).filter(([_, value]) => {
       return value && (!Array.isArray(value) || value.length > 0);
-    }
-  );
+    });
 
   return activeBanners;
 };
