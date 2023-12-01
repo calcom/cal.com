@@ -4,11 +4,14 @@ import type { API } from "mailhog";
 import mailhog from "mailhog";
 
 import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture } from "../fixtures/embeds";
+import { createFeatureFixture } from "../fixtures/features";
+import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
 import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
@@ -17,6 +20,7 @@ import { createUsersFixture } from "../fixtures/users";
 
 export interface Fixtures {
   page: Page;
+  orgs: ReturnType<typeof createOrgsFixture>;
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
@@ -26,6 +30,7 @@ export interface Fixtures {
   emails?: API;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
+  features: ReturnType<typeof createFeatureFixture>;
 }
 
 declare global {
@@ -48,6 +53,10 @@ declare global {
  *  @see https://playwright.dev/docs/test-fixtures
  */
 export const test = base.extend<Fixtures>({
+  orgs: async ({ page }, use) => {
+    const orgsFixture = createOrgsFixture(page);
+    await use(orgsFixture);
+  },
   users: async ({ page, context, emails }, use, workerInfo) => {
     const usersFixture = createUsersFixture(page, emails, workerInfo);
     await use(usersFixture);
@@ -79,11 +88,18 @@ export const test = base.extend<Fixtures>({
       const mailhogAPI = mailhog();
       await use(mailhogAPI);
     } else {
+      //FIXME: Ideally we should error out here. If someone is running tests with mailhog disabled, they should be aware of it
+      logger.warn("Mailhog is not enabled - Skipping Emails verification");
       await use(undefined);
     }
   },
   bookingPage: async ({ page }, use) => {
     const bookingPage = createBookingPageFixture(page);
     await use(bookingPage);
+  },
+  features: async ({ page }, use) => {
+    const features = createFeatureFixture(page);
+    await features.init();
+    await use(features);
   },
 });

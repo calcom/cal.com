@@ -1,11 +1,13 @@
 import type { Frame, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import type { API, Messages } from "mailhog";
+import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -201,6 +203,12 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="install-app-button"]');
 }
 
+export async function getInviteLink(page: Page) {
+  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
+  const json = await response.json();
+  return json[0].result.data.json.inviteLink as string;
+}
+
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
@@ -277,4 +285,21 @@ export async function createUserWithSeatedEventAndAttendees(
     },
   });
   return { user, eventType, booking };
+}
+
+export function generateTotpCode(email: string) {
+  const secret = createHash("md5")
+    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .digest("hex");
+
+  totp.options = { step: 90 };
+  return totp.generate(secret);
+}
+
+export async function fillStripeTestCheckout(page: Page) {
+  await page.fill("[name=cardNumber]", "4242424242424242");
+  await page.fill("[name=cardExpiry]", "12/30");
+  await page.fill("[name=cardCvc]", "111");
+  await page.fill("[name=billingName]", "Stripe Stripeson");
+  await page.click(".SubmitButton--complete-Shimmer");
 }

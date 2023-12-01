@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { orgDomainConfig, getOrgSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgSlug, getOrgDomainConfigFromHostname } from "@calcom/features/ee/organizations/lib/orgDomains";
 import * as constants from "@calcom/lib/constants";
 
 function setupEnvs({ WEBAPP_URL = "https://app.cal.com" } = {}) {
@@ -35,10 +35,10 @@ function setupEnvs({ WEBAPP_URL = "https://app.cal.com" } = {}) {
 }
 
 describe("Org Domains Utils", () => {
-  describe("orgDomainConfig", () => {
+  describe("getOrgDomainConfigFromHostname", () => {
     it("should return a valid org domain", () => {
       setupEnvs();
-      expect(orgDomainConfig("acme.cal.com")).toEqual({
+      expect(getOrgDomainConfigFromHostname({ hostname: "acme.cal.com" })).toEqual({
         currentOrgDomain: "acme",
         isValidOrgDomain: true,
       });
@@ -46,7 +46,7 @@ describe("Org Domains Utils", () => {
 
     it("should return a non valid org domain", () => {
       setupEnvs();
-      expect(orgDomainConfig("app.cal.com")).toEqual({
+      expect(getOrgDomainConfigFromHostname({ hostname: "app.cal.com" })).toEqual({
         currentOrgDomain: null,
         isValidOrgDomain: false,
       });
@@ -54,7 +54,7 @@ describe("Org Domains Utils", () => {
 
     it("should return a non valid org domain for localhost", () => {
       setupEnvs();
-      expect(orgDomainConfig("localhost:3000")).toEqual({
+      expect(getOrgDomainConfigFromHostname({ hostname: "localhost:3000" })).toEqual({
         currentOrgDomain: null,
         isValidOrgDomain: false,
       });

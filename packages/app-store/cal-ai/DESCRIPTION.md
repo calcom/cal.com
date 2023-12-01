@@ -7,8 +7,6 @@ items:
   - 5.jpg
 ---
 
-**FREE TRIAL until December 1st, 2023**
-
 {DESCRIPTION}
 
 ## Example questions:

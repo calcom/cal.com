@@ -266,7 +266,7 @@ export function getRegularOrDynamicEventType(
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
-  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
+  const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
   }
@@ -292,7 +292,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     }`
   );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
-    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice, "minutes");
+    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice || 1, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;

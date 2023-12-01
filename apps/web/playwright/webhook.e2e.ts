@@ -103,12 +103,11 @@ test.describe("BOOKING_CREATED", async () => {
     body.payload.videoCallData = dynamic;
     body.payload.appsStatus = dynamic;
     body.payload.metadata.videoCallUrl = dynamic;
-
     expect(body).toMatchObject({
       triggerEvent: "BOOKING_CREATED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "30 min",
+        type: "30-min",
         title: "30 min between Nameless and Test Testson",
         description: "",
         additionalNotes: "",
@@ -236,7 +235,7 @@ test.describe("BOOKING_REJECTED", async () => {
       triggerEvent: "BOOKING_REJECTED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "Opt in",
+        type: "opt-in",
         title: "Opt in between Nameless and Test Testson",
         customInputs: {},
         startTime: "[redacted/dynamic]",
@@ -357,7 +356,7 @@ test.describe("BOOKING_REQUESTED", async () => {
       triggerEvent: "BOOKING_REQUESTED",
       createdAt: "[redacted/dynamic]",
       payload: {
-        type: "Opt in",
+        type: "opt-in",
         title: "Opt in between Nameless and Test Testson",
         customInputs: {},
         startTime: "[redacted/dynamic]",

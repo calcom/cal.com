@@ -85,6 +85,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     periodDays: null,
     periodCountCalendarDays: null,
     recurringEvent: null,
+    lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
     disableGuests: false,
     hideCalendarNotes: false,
@@ -181,6 +182,7 @@ type UserPayload = Prisma.UserGetPayload<{
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload => {
   return {
+    locked: false,
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),
@@ -189,6 +191,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     allowDynamicBooking: true,
     availability: [],
     avatar: "",
+    avatarUrl: "",
     away: false,
     backupCodes: null,
     bio: null,

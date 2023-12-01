@@ -1,7 +1,7 @@
 {
   "name": "@calcom/embed-react",
   "sideEffects": false,
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Embed Cal Link as a React Component",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -38,9 +38,9 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/embed-react/src/index.d.ts",
       "import": "./dist/Cal.es.mjs",
-      "require": "./dist/Cal.umd.js",
-      "types": "./dist/embed-react/src/index.d.ts"
+      "require": "./dist/Cal.umd.js"
     }
   },
   "devDependencies": {

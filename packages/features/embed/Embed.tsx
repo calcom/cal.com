@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { RefObject } from "react";
 import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -21,6 +21,7 @@ import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -57,11 +58,11 @@ const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl", "eventId"
 
 function useRouterHelpers() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(searchParams ?? undefined);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
     });
@@ -70,7 +71,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams ?? undefined);
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -507,7 +508,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   types: EmbedTypes;
 }) => {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -529,7 +530,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
@@ -1095,7 +1096,7 @@ export const EmbedDialog = ({
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
 }) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const embedUrl = searchParams?.get("embedUrl") as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>

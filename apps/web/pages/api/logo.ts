@@ -154,7 +154,7 @@ async function getTeamLogos(subdomain: string, isValidOrgDomain: boolean) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query } = req;
   const parsedQuery = logoApiSchema.parse(query);
-  const { isValidOrgDomain } = orgDomainConfig(req.headers.host ?? "");
+  const { isValidOrgDomain } = orgDomainConfig(req);
 
   const hostname = req?.headers["host"];
   if (!hostname) throw new Error("No hostname");

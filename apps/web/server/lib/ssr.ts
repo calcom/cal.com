@@ -25,11 +25,17 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
     ctx: { ...ctx, locale, i18n },
   });
 
+  // i18n translations are already retrieved from serverSideTranslations call, there is no need to run a i18n.fetch
+  // we can set query data directly to the queryClient
+  const queryKey = [
+    ["viewer", "public", "i18n"],
+    { input: { locale, CalComVersion: CALCOM_VERSION }, type: "query" },
+  ];
+  if (!options?.noI18nPreload) {
+    ssr.queryClient.setQueryData(queryKey, { i18n });
+  }
+
   await Promise.allSettled([
-    // always preload "viewer.public.i18n"
-    !options?.noI18nPreload
-      ? ssr.viewer.public.i18n.prefetch({ locale, CalComVersion: CALCOM_VERSION })
-      : Promise.resolve({}),
     // So feature flags are available on first render
     ssr.viewer.features.map.prefetch(),
     // Provides a better UX to the users who have already upgraded.
