@@ -48,21 +48,10 @@ export default class BaseEmail {
     const payload = await this.getNodeMailerPayload();
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
-      headers: {
-        "X-SMTPAPI": JSON.stringify({
-          filters: {
-            bypass_list_management: {
-              settings: {
-                enable: 1,
-              },
-            },
-          },
-        }),
-      },
+      headers: this.getMailerOptions().headers,
       ...payload,
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
-
     await new Promise((resolve, reject) =>
       createTransport(this.getMailerOptions().transport).sendMail(
         payloadWithUnEscapedSubject,
@@ -79,14 +68,13 @@ export default class BaseEmail {
     ).catch((e) => console.error("sendEmail", e));
     return new Promise((resolve) => resolve("send mail async"));
   }
-
   protected getMailerOptions() {
     return {
       transport: serverConfig.transport,
       from: serverConfig.from,
+      headers: serverConfig.headers,
     };
   }
-
   protected printNodeMailerError(error: Error): void {
     /** Don't clog the logs with unsent emails in E2E */
     if (process.env.NEXT_PUBLIC_IS_E2E) return;
