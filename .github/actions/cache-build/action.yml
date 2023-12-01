@@ -17,6 +17,7 @@ runs:
         key-3: ${{ github.event.pull_request.number || github.ref }}
         # Ensures production-build.yml will always be fresh
         key-4: ${{ github.sha }}
+        NODE_OPTIONS: "--max-old-space-size=8192"
       with:
         path: |
           ${{ github.workspace }}/apps/web/.next
