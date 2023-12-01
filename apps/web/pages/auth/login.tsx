@@ -242,6 +242,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                   <Button
                     color="secondary"
                     className="w-full justify-center"
+                    disabled={formState.isSubmitting}
                     data-testid="google"
                     StartIcon={FaGoogle}
                     onClick={async (e) => {
