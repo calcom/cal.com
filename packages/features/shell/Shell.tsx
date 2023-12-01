@@ -143,17 +143,20 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
-type BannerType =
-  | "teamUpgradeBanner"
-  | "orgUpgradeBanner"
-  | "verifyEmailBanner"
-  | "adminPasswordBanner"
-  | "impersonationBanner"
-  | "calendarCredentialBanner";
+type BannerTypeProps = {
+  teamUpgradeBanner: TeamsUpgradeBannerProps;
+  orgUpgradeBanner: OrgUpgradeBannerProps;
+  verifyEmailBanner: VerifyEmailBannerProps;
+  adminPasswordBanner: AdminPasswordBannerProps;
+  impersonationBanner: ImpersonatingBannerProps;
+  calendarCredentialBanner: CalendarCredentialBannerProps;
+};
 
-type Component = JSX.Element;
+type BannerComponent = {
+  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element;
+};
 
-const BannerComponent: Record<BannerType, Component> = {
+const BannerComponent: BannerComponent = {
   teamUpgradeBanner: (props: TeamsUpgradeBannerProps) => <TeamsUpgradeBanner {...props} />,
   orgUpgradeBanner: (props: OrgUpgradeBannerProps) => <OrgUpgradeBanner {...props} />,
   verifyEmailBanner: (props: VerifyEmailBannerProps) => <VerifyEmailBanner {...props} />,
