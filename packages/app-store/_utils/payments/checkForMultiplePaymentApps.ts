@@ -27,11 +27,7 @@ const checkForMultiplePaymentApps = (
       enabledPaymentApps++;
     }
 
-    if (inclusive && enabledPaymentApps >= 1) {
-      return true;
-    } else if (!inclusive && enabledPaymentApps > 1) {
-      return true;
-    }
+    return (inclusive && enabledPaymentApps >= 1) || (!inclusive && enabledPaymentApps > 1);
   }
 
   return false;
