@@ -18,10 +18,10 @@ This guide explains the settings you need to use to configure SAML with your Ide
 
 **Mapping Attributes / Attribute Statements:**
 
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier -> id
+http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier -> ID
 
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress -> email
+http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress -> Email Address
 
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname -> firstName
+http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname -> First Name
 
-http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname -> lastName
+http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname -> Last Name
