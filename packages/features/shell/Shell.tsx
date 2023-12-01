@@ -194,7 +194,6 @@ function useRedirectToOnboardingIfNeeded() {
 const useBanners = () => {
   const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
-  console.log("AdminPasswordBanner", userSession);
 
   if (isLoading || !userSession) return null;
 
@@ -202,11 +201,11 @@ const useBanners = () => {
   const userImpersonatedByUID = userSession?.user.impersonatedByUID;
 
   const userSessionBanners = {
-    adminPasswordBanner: isUserInactiveAdmin ? userSession : undefined,
-    impersonationBanner: userImpersonatedByUID ? userSession : undefined,
+    adminPasswordBanner: isUserInactiveAdmin ? userSession : null,
+    impersonationBanner: userImpersonatedByUID ? userSession : null,
   };
 
-  const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
+  const allBanners: BannerTypeProps = Object.assign({}, getUserTopBanners, userSessionBanners);
 
   const activeBanners = Object.entries(allBanners).filter(([_, value]) => {
     return value && (!Array.isArray(value) || value.length > 0);
@@ -834,7 +833,6 @@ function SideBarContainer({ bannersHeight }: SideBarContainerProps) {
 function SideBar({ bannersHeight, user }: SideBarProps) {
   const { t, isLocaleReady } = useLocale();
   const orgBranding = useOrgBranding();
-  console.log("bannersHeight", bannersHeight);
 
   const publicPageUrl = useMemo(() => {
     if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
