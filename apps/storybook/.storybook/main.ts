@@ -4,10 +4,11 @@ import path, { dirname, join } from "path";
 const config: StorybookConfig = {
   stories: [
     "../intro.stories.mdx",
-    "../../../packages/ui/components/**/*.stories.mdx",
+    "../../../packages/ui/components/**/*.stories.mdx", // for old SB6 stories
+    "../../../packages/ui/components/**/*.docs.mdx", // for new SB7 docs
     "../../../packages/atoms/**/*.stories.mdx",
     "../../../packages/features/**/*.stories.mdx",
-    "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)", // for new SB7 stories
   ],
 
   addons: [

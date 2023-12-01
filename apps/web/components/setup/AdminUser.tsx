@@ -109,7 +109,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                 <Label htmlFor="username" className={classNames(longWebsiteUrl && "mb-0")}>
                   <span className="block">{t("username")}</span>
                   {longWebsiteUrl && (
-                    <small className="items-centerpx-3 bg-subtle border-default text-subtle mt-2 inline-flex rounded-t-md border border-b-0 px-3 py-1">
+                    <small className="bg-subtle border-default text-subtle mt-2 inline-flex items-center rounded-t-md border border-b-0 px-3 py-1">
                       {process.env.NEXT_PUBLIC_WEBSITE_URL}
                     </small>
                   )}
