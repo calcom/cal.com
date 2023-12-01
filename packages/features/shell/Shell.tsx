@@ -205,11 +205,13 @@ const useBanners = () => {
     impersonationBanner: userImpersonatedByUID ? userSession : null,
   };
 
-  const allBanners: BannerTypeProps = Object.assign({}, getUserTopBanners, userSessionBanners);
+  const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
 
-  const activeBanners = Object.entries(allBanners).filter(([_, value]) => {
-    return value && (!Array.isArray(value) || value.length > 0);
-  });
+  const activeBanners: Array<[keyof BannerTypeProps, unknown]> = Object.entries(allBanners).filter(
+    ([_, value]) => {
+      return value && (!Array.isArray(value) || value.length > 0);
+    }
+  );
 
   return activeBanners;
 };
