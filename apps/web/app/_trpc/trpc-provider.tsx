@@ -8,33 +8,8 @@ import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
 import { splitLink } from "@calcom/trpc/client/links/splitLink";
+import { ENDPOINTS } from "@calcom/trpc/react/shared";
 
-const ENDPOINTS = [
-  "admin",
-  "apiKeys",
-  "appRoutingForms",
-  "apps",
-  "auth",
-  "availability",
-  "appBasecamp3",
-  "bookings",
-  "deploymentSetup",
-  "eventTypes",
-  "features",
-  "insights",
-  "payments",
-  "public",
-  "saml",
-  "slots",
-  "teams",
-  "organizations",
-  "users",
-  "viewer",
-  "webhook",
-  "workflows",
-  "appsRouter",
-  "googleWorkspace",
-] as const;
 export type Endpoint = (typeof ENDPOINTS)[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
