@@ -2,14 +2,14 @@ import { forwardRef } from "react";
 import type { MutableRefObject } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
-import { APP_NAME, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
 import { Code, Trello } from "@calcom/ui/components/icon";
 
 import type { EmbedType, PreviewState, EmbedFramework } from "../types";
-import { Codes } from "./EmbedCodes";
+import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
 import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
@@ -47,19 +47,17 @@ export const tabs = [
             className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
-            value={
-              `<!-- Cal ${embedType} embed code begins -->\n` +
-              (embedType === "inline"
+            value={`<!-- Cal ${embedType} embed code begins -->\n${
+              embedType === "inline"
                 ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                     previewState.inline.height
                   )};overflow:scroll" id="my-cal-inline"></div>\n`
-                : "") +
-              `<script type="text/javascript">
+                : ""
+            }<script type="text/javascript">
   ${embedSnippetString}
   ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState, embedCalOrigin })}
   </script>
-  <!-- Cal ${embedType} embed code ends -->`
-            }
+  <!-- Cal ${embedType} embed code ends -->`}
           />
           <p className="text-subtle hidden text-sm">{t("need_help_embedding")}</p>
         </>
@@ -118,6 +116,7 @@ export const tabs = [
       { calLink: string; embedType: EmbedType; previewState: PreviewState }
     >(function Preview({ calLink, embedType }, ref) {
       const bookerUrl = useBookerUrl();
+      const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
       if (ref instanceof Function || !ref) {
         return null;
       }
@@ -131,7 +130,8 @@ export const tabs = [
           className="h-[100vh] border"
           width="100%"
           height="100%"
-          src={`${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`}
+          src={iframeSrc}
+          key={iframeSrc}
         />
       );
     }),
@@ -193,7 +193,7 @@ const getEmbedTypeSpecificString = ({
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
       calLink,
-      ...(IS_SELF_HOSTED ? { calOrigin: embedCalOrigin } : null),
+      ...(doWeNeedCalOriginProp(embedCalOrigin) ? { calOrigin: embedCalOrigin } : null),
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({

@@ -24,7 +24,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // there should be one, otherwise we throw
   const { id } = await prisma.resetPasswordRequest.findFirstOrThrow({
     where: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
     select: {
       id: true,
@@ -37,7 +37,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // Test when a user changes his email after starting the password reset flow
   await prisma.user.update({
     where: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
     data: {
       email: `${user.username}-2@example.com`,
@@ -54,7 +54,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
       email: `${user.username}-2@example.com`,
     },
     data: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
   });
 
@@ -75,7 +75,7 @@ test("Can reset forgotten password", async ({ page, users }) => {
   // we're not logging in to the UI to speed up test performance.
   const updatedUser = await prisma.user.findUniqueOrThrow({
     where: {
-      email: `${user.username}@example.com`,
+      email: user.email,
     },
     select: {
       id: true,
@@ -84,10 +84,10 @@ test("Can reset forgotten password", async ({ page, users }) => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  await expect(await verifyPassword(newPassword, updatedUser.password!)).toBeTruthy();
+  expect(await verifyPassword(newPassword, updatedUser.password!)).toBeTruthy();
 
   // finally, make sure the same URL cannot be used to reset the password again, as it should be expired.
   await page.goto(`/auth/forgot-password/${id}`);
 
-  await page.waitForSelector("text=That request is expired.");
+  await expect(page.locator(`text=Whoops`)).toBeVisible();
 });

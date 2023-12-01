@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 import EmailCommonDivider from "./EmailCommonDivider";
 
@@ -19,6 +19,7 @@ const EmailScheduledBodyHeaderContent = (props: {
           wordBreak: "break-word",
         }}>
         <div
+          data-testid="heading"
           style={{
             fontFamily: "Roboto, Helvetica, sans-serif",
             fontSize: 24,
@@ -35,6 +36,7 @@ const EmailScheduledBodyHeaderContent = (props: {
       <tr>
         <td align="center" style={{ fontSize: 0, padding: "10px 25px", wordBreak: "break-word" }}>
           <div
+            data-testid="subHeading"
             style={{
               fontFamily: "Roboto, Helvetica, sans-serif",
               fontSize: 16,

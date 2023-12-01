@@ -77,7 +77,7 @@ test.describe("Payment app", () => {
 
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
     await page.locator("#event-type-form").getByRole("switch").click();
-    await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
+    await page.getByTestId("stripe-currency-select").click();
     await page.getByTestId("select-option-usd").click();
 
     await page.getByTestId("price-input-stripe").click();
@@ -123,10 +123,10 @@ test.describe("Payment app", () => {
     await page.getByPlaceholder("Price").click();
     await page.getByPlaceholder("Price").fill("150");
 
-    await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
+    await page.getByTestId("paypal-currency-select").click();
     await page.locator("#react-select-2-option-13").click();
 
-    await page.locator(".mb-1 > .bg-default > div > div:nth-child(2)").first().click();
+    await page.getByTestId("paypal-payment-option-select").click();
 
     await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
     await page.getByTestId("update-eventtype").click();

@@ -46,7 +46,7 @@ export default function JoinCall(props: JoinCallPageProps) {
           baseText: "#FFF",
           border: "#292929",
           mainAreaBg: "#111111",
-          mainAreaBgAccent: "#111111",
+          mainAreaBgAccent: "#1A1A1A",
           mainAreaText: "#FFF",
           supportiveText: "#FFF",
         },
@@ -214,7 +214,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("invitee_timezone")}:</h3>
           <p>{booking.user?.timeZone}</p>
           <h3>{t("when")}:</h3>
-          <p>
+          <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
             {formatToLocalizedTime(startTime)}
           </p>

@@ -45,7 +45,7 @@ export default class HubspotCalendarService implements Calendar {
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private hubspotContactCreate = async (attendees: Person[]) => {

@@ -22,7 +22,7 @@ function RenderIcon({
   return (
     <img
       src={eventLocationType.iconUrl}
-      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl), "me-[10px] h-4 w-4")}
+      className={classNames(invertLogoOnDark(eventLocationType?.iconUrl, true), "me-[10px] h-4 w-4")}
       alt={`${eventLocationType.label} icon`}
     />
   );
@@ -96,7 +96,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
   return filteredLocations.length > 1 ? (
     <div className="flex flex-row items-center text-sm font-medium">
       <img
-        src="/map-pin.svg"
+        src="/map-pin-dark.svg"
         className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
         alt="map-pin"
       />

@@ -109,7 +109,7 @@ export const getBookingWithResponses = <
 
 export default getBooking;
 
-export const getBookingForReschedule = async (uid: string) => {
+export const getBookingForReschedule = async (uid: string, userId?: number) => {
   let rescheduleUid: string | null = null;
   const theBooking = await prisma.booking.findFirst({
     where: {
@@ -117,8 +117,25 @@ export const getBookingForReschedule = async (uid: string) => {
     },
     select: {
       id: true,
+      userId: true,
+      eventType: {
+        select: {
+          seatsPerTimeSlot: true,
+          hosts: {
+            select: {
+              userId: true,
+            },
+          },
+          owner: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
     },
   });
+  let bookingSeatReferenceUid: number | null = null;
 
   // If no booking is found via the uid, it's probably a booking seat
   // that its being rescheduled, which we query next.
@@ -144,9 +161,24 @@ export const getBookingForReschedule = async (uid: string) => {
       },
     });
     if (bookingSeat) {
+      bookingSeatReferenceUid = bookingSeat.id;
       rescheduleUid = bookingSeat.booking.uid;
       attendeeEmail = bookingSeat.attendee.email;
     }
+  }
+
+  // If we have the booking and not bookingSeat, we need to make sure the booking belongs to the userLoggedIn
+  // Otherwise, we return null here.
+  let hasOwnershipOnBooking = false;
+  if (theBooking && theBooking?.eventType?.seatsPerTimeSlot && bookingSeatReferenceUid === null) {
+    const isOwnerOfBooking = theBooking.userId === userId;
+
+    const isHostOfEventType = theBooking?.eventType?.hosts.some((host) => host.userId === userId);
+
+    const isUserIdInBooking = theBooking.userId === userId;
+
+    if (!isOwnerOfBooking && !isHostOfEventType && !isUserIdInBooking) return null;
+    hasOwnershipOnBooking = true;
   }
 
   // If we don't have a booking and no rescheduleUid, the ID is invalid,
@@ -161,6 +193,8 @@ export const getBookingForReschedule = async (uid: string) => {
     ...booking,
     attendees: rescheduleUid
       ? booking.attendees.filter((attendee) => attendee.email === attendeeEmail)
+      : hasOwnershipOnBooking
+      ? []
       : booking.attendees,
   };
 };

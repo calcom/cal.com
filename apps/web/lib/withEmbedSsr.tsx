@@ -1,5 +1,7 @@
 import type { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 export type EmbedProps = {
   isEmbed?: boolean;
 };
@@ -11,14 +13,25 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
     const layout = context.query.layout;
 
     if ("redirect" in ssrResponse) {
-      // Use a dummy URL https://base as the fallback base URL so that URL parsing works for relative URLs as well.
-      const destinationUrlObj = new URL(ssrResponse.redirect.destination, "https://base");
+      const destinationUrl = ssrResponse.redirect.destination;
+      let urlPrefix = "";
 
+      // Get the URL parsed from URL so that we can reliably read pathname and searchParams from it.
+      const destinationUrlObj = new URL(ssrResponse.redirect.destination, WEBAPP_URL);
+
+      // If it's a complete URL, use the origin as the prefix to ensure we redirect to the same domain.
+      if (destinationUrl.search(/^(http:|https:).*/) !== -1) {
+        urlPrefix = destinationUrlObj.origin;
+      } else {
+        // Don't use any prefix for relative URLs to ensure we stay on the same domain
+        urlPrefix = "";
+      }
+
+      const destinationQueryStr = destinationUrlObj.searchParams.toString();
       // Make sure that redirect happens to /embed page and pass on embed query param as is for preserving Cal JS API namespace
-      const newDestinationUrl = `${
-        destinationUrlObj.pathname
-      }/embed?${destinationUrlObj.searchParams.toString()}&layout=${layout}&embed=${embed}`;
-
+      const newDestinationUrl = `${urlPrefix}${destinationUrlObj.pathname}/embed?${
+        destinationQueryStr ? `${destinationQueryStr}&` : ""
+      }layout=${layout}&embed=${embed}`;
       return {
         ...ssrResponse,
         redirect: {

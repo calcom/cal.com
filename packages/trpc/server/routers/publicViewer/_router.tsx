@@ -49,4 +49,11 @@ export const publicViewerRouter = router({
     const handler = await importHandler(namespaced("event"), () => import("./event.handler"));
     return handler(opts);
   }),
+  ssoConnections: publicProcedure.query(async () => {
+    const handler = await importHandler(
+      namespaced("ssoConnections"),
+      () => import("./ssoConnections.handler")
+    );
+    return handler();
+  }),
 });

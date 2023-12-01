@@ -6,7 +6,7 @@ import { prisma } from "@calcom/prisma";
 import type { AppCategories, Prisma } from "@calcom/prisma/client";
 
 const isDryRun = process.env.CRON_ENABLE_APP_SYNC !== "true";
-const log = logger.getChildLogger({
+const log = logger.getSubLogger({
   prefix: ["[api/cron/syncAppMeta]", ...(isDryRun ? ["(dry-run)"] : [])],
 });
 

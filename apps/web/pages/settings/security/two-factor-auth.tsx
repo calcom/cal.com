@@ -63,7 +63,7 @@ const TwoFactorAuthView = () => {
             {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
           </Badge>
         }
-        switchContainerClassName="border-subtle rounded-b-xl border border-t-0 px-5 py-6 sm:px-6"
+        switchContainerClassName="rounded-t-none border-t-0"
       />
 
       <EnableTwoFactorModal

@@ -70,7 +70,7 @@ export default class Office365CalendarService implements Calendar {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
     this.credential = credential;
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {

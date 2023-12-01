@@ -133,7 +133,7 @@ export const AvailableTimeSlots = ({
           : slotsPerDay.length > 0 &&
             slotsPerDay.map((slots) => (
               <AvailableTimes
-                className="scroll-bar w-full overflow-auto"
+                className="scroll-bar w-full overflow-y-auto overflow-x-hidden"
                 key={slots.date}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}

@@ -67,9 +67,10 @@ export default function RequiresConfirmationController({
           control={formMethods.control}
           render={() => (
             <SettingsToggle
+              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
-                "border-subtle rounded-md border py-6 px-4 sm:px-6",
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 requiresConfirmation && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
@@ -83,7 +84,7 @@ export default function RequiresConfirmationController({
                 formMethods.setValue("requiresConfirmation", val);
                 onRequiresConfirmation(val);
               }}>
-              <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   defaultValue={
                     requiresConfirmation
@@ -147,7 +148,7 @@ export default function RequiresConfirmationController({
                                           val
                                         );
                                       }}
-                                      className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield]"
+                                      className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
                                       defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                                     />
                                     <label

@@ -1,4 +1,4 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -11,7 +11,7 @@ export const AppsStatus = (props: { calEvent: CalendarEvent; t: TFunction }) => 
     <Info
       label={t("apps_status")}
       description={
-        <ul style={{ lineHeight: "24px" }}>
+        <ul style={{ lineHeight: "24px" }} data-testid="appsStatus">
           {props.calEvent.appsStatus.map((status) => (
             <li key={status.type} style={{ fontWeight: 400 }}>
               {status.appName}{" "}

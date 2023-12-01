@@ -30,7 +30,7 @@ export default class ZohoCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "zoho_calendar";
     this.auth = this.zohoAuth(credential);
-    this.log = logger.getChildLogger({
+    this.log = logger.getSubLogger({
       prefix: [`[[lib] ${this.integrationName}`],
     });
   }
