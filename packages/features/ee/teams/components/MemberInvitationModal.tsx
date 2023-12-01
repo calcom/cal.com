@@ -6,11 +6,12 @@ import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
+import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import {
   Button,
   Dialog,
@@ -75,8 +76,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
-    onSuccess(token) {
-      copyInviteLinkToClipboard(token);
+    async onSuccess({ inviteLink }) {
+      await copyInviteLinkToClipboard(inviteLink);
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
     },
@@ -85,15 +86,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     },
   });
 
-  const copyInviteLinkToClipboard = async (token: string) => {
-    const isOrgInvite = isOrg;
-    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-
-    const inviteLink =
-      isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;
-    await navigator.clipboard.writeText(inviteLink);
-    showToast(t("invite_link_copied"), "success");
+  const copyInviteLinkToClipboard = async (inviteLink: string) => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      showToast(t("invite_link_copied"), "success");
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const options: MembershipRoleOption[] = useMemo(() => {
@@ -201,7 +200,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </Label>
           <ToggleGroup
             isFullWidth={true}
-            onValueChange={(val) => setModalInputMode(val as ModalMode)}
+            onValueChange={(val) => {
+              setModalInputMode(val as ModalMode);
+              newMemberFormMethods.clearErrors();
+            }}
             defaultValue={modalImportMode}
             options={toggleGroupOptions}
           />
@@ -215,8 +217,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 name="emailOrUsername"
                 control={newMemberFormMethods.control}
                 rules={{
-                  required: t("enter_email_or_username"),
+                  required: isOrg ? t("enter_email") : t("enter_email_or_username"),
                   validate: (value) => {
+                    // orgs can only invite members by email
+                    if (typeof value === "string" && isOrg && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string")
                       return validateUniqueInvite(value) || t("member_already_invited");
                   },
@@ -243,7 +247,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}
                   rules={{
-                    required: t("enter_email_or_username"),
+                    required: t("enter_email"),
+                    validate: (value) => {
+                      if (Array.isArray(value) && value.some((email) => !isEmail(email)))
+                        return t("enter_emails");
+                      if (Array.isArray(value) && value.length > MAX_NB_INVITES)
+                        return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
+                      if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                    },
                   }}
                   render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <>
@@ -365,11 +376,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   type="button"
                   color="minimal"
                   variant="icon"
-                  onClick={() =>
-                    props.token
-                      ? copyInviteLinkToClipboard(props.token)
-                      : createInviteMutation.mutate({ teamId: props.teamId })
-                  }
+                  onClick={() => {
+                    createInviteMutation.mutate({ teamId: props.teamId, token: props.token });
+                  }}
                   className={classNames("gap-2", props.token && "opacity-50")}
                   data-testid="copy-invite-link-button">
                   <Link className="text-default h-4 w-4" aria-hidden="true" />

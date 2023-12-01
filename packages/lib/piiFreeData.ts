@@ -105,7 +105,7 @@ export function getPiiFreeUser(user: {
   allowDynamicBooking?: boolean | null;
   defaultScheduleId?: number | null;
   organizationId?: number | null;
-  credentials?: Credential[];
+  credentials?: Partial<Credential>[];
   destinationCalendar?: DestinationCalendar | null;
 }) {
   return {

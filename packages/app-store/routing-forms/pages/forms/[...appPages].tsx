@@ -174,6 +174,7 @@ export default function RoutingForms({
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
+          plan="team"
           title={t("teams_plan_required")}
           description={t("routing_forms_are_a_great_way")}
           features={features}

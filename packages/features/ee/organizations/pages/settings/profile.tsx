@@ -116,7 +116,7 @@ const OrgProfileView = () => {
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="flex-grow">
               <div>
-                <Label className="text-emphasis">{t("org_name")}</Label>
+                <Label className="text-emphasis">{t("organization_name")}</Label>
                 <p className="text-default text-sm">{currentOrganisation?.name}</p>
               </div>
               {!isBioEmpty && (
@@ -141,25 +141,6 @@ const OrgProfileView = () => {
             </div>
           </div>
         )}
-        {/* Disable Org disbanding */}
-        {/* <hr className="border-subtle my-8 border" />
-             <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
-            {currentOrganisation?.user.role === "OWNER" ? (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button color="destructive" className="border" StartIcon={Trash2}>
-                    {t("disband_org")}
-                  </Button>
-                </DialogTrigger>
-                <ConfirmationDialogContent
-                  variety="danger"
-                  title={t("disband_org")}
-                  confirmBtnText={t("confirm")}
-                  onConfirm={deleteTeam}>
-                  {t("disband_org_confirmation_message")}
-                </ConfirmationDialogContent>
-              </Dialog>
-            ) : null} */}
         {/* LEAVE ORG should go above here ^ */}
       </>
     </LicenseRequired>
@@ -264,7 +245,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             <div className="mt-8">
               <TextField
                 name="name"
-                label={t("org_name")}
+                label={t("organization_name")}
                 value={value}
                 onChange={(e) => {
                   form.setValue("name", e?.target.value, { shouldDirty: true });
@@ -280,7 +261,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             <div className="mt-8">
               <TextField
                 name="slug"
-                label={t("org_url")}
+                label={t("organization_url")}
                 value={value}
                 disabled
                 addOnSuffix={`.${subdomainSuffix()}`}

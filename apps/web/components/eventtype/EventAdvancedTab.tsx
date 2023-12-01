@@ -134,7 +134,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
           <div className="flex flex-col">
             <div className="flex justify-between">
-              <Label className="font-medium">{t("add_to_calendar")}</Label>
+              <div>
+                <Label className="text-emphasis mb-0 font-medium">{t("add_to_calendar")}</Label>
+              </div>
               <Link
                 href="/apps/categories/calendar"
                 target="_blank"
@@ -142,21 +144,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 {t("add_another_calendar")}
               </Link>
             </div>
-            <div className="-mt-1 w-full">
-              <Controller
-                control={formMethods.control}
-                name="destinationCalendar"
-                defaultValue={eventType.destinationCalendar || undefined}
-                render={({ field: { onChange, value } }) => (
-                  <DestinationCalendarSelector
-                    destinationCalendar={eventType.destinationCalendar}
-                    value={value ? value.externalId : undefined}
-                    onChange={onChange}
-                    hidePlaceholder
-                  />
-                )}
-              />
-            </div>
+            <Controller
+              control={formMethods.control}
+              name="destinationCalendar"
+              defaultValue={eventType.destinationCalendar || undefined}
+              render={({ field: { onChange, value } }) => (
+                <DestinationCalendarSelector
+                  destinationCalendar={eventType.destinationCalendar}
+                  value={value ? value.externalId : undefined}
+                  onChange={onChange}
+                  hidePlaceholder
+                  hideAdvancedText
+                />
+              )}
+            />
             <p className="text-subtle text-sm">{t("select_which_cal")}</p>
           </div>
         )}

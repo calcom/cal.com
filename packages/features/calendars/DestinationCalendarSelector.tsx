@@ -128,7 +128,6 @@ const DestinationCalendarSelector = ({
 
   return (
     <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
-      <p className="text-sm font-medium leading-none">{t("add_events_to")}</p>
       <Select
         name="primarySelectedCalendar"
         placeholder={

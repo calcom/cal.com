@@ -47,11 +47,7 @@ export function processWorkingHours({
     const startResult = dayjs.max(start, dateFrom.tz(timeZone));
     const endResult = dayjs.min(end, dateTo.tz(timeZone));
 
-    const isLater =
-      startResult.isAfter(endResult, "hour") ||
-      (startResult.isSame(endResult, "hour") && startResult.isAfter(endResult, "minute"));
-
-    if (isLater) {
+    if (endResult.isBefore(startResult)) {
       // if an event ends before start, it's not a result.
       continue;
     }
