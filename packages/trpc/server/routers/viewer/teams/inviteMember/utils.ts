@@ -46,6 +46,14 @@ export async function checkPermissions({
   }
 }
 
+export function checkInputEmailIsValid(email: string) {
+  if (!isEmail(email))
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invite failed because ${email} is not a valid email address`,
+    });
+}
+
 export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   const team = await prisma.team.findFirst({
     where: {
@@ -62,7 +70,7 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   return team;
 }
 
-export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
+export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | string[]) {
   const emailsToInvite = Array.isArray(usernameOrEmail)
     ? Array.from(new Set(usernameOrEmail))
     : [usernameOrEmail];
@@ -128,11 +136,11 @@ export function validateInviteeEligibility(
 }
 
 export async function getUsersToInvite({
-  usernameOrEmail,
+  usernamesOrEmails,
   isInvitedToOrg,
   team,
 }: {
-  usernameOrEmail: string[];
+  usernamesOrEmails: string[];
   isInvitedToOrg: boolean;
   team: TeamWithParent;
 }): Promise<UserWithMembership[]> {
@@ -149,7 +157,7 @@ export async function getUsersToInvite({
 
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
-      OR: [{ username: { in: usernameOrEmail }, ...orgWhere }, { email: { in: usernameOrEmail } }],
+      OR: [{ username: { in: usernamesOrEmails }, ...orgWhere }, { email: { in: usernamesOrEmails } }],
     },
     select: {
       id: true,
@@ -217,46 +225,53 @@ export async function createNewUsersConnectToOrgIfExists({
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  await prisma.$transaction(async (tx) => {
-    for (let index = 0; index < usernamesOrEmails.length; index++) {
-      const usernameOrEmail = usernamesOrEmails[index];
-      const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
-      const [emailUser, emailDomain] = usernameOrEmail.split("@");
-      const username =
-        emailDomain === autoAcceptEmailDomain
-          ? slugify(emailUser)
-          : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+  // fail if we have invalid emails
+  usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
 
-      const createdUser = await tx.user.create({
-        data: {
-          username,
-          email: usernameOrEmail,
-          verified: true,
-          invitedTo: input.teamId,
-          organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
-          teams: {
-            create: {
-              teamId: input.teamId,
-              role: input.role as MembershipRole,
-              accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+  // from this point we know usernamesOrEmails contains only emails
+  await prisma.$transaction(
+    async (tx) => {
+      for (let index = 0; index < usernamesOrEmails.length; index++) {
+        const usernameOrEmail = usernamesOrEmails[index];
+        const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
+        const [emailUser, emailDomain] = usernameOrEmail.split("@");
+        const username =
+          emailDomain === autoAcceptEmailDomain
+            ? slugify(emailUser)
+            : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+
+        const createdUser = await tx.user.create({
+          data: {
+            username,
+            email: usernameOrEmail,
+            verified: true,
+            invitedTo: input.teamId,
+            organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+            teams: {
+              create: {
+                teamId: input.teamId,
+                role: input.role as MembershipRole,
+                accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
+              },
             },
           },
-        },
-      });
-
-      // We also need to create the membership in the parent org if it exists
-      if (parentId) {
-        await tx.membership.create({
-          data: {
-            teamId: parentId,
-            userId: createdUser.id,
-            role: input.role as MembershipRole,
-            accepted: autoAccept,
-          },
         });
+
+        // We also need to create the membership in the parent org if it exists
+        if (parentId) {
+          await tx.membership.create({
+            data: {
+              teamId: parentId,
+              userId: createdUser.id,
+              role: input.role as MembershipRole,
+              accepted: autoAccept,
+            },
+          });
+        }
       }
-    }
-  });
+    },
+    { timeout: 10000 }
+  );
 }
 
 export async function createProvisionalMemberships({
