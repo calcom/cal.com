@@ -205,16 +205,11 @@ const useBanners = () => {
     impersonationBanner: userImpersonatedByUID ? userSession : null,
   };
 
-  const allBanners: { [Key in BannerType]: BannerTypeProps[Key]["data"] } = Object.assign(
-    {},
-    getUserTopBanners,
-    userSessionBanners
-  );
+  const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
 
-  const activeBanners: Array<[keyof BannerTypeProps, BannerTypeProps[keyof BannerTypeProps]["data"]]> =
-    Object.entries(allBanners).filter(([_, value]) => {
-      return value && (!Array.isArray(value) || value.length > 0);
-    });
+  const activeBanners = Object.entries(allBanners).filter(([_, value]) => {
+    return value && (!Array.isArray(value) || value.length > 0);
+  });
 
   return activeBanners;
 };
@@ -246,7 +241,7 @@ const Layout = (props: LayoutProps) => {
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             {banners.map(([key, data]) => {
-              const Banner = BannerComponent[key];
+              const Banner = BannerComponent[key as keyof BannerComponent];
               return <Banner data={data} key={key} />;
             })}
           </div>
