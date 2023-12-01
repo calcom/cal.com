@@ -93,12 +93,12 @@ const OrgAppearanceView = ({
                 size="lg"
               />
               <div className="ms-4">
-                <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+                <h2 className="mb-2 text-sm font-medium">{t("upload_logo")}</h2>
                 <div className="flex gap-2">
                   <ImageUploader
                     target="avatar"
-                    id="avatar-upload"
-                    buttonMsg={t("change_cal_video_logo")}
+                    id="cal-video-logo-upload"
+                    buttonMsg={t("upload_cal_video_logo")}
                     handleAvatarChange={(newLogo) => {
                       mutation.mutate({
                         orgCalVideoLogo: newLogo,
@@ -107,10 +107,11 @@ const OrgAppearanceView = ({
                     disabled={mutation.isLoading}
                     imageSrc={currentOrg?.orgCalVideoLogo ?? undefined}
                     uploadInstruction={t("cal_video_logo_upload_instruction")}
+                    triggerButtonColor={currentOrg?.orgCalVideoLogo ? "secondary" : "primary"}
                   />
                   {currentOrg?.orgCalVideoLogo && (
                     <Button
-                      color="secondary"
+                      color="destructive"
                       disabled={mutation.isLoading}
                       onClick={() => {
                         mutation.mutate({

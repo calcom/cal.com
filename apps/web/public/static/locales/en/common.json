@@ -2036,7 +2036,7 @@
   "description_requires_booker_email_verification": "To ensure booker's email verification before scheduling events",
   "requires_confirmation_mandatory": "Text messages can only be sent to attendees when event type requires confirmation.",
   "organizations": "Organizations",
-  "change_cal_video_logo":"Change Cal Video Logo",
+  "upload_cal_video_logo":"Upload Cal Video Logo",
   "cal_video_logo_upload_instruction":"Please only update a white mono-color version of your logo as an *.svg file on a transparent background",
   "org_admin_other_teams": "Other teams",
   "org_admin_other_teams_description": "Here you can see teams inside your organization that you are not part of. You can add yourself to them if needed.",
