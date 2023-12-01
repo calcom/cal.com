@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import superjson from "superjson";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 import { createTRPCNextLayout } from "./createTRPCNextLayout";
@@ -17,7 +17,7 @@ export async function ssgInit() {
     router: appRouter,
     transformer: superjson,
     createContext() {
-      return { prisma, session: null, locale, i18n };
+      return { prisma, insightsDb: readonlyPrisma, session: null, locale, i18n };
     },
   });
 
