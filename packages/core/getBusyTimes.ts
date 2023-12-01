@@ -264,8 +264,9 @@ export async function getBusyTimesForLimitChecks(params: {
   eventTypeId: number;
   startDate: Date;
   endDate: Date;
+  rescheduleUid?: string | null;
 }) {
-  const { userId, eventTypeId, startDate, endDate } = params;
+  const { userId, eventTypeId, startDate, endDate, rescheduleUid } = params;
   logger.silly(
     `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
       userId,
@@ -286,6 +287,9 @@ export async function getBusyTimesForLimitChecks(params: {
       },
       endTime: {
         lte: endDate,
+      },
+      NOT: {
+        uid: rescheduleUid || "",
       },
     },
     select: {

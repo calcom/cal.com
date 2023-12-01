@@ -192,7 +192,8 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
           dateTo,
           duration,
           eventType,
-          user.id
+          user.id,
+          initialData?.rescheduleUid
         )
       : [];
 
@@ -384,7 +385,8 @@ const getBusyTimesFromLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  userId: number
+  userId: number,
+  rescheduleUid?: string | null
 ) => {
   performance.mark("limitsStart");
 
@@ -410,6 +412,7 @@ const getBusyTimesFromLimits = async (
     eventTypeId: eventType.id,
     startDate: limitDateFrom.toDate(),
     endDate: limitDateTo.toDate(),
+    rescheduleUid: rescheduleUid,
   });
 
   // run this first, as counting bookings should always run faster..
