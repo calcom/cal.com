@@ -205,7 +205,11 @@ const useBanners = () => {
     impersonationBanner: userImpersonatedByUID ? userSession : null,
   };
 
-  const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
+  const allBanners: { [Key in BannerType]: BannerTypeProps[Key]["data"] } = Object.assign(
+    {},
+    getUserTopBanners,
+    userSessionBanners
+  );
 
   const activeBanners: Array<[keyof BannerTypeProps, BannerTypeProps[keyof BannerTypeProps]["data"]]> =
     Object.entries(allBanners).filter(([_, value]) => {
