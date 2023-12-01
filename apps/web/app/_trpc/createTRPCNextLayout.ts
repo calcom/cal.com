@@ -29,7 +29,7 @@ export function getArrayQueryKey(
   const [arrayPath, input] = queryKeyArrayed;
 
   if (!input && (!type || type === "any")) {
-    return arrayPath.length ? [arrayPath] : ([] as unknown as QueryKey);
+    return Array.isArray(arrayPath) && arrayPath.length !== 0 ? [arrayPath] : ([] as unknown as QueryKey);
   }
 
   return [

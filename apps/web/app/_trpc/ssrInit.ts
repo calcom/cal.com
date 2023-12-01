@@ -5,7 +5,7 @@ import superjson from "superjson";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import prisma, { readonlyPrisma } from "@calcom/prisma";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 import { createTRPCNextLayout } from "./createTRPCNextLayout";
@@ -24,7 +24,14 @@ export async function ssrInit(options?: { noI18nPreload: boolean }) {
     router: appRouter,
     transformer: superjson,
     createContext() {
-      return { prisma, session: null, locale, i18n, req: req as unknown as GetServerSidePropsContext["req"] };
+      return {
+        prisma,
+        insightsDb: readonlyPrisma,
+        session: null,
+        locale,
+        i18n,
+        req: req as unknown as GetServerSidePropsContext["req"],
+      };
     },
   });
 
