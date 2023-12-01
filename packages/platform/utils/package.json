@@ -4,7 +4,7 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
-    "test": "jest --verbose ./tests"
+    "test": "jest ./tests"
   },
   "dependencies": {
     "@calcom/platform-constants": "*",
