@@ -5,6 +5,7 @@ import type z from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -74,7 +75,7 @@ export class PaymentService implements IAbstractPaymentService {
           currency: payment.currency,
           data: Object.assign(
             {},
-            { invoice: { ...invoice, isPaid: await invoice.isPaid() } }
+            { invoice: { ...invoice, isPaid: false } }
           ) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
@@ -87,7 +88,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Alby: Payment could not be created", bookingId, JSON.stringify(error));
+      log.error("Alby: Payment could not be created", bookingId, safeStringify(error));
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
