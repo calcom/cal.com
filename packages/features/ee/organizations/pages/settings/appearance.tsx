@@ -14,7 +14,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Button, Form, Meta, showToast, SettingsToggle, Avatar, ImageUploader } from "@calcom/ui";
+import { Plus } from "@calcom/ui/components/icon";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -83,6 +84,46 @@ const OrgAppearanceView = ({
       />
       {isAdminOrOwner ? (
         <div>
+          <div className="my-6">
+            <div className="flex items-center text-sm">
+              <Avatar
+                alt="calVideoLogo"
+                imageSrc={currentOrg?.orgCalVideoLogo}
+                fallback={<Plus className="text-subtle h-6 w-6" />}
+                size="lg"
+              />
+              <div className="ms-4">
+                <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+                <div className="flex gap-2">
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("change_cal_video_logo")}
+                    handleAvatarChange={(newLogo) => {
+                      mutation.mutate({
+                        orgCalVideoLogo: newLogo,
+                      });
+                    }}
+                    disabled={mutation.isLoading}
+                    imageSrc={currentOrg?.orgCalVideoLogo ?? undefined}
+                    uploadInstruction={t("cal_video_logo_upload_instruction")}
+                  />
+                  {currentOrg?.orgCalVideoLogo && (
+                    <Button
+                      color="secondary"
+                      disabled={mutation.isLoading}
+                      onClick={() => {
+                        mutation.mutate({
+                          orgCalVideoLogo: null,
+                        });
+                      }}>
+                      {t("remove")}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
           <Form
             form={themeForm}
             handleSubmit={(value) => {

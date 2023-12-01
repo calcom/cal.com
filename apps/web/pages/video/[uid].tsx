@@ -104,15 +104,27 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <img
-          className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-          src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-          alt="Cal.com Logo"
-          style={{
-            top: 46,
-            left: 24,
-          }}
-        />
+        {booking?.user?.organization?.orgCalVideoLogo ? (
+          <img
+            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+            src={booking.user.organization.orgCalVideoLogo}
+            alt="Logo"
+            style={{
+              top: 46,
+              left: 24,
+            }}
+          />
+        ) : (
+          <img
+            className="fixed z-10 hidden sm:inline-block"
+            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+            alt="Logo"
+            style={{
+              top: 46,
+              left: 24,
+            }}
+          />
+        )}
       </div>
       <VideoMeetingInfo booking={booking} />
     </>
@@ -288,6 +300,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           timeZone: true,
           name: true,
           email: true,
+          organization: {
+            select: {
+              orgCalVideoLogo: true,
+            },
+          },
         },
       },
       references: {
