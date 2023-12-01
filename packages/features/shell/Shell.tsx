@@ -152,8 +152,10 @@ type BannerTypeProps = {
   calendarCredentialBanner: CalendarCredentialBannerProps;
 };
 
+type BannerType = keyof BannerTypeProps;
+
 type BannerComponent = {
-  [Key in BannerTypeProps]: (props: BannerTypeProps[Key]) => JSX.Element;
+  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element;
 };
 
 const BannerComponent: BannerComponent = {

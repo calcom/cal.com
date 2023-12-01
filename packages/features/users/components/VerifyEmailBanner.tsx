@@ -1,14 +1,13 @@
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { TopBanner, showToast } from "@calcom/ui";
 import { Mail } from "@calcom/ui/components/icon";
 
 import { useFlagMap } from "../../flags/context/provider";
 
 export type VerifyEmailBannerProps = {
-  data: RouterOutputs["viewer"]["getUserTopBanners"]["verifyEmailBanner"];
+  data: boolean;
 };
 
 function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
@@ -16,7 +15,7 @@ function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
   const { t } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
-  if (!data || (data && data.isVerified) || !flags["email-verification"]) return null;
+  if (!data || !flags["email-verification"]) return null;
 
   return (
     <>
