@@ -323,6 +323,7 @@ export default function Signup({
                   !!formMethods.formState.errors.email ||
                   !formMethods.getValues("email") ||
                   !formMethods.getValues("password") ||
+                  isSubmitting ||
                   usernameTaken
                 }>
                 {premiumUsername && !usernameTaken
@@ -387,7 +388,9 @@ export default function Signup({
                     disabled={
                       !!formMethods.formState.errors.username ||
                       !!formMethods.formState.errors.email ||
-                      premiumUsername
+                      premiumUsername ||
+                      isSubmitting ||
+                      isGoogleLoading
                     }
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
@@ -401,6 +404,7 @@ export default function Signup({
                       }
                       if (!formMethods.getValues("email")) {
                         formMethods.trigger("email");
+
                         return;
                       }
                       const username = formMethods.getValues("username");
