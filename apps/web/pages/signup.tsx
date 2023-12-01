@@ -323,6 +323,7 @@ export default function Signup({
                   !!formMethods.formState.errors.email ||
                   !formMethods.getValues("email") ||
                   !formMethods.getValues("password") ||
+                  isSubmitting ||
                   usernameTaken
                 }>
                 {premiumUsername && !usernameTaken
@@ -388,7 +389,8 @@ export default function Signup({
                       !!formMethods.formState.errors.username ||
                       !!formMethods.formState.errors.email ||
                       premiumUsername ||
-                      isSubmitting
+                      isSubmitting ||
+                      isGoogleLoading
                     }
                     className={classNames(
                       "w-full justify-center rounded-md text-center",
