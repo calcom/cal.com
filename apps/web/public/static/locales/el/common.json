@@ -274,8 +274,5 @@
   "event_name_tooltip": "Το όνομα που θα εμφανίζεται στα ημερολόγια",
   "label": "Ετικέτα",
   "edit": "Επεξεργασία",
-  "disable_guests": "Απενεργοποίηση επισκεπτών",
-  "location_variable": "Τοποθεσία",
-  "additional_notes_variable": "Πρόσθετες σημειώσεις",
-  "insights_all_org_filter": "Όλα"
+  "disable_guests": "Απενεργοποίηση επισκεπτών"
 }

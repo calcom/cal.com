@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
@@ -59,8 +59,11 @@ const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
+  const locale = input.locale || user.locale;
   const data: Prisma.UserUpdateInput = {
     ...input,
+    // DO NOT OVERWRITE AVATAR.
+    avatar: undefined,
     metadata: userMetadata,
   };
 
@@ -71,7 +74,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
   if (layoutError) {
-    const t = await getTranslation("en", "common");
+    const t = await getTranslation(locale, "common");
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
@@ -83,7 +86,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       const response = await checkUsername(username);
       isPremiumUsername = response.premium;
       if (!response.available) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+        const t = await getTranslation(locale, "common");
+        throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
   }
@@ -108,7 +112,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // @TODO: iterate if stripeSubscriptions.hasMore is true
     const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
       (subscription) =>
-        subscription.items.data[0].price.product === getPremiumPlanProductId() &&
+        subscription.items.data[0].price.id === getPremiumMonthlyPlanPriceId() &&
         subscription.status === "active"
     );
 
@@ -138,14 +142,21 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // when the email changes, the user needs to sign in again.
     signOutUser = true;
   }
-  // don't do anything if avatar is undefined.
-  if (typeof input.avatar !== "undefined") {
-    data.avatarUrl = input.avatar
-      ? await uploadAvatar({
-          avatar: await resizeBase64Image(input.avatar),
-          userId: user.id,
-        })
-      : null;
+  // if defined AND a base 64 string, upload and set the avatar URL
+  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
+    const avatar = await resizeBase64Image(input.avatar);
+    data.avatarUrl = await uploadAvatar({
+      avatar,
+      userId: user.id,
+    });
+    // as this is still used in the backwards compatible endpoint, we also write it here
+    // to ensure no data loss.
+    data.avatar = avatar;
+  }
+  // Unset avatar url if avatar is empty string.
+  if ("" === input.avatar) {
+    data.avatarUrl = null;
+    data.avatar = null;
   }
 
   const updatedUser = await prisma.user.update({

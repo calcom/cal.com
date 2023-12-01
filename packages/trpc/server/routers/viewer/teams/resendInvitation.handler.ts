@@ -58,3 +58,5 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
 
   return input;
 };
+
+export default resendInvitationHandler;

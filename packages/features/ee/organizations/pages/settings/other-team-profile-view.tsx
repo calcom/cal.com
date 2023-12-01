@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useLayoutEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { z } from "zod";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import objectKeys from "@calcom/lib/objectKeys";
@@ -76,8 +77,8 @@ const OtherTeamProfileView = () => {
   const form = useForm({
     resolver: zodResolver(teamProfileFormSchema),
   });
-  const searchParams = useSearchParams();
-  const teamId = Number(searchParams?.get("id"));
+  const params = useParamsWithFallback();
+  const teamId = Number(params.id);
   const { data: team, isLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId: teamId },
     {
