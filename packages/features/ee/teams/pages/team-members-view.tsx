@@ -1,7 +1,8 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -22,13 +23,14 @@ type Team = RouterOutputs["viewer"]["teams"]["get"];
 
 interface MembersListProps {
   team: Team | undefined;
+  isOrgAdminOrOwner: boolean | undefined;
 }
 
 const checkIfExist = (comp: string, query: string) =>
   comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
 
 function MembersList(props: MembersListProps) {
-  const { team } = props;
+  const { team, isOrgAdminOrOwner } = props;
   const { t } = useLocale();
   const [query, setQuery] = useState<string>("");
 
@@ -56,7 +58,14 @@ function MembersList(props: MembersListProps) {
       {membersList?.length && team ? (
         <ul className="divide-subtle border-subtle divide-y rounded-md border ">
           {membersList.map((member) => {
-            return <MemberListItem key={member.id} team={team} member={member} />;
+            return (
+              <MemberListItem
+                key={member.id}
+                team={team}
+                member={member}
+                isOrgAdminOrOwner={isOrgAdminOrOwner}
+              />
+            );
           })}
         </ul>
       ) : null}
@@ -65,7 +74,7 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
@@ -161,8 +170,7 @@ const MembersView = () => {
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
-                <MembersList team={team} />
-                <hr className="border-subtle my-8" />
+                <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
               </>
             )}
 
@@ -175,10 +183,7 @@ const MembersView = () => {
             )}
 
             {team && (isAdmin || isOrgAdminOrOwner) && (
-              <>
-                <hr className="border-subtle my-8" />
-                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
-              </>
+              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
             )}
           </div>
           {showMemberInvitationModal && team && (
@@ -197,29 +202,27 @@ const MembersView = () => {
                     language: i18n.language,
                     role: values.role,
                     usernameOrEmail: values.emailOrUsername,
-                    sendEmailInvitation: values.sendInviteEmail,
                   },
                   {
                     onSuccess: async (data) => {
                       await utils.viewer.teams.get.invalidate();
                       setShowMemberInvitationModal(false);
-                      if (data.sendEmailInvitation) {
-                        if (Array.isArray(data.usernameOrEmail)) {
-                          showToast(
-                            t("email_invite_team_bulk", {
-                              userCount: data.usernameOrEmail.length,
-                            }),
-                            "success"
-                          );
-                          resetFields();
-                        } else {
-                          showToast(
-                            t("email_invite_team", {
-                              email: data.usernameOrEmail,
-                            }),
-                            "success"
-                          );
-                        }
+
+                      if (Array.isArray(data.usernameOrEmail)) {
+                        showToast(
+                          t("email_invite_team_bulk", {
+                            userCount: data.usernameOrEmail.length,
+                          }),
+                          "success"
+                        );
+                        resetFields();
+                      } else {
+                        showToast(
+                          t("email_invite_team", {
+                            email: data.usernameOrEmail,
+                          }),
+                          "success"
+                        );
                       }
                     },
                     onError: (error) => {

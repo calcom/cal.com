@@ -89,6 +89,32 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    const primaryCalendarResponse = await fetch(
+      `https://${LARK_HOST}/open-apis/calendar/v4/calendars/primary`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${key.access_token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (primaryCalendarResponse.status === 200) {
+      const primaryCalendar = await primaryCalendarResponse.json();
+
+      if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
+        await prisma.selectedCalendar.create({
+          data: {
+            userId: req.session?.user.id,
+            integration: "lark_calendar",
+            externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
+            credentialId: currentCredential?.id,
+          },
+        });
+      }
+    }
+
     res.redirect(
       getSafeRedirectUrl(state?.returnTo) ??
         getInstalledAppPath({ variant: "calendar", slug: "lark-calendar" })
