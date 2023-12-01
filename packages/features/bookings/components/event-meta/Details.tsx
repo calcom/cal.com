@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import React from "react";
 
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -110,6 +111,7 @@ export const EventMetaBlock = ({
  */
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
 
   return (
     <>
@@ -144,7 +146,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.OCCURENCES:
-            if (!event.recurringEvent) return null;
+            if (!event.recurringEvent || rescheduleUid) return null;
 
             return (
               <EventMetaBlock key={block} icon={RefreshCcw}>
