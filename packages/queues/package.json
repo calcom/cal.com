@@ -1,0 +1,12 @@
+{
+  "name": "@calcom/queues",
+  "version": "0.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@trigger.dev/sdk": "^2.2.10",
+    "@trigger.dev/sendgrid": "latest"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}
