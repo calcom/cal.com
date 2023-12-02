@@ -62,5 +62,15 @@ declare namespace NodeJS {
      *  "non-strict" -> Strict CSP except the usage of unsafe-inline for `style-src`
      */
     readonly CSP_POLICY: "strict" | "non-strict";
+
+    /**
+     * "false" -> Don't leverage message queueing, instead use synchronous waits
+     * "true" -> Use message queueing
+     */
+    readonly AWS_SQS_CONSUMER: "true" | "false";
+    /**
+     * Endpoint URL of AWS SQS server
+     */
+    readonly AWS_SQS_URL: string | undefined;
   }
 }
