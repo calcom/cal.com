@@ -587,10 +587,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
             currentSeats[
               currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
             ]._count.attendees,
-          bookingUid:
-            currentSeats[
-              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-            ].uid,
+          bookingUid: input?.bookerUserId
+            ? currentSeats[
+                currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+              ].uid
+            : undefined,
         }),
       });
       return r;

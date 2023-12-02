@@ -119,7 +119,7 @@ export const getCurrentSeats = async (
   dateTo: Dayjs,
   bookerUserId?: number
 ) =>
-  prisma.booking.findMany({
+  await prisma.booking.findMany({
     where: {
       eventTypeId,
       startTime: {
