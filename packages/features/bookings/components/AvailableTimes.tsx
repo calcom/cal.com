@@ -189,6 +189,8 @@ export const AvailableTimes = ({
   selectedSlots,
 }: AvailableTimesProps) => {
   const { t } = useLocale();
+  console.log("In available times");
+  console.log(slots);
 
   return (
     <div className={classNames("text-default flex flex-col", className)}>
