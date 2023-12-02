@@ -1,4 +1,3 @@
-import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -96,8 +95,7 @@ const PeopleFilter = () => {
 export function FiltersContainer() {
   const { t } = useLocale();
 
-  const router = useRouter();
-  const pathname = usePathname();
+  const { removeAllQueryParams } = useFilterQuery();
 
   const [addFilterOptions, toggleOption, isFilterActive] = useBookingMultiFilterStore((state) => [
     state.addFilterOptions,
@@ -148,7 +146,7 @@ export function FiltersContainer() {
             onClick={() => {
               if (isPeopleFilterActive) toggleOption({ label: "people" });
               if (isEventTypeFilterActive) toggleOption({ label: "event_type" });
-              router.replace(pathname);
+              removeAllQueryParams();
             }}>
             {t("remove_filters")}
           </Button>
