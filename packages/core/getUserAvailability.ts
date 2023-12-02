@@ -99,7 +99,26 @@ const getUser = (where: Prisma.UserWhereInput) =>
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
+const getUserBookings = async (userId: number) => {
+  const bookerUser = await prisma.user.findUnique({ where: { id: userId } });
+  const bookerUserBookings = (
+    await prisma.attendee.findMany({
+      where: { email: bookerUser?.email },
+      select: {
+        bookingId: true,
+      },
+    })
+  ).map((booking) => booking.bookingId);
+
+  return bookerUserBookings;
+};
+
+export const getCurrentSeats = async (
+  eventTypeId: number,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  bookerUserId: number
+) =>
   prisma.booking.findMany({
     where: {
       eventTypeId,
@@ -108,6 +127,13 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
         lte: dateTo.format(),
       },
       status: BookingStatus.ACCEPTED,
+      ...(bookerUserId
+        ? {
+            id: {
+              in: (await getUserBookings(bookerUserId)).filter((id): id is number => id !== null),
+            },
+          }
+        : {}),
     },
     select: {
       uid: true,
@@ -140,6 +166,7 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
     eventType?: EventType;
     currentSeats?: CurrentSeats;
     rescheduleUid?: string | null;
+    bookerUserId?: number;
     currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
       eventType: Pick<
         PrismaEventType,
@@ -176,8 +203,8 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
-  if (!currentSeats && eventType?.seatsPerTimeSlot) {
-    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
+  if (!currentSeats && initialData?.bookerUserId && eventType?.seatsPerTimeSlot) {
+    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, initialData.bookerUserId);
   }
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
