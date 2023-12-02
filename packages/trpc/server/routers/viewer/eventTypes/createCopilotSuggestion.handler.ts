@@ -89,7 +89,7 @@ async function augmentInputsWithCopilot(input: { aboutMe: string; aboutPeopleToM
             Infer the needs of the user based on their preferences.
             Write a json array with objects representing the parameters API accepts,
             given what the user said about themselves and the people they want to meet.
-            Every entry must represent a single user need.
+            Every entry must represent a single user need category.
 
             Whatever explanation / description you write, it must be written from the perspective of the user.
 
