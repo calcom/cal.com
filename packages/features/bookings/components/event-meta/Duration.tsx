@@ -8,19 +8,29 @@ import { Badge } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
 
-/** Only render in X hours if has for duration of HOURS_THRESHOLD mins more */
-const HOURS_THRESHOLD = 120;
-
-/** Render X mins as X hours or X hours Y mins instead of in minutes once above HOURS_THRESHOLD */
+/** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 const getDurationFormatted = (mins: number, t: TFunction) => {
-  if (mins < HOURS_THRESHOLD) return t("multiple_duration_timeUnit", { count: mins, unit: "minute" });
   const hours = Math.floor(mins / 60);
   mins %= 60;
-  if (mins === 0) return t("multiple_duration_timeUnit", { count: hours, unit: "hour" });
-  return `${t("multiple_duration_timeUnit", { count: hours, unit: "hour" })} ${t(
-    "multiple_duration_timeUnit",
-    { count: mins, unit: "minute" }
-  )}`;
+  // format minutes string
+  let minStr = "";
+  if (mins > 0) {
+    minStr =
+      mins === 1
+        ? t("minute_one", { count: 1 })
+        : t("multiple_duration_timeUnit", { count: mins, unit: "minute" });
+  }
+  // format hours string
+  let hourStr = "";
+  if (hours > 0) {
+    hourStr =
+      hours === 1
+        ? t("hour_one", { count: 1 })
+        : t("multiple_duration_timeUnit", { count: hours, unit: "hour" });
+  }
+
+  if (hourStr && minStr) return `${hourStr} ${minStr}`;
+  return hourStr || minStr;
 };
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
