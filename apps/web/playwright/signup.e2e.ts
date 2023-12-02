@@ -232,7 +232,7 @@ test.describe("Signup Flow Test", async () => {
   });
   test("If signup is disabled allow team invites", async ({ browser, page, users, emails }) => {
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true", "Skipping due to signup being anabled");
+    test.skip(process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true", "Skipping due to signup being enabled");
 
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
