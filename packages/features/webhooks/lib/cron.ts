@@ -5,6 +5,8 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { jsonParse } from "./sendPayload";
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (process.env.CRON_API_KEY !== apiKey) {
@@ -27,6 +29,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await fetch(job.subscriberUrl, {
         method: "POST",
         body: job.payload,
+        headers: {
+          "Content-Type":
+            !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
+        },
       });
     } catch (error) {
       console.log(`Error running webhook trigger (retry count: ${job.retryCount}): ${error}`);
