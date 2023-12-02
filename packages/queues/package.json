@@ -4,7 +4,8 @@
   "main": "index.ts",
   "dependencies": {
     "@trigger.dev/sdk": "^2.2.10",
-    "@trigger.dev/sendgrid": "latest"
+    "@trigger.dev/sendgrid": "latest",
+    "zod": "3.5.3"
   },
   "devDependencies": {
     "typescript": "latest"

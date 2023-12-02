@@ -3748,6 +3748,7 @@ __metadata:
     "@trigger.dev/sdk": ^2.2.10
     "@trigger.dev/sendgrid": latest
     typescript: latest
+    zod: 3.5.3
   languageName: unknown
   linkType: soft
 
@@ -37114,6 +37115,13 @@ __metadata:
   version: 3.22.3
   resolution: "zod@npm:3.22.3"
   checksum: 65b05139be337078a70700b05942ab7f2ef5f11abe194df14ef257fac4e5c383476a4dc290731842996bd57fc8d5bf38e5a4c907fe8cdf8b15477f8da5bfcc00
+  languageName: node
+  linkType: hard
+
+"zod@npm:3.5.3":
+  version: 3.5.3
+  resolution: "zod@npm:3.5.3"
+  checksum: 12824f9d02a865768732568411e0f802cd578e45aa8b7b4627bb6a26b6fb74c4a285986b6edd3b26aae246a4fbd2a4c32f349c01912800f084179279cdf33ea0
   languageName: node
   linkType: hard
 
