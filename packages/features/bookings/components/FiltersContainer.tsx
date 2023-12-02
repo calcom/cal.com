@@ -144,8 +144,6 @@ export function FiltersContainer() {
             color="secondary"
             type="button"
             onClick={() => {
-              if (isPeopleFilterActive) toggleOption({ label: "people" });
-              if (isEventTypeFilterActive) toggleOption({ label: "event_type" });
               removeAllQueryParams();
             }}>
             {t("remove_filters")}
