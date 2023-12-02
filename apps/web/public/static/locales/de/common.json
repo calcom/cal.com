@@ -656,7 +656,6 @@
   "default_duration": "Standardlaufzeit",
   "default_duration_no_options": "Bitte wählen Sie zuerst die verfügbaren Laufzeiten aus",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minuten",
   "round_robin": "Round Robin",
   "round_robin_description": "Treffen zwischen mehreren Teammitgliedern durchwechseln.",

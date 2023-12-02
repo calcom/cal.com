@@ -656,7 +656,6 @@
   "default_duration": "預設時間長度",
   "default_duration_no_options": "請先選擇可預約的時間長度",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "分鐘",
   "round_robin": "循環制",
   "round_robin_description": "與多位團隊成員進行週期會議。",

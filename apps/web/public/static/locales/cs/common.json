@@ -656,7 +656,6 @@
   "default_duration": "Výchozí doba trvání",
   "default_duration_no_options": "Nejprve vyberte dostupné doby trvání",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "min",
   "round_robin": "Plánování Round Robin",
   "round_robin_description": "Schůzky v řadě mezi několika členy týmu.",

@@ -656,7 +656,6 @@
   "default_duration": "Тривалість за замовчуванням",
   "default_duration_no_options": "Спочатку виберіть доступні варіанти тривалості",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Хвилини",
   "round_robin": "Ротація",
   "round_robin_description": "Кілька учасників команди призначаються для нарад циклічно й по черзі.",

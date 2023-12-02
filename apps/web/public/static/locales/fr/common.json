@@ -660,7 +660,6 @@
   "default_duration": "Durée par défaut",
   "default_duration_no_options": "Veuillez d'abord choisir les durées disponibles",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "minutes",
   "round_robin": "Round-robin",
   "round_robin_description": "Alternez vos rendez-vous entre plusieurs membres d'équipe.",

@@ -656,7 +656,6 @@
   "default_duration": "기본 기간",
   "default_duration_no_options": "사용 가능한 기간을 먼저 선택하세요",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "분",
   "round_robin": "라운드 로빈",
   "round_robin_description": "여러 팀 구성원 간의 주기적인 회의",
