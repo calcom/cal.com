@@ -312,11 +312,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               description={t("limit_booking_only_first_slot_description")}
               checked={isChecked}
               onCheckedChange={(active) => {
-                if (active) {
-                  formMethods.setValue("onlyShowFirstAvailableSlot", true);
-                } else {
-                  formMethods.setValue("onlyShowFirstAvailableSlot", false);
-                }
+                formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false);
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
