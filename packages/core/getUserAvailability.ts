@@ -117,7 +117,7 @@ export const getCurrentSeats = async (
   eventTypeId: number,
   dateFrom: Dayjs,
   dateTo: Dayjs,
-  bookerUserId: number
+  bookerUserId?: number
 ) =>
   prisma.booking.findMany({
     where: {
@@ -203,8 +203,8 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
-  if (!currentSeats && initialData?.bookerUserId && eventType?.seatsPerTimeSlot) {
-    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, initialData.bookerUserId);
+  if (!currentSeats && eventType?.seatsPerTimeSlot) {
+    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo, initialData?.bookerUserId);
   }
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
