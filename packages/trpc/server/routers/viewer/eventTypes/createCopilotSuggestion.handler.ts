@@ -92,10 +92,13 @@ async function augmentInputsWithCopilot(input: { aboutMe: string; aboutPeopleToM
             Every entry must represent a single user need.
 
             Whatever explanation / description you write, it must be written from the perspective of the user.
-            Must sound friendly, professional, use simple words, and be easy to understand.
 
             Must be brief with titles / slugs / names.
             Must be brief, but not too brief with the descriptions / explanations.
+
+            Titles must be short, descriptions must call to action.
+
+            Must sound friendly, professional, optimistic, use simple language, and be easy to understand.
           `,
       },
       {
