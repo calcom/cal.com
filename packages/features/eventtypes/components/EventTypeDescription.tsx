@@ -27,7 +27,7 @@ export type EventTypeDescriptionProps = {
   isPublic?: boolean;
 };
 
-const formatDuration = (dur) => {
+const formatDuration = (dur: number) => {
   return dur < 60
     ? `${dur} m`
     : dur % 60 === 0
