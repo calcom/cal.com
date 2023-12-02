@@ -11,6 +11,7 @@ import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -75,6 +76,7 @@ const AppearanceView = ({
     user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
+  useTheme(user?.appTheme);
 
   const userAppThemeFormMethods = useForm({
     defaultValues: {
@@ -151,8 +153,8 @@ const AppearanceView = ({
       <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={false} />
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
-          <p className="text-default text-base font-semibold">{t("theme")}</p>
-          <p className="text-default">{t("theme_applies_note")}</p>
+          <p className="text-default text-base font-semibold">{t("App_theme")}</p>
+          <p className="text-default">{t("App_theme_applies_note")}</p>
         </div>
       </div>
       <Form
@@ -198,6 +200,12 @@ const AppearanceView = ({
         </SectionBottomActions>
       </Form>
 
+      <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
+        <div>
+          <p className="text-default text-base font-semibold">{t("theme")}</p>
+          <p className="text-default">{t("theme_applies_note")}</p>
+        </div>
+      </div>
       <Form
         form={userThemeFormMethods}
         handleSubmit={(values) => {
