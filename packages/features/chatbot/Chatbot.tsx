@@ -2,9 +2,26 @@ import React, { useState } from "react";
 
 const FloatingIcon = () => {
   const [isWindowOpen, setIsWindowOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const toggleWindow = () => {
     setIsWindowOpen(!isWindowOpen);
+  };
+
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleConfirmClick = () => {
+    // Handle the confirm button click, you can add your logic here
+    console.log("Input Value:", inputValue);
+    // Close the window after confirming (optional)
+    // setIsWindowOpen(false);
+  };
+
+  const handleWindowClick = (e) => {
+    // Stop the click event propagation within the window's content
+    e.stopPropagation();
   };
 
   return (
@@ -37,8 +54,6 @@ const FloatingIcon = () => {
         <div
           style={{
             position: "absolute",
-            height: "200px",
-            width: "300px",
             bottom: "60px",
             right: "0",
             border: "1px solid #ccc",
@@ -47,7 +62,9 @@ const FloatingIcon = () => {
             backgroundColor: "#fff",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
             display: "block",
-          }}>
+          }}
+          onClick={handleWindowClick} // Handle click within the window
+        >
           <input
             type="text"
             value={inputValue}
