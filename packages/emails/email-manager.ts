@@ -224,6 +224,7 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
 };
 
 export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+  // TODO: send message to queue
   await sendEmail(() => new AttendeeRequestEmail(calEvent, attendee));
 };
 
@@ -368,6 +369,8 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 export const sendFeedbackEmail = async (feedback: Feedback) => {
+  console.log("sending feedback email");
+  console.log(JSON.stringify(feedback));
   await sendEmail(() => new FeedbackEmail(feedback));
 };
 
@@ -436,4 +439,22 @@ export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData)
 
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
   await sendEmail(() => new AdminOrganizationNotification(input));
+};
+
+type AnyFunction = (...args: any[]) => any;
+
+// create a map of all the emails actions from strings
+export const emailActions: { [key: string]: AnyFunction } = {
+  sendFeedbackEmail,
+  sendTeamInviteEmail,
+  sendAttendeeRequestEmail,
+};
+
+export const sendEmail = async (action: string, params: any[]) => {
+  if (process.env.QSTASH) {
+
+    // TODO Call QStash
+  } else {
+    await emailActions[action](...params);
+  }
 };

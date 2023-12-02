@@ -31,5 +31,18 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
     },
   });
 
-  if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
+  if (process.env.SEND_FEEDBACK_EMAIL && comment) {
+    console.log("triggering email");
+    // make a request to the email queue
+    await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}api/queue/send_email`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "sendFeedbackEmail",
+        params: [feedback],
+      }),
+    });
+    console.log("email triggered");
+
+    sendFeedbackEmail(feedback);
+  }
 };
