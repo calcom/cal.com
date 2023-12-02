@@ -1,12 +1,12 @@
 import { createAppRoute } from "@trigger.dev/nextjs";
 
-import { client } from "@calcom/queues";
+import { queue } from "@calcom/queues";
 import "@calcom/queues/jobs";
 
 let triggerRoute: ReturnType<typeof createAppRoute> | undefined;
 
-if (client) {
-  triggerRoute = createAppRoute(client);
+if (queue) {
+  triggerRoute = createAppRoute(queue);
 }
 
 //this route is used to send and receive data with Trigger.dev

@@ -12,7 +12,7 @@ const apiUrl = process.env.TRIGGER_API_URL;
  * Trigger.dev is an Open Source Background Jobs framework for TypeScript.\
  * Learn more at https://trigger.dev
  */
-export const client =
+export const queue =
   projectId && apiKey && apiUrl
     ? new TriggerClient({
         id: projectId,
