@@ -68,16 +68,10 @@ export default function CreateEventTypeWithCopilotDialog(props: any) {
     data: { teamId },
   } = useTypedQuery(querySchema);
 
-  console.log({ teamId });
-
   const aboutMePlaceholder = `I'm a co-founder of a SaaS startup called Cal.com, and our mission is to connect a billion people by 2031 through calendar scheduling.`;
   const peoplePlaceholder = `I'm looking to connect with other founders, investors, enterprise executives, friends, and anyone else who wants to help us achieve our mission.`;
 
   const form = useForm<z.infer<typeof createEventTypeWithCopilotInput>>({
-    defaultValues: {
-      aboutMe: aboutMePlaceholder,
-      aboutPeopleToMeet: peoplePlaceholder,
-    },
     resolver: zodResolver(createEventTypeWithCopilotInput),
   });
 
