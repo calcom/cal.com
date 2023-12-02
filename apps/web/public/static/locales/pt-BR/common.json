@@ -656,6 +656,7 @@
   "default_duration": "Duração padrão",
   "default_duration_no_options": "Escolha as durações disponíveis primeiro",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minutos",
   "round_robin": "Round Robin",
   "round_robin_description": "Reuniões recorrentes entre vários membros da equipe.",

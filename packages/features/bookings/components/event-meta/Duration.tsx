@@ -1,3 +1,4 @@
+import type { TFunction } from "next-i18next";
 import { useEffect } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -6,6 +7,21 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
+
+/** Only render in X hours if has for duration of HOURS_THRESHOLD mins more */
+const HOURS_THRESHOLD = 120;
+
+/** Render X mins as X hours or X hours Y mins instead of in minutes once above HOURS_THRESHOLD */
+const getDurationFormatted = (mins: number, t: TFunction) => {
+  if (mins < HOURS_THRESHOLD) return t("multiple_duration_timeUnit", { count: mins, unit: "minute" });
+  const hours = Math.floor(mins / 60);
+  mins %= 60;
+  if (mins === 0) return t("multiple_duration_timeUnit", { count: hours, unit: "hour" });
+  return `${t("multiple_duration_timeUnit", { count: hours, unit: "hour" })} ${t(
+    "multiple_duration_timeUnit",
+    { count: mins, unit: "minute" }
+  )}`;
+};
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
@@ -25,7 +41,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
-    return <>{t("multiple_duration_mins", { count: event.length })}</>;
+    return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60];
 
