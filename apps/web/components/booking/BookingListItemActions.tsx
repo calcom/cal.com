@@ -7,7 +7,6 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";
 import {
-  Badge,
   Button,
   Dialog,
   DialogClose,
@@ -20,6 +19,7 @@ import {
 import { Ban, Check, Clock, CreditCard, MapPin, Send, X } from "@calcom/ui/components/icon";
 
 import type { BookingItemProps } from "@components/booking/BookingListItem";
+import RescheduleRequestSentBadge from "@components/booking/RescheduleRequestSentBadge";
 
 interface BookingListItemActionsProps {
   booking: BookingItemProps;
@@ -207,14 +207,6 @@ function BookingListItemActions({
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
   }
 
-  const RequestSentMessage = () => {
-    return (
-      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
-        {t("reschedule_request_sent")}
-      </Badge>
-    );
-  };
-
   const showRecordingActions: ActionType[] = [
     {
       id: "view_recordings",
@@ -273,7 +265,7 @@ function BookingListItemActions({
         )}
         {isCancelled && booking.rescheduled && (
           <div className="hidden h-full items-center md:flex">
-            <RequestSentMessage />
+            <RescheduleRequestSentBadge />
           </div>
         )}
         {booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD" && (

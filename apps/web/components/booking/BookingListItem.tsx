@@ -15,11 +15,11 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, MeetingTimeInTimezones, showToast } from "@calcom/ui";
-import { Send } from "@calcom/ui/components/icon";
 
 import BookingListItemActions, { computeBookingFlags } from "@components/booking/BookingListItemActions";
 import DisplayAttendees from "@components/booking/DisplayAttendees";
 import RecurringBookingsTooltip from "@components/booking/RecurringBookingsTooltip";
+import RescheduleRequestSentBadge from "@components/booking/RescheduleRequestSentBadge";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -54,14 +54,6 @@ function BookingListItem(booking: BookingItemProps) {
     computeBookingFlags(booking);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
-
-  const RequestSentMessage = () => {
-    return (
-      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
-        {t("reschedule_request_sent")}
-      </Badge>
-    );
-  };
 
   const startTime = dayjs(booking.startTime)
     .tz(userTimeZone)
@@ -274,7 +266,7 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {isCancelled && booking.rescheduled && (
                 <div className="mt-2 inline-block md:hidden">
-                  <RequestSentMessage />
+                  <RescheduleRequestSentBadge />
                 </div>
               )}
             </div>
