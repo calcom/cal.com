@@ -27,6 +27,14 @@ export type EventTypeDescriptionProps = {
   isPublic?: boolean;
 };
 
+const formatDuration = (dur) => {
+  return dur < 60
+    ? `${dur} m`
+    : dur % 60 === 0
+    ? `${dur / 60} hours`
+    : `${Math.floor(dur / 60)} hours ${dur % 60} m`;
+};
+
 export const EventTypeDescription = ({
   eventType,
   className,
@@ -61,14 +69,14 @@ export const EventTypeDescription = ({
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
                 <Badge variant="gray" startIcon={Clock}>
-                  {dur}m
+                  {formatDuration(dur)}
                 </Badge>
               </li>
             ))
           ) : (
             <li>
               <Badge variant="gray" startIcon={Clock}>
-                {eventType.length}m
+                {formatDuration(eventType.length)}
               </Badge>
             </li>
           )}
