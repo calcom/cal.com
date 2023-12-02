@@ -9,6 +9,7 @@
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
+    "@temporalio/workflow": "^1.8.6",
     "next-i18next": "^13.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
