@@ -314,6 +314,7 @@ export const useEmbedTypes = () => {
           </defs>
         </svg>
       ),
+      onlyOnEventTypeEmbed: true,
     },
   ];
 };

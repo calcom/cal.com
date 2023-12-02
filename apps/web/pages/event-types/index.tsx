@@ -712,49 +712,54 @@ const EventTypeListHeading = ({
   const bookerUrl = useBookerUrl();
 
   return (
-    <div className="mb-4 flex items-center space-x-2">
-      <Avatar
-        alt={profile?.name || ""}
-        href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={
-          orgBranding?.fullDomain
-            ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
-            : profile.image
-        }
-        size="md"
-        className="mt-1 inline-flex justify-center"
-      />
-      <div>
-        <Link
+    <div className="mb-4 flex items-center justify-between">
+      <div className="flex items-center space-x-2">
+        <Avatar
+          alt={profile?.name || ""}
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-          className="text-emphasis font-bold">
-          {profile?.name || ""}
-        </Link>
-        {membershipCount && teamId && (
-          <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
-            <Link href={`/settings/teams/${teamId}/members`}>
-              <Badge variant="gray">
-                <Users className="-mt-px mr-1 inline h-3 w-3" />
-                {membershipCount}
-              </Badge>
-            </Link>
-          </span>
-        )}
-        {profile?.slug && (
+          imageSrc={
+            orgBranding?.fullDomain
+              ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
+              : profile.image
+          }
+          size="md"
+          className="mt-1 inline-flex justify-center"
+        />
+        <div>
           <Link
-            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
-            className="text-subtle block text-xs">
-            {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
+            href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
+            className="text-emphasis font-bold">
+            {profile?.name || ""}
           </Link>
+          {membershipCount && teamId && (
+            <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
+              <Link href={`/settings/teams/${teamId}/members`}>
+                <Badge variant="gray">
+                  <Users className="-mt-px mr-1 inline h-3 w-3" />
+                  {membershipCount}
+                </Badge>
+              </Link>
+            </span>
+          )}
+          {profile?.slug && (
+            <Link
+              href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
+              className="text-subtle block text-xs">
+              {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
+            </Link>
+          )}
+        </div>
+        {!profile?.slug && !!teamId && (
+          <button onClick={() => publishTeamMutation.mutate({ teamId })}>
+            <Badge variant="gray" className="-ml-2 mb-1">
+              {t("upgrade")}
+            </Badge>
+          </button>
         )}
       </div>
-      {!profile?.slug && !!teamId && (
-        <button onClick={() => publishTeamMutation.mutate({ teamId })}>
-          <Badge variant="gray" className="-ml-2 mb-1">
-            {t("upgrade")}
-          </Badge>
-        </button>
-      )}
+      <Button href={`?dialog=embed&embedUrl=${profile.slug}`} color="secondary" variant="button">
+        {t("embed")} {t("profile")}
+      </Button>
     </div>
   );
 };

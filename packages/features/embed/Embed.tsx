@@ -95,6 +95,9 @@ const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme;
 const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   const { t } = useLocale();
   const { goto } = useRouterHelpers();
+  const searchParams = useCompatSearchParams();
+  const isEventTypeEmbed = searchParams?.get("eventId");
+
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
@@ -106,23 +109,25 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
         </div>
       </div>
       <div className="items-start space-y-2 md:flex md:space-y-0">
-        {types.map((embed, index) => (
-          <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
-            key={index}
-            data-testid={embed.type}
-            onClick={() => {
-              goto({
-                embedType: embed.type,
-              });
-            }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
-              {embed.illustration}
-            </div>
-            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
-            <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
-          </button>
-        ))}
+        {types
+          .filter((type) => (type?.onlyOnEventTypeEmbed ? isEventTypeEmbed : true))
+          .map((embed, index) => (
+            <button
+              className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+              key={index}
+              data-testid={embed.type}
+              onClick={() => {
+                goto({
+                  embedType: embed.type,
+                });
+              }}>
+              <div className="bg-default order-none box-border flex-none rounded-md border border-solid dark:bg-transparent dark:invert">
+                {embed.illustration}
+              </div>
+              <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
+              <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
+            </button>
+          ))}
       </div>
     </DialogContent>
   );
