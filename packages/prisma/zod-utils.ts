@@ -31,8 +31,8 @@ export enum Frequency {
   HOURLY = 4,
   MINUTELY = 5,
   SECONDLY = 6,
-  CUSTOM = 7,
-  WEEKDAYS = 8,
+  WEEKDAYS = 7,
+  CUSTOM = 8,
 }
 
 export enum BookerLayouts {

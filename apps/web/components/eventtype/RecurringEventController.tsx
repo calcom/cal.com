@@ -23,9 +23,13 @@ export default function RecurringEventController({
     eventType.recurringEvent
   );
   const formMethods = useFormContext<FormValues>();
-  const [definite, setDefinite] = useState(true);
+  const [definite, setDefinite] = useState(
+    recurringEventState ? recurringEventState.count != Number.MAX_SAFE_INTEGER : true
+  );
   const [custom, setCustom] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(
+    recurringEventState && recurringEventState.until ? recurringEventState.until : new Date()
+  );
   /* Just yearly-0, monthly-1, weekly-2, daily-3 */
   const recurringEventFreqOptions = Object.entries(Frequency)
     .filter(([key, value]) => isNaN(Number(key)) && Number(value) <= 3)
@@ -114,7 +118,7 @@ export default function RecurringEventController({
                           };
                           formMethods.setValue("recurringEvent", newVal);
                           setRecurringEventState(newVal);
-                          event && parseInt(event?.value) == 7 ? setCustom(true) : setCustom(false);
+                          event && parseInt(event?.value) == 8 ? setCustom(true) : setCustom(false);
                           setCustomInterval(newVal);
                         }}
                       />
@@ -168,9 +172,8 @@ export default function RecurringEventController({
                       // description={t("recurring_event_description")}
                       checked={definite}
                       data-testid="recurring-event-check"
-                      onCheckedChange={() => {
-                        setDefinite(!definite);
-                        if (!definite) {
+                      onCheckedChange={(e) => {
+                        if (!e) {
                           const newVal = {
                             ...recurringEventState,
                             count: Number.MAX_SAFE_INTEGER,
@@ -179,56 +182,68 @@ export default function RecurringEventController({
                           formMethods.setValue("recurringEvent", newVal);
                           setRecurringEventState(newVal);
                         }
+                        setDefinite(!definite);
                       }}>
-                      <div className="mt-4 flex items-center">
-                        <p className="text-emphasis ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
-                        <TextField
-                          disabled={definiteLocked.disabled}
-                          type="number"
-                          min="1"
-                          max="30"
-                          defaultValue={
-                            recurringEventState.count != Number.MAX_SAFE_INTEGER
-                              ? recurringEventState.count
-                              : 12
-                          }
-                          className="mb-0"
-                          onChange={(event) => {
-                            const newVal = {
-                              ...recurringEventState,
-                              count: parseInt(event?.target.value),
-                            };
-                            formMethods.setValue("recurringEvent", newVal);
-                            setRecurringEventState(newVal);
-                          }}
-                        />
-                        <p className="text-emphasis ltr:ml-2 rtl:mr-2">
-                          {t("events", {
-                            count: recurringEventState.count,
-                          })}
-                        </p>
-                      </div>
+                      {definite && (
+                        <div className="mt-4 flex items-center">
+                          <p className="text-emphasis ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
+                          <TextField
+                            disabled={definiteLocked.disabled}
+                            type="number"
+                            min="1"
+                            max="30"
+                            defaultValue={
+                              recurringEventState.count != Number.MAX_SAFE_INTEGER
+                                ? recurringEventState.count
+                                : 12
+                            }
+                            className="mb-0"
+                            onChange={(event) => {
+                              if (definite) {
+                                const newVal = {
+                                  ...recurringEventState,
+                                  count: parseInt(event?.target.value),
+                                };
+                                formMethods.setValue("recurringEvent", newVal);
+                                setRecurringEventState(newVal);
+                              }
+                            }}
+                          />
+                          <p className="text-emphasis ltr:ml-2 rtl:mr-2">
+                            {t("events", {
+                              count: recurringEventState.count,
+                            })}
+                          </p>
+                        </div>
+                      )}
                       <div className="mt-4 flex items-center">
                         <p className="text-emphasis ltr:mr-2 rtl:ml-2">{t("Until")}</p>
                         <DatePicker
                           minDate={recurringEventState.dtstart}
                           date={selectedDate}
                           onDatesChange={(event) => {
-                            const newVal = { ...recurringEventState, until: event };
+                            setSelectedDate(event);
+                            const newVal = {
+                              ...recurringEventState,
+                              count: recurringEventState.count,
+                              until: event,
+                            };
                             formMethods.setValue("recurringEvent", newVal);
                             setRecurringEventState(newVal);
-                            setSelectedDate(event);
                           }}
                         />
                         <button
                           className="ml-40"
                           onClick={() => {
-                            const newVal = { ...recurringEventState, until: undefined };
+                            const newVal = {
+                              ...recurringEventState,
+                              count: recurringEventState.count,
+                              until: undefined,
+                            };
                             formMethods.setValue("recurringEvent", newVal);
                             setRecurringEventState(newVal);
                             setSelectedDate(new Date());
                           }}>
-                          {" "}
                           Clear End Date
                         </button>
                         {/* Assuming End-dates have priority over max count,implementing a clear button for end date seems*/}
