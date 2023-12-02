@@ -1,0 +1,39 @@
+{
+  "name": "@calcom/queue-worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc --build",
+    "build:watch": "tsc --build --watch",
+    "start": "ts-node src/worker.ts",
+    "start:watch": "nodemon src/worker.ts",
+    "workflow:client": "ts-node src/client.ts",
+    "test": "mocha --exit --require ts-node/register --require source-map-support/register src/mocha/*.test.ts"
+  },
+  "nodemonConfig": {
+    "execMap": {
+      "ts": "ts-node"
+    },
+    "ext": "ts",
+    "watch": [
+      "src"
+    ]
+  },
+  "dependencies": {
+    "@calcom/emails": "*",
+    "@temporalio/activity": "^1.8.6",
+    "@temporalio/client": "^1.8.6",
+    "@temporalio/worker": "^1.8.6",
+    "@temporalio/workflow": "^1.8.6"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*",
+    "@calcom/types": "*",
+    "@temporalio/testing": "^1.8.6",
+    "@tsconfig/node20": "20.1.2",
+    "@types/node": "^20.10.2",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
+  }
+}
