@@ -1,39 +1,31 @@
 import type { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/react";
 
 import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-function Teams() {
+function TimeCapsule() {
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
+  const session = useSession();
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
+    suspense: true,
+    enabled: session.status === "authenticated",
+  });
+  console.log(webhooks);
   return (
     <ShellMain
-      heading={t("teams")}
+      heading={t("Time Capsule")}
       hideHeadingOnMobile
-      subtitle={t("create_manage_teams_collaborative")}
-      CTA={
-        (!user.organizationId || user.organization.isOrgAdmin) && (
-          <Button
-            data-testid="new-team-btn"
-            variant="fab"
-            StartIcon={Plus}
-            type="button"
-            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
-            {t("new")}
-          </Button>
-        )
-      }>
+      subtitle={t("create_manage_teams_collaborative")}>
       <TeamsListing />
     </ShellMain>
   );
@@ -60,7 +52,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return { props: { trpcState: ssr.dehydrate() } };
 };
 
-Teams.requiresLicense = false;
-Teams.PageWrapper = PageWrapper;
-Teams.getLayout = getLayout;
-export default Teams;
+TimeCapsule.requiresLicense = false;
+TimeCapsule.PageWrapper = PageWrapper;
+TimeCapsule.getLayout = getLayout;
+export default TimeCapsule;
+
+// CTA={
+//   (!user.organizationId || user.organization.isOrgAdmin) && (
+//     <Button
+//       data-testid="new-team-btn"
+//       variant="fab"
+//       StartIcon={Plus}
+//       type="button"
+//       href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+//       {t("new")}
+//     </Button>
+//   )
+// }
