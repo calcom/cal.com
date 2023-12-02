@@ -80,7 +80,9 @@ const FloatingIcon = () => {
               }}
             />
             <button
+              onClick={handleConfirmClick}
               style={{
+                color: "black",
                 background: "white",
                 borderRadius: "50px",
                 aspectRatio: "1",
