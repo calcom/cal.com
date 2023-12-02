@@ -150,6 +150,7 @@ export default function CreateEventTypeDialog({
 
   return (
     <Dialog
+      key="new"
       name="new"
       clearQueryParamsOnClose={[
         "eventPage",

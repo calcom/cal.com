@@ -13,8 +13,11 @@ import { getLayout } from "@calcom/features/MainLayout";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
-import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import {
+  EventTypeDescription,
+  CreateEventTypeWithCopilotDialog,
+  CreateEventTypeDialog,
+} from "@calcom/features/eventtypes/components";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -38,7 +41,6 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  CreateButton,
   Dialog,
   Dropdown,
   DropdownItem,
@@ -56,7 +58,9 @@ import {
   Switch,
   Tooltip,
   ArrowButton,
+  CreateButton,
 } from "@calcom/ui";
+import { BrainCircuit } from "@calcom/ui/components/icon";
 import {
   Clipboard,
   Code,
@@ -795,12 +799,24 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
     });
 
   return (
-    <CreateButton
-      data-testid="new-event-type"
-      subtitle={t("create_event_on").toUpperCase()}
-      options={profileOptions}
-      createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
-    />
+    <div className="flex space-x-2">
+      <CreateButton
+        data-testid="new-event-type-with-copilot"
+        buttonText="Copilot"
+        subtitle={t("create_event_on").toUpperCase()}
+        icon={BrainCircuit}
+        options={profileOptions}
+        createDialog={() => <CreateEventTypeWithCopilotDialog profileOptions={profileOptions} />}
+        dialogName="new-copilot"
+      />
+      <CreateButton
+        data-testid="new-event-type"
+        subtitle={t("create_event_on").toUpperCase()}
+        options={profileOptions}
+        createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
+        dialogName="new"
+      />
+    </div>
   );
 };
 

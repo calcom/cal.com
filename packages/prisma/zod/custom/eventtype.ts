@@ -20,3 +20,8 @@ export const createEventTypeInput = z.object({
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",
   });
+
+export const createEventTypeWithCopilotInput = z.object({
+  aboutMe: z.string().min(1),
+  aboutPeopleToMeet: z.string().min(1),
+});

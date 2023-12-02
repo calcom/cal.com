@@ -5,6 +5,7 @@ import { logP } from "@calcom/lib/perf";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZCreateCopilotSuggestionInputSchema } from "./createCopilotSuggestion.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
@@ -17,6 +18,7 @@ type BookingsRouterHandlerCache = {
   list?: typeof import("./list.handler").listHandler;
   listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
   create?: typeof import("./create.handler").createHandler;
+  createCopilotSuggestion?: typeof import("./createCopilotSuggestion.handler").createCopilotSuggestionHandler;
   get?: typeof import("./get.handler").getHandler;
   update?: typeof import("./update.handler").updateHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
@@ -100,6 +102,26 @@ export const eventTypesRouter = router({
       input,
     });
   }),
+
+  createCopilotSuggestion: authedProcedure
+    .input(ZCreateCopilotSuggestionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.createCopilotSuggestion) {
+        UNSTABLE_HANDLER_CACHE.createCopilotSuggestion = await import(
+          "./createCopilotSuggestion.handler"
+        ).then((mod) => mod.createCopilotSuggestionHandler);
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.createCopilotSuggestion) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.createCopilotSuggestion({
+        ctx,
+        input,
+      });
+    }),
 
   get: eventOwnerProcedure.input(ZGetInputSchema).query(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.get) {

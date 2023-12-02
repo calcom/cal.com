@@ -14,6 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui";
+import type { LucideIcon } from "@calcom/ui/components/icon";
 import { Plus } from "@calcom/ui/components/icon";
 
 export interface Option {
@@ -33,6 +34,12 @@ export type CreateBtnProps = {
   disableMobileButton?: boolean;
   "data-testid"?: string;
   color?: ButtonColor;
+  icon?: LucideIcon;
+  dialogName?: "new" | "new-copilot";
+};
+
+CreateButton.defaultProps = {
+  icon: Plus,
 };
 
 /**
@@ -65,7 +72,7 @@ export function CreateButton(props: CreateBtnProps) {
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value !== undefined && value !== null) _searchParams.set(key, value.toString());
     }
-    setParamsIfDefined("dialog", "new");
+    setParamsIfDefined("dialog", props.dialogName || "new");
     setParamsIfDefined("eventPage", option.slug);
     setParamsIfDefined("teamId", option.teamId);
     if (!option.teamId) {
@@ -86,7 +93,7 @@ export function CreateButton(props: CreateBtnProps) {
               : null
           }
           data-testid="create-button"
-          StartIcon={Plus}
+          StartIcon={props.icon}
           loading={isLoading}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
@@ -97,7 +104,7 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon={Plus}
+              StartIcon={props.icon}
               data-testid="create-button-dropdown"
               loading={isLoading}
               {...restProps}>
@@ -137,7 +144,7 @@ export function CreateButton(props: CreateBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-      {searchParams?.get("dialog") === "new" && CreateDialog}
+      {["new", "new-copilot"].includes(searchParams?.get("dialog") as any) && CreateDialog}
     </>
   );
 }
