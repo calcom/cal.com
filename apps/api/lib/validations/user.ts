@@ -101,6 +101,7 @@ const schemaUserEditParams = z.object({
   hideBranding: z.boolean().optional(),
   timeZone: timeZone.optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
+  appTheme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
   defaultScheduleId: z
     .number()
@@ -123,6 +124,7 @@ const schemaUserCreateParams = z.object({
   hideBranding: z.boolean().optional(),
   timeZone: timeZone.optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
+  appTheme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
   defaultScheduleId: z
     .number()
