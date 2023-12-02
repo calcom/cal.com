@@ -303,7 +303,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         control={formMethods.control}
         render={({ field: { value } }) => {
           const isChecked = value;
-          console.log("Here", isChecked);
           return (
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
