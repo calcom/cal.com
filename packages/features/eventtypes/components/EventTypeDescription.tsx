@@ -27,12 +27,14 @@ export type EventTypeDescriptionProps = {
   isPublic?: boolean;
 };
 
-const formatDuration = (dur: number) => {
-  return dur < 60
-    ? `${dur} m`
-    : dur % 60 === 0
-    ? `${dur / 60} hours`
-    : `${Math.floor(dur / 60)} hours ${dur % 60} m`;
+const formatDuration = (dur: number): string => {
+  if (dur < 60) {
+    return `${dur} m`;
+  }
+  if (dur % 60 === 0) {
+    return `${dur / 60} hours`;
+  }
+  return `${Math.floor(dur / 60)} hours ${dur % 60} m`;
 };
 
 export const EventTypeDescription = ({
