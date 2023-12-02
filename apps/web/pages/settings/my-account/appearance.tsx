@@ -164,7 +164,7 @@ const AppearanceView = ({
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
-            appTheme: values.theme ?? null,
+            appTheme: values.appTheme ?? null,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -174,6 +174,7 @@ const AppearanceView = ({
             label={t("theme_system")}
             defaultChecked={user.appTheme === null}
             register={userAppThemeFormMethods.register}
+            fieldName="appTheme"
           />
           <ThemeLabel
             variant="light"
@@ -181,6 +182,7 @@ const AppearanceView = ({
             label={t("light")}
             defaultChecked={user.appTheme === "light"}
             register={userAppThemeFormMethods.register}
+            fieldName="appTheme"
           />
           <ThemeLabel
             variant="dark"
@@ -188,6 +190,7 @@ const AppearanceView = ({
             label={t("dark")}
             defaultChecked={user.appTheme === "dark"}
             register={userAppThemeFormMethods.register}
+            fieldName="appTheme"
           />
         </div>
         <SectionBottomActions className="mb-6" align="end">
