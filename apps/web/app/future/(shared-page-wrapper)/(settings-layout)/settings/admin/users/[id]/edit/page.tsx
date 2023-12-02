@@ -33,4 +33,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   );
 };
 
-export default Page;
+export default function AppPage() {
+  // @ts-expect-error FIXME AppProps | undefined' does not satisfy the constraint 'PageProps'
+  return <Page />;
+}
