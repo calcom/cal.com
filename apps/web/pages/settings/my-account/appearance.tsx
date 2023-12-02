@@ -76,6 +76,17 @@ const AppearanceView = ({
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
 
+  const userAppThemeFormMethods = useForm({
+    defaultValues: {
+      appTheme: user.appTheme,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isUserAppThemeSubmitting, isDirty: isUserAppThemeDirty },
+    reset: resetUserAppThemeReset,
+  } = userAppThemeFormMethods;
+
   const userThemeFormMethods = useForm({
     defaultValues: {
       theme: user.theme,
@@ -124,6 +135,7 @@ const AppearanceView = ({
       resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
       resetUserThemeReset({ theme: data.theme });
+      resetUserAppThemeReset({ appTheme: data.appTheme });
     },
     onError: (error) => {
       if (error.message) {
@@ -143,6 +155,49 @@ const AppearanceView = ({
           <p className="text-default">{t("theme_applies_note")}</p>
         </div>
       </div>
+      <Form
+        form={userAppThemeFormMethods}
+        handleSubmit={(values) => {
+          mutation.mutate({
+            // Radio values don't support null as values, therefore we convert an empty string
+            // back to null here.
+            appTheme: values.theme ?? null,
+          });
+        }}>
+        <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
+          <ThemeLabel
+            variant="system"
+            value={undefined}
+            label={t("theme_system")}
+            defaultChecked={user.appTheme === null}
+            register={userAppThemeFormMethods.register}
+          />
+          <ThemeLabel
+            variant="light"
+            value="light"
+            label={t("light")}
+            defaultChecked={user.appTheme === "light"}
+            register={userAppThemeFormMethods.register}
+          />
+          <ThemeLabel
+            variant="dark"
+            value="dark"
+            label={t("dark")}
+            defaultChecked={user.appTheme === "dark"}
+            register={userAppThemeFormMethods.register}
+          />
+        </div>
+        <SectionBottomActions className="mb-6" align="end">
+          <Button
+            disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
+            type="submit"
+            data-testid="update-theme-btn"
+            color="primary">
+            {t("update")}
+          </Button>
+        </SectionBottomActions>
+      </Form>
+
       <Form
         form={userThemeFormMethods}
         handleSubmit={(values) => {
