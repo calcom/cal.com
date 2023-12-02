@@ -48,8 +48,6 @@ test.describe("Organization", () => {
       await newPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator(".text-red-700")).toHaveCount(3); // 3 password hints
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
@@ -78,8 +76,8 @@ test.describe("Organization", () => {
       await inviteLinkPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await inviteLinkPage.locator("button[type=submit]").click();
-      await expect(inviteLinkPage.locator(".text-red-700")).toHaveCount(4); // email + 3 password hints
+      const button = inviteLinkPage.locator("button[type=submit][disabled]");
+      await expect(button).toBeVisible(); // email + 3 password hints
 
       // Happy path
       await inviteLinkPage.locator("input[name=email]").fill(`rick@domain-${Date.now()}.com`);

@@ -344,7 +344,7 @@ export const BookEventFormChild = ({
       hashedLink,
     };
 
-    if (eventQuery.data?.recurringEvent?.freq && recurringEventCount) {
+    if (eventQuery.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
       createRecurringBookingMutation.mutate(
         mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
       );

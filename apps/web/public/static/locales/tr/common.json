@@ -1581,6 +1581,7 @@
   "enable_apps": "Uygulamaları Etkinleştir",
   "enable_apps_description": "Kullanıcıların {{appName}} ile entegre edebileceği uygulamaları etkinleştirin",
   "purchase_license": "Lisans satın alın",
+  "already_have_account": "Zaten bir hesabınız var mı?",
   "already_have_key": "Zaten bir anahtarım var:",
   "already_have_key_suggestion": "Lütfen mevcut CALCOM_LICENSE_KEY ortam değişkeninizi buraya kopyalayın.",
   "app_is_enabled": "{{appName}} etkinleştirildi",

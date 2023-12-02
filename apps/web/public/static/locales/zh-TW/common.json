@@ -1581,6 +1581,7 @@
   "enable_apps": "啟用應用程式",
   "enable_apps_description": "啟用使用者可與 {{appName}} 整合的應用程式",
   "purchase_license": "購買授權",
+  "already_have_account": "已經有帳號嗎？",
   "already_have_key": "我已經有金鑰：",
   "already_have_key_suggestion": "請複製您目前的 CALCOM_LICENSE_KEY 環境變數至此處。",
   "app_is_enabled": "已啟用 {{appName}}",

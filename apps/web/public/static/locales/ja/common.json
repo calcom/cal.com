@@ -1581,6 +1581,7 @@
   "enable_apps": "アプリを有効にする",
   "enable_apps_description": "ユーザーが {{appName}} と連携できるアプリを有効にします",
   "purchase_license": "ライセンスを購入",
+  "already_have_account": "既にアカウントをお持ちですか？",
   "already_have_key": "すでにキーを持っています:",
   "already_have_key_suggestion": "ここに既存の CALCOM_LICENSE_KEY 環境変数をコピーしてください。",
   "app_is_enabled": "{{appName}} は有効です",
