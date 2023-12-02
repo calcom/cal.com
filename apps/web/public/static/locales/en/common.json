@@ -794,6 +794,8 @@
   "add_input": "Add an Input",
   "disable_notes": "Hide notes in calendar",
   "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email.",
+  "disable_success_screen": "Hide default success screen",
+  "disable_success_screen_description": "Hide the default booking success screen, useful when displaying a custom success screen via the bookingSuccessful event",
   "requires_confirmation_description": "The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
   "recurring_event": "Recurring Event",
   "recurring_event_description": "People can subscribe for recurring events",

@@ -89,6 +89,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     requiresConfirmation: false,
     disableGuests: false,
     hideCalendarNotes: false,
+    hideSuccessScreen: false,
     minimumBookingNotice: 120,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,

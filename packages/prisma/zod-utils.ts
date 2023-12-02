@@ -570,6 +570,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   metadata: true,
   children: true,
   hideCalendarNotes: true,
+  hideSuccessScreen: true,
   minimumBookingNotice: true,
   beforeEventBuffer: true,
   afterEventBuffer: true,

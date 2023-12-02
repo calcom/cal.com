@@ -66,7 +66,12 @@ export const useBookingSuccessRedirect = () => {
       window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
       return;
     }
-    const newSearchParams = getNewSeachParams({ query });
+    const newSearchParams = getNewSeachParams({
+      query: {
+        ...query,
+        hideSuccessScreen: booking.hideSuccessScreen,
+      },
+    });
     return router.push(`/booking/${booking.uid}?${newSearchParams.toString()}`);
   };
 

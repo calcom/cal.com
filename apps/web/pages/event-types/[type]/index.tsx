@@ -95,6 +95,7 @@ export type FormValues = {
   schedulingType: SchedulingType | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
+  hideSuccessScreen: boolean;
   hashedLink: string | undefined;
   locations: {
     type: EventLocationType["type"];

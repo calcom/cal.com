@@ -92,6 +92,7 @@ const querySchema = z.object({
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  hideSuccessScreen: stringToBoolean,
 });
 
 export default function Success(props: SuccessProps) {
@@ -107,6 +108,7 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
+    hideSuccessScreen,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
@@ -313,7 +315,9 @@ export default function Success(props: SuccessProps) {
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
   return (
-    <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+    <div
+      className={`${isEmbed ? "" : "h-screen"} ${hideSuccessScreen ? "hidden" : ""}`}
+      data-testid="success-page">
       {!isEmbed && (
         <EventReservationSchema
           reservationId={bookingInfo.uid}

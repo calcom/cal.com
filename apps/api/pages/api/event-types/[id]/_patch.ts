@@ -111,6 +111,9 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *               hideCalendarNotes:
  *                 type: boolean
  *                 description: If the calendar notes should be hidden from the booking
+ *               hideSuccessScreen:
+ *                 type: boolean
+ *                 description: If the default booking success screen should be hidden
  *               minimumBookingNotice:
  *                 type: integer
  *                 description: Minimum time in minutes before the event is bookable

@@ -147,6 +147,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           metadata: true,
           destinationCalendar: true,
           hideCalendarNotes: true,
+          hideSuccessScreen: true,
         },
       });
     } catch (error) {
@@ -205,6 +206,10 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
   public setHideCalendarNotes(hideCalendarNotes: CalendarEventClass["hideCalendarNotes"]) {
     this.calendarEvent.hideCalendarNotes = hideCalendarNotes;
+  }
+
+  public setHideSuccessScreen(hideSuccessScreen: CalendarEventClass["hideSuccessScreen"]) {
+    this.calendarEvent.hideSuccessScreen = hideSuccessScreen;
   }
 
   public setDescription(description: CalendarEventClass["description"]) {

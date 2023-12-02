@@ -83,6 +83,7 @@ const commons = {
   seatsShowAvailabilityCount: null,
   id: 0,
   hideCalendarNotes: false,
+  hideSuccessScreen: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,

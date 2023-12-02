@@ -28,6 +28,7 @@ class CalendarEventClass implements CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  hideSuccessScreen?: boolean;
   additionalNotes?: string | null | undefined;
   recurrence?: string;
 

@@ -294,6 +294,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       metadata: true,
       destinationCalendar: true,
       hideCalendarNotes: true,
+      hideSuccessScreen: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
       seatsShowAttendees: true,
@@ -2742,6 +2743,7 @@ async function handler(
   req.statusCode = 201;
   return {
     ...booking,
+    hideSuccessScreen: eventType.hideSuccessScreen,
     seatReferenceUid: evt.attendeeSeatId,
   };
 }
