@@ -8,7 +8,7 @@ const FloatingIcon = () => {
     setIsWindowOpen(!isWindowOpen);
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: any) => {
     setInputValue(e.target.value);
   };
 
@@ -19,7 +19,7 @@ const FloatingIcon = () => {
     // setIsWindowOpen(false);
   };
 
-  const handleWindowClick = (e) => {
+  const handleWindowClick = (e: any) => {
     // Stop the click event propagation within the window's content
     e.stopPropagation();
   };
@@ -37,7 +37,7 @@ const FloatingIcon = () => {
       <div
         style={{
           backgroundColor: isWindowOpen ? "#ff6347" : "#007bff",
-          color: "#fff",
+          color: "#000",
           borderRadius: "50%",
           width: "40px",
           height: "40px",
@@ -59,20 +59,70 @@ const FloatingIcon = () => {
             border: "1px solid #ccc",
             borderRadius: "8px",
             padding: "10px",
-            backgroundColor: "#fff",
+            backgroundColor: "#000",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
             display: "block",
           }}
           onClick={handleWindowClick} // Handle click within the window
         >
-          <input
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder="Enter text..."
-            style={{ marginBottom: "10px", padding: "5px" }}
-          />
-          <button onClick={handleConfirmClick}>Confirm</button>
+          <div style={{ width: "20rem", position: "relative" }}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder="Enter text..."
+              style={{
+                background: "black",
+                border: "2px solid white",
+                borderRadius: "50px",
+                padding: "1rem 2rem",
+                width: "100%",
+              }}
+            />
+            <button
+              style={{
+                background: "white",
+                borderRadius: "50px",
+                aspectRatio: "1",
+                height: "80%",
+                position: "absolute",
+                top: "10%",
+                right: "5px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                stroke="currentColor"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M5 12l14 0" />
+                <path d="M13 18l6 -6" />
+                <path d="M13 6l6 6" />
+              </svg>
+            </button>
+            {/* <button
+              onClick={handleConfirmClick}
+              style={{
+                backgroundColor: "white",
+                borderRadius: "50%",
+                height: "80%",
+                aspectRatio: "1",
+                position: "absolute",
+                right: "0",
+                transform: "translateX(-10%)",
+                top: "10%",
+              }}>
+              Confirm
+            </button> */}
+          </div>
         </div>
       )}
     </div>
