@@ -2,14 +2,14 @@ import { loginUser } from "../fixtures/regularBookings";
 import { test } from "../lib/fixtures";
 
 test.describe("Check availability tab in a event-type", () => {
-  test("Check availability in event type", async ({ bookingPage, users, page }) => {
+  test("Check availability in event type", async ({ eventTypePage, users }) => {
     await loginUser(users);
-    await bookingPage.goToEventTypesPage();
+    await eventTypePage.goToEventTypesPage();
 
-    await bookingPage.goToEventType("30 min");
-    await bookingPage.goToTab("availability");
-    await bookingPage.checkAvailabilityTab();
-    await bookingPage.goToAvailabilityPage();
-    await bookingPage.checkAvailabilityPage();
+    await eventTypePage.goToEventType("30 min");
+    await eventTypePage.goToTab("availability");
+    await eventTypePage.checkAvailabilityTab();
+    await eventTypePage.goToAvailabilityPage();
+    await eventTypePage.checkAvailabilityPage();
   });
 });
