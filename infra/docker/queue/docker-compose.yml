@@ -1,0 +1,33 @@
+version: "3"
+
+volumes:
+  database-data:
+
+networks:
+  app_network:
+    external: false
+
+services:
+  triggerdotdev:
+    image: ghcr.io/triggerdotdev/trigger.dev:latest
+    container_name: triggerdotdev
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 3030:3030
+    depends_on:
+      - triggerdotdev-database
+    networks:
+      - app_network
+  triggerdotdev-database:
+    container_name: triggerdotdev-database
+    image: postgres:14
+    restart: always
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    env_file: .env
+    networks:
+      - app_network
+    ports:
+      - 5433:5432
