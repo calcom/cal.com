@@ -241,6 +241,7 @@ export default function CreateEventTypeDialog({
                     type="number"
                     required
                     min="10"
+                    max="7260"
                     placeholder="15"
                     label={t("duration")}
                     className="pr-4"

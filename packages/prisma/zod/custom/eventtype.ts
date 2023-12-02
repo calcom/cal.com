@@ -8,7 +8,7 @@ export const createEventTypeInput = z.object({
   title: z.string().min(1),
   slug: imports.eventTypeSlug,
   description: z.string().nullish(),
-  length: z.number().int(),
+  length: z.number().int().max(7260),
   hidden: z.boolean(),
   teamId: z.number().int().nullish(),
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
