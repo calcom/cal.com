@@ -656,6 +656,7 @@
   "default_duration": "المدة الافتراضية",
   "default_duration_no_options": "يرجى اختيار المدد المتاحة أولاً",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "الدقائق",
   "round_robin": "الترتيب الدوري",
   "round_robin_description": "نقل الاجتماعات بشكل دوري بين أعضاء الفريق المتعددين.",

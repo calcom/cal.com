@@ -656,6 +656,7 @@
   "default_duration": "Domyślny czas trwania",
   "default_duration_no_options": "Proszę najpierw wybrać dostępne czasy trwania",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minuty",
   "round_robin": "Round Robin",
   "round_robin_description": "Cykl spotkań między wieloma członkami zespołu.",

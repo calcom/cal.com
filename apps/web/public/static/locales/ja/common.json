@@ -656,6 +656,7 @@
   "default_duration": "デフォルトの時間",
   "default_duration_no_options": "最初に空いている時間を選択してください",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "分",
   "round_robin": "ラウンドロビン",
   "round_robin_description": "複数のチームメンバー間のミーティングを定期化する。",
