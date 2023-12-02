@@ -12,7 +12,6 @@ import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -28,10 +27,11 @@ import {
   showToast,
   TableActions,
   TextAreaField,
-  Tooltip,
 } from "@calcom/ui";
-import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
+import { Ban, Check, Clock, CreditCard, MapPin, Send, X } from "@calcom/ui/components/icon";
 
+import DisplayAttendees from "@components/booking/DisplayAttendees";
+import RecurringBookingsTooltip from "@components/booking/RecurringBookingsTooltip";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -40,7 +40,7 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
-type BookingItemProps = BookingItem & {
+export type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
   loggedInUser: {
@@ -502,156 +502,5 @@ function BookingListItem(booking: BookingItemProps) {
     </>
   );
 }
-
-interface RecurringBookingsTooltipProps {
-  booking: BookingItemProps;
-  recurringDates: Date[];
-  userTimeZone: string | undefined;
-  userTimeFormat: number | null | undefined;
-}
-
-const RecurringBookingsTooltip = ({
-  booking,
-  recurringDates,
-  userTimeZone,
-  userTimeFormat,
-}: RecurringBookingsTooltipProps) => {
-  const {
-    t,
-    i18n: { language },
-  } = useLocale();
-  const now = new Date();
-  const recurringCount = recurringDates.filter((recurringDate) => {
-    return (
-      recurringDate >= now &&
-      !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toString())
-        .includes(recurringDate.toString())
-    );
-  }).length;
-
-  return (
-    (booking.recurringInfo &&
-      booking.eventType?.recurringEvent?.freq &&
-      (booking.listingStatus === "recurring" ||
-        booking.listingStatus === "unconfirmed" ||
-        booking.listingStatus === "cancelled") && (
-        <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
-          <div className="flex">
-            <Tooltip
-              content={recurringDates.map((aDate, key) => {
-                const pastOrCancelled =
-                  aDate < now ||
-                  booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toString())
-                    .includes(aDate.toString());
-                return (
-                  <p key={key} className={classNames(pastOrCancelled && "line-through")}>
-                    {formatTime(aDate, userTimeFormat, userTimeZone)}
-                    {" - "}
-                    {dayjs(aDate).locale(language).format("D MMMM YYYY")}
-                  </p>
-                );
-              })}>
-              <div className="text-default">
-                <RefreshCcw
-                  strokeWidth="3"
-                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
-                />
-                <p className="mt-1 pl-5 text-xs">
-                  {booking.status === BookingStatus.ACCEPTED
-                    ? `${t("event_remaining_other", {
-                        count: recurringCount,
-                      })}`
-                    : getEveryFreqFor({
-                        t,
-                        recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount: booking.recurringInfo.count,
-                      })}
-                </p>
-              </div>
-            </Tooltip>
-          </div>
-        </div>
-      )) ||
-    null
-  );
-};
-
-interface UserProps {
-  id: number;
-  name: string | null;
-  email: string;
-}
-
-const FirstAttendee = ({
-  user,
-  currentEmail,
-}: {
-  user: UserProps;
-  currentEmail: string | null | undefined;
-}) => {
-  const { t } = useLocale();
-  return user.email === currentEmail ? (
-    <div className="inline-block">{t("you")}</div>
-  ) : (
-    <a
-      key={user.email}
-      className=" hover:text-blue-500"
-      href={`mailto:${user.email}`}
-      onClick={(e) => e.stopPropagation()}>
-      {user.name}
-    </a>
-  );
-};
-
-type AttendeeProps = {
-  name?: string;
-  email: string;
-};
-
-const Attendee = ({ email, name }: AttendeeProps) => {
-  return (
-    <a className="hover:text-blue-500" href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
-      {name || email}
-    </a>
-  );
-};
-
-const DisplayAttendees = ({
-  attendees,
-  user,
-  currentEmail,
-}: {
-  attendees: AttendeeProps[];
-  user: UserProps | null;
-  currentEmail?: string | null;
-}) => {
-  const { t } = useLocale();
-  return (
-    <div className="text-emphasis text-sm">
-      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} />
-      {attendees.length > 1 && (
-        <>
-          <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
-          {attendees.length > 2 ? (
-            <Tooltip
-              content={attendees.slice(1).map((attendee) => (
-                <p key={attendee.email}>
-                  <Attendee {...attendee} />
-                </p>
-              ))}>
-              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
-            </Tooltip>
-          ) : (
-            <Attendee {...attendees[1]} />
-          )}
-        </>
-      )}
-    </div>
-  );
-};
 
 export default BookingListItem;
