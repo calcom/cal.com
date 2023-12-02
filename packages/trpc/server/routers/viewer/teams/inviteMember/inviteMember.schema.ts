@@ -1,8 +1,7 @@
 import { z } from "zod";
 
+import { MAX_NB_INVITES } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 export const ZInviteMemberInputSchema = z.object({
   teamId: z.number(),
@@ -14,27 +13,26 @@ export const ZInviteMemberInputSchema = z.object({
       }
       return usernameOrEmail.map((item) => item.trim().toLowerCase());
     })
-    .refine((value) => {
-      let invalidEmail;
-      if (Array.isArray(value)) {
-        if (value.length > 100) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `You are limited to inviting a maximum of 100 users at once.`,
-          });
+    .refine(
+      (value) => {
+        if (Array.isArray(value)) {
+          if (value.length > MAX_NB_INVITES) {
+            return false;
+          }
         }
-        invalidEmail = value.find((email) => !z.string().email().safeParse(email).success);
-      } else {
-        invalidEmail = !z.string().email().safeParse(value).success ? value : null;
-      }
-      if (invalidEmail) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Invite failed because '${invalidEmail}' is not a valid email address`,
-        });
-      }
-      return true;
-    }),
+        return true;
+      },
+      { message: `You are limited to inviting a maximum of ${MAX_NB_INVITES} users at once.` }
+    )
+    .refine(
+      (value) => {
+        if (Array.isArray(value)) {
+          return !value.some((email) => !z.string().email().safeParse(email).success);
+        }
+        return true;
+      },
+      { message: "Bulk invitations are restricted to email addresses only." }
+    ),
   role: z.nativeEnum(MembershipRole),
   language: z.string(),
   isOrg: z.boolean().default(false),
