@@ -369,6 +369,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       eventType: {
         select: {
           id: true,
+          onlyShowFirstAvailableSlot: true,
           afterEventBuffer: true,
           beforeEventBuffer: true,
           seatsPerTimeSlot: true,
