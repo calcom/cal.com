@@ -2,8 +2,6 @@ import { ChatOpenAI } from "langchain/chat_models/openai";
 import { JsonOutputFunctionsParser } from "langchain/output_parsers";
 import { HumanMessage } from "langchain/schema";
 
-import { gptModel } from "./models";
-
 const router = async () => {
   // Instantiate the parser
   const parser = new JsonOutputFunctionsParser();
@@ -34,7 +32,7 @@ const router = async () => {
   };
 
   // Instantiate the ChatOpenAI class
-  const model = new ChatOpenAI({ modelName: gptModel });
+  const model = new ChatOpenAI({ modelName: "gpt-4" });
 
   // Create a new runnable, bind the function to the model, and pipe the output through the parser
   const runnable = model
