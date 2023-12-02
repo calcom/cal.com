@@ -3057,10 +3057,12 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
+    "@calcom/queues": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@sentry/nextjs": ^7.73.0
+    "@trigger.dev/nextjs": ^2.2.10
     bcryptjs: ^2.4.3
     memory-cache: ^0.2.0
     next: ^13.4.6
@@ -3739,6 +3741,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/queues@*, @calcom/queues@workspace:packages/queues":
+  version: 0.0.0-use.local
+  resolution: "@calcom/queues@workspace:packages/queues"
+  dependencies:
+    "@trigger.dev/sdk": ^2.2.10
+    "@trigger.dev/sendgrid": latest
+    typescript: latest
+  languageName: unknown
+  linkType: soft
+
 "@calcom/raycast@workspace:packages/app-store/raycast":
   version: 0.0.0-use.local
   resolution: "@calcom/raycast@workspace:packages/app-store/raycast"
@@ -4066,6 +4078,7 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
+    "@calcom/queues": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
@@ -4099,7 +4112,6 @@ __metadata:
     "@tremor/react": ^2.0.0
     "@trigger.dev/nextjs": ^2.2.10
     "@trigger.dev/react": ^2.2.10
-    "@trigger.dev/sdk": ^2.2.10
     "@types/accept-language-parser": 1.5.2
     "@types/async": ^3.2.15
     "@types/bcryptjs": ^2.4.2
@@ -9173,7 +9185,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sendgrid/mail@npm:^7.6.2":
+"@sendgrid/mail@npm:^7.6.2, @sendgrid/mail@npm:^7.7.0":
   version: 7.7.0
   resolution: "@sendgrid/mail@npm:7.7.0"
   dependencies:
@@ -11342,7 +11354,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/core@npm:^2.2.10":
+"@trigger.dev/core@npm:2.2.10, @trigger.dev/core@npm:^2.2.10":
   version: 2.2.10
   resolution: "@trigger.dev/core@npm:2.2.10"
   dependencies:
@@ -11350,6 +11362,16 @@ __metadata:
     zod: 3.22.3
     zod-error: 1.5.0
   checksum: de6f5d536bd5970fbf042f7d1f8d120805780227ffa298ab97b915875f7c54b846f3a652810de1dc1e759ccd484442b59536d6a546fd0b41e921a7ae801af6ec
+  languageName: node
+  linkType: hard
+
+"@trigger.dev/integration-kit@npm:^2.2.10":
+  version: 2.2.10
+  resolution: "@trigger.dev/integration-kit@npm:2.2.10"
+  dependencies:
+    "@trigger.dev/core": 2.2.10
+    uuid: ^9.0.0
+  checksum: 27a0a31ecfbbe9e3f21d78d513ccbf408268b93af4857bcf8f9a2e35c585315724c1d4f61032292609071efaa7bf1d55912a4035cbdc62efefc55ec5da21be57
   languageName: node
   linkType: hard
 
@@ -11400,6 +11422,17 @@ __metadata:
     ws: ^8.11.0
     zod: 3.22.3
   checksum: 22abe774b9395cb261dd51263a44838faa8c2ad24a487497b8581fb03d666d08dcde02b9b59b80c2483372208660967f193f59e2d9fb31bb4402d3dcef1a2a0a
+  languageName: node
+  linkType: hard
+
+"@trigger.dev/sendgrid@npm:latest":
+  version: 2.2.10
+  resolution: "@trigger.dev/sendgrid@npm:2.2.10"
+  dependencies:
+    "@sendgrid/mail": ^7.7.0
+    "@trigger.dev/integration-kit": ^2.2.10
+    "@trigger.dev/sdk": ^2.2.10
+  checksum: e1d52383cae1597008143520180985713aae565b548c4eae9bb25b65f9eae01ccc1bafcfc5e4df17f6eab07e4c7ad024c76a9132c268bc905c4bd6681d85f91d
   languageName: node
   linkType: hard
 
@@ -34998,6 +35031,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:latest":
+  version: 5.3.2
+  resolution: "typescript@npm:5.3.2"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: d92534dda639eb825db013203404c1fabca8ac630564283c9e7dc9e64fd9c9346c2de95ecebdf3e6e8c1c32941bca1cfe0da37877611feb9daf8feeaea58d230
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@^4.9.4#~builtin<compat/typescript>":
   version: 4.9.4
   resolution: "typescript@patch:typescript@npm%3A4.9.4#~builtin<compat/typescript>::version=4.9.4&hash=23ec76"
@@ -35005,6 +35048,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 3e2ab0772908676d9b9cb83398c70003a3b08e1c6b3b122409df9f4b520f2fdaefa20c3d7d57dce283fed760ac94b3ce94d4a7fa875127b67852904425a1f0dc
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@latest#~builtin<compat/typescript>":
+  version: 5.3.2
+  resolution: "typescript@patch:typescript@npm%3A5.3.2#~builtin<compat/typescript>::version=5.3.2&hash=1f5320"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: c034461079fbfde3cb584ddee52afccb15b6e32a0ce186d0b2719968786f7ca73e1b07f71fac4163088790b16811c6ccf79680de190664ef66ff0ba9c1fe4a23
   languageName: node
   linkType: hard
 
