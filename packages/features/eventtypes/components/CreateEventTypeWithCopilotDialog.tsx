@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -60,8 +61,10 @@ const querySchema = z.object({
     .optional(),
 });
 
-export default function CreateEventTypeWithCopilotDialog(props: any) {
+export default function CreateEventTypeWithCopilotDialog() {
   const { t } = useLocale();
+  const utils = trpc.useContext();
+  const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
 
   const {
@@ -77,7 +80,10 @@ export default function CreateEventTypeWithCopilotDialog(props: any) {
 
   const createCopilotSuggestionMutation = trpc.viewer.eventTypes.createCopilotSuggestion.useMutation({
     onSuccess: async (responseData) => {
-      console.log(responseData);
+      await utils.viewer.eventTypes.getByViewer.invalidate();
+      await router.replace(`/event-types`);
+      showToast("Event types created successfully!", "success");
+      form.reset();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
