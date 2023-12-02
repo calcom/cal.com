@@ -122,6 +122,7 @@ export default function RecurringEventController({
                           setCustomInterval(newVal);
                         }}
                       />
+                      {/* We only show this menu if custom is toggled */}
                       {custom && (
                         <div>
                           <p className="text-emphasis tr:mr-2 ml-8 rtl:ml-2">{t("Repeats Every")}</p>
@@ -184,6 +185,7 @@ export default function RecurringEventController({
                         }
                         setDefinite(!definite);
                       }}>
+                      {/* We only show these selections if we want an end date/maximum number of meetings */}
                       {definite && (
                         <div className="mt-4 flex items-center">
                           <p className="text-emphasis ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
@@ -232,6 +234,7 @@ export default function RecurringEventController({
                             setRecurringEventState(newVal);
                           }}
                         />
+                        {/* Assuming End-dates have priority over max count,implementing a clear button for end date seems like enough.*/}
                         <button
                           className="ml-40"
                           onClick={() => {
@@ -246,7 +249,6 @@ export default function RecurringEventController({
                           }}>
                           Clear End Date
                         </button>
-                        {/* Assuming End-dates have priority over max count,implementing a clear button for end date seems*/}
                       </div>
                     </SettingsToggle>
                   </div>
