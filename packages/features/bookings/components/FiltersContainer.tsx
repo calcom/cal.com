@@ -1,3 +1,4 @@
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -21,6 +22,7 @@ import {
   Avatar,
   FilterSearchField,
   Tooltip,
+  Button,
 } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -94,6 +96,9 @@ const PeopleFilter = () => {
 export function FiltersContainer() {
   const { t } = useLocale();
 
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [addFilterOptions, toggleOption, isFilterActive] = useBookingMultiFilterStore((state) => [
     state.addFilterOptions,
     state.toggleOption,
@@ -135,7 +140,20 @@ export function FiltersContainer() {
 
       {isPeopleFilterActive && <PeopleFilter />}
       {isEventTypeFilterActive && <EventTypeFilter />}
-
+      {(isPeopleFilterActive || isEventTypeFilterActive) && (
+        <Tooltip content={t("remove_filters")}>
+          <Button
+            color="secondary"
+            type="button"
+            onClick={() => {
+              if (isPeopleFilterActive) toggleOption({ label: "people" });
+              if (isEventTypeFilterActive) toggleOption({ label: "event_type" });
+              router.replace(pathname);
+            }}>
+            {t("remove_filters")}
+          </Button>
+        </Tooltip>
+      )}
       <TeamsFilter />
     </div>
   );

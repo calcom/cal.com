@@ -1865,6 +1865,7 @@
   "looking_for_more_analytics": "Looking for more analytics?",
   "looking_for_more_insights": "Looking for more Insights?",
   "add_filter": "Add filter",
+  "remove_filters": "Clear all filters",
   "select_user": "Select User",
   "select_event_type": "Select Event Type",
   "select_date_range": "Select Date Range",
