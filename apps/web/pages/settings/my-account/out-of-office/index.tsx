@@ -145,7 +145,7 @@ const BookingForwardingSection = () => {
                         {t("pending")}
                       </Badge>
                     )}
-                    {item.status === "ACCEPTED" && <Badge color="yellow">{t("accepted")}</Badge>}
+                    {item.status === "ACCEPTED" && <Badge color="green">{t("accepted")}</Badge>}
                     {item.status === "REJECTED" && (
                       <Badge color="red" className="text-xs">
                         {t("rejected")}
