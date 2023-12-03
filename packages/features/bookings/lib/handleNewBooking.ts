@@ -31,7 +31,6 @@ import {
   sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendRescheduledSeatEmail,
-  sendRoundRobinCancelledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -2397,7 +2396,12 @@ async function handler(
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
         })
-        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
+        dispatchEmail("sendRoundRobinCancelledEmails",
+          {
+            calEvent: copyEventAdditionalInfo,
+            members: cancelledMembers
+          }
+        );
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
         await sendRescheduledEmails({
