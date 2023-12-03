@@ -118,26 +118,26 @@ export default function WrapperPage() {
   console.log("My Teams:", teamNamesString);
   console.log("Most common event Id:", mostCommonEventTypeId);
   console.log("Number of event occurrences:", maxCount);
-  const totalMeetingTime = `${bookedHours} hours and ${bookedMins} minutes`;
+  const totalMeetingTime = `${bookedHours} ${t("hours")} ${t("and")} ${bookedMins} ${t("minutes")}`;
 
   return (
     <div className="relative overflow-hidden">
-      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+      <ShellMain heading={t("insights")} subtitle={t("insights_subtitle")}>
         <div className="flex w-full flex-col space-y-8 p-2">
           <div className="h-32 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg" />
 
           <div className="h-[650px] w-full space-y-8 overflow-scroll overscroll-none pt-5">
             <Banner />
             <div className="flex w-full flex-row space-x-5">
-              <Card content="Meetings booked" numbers={totalBookings} unit="" themeIdx="1" />
-              <Card content="Time in meetings" numbers={bookedHours} unit="hours" themeIdx="2" />
+              <Card content={t("meetings_booked")} numbers={totalBookings} unit="" themeIdx="1" />
+              <Card content={t("time_in_meetings")} numbers={bookedHours} unit={t("hours")} themeIdx="2" />
               {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
 
             <div className="flex w-full flex-row space-x-5">
-              <Card content="Cancelled" numbers={cancelledPercentage} unit="%" themeIdx="3" />
-              <Card content="Rescheduled" numbers={rescheduledPercentage} unit="%" themeIdx="4" />
-              <Card content="Accepted" numbers={acceptedPercentage} unit="%" themeIdx="2" />
+              <Card content={t("cancelled")} numbers={cancelledPercentage} unit="%" themeIdx="3" />
+              <Card content={t("rescheduled")} numbers={rescheduledPercentage} unit="%" themeIdx="4" />
+              <Card content={t("accepted")} numbers={acceptedPercentage} unit="%" themeIdx="2" />
               {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
 
