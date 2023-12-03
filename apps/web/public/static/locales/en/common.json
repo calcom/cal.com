@@ -1481,6 +1481,8 @@
   "report_app": "Report app",
   "limit_booking_frequency": "Limit booking frequency",
   "limit_booking_frequency_description": "Limit how many times this event can be booked",
+  "limit_booking_only_first_slot": "Limit booking only first slot",
+  "limit_booking_only_first_slot_description": "Allow only the first slot of every day to be booked",
   "limit_total_booking_duration": "Limit total booking duration",
   "limit_total_booking_duration_description": "Limit total amount of time that this event can be booked",
   "add_limit": "Add Limit",
