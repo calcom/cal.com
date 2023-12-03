@@ -21,6 +21,7 @@ import getCalLink from "./_utils/getCalLink";
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *     tags:
  *     - event-types

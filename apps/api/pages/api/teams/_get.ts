@@ -17,6 +17,7 @@ import { schemaTeamsReadPublic } from "~/lib/validations/team";
  *          required: true
  *          schema:
  *            type: string
+ *          example: 1234abcd5678efgh
  *          description: Your API key
  *     tags:
  *     - teams

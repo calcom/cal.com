@@ -25,6 +25,7 @@ import { schemaUserReadPublic } from "~/lib/validations/user";
  *         schema:
  *           type: string
  *         required: true
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     tags:
  *     - users

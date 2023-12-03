@@ -19,6 +19,7 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *     requestBody:
  *       description: Create a new schedule

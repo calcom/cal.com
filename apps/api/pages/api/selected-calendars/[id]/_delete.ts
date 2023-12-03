@@ -16,23 +16,27 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *      - in: path
  *        name: userId
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: userId of the selected calendar to get
  *      - in: path
  *        name: externalId
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: externalId of the selected-calendar to get
  *      - in: path
  *        name: integration
  *        schema:
  *          type: string
+ *        example: google_calendar
  *        required: true
  *        description: integration of the selected calendar to get
  *     tags:

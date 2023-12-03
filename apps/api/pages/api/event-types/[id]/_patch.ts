@@ -25,11 +25,13 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: ID of the eventType to edit
  *     requestBody:

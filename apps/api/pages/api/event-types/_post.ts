@@ -25,6 +25,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *     requestBody:
  *       description: Create a new event-type related to your user or team

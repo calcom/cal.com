@@ -15,6 +15,7 @@ import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-refe
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     operationId: listBookingReferences
  *     summary: Find all booking references

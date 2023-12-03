@@ -20,6 +20,7 @@ import {
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     requestBody:
  *       description: Edit an existing availability related to one of your bookings

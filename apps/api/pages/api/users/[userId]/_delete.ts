@@ -25,6 +25,7 @@ import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     tags:
  *     - users

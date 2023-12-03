@@ -16,6 +16,7 @@ import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destinati
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     summary: Find all destination calendars
  *     tags:

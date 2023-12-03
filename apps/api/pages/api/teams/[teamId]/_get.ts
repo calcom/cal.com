@@ -17,6 +17,7 @@ import { schemaTeamReadPublic } from "~/lib/validations/team";
  *         name: teamId
  *         schema:
  *           type: integer
+ *         example: 101
  *         required: true
  *         description: ID of the team to get
  *       - in: query
@@ -24,6 +25,7 @@ import { schemaTeamReadPublic } from "~/lib/validations/team";
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     tags:
  *     - teams

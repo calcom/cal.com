@@ -18,6 +18,7 @@ import {
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     operationId: addBookingReference
  *     summary: Creates a new  booking reference

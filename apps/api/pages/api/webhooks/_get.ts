@@ -19,6 +19,7 @@ import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     tags:
  *     - webhooks

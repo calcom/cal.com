@@ -19,6 +19,7 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     requestBody:
  *       description: Create a new webhook

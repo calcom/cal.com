@@ -19,8 +19,9 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         name: apiKey
  *         required: true
  *         description: Your API key
+ *        example: 1234abcd5678efgh
  *         schema:
- *           type: integer
+ *           type: string
  *       - in: path
  *         name: id
  *         required: true

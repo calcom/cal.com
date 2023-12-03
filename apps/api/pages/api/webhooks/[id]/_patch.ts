@@ -18,6 +18,7 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  *        name: id
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: Numeric ID of the webhook to edit
  *      - in: query
@@ -25,6 +26,7 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     requestBody:
  *       description: Edit an existing webhook

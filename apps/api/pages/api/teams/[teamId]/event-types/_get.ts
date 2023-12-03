@@ -22,11 +22,13 @@ const querySchema = z.object({
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *      - in: path
  *        name: teamId
  *        schema:
  *          type: number
+ *        example: 101
  *        required: true
  *     tags:
  *     - event-types

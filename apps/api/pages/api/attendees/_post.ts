@@ -17,6 +17,7 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     requestBody:
  *       description: Create a new attendee related to one of your bookings

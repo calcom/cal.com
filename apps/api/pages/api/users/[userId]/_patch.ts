@@ -25,6 +25,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     requestBody:
  *       description: Edit an existing attendee related to one of your bookings

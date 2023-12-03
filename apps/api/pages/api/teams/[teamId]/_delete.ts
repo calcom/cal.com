@@ -17,6 +17,7 @@ import { checkPermissions } from "./_auth-middleware";
  *        name: teamId
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: ID of the team to delete
  *      - in: query
@@ -24,6 +25,7 @@ import { checkPermissions } from "./_auth-middleware";
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     tags:
  *     - teams

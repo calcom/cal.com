@@ -18,6 +18,7 @@ import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     tags:
  *     - attendees

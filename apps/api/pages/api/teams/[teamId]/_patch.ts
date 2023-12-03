@@ -22,6 +22,7 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *        name: teamId
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: ID of the team to edit
  *      - in: query
@@ -29,6 +30,7 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     requestBody:
  *        description: Create a new custom input for an event type

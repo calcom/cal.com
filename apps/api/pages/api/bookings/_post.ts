@@ -14,6 +14,7 @@ import { defaultResponder } from "@calcom/lib/server";
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
  *     operationId: addBooking
  *     requestBody:

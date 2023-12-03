@@ -20,6 +20,7 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *          required: true
  *          schema:
  *            type: string
+ *          example: 1234abcd5678efgh
  *          description: Your API key
  *     requestBody:
  *        description: Create a new custom input for an event type

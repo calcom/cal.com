@@ -15,6 +15,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *        name: id
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: Numeric ID of the hooks to delete
  *      - in: query
@@ -22,6 +23,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     tags:
  *     - webhooks

@@ -15,13 +15,15 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        name: id
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: ID of the availability to delete
  *      - in: query
  *        name: apiKey
  *        required: true
  *        schema:
- *          type: integer
+ *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *     tags:
  *     - availabilities

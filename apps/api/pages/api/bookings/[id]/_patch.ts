@@ -54,11 +54,13 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        required: true
  *        schema:
  *          type: string
+ *        example: 1234abcd5678efgh
  *        description: Your API key
  *      - in: path
  *        name: id
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: ID of the booking to edit
  *     tags:

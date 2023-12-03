@@ -19,8 +19,8 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         required: true
  *         schema:
  *           type: string
+ *         example: 1234abcd5678efgh
  *         description: Your API key
- *         example: 123456789abcdefgh
  *       - in: query
  *         name: userId
  *         required: false

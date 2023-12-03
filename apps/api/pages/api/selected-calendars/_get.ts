@@ -19,6 +19,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *        schema:
  *          type: string
  *        required: true
+ *        example: 1234abcd5678efgh
  *        description: Your API Key
  *     tags:
  *     - selected-calendars

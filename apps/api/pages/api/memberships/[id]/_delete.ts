@@ -15,12 +15,14 @@ import { membershipIdSchema } from "~/lib/validations/membership";
  *        name: userId
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: Numeric userId of the membership to get
  *      - in: path
  *        name: teamId
  *        schema:
  *          type: integer
+ *        example: 101
  *        required: true
  *        description: Numeric teamId of the membership to get
  *     tags:
