@@ -7,4 +7,7 @@ export const generateMetadata = async () =>
     () => "A list of all the users in your account including their name, title, email and role."
   );
 
-export default Page;
+export default function AppPage() {
+  // @ts-expect-error FIXME Property 'Component' is incompatible with index signature
+  return <Page />;
+}
