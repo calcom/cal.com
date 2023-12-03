@@ -1,25 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { emailActions } from "@calcom/emails/email-manager";
+import type { EmailAction, EmailActionFunctionParams } from "@calcom/emails/email-manager";
 import { verifySignatureIfQStash } from "@calcom/lib/queue";
 
-// //type EmailActionFunction = Parameters<(typeof emailActions)[EmailAction]>;
-
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  res.statusCode = 200;
-
   console.log("sending email");
 
   console.log("req.body", req.body);
   console.log("req.body,type", typeof req.body);
 
-  // No need to parse JSON as Next.js does it for us
-  const { action, params } = req.body;
-  // const { action, params }: { action: EmailAction; params: EmailActionFunction[typeof action] } = JSON.parse(
-  //   req.body
-  // );
-  // const action: EmailAction = req.body.action;
-  // const params: any[] = req.body.params;
+  // No need to parse JSON as middleware will do it for us
+  const action: EmailAction = req.body.action;
+  const params: EmailActionFunctionParams[typeof action] = req.body.params;
 
   console.log("action", action);
   console.log("params", params);
@@ -27,17 +20,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log("emailActions", emailActions);
   console.log("emailActions[action]", emailActions[action]);
 
-  await emailActions[action](params);
+  const actionFunction = emailActions[action];
+  await actionFunction(params);
 
   console.log("email sent");
-  res.setHeader("Content-Type", "text/html");
-  res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
-  res.write("email sent");
-  res.end();
+  return res.status(200).json({ message: `${action} completed` });
 };
 
 // This middledleware will make sure that the request is coming from Upstash
-// and will parse the body for us, unless QSTASH_URL is localhost
+// and will parse the body for us, unless QSTASH_URL is localhost we will only parse it
 export default verifySignatureIfQStash(handler);
 
 // Do not parse the body for this handler as it needs
