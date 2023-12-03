@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
-import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -330,7 +329,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    await sendDeclinedEmails(evt);
+    await dispatchEmail("sendDeclinedEmails", { calEvent: evt });
 
     const teamId = await getTeamIdFromEventType({
       eventType: {

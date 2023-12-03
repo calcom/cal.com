@@ -26,11 +26,6 @@ import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import {
-  sendAttendeeRequestEmail,
-  sendOrganizerRequestEmail,
-  sendScheduledSeatsEmails,
-} from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -1906,14 +1901,14 @@ async function handler(
             isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
           }
         }
-        await sendScheduledSeatsEmails(
-          copyEvent,
-          invitee[0],
+        await dispatchEmail("sendScheduledSeatsEmails", {
+          calEvent: copyEvent,
+          invitee: invitee[0],
           newSeat,
-          !!eventType.seatsShowAttendees,
-          isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled
-        );
+          showAttendees: !!eventType.seatsShowAttendees,
+          hostEmailDisabled: isHostConfirmationEmailsDisabled,
+          attendeeEmailDisabled: isAttendeeConfirmationEmailDisabled
+        });
       }
       const credentials = await refreshCredentials(allCredentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
@@ -2574,8 +2569,11 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    await dispatchEmail("sendOrganizerRequestEmail", { calEvent: { ...evt, additionalNotes }});
+    await dispatchEmail("sendAttendeeRequestEmail", {
+      calEvent: { ...evt, additionalNotes },
+      attendee: attendeesList[0]
+    });
   }
 
   const metadata = videoCallUrl

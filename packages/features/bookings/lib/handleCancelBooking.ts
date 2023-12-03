@@ -7,7 +7,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { deleteMeeting, updateMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmails, sendCancelledSeatEmails } from "@calcom/emails";
+import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -763,9 +763,12 @@ async function handleSeatedEventCancellation(
 
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
-    await sendCancelledSeatEmails(evt, {
-      ...attendee,
-      language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+    await dispatchEmail("sendCancelledSeatEmails", {
+      calEvent: evt,
+      cancelledAttendee: {
+        ...attendee,
+        language: { translate: tAttendees, locale: attendee.locale ?? "en" },
+      }
     });
   }
 
