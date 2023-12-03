@@ -24,27 +24,33 @@ First, open the Google Cloud Platform console by visiting the <https://console.c
 
 If you haven't already, create a new project by clicking on the "Select a project" dropdown menu and selecting "New Project". Enter a name for your project and click on the "Create" button.
 
+<img width="1073" alt="new projec" src="https://github.com/sriyachalla/cal.com/assets/30791239/949881fb-c659-4952-9c51-1d956a19cc36">
+
+
 ### Create a New VM Instance
 
 Click on the navigation menu icon (three horizontal lines) and select "Compute Engine" from the list. Then, click on "VM instances" in the sub-menu.
 
 Click on the "Create" button to create a new virtual machine.
 
+<img width="468" alt="newVM" src="https://github.com/sriyachalla/cal.com/assets/30791239/bfa28fb3-a08e-4dd8-867a-1951ca11e0f2">
+
+
 ### Select the Machine Type
 
-Choose the machine type that best suits your needs. For this example, we will use the "f1-micro" machine type, which is a free tier instance.
+Choose the machine type that best suits your needs. Ideally, 2 vCPUs and 2-4GB RAM is enough.
 
 ### Set Up Networking
 
 Make sure the "Networking" tab is selected and click on the "Add network" button. Choose the "Default" network and click on the "Add" button.
 
-### Set Up Authentication
-
-Under "Authentication", make sure the "Google Sign-In" option is enabled. You can also add additional authentication options if needed.
 
 ### Create the Instance
 
 Review the details of your virtual machine and click on the "Create" button to create the instance.
+
+<img width="468" alt="VMdetails" src="https://github.com/sriyachalla/cal.com/assets/30791239/05e34917-8be4-4d72-8bcf-aff8cbf537c3">
+Note the public IP of the VM.
 
 Step 2: Configuring the Virtual Machine
 --------------------------------------
@@ -69,6 +75,10 @@ Open a terminal window on your local machine and use SSH to connect to your virt
 gcloud ssh --project=[PROJECT_ID] --zone=[ZONE] [INSTANCE_NAME]
 ```
 Replace `[PROJECT_ID]` with your project ID, `[ZONE]` with the zone where your instance is located, and `[INSTANCE_NAME]` with the name of your instance.
+You can also use web based SSH.
+
+<img width="468" alt="ssh" src="https://github.com/sriyachalla/cal.com/assets/30791239/89577c7e-0de6-4b31-b235-fcb33ed70de9">
+
 
 ### Install Docker
 
