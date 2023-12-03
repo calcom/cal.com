@@ -62,7 +62,8 @@ export function Header({
 
   useEffect(() => {
     const paramTimeZone = searchParams?.get("timezone");
-    const isValidTimeZone = paramTimeZone && dayjs.tz.zone(paramTimeZone);
+    // Check if the timezone is valid
+    const isValidTimeZone = paramTimeZone && dayjs.tz.guess(paramTimeZone) === paramTimeZone;
   
     if (isValidTimeZone) {
       setTimezone(paramTimeZone);
@@ -70,14 +71,13 @@ export function Header({
       if (paramTimeZone) {
         console.error(`Invalid timezone specified: ${paramTimeZone}`);
         // Handle the invalid timezone case, e.g., show an error message
-        // or use a default timezone
       }
       const defaultTimeZone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
       setTimezone(defaultTimeZone || "Europe/London");
     }
   }, [searchParams, setTimezone]);
-  if (isMobile || !enabledLayouts) return null;
 
+  if (isMobile || !enabledLayouts) return null;
   // Only reason we create this component, is because it is used 3 times in this component,
   // and this way we can't forget to update one of the props in all places :)
   const LayoutToggleWithData = () => {
