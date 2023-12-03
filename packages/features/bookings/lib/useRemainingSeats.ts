@@ -30,7 +30,6 @@ export const useRemainingSeatsStore = create<RemainingSeatsStore>((set) => ({
       const data = { ...state.data };
       const key = new Date(ts).toISOString();
       data[key] = seatsLeft;
-      console.log("processed", data);
       return { data };
     });
   },

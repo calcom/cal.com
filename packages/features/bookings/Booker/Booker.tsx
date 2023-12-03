@@ -1,13 +1,12 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import dayjs from "@calcom/dayjs";
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { useRemainingSeatsStore } from "@calcom/features/bookings/lib/useRemainingSeats";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -58,7 +57,6 @@ const BookerComponent = ({
     month,
     duration,
   });
-  // console.log("schedule", schedule);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
@@ -268,7 +266,6 @@ const BookerComponent = ({
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                 <EventMeta />
-                <MockDataGenerator />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
@@ -369,31 +366,3 @@ export const Booker = (props: BookerProps) => {
     </LazyMotion>
   );
 };
-
-function MockDataGenerator() {
-  const { processUpdate } = useRemainingSeatsStore();
-  const [date, setDate] = useState<Date | null>(new Date());
-  const [seatLeft, setSeatLeft] = useState<number | null>(null);
-  const onSubmit = () => {
-    if (date === null || seatLeft === null) return;
-    const updateData = { ts: date.toISOString(), seatsLeft: seatLeft };
-    console.log(updateData);
-    processUpdate(updateData);
-  };
-  console.log(date?.toISOString());
-  return (
-    <div className={classNames("flex-col", "flex")}>
-      <input
-        className={classNames("bg-black", "text-white")}
-        type="datetime-local"
-        onChange={(e) => setDate(new Date(e.target.value))}
-      />
-      <input
-        className={classNames("bg-black", "text-white")}
-        type="number"
-        onChange={(e) => setSeatLeft(Number(e.target.value))}
-      />
-      <button onClick={onSubmit}>Reserve</button>
-    </div>
-  );
-}

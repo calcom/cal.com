@@ -26,6 +26,12 @@ import PageWrapper from "@components/PageWrapper";
 import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
 import useWebsocket from "../../ws/client";
 
+const wsDataSchema = z
+  .object({
+    slotUtcStartDate: z.string(),
+  })
+  .passthrough();
+
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export default function Type({
@@ -41,19 +47,20 @@ export default function Type({
   duration,
 }: PageProps) {
   const { data, processUpdate } = useRemainingSeatsStore();
-  console.log("data: ", data);
-  const onData = (data) => {
-    console.log("onData: ", data);
-    console.log(typeof data);
-    console.log(JSON.parse(data));
-    const update = {
-      ts: JSON.parse(data).slotUtcStartDate,
-      seatsLeft: 0,
-    };
-    console.log(update);
-    processUpdate(update);
-  };
-  useWebsocket(onData);
+  useWebsocket({
+    onData: (data) => {
+      const res = wsDataSchema.safeParse(JSON.parse(data));
+      if (!res.success) {
+        console.error("Failed to parse ws data", res.error);
+        return;
+      }
+      const update = {
+        ts: res.data.slotUtcStartDate,
+        seatsLeft: 3,
+      };
+      processUpdate(update);
+    },
+  });
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
