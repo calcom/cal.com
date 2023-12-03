@@ -3,7 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "jsx": "preserve",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "~/*": ["*"]
     },
