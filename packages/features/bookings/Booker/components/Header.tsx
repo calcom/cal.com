@@ -1,9 +1,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -32,6 +34,10 @@ export function Header({
 }) {
   const { t, i18n } = useLocale();
   const session = useSession();
+  const searchParams = useSearchParams();
+
+  const { timezone, setTimezone } = useTimePreferences();
+  // const [menuOpen, setMenuOpen] = useState(false);
 
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
@@ -52,6 +58,17 @@ export function Header({
     },
     [setLayout, layout]
   );
+
+  useEffect(() => {
+    const paramTimeZone = searchParams?.get("timezone");
+    if (paramTimeZone) {
+      setTimezone(paramTimeZone);
+    } else {
+      setTimezone(
+        localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London"
+      );
+    }
+  }, [searchParams, setTimezone]);
 
   if (isMobile || !enabledLayouts) return null;
 
