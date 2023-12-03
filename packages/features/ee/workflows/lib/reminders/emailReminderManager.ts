@@ -130,7 +130,7 @@ export const scheduleEmailReminder = async (
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     console.error("Sendgrid credentials are missing from the .env file");
   }
-  console.log("Sendgrid credentials are missing from the .env file");
+
   const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let attendeeEmailToBeUsedInMail: string | null = null;

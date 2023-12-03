@@ -292,7 +292,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         let emailContent = {
           emailSubject: "",
-          emailBody: `<body style="white-space: pre-wrap;">${""}</body>`,
+          emailBody: "",
         };
 
         const emailBodyEmpty = false;

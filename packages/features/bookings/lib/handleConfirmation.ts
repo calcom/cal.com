@@ -269,10 +269,14 @@ export async function handleConfirmation(args: {
       const hasExistingWorkflow: boolean = (updatedBookings[index]?.eventType?.workflows || []).some(
         (workflow) => {
           return (
-            workflow.workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
-            ((workflow.workflow.time <= 12 && workflow.workflow.timeUnit === TimeUnit.HOUR) ||
-              (workflow.workflow.time <= 720 && workflow.workflow.timeUnit === TimeUnit.MINUTE)) &&
-            workflow.workflow.steps.some((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+            workflow.workflow?.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
+            ((workflow.workflow.time !== null &&
+              workflow.workflow.time <= 12 &&
+              workflow.workflow?.timeUnit === TimeUnit.HOUR) ||
+              (workflow.workflow.time !== null &&
+                workflow.workflow.time <= 720 &&
+                workflow.workflow?.timeUnit === TimeUnit.MINUTE)) &&
+            workflow.workflow?.steps.some((step) => step?.action === WorkflowActions.EMAIL_ATTENDEE)
           );
         }
       );
