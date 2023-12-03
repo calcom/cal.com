@@ -14,7 +14,7 @@ export const getClient = async (): Promise<Client> => {
     // }
     clientInstance = new Client({
       connection,
-      // namespace: 'foo.bar', // connects to 'default' namespace if not specified
+      namespace: "default",
     });
   }
   return clientInstance;
