@@ -441,8 +441,6 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
   await sendEmail(() => new AdminOrganizationNotification(input));
 };
 
-type AnyFunction = (...args: any[]) => any;
-
 // create a object will of all the emails actions
 export const emailActions = {
   sendScheduledEmails,
@@ -478,10 +476,24 @@ export const emailActions = {
   sendAdminOrganizationNotification,
 };
 
-export const dispatchEmail = async (action: string, params: any[]) => {
-  if (process.env.QSTASH_URL) {
-    // TODO Call QStash
+export type EmailAction = keyof typeof emailActions;
+export type EmailActionFunction = { [K in keyof typeof emailActions]: EmailActionParams[K] };
+
+export const dispatchEmail = async (action: EmailAction, params: EmailActionFunction[typeof action]) => {
+  console.log(process.env.QSTASH_URL);
+  if (process.env.QSTASH_URL === "localhost") {
+    console.log("making send_email request locally");
+    await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/queue/send_email`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: action,
+        params: params,
+      }),
+    });
+    console.log("send_email request made locally");
+  } else if (process.env.QSTASH_URL) {
+    // TODO: Actual QStash integration
   } else {
-    await emailActions[action](...params);
+    await emailActions[action](params);
   }
 };

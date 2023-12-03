@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import type { EmailAction, EmailActionFunction } from "@calcom/emails/email-manager";
 import { emailActions } from "@calcom/emails/email-manager";
 
-type EmailAction = keyof typeof emailActions;
 //type EmailActionFunction = Parameters<(typeof emailActions)[EmailAction]>;
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -33,14 +33,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log("sending email");
 
   console.log("req.body", req.body);
-  const { action, params }: { action: EmailAction; params: any[] } = JSON.parse(req.body);
+  const { action, params }: { action: EmailAction; params: EmailActionFunction[typeof action] } = JSON.parse(
+    req.body
+  );
   // const action: EmailAction = req.body.action;
   // const params: any[] = req.body.params;
 
   console.log("action", action);
   console.log("params", params);
 
-  await emailActions[action](...params);
+  console.log("emailActions", emailActions);
+  console.log("emailActions[action]", emailActions[action]);
+  await emailActions[action](params);
 
   // const feedback = {
   //   username: "pro",
