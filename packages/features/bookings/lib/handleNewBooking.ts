@@ -32,7 +32,6 @@ import {
   sendRescheduledEmails,
   sendRescheduledSeatEmail,
   sendRoundRobinCancelledEmails,
-  sendRoundRobinRescheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -2387,7 +2386,13 @@ async function handler(
           originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
         );
 
-        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
+        dispatchEmail("sendRoundRobinRescheduledEmails",
+          {
+            calEvent: copyEventAdditionalInfo,
+            members: rescheduledMembers
+          }
+        );
+
         dispatchEmail("sendRoundRobinScheduledEmails", {
           calEvent: copyEventAdditionalInfo,
           members: newBookedMembers,
