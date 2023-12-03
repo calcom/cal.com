@@ -60,6 +60,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   successRedirectUrl: true,
   locations: true,
   bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
   durationLimits: true,
 })
   .merge(
@@ -147,6 +148,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
   seatsShowAvailabilityCount: true,
   bookingFields: true,
   bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
   durationLimits: true,
 }).merge(
   z.object({
