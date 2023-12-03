@@ -15333,7 +15333,7 @@ __metadata:
     jest-diff: ^29.5.0
     jsdom: ^22.0.0
     lint-staged: ^12.5.0
-    lucide-react: ^0.171.0
+    lucide-react: ^0.294.0
     mailhog: ^4.16.0
     node-ical: ^0.16.1
     prettier: ^2.8.6
@@ -25089,6 +25089,15 @@ __metadata:
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
   checksum: 768ffe368c52a518ee339203d86ff4479989ab4d79c0716f721900c4bb7392ef6ff7a14807f6a685abd74d27f4c1778170bff77a0ab4c3e06c17944b557d8300
+  languageName: node
+  linkType: hard
+
+"lucide-react@npm:^0.294.0":
+  version: 0.294.0
+  resolution: "lucide-react@npm:0.294.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0
+  checksum: d8e741603209a0e0400b2d71e676aff660251f7e078f8be72a2fbaf57876946a76571675230b7c0f7d27d8a9344d0c788dba14177d35f4ba911897282eaae22a
   languageName: node
   linkType: hard
 

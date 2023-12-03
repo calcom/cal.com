@@ -39,7 +39,7 @@ function TimeCapsule() {
   // const eventNamesAndFrequencies =
 
   return (
-    <ShellMain heading={t("Time Capsule")} subtitle={t("create_manage_teams_collaborative")}>
+    <ShellMain>
       <div className="flex items-end gap-5 bg-slate-900 pl-4 pt-12 max-md:flex-wrap">
         <div className="mt-16 flex grow basis-[0%] flex-col items-center max-md:mt-10 max-md:max-w-full">
           <div className="max-w-[976px] bg-clip-text text-center text-4xl font-semibold leading-10 text-neutral-50 max-md:max-w-full">
