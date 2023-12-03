@@ -10,7 +10,7 @@ type EventType = {
 
 export function calculateTotalMeetingTime(
   bookingEventIds: number[] | undefined,
-  eventTypesLengthRecord: Record<string, number> | null
+  eventTypesLengthRecord: Record<string, number | undefined> | null
 ) {
   if (bookingEventIds === undefined || !eventTypesLengthRecord) {
     return 0;
@@ -28,7 +28,6 @@ export function createEventsLengthRecord(events: EventType[] | undefined) {
   } else {
     events.forEach((event) => {
       if (event.id) {
-        console.log("event", event);
         if (typeof event.length === "number") {
           resultRecord[String(event.id)] = event.length;
         }
@@ -36,4 +35,38 @@ export function createEventsLengthRecord(events: EventType[] | undefined) {
     });
   }
   return resultRecord;
+}
+
+export function eventNamesById(events: EventType[] | undefined) {
+  const eventObj: Record<string, string> = {};
+  if (events === undefined) {
+    return null;
+  }
+  events.forEach((event) => {
+    eventObj[String(event.id)] = event.title;
+  });
+  return eventObj;
+}
+
+export function eventFrequencyObj(events: EventType[] | undefined) {
+  const eventFrequencies: Record<string, number> = {};
+  if (events === undefined) {
+    return null;
+  }
+  events.forEach((event) => {
+    eventFrequencies[event.id] =
+      typeof eventFrequencies[event.id] === "number" ? eventFrequencies[event.id] + 1 : 1;
+  });
+  return eventFrequencies;
+}
+export function makeEventNameArr(freq: Record<string, number> | null, names: Record<string, string> | null) {
+  if (!freq || !names) {
+    return null;
+  }
+  const eventNamesAndFrequencies: [string, number][] = [];
+  for (const id in freq) {
+    const frequencyOfEvent = freq[id];
+    eventNamesAndFrequencies.push([names[id], frequencyOfEvent]);
+  }
+  return eventNamesAndFrequencies;
 }

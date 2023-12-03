@@ -3,7 +3,6 @@ import type { GetServerSidePropsContext } from "next";
 // import { useSession } from "next-auth/react";
 import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { TeamsListing } from "@calcom/features/ee/teams/components";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,37 +11,51 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-import { calculateTotalMeetingTime, createEventsLengthRecord } from "./utils";
+import {
+  calculateTotalMeetingTime,
+  createEventsLengthRecord,
+  eventNamesById,
+  eventFrequencyObj,
+  makeEventNameArr,
+} from "./utils";
 
 function TimeCapsule() {
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
-  console.log("user", user);
   //grab bookings data
   const bookings = trpc.viewer.bookings.get.useQuery({ filters: { status: "past" } });
   //grab all event types for user
   const { data: eventTypes } = trpc.viewer.eventTypes.bulkEventFetch.useQuery();
   //key = event type id value = length of event
-  console.log(eventTypes?.eventTypes);
-  const eventLengthRecord: Record<string, number | undefined> | null = createEventsLengthRecord(
-    eventTypes?.eventTypes
+  const eventList = eventTypes?.eventTypes;
+  const eventLengthRecord: Record<string, number | undefined> | null = createEventsLengthRecord(eventList);
+  const bookingsEventIds: number[] | undefined = bookings.data?.bookings.map(
+    (booking: any) => booking.eventType.id
   );
-  console.log(bookings.data);
-  console.log(
-    "booking",
-    bookings.data?.bookings.map((booking: any) => booking.eventType.id)
-  );
-  const bookingsEventIds = bookings.data?.bookings.map((booking: any) => booking.eventType.id);
+  const eventFrequenciesByName = makeEventNameArr(eventFrequencyObj(eventList), eventNamesById(eventList));
+  console.log(eventFrequenciesByName);
 
-  console.log("totla", calculateTotalMeetingTime(bookingsEventIds, eventLengthRecord));
+  const totalMeetingTime = calculateTotalMeetingTime(bookingsEventIds, eventLengthRecord);
+  // const eventNamesAndFrequencies =
 
   return (
     <ShellMain
       heading={t("Time Capsule")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}>
-      {/* <p>{bookings.}</p> */}
-      <TeamsListing />
+      {totalMeetingTime && <p>{totalMeetingTime}</p>}
+      {eventFrequenciesByName && (
+        <ul>
+          {eventFrequenciesByName.map((event) => {
+            return (
+              <li key={crypto.randomUUID()}>
+                <p>{event[0]}</p>
+                <p>{event[1]}</p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </ShellMain>
   );
 }
