@@ -451,7 +451,7 @@ export const emailActions: { [key: string]: AnyFunction } = {
 };
 
 export const sendEmail = async (action: string, params: any[]) => {
-  if (process.env.QSTASH) {
+  if (process.env.QSTASH_URL) {
 
     // TODO Call QStash
   } else {
