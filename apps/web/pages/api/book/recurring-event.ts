@@ -27,6 +27,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   req.userId = session?.user?.id || -1;
   const numSlotsToCheckForAvailability = 2;
 
+  let thirdPartyRecurringEventId = "";
   for (let key = 0; key < data.length; key++) {
     const booking = data[key];
     // Disable AppStatus in Recurring Booking Email as it requires us to iterate backwards to be able to compute the AppsStatus for all the bookings except the very first slot and then send that slot's email with statuses
@@ -53,16 +54,25 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       ...booking,
       appsStatus,
       allRecurringDates,
+      thirdPartyRecurringEventId,
       currentRecurringIndex: key,
       noEmail: key !== 0,
     };
 
     const eachRecurringBooking = await handleNewBooking(recurringEventReq, {
       isNotAnApiCall: true,
-      skipAvailabilityCheck: key >= numSlotsToCheckForAvailability,
+      skipAvailabilityCheck: key >= numSlotsToCheckForAvailability || thirdPartyRecurringEventId !== "",
     });
-
     createdBookings.push(eachRecurringBooking);
+
+    if (thirdPartyRecurringEventId == "") {
+      if (eachRecurringBooking.references.length > 0) {
+        const bookingReference = eachRecurringBooking.references[0];
+        thirdPartyRecurringEventId = bookingReference.recurringMeetingId
+          ? bookingReference.recurringMeetingId
+          : "";
+      }
+    }
   }
   return createdBookings;
 }

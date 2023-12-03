@@ -358,6 +358,7 @@ model BookingReference {
   /// @zod.min(1)
   uid                String
   meetingId          String?
+  recurringMeetingId String?
   meetingPassword    String?
   meetingUrl         String?
   booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)

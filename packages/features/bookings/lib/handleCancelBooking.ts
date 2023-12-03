@@ -59,6 +59,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           type: true,
           externalCalendarId: true,
           credentialId: true,
+          recurringMeetingId: true,
         },
       },
       payment: true,
@@ -452,24 +453,34 @@ async function handler(req: CustomRequest) {
             bookingToDelete.recurringEventId &&
             allRemainingBookings
           ) {
-            const promises = bookingToDelete.user.credentials
-              .filter((credential) => credential.type.endsWith("_calendar"))
-              .map(async (credential) => {
-                const calendar = await getCalendar(credential);
-                for (const updBooking of updatedBookings) {
-                  const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
-                  if (bookingRef) {
-                    const { uid, externalCalendarId } = bookingRef;
-                    const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
-                    apiDeletes.push(deletedEvent);
+            if (bookingToDelete.references.length > 0 && bookingToDelete?.references[0].recurringMeetingId) {
+              const recurringMeetingId = bookingToDelete?.references[0].recurringMeetingId;
+              const deletedRecurringEvent = await calendar.deleteEvent(
+                recurringMeetingId,
+                evt,
+                externalCalendarId
+              );
+              apiDeletes.push(deletedRecurringEvent);
+            } else {
+              const promises = bookingToDelete.user.credentials
+                .filter((credential) => credential.type.endsWith("_calendar"))
+                .map(async (credential) => {
+                  const calendar = await getCalendar(credential);
+                  for (const updBooking of updatedBookings) {
+                    const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
+                    if (bookingRef) {
+                      const { uid, externalCalendarId } = bookingRef;
+                      const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
+                      apiDeletes.push(deletedEvent);
+                    }
                   }
+                });
+              try {
+                await Promise.all(promises);
+              } catch (error) {
+                if (error instanceof Error) {
+                  logger.error(error.message);
                 }
-              });
-            try {
-              await Promise.all(promises);
-            } catch (error) {
-              if (error instanceof Error) {
-                logger.error(error.message);
               }
             }
           } else {

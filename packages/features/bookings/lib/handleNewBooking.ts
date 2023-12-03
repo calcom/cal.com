@@ -1284,6 +1284,13 @@ async function handler(
     schedulingType: eventType.schedulingType,
   };
 
+  if (req.body.thirdPartyRecurringEventId) {
+    evt.existingRecurringEvent = {
+      eventIndex: req.body.currentRecurringIndex,
+      recurringEventId: req.body.thirdPartyRecurringEventId,
+    };
+  }
+
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
     evt.destinationCalendar?.push(...teamDestinationCalendars);
   }
@@ -2742,6 +2749,7 @@ async function handler(
   req.statusCode = 201;
   return {
     ...booking,
+    references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
   };
 }
