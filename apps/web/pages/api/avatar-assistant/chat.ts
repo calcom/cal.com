@@ -84,7 +84,7 @@ export default async function Chat(req: NextRequest) {
             userId: userId,
             dateFrom: dateFrom,
             dateTo: dateTo,
-            timezoneOffset,
+            timezone,
           });
 
           console.log("User Availability", data);
@@ -252,13 +252,13 @@ export const fetchAvailability = async ({
   userId,
   dateFrom,
   dateTo,
-  timezoneOffset,
+  timezone,
 }: {
   apiKey: string;
   userId: number;
   dateFrom: string;
   dateTo: string;
-  timezoneOffset: number;
+  timezone: string;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey,
@@ -278,11 +278,13 @@ export const fetchAvailability = async ({
   const data = await response.json();
 
   const time = (data.dateRanges as any[]).map((dateRange) => {
-    const startdate = new Date(dateRange.start).getTime();
-    const enddate = new Date(dateRange.end).getTime();
+    const startDate = new Date(dateRange.start);
+    const endDate = new Date(dateRange.end);
+    const formattedStartDate = `${startDate.getHours()}am ${startDate.getFullYear()}-${startDate.getMonth()}-${startDate.getDate()} ${timezone}`;
+    const formattedEndDate = `${endDate.getHours()}am ${endDate.getFullYear()}-${endDate.getMonth()}-${endDate.getDate()} ${timezone}`;
     return {
-      start: new Date(startdate - timezoneOffset * 60 * 1000).toISOString(),
-      end: new Date(enddate - timezoneOffset * 60 * 1000).toISOString(),
+      start: formattedStartDate,
+      end: formattedEndDate,
     };
   });
 
