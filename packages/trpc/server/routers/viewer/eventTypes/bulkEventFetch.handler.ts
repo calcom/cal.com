@@ -20,6 +20,7 @@ export const bulkEventFetchHandler = async ({ ctx }: BulkEventFetchOptions) => {
       id: true,
       title: true,
       locations: true,
+      length: true,
     },
   });
 
