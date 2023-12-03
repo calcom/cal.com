@@ -23,9 +23,9 @@ These include:
 
 Check out our demo 😉
 
-[![Cal.com Copilot Demo Loom](copilot-demo.png)](https://www.loom.com/share/86b97562230a4cbd92a123c1ecc7a154?sid=3a1833ee-6253-4a67-b2f7-98dbd36ef262)
+[![Cal.com Copilot Demo Loom](copilot-demo.png)](https://www.loom.com/share/3ca21a10254443b9a01bdc90e78d3a5d)
 
-<https://www.loom.com/share/86b97562230a4cbd92a123c1ecc7a154?sid=3a1833ee-6253-4a67-b2f7-98dbd36ef262>
+<https://www.loom.com/share/3ca21a10254443b9a01bdc90e78d3a5d>
 
 ## What's next
 
