@@ -66,8 +66,21 @@ export const sendScheduledEmails = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
-  attendeeEmailDisabled?: boolean
+  attendeeEmailDisabled?: boolean,
+  dispatch = true
 ) => {
+  if (
+    await maybeDispatchEmail(
+      dispatch,
+      "sendScheduledEmails",
+      calEvent,
+      eventNameObject,
+      hostEmailDisabled,
+      attendeeEmailDisabled
+    )
+  )
+    return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   if (!hostEmailDisabled) {
@@ -104,7 +117,13 @@ export const sendScheduledEmails = async (
 };
 
 // for rescheduled round robin booking that assigned new members
-export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinScheduledEmails = async (
+  calEvent: CalendarEvent,
+  members: Person[],
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendRoundRobinScheduledEmails", calEvent, members)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   for (const teamMember of members) {
@@ -114,7 +133,13 @@ export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, mem
   await Promise.all(emailsToSend);
 };
 
-export const sendRoundRobinRescheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinRescheduledEmails = async (
+  calEvent: CalendarEvent,
+  members: Person[],
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendRoundRobinRescheduledEmails", calEvent, members)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   for (const teamMember of members) {
@@ -124,7 +149,13 @@ export const sendRoundRobinRescheduledEmails = async (calEvent: CalendarEvent, m
   await Promise.all(emailsToSend);
 };
 
-export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinCancelledEmails = async (
+  calEvent: CalendarEvent,
+  members: Person[],
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendRoundRobinCancelledEmails", calEvent, members)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   for (const teamMember of members) {
@@ -156,7 +187,9 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent, dispatch = 
   await Promise.all(emailsToSend);
 };
 
-export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Person) => {
+export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Perso, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendRescheduledSeatEmail", calEvent, attendee)) return;
+
   const clonedCalEvent = cloneDeep(calEvent);
   const emailsToSend: Promise<unknown>[] = [
     sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)),
@@ -172,8 +205,23 @@ export const sendScheduledSeatsEmails = async (
   newSeat: boolean,
   showAttendees: boolean,
   hostEmailDisabled?: boolean,
-  attendeeEmailDisabled?: boolean
+  attendeeEmailDisabled?: boolean,
+  dispatch = true
 ) => {
+  if (
+    await maybeDispatchEmail(
+      dispatch,
+      "sendScheduledSeatsEmails",
+      calEvent,
+      invitee,
+      newSeat,
+      showAttendees,
+      hostEmailDisabled,
+      attendeeEmailDisabled
+    )
+  )
+    return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   if (!hostEmailDisabled) {
@@ -204,7 +252,13 @@ export const sendScheduledSeatsEmails = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
+export const sendCancelledSeatEmails = async (
+  calEvent: CalendarEvent,
+  cancelledAttendee: Person,
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendCancelledSeatEmails", calEvent, cancelledAttendee)) return;
+
   const clonedCalEvent = cloneDeep(calEvent);
   await Promise.all([
     sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)),
@@ -212,7 +266,9 @@ export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelled
   ]);
 };
 
-export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendOrganizerRequestEmail", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerRequestEmail({ calEvent })));
@@ -226,12 +282,19 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee: Person) => {
-  // TODO: send message to queue
+export const sendAttendeeRequestEmail = async (
+  calEvent: CalendarEvent,
+  attendee: Person,
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendAttendeeRequestEmail", calEvent, attendee)) return;
+
   await sendEmail(() => new AttendeeRequestEmail(calEvent, attendee));
 };
 
-export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
+export const sendDeclinedEmails = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendDeclinedEmails", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -247,6 +310,8 @@ export const sendCancelledEmails = async (
   calEvent: CalendarEvent,
   eventNameObject: Pick<EventNameObjectType, "eventName">
 ) => {
+  if (await maybeDispatchEmail(dispatch, "sendCancelledEmails", calEvent, eventNameObject)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent })));
@@ -450,18 +515,18 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 // create a object will of all the emails actions
 export const emailActions = {
-  // sendScheduledEmails,
-  // sendRoundRobinScheduledEmails,
-  // sendRoundRobinRescheduledEmails,
-  // sendRoundRobinCancelledEmails,
+  sendScheduledEmails,
+  sendRoundRobinScheduledEmails,
+  sendRoundRobinRescheduledEmails,
+  sendRoundRobinCancelledEmails,
   sendRescheduledEmails,
-  // sendRescheduledSeatEmail,
-  // sendScheduledSeatsEmails,
-  // sendCancelledSeatEmails,
-  // sendOrganizerRequestEmail,
-  // sendAttendeeRequestEmail,
-  // sendDeclinedEmails,
-  // sendCancelledEmails,
+  sendRescheduledSeatEmail,
+  sendScheduledSeatsEmails,
+  sendCancelledSeatEmails,
+  sendOrganizerRequestEmail,
+  sendAttendeeRequestEmail,
+  sendDeclinedEmails,
+  sendCancelledEmails,
   // sendOrganizerRequestReminderEmail,
   // sendAwaitingPaymentEmail,
   // sendOrganizerPaymentRefundFailedEmail,
