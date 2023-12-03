@@ -103,6 +103,7 @@
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
+    "@upstash/qstash": "^2.3.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
