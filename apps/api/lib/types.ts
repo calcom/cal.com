@@ -124,6 +124,7 @@ export enum Frequency {
   "HOURLY",
   "MINUTELY",
   "SECONDLY",
+  "WEEKDAYS",
 }
 interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "locations"> {
   recurringEvent: {

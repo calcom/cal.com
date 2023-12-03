@@ -17,6 +17,7 @@ const recurringEventInputSchema = z.object({
   freq: z.nativeEnum(Frequency).optional(),
   until: z.string().optional(),
   tzid: timeZone.optional(),
+  custom: z.boolean().optional(),
 });
 
 const hostSchema = _HostModel.pick({

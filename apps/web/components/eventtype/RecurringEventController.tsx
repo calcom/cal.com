@@ -26,7 +26,6 @@ export default function RecurringEventController({
   const [definite, setDefinite] = useState(
     recurringEventState ? recurringEventState.count != Number.MAX_SAFE_INTEGER : true
   );
-  const [custom, setCustom] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
     recurringEventState && recurringEventState.until ? recurringEventState.until : new Date()
   );
@@ -39,16 +38,15 @@ export default function RecurringEventController({
       }),
       value: value.toString(),
     }));
-  /* yearly-0, monthly-1, weekly-2, daily-3, custom-7, weekdays-8*/
+  const [custom, setCustom] = useState(recurringEventState ? recurringEventState.interval != 1 : false);
+  /* yearly-0, monthly-1, weekly-2, daily-3, weekdays-7*/
   const recurringEventFreqOptionsCustom = Object.entries(Frequency)
-    .filter(
-      ([key, value]) =>
-        (isNaN(Number(key)) && (Number(value) <= 3 || Number(value) == 7)) || Number(value) == 8
-    )
+    .filter(([key, value]) => isNaN(Number(key)) && (Number(value) <= 3 || Number(value) == 7))
     .map(([key, value]) => ({
       label: t(`${key.toString()[0] + key.toString().slice(1).toLowerCase()}`),
       value: value.toString(),
     }));
+  recurringEventFreqOptionsCustom.push({ label: "Custom", value: "Custom" });
   const { shouldLockDisableProps } = useLockedFieldsManager(
     eventType,
     t("locked_fields_admin_description"),
@@ -56,7 +54,6 @@ export default function RecurringEventController({
   );
   const recurringLocked = shouldLockDisableProps("recurringEvent");
   const definiteLocked = shouldLockDisableProps("definite");
-  const [customInterval, setCustomInterval] = useState<RecurringEvent | null>(null);
   return (
     <div className="block items-start sm:flex">
       <div className={!paymentEnabled ? "w-full" : ""}>
@@ -91,6 +88,7 @@ export default function RecurringEventController({
                     interval: 1,
                     count: 12,
                     freq: Frequency.WEEKLY,
+                    custom: false,
                   };
                   formMethods.setValue("recurringEvent", newVal);
                   setRecurringEventState(newVal);
@@ -104,22 +102,31 @@ export default function RecurringEventController({
                       <Select
                         options={recurringEventFreqOptionsCustom}
                         value={
-                          customInterval
-                            ? recurringEventFreqOptionsCustom[customInterval.freq]
+                          recurringEventState.interval != 1
+                            ? { label: "Custom", value: "Custom" }
                             : recurringEventFreqOptionsCustom[recurringEventState.freq]
                         }
                         isSearchable={false}
                         className="w-18 ml-2 block min-w-0 rounded-md text-sm"
                         isDisabled={recurringLocked.disabled}
                         onChange={(event) => {
-                          const newVal = {
-                            ...recurringEventState,
-                            freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
-                          };
+                          let newVal = null;
+                          if (event?.value == "Custom") {
+                            newVal = {
+                              ...recurringEventState,
+                              interval: Math.max(recurringEventState.interval, 2),
+                            };
+                            setCustom(true);
+                          } else {
+                            newVal = {
+                              ...recurringEventState,
+                              freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
+                              interval: 1,
+                            };
+                            setCustom(false);
+                          }
                           formMethods.setValue("recurringEvent", newVal);
                           setRecurringEventState(newVal);
-                          event && parseInt(event?.value) == 8 ? setCustom(true) : setCustom(false);
-                          setCustomInterval(newVal);
                         }}
                       />
                       {/* We only show this menu if custom is toggled */}
