@@ -1,31 +1,23 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { emailActions } from "@calcom/emails/email-manager";
-import type { EmailAction } from "@calcom/emails/email-manager";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import type { WebhookAction } from "@calcom/features/webhooks/lib/sendPayload";
 import { verifySignatureIfQStash } from "@calcom/lib/queue";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log("sending email");
-
-  console.log("req.body", req.body);
-  console.log("req.body,type", typeof req.body);
+  console.log("sending webhook");
 
   // No need to parse JSON as middleware will do it for us
-  const action: EmailAction = req.body.action;
+  const action: WebhookAction = req.body.action;
   const params: any[] = req.body.params;
 
   console.log("action", action);
-  console.log("params", params);
 
-  console.log("emailActions", emailActions);
-  console.log("emailActions[action]", emailActions[action]);
-
-  const actionFunction = emailActions[action];
   // call the action function
   // we ignore the type error but could be fixed with proper typing
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  await actionFunction(...params, false);
+  await sendPayload(...params, false);
 
   console.log("email sent");
   return res.status(200).json({ message: `${action} completed` });

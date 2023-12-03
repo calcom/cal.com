@@ -624,7 +624,7 @@ export const maybeDispatchEmail = async (dispatch: boolean, action: EmailAction,
   console.log("params", params);
   if (dispatch && process.env.QSTASH_URL === "localhost") {
     console.log("making send_email request locally");
-    await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/queue/send_email`, {
+    await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/queue/send-email`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -652,7 +652,7 @@ export const maybeDispatchEmail = async (dispatch: boolean, action: EmailAction,
 
     // The call is identical to the fetch call above as it will do a fetch
     client.publishJSON({
-      url: `${handlerBaseURL}/api/queue/send_email`,
+      url: `${handlerBaseURL}/api/queue/send-email`,
       body: {
         action: action,
         params: params,
