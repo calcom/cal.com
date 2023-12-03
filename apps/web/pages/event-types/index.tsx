@@ -953,6 +953,7 @@ const EventTypesPage = () => {
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
+
       <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
     </ShellMain>
   );

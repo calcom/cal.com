@@ -261,6 +261,8 @@ model User {
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
 
+  waitlists Waitlist[]
+
   // Used to lock the user account
   locked Boolean @default(false)
 
@@ -1027,4 +1029,16 @@ model Avatar {
 
   @@unique([teamId, userId])
   @@map(name: "avatars")
+}
+
+model Waitlist {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  userEmail     String
+  eventDateTime DateTime
+  createdAt     DateTime @default(now()) // Automatically set to the current date and time
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventDateTime])
 }

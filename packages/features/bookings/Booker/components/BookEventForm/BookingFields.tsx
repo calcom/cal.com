@@ -23,6 +23,7 @@ export const BookingFields = ({
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
 }) => {
+  const { register } = useFormContext(); // Extract register ASHELY TANG
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
   const locationResponse = watch("responses.location");
@@ -133,6 +134,16 @@ export const BookingFields = ({
           <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />
         );
       })}
+      {/* New Waitlist Checkbox */}
+      <div className="mb-4">
+        <label>
+          <input
+            type="checkbox"
+            {...register("waitlistOptIn")} // Integrate checkbox with react-hook-form
+          />
+          Sign me up for a waitlist for earlier times if available
+        </label>
+      </div>
     </div>
   );
 };
