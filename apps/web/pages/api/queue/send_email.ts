@@ -1,7 +1,7 @@
-import { verifySignature } from "@upstash/qstash/dist/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { emailActions } from "@calcom/emails/email-manager";
+import { verifySignatureIfQStash } from "@calcom/lib/queue";
 
 // //type EmailActionFunction = Parameters<(typeof emailActions)[EmailAction]>;
 
@@ -36,9 +36,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.end();
 };
 
-export default verifySignature(handler);
+// This middledleware will make sure that the request is coming from Upstash
+// and will parse the body for us, unless QSTASH_URL is localhost
+export default verifySignatureIfQStash(handler);
 
-// EXPORT config to tell Next.js NOT to parse the body
+// Do not parse the body for this handler as it needs
+// to be parsed by the verifySignatureIfQStash middleware
 export const config = {
   api: {
     bodyParser: false,
