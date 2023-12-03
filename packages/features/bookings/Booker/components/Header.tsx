@@ -17,7 +17,6 @@ import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
 import { OverlayCalendarContainer } from "./OverlayCalendar/OverlayCalendarContainer";
 
-
 export function Header({
   extraDays,
   isMobile,
@@ -63,8 +62,8 @@ export function Header({
   useEffect(() => {
     const paramTimeZone = searchParams?.get("timezone");
     // Check if the timezone is valid
-    const isValidTimeZone = paramTimeZone && !dayjs.tz(dayjs(), paramTimeZone).isInvalid();
-  
+    const isValidTimeZone = paramTimeZone && !dayjs.tz(dayjs(), paramTimeZone).isValidTimeZone();
+
     if (isValidTimeZone) {
       setTimezone(paramTimeZone);
     } else {
