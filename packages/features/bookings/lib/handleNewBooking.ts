@@ -11,6 +11,7 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { dispatchEmail } from "@calcom/emails";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -32,7 +33,6 @@ import {
   sendRescheduledSeatEmail,
   sendRoundRobinCancelledEmails,
   sendRoundRobinRescheduledEmails,
-  sendRoundRobinScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -2388,7 +2388,10 @@ async function handler(
         );
 
         sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
-        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
+        dispatchEmail("sendRoundRobinScheduledEmails", {
+          calEvent: copyEventAdditionalInfo,
+          members: newBookedMembers,
+        })
         sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
