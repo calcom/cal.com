@@ -8,50 +8,51 @@ import { OPENAI_API_KEY } from "../.env";
 // Parameters
 import { ROUTER_ENUMS, ROUTER_MSGS } from "../params/enums";
 import { GPT_MODEL } from "../params/models";
+// Types
+import type { RouterResponseType } from "../types/responseTypes";
 
-const run = async (inputValue: string) => {
-  // Instantiate the parser
-  const parser = new JsonOutputFunctionsParser();
+// Instantiate the parser
+const parser = new JsonOutputFunctionsParser();
 
-  // Define the function schema
-  const extractionFunctionSchema = {
-    name: "extractor",
-    description: "Extracts fields from the input.",
-    parameters: {
-      type: "object",
-      properties: {
-        url_param: {
-          type: "string",
-          enum: ROUTER_ENUMS,
-          description: "The URL parameter to extract.",
-        },
-        message: {
-          type: "string",
-          enum: ROUTER_MSGS,
-          description: "The message to send to the user.",
-        },
+// Define the function schema
+const extractionFunctionSchema = {
+  name: "extractor",
+  description: "Extracts fields from the input.",
+  parameters: {
+    type: "object",
+    properties: {
+      url_param: {
+        type: "string",
+        enum: ROUTER_ENUMS,
+        description: "The URL parameter to extract.",
       },
-      required: ["url_param", "message"],
+      message: {
+        type: "string",
+        enum: ROUTER_MSGS,
+        description: "The message to send to the user.",
+      },
     },
-  };
+    required: ["url_param", "message"],
+  },
+};
 
-  // Instantiate the ChatOpenAI class
-  const model = new ChatOpenAI({
-    modelName: GPT_MODEL,
-    openAIApiKey: OPENAI_API_KEY,
-  });
+// Instantiate the ChatOpenAI class
+const model = new ChatOpenAI({
+  modelName: GPT_MODEL,
+  openAIApiKey: OPENAI_API_KEY,
+});
 
-  // Create a new runnable, bind the function to the model, and pipe the output through the parser
-  const runnable = model
-    .bind({
-      functions: [extractionFunctionSchema],
-      function_call: { name: "extractor" },
-    })
-    .pipe(parser);
+// Create a new runnable, bind the function to the model, and pipe the output through the parser
+const runnable = model
+  .bind({
+    functions: [extractionFunctionSchema],
+    function_call: { name: "extractor" },
+  })
+  .pipe(parser);
 
+const run = async (inputValue: string): Promise<RouterResponseType> => {
   // Run the runnable
   const result = await runnable.invoke([new HumanMessage(inputValue)]);
-
   return result;
 
   /**

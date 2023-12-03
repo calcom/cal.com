@@ -1,10 +1,15 @@
+// LangChain APIs
 import { LLMChain } from "langchain/chains";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { ConversationSummaryMemory } from "langchain/memory";
 import { PromptTemplate } from "langchain/prompts";
 
+// Environment variables
 import { OPENAI_API_KEY } from "../.env";
+// Parameters
 import { GPT_MODEL } from "../params/models";
+// Types
+import type { ConversationResponseType } from "../types/responseTypes";
 
 // Component 1: short-term memory
 const memory = new ConversationSummaryMemory({
@@ -35,7 +40,7 @@ const prompt =
 // Component 4: model chain
 const chain = new LLMChain({ llm: model, prompt, memory });
 
-const run = async (inputValue: string) => {
+const run = async (inputValue: string): Promise<ConversationResponseType> => {
   const result = await chain.call({ input: inputValue });
   return result;
 };
