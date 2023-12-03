@@ -1,0 +1,12 @@
+{
+  "name": "@calcom/queues",
+  "version": "0.0.1",
+  "main": "index.ts",
+  "dependencies": {
+    "bull": "^3.20.1",
+    "bull-board": "^1.4.1"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}

@@ -35,6 +35,7 @@
     "@calcom/features": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
+    "@calcom/queues": "*",
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",

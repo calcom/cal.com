@@ -3,6 +3,7 @@ declare namespace NodeJS {
     readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
+    readonly REDIS_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
     /** @deprecated use `NEXT_PUBLIC_WEBAPP_URL` */
     readonly BASE_URL: string | undefined;

@@ -29,6 +29,7 @@
     "@calcom/features": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
+    "@calcom/queues": "*",
     "@calcom/trpc": "*",
     "@sentry/nextjs": "^7.73.0",
     "bcryptjs": "^2.4.3",
