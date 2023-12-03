@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import moment from "moment-timezone";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
@@ -36,9 +37,7 @@ export function Header({
   const session = useSession();
   const searchParams = useSearchParams();
 
-  const { timezone, setTimezone } = useTimePreferences();
-  // const [menuOpen, setMenuOpen] = useState(false);
-
+  const setTimezone = useTimePreferences((state) => state.setTimezone);
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
@@ -60,19 +59,21 @@ export function Header({
   );
 
   useEffect(() => {
-    const paramTimeZone = searchParams?.get("timezone");
-    // Check if the timezone is valid
-    const isValidTimeZone = paramTimeZone && !dayjs.tz(dayjs(), paramTimeZone).isValid();
+    const defaultTimeZone =
+      localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
 
-    if (isValidTimeZone) {
-      setTimezone(paramTimeZone);
-    } else {
-      if (paramTimeZone) {
-        console.error(`Invalid timezone specified: ${paramTimeZone}`);
-        // Handle the invalid timezone case, e.g., show an error message
+    try {
+      const paramTimeZone = searchParams?.get("timezone");
+      // Check if the timezone is valid
+      const isValidTimeZone = paramTimeZone && !!moment.tz.zone(paramTimeZone);
+      if (isValidTimeZone) {
+        setTimezone(paramTimeZone);
+      } else {
+        throw new Error("Invalid timezone");
       }
-      const defaultTimeZone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
-      setTimezone(defaultTimeZone || "Europe/London");
+    } catch (e) {
+      console.error(e);
+      setTimezone(defaultTimeZone);
     }
   }, [searchParams, setTimezone]);
 
