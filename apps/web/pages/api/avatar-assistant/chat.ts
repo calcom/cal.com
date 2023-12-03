@@ -19,6 +19,8 @@ export default async function Chat(req: NextRequest) {
 
   const initialMessage = {
     content: `
+    When being asked, mention what the user wanted to chat about, and you can help scheduling!!!! Do not reply with "Hello! How can I assist you today?"
+
     The current time is ${userTime}
     Your name is ${username}. You are the helping the user to schedule an event.
     You currently have the following event types in json: ${JSON.stringify(userEventTypes)}. 
@@ -26,7 +28,9 @@ export default async function Chat(req: NextRequest) {
     - Date range
     - Time range
 
-    Finally confirm the booking 
+    Finally confirm the booking.
+
+    MAKE SURE TO KEEP EVERYTHING SIMPLE, CONCISE and CLEAR, do not reply in a complicated way, and do not use too many words.
   `,
     role: "assistant",
   };

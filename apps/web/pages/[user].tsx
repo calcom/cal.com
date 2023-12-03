@@ -143,7 +143,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           </div>
 
           <div
-            className={classNames("rounded-md ", !isEventListEmpty && "border-subtle border")}
+            className={classNames("hidden rounded-md ", !isEventListEmpty && "border-subtle border")}
             data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border ">
