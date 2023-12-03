@@ -88,10 +88,7 @@ export default async function Chat(req: NextRequest) {
             type: "string",
             description: "The name from the user.",
           },
-          end: {
-            type: "string",
-            description: "The end date of the range to check.",
-          },
+
           eventTypeId: {
             type: "integer",
             description: "The event type ID to check.",
@@ -107,7 +104,11 @@ export default async function Chat(req: NextRequest) {
           },
           start: {
             type: "string",
-            description: "The start date of the range to check.",
+            description: `The start date of the range to check.`,
+          },
+          end: {
+            type: "string",
+            description: `The end date of the range to check`,
           },
           timeZone: {
             type: "string",
@@ -180,6 +181,12 @@ export default async function Chat(req: NextRequest) {
         case "create_booking":
           const { end, eventTypeId, language, start, timeZone, email, name, eventTypeSlug } =
             CreateBooking.parse(args);
+
+          const utcDate = new Date(start); // This creates a date object with the specified UTC time
+          const dateInTimezone = new Date(utcDate.toLocaleString("en-US", { timeZone: timeZone }));
+
+          console.log("before", start, "after", dateInTimezone);
+
           const booking = await createBooking({
             req: req,
             apiKey: process.env.CAL_API_KEY!,
@@ -190,8 +197,8 @@ export default async function Chat(req: NextRequest) {
               email: email,
             },
             eventTypeId: userEventTypes.find((eventType) => eventType.slug === eventTypeSlug)!.id!,
-            start,
-            end,
+            start: new Date(new Date(start).toLocaleString("en-US", { timeZone: timeZone })),
+            end: new Date(new Date(end).toLocaleString("en-US", { timeZone: timeZone })),
             timeZone,
             language,
           });
@@ -293,13 +300,12 @@ export const fetchAvailability = async ({
   const time = (data.dateRanges as any[]).map((dateRange) => {
     const startDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
-
-    const formattedStartDate = `${startDate.getHours()}:${
-      startDate.getMinutes() == 0 ? "00" : startDate.getMinutes()
-    } ${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()} ${timezone}`;
-    const formattedEndDate = `${endDate.getHours()}:${
-      endDate.getMinutes() == 0 ? "00" : endDate.getMinutes()
-    } ${endDate.getFullYear()}-${startDate.getMonth() + 1}-${endDate.getDate()} ${timezone}`;
+    const formattedStartDate = `${startDate.getHours()}am ${startDate.getFullYear()}-${
+      startDate.getMonth() + 1
+    }-${startDate.getDate()} ${timezone}`;
+    const formattedEndDate = `${endDate.getHours()}am ${endDate.getFullYear()}-${
+      startDate.getMonth() + 1
+    }-${endDate.getDate()} ${timezone}`;
     return {
       start: formattedStartDate,
       end: formattedEndDate,
