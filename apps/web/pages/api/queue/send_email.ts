@@ -1,33 +1,12 @@
+import { verifySignature } from "@upstash/qstash/dist/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { emailActions } from "@calcom/emails/email-manager";
 
-//type EmailActionFunction = Parameters<(typeof emailActions)[EmailAction]>;
+// //type EmailActionFunction = Parameters<(typeof emailActions)[EmailAction]>;
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.statusCode = 200;
-
-  // const tGuests = await getTranslation("en", "common");
-
-  // const person: Person = {
-  //   email: "email",
-  //   name: "",
-  //   firstName: "",
-  //   lastName: "",
-  //   timeZone: "timezone",
-  //   language: { translate: tGuests, locale: "en" },
-  // };
-
-  // const event: CalendarEvent = {
-  //   type: "type",
-  //   title: "title",
-  //   startTime: new Date().toISOString(),
-  //   endTime: new Date().toISOString(),
-  //   organizer: person,
-  //   attendees: [],
-  // };
-
-  // TODO Verify that the message is coming from QSTASH
 
   console.log("sending email");
 
@@ -47,20 +26,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   console.log("emailActions", emailActions);
   console.log("emailActions[action]", emailActions[action]);
+
   await emailActions[action](params);
 
-  // const feedback = {
-  //   username: "pro",
-  //   email: "pro@example.com",
-  //   rating: "Extremely satisfied",
-  //   comment: "even cooler message",
-  // };
-
-  // await sendAttendeeRequestEmail(event, person);
-
-  // TODO: verify signature for security
-
-  // await sendFeedbackEmail(feedback);
   console.log("email sent");
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
@@ -68,4 +36,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.end();
 };
 
-export default handler;
+export default verifySignature(handler);
+
+// EXPORT config to tell Next.js NOT to parse the body
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
