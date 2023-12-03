@@ -1,3 +1,4 @@
+import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
@@ -32,11 +33,8 @@ export async function handleBookingRequested(args: {
   const { evt, booking } = args;
 
   log.debug("Emails: Sending booking requested emails");
-  await dispatchEmail("sendOrganizerRequestEmail", { calEvent: evt });
-  await dispatchEmail("sendAttendeeRequestEmail", {
-    calEvent: evt,
-    attendee: evt.attendees[0]
-  });
+  await sendOrganizerRequestEmail({ ...evt });
+  await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
 
   try {
     const subscribersBookingRequested = await getWebhooks({

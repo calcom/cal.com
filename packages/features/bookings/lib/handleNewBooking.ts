@@ -11,7 +11,6 @@ import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { dispatchEmail } from "@calcom/emails";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -26,6 +25,17 @@ import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import {
+  sendAttendeeRequestEmail,
+  sendOrganizerRequestEmail,
+  sendRescheduledEmails,
+  sendRescheduledSeatEmail,
+  sendRoundRobinCancelledEmails,
+  sendRoundRobinRescheduledEmails,
+  sendRoundRobinScheduledEmails,
+  sendScheduledEmails,
+  sendScheduledSeatsEmails,
+} from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -1577,12 +1587,10 @@ async function handler(
           if (noEmail !== true && isConfirmedByDefault) {
             const copyEvent = cloneDeep(evt);
             loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-            await dispatchEmail("sendRescheduledEmails", {
-              calEvent: {
-                ...copyEvent,
-                additionalNotes, // Resets back to the additionalNote input and not the override value
-                cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-              }
+            await sendRescheduledEmails({
+              ...copyEvent,
+              additionalNotes, // Resets back to the additionalNote input and not the override value
+              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
           const foundBooking = await findBookingQuery(newBooking.id);
@@ -1700,12 +1708,10 @@ async function handler(
           if (noEmail !== true && isConfirmedByDefault) {
             // TODO send reschedule emails to attendees of the old booking
             loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-            await dispatchEmail("sendRescheduledEmails", {
-                calEvent: {
-                  ...copyEvent,
-                  additionalNotes, // Resets back to the additionalNote input and not the override value
-                  cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-                }
+            await sendRescheduledEmails({
+              ...copyEvent,
+              additionalNotes, // Resets back to the additionalNote input and not the override value
+              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
             });
           }
 
@@ -1796,10 +1802,7 @@ async function handler(
           ? calendarResult?.updatedEvent[0]?.iCalUID
           : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-        await dispatchEmail("sendRescheduledSeatEmail", {
-          calEvent: copyEvent,
-          attendee: seatAttendee as Person
-        });
+        await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
         const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
           return attendee.email !== bookerEmail;
         });
@@ -1901,14 +1904,14 @@ async function handler(
             isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
           }
         }
-        await dispatchEmail("sendScheduledSeatsEmails", {
-          calEvent: copyEvent,
-          invitee: invitee[0],
+        await sendScheduledSeatsEmails(
+          copyEvent,
+          invitee[0],
           newSeat,
-          showAttendees: !!eventType.seatsShowAttendees,
-          hostEmailDisabled: isHostConfirmationEmailsDisabled,
-          attendeeEmailDisabled: isAttendeeConfirmationEmailDisabled
-        });
+          !!eventType.seatsShowAttendees,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
+        );
       }
       const credentials = await refreshCredentials(allCredentials);
       const eventManager = new EventManager({ ...organizerUser, credentials });
@@ -2385,32 +2388,16 @@ async function handler(
           originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
         );
 
-        dispatchEmail("sendRoundRobinRescheduledEmails",
-          {
-            calEvent: copyEventAdditionalInfo,
-            members: rescheduledMembers
-          }
-        );
-
-        dispatchEmail("sendRoundRobinScheduledEmails", {
-          calEvent: copyEventAdditionalInfo,
-          members: newBookedMembers,
-        })
-        dispatchEmail("sendRoundRobinCancelledEmails",
-          {
-            calEvent: copyEventAdditionalInfo,
-            members: cancelledMembers
-          }
-        );
+        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
+        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
+        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        await dispatchEmail("sendRescheduledEmails", {
-          calEvent: {
-            ...copyEvent,
-            additionalInformation: metadata,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-          }
+        await sendRescheduledEmails({
+          ...copyEvent,
+          additionalInformation: metadata,
+          additionalNotes, // Resets back to the additionalNote input and not the override value
+          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }
@@ -2528,19 +2515,16 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
-        await dispatchEmail(
-          "sendScheduledEmails",
+        await sendScheduledEmails(
           {
-            calEvent: {
-              ...evt,
-              additionalInformation: metadata,
-              additionalNotes,
-              customInputs,
-            },
-            eventNameObject,
-            hostEmailDisabled: isHostConfirmationEmailsDisabled,
-            attendeeEmailDisabled: isAttendeeConfirmationEmailDisabled
-          }
+            ...evt,
+            additionalInformation: metadata,
+            additionalNotes,
+            customInputs,
+          },
+          eventNameObject,
+          isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled
         );
       }
     }
@@ -2569,11 +2553,8 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    await dispatchEmail("sendOrganizerRequestEmail", { calEvent: { ...evt, additionalNotes }});
-    await dispatchEmail("sendAttendeeRequestEmail", {
-      calEvent: { ...evt, additionalNotes },
-      attendee: attendeesList[0]
-    });
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   const metadata = videoCallUrl

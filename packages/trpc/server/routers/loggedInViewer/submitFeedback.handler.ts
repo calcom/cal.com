@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { dispatchEmail } from "@calcom/emails";
+import { sendFeedbackEmail } from "@calcom/emails";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -31,7 +31,5 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
     },
   });
 
-  if (process.env.SEND_FEEDBACK_EMAIL && comment) {
-    dispatchEmail("sendFeedbackEmail", { feedback });
-  }
+  if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
 };

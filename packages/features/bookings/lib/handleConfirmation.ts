@@ -2,7 +2,7 @@ import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@pri
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
-import { dispatchEmail } from "@calcom/emails";
+import { sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -97,16 +97,12 @@ export async function handleConfirmation(args: {
         }
       }
 
-      await dispatchEmail(
-        "sendScheduledEmails", 
-        { 
-          calEvent: { ...evt, additionalInformation: metadata },
-          eventNameObject: undefined,
-          hostEmailDisabled: isHostConfirmationEmailsDisabled,
-          attendeeEmailDisabled: isAttendeeConfirmationEmailDisabled
-         }
+      await sendScheduledEmails(
+        { ...evt, additionalInformation: metadata },
+        undefined,
+        isHostConfirmationEmailsDisabled,
+        isAttendeeConfirmationEmailDisabled
       );
-
     } catch (error) {
       log.error(error);
     }
