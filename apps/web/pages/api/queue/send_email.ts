@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import type { EmailAction, EmailActionFunction } from "@calcom/emails/email-manager";
 import { emailActions } from "@calcom/emails/email-manager";
 
 //type EmailActionFunction = Parameters<(typeof emailActions)[EmailAction]>;
@@ -33,9 +32,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log("sending email");
 
   console.log("req.body", req.body);
-  const { action, params }: { action: EmailAction; params: EmailActionFunction[typeof action] } = JSON.parse(
-    req.body
-  );
+  console.log("req.body,type", typeof req.body);
+
+  // No need to parse JSON as Next.js does it for us
+  const { action, params } = req.body;
+  // const { action, params }: { action: EmailAction; params: EmailActionFunction[typeof action] } = JSON.parse(
+  //   req.body
+  // );
   // const action: EmailAction = req.body.action;
   // const params: any[] = req.body.params;
 

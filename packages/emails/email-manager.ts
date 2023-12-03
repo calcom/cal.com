@@ -1,3 +1,4 @@
+import { Client } from "@upstash/qstash";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
@@ -485,14 +486,38 @@ export const dispatchEmail = async (action: EmailAction, params: EmailActionFunc
     console.log("making send_email request locally");
     await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/queue/send_email`, {
       method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         action: action,
         params: params,
       }),
     });
     console.log("send_email request made locally");
-  } else if (process.env.QSTASH_URL) {
-    // TODO: Actual QStash integration
+  } else if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN) {
+    console.log("making send_email request to qstash");
+    // If message queue is set, send the message to the queue
+    const client = new Client({
+      token: process.env.QSTASH_TOKEN,
+    });
+
+    // If handler api url is set, use it, otherwise use the webapp url
+    // this is useful for local development by means of a tunnel
+    const handlerBaseURL = process.env.QSTASH_HANDLER_API_URL
+      ? process.env.QSTASH_HANDLER_API_URL
+      : process.env.NEXT_PUBLIC_WEBAPP_URL;
+
+    // The call is identical to the fetch call above as it will do a fetch
+    client.publishJSON({
+      url: `${handlerBaseURL}/api/queue/send_email`,
+      body: {
+        action: action,
+        params: params,
+      },
+    });
+    console.log("send_email request made to qstash");
   } else {
     await emailActions[action](params);
   }
