@@ -27,8 +27,8 @@
   width: 10px;
   height: 10px;
   border-radius: 5px;
-  background-color: #9880ff;
-  color: #9880ff;
+  background-color: #374151;
+  color: #374151;
   animation: dot-flashing 1s infinite linear alternate;
   animation-delay: 0.5s;
 }
@@ -43,8 +43,8 @@
   width: 10px;
   height: 10px;
   border-radius: 5px;
-  background-color: #9880ff;
-  color: #9880ff;
+  background-color: #374151;
+  color: #374151;
   animation: dot-flashing 1s infinite alternate;
   animation-delay: 0s;
 }
@@ -53,15 +53,15 @@
   width: 10px;
   height: 10px;
   border-radius: 5px;
-  background-color: #9880ff;
-  color: #9880ff;
+  background-color: #374151;
+  color: #374151;
   animation: dot-flashing 1s infinite alternate;
   animation-delay: 1s;
 }
 
 @keyframes dot-flashing {
   0% {
-    background-color: #9880ff;
+    background-color: #374151;
   }
   50%, 100% {
     background-color: rgba(152, 128, 255, 0.2);

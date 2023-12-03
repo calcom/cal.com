@@ -9,7 +9,8 @@ import runTask from "./runTask";
 type chatResponse = {
   type: string;
   url_param?: string;
-  message: string;
+  message?: string;
+  external_link?: string;
 };
 
 const FloatingIcon = () => {
@@ -69,6 +70,7 @@ const FloatingIcon = () => {
         type: "aiResponse",
         url_param: value.url_param ? value.url_param : "None",
         message: value.message,
+        external_link: value.external_link ? value.external_link : "None",
       };
 
       responses.push(aiResponse);
@@ -92,31 +94,33 @@ const FloatingIcon = () => {
 
   const renderChatLog = chatLog.map((val) => {
     return val.type === "aiResponse" && val.url_param !== "None" ? (
-      <Link
-        href={val.url_param}
-        key={val.message}
-        style={{
-          width: "fit-content",
-          border: hasDarkTheme ? "2px solid white" : "2px solid black",
-          margin: "1rem 0 1rem 0",
-          borderRadius: "30px",
-          padding: "0.5rem 1rem",
-          maxWidth: "80%",
-        }}>
-        {val.message}
-      </Link>
+      <div key={val.message} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+        <Link
+          href={val.url_param}
+          style={{
+            width: "fit-content",
+            border: hasDarkTheme ? "2px solid white" : "2px solid black",
+            margin: "1rem 0 1rem 0",
+            borderRadius: "30px",
+            padding: "0.5rem 1rem",
+            maxWidth: "80%",
+          }}>
+          {val.message}
+        </Link>
+      </div>
     ) : val.type === "aiResponse" ? (
-      <div
-        key={val.message}
-        style={{
-          width: "fit-content",
-          border: hasDarkTheme ? "2px solid white" : "2px solid black",
-          margin: "1rem 0 1rem 0",
-          borderRadius: "30px",
-          padding: "0.5rem 1rem",
-          maxWidth: "80%",
-        }}>
-        {val.message}
+      <div key={val.message} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+        <div
+          style={{
+            width: "fit-content",
+            border: hasDarkTheme ? "2px solid white" : "2px solid black",
+            margin: "1rem 0 1rem 0",
+            borderRadius: "30px",
+            padding: "0.5rem 1rem",
+            maxWidth: "80%",
+          }}>
+          {val.message}
+        </div>
       </div>
     ) : (
       <div
