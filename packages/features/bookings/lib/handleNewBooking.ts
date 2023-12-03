@@ -29,7 +29,6 @@ import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
-  sendRescheduledSeatEmail,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -1802,7 +1801,10 @@ async function handler(
           ? calendarResult?.updatedEvent[0]?.iCalUID
           : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-        await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+        await dispatchEmail("sendRescheduledSeatEmail", {
+          calEvent: copyEvent,
+          attendee: seatAttendee as Person
+        });
         const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
           return attendee.email !== bookerEmail;
         });

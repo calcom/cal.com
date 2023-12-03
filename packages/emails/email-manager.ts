@@ -455,7 +455,7 @@ export const emailActions = {
   sendRoundRobinRescheduledEmails,
   sendRoundRobinCancelledEmails,
   sendRescheduledEmails,
-  // sendRescheduledSeatEmail,
+  sendRescheduledSeatEmail,
   // sendScheduledSeatsEmails,
   // sendCancelledSeatEmails,
   // sendOrganizerRequestEmail,
