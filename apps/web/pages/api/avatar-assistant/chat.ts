@@ -27,6 +27,8 @@ export default async function Chat(req: NextRequest) {
     You will need to ask the user to provide the following information:
     - Date range
     - Time range
+    - Email
+    - Name
 
     Finally confirm the booking.
 
@@ -81,13 +83,13 @@ export default async function Chat(req: NextRequest) {
             functions,
           });
         case "create_booking":
-          const { end, eventTypeId, language, start, timeZone } = CreateBooking.parse(args);
+          const { end, eventTypeId, language, start, timeZone, email, name } = CreateBooking.parse(args);
           const booking = await createBooking({
             apiKey: process.env.CAL_API_KEY!,
             userId,
             user: {
-              username: username,
-              email: props.email,
+              username: name,
+              email: email,
             },
             eventTypeId,
             start,
@@ -121,6 +123,8 @@ const GetUserAvailability = z.object({
 });
 
 const CreateBooking = z.object({
+  name: z.string(),
+  email: z.string(),
   end: z.string().describe("This should correspond to the event type's length, unless otherwise specified."),
   eventTypeId: z.number(),
   language: z.string(),
@@ -163,6 +167,14 @@ const functions: ChatCompletionCreateParams.Function[] = [
     parameters: {
       type: "object",
       properties: {
+        email: {
+          type: "string",
+          description: "The email from the user.",
+        },
+        name: {
+          type: "string",
+          description: "The name from the user.",
+        },
         end: {
           type: "string",
           description: "The end date of the range to check.",
@@ -173,22 +185,22 @@ const functions: ChatCompletionCreateParams.Function[] = [
         },
         language: {
           type: "string",
-          description: "The event type ID to check.",
+          description: "The language from the user.",
         },
         start: {
           type: "string",
-          description: "The event type ID to check.",
+          description: "The start date of the range to check.",
         },
         timeZone: {
           type: "string",
-          description: "The event type ID to check.",
+          description: "The time zone of the user using the assistant.",
         },
         title: {
           type: "string",
-          description: "The event type ID to check.",
+          description: "The title of the event.",
         },
       },
-      required: ["end", "eventTypeId", "language", "start", "timeZone", "title"],
+      required: ["end", "eventTypeId", "language", "start", "timeZone", "title", "email", "name"],
     },
   },
 ];
