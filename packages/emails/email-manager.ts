@@ -450,7 +450,7 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 // create a object will of all the emails actions
 export const emailActions = {
-  // sendScheduledEmails,
+  sendScheduledEmails,
   // sendRoundRobinScheduledEmails,
   // sendRoundRobinRescheduledEmails,
   // sendRoundRobinCancelledEmails,

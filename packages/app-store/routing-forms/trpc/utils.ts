@@ -5,6 +5,7 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
+import { dispatchEmail } from "@calcom/emails";
 
 import type { OrderedResponses } from "../types/types";
 import type { Response, SerializableForm } from "../types/types";
@@ -71,7 +72,9 @@ export async function onFormSubmission(
     logger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
+
     await sendResponseEmail(form, orderedResponses, form.user.email);
+    dispatchEmail("sendResponseEmail", { form, orderedResponses, ownerEmail: form.user.email });
   }
 }
 

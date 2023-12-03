@@ -33,7 +33,6 @@ import {
   sendRoundRobinCancelledEmails,
   sendRoundRobinRescheduledEmails,
   sendRoundRobinScheduledEmails,
-  sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -2515,16 +2514,19 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
-        await sendScheduledEmails(
+        await dispatchEmail(
+          "sendScheduledEmails",
           {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes,
-            customInputs,
-          },
-          eventNameObject,
-          isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled
+            calEvent: {
+              ...evt,
+              additionalInformation: metadata,
+              additionalNotes,
+              customInputs,
+            },
+            eventNameObject,
+            hostEmailDisabled: isHostConfirmationEmailsDisabled,
+            attendeeEmailDisabled: isAttendeeConfirmationEmailDisabled
+          }
         );
       }
     }
