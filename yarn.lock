@@ -3486,6 +3486,7 @@ __metadata:
   dependencies:
     "@calcom/dayjs": "*"
     "@calcom/lib": "*"
+    "@calcom/queues": "*"
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     "@lexical/react": ^0.9.0
