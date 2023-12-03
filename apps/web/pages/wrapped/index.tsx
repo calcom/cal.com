@@ -38,6 +38,7 @@ export default function WrapperPage() {
       },
     }
   );
+  const { data: teamsQuery, isLoading: isLoadingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
 
   let totalBookings: number | undefined;
   let cancelledPercentage: number | undefined;
@@ -46,6 +47,10 @@ export default function WrapperPage() {
   let bookedHours: number | undefined;
   let bookedMins: number | undefined;
   let totalEventLength: number | undefined;
+  let teamNames: (string | null)[] | undefined;
+  let teamNamesString: string | undefined;
+  let mostCommonEventTypeId: string | undefined;
+  let maxCount = 0;
 
   if (data != undefined && data.length > 0) {
     let cancelledCount = 0;
@@ -78,14 +83,41 @@ export default function WrapperPage() {
       .reduce((acc, length) => acc + length, 0); // Use reduce to calculate the total event length
     bookedHours = Math.floor(totalEventLength / 60);
     bookedMins = totalEventLength % 60;
+
+    const eventTypeCounts: { [key: number]: number } = {};
+    data.forEach((item) => {
+      const eventTypeId = item.eventTypeId;
+      if (typeof eventTypeId === "number") {
+        eventTypeCounts[eventTypeId] = (eventTypeCounts[eventTypeId] || 0) + 1;
+      }
+    });
+
+    // Find the most common eventTypeId
+    for (const eventType in eventTypeCounts) {
+      if (eventTypeCounts[eventType] > maxCount) {
+        maxCount = eventTypeCounts[eventType];
+        mostCommonEventTypeId = eventType;
+      }
+    }
+  }
+  if (teamsQuery && Array.isArray(teamsQuery) && teamsQuery.length > 1) {
+    const teamsFromIndex1 = teamsQuery.slice(1);
+    teamNames = teamsFromIndex1.map((team) => team.name);
+    teamNamesString = teamNames.join(", ");
   }
 
+  console.log(data);
   // console.log(cancelledPercentage);
   // console.log(rescheduledPercentage);
   // console.log(acceptedPercentage);
   // console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
   // console.log("Total Event Length:", totalEventLength);
-
+  console.log("My Teams:", teamNamesString);
+  console.log("Most common event Id:", mostCommonEventTypeId);
+  console.log("Number of event occurrences:", maxCount);
+  console.log("My Teams:", teamNamesString);
+  console.log("Most common event Id:", mostCommonEventTypeId);
+  console.log("Number of event occurrences:", maxCount);
   const totalMeetingTime = `${bookedHours} hours and ${bookedMins} minutes`;
 
   return (
