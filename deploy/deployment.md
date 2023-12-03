@@ -122,13 +122,22 @@ Deploying Cal.com on Azure
 1. Create an Azure Account
 2. Azure Portal: Familiarize yourself with the Azure Portal.
 
+<img width="626" alt="Screenshot 2023-12-03 at 12 43 08 PM" src="https://github.com/sriyachalla/cal.com/assets/142919730/65404c14-a70c-4a10-a253-f4cd4a7de421">
+
 ### Step 3: Creating Azure Resources
 
 1. Creating Azure Resources: In the Azure Portal, create a new resource group for your Cal.com project.
+<img width="503" alt="Screenshot 2023-12-03 at 12 43 55 PM" src="https://github.com/sriyachalla/cal.com/assets/142919730/ac301959-9280-40ce-a8f9-061ea18f287a">
+
 2. Create Azure Services: Set up required services such as Azure App Service, Azure Database for PostgreSQL, etc.
 #### Create Web App
+<img width="519" alt="Screenshot 2023-12-03 at 12 45 13 PM" src="https://github.com/sriyachalla/cal.com/assets/142919730/3ce2984a-bca2-486f-a675-ac5fd719efd2">
+
 #### Setup Database, Networking
+<img width="498" alt="Screenshot 2023-12-03 at 12 45 40 PM" src="https://github.com/sriyachalla/cal.com/assets/142919730/9eefd029-1b8f-4163-b35c-fa34dd8e4eb4">
+
 #### Setup Monitoring
+<img width="588" alt="Screenshot 2023-12-03 at 12 46 03 PM" src="https://github.com/sriyachalla/cal.com/assets/142919730/49ed309c-c70d-486e-84be-37ea1e8ca14e">
 
 ### Step 4: Configuring Cal.com
 
@@ -140,6 +149,8 @@ Deploying Cal.com on Azure
 1. Deploying Web App: Use Azure App Service to deploy the Cal.com web application.
 2. Database Setup: Deploy and configure the Azure Database for PostgreSQL with Cal.com.
 3. Deployment Verification: Ensure that the application is running smoothly post-deployment.
+
+<img width="632" alt="Screenshot 2023-12-03 at 12 46 27 PM" src="https://github.com/sriyachalla/cal.com/assets/142919730/8ca084e4-eb4e-4ff5-8445-caf002eed500">
 
 ### Step 6: Post-Deployment Steps
 
