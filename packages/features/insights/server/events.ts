@@ -32,6 +32,34 @@ class EventsInsights {
     return events;
   };
 
+  static getBookingsDetailsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
+    const { start, end } = timeRange;
+
+    const events = await prisma.bookingTimeStatus.findMany({
+      where: {
+        ...where,
+        createdAt: {
+          gte: start.toISOString(),
+          lte: end.toISOString(),
+        },
+      },
+    });
+
+    return events;
+  };
+
+  static getCreatedEventDetailsInTimeRange = async (
+    timeRange: ITimeRange,
+    where: Prisma.BookingTimeStatusWhereInput
+  ) => {
+    const result = await this.getBookingsDetailsInTimeRange(timeRange, where);
+
+    return result;
+  };
+
   static getCreatedEventsInTimeRange = async (
     timeRange: ITimeRange,
     where: Prisma.BookingTimeStatusWhereInput

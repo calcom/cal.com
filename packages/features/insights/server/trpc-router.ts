@@ -1134,6 +1134,51 @@ export const insightsRouter = router({
 
       return result;
     }),
+  AllBookingsForMember: authedProcedure
+    .input(
+      z.object({
+        startDate: z.string(),
+        endDate: z.string(),
+        userId: z.coerce.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate: startDateString, endDate: endDateString, userId: selfUserId } = input;
+
+      const startDate = dayjs(startDateString);
+      const endDate = dayjs(endDateString);
+      const user = ctx.user;
+
+      // Fetch user data
+      const userData = await ctx.insightsDb.user.findUnique({
+        where: {
+          id: user.id,
+        },
+        select: UserSelect,
+      });
+
+      if (!userData) {
+        return [];
+      }
+
+      const whereConditional: Prisma.BookingTimeStatusWhereInput = {
+        userId: {
+          in: [user.id],
+        },
+      };
+
+      const promisesResult = await Promise.all([
+        EventsInsights.getCreatedEventDetailsInTimeRange(
+          {
+            start: startDate,
+            end: endDate,
+          },
+          whereConditional
+        ),
+      ]);
+
+      return promisesResult;
+    }),
   teamListForUser: authedProcedure.query(async ({ ctx }) => {
     const user = ctx.user;
 

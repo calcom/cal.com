@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { ShellMain } from "@calcom/features/shell/Shell";
@@ -10,10 +11,39 @@ export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
 
+  const userID = user?.id;
+  const userName = user?.name;
+
+  const endDate = dayjs();
+  const startDate = endDate.startOf("year");
+  const endDateStr = endDate.toISOString();
+  const startDateStr = startDate.toISOString();
+  const startDateTarget = dayjs.utc("20000101000000", "YYYYMMDD[T]HHmmss[Z]").toISOString();
+  const endDateTarget = dayjs.utc("30000101000000", "YYYYMMDD[T]HHmmss[Z]").toISOString();
+
+  console.log(startDateStr);
+  console.log(startDateTarget);
+
+  const { data, isSuccess, isLoading } = trpc.viewer.insights.AllBookingsForMember.useQuery(
+    {
+      startDate: startDateTarget,
+      endDate: endDateTarget,
+      userId: userID,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
+
+  console.log(data);
+
   return (
     <div>
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
-        <h1>Hi</h1>
+        <h1>{isSuccess}</h1>
       </ShellMain>
     </div>
   );
