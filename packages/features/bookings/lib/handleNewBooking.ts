@@ -55,6 +55,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -74,6 +75,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
+import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
@@ -2720,6 +2722,58 @@ async function handler(
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
 
   try {
+    const hasExistingWorkflow: boolean = eventType.workflows.some((workflow) => {
+      return (
+        workflow.workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
+        workflow.workflow.time === 1 &&
+        workflow.workflow.timeUnit === TimeUnit.HOUR &&
+        workflow.workflow.steps.some((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
+      );
+    });
+    if (
+      !hasExistingWorkflow &&
+      evt.attendees.some((attendee) => attendee.email.includes("@gmail.com")) &&
+      !eventType.requiresConfirmation
+    ) {
+      const workflow = await prisma.workflow.create({
+        data: {
+          name: "Mandatory Gmail Reminder 1 Hour Before",
+          time: 1,
+          timeUnit: TimeUnit.HOUR,
+          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+          steps: {
+            create: [
+              {
+                stepNumber: 1,
+                action: WorkflowActions.EMAIL_ATTENDEE,
+                template: WorkflowTemplates.REMINDER,
+                sender: SENDER_NAME,
+                numberVerificationPending: false,
+              },
+            ],
+          },
+        },
+        include: {
+          steps: true,
+        },
+      });
+      eventType.workflows.push({
+        id: -1,
+        workflowId: workflow.id,
+        eventTypeId: -1,
+        workflow: {
+          id: workflow.id,
+          position: 0,
+          name: workflow.name,
+          userId: workflow.userId,
+          teamId: workflow.teamId,
+          trigger: workflow.trigger,
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
+          steps: workflow.steps,
+        },
+      });
+    }
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,

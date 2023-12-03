@@ -164,7 +164,28 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     ) {
       continue;
     }
+    if (
+      workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
+      workflowReference.id === -1 &&
+      workflowReference.eventTypeId === -1
+    ) {
+      const eventWithGmailAttendees = evt;
+      eventWithGmailAttendees.attendees = eventWithGmailAttendees.attendees?.filter((attendee) =>
+        attendee.email.includes("@gmail.com")
+      );
 
+      for (const step of workflow.steps) {
+        await processWorkflowStep(workflow, step, {
+          calendarEvent: eventWithGmailAttendees,
+          emailAttendeeSendToOverride,
+          smsReminderNumber,
+          hideBranding,
+          seatReferenceUid,
+          eventTypeRequiresConfirmation,
+        });
+      }
+      continue;
+    }
     for (const step of workflow.steps) {
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,
