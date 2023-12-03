@@ -11,7 +11,6 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -32,6 +31,7 @@ import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
+import { AvatarAssistant } from "@components/avatar-assistant/AvatarAssistant";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -100,7 +100,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
-            <OrganizationMemberAvatar
+            {/* <OrganizationMemberAvatar
               size="xl"
               user={{
                 organizationId: profile.organization?.id,
@@ -116,8 +116,8 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                     }
                   : null
               }
-            />
-            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
+            /> */}
+            <h1 className="font-cal text-emphasis my-1 text-xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
@@ -131,6 +131,10 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                 />
               </>
             )}
+          </div>
+
+          <div className="flex w-full items-center justify-center">
+            <AvatarAssistant />
           </div>
 
           <div
