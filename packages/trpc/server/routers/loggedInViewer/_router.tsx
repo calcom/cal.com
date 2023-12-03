@@ -14,7 +14,8 @@ import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
-import { ZUpdateProfileInputSchema, ZUpdateAvatarAssistantInputSchema } from "./updateProfile.schema";
+import { ZUpdateAvatarAssistantInputSchema } from "./updateAvatarAssistant.schema";
+import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 

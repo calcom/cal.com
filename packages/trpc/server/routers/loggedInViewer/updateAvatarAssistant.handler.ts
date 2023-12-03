@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { type TUpdateAvatarAssistantInputSchema } from "./updateProfile.schema";
+import { type TUpdateAvatarAssistantInputSchema } from "./updateAvatarAssistant.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {
