@@ -146,7 +146,6 @@ const FloatingIcon = () => {
         position: "fixed",
         bottom: "20px",
         right: "20px",
-        cursor: "pointer",
         zIndex: 1000,
       }}
       onClick={toggleWindow}>
@@ -262,6 +261,7 @@ const FloatingIcon = () => {
           position: "absolute",
           right: "20px",
           bottom: "20px",
+          cursor: "pointer",
         }}>
         {/* <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.--> */}
         <svg
