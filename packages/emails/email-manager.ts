@@ -443,16 +443,43 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 type AnyFunction = (...args: any[]) => any;
 
-// create a map of all the emails actions from strings
-export const emailActions: { [key: string]: AnyFunction } = {
-  sendFeedbackEmail,
-  sendTeamInviteEmail,
+// create a object will of all the emails actions
+export const emailActions = {
+  sendScheduledEmails,
+  sendRoundRobinScheduledEmails,
+  sendRoundRobinRescheduledEmails,
+  sendRoundRobinCancelledEmails,
+  sendRescheduledEmails,
+  sendRescheduledSeatEmail,
+  sendScheduledSeatsEmails,
+  sendCancelledSeatEmails,
+  sendOrganizerRequestEmail,
   sendAttendeeRequestEmail,
+  sendDeclinedEmails,
+  sendCancelledEmails,
+  sendOrganizerRequestReminderEmail,
+  sendAwaitingPaymentEmail,
+  sendOrganizerPaymentRefundFailedEmail,
+  sendPasswordResetEmail,
+  sendTeamInviteEmail,
+  sendOrganizationAutoJoinEmail,
+  sendEmailVerificationLink,
+  sendEmailVerificationCode,
+  sendRequestRescheduleEmail,
+  sendLocationChangeEmails,
+  sendFeedbackEmail,
+  sendBrokenIntegrationEmail,
+  sendDisabledAppEmail,
+  sendSlugReplacementEmail,
+  sendNoShowFeeChargedEmail,
+  sendDailyVideoRecordingEmails,
+  sendOrganizationEmailVerification,
+  sendMonthlyDigestEmails,
+  sendAdminOrganizationNotification,
 };
 
-export const sendEmail = async (action: string, params: any[]) => {
+export const dispatchEmail = async (action: string, params: any[]) => {
   if (process.env.QSTASH_URL) {
-
     // TODO Call QStash
   } else {
     await emailActions[action](...params);
