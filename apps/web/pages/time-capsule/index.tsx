@@ -175,7 +175,7 @@ function TimeCapsule() {
                             </div>
                             <div className="my-auto flex h-[9px] w-2 shrink-0 flex-col self-center rounded-[50%] blur-[1.0836269855499268px]" />
                           </div>
-                          <div className="mt-7 max-w-[351px] self-center text-center text-3xl font-semibold leading-8 text-white">
+                          <div className="mt-7 max-w-[px] self-center text-center text-3xl font-semibold leading-8 text-white">
                             People met — your social odometer is ticking
                           </div>
                           <div className="ml-20 mt-12 flex h-[3px] w-[3px] shrink-0 flex-col self-start rounded-[50%] max-md:ml-2.5 max-md:mt-10" />
