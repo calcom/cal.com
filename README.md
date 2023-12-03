@@ -391,6 +391,9 @@ You can deploy Cal.com DigitalOcean by following this [guide](https://dev.to/smy
 ### Hetzner
 You can deploy Cal.com Hetzner by following this [guide](https://dev.to/smyja/deploy-on-calcom-on-hetzner-18n6)
 
+### AWS
+You can deploy Cal.com on AWS EC2 by following this [guide](https://dev.to/smyja/deploy-calcom-on-aws-2c8b)
+
 <!-- ROADMAP -->
 
 ## Roadmap
