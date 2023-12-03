@@ -63,14 +63,25 @@ const FloatingIcon = () => {
     console.log(ref);
     responses.push(currentResponse);
 
+    // const router = useRouter();
+
     const chatResponse = Promise.resolve(runTask(inputValue));
 
     chatResponse.then((value) => {
       console.log("Response: ", value);
+      let messageBody = "";
+      if (value.message != "None") {
+        messageBody = value.message;
+      } else if (value.url_param != "None") {
+        messageBody = value.url_param;
+        // Push to the new page
+        // TODO: Fix this
+        // router.push(value.url_param);
+      }
 
       const aiResponse: chatResponse = {
         type: "aiResponse",
-        message: value.url_param,
+        message: messageBody,
       };
 
       responses.push(aiResponse);
