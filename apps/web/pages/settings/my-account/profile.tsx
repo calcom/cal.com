@@ -575,7 +575,7 @@ const AvatarAssistantForm = ({
           <TextField label="Avatar Id" {...formMethods.register("avatarId")} />
         </div>
         <div className="mt-6">
-          <TextField label="Eleven Lab API Key" {...formMethods.register("elevenlabsKey")} />
+          <TextField label="Eleven Lab API Key" type="password" {...formMethods.register("elevenlabsKey")} />
         </div>
         <div className="mt-6">
           <TextField label="Voice Id" {...formMethods.register("voiceId")} />

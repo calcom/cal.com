@@ -3,7 +3,7 @@ import { ThreeJSPlugin } from "@avatechai/avatars/threejs";
 import { useChat } from "ai/react";
 import { LazyMotion, m } from "framer-motion";
 import { useEffect, useState } from "react";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useRef } from "react";
 import { MdSend } from "react-icons/md";
 
 import { TextField, Button } from "@calcom/ui";
@@ -15,15 +15,38 @@ const loadFramerFeatures = () => import("./framer-features").then((res) => res.d
 export const AvatarAssistant = (props: { username: string | null; userEventTypes: any[] }) => {
   const user = useMeQuery().data;
 
-  const [isLoading, setIsLoading] = useState(false);
+  const audioSourceNode = useRef<AudioBufferSourceNode>();
+  const audioContextRef = useRef<AudioContext | null>(null);
 
-  const { avatarDisplay } = useAvatar({
+  const [isLoading, setIsLoading] = useState(false);
+  const isTTSLoading = useRef(false);
+
+  const [initAvatar, setInitAvatar] = useState(false);
+
+  const { avatarDisplay, connectAudioContext, connectAudioNode } = useAvatar({
     avatarId: user?.avatarId ?? undefined,
     // Loader + Plugins
     avatarLoaders: [ThreeJSPlugin],
     scale: -0.6,
     className: "!w-[400px] !h-[400px]",
+    onAvatarLoaded: () => {
+      setInitAvatar(true);
+    },
   });
+
+  useEffect(() => {
+    if (!initAvatar) return;
+    if (audioContextRef.current) return;
+    audioContextRef.current = new AudioContext();
+    connectAudioContext(audioContextRef.current);
+  }, [initAvatar]);
+
+  const [finalizedMessages, setFinalizedMessages] = useState<
+    {
+      role: string;
+      content: string;
+    }[]
+  >([]);
 
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: "/api/avatar-assistant/chat",
@@ -33,17 +56,61 @@ export const AvatarAssistant = (props: { username: string | null; userEventTypes
       userTime: new Date().toISOString(),
     },
     onResponse: (_) => {
-      setIsLoading(false);
+      // setIsLoading(false);
+    },
+    onFinish: async (message) => {
+      if (!audioContextRef.current) return;
+      if (isTTSLoading.current) return;
+
+      isTTSLoading.current = true;
+
+      await fetch(
+        `/api/avatar-assistant/tts?api_key=${user.elevenlabsKey}&voice_id=${user.voiceId}&text=${message.content}`
+      ).then(async (response) => {
+        if (!audioContextRef.current) return;
+        // setAssistantLoad(false);
+        audioContextRef.current?.resume();
+
+        if (audioSourceNode.current) {
+          audioSourceNode.current.stop();
+          audioSourceNode.current = undefined;
+        }
+
+        const val = await response.arrayBuffer();
+        const _audioSourceNode = audioContextRef.current.createBufferSource();
+        const buffer = await audioContextRef.current.decodeAudioData(val);
+        _audioSourceNode.buffer = buffer;
+
+        // Scroll the message
+        const chatContainer = document.getElementById("chat-container");
+        if (chatContainer) {
+          chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+
+        setFinalizedMessages((prev) => [...prev, message]);
+
+        connectAudioNode(_audioSourceNode);
+        _audioSourceNode.start();
+
+        setIsLoading(false);
+        isTTSLoading.current = false;
+
+        audioSourceNode.current = _audioSourceNode;
+        _audioSourceNode.onended = () => {
+          audioSourceNode.current = undefined;
+        };
+      });
     },
   });
 
   useEffect(() => {
-    const chatContainer = document.getElementById("chat-container");
-    if (chatContainer) {
-      chatContainer.scrollTo({
-        top: chatContainer.scrollHeight,
-        behavior: "smooth",
-      });
+    const latestMessage = messages[messages.length - 1];
+    if (latestMessage?.role !== "assistant") {
+      setFinalizedMessages(messages);
+      return;
     }
   }, [messages]);
 
@@ -55,7 +122,7 @@ export const AvatarAssistant = (props: { username: string | null; userEventTypes
       <div className="w-full min-w-0 max-w-[400px] md:min-w-[400px]">
         <LazyMotion features={loadFramerFeatures}>
           <ul className="max-h-[300px] w-full overflow-y-scroll" id="chat-container">
-            {messages.map((a, index) => (
+            {finalizedMessages.map((a, index) => (
               <m.li
                 key={index}
                 className={`mb-2 flex w-full ${a.role === "user" ? "justify-end" : "justify-start"}`}
@@ -82,6 +149,7 @@ export const AvatarAssistant = (props: { username: string | null; userEventTypes
           className="flex w-full flex-row gap-2"
           disabled={isLoading}>
           <TextField
+            disabled={isLoading}
             containerClassName={`flex-grow ${isLoading ? "opacity-40" : ""}`}
             className="grow"
             placeholder="I wanna chat with you for a while this week!"
