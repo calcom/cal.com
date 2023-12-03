@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -153,12 +154,26 @@ export const sendGenericWebhookPayload = async ({
   return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
-const _sendPayload = async (
+export const _sendPayload = async (
   secretKey: string | null,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   body: string,
-  contentType: "application/json" | "application/x-www-form-urlencoded"
+  contentType: "application/json" | "application/x-www-form-urlencoded",
+  fromQueue = false
 ) => {
+  if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // encrypt secret key using AWS_WEBHOOK_SECRET
+    const secretKeyEncrypted = symmetricEncrypt(secretKey, "hTfxy40QpKWH31EohfgowrMHRWs2T2yvspn4854SVa4="); // TODO replace with env variable process.env.AWS_WEBHOOK_SECRET),
+
+    const data = { secretKey: secretKeyEncrypted, webhook: webhook, body: body, contentType: contentType };
+    await sqsSender(SqsEventTypes.WebhookSendPayload, data); // TODO remove await
+    await pollSQS(); // TODO delete
+    return {
+      ok: true,
+      status: 200,
+    };
+  }
+
   const { subscriberUrl } = webhook;
   if (!subscriberUrl || !body) {
     throw new Error("Missing required elements to send webhook payload.");

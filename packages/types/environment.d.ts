@@ -86,5 +86,6 @@ declare namespace NodeJS {
      * AWS IAM Secret Access Key
      */
     readonly AWS_SECRET_KEY: string | undefined;
+    readonly AWS_WEBHOOK_SECRET: string | undefined;
   }
 }

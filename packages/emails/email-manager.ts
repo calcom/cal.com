@@ -5,7 +5,7 @@ import type { TFunction } from "next-i18next";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import BaseEmail from "@calcom/emails/templates/_base-email";
-import { SqsEventTypes, sqsSender, pollSQS } from "@calcom/lib/awsSqsSender";
+import { SqsEventTypes, sqsSender, pollSQS } from "@calcom/lib/awsSqsClient";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -55,18 +55,24 @@ export const sendEmailFromQueue = (serializedPayload: string) => {
   return new Promise(async (resolve, reject) => {
     try {
       const email = new BaseEmail();
-
       resolve(email.sendEmail(serializedPayload));
-      console.log("JRFJRF EMAIL SENT!!!");
+
+      // try {
+      //   const payload = JSON.parse(serializedPayload);
+      //   if (typeof payload === 'object' && payload !== null) {
+      //     resolve(email.sendEmail(payload as Record<string, unknown>));
+      //     console.log("JRFJRF EMAIL SENT!!!");
+      //   } else {
+      //     throw new Error('String does not represent a valid object');
+      //   }
+      // } catch (error) {
+      //   throw new Error('Invalid JSON string');
+      // }
     } catch (e) {
       reject(console.error(`sendEmail failed`, e));
     }
   });
 };
-
-// TODO delete below
-
-// TODO delete above
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise(async (resolve, reject) => {
@@ -76,11 +82,9 @@ const sendEmail = (prepare: () => BaseEmail) => {
       const payload = await email.getNodeMailerPayloadPublic();
 
       if (process.env.AWS_SQS_CONSUMER) {
-        const serializedPayload = JSON.stringify(payload);
         await sqsSender(SqsEventTypes.EmailEvent, payload); // TODO remove await
 
-        // const payload2 = JSON.parse(serializedPayload); // TODO delete
-        resolve(); // TODO delete
+        resolve("");
         await pollSQS(); // TODO delete
       } else {
         resolve(email.sendEmail(payload));
