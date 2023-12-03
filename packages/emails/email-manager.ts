@@ -134,7 +134,9 @@ export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, mem
   await Promise.all(emailsToSend);
 };
 
-export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
+export const sendRescheduledEmails = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendRescheduledEmails", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent })));
@@ -369,9 +371,8 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
 
   await Promise.all(emailsToSend);
 };
-export const sendFeedbackEmail = async ({ feedback }: { feedback: Feedback }) => {
-  console.log("sending feedback email");
-  console.log(JSON.stringify(feedback));
+export const sendFeedbackEmail = async (feedback: Feedback, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendFeedbackEmail", feedback)) return;
   await sendEmail(() => new FeedbackEmail(feedback));
 };
 
@@ -417,13 +418,12 @@ export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarE
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };
 
-export const sendDailyVideoRecordingEmails = async ({
-  calEvent,
-  downloadLink,
-}: {
-  calEvent: CalendarEvent;
-  downloadLink: string;
-}) => {
+export const sendDailyVideoRecordingEmails = async (
+  calEvent: CalendarEvent,
+  downloadLink: string,
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendDailyVideoRecordingEmails", calEvent, downloadLink)) return;
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calEvent, downloadLink)));
@@ -450,17 +450,17 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 // create a object will of all the emails actions
 export const emailActions = {
-  sendScheduledEmails,
-  sendRoundRobinScheduledEmails,
-  sendRoundRobinRescheduledEmails,
-  sendRoundRobinCancelledEmails,
+  // sendScheduledEmails,
+  // sendRoundRobinScheduledEmails,
+  // sendRoundRobinRescheduledEmails,
+  // sendRoundRobinCancelledEmails,
   sendRescheduledEmails,
-  sendRescheduledSeatEmail,
-  sendScheduledSeatsEmails,
-  sendCancelledSeatEmails,
-  sendOrganizerRequestEmail,
-  sendAttendeeRequestEmail,
-  sendDeclinedEmails,
+  // sendRescheduledSeatEmail,
+  // sendScheduledSeatsEmails,
+  // sendCancelledSeatEmails,
+  // sendOrganizerRequestEmail,
+  // sendAttendeeRequestEmail,
+  // sendDeclinedEmails,
   // sendCancelledEmails,
   // sendOrganizerRequestReminderEmail,
   // sendAwaitingPaymentEmail,
@@ -484,16 +484,12 @@ export const emailActions = {
 };
 
 export type EmailAction = keyof typeof emailActions;
-export type EmailActionFunctionParams = {
-  [K in keyof typeof emailActions]: Parameters<(typeof emailActions)[K]>[0];
-};
+// export type EmailActionFunctionParams = {
+//   [K in keyof typeof emailActions]: Parameters<(typeof emailActions)[K]>;
+// };
 
-export const dispatchEmail = async (
-  action: EmailAction,
-  params: EmailActionFunctionParams[typeof action]
-) => {
-  console.log(process.env.QSTASH_URL);
-  if (process.env.QSTASH_URL === "localhost") {
+export const maybeDispatchEmail = async (dispatch: boolean, action: EmailAction, ...params: any[]) => {
+  if (dispatch && process.env.QSTASH_URL === "localhost") {
     console.log("making send_email request locally");
     await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/queue/send_email`, {
       method: "POST",
@@ -507,7 +503,8 @@ export const dispatchEmail = async (
       }),
     });
     console.log("send_email request made locally");
-  } else if (process.env.QSTASH_URL && process.env.QSTASH_TOKEN) {
+    return true;
+  } else if (dispatch && process.env.QSTASH_URL && process.env.QSTASH_TOKEN) {
     console.log("making send_email request to qstash");
     // If message queue is set, send the message to the queue
     const client = new Client({
@@ -529,8 +526,8 @@ export const dispatchEmail = async (
       },
     });
     console.log("send_email request made to qstash");
+    return true;
   } else {
-    const actionFunction = emailActions[action];
-    await actionFunction(params);
+    return false;
   }
 };

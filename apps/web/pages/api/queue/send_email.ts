@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { emailActions } from "@calcom/emails/email-manager";
-import type { EmailAction, EmailActionFunctionParams } from "@calcom/emails/email-manager";
+import type { EmailAction } from "@calcom/emails/email-manager";
 import { verifySignatureIfQStash } from "@calcom/lib/queue";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -12,7 +12,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // No need to parse JSON as middleware will do it for us
   const action: EmailAction = req.body.action;
-  const params: EmailActionFunctionParams[typeof action] = req.body.params;
+  const params: any[] = req.body.params;
 
   console.log("action", action);
   console.log("params", params);
@@ -21,7 +21,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log("emailActions[action]", emailActions[action]);
 
   const actionFunction = emailActions[action];
-  await actionFunction(params);
+  // call the action function
+  await actionFunction(...params, false);
 
   console.log("email sent");
   return res.status(200).json({ message: `${action} completed` });
