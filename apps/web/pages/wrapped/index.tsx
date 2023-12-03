@@ -66,17 +66,7 @@ export default function WrapperPage() {
     cancelledPercentage = (cancelledCount / total) * 100;
     rescheduledPercentage = (rescheduledCount / total) * 100;
     acceptedPercentage = (acceptedCount / total) * 100;
-  }
-  console.log(cancelledPercentage);
-  console.log(rescheduledPercentage);
-  console.log(acceptedPercentage);
 
-  // timestatus rescheduled - status cancelled
-
-  // Check for number of user bookings
-  // Check if data exists and if data[0] is an array
-  if (data && Array.isArray(data)) {
-    // Use map to iterate through each item in data[0]
     totalEventLength = data
       .map((item) => {
         // Access the eventLength property of each item
@@ -87,6 +77,10 @@ export default function WrapperPage() {
     bookedHours = Math.floor(totalEventLength / 60);
     bookedMins = totalEventLength % 60;
   }
+
+  console.log(cancelledPercentage);
+  console.log(rescheduledPercentage);
+  console.log(acceptedPercentage);
   console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
   console.log("Total Event Length:", totalEventLength);
 
