@@ -54,6 +54,9 @@ export const AvatarAssistant = (props: { username: string | null; userEventTypes
       ...props,
       userId: user?.id,
       userTime: new Date().toISOString(),
+      userRTime: new Date().getTime(),
+      timezoneOffset: new Date().getTimezoneOffset(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     onResponse: (_) => {
       // setIsLoading(false);

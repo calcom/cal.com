@@ -13,15 +13,30 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export default async function Chat(req: NextRequest) {
   // Extract the `messages` from the body of the request
-  const { messages, username, userId, userEventTypes, userTime, ...props } = await req.json();
+  const {
+    messages,
+    username,
+    userId,
+    userEventTypes,
+    userTime,
+    timezone,
+    timezoneOffset,
+    userRTime,
+    ...props
+  } = await req.json();
 
   // eventTypes is a any[]
+
+  console.log("userTime", userTime);
 
   const initialMessage = {
     content: `
     When being asked, mention what the user wanted to chat about, and you can help scheduling!!!! Do not reply with "Hello! How can I assist you today?"
 
     The current time is ${userTime}
+    The current timezone is ${timezone}
+    The timezone offset is ${timezoneOffset}
+    You need to convert the user's timezone to your timezone and display different time to user!!!.
     Your name is ${username}. You are the helping the user to schedule an event.
     You currently have the following event types in json: ${JSON.stringify(userEventTypes)}. 
     You will need to ask the user to provide the following information:
@@ -62,13 +77,14 @@ export default async function Chat(req: NextRequest) {
           // Call a weather API here
           const { dateFrom, dateTo } = GetUserAvailability.parse(args);
 
-          console.log("calling", dateFrom, dateTo, args);
+          console.log("calling", dateFrom, dateTo);
 
           const data = await fetchAvailability({
             apiKey: process.env.CAL_API_KEY!,
             userId: userId,
             dateFrom: dateFrom,
             dateTo: dateTo,
+            timezoneOffset,
           });
 
           console.log("User Availability", data);
@@ -88,8 +104,8 @@ export default async function Chat(req: NextRequest) {
             apiKey: process.env.CAL_API_KEY!,
             userId,
             user: {
-              username: name,
-              email: email,
+              name: username,
+              email: props.email,
             },
             eventTypeId,
             start,
@@ -143,11 +159,11 @@ const functions: ChatCompletionCreateParams.Function[] = [
       properties: {
         dateFrom: {
           type: "string",
-          description: "The start date of the range to check.",
+          description: "The start date of the range to check. And switch to the user's timezone.",
         },
         dateTo: {
           type: "string",
-          description: "The end date of the range to check.",
+          description: "The end date of the range to check. And switch to the user's timezone.",
         },
         // eventTypeId: {
         //   type: "integer",
@@ -236,11 +252,13 @@ export const fetchAvailability = async ({
   userId,
   dateFrom,
   dateTo,
+  timezoneOffset,
 }: {
   apiKey: string;
   userId: number;
   dateFrom: string;
   dateTo: string;
+  timezoneOffset: number;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey,
@@ -259,13 +277,22 @@ export const fetchAvailability = async ({
 
   const data = await response.json();
 
+  const time = (data.dateRanges as any[]).map((dateRange) => {
+    const startdate = new Date(dateRange.start).getTime();
+    const enddate = new Date(dateRange.end).getTime();
+    return {
+      start: new Date(startdate - timezoneOffset * 60 * 1000).toISOString(),
+      end: new Date(enddate - timezoneOffset * 60 * 1000).toISOString(),
+    };
+  });
+
   if (response.status !== 200) {
     return { error: data.message };
   }
 
   return {
     busy: data.busy,
-    dateRanges: data.dateRanges,
+    dateRanges: time,
     timeZone: data.timeZone,
     workingHours: data.workingHours,
   };
@@ -284,7 +311,7 @@ const createBooking = async ({
   apiKey: string;
   userId: number;
   user: {
-    username: string;
+    name: string;
     email: string;
   };
   eventTypeId: number;
@@ -305,7 +332,7 @@ const createBooking = async ({
   const url = `${process.env.BACKEND_URL}/bookings?${urlParams.toString()}`;
 
   const responses = {
-    name: user.username,
+    name: user.name,
     email: user.email,
   };
 
