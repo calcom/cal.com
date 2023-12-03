@@ -1,0 +1,15 @@
+.chatblock {
+
+    /* hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+
+.chatblock::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chatbot-button:hover{
+    opacity: 0.5;
+  }
