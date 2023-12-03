@@ -39,18 +39,15 @@ export default function WrapperPage() {
     }
   );
 
-  let totalBookings;
-  let cancelledPercentage;
-  let rescheduledPercentage;
-  let acceptedPercentage;
-  let bookedHours;
-  let bookedMins;
-  let totalEventLength;
+  let totalBookings: number | undefined;
+  let cancelledPercentage: number | undefined;
+  let rescheduledPercentage: number | undefined;
+  let acceptedPercentage: number | undefined;
+  let bookedHours: number | undefined;
+  let bookedMins: number | undefined;
+  let totalEventLength: number | undefined;
 
-  let firstTime: any = "0";
   if (data != undefined && data.length > 0) {
-    firstTime = data[0].startTime.toISOString();
-
     let cancelledCount = 0;
     let acceptedCount = 0;
     let rescheduledCount = 0;
@@ -68,14 +65,14 @@ export default function WrapperPage() {
     });
 
     totalBookings = cancelledCount + acceptedCount;
-    cancelledPercentage = ((cancelledCount / totalBookings) * 100).toFixed(1);
-    rescheduledPercentage = ((rescheduledCount / totalBookings) * 100).toFixed(1);
-    acceptedPercentage = ((acceptedCount / totalBookings) * 100).toFixed(1);
+    cancelledPercentage = (cancelledCount / totalBookings) * 100;
+    rescheduledPercentage = (rescheduledCount / totalBookings) * 100;
+    acceptedPercentage = (acceptedCount / totalBookings) * 100;
 
     totalEventLength = data
       .map((item) => {
         // Access the eventLength property of each item
-        const eventLength = item.eventLength || 0;
+        const eventLength: number = item.eventLength || 0;
         return eventLength;
       })
       .reduce((acc, length) => acc + length, 0); // Use reduce to calculate the total event length
@@ -83,11 +80,11 @@ export default function WrapperPage() {
     bookedMins = totalEventLength % 60;
   }
 
-  console.log(cancelledPercentage);
-  console.log(rescheduledPercentage);
-  console.log(acceptedPercentage);
-  console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
-  console.log("Total Event Length:", totalEventLength);
+  // console.log(cancelledPercentage);
+  // console.log(rescheduledPercentage);
+  // console.log(acceptedPercentage);
+  // console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
+  // console.log("Total Event Length:", totalEventLength);
 
   const totalMeetingTime = `${bookedHours} hours and ${bookedMins} minutes`;
 
@@ -101,7 +98,7 @@ export default function WrapperPage() {
             <Banner />
             <div className="flex w-full flex-row space-x-5">
               <Card content="Meetings booked" numbers={totalBookings} unit="" />
-              <Card content="Time in meetings" numbers={totalMeetingTime} unit="" />
+              <Card content="Time in meetings" numbers={bookedHours} unit="hours" />
               {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
 

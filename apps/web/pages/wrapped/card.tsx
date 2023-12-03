@@ -2,7 +2,7 @@ import React from "react";
 
 interface CardProps {
   content: string;
-  numbers: string;
+  numbers: number | undefined;
   unit: string;
 }
 
@@ -15,7 +15,7 @@ const Card: React.FC<CardProps> = ({ content, numbers, unit }) => {
       <div className="flex flex-1 flex-col items-start justify-center space-y-3 p-3 text-left">
         <h1 className="font-cal text-[60px] text-black">{content}</h1>
         <p className="font-cal text-left text-[30px] text-black opacity-70">
-          {numbers} {unit}
+          {numbers !== undefined ? Math.floor(numbers) : ""} {unit}
         </p>
       </div>
     </div>
