@@ -1,3 +1,4 @@
+import Banner from "@pages/wrapped/banner";
 import { motion } from "framer-motion";
 
 import dayjs from "@calcom/dayjs";
@@ -39,22 +40,19 @@ export default function WrapperPage() {
   );
   const { data: teamsQuery, isLoading: isLoadingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
 
-  let totalBookings;
-  let cancelledPercentage;
-  let rescheduledPercentage;
-  let acceptedPercentage;
-  let bookedHours;
-  let bookedMins;
-  let totalEventLength;
-  let teamNames;
-  let teamNamesString;
-  let mostCommonEventTypeId;
+  let totalBookings: number | undefined;
+  let cancelledPercentage: number | undefined;
+  let rescheduledPercentage: number | undefined;
+  let acceptedPercentage: number | undefined;
+  let bookedHours: number | undefined;
+  let bookedMins: number | undefined;
+  let totalEventLength: number | undefined;
+  let teamNames: (string | null)[] | undefined;
+  let teamNamesString: string | undefined;
+  let mostCommonEventTypeId: string | undefined;
   let maxCount = 0;
 
-  let firstTime: any = "0";
   if (data != undefined && data.length > 0) {
-    firstTime = data[0].startTime.toISOString();
-
     let cancelledCount = 0;
     let acceptedCount = 0;
     let rescheduledCount = 0;
@@ -79,7 +77,7 @@ export default function WrapperPage() {
     totalEventLength = data
       .map((item) => {
         // Access the eventLength property of each item
-        const eventLength = item.eventLength || 0;
+        const eventLength: number = item.eventLength || 0;
         return eventLength;
       })
       .reduce((acc, length) => acc + length, 0); // Use reduce to calculate the total event length
@@ -109,14 +107,18 @@ export default function WrapperPage() {
   }
 
   console.log(data);
-  console.log(cancelledPercentage);
-  console.log(rescheduledPercentage);
-  console.log(acceptedPercentage);
-  console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
-  console.log("Total Event Length:", totalEventLength);
+  // console.log(cancelledPercentage);
+  // console.log(rescheduledPercentage);
+  // console.log(acceptedPercentage);
+  // console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
+  // console.log("Total Event Length:", totalEventLength);
   console.log("My Teams:", teamNamesString);
   console.log("Most common event Id:", mostCommonEventTypeId);
   console.log("Number of event occurrences:", maxCount);
+  console.log("My Teams:", teamNamesString);
+  console.log("Most common event Id:", mostCommonEventTypeId);
+  console.log("Number of event occurrences:", maxCount);
+  const totalMeetingTime = `${bookedHours} hours and ${bookedMins} minutes`;
 
   return (
     <div className="relative overflow-hidden">
@@ -125,12 +127,20 @@ export default function WrapperPage() {
           <div className="h-32 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg" />
 
           <div className="h-[650px] w-full space-y-8 overflow-scroll overscroll-none pt-5">
-            <div className="h-64 w-full rounded-xl border-2 shadow-lg" />
+            <Banner />
             <div className="flex w-full flex-row space-x-5">
-              <Card />
-              <Card />
-              <Card />
+              <Card content="Meetings booked" numbers={totalBookings} unit="" />
+              <Card content="Time in meetings" numbers={bookedHours} unit="hours" />
+              {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
+
+            <div className="flex w-full flex-row space-x-5">
+              <Card content="Cancelled" numbers={cancelledPercentage} unit="%" />
+              <Card content="Rescheduled" numbers={rescheduledPercentage} unit="%" />
+              <Card content="Accepted" numbers={acceptedPercentage} unit="%" />
+              {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
+            </div>
+
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1.5 }}>
               <div className="flex h-64 w-full items-center justify-center rounded-xl border-2 bg-gradient-to-r shadow-lg" />
             </motion.div>
