@@ -30,4 +30,11 @@ export const ZUpdateProfileInputSchema = z.object({
   metadata: userMetadata.optional(),
 });
 
+export const ZUpdateAvatarAssistantInputSchema = z.object({
+  avatarId: z.string().optional(),
+  voiceId: z.string().optional(),
+  elevenlabsKey: z.string().optional(),
+});
+
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;
+export type TUpdateAvatarAssistantInputSchema = z.infer<typeof ZUpdateAvatarAssistantInputSchema>;

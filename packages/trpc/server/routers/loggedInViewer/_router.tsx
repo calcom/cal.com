@@ -14,7 +14,7 @@ import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
-import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
+import { ZUpdateProfileInputSchema, ZUpdateAvatarAssistantInputSchema } from "./updateProfile.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
 
@@ -44,6 +44,8 @@ type AppsRouterHandlerCache = {
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
+
+  updateAvatarAssistant?: typeof import("./updateAvatarAssistant.handler").updateAvatarAssistant;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -218,6 +220,23 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.updateProfile({ ctx, input });
   }),
+
+  updateAvatarAssistant: authedProcedure
+    .input(ZUpdateAvatarAssistantInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.updateAvatarAssistant) {
+        UNSTABLE_HANDLER_CACHE.updateAvatarAssistant = (
+          await import("./updateAvatarAssistant.handler")
+        ).updateAvatarAssistant;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.updateAvatarAssistant) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.updateAvatarAssistant({ ctx, input });
+    }),
 
   eventTypeOrder: authedProcedure.input(ZEventTypeOrderInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.eventTypeOrder) {

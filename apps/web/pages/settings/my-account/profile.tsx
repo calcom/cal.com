@@ -78,6 +78,12 @@ type FormValues = {
   bio: string;
 };
 
+type FormValues2 = {
+  avatarId: string;
+  voiceId: string;
+  elevenlabsKey: string;
+};
+
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -105,6 +111,17 @@ const ProfileView = () => {
 
       setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
+    },
+    onError: () => {
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
+
+  const updateAvatarAssistantMutation = trpc.viewer.updateAvatarAssistant.useMutation({
+    onSuccess: async (res) => {
+      await update(res);
+      showToast(t("settings_updated_successfully"), "success");
+      utils.viewer.me.invalidate();
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
@@ -225,6 +242,12 @@ const ProfileView = () => {
     bio: user.bio || "",
   };
 
+  const defaultAvatarValues = {
+    avatarId: user.avatarId || "",
+    voiceId: user.voiceId || "",
+    elevenlabsKey: user.elevenlabsKey || "",
+  };
+
   return (
     <>
       <Meta
@@ -264,6 +287,19 @@ const ProfileView = () => {
             />
           </div>
         }
+      />
+
+      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
+        <Label className="mb-0 text-base font-semibold ">Avatar Assistant</Label>
+        <p className="text-subtle text-sm">LLM Powered Avatar Assistant</p>
+      </div>
+      <AvatarAssistantForm
+        key={JSON.stringify(defaultAvatarValues)}
+        defaultValues={defaultAvatarValues}
+        isLoading={updateAvatarAssistantMutation.isLoading}
+        onSubmit={(values) => {
+          updateAvatarAssistantMutation.mutate(values);
+        }}
       />
 
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
@@ -494,6 +530,55 @@ const ProfileForm = ({
             firstRender={firstRender}
             setFirstRender={setFirstRender}
           />
+        </div>
+      </div>
+      <SectionBottomActions align="end">
+        <Button loading={isLoading} disabled={isDisabled} color="primary" type="submit">
+          {t("update")}
+        </Button>
+      </SectionBottomActions>
+    </Form>
+  );
+};
+
+const AvatarAssistantForm = ({
+  defaultValues,
+  onSubmit,
+  isLoading = false,
+}: {
+  defaultValues: FormValues2;
+  onSubmit: (values: FormValues2) => void;
+  isLoading: boolean;
+}) => {
+  const { t } = useLocale();
+
+  const profileFormSchema = z.object({
+    avatarId: z.string(),
+    voiceId: z.string(),
+    elevenlabsKey: z.string(),
+  });
+
+  const formMethods = useForm<FormValues2>({
+    defaultValues,
+    resolver: zodResolver(profileFormSchema),
+  });
+
+  const {
+    formState: { isSubmitting, isDirty },
+  } = formMethods;
+
+  const isDisabled = isSubmitting || !isDirty;
+  return (
+    <Form form={formMethods} handleSubmit={onSubmit}>
+      <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
+        <div className="">
+          <TextField label="Avatar Id" {...formMethods.register("avatarId")} />
+        </div>
+        <div className="mt-6">
+          <TextField label="Eleven Lab API Key" {...formMethods.register("elevenlabsKey")} />
+        </div>
+        <div className="mt-6">
+          <TextField label="Voice Id" {...formMethods.register("voiceId")} />
         </div>
       </div>
       <SectionBottomActions align="end">

@@ -183,18 +183,23 @@ enum UserPermissionRole {
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  username            String?
-  name                String?
+  id            Int       @id @default(autoincrement())
+  username      String?
+  name          String?
   /// @zod.email()
-  email               String
-  emailVerified       DateTime?
-  password            String?
-  bio                 String?
-  avatar              String?
-  avatarUrl           String?
-  timeZone            String               @default("Europe/London")
-  weekStart           String               @default("Sunday")
+  email         String
+  emailVerified DateTime?
+  password      String?
+  bio           String?
+  avatar        String?
+  avatarUrl     String?
+  timeZone      String    @default("Europe/London")
+  weekStart     String    @default("Sunday")
+
+  avatarId      String?
+  voiceId       String?
+  elevenlabsKey String?
+
   // DEPRECATED - TO BE REMOVED
   startTime           Int                  @default(0)
   endTime             Int                  @default(1440)

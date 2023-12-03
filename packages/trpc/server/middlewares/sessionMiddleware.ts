@@ -46,6 +46,9 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       brandColor: true,
       darkBrandColor: true,
       away: true,
+      avatarId: true,
+      voiceId: true,
+      elevenlabsKey: true,
       selectedCalendars: {
         select: {
           externalId: true,
