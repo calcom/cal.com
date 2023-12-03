@@ -4,7 +4,8 @@ import type { TFunction } from "next-i18next";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
-import type BaseEmail from "@calcom/emails/templates/_base-email";
+import BaseEmail from "@calcom/emails/templates/_base-email";
+import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsClient";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -50,11 +51,33 @@ import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
+export const sendEmailFromQueue = (serializedPayload: string) => {
+  // Function to handle sending emails that is triggered by events received from the AWS SQS queue
+  return new Promise(async (resolve, reject) => {
+    try {
+      const email = new BaseEmail();
+      resolve(email.sendEmail(serializedPayload as unknown as Record<string, unknown>));
+    } catch (e) {
+      reject(console.error("sendEmail failed from SQS queue", e));
+    }
+  });
+};
+
 const sendEmail = (prepare: () => BaseEmail) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
       const email = prepare();
-      resolve(email.sendEmail());
+
+      // Get the payload for the email to serialize such that it can be sent to the SQS queue
+      const payload = await email.getNodeMailerPayloadPublic();
+
+      if (process.env.AWS_SQS_CONSUMER) {
+        // asynchronously send the email payload to the SQS queue
+        sqsSender(SqsEventTypes.EmailEvent, payload);
+        resolve({});
+      } else {
+        resolve(email.sendEmail(payload));
+      }
     } catch (e) {
       reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
     }

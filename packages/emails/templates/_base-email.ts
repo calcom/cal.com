@@ -27,7 +27,12 @@ export default class BaseEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
-  public async sendEmail() {
+
+  public async getNodeMailerPayloadPublic(): Promise<Record<string, unknown>> {
+    return await this.getNodeMailerPayload();
+  }
+
+  public async sendEmail(payload: Record<string, unknown>) {
     const featureFlags = await getFeatureFlagMap(prisma);
     /** If email kill switch exists and is active, we prevent emails being sent. */
     if (featureFlags.emails) {
@@ -38,14 +43,14 @@ export default class BaseEmail {
     if (process.env.INTEGRATION_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
-      setTestEmail(await this.getNodeMailerPayload());
+      setTestEmail(payload);
       console.log(
         "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
       );
       return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
-    const payload = await this.getNodeMailerPayload();
+    // const payload = await this.getNodeMailerPayload();
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
       headers: this.getMailerOptions().headers,

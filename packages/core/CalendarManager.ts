@@ -6,6 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsClient";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -219,15 +220,43 @@ export const getBusyCalendarTimes = async (
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
+export const createEventFromQueue = async (data: any): Promise<EventResult<NewCalendarEventType>> => {
+  const credential = data.credential;
+  const calEvent = data.calEvent;
+  const externalId = data.externalId;
+
+  return await createEvent(credential, calEvent, externalId, true);
+};
+
 export const createEvent = async (
   credential: CredentialPayload,
   calEvent: CalendarEvent,
-  externalId?: string
+  externalId?: string,
+  fromQueue = false
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
+
+  if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // if not from queue and AWS_SQS_CONSUMER is set, asynchronously send payload to SQS queue
+    const data = { credential: credential, calEvent: calEvent, externalId: externalId };
+    sqsSender(SqsEventTypes.CalendarCreateEvent, data);
+    return {
+      appName: credential.appId || "",
+      type: credential.type,
+      success,
+      uid,
+      iCalUID: undefined,
+      createdEvent: undefined,
+      originalEvent: calEvent,
+      calError,
+      calWarnings: [],
+      externalId,
+      credentialId: credential.id,
+    };
+  }
 
   log.debug(
     "Creating calendar event",
@@ -304,13 +333,36 @@ export const updateEvent = async (
   credential: CredentialPayload,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
-  externalCalendarId: string | null
+  externalCalendarId: string | null,
+  fromQueue = false
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
+
+  if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // if not from queue and AWS_SQS_CONSUMER is set, asynchronously send payload to SQS queue
+    const data = {
+      credential: credential,
+      calEvent: calEvent,
+      bookingRefUid: bookingRefUid,
+      externalCalendarId: externalCalendarId,
+    };
+    sqsSender(SqsEventTypes.CalendarUpdateEvent, data);
+    return {
+      appName: credential.appId || "",
+      type: credential.type,
+      success,
+      uid,
+      updatedEvent: undefined,
+      originalEvent: calEvent,
+      calError,
+      calWarnings,
+    };
+  }
+
   log.debug(
     "Updating calendar event",
     safeStringify({
@@ -384,12 +436,26 @@ export const deleteEvent = async ({
   bookingRefUid,
   event,
   externalCalendarId,
+  fromQueue = false,
 }: {
   credential: CredentialPayload;
   bookingRefUid: string;
   event: CalendarEvent;
   externalCalendarId?: string | null;
+  fromQueue?: boolean;
 }): Promise<unknown> => {
+  if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // if not from queue and AWS_SQS_CONSUMER is set, asynchronously send payload to SQS queue
+    const data = {
+      credential: credential,
+      bookingRefUid: bookingRefUid,
+      event: event,
+      externalCalendarId: externalCalendarId,
+    };
+    sqsSender(SqsEventTypes.CalendarDeleteEvent, data);
+    return Promise.resolve({});
+  }
+
   const calendar = await getCalendar(credential);
   log.debug(
     "Deleting calendar event",
