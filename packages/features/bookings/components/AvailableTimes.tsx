@@ -2,7 +2,7 @@
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { CalendarX2, ChevronRight } from "lucide-react";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useRemainingSeatsStore } from "@calcom/features/bookings/lib/useRemainingSeats";
@@ -66,14 +66,6 @@ const SlotItem = ({
   const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
 
-  const bookedSeat: number = useMemo(() => {
-    const maxAttendees = seatsPerTimeSlot ?? 1;
-    if (maxAttendees === 1) {
-      return 1 - remainingSeats?.[slot.time] || 0;
-    }
-    return maxAttendees - remainingSeats?.[slot.time] || slot.attendees || 0;
-  }, [remainingSeats, slot.time, slot.attendees, seatsPerTimeSlot]);
-
   const nowDate = dayjs();
   const usersTimezoneDate = nowDate.tz(timezone);
 
@@ -115,77 +107,72 @@ const SlotItem = ({
     seatsPerTimeSlot,
   ]);
 
-  return bookedSeat === (seatsPerTimeSlot ?? 1) ? null : (
-    <AnimatePresence>
-      <div className="flex gap-2">
-        <Button
-          key={slot.time}
-          disabled={bookingFull || !!(slot.bookingUid && slot.bookingUid === bookingData?.uid)}
-          data-testid="time"
-          data-disabled={bookingFull}
-          data-time={slot.time}
-          onClick={onButtonClick}
-          className={classNames(
-            "min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2",
-            selectedSlots?.includes(slot.time) && "border-brand-default"
-          )}
-          color="secondary">
-          <div className="flex items-center gap-2">
-            {!hasTimeSlots && overlayCalendarToggled && (
-              <span
-                className={classNames(
-                  "inline-block h-2 w-2 rounded-full",
-                  isOverlapping ? "bg-rose-600" : "bg-emerald-400"
-                )}
-              />
-            )}
-            {computedDateWithUsersTimezone.format(timeFormat)}
-          </div>
-          {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
-          {hasTimeSlots && !bookingFull && (
-            <p className="flex items-center text-sm">
-              <span
-                className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
-                aria-hidden
-              />
-              <SeatsAvailabilityText
-                showExact={!!showAvailableSeatsCount}
-                totalSeats={seatsPerTimeSlot}
-                bookedSeats={seatsPerTimeSlot - remainingSeats?.[slot.time] || slot.attendees || 0}
-              />
-            </p>
-          )}
-        </Button>
-        {overlapConfirm && isOverlapping && (
-          <HoverCard.Root>
-            <HoverCard.Trigger asChild>
-              <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
-                <Button
-                  variant={layout === "column_view" ? "icon" : "button"}
-                  StartIcon={layout === "column_view" ? ChevronRight : undefined}
-                  onClick={() =>
-                    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
-                  }>
-                  {layout !== "column_view" && t("confirm")}
-                </Button>
-              </m.div>
-            </HoverCard.Trigger>
-            <HoverCard.Portal>
-              <HoverCard.Content side="top" align="end" sideOffset={2}>
-                <div className="text-emphasis bg-inverted text-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
-                  <div className="flex items-center gap-2">
-                    <p>Busy</p>
-                  </div>
-                  <p className="text-muted">
-                    {overlappingTimeStart} - {overlappingTimeEnd}
-                  </p>
-                </div>
-              </HoverCard.Content>
-            </HoverCard.Portal>
-          </HoverCard.Root>
+  return (
+    <div className="flex gap-2">
+      <Button
+        key={slot.time}
+        disabled={bookingFull || !!(slot.bookingUid && slot.bookingUid === bookingData?.uid)}
+        data-testid="time"
+        data-disabled={bookingFull}
+        data-time={slot.time}
+        onClick={onButtonClick}
+        className={classNames(
+          "min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2",
+          selectedSlots?.includes(slot.time) && "border-brand-default"
         )}
-      </div>
-    </AnimatePresence>
+        color="secondary">
+        <div className="flex items-center gap-2">
+          {!hasTimeSlots && overlayCalendarToggled && (
+            <span
+              className={classNames(
+                "inline-block h-2 w-2 rounded-full",
+                isOverlapping ? "bg-rose-600" : "bg-emerald-400"
+              )}
+            />
+          )}
+          {computedDateWithUsersTimezone.format(timeFormat)}
+        </div>
+        {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
+        {hasTimeSlots && !bookingFull && (
+          <p className="flex items-center text-sm">
+            <span className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")} aria-hidden />
+            <SeatsAvailabilityText
+              showExact={!!showAvailableSeatsCount}
+              totalSeats={seatsPerTimeSlot}
+              bookedSeats={seatsPerTimeSlot - remainingSeats?.[slot.time] || slot.attendees || 0}
+            />
+          </p>
+        )}
+      </Button>
+      {overlapConfirm && isOverlapping && (
+        <HoverCard.Root>
+          <HoverCard.Trigger asChild>
+            <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
+              <Button
+                variant={layout === "column_view" ? "icon" : "button"}
+                StartIcon={layout === "column_view" ? ChevronRight : undefined}
+                onClick={() =>
+                  onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
+                }>
+                {layout !== "column_view" && t("confirm")}
+              </Button>
+            </m.div>
+          </HoverCard.Trigger>
+          <HoverCard.Portal>
+            <HoverCard.Content side="top" align="end" sideOffset={2}>
+              <div className="text-emphasis bg-inverted text-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
+                <div className="flex items-center gap-2">
+                  <p>Busy</p>
+                </div>
+                <p className="text-muted">
+                  {overlappingTimeStart} - {overlappingTimeEnd}
+                </p>
+              </div>
+            </HoverCard.Content>
+          </HoverCard.Portal>
+        </HoverCard.Root>
+      )}
+    </div>
   );
 };
 
@@ -199,8 +186,7 @@ export const AvailableTimes = ({
   selectedSlots,
 }: AvailableTimesProps) => {
   const { t } = useLocale();
-
-  console.log("slots", slots);
+  const { data: remainingSeats } = useRemainingSeatsStore();
 
   return (
     <div className={classNames("text-default flex flex-col", className)}>
@@ -213,17 +199,34 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        <AnimatePresence>
-          {slots.map((slot) => (
-            <SlotItem
-              key={slot.time}
-              onTimeSelect={onTimeSelect}
-              slot={slot}
-              selectedSlots={selectedSlots}
-              seatsPerTimeSlot={seatsPerTimeSlot}
-              showAvailableSeatsCount={showAvailableSeatsCount}
-            />
-          ))}
+        <AnimatePresence initial={false}>
+          {slots
+            .filter((slot) => {
+              const maxAttendees = seatsPerTimeSlot ?? 1;
+              if (maxAttendees === 1) {
+                const bookedSeat = 1 - remainingSeats?.[slot.time] || 0;
+                return bookedSeat !== (seatsPerTimeSlot ?? 1);
+              }
+              const bookedSeat = maxAttendees - remainingSeats?.[slot.time] || slot.attendees || 0;
+              return bookedSeat !== (seatsPerTimeSlot ?? 1);
+            })
+            .map((slot) => (
+              <m.div
+                key={slot.time}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{
+                  duration: 0.5,
+                }}>
+                <SlotItem
+                  onTimeSelect={onTimeSelect}
+                  slot={slot}
+                  selectedSlots={selectedSlots}
+                  seatsPerTimeSlot={seatsPerTimeSlot}
+                  showAvailableSeatsCount={showAvailableSeatsCount}
+                />
+              </m.div>
+            ))}
         </AnimatePresence>
       </div>
     </div>
