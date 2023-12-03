@@ -97,15 +97,15 @@ export default function WrapperPage() {
           <div className="h-[650px] w-full space-y-8 overflow-scroll overscroll-none pt-5">
             <Banner />
             <div className="flex w-full flex-row space-x-5">
-              <Card content="Meetings booked" numbers={totalBookings} unit="" />
-              <Card content="Time in meetings" numbers={bookedHours} unit="hours" />
+              <Card content="Meetings booked" numbers={totalBookings} unit="" themeIdx="1" />
+              <Card content="Time in meetings" numbers={bookedHours} unit="hours" themeIdx="2" />
               {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
 
             <div className="flex w-full flex-row space-x-5">
-              <Card content="Cancelled" numbers={cancelledPercentage} unit="%" />
-              <Card content="Rescheduled" numbers={rescheduledPercentage} unit="%" />
-              <Card content="Accepted" numbers={acceptedPercentage} unit="%" />
+              <Card content="Cancelled" numbers={cancelledPercentage} unit="%" themeIdx="3" />
+              <Card content="Rescheduled" numbers={rescheduledPercentage} unit="%" themeIdx="4" />
+              <Card content="Accepted" numbers={acceptedPercentage} unit="%" themeIdx="2" />
               {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
 

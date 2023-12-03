@@ -1,14 +1,17 @@
+import { theme } from "@pages/wrapped/colorTheme";
 import React from "react";
 
 interface CardProps {
   content: string;
-  numbers: number | undefined;
+  numbers: number;
   unit: string;
+  themeIdx: string;
 }
 
-const Card: React.FC<CardProps> = ({ content, numbers, unit }) => {
+const Card: React.FC<CardProps> = ({ content, numbers, unit, themeIdx }) => {
   return (
-    <div className="flex h-80 flex-1 flex-row rounded-xl border-2 bg-white shadow-lg">
+    <div
+      className={`flex h-80 flex-1 flex-row rounded-xl border-2 bg-gradient-to-r ${theme[themeIdx]} shadow-lg`}>
       <div className="flex w-[30%] pl-4">
         <h1 className="font-caltext-start text-[80px]">🎉</h1>
       </div>
