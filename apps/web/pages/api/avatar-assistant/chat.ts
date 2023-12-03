@@ -293,12 +293,13 @@ export const fetchAvailability = async ({
   const time = (data.dateRanges as any[]).map((dateRange) => {
     const startDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
-    const formattedStartDate = `${startDate.getHours()}am ${startDate.getFullYear()}-${
-      startDate.getMonth() + 1
-    }-${startDate.getDate()} ${timezone}`;
-    const formattedEndDate = `${endDate.getHours()}am ${endDate.getFullYear()}-${
-      startDate.getMonth() + 1
-    }-${endDate.getDate()} ${timezone}`;
+
+    const formattedStartDate = `${startDate.getHours()}:${
+      startDate.getMinutes() == 0 ? "00" : startDate.getMinutes()
+    } ${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()} ${timezone}`;
+    const formattedEndDate = `${endDate.getHours()}:${
+      endDate.getMinutes() == 0 ? "00" : endDate.getMinutes()
+    } ${endDate.getFullYear()}-${startDate.getMonth() + 1}-${endDate.getDate()} ${timezone}`;
     return {
       start: formattedStartDate,
       end: formattedEndDate,
