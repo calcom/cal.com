@@ -7,4 +7,7 @@ export const generateMetadata = async () =>
     (t) => t("orgs_page_description")
   );
 
-export default Page;
+export default function AppPage() {
+  // @ts-expect-error FIXME Property 'Component' is incompatible with index signature
+  return <Page />;
+}
