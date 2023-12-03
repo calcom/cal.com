@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import router from "./router";
+import runTask from "./runTask";
 
 const FloatingIcon = () => {
   const [isWindowOpen, setIsWindowOpen] = useState(false);
@@ -23,7 +23,7 @@ const FloatingIcon = () => {
 
     // Update the chatLog state with the new entry
     setChatLog([...chatLog, inputValue]);
-    router(inputValue);
+    runTask(inputValue);
   };
 
   const handleWindowClick = (e: any) => {

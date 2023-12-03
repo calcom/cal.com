@@ -1,4 +1,8 @@
-export const routerEnums: string[] = [
+const other = "None";
+
+export const SWITCH_ENUMS: string[] = ["page-routing", other];
+
+export const ROUTER_ENUMS: string[] = [
   "/workflows",
   "/event-types",
   "/apps",
@@ -18,4 +22,7 @@ export const routerEnums: string[] = [
   "/settings/developer/webhooks",
   "/settings/developer/api-keys",
   "/settings/billing",
+  other,
 ];
+
+export const ROUTER_MSGS: string[] = ROUTER_ENUMS.map((x) => `Going to ${x}`);

@@ -1,11 +1,15 @@
+// LangChain APIs
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { JsonOutputFunctionsParser } from "langchain/output_parsers";
 import { HumanMessage } from "langchain/schema";
 
-import { OPENAI_API_KEY } from "./.env";
-import { routerEnums } from "./params/enums";
+// Environment variables
+import { OPENAI_API_KEY } from "../.env";
+// Parameters
+import { ROUTER_ENUMS, ROUTER_MSGS } from "../params/enums";
+import { GPT_MODEL } from "../params/models";
 
-const router = async (inputValue: string) => {
+const run = async (inputValue: string) => {
   // Instantiate the parser
   const parser = new JsonOutputFunctionsParser();
 
@@ -18,17 +22,22 @@ const router = async (inputValue: string) => {
       properties: {
         url_param: {
           type: "string",
-          enum: routerEnums,
+          enum: ROUTER_ENUMS,
           description: "The URL parameter to extract.",
         },
+        message: {
+          type: "string",
+          enum: ROUTER_MSGS,
+          description: "The message to send to the user.",
+        },
       },
-      required: ["url_param"],
+      required: ["url_param", "message"],
     },
   };
 
   // Instantiate the ChatOpenAI class
   const model = new ChatOpenAI({
-    modelName: "gpt-4",
+    modelName: GPT_MODEL,
     openAIApiKey: OPENAI_API_KEY,
   });
 
@@ -40,19 +49,19 @@ const router = async (inputValue: string) => {
     })
     .pipe(parser);
 
-  // Invoke the runnable with an input
+  // Run the runnable
   const result = await runnable.invoke([new HumanMessage(inputValue)]);
 
-  console.log({ inputValue, result });
   return result;
 
   /**
   {
     result: {
-      url_param: "/apps"
+      url_param: "/apps",
+      message: "Going to /apps"
     }
   }
   */
 };
 
-export default router;
+export default run;
