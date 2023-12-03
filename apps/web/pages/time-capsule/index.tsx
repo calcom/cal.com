@@ -22,12 +22,13 @@ function TimeCapsule() {
   console.log(webhooks);
   return (
     <ShellMain
-      heading={t("Time Capsule")}
-      hideHeadingOnMobile
-      subtitle={t("create_manage_teams_collaborative")}>
+    // heading={t("Time Capsule")}
+    // hideHeadingOnMobile
+    // subtitle={t("create_manage_teams_collaborative")}
+    >
       <div class="flex items-end gap-5 bg-slate-900 pl-4 pt-12 max-md:flex-wrap">
         <div class="mt-16 flex grow basis-[0%] flex-col items-center max-md:mt-10 max-md:max-w-full">
-          <div class="max-w-[976px] bg-clip-text text-center text-4xl font-semibold leading-10 max-md:max-w-full">
+          <div class="max-w-[976px] bg-clip-text text-center text-4xl font-semibold leading-10 text-neutral-50 max-md:max-w-full">
             Cal.com
           </div>
           <div class="mt-7 flex items-stretch justify-between gap-5 self-stretch max-md:max-w-full max-md:flex-wrap max-md:justify-center">
@@ -62,6 +63,7 @@ function TimeCapsule() {
                                   loading="lazy"
                                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/048def221ce64f53c484edf12d4dc52e4d4bf04a51e65148cdf149203363e9fc?apiKey=1f0dcdf4332645488d9ba14588bf6c94&"
                                   class="absolute inset-0 h-full w-full object-cover object-center"
+                                  align="center"
                                 />
                                 <div class="relative mb-10 mt-8 flex h-[3px] shrink-0 flex-col rounded-[50%]" />
                               </div>
@@ -284,10 +286,8 @@ function TimeCapsule() {
                               <div class="aspect-square h-[60px] w-[60px] items-center justify-center whitespace-nowrap rounded-2xl border border-solid border-slate-700 border-opacity-60 px-6 text-center text-xl leading-6 text-white shadow-sm backdrop-blur-[3px] max-md:px-5">
                                 T
                               </div>
-                              <div class="flex h-[60px] w-[60px] basis-[0%] flex-col items-stretch justify-center rounded-2xl border border-solid border-slate-700 border-opacity-60 px-5 shadow-sm backdrop-blur-[3px] max-md:pl-5">
-                                <div class="whitespace-nowrap text-center text-xl leading-6 text-white">
-                                  W
-                                </div>
+                              <div class="flex h-[60px] w-[60px] basis-[0%] flex-col items-center justify-center rounded-2xl border border-solid border-slate-700 border-opacity-60 px-5 shadow-sm backdrop-blur-[3px] max-md:pl-5">
+                                <div class="text-center text-xl leading-6 text-white">W</div>
                                 <div class="ml-4 mt-2.5 flex h-[3px] w-full shrink-0 flex-col self-start rounded-[50%] max-md:ml-2.5" />
                               </div>
                               <div class="aspect-square h-[60px] w-[60px] items-center justify-center whitespace-nowrap rounded-2xl border border-solid border-slate-700 border-opacity-60 px-6 text-center text-xl leading-6 text-white shadow-sm backdrop-blur-[3px] max-md:px-5">
