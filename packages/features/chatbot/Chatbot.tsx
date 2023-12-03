@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
 
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
@@ -7,16 +8,17 @@ import runTask from "./runTask";
 
 type chatResponse = {
   type: string;
+  url_param?: string;
   message: string;
 };
 
 const FloatingIcon = () => {
   const ref = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
   const [isWindowOpen, setIsWindowOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [chatLog, setChatLog] = useState<chatResponse[]>([]);
   const { resolvedTheme, forcedTheme } = useGetTheme();
-  const { isLoading, setIsLoading } = useState(false);
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
 
   const toggleWindow = () => {
@@ -43,9 +45,6 @@ const FloatingIcon = () => {
 
   const handleConfirmClick = () => {
     // Handle the confirm button click, you can add your logic here
-    // console.log("Input Value:", inputValue);
-    // Close the window after confirming (optional)
-    // setIsWindowOpen(false);
 
     // Update the chatLog state with the new entry
     setChatLog([...chatLog, inputValue]);
@@ -57,37 +56,26 @@ const FloatingIcon = () => {
 
     const currentResponse: chatResponse = {
       type: "human",
+      url_param: "None",
       message: inputValue,
     };
     setChatLog([...chatLog, currentResponse]);
-    console.log(ref);
     responses.push(currentResponse);
-
-    // const router = useRouter();
-
+    loadingRef.current = true;
     const chatResponse = Promise.resolve(runTask(inputValue));
 
     chatResponse.then((value) => {
-      console.log("Response: ", value);
-      let messageBody = "";
-      if (value.message != "None") {
-        messageBody = value.message;
-      } else if (value.url_param != "None") {
-        messageBody = value.url_param;
-        // Push to the new page
-        // TODO: Fix this
-        // router.push(value.url_param);
-      }
-
       const aiResponse: chatResponse = {
         type: "aiResponse",
-        message: messageBody,
+        url_param: value.url_param ? value.url_param : "None",
+        message: value.message,
       };
 
       responses.push(aiResponse);
+      loadingRef.current = false;
       setChatLog([...chatLog, ...responses]);
     });
-    // setChatLog([...chatLog, ...responses]);
+
     setInputValue("");
   };
 
@@ -103,7 +91,21 @@ const FloatingIcon = () => {
   };
 
   const renderChatLog = chatLog.map((val) => {
-    return val.type === "aiResponse" ? (
+    return val.type === "aiResponse" && val.url_param !== "None" ? (
+      <Link
+        href={val.url_param}
+        key={val.message}
+        style={{
+          width: "fit-content",
+          border: hasDarkTheme ? "2px solid white" : "2px solid black",
+          margin: "1rem 0 1rem 0",
+          borderRadius: "30px",
+          padding: "0.5rem 1rem",
+          maxWidth: "80%",
+        }}>
+        {val.message}
+      </Link>
+    ) : val.type === "aiResponse" ? (
       <div
         key={val.message}
         style={{
@@ -171,7 +173,19 @@ const FloatingIcon = () => {
                 paddingBottom: "5rem",
               }}
               className="chatblock">
-              {renderChatLog}
+              <>
+                {renderChatLog}
+                <div
+                  style={{
+                    width: "fit-content",
+                    margin: "1rem 0 1rem 0",
+                    borderRadius: "30px",
+                    padding: "0.5rem 1rem",
+                    maxWidth: "80%",
+                  }}>
+                  {loadingRef.current ? <div className="dot-flashing" /> : ""}
+                </div>
+              </>
             </div>
             <div style={{ width: "100%", position: "absolute", bottom: "0", marginBottom: "10px" }}>
               <input
