@@ -1,4 +1,4 @@
-# queue-worker project
+# queue-worker - A Temporal Worker application that processes tasks
 
 This project is a Temporal application (worker) responsible for processing the workflows/tasks in the queue.
 
