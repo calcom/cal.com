@@ -2,7 +2,6 @@ import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@pri
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
-import { sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -14,6 +13,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { scheduledEmails } from "@calcom/queues/emailqueue";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 import {
@@ -97,12 +97,25 @@ export async function handleConfirmation(args: {
         }
       }
 
-      await sendScheduledEmails(
-        { ...evt, additionalInformation: metadata },
-        undefined,
-        isHostConfirmationEmailsDisabled,
-        isAttendeeConfirmationEmailDisabled
+      scheduledEmails.add(
+        {
+          calEvent: {
+            ...evt,
+            additionalInformation: metadata,
+          },
+          isHostConfirmationEmailsDisabled: isHostConfirmationEmailsDisabled,
+          isAttendeeConfirmationEmailDisabled: isAttendeeConfirmationEmailDisabled,
+          eventNameObject: undefined,
+        },
+        jobOpts
       );
+
+      // await sendScheduledEmails(
+      //   { ...evt, additionalInformation: metadata },
+      //   undefined,
+      //   isHostConfirmationEmailsDisabled,
+      //   isAttendeeConfirmationEmailDisabled
+      // );
     } catch (error) {
       log.error(error);
     }

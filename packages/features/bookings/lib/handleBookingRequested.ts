@@ -1,10 +1,10 @@
-import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { attendeeRequestEmail, organizerRequestEmail } from "@calcom/queues/emailqueue";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -33,8 +33,11 @@ export async function handleBookingRequested(args: {
   const { evt, booking } = args;
 
   log.debug("Emails: Sending booking requested emails");
-  await sendOrganizerRequestEmail({ ...evt });
-  await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+
+  organizerRequestEmail.add({ ...evt });
+  attendeeRequestEmail.add({ calEvent: { ...evt }, attendees: evt.attendees[0] });
+  // await sendOrganizerRequestEmail({ ...evt });
+  // await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
 
   try {
     const subscribersBookingRequested = await getWebhooks({

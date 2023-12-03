@@ -28,7 +28,6 @@ import dayjs from "@calcom/dayjs";
 import { sendRescheduledSeatEmail } from "@calcom/emails";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
@@ -82,6 +81,7 @@ import {
   roundRobinRescheduledEmails,
   roundRobinCancelledEmails,
 } from "@calcom/queues/emailqueue";
+import { webhookTriggerOb } from "@calcom/queues/webhook";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   AdditionalInformation,
@@ -97,8 +97,8 @@ import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingDataSchema from "./getBookingDataSchema";
 
 const jobOpts = {
-  attempts: 5,
-  //removeOnComplete:true
+  attempts: 5, // to retry when failure
+  removeOnComplete: true, // to remove the job once the task is successful
 };
 
 const translator = short();
@@ -1592,12 +1592,15 @@ async function handler(
           if (noEmail !== true && isConfirmedByDefault) {
             const copyEvent = cloneDeep(evt);
             loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-            rescheduledEmails.add({
-              ...copyEvent,
-              additionalInformation: metadata,
-              additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-            });
+            rescheduledEmails.add(
+              {
+                ...copyEvent,
+                additionalInformation: metadata,
+                additionalNotes, // Resets back to the additionalNote input and not the override value
+                cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+              },
+              jobOpts
+            );
             // await sendRescheduledEmails({
             //   ...copyEvent,
             //   additionalInformation: metadata,
@@ -1722,12 +1725,15 @@ async function handler(
             // TODO send reschedule emails to attendees of the old booking
             loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
 
-            rescheduledEmails.add({
-              ...copyEvent,
-              additionalInformation: metadata,
-              additionalNotes,
-              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
-            });
+            rescheduledEmails.add(
+              {
+                ...copyEvent,
+                additionalInformation: metadata,
+                additionalNotes,
+                cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+              },
+              jobOpts
+            );
             // await sendRescheduledEmails({
             //   ...copyEvent,
             //   additionalInformation: metadata,
@@ -1827,6 +1833,7 @@ async function handler(
         const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
           return attendee.email !== bookerEmail;
         });
+
         await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
 
         const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
@@ -1925,14 +1932,17 @@ async function handler(
             isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
           }
         }
-        scheduledSeatsEmails.add({
-          copyEvent: copyEvent,
-          invitee: invitee[0],
-          newSeat: newSeat,
-          seatsShowAttendees: !!eventType.seatsShowAttendees,
-          isHostConfirmationEmailsDisabled: isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled: isAttendeeConfirmationEmailDisabled,
-        });
+        scheduledSeatsEmails.add(
+          {
+            copyEvent: copyEvent,
+            invitee: invitee[0],
+            newSeat: newSeat,
+            seatsShowAttendees: !!eventType.seatsShowAttendees,
+            isHostConfirmationEmailsDisabled: isHostConfirmationEmailsDisabled,
+            isAttendeeConfirmationEmailDisabled: isAttendeeConfirmationEmailDisabled,
+          },
+          jobOpts
+        );
 
         // await sendScheduledSeatsEmails(
         //   copyEvent,
@@ -2043,7 +2053,12 @@ async function handler(
       smsReminderNumber: booking?.smsReminderNumber || undefined,
     };
 
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    webhookTriggerOb.add(
+      { subscriberOptions: subscriberOptions, eventTrigger: eventTrigger, webhookData: webhookData },
+      jobOpts
+    );
+
+    //await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
     return resultBooking;
   };
@@ -2448,12 +2463,15 @@ async function handler(
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
 
-        rescheduledEmails.add({
-          ...copyEvent,
-          additionalInformation: metadata,
-          additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-        });
+        rescheduledEmails.add(
+          {
+            ...copyEvent,
+            additionalInformation: metadata,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+          },
+          jobOpts
+        );
         // await sendRescheduledEmails({
         //   ...copyEvent,
         //   additionalInformation: metadata,
@@ -2631,8 +2649,8 @@ async function handler(
       })
     );
 
-    organizerRequestEmail.add({ ...evt, additionalNotes });
-    attendeeRequestEmail.add({ calEvent: { ...evt, additionalNotes }, attendees: attendeesList[0] });
+    organizerRequestEmail.add({ ...evt, additionalNotes }, jobOpts);
+    attendeeRequestEmail.add({ calEvent: { ...evt, additionalNotes }, attendees: attendeesList[0] }, jobOpts);
 
     // await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     //  await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
@@ -2709,14 +2727,27 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
     };
-    await handleWebhookTrigger({
-      subscriberOptions: subscriberOptionsPaymentInitiated,
-      eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      webhookData: {
-        ...webhookData,
-        paymentId: payment?.id,
+
+    webhookTriggerOb.add(
+      {
+        subscriberOptions: subscriberOptionsPaymentInitiated,
+        eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+        webhookData: {
+          ...webhookData,
+          paymentId: payment?.id,
+        },
       },
-    });
+      jobOpts
+    );
+
+    // await handleWebhookTrigger({
+    //   subscriberOptions: subscriberOptionsPaymentInitiated,
+    //   eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+    //   webhookData: {
+    //     ...webhookData,
+    //     paymentId: payment?.id,
+    //   },
+    // });
 
     req.statusCode = 201;
     return { ...booking, message: "Payment required", paymentUid: payment?.uid, paymentId: payment?.id };
@@ -2748,14 +2779,25 @@ async function handler(
       );
     }
 
-    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    webhookTriggerOb.add(
+      { subscriberOptions: subscriberOptions, eventTrigger: eventTrigger, webhookData: webhookData },
+      jobOpts
+    );
+
+    // // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+    // await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    webhookTriggerOb.add(
+      { subscriberOptions: subscriberOptions, eventTrigger: eventTrigger, webhookData: webhookData },
+      jobOpts
+    );
+
+    // await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
   // Avoid passing referencesToCreate with id unique constrain values
