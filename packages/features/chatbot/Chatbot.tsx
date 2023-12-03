@@ -117,6 +117,7 @@ const FloatingIcon = () => {
                     borderRadius: "30px",
                     padding: "0.5rem 1rem",
                     maxWidth: "80%",
+                    backgroundColor: hasDarkTheme ? "#2b2b2b" : "#e5e7eb",
                   }}>
                   <Link href={val.url_param}>Got to Page</Link>
                 </div>
@@ -130,8 +131,11 @@ const FloatingIcon = () => {
                     borderRadius: "30px",
                     padding: "0.5rem 1rem",
                     maxWidth: "80%",
+                    backgroundColor: hasDarkTheme ? "#2b2b2b" : "#e5e7eb",
                   }}>
-                  <a href={val.external_link}>Go to External Link</a>
+                  <a target="_blank" href={val.external_link}>
+                    Go to External Link
+                  </a>
                 </div>
               ) : (
                 ""
@@ -140,8 +144,8 @@ const FloatingIcon = () => {
           );
         })}
       </div>
-    ) : val.type === "aiResponse" && val.external_link === "None" ? (
-      <div key={idx} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+    ) : val.type === "aiResponse" && val.external_link === "None" && val.url_param !== "None" ? (
+      <div key={idx} style={{ width: "100%", display: "inline-block", margin: "1rem 0 1rem 0" }}>
         {val.message?.map((msg, idx) => {
           return (
             <div
@@ -159,6 +163,7 @@ const FloatingIcon = () => {
           );
         })}
         <div
+          className="chatbot-button"
           style={{
             width: "fit-content",
             border: hasDarkTheme ? "2px solid white" : "2px solid black",
@@ -166,12 +171,13 @@ const FloatingIcon = () => {
             borderRadius: "30px",
             padding: "0.5rem 1rem",
             maxWidth: "80%",
+            backgroundColor: hasDarkTheme ? "#2b2b2b" : "#e5e7eb",
           }}>
-          <Link href={val.url_param}>{val.url_param}</Link>
+          <Link href={val.url_param}>Got to Page</Link>
         </div>
       </div>
-    ) : val.type === "aiResponse" && val.url_param === "None" ? (
-      <div key={idx} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+    ) : val.type === "aiResponse" && val.url_param === "None" && val.external_link !== "None" ? (
+      <div key={idx} style={{ width: "100%", display: "inline-block", margin: "1rem 0 1rem 0" }}>
         {val.message?.map((msg, idx) => {
           return (
             <div
@@ -189,6 +195,7 @@ const FloatingIcon = () => {
           );
         })}
         <div
+          className="chatbot-button"
           style={{
             width: "fit-content",
             border: hasDarkTheme ? "2px solid white" : "2px solid black",
@@ -196,12 +203,15 @@ const FloatingIcon = () => {
             borderRadius: "30px",
             padding: "0.5rem 1rem",
             maxWidth: "80%",
+            backgroundColor: hasDarkTheme ? "#2b2b2b" : "#e5e7eb",
           }}>
-          <a href={val.external_link}>{val.external_link}</a>
+          <a target="_blank" href={val.external_link}>
+            Go to External Link
+          </a>
         </div>
       </div>
-    ) : val.type === "aiResponse" ? (
-      <div key={idx} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+    ) : val.type === "aiResponse" && val.external_link === "None" && val.url_param === "None" ? (
+      <div key={idx} style={{ width: "100%", display: "inline-block", margin: "1rem 0 1rem 0" }}>
         {val.message?.map((msg, idx) => {
           return (
             <div
