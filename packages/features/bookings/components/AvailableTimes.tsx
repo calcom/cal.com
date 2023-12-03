@@ -2,9 +2,10 @@
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { CalendarX2, ChevronRight } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useRemainingSeatsStore } from "@calcom/features/bookings/lib/useRemainingSeats";
 import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -49,6 +50,7 @@ const SlotItem = ({
   showAvailableSeatsCount?: boolean | null;
 }) => {
   const { t } = useLocale();
+  const { data: remainingSeats } = useRemainingSeatsStore();
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
@@ -63,6 +65,14 @@ const SlotItem = ({
   const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
   const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
+
+  const bookedSeat: number = useMemo(() => {
+    const maxAttendees = seatsPerTimeSlot ?? 1;
+    if (maxAttendees === 1) {
+      return 1 - remainingSeats?.[slot.time] || 0;
+    }
+    return maxAttendees - remainingSeats?.[slot.time] || slot.attendees || 0;
+  }, [remainingSeats, slot.time, slot.attendees, seatsPerTimeSlot]);
 
   const nowDate = dayjs();
   const usersTimezoneDate = nowDate.tz(timezone);
@@ -105,7 +115,7 @@ const SlotItem = ({
     seatsPerTimeSlot,
   ]);
 
-  return (
+  return bookedSeat === (seatsPerTimeSlot ?? 1) ? null : (
     <AnimatePresence>
       <div className="flex gap-2">
         <Button
@@ -141,7 +151,7 @@ const SlotItem = ({
               <SeatsAvailabilityText
                 showExact={!!showAvailableSeatsCount}
                 totalSeats={seatsPerTimeSlot}
-                bookedSeats={slot.attendees || 0}
+                bookedSeats={seatsPerTimeSlot - remainingSeats?.[slot.time] || slot.attendees || 0}
               />
             </p>
           )}
@@ -190,6 +200,8 @@ export const AvailableTimes = ({
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
+  console.log("slots", slots);
+
   return (
     <div className={classNames("text-default flex flex-col", className)}>
       <div className="h-full pb-4">
@@ -201,16 +213,18 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        {slots.map((slot) => (
-          <SlotItem
-            key={slot.time}
-            onTimeSelect={onTimeSelect}
-            slot={slot}
-            selectedSlots={selectedSlots}
-            seatsPerTimeSlot={seatsPerTimeSlot}
-            showAvailableSeatsCount={showAvailableSeatsCount}
-          />
-        ))}
+        <AnimatePresence>
+          {slots.map((slot) => (
+            <SlotItem
+              key={slot.time}
+              onTimeSelect={onTimeSelect}
+              slot={slot}
+              selectedSlots={selectedSlots}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              showAvailableSeatsCount={showAvailableSeatsCount}
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );

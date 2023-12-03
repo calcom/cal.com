@@ -11,6 +11,7 @@ import {
   getMultipleDurationValue,
 } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { useRemainingSeatsStore } from "@calcom/features/bookings/lib/useRemainingSeats";
 import { orgDomainConfig, userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import slugify from "@calcom/lib/slugify";
@@ -38,6 +39,8 @@ export default function Type({
   entity,
   duration,
 }: PageProps) {
+  const { data } = useRemainingSeatsStore();
+  console.log("data: ", data);
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
