@@ -9,6 +9,7 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -28,6 +29,7 @@ import {
   SkeletonText,
   SettingsToggle,
   UpgradeTeamsBadge,
+  useCalcomTheme,
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -61,6 +63,26 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 
+const useBrandColors = (
+  currentTheme: string | null,
+  {
+    brandColor,
+    darkBrandColor,
+  }: {
+    brandColor?: string | null;
+    darkBrandColor?: string | null;
+  }
+) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  const selectedTheme = brandTheme[currentTheme] ?? {};
+  useCalcomTheme({
+    root: selectedTheme,
+  });
+};
+
 const AppearanceView = ({
   user,
   hasPaidPlan,
@@ -77,6 +99,10 @@ const AppearanceView = ({
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
   useTheme(user?.appTheme);
+  useBrandColors(user?.appTheme ?? null, {
+    brandColor: user?.brandColor,
+    darkBrandColor: user?.darkBrandColor,
+  });
 
   const userAppThemeFormMethods = useForm({
     defaultValues: {
