@@ -14,8 +14,10 @@ const runTask = async (inputValue: string): Promise<TaskResponseType> => {
     // Runnable 2: talk to the user
     runConversation(inputValue),
   ]);
+
   // Step 2: map the responses to a task response
   const taskResponse = toTaskResponseType(routerResponse, conversationResponse);
+
   console.log(taskResponse);
   return taskResponse;
 };
