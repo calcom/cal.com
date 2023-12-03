@@ -40,10 +40,16 @@ export default function WrapperPage() {
 
   console.log(data);
 
+  let firstTime: any = "0";
+  if (data != undefined && data.length > 0) {
+    firstTime = data[0].startTime.toISOString();
+  }
+
   return (
     <div>
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
-        <h1>{userName}</h1>
+        <h1>Hi</h1>
+        <h1>{firstTime}</h1>
       </ShellMain>
     </div>
   );

@@ -1167,7 +1167,7 @@ export const insightsRouter = router({
         },
       };
 
-      const promisesResult = await Promise.all([
+      const promisesResult = await Promise.any([
         EventsInsights.getCreatedEventDetailsInTimeRange(
           {
             start: startDate,
