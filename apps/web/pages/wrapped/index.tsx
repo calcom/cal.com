@@ -14,20 +14,15 @@ export default function WrapperPage() {
   const userID = user?.id;
   const userName = user?.name;
 
-  const endDate = dayjs();
+  const endDate = dayjs().utc().endOf("year");
   const startDate = endDate.startOf("year");
   const endDateStr = endDate.toISOString();
   const startDateStr = startDate.toISOString();
-  const startDateTarget = dayjs.utc("20000101000000", "YYYYMMDD[T]HHmmss[Z]").toISOString();
-  const endDateTarget = dayjs.utc("30000101000000", "YYYYMMDD[T]HHmmss[Z]").toISOString();
-
-  console.log(startDateStr);
-  console.log(startDateTarget);
 
   const { data, isSuccess, isLoading } = trpc.viewer.insights.AllBookingsForMember.useQuery(
     {
-      startDate: startDateTarget,
-      endDate: endDateTarget,
+      startDate: startDateStr,
+      endDate: endDateStr,
       userId: userID,
     },
     {
@@ -37,8 +32,6 @@ export default function WrapperPage() {
       },
     }
   );
-
-  console.log(data);
 
   return (
     <div>
