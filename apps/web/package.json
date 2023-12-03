@@ -130,6 +130,7 @@
     "tailwindcss-radix": "^2.6.0",
     "turndown": "^7.1.1",
     "uuid": "^8.3.2",
+    "ws": "^8.14.2",
     "zod": "^3.22.2"
   },
   "devDependencies": {

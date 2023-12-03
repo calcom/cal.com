@@ -24,6 +24,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 import PageWrapper from "@components/PageWrapper";
 
 import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
+import socket from "../../ws/client";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -41,6 +42,8 @@ export default function Type({
 }: PageProps) {
   const { data } = useRemainingSeatsStore();
   console.log("data: ", data);
+  console.log(socket);
+
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo

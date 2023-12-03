@@ -1,0 +1,17 @@
+{
+  "name": "realtimeReservationUpdate",
+  "packageManager": "yarn@3.4.1",
+  "type": "module",
+  "scripts": {
+    "server": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "typescript": "^5.3.2",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.10",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.1"
+  }
+}
