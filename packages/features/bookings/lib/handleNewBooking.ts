@@ -25,6 +25,7 @@ import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -2725,8 +2726,8 @@ async function handler(
     const hasExistingWorkflow: boolean = eventType.workflows.some((workflow) => {
       return (
         workflow.workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
-        workflow.workflow.time === 1 &&
-        workflow.workflow.timeUnit === TimeUnit.HOUR &&
+        ((workflow.workflow.time <= 12 && workflow.workflow.timeUnit === TimeUnit.HOUR) ||
+          (workflow.workflow.time <= 720 && workflow.workflow.timeUnit === TimeUnit.MINUTE)) &&
         workflow.workflow.steps.some((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
       );
     });
@@ -2735,44 +2736,34 @@ async function handler(
       evt.attendees.some((attendee) => attendee.email.includes("@gmail.com")) &&
       !eventType.requiresConfirmation
     ) {
-      const workflow = await prisma.workflow.create({
-        data: {
-          name: "Mandatory Gmail Reminder 1 Hour Before",
-          time: 1,
-          timeUnit: TimeUnit.HOUR,
-          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-          steps: {
-            create: [
-              {
-                stepNumber: 1,
-                action: WorkflowActions.EMAIL_ATTENDEE,
-                template: WorkflowTemplates.REMINDER,
-                sender: SENDER_NAME,
-                numberVerificationPending: false,
-              },
-            ],
+      try {
+        const filteredAttendees =
+          evt.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
+        await scheduleEmailReminder(
+          {
+            ...evt,
+            ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
           },
-        },
-        include: {
-          steps: true,
-        },
-      });
-      eventType.workflows.push({
-        id: -1,
-        workflowId: workflow.id,
-        eventTypeId: -1,
-        workflow: {
-          id: workflow.id,
-          position: 0,
-          name: workflow.name,
-          userId: workflow.userId,
-          teamId: workflow.teamId,
-          trigger: workflow.trigger,
-          time: workflow.time,
-          timeUnit: workflow.timeUnit,
-          steps: workflow.steps,
-        },
-      });
+          WorkflowTriggerEvents.BEFORE_EVENT,
+          WorkflowActions.EMAIL_ATTENDEE,
+          {
+            time: 1,
+            timeUnit: TimeUnit.HOUR,
+          },
+          filteredAttendees,
+          "",
+          "",
+          WorkflowTemplates.REMINDER,
+          SENDER_NAME,
+          undefined,
+          false,
+          evt.attendeeSeatId,
+          false,
+          true
+        );
+      } catch (error) {
+        loggerWithEventDetails.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
+      }
     }
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,

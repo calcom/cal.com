@@ -99,9 +99,9 @@ const processWorkflowStep = async (
       sendTo,
       step.emailSubject || "",
       step.reminderBody || "",
-      step.id,
       step.template,
       step.sender || SENDER_NAME,
+      step.id,
       hideBranding,
       seatReferenceUid,
       step.includeCalendarEvent
@@ -162,28 +162,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
       // Check if the trigger is not a rescheduled event that is rescheduled.
       !(workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
     ) {
-      continue;
-    }
-    if (
-      workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
-      workflowReference.id === -1 &&
-      workflowReference.eventTypeId === -1
-    ) {
-      const eventWithGmailAttendees = evt;
-      eventWithGmailAttendees.attendees = eventWithGmailAttendees.attendees?.filter((attendee) =>
-        attendee.email.includes("@gmail.com")
-      );
-
-      for (const step of workflow.steps) {
-        await processWorkflowStep(workflow, step, {
-          calendarEvent: eventWithGmailAttendees,
-          emailAttendeeSendToOverride,
-          smsReminderNumber,
-          hideBranding,
-          seatReferenceUid,
-          eventTypeRequiresConfirmation,
-        });
-      }
       continue;
     }
     for (const step of workflow.steps) {

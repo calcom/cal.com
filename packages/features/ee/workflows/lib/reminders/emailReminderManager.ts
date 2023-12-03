@@ -105,12 +105,13 @@ export const scheduleEmailReminder = async (
   sendTo: MailData["to"],
   emailSubject: string,
   emailBody: string,
-  workflowStepId: number,
   template: WorkflowTemplates,
   sender: string,
+  workflowStepId?: number,
   hideBranding?: boolean,
   seatReferenceUid?: string,
-  includeCalendarEvent?: boolean
+  includeCalendarEvent?: boolean,
+  isMandatoryReminder?: boolean
 ) => {
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
@@ -129,7 +130,7 @@ export const scheduleEmailReminder = async (
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     console.error("Sendgrid credentials are missing from the .env file");
   }
-
+  console.log("Sendgrid credentials are missing from the .env file");
   const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let attendeeEmailToBeUsedInMail: string | null = null;
@@ -311,32 +312,59 @@ export const scheduleEmailReminder = async (
           },
           triggerEvent
         );
+        if (!isMandatoryReminder) {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              workflowStepId: workflowStepId,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: batchId,
+              seatReferenceId: seatReferenceUid,
+            },
+          });
+        } else {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: batchId,
+              seatReferenceId: seatReferenceUid,
+              isMandatoryReminder: true,
+            },
+          });
+        }
+      } catch (error) {
+        console.log(`Error scheduling email with error ${error}`);
+      }
+    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
+      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
+      if (!isMandatoryReminder) {
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
             workflowStepId: workflowStepId,
             method: WorkflowMethods.EMAIL,
             scheduledDate: scheduledDate.toDate(),
-            scheduled: true,
-            referenceId: batchId,
+            scheduled: false,
             seatReferenceId: seatReferenceUid,
           },
         });
-      } catch (error) {
-        console.log(`Error scheduling email with error ${error}`);
+      } else {
+        await prisma.workflowReminder.create({
+          data: {
+            bookingUid: uid,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+            seatReferenceId: seatReferenceUid,
+            isMandatoryReminder: true,
+          },
+        });
       }
-    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
-      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
-      await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.EMAIL,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: false,
-          seatReferenceId: seatReferenceUid,
-        },
-      });
     }
   }
 };

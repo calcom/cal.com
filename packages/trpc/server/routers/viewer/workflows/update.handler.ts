@@ -326,9 +326,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 sendTo,
                 step.emailSubject || "",
                 step.reminderBody || "",
-                step.id,
                 step.template,
-                step.senderName || SENDER_NAME
+                step.senderName || SENDER_NAME,
+                step.id
               );
             } else if (step.action === WorkflowActions.SMS_NUMBER) {
               await scheduleSMSReminder(
@@ -563,9 +563,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               sendTo,
               newStep.emailSubject || "",
               newStep.reminderBody || "",
-              newStep.id,
+
               newStep.template,
-              newStep.senderName || SENDER_NAME
+              newStep.senderName || SENDER_NAME,
+              newStep.id
             );
           } else if (newStep.action === WorkflowActions.SMS_NUMBER) {
             await scheduleSMSReminder(
@@ -714,9 +715,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 sendTo,
                 step.emailSubject || "",
                 step.reminderBody || "",
-                createdStep.id,
+
                 step.template,
-                step.senderName || SENDER_NAME
+                step.senderName || SENDER_NAME,
+                createdStep.id
               );
             } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
               await scheduleSMSReminder(

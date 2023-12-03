@@ -2,6 +2,7 @@ import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@pri
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
+import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -269,8 +270,8 @@ export async function handleConfirmation(args: {
         (workflow) => {
           return (
             workflow.workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
-            workflow.workflow.time === 1 &&
-            workflow.workflow.timeUnit === TimeUnit.HOUR &&
+            ((workflow.workflow.time <= 12 && workflow.workflow.timeUnit === TimeUnit.HOUR) ||
+              (workflow.workflow.time <= 720 && workflow.workflow.timeUnit === TimeUnit.MINUTE)) &&
             workflow.workflow.steps.some((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
           );
         }
@@ -279,44 +280,34 @@ export async function handleConfirmation(args: {
         !hasExistingWorkflow &&
         evtOfBooking.attendees.some((attendee) => attendee.email.includes("@gmail.com"))
       ) {
-        const workflow = await prisma.workflow.create({
-          data: {
-            name: "Mandatory Gmail Reminder 1 Hour Before",
-            time: 1,
-            timeUnit: TimeUnit.HOUR,
-            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-            steps: {
-              create: [
-                {
-                  stepNumber: 1,
-                  action: WorkflowActions.EMAIL_ATTENDEE,
-                  template: WorkflowTemplates.REMINDER,
-                  sender: SENDER_NAME,
-                  numberVerificationPending: false,
-                },
-              ],
+        try {
+          const filteredAttendees =
+            evtOfBooking.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
+          await scheduleEmailReminder(
+            {
+              ...evtOfBooking,
+              ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
             },
-          },
-          include: {
-            steps: true,
-          },
-        });
-        updatedBookings[index]?.eventType?.workflows.push({
-          id: -1,
-          workflowId: workflow.id,
-          eventTypeId: -1,
-          workflow: {
-            id: workflow.id,
-            position: 0,
-            name: workflow.name,
-            userId: workflow.userId,
-            teamId: workflow.teamId,
-            trigger: workflow.trigger,
-            time: workflow.time,
-            timeUnit: workflow.timeUnit,
-            steps: workflow.steps,
-          },
-        });
+            WorkflowTriggerEvents.BEFORE_EVENT,
+            WorkflowActions.EMAIL_ATTENDEE,
+            {
+              time: 1,
+              timeUnit: TimeUnit.HOUR,
+            },
+            filteredAttendees,
+            "",
+            "",
+            WorkflowTemplates.REMINDER,
+            SENDER_NAME,
+            undefined,
+            false,
+            evtOfBooking.attendeeSeatId,
+            false,
+            true
+          );
+        } catch (error) {
+          console.error(error);
+        }
       }
       await scheduleWorkflowReminders({
         workflows: updatedBookings[index]?.eventType?.workflows || [],
