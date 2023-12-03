@@ -77,7 +77,7 @@ const useBrandColors = (
     lightVal: brandColor,
     darkVal: darkBrandColor,
   });
-  const selectedTheme = brandTheme[currentTheme] ?? {};
+  const selectedTheme = currentTheme ? brandTheme[currentTheme] : {};
   useCalcomTheme({
     root: selectedTheme,
   });
