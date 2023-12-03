@@ -187,6 +187,15 @@ Deploying Cal.com on AWS
 1. Adhere to AWS's recommended security practices.
 2. Regularly update your deployment with the latest Cal.com releases.
 
+<img width="1702" alt="Screenshot 2023-12-02 at 5 10 31 PM" src="https://github.com/sriyachalla/cal.com/assets/100821752/050ef8eb-403e-48b2-b23e-e9dc0fa60223">
+
+<img width="1057" alt="Screenshot 2023-12-02 at 5 10 44 PM" src="https://github.com/sriyachalla/cal.com/assets/100821752/c6599378-9a0d-4445-9f7d-734317562d38">
+
+<img width="903" alt="Screenshot 2023-12-02 at 5 11 07 PM" src="https://github.com/sriyachalla/cal.com/assets/100821752/fa930de1-9a4d-4dac-83ba-7db9bbf2e510">
+
+<img width="1067" alt="Screenshot 2023-12-02 at 5 11 41 PM" src="https://github.com/sriyachalla/cal.com/assets/100821752/6e5b5504-4f92-4a9a-af21-c8743ea597d1">
+
+
 ### Step 8: Additional Resources
 https://cal.com/docs
 https://docs.aws.amazon.com/
