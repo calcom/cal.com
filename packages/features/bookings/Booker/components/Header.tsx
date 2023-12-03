@@ -62,7 +62,7 @@ export function Header({
   useEffect(() => {
     const paramTimeZone = searchParams?.get("timezone");
     // Check if the timezone is valid
-    const isValidTimeZone = paramTimeZone && !dayjs.tz(dayjs(), paramTimeZone).isValidTimeZone();
+    const isValidTimeZone = paramTimeZone && !dayjs.tz(dayjs(), paramTimeZone).isInvalid();
 
     if (isValidTimeZone) {
       setTimezone(paramTimeZone);
