@@ -61,4 +61,5 @@ export const handleTypeForwarding = async (props: HandleTypeForwardingProps) => 
       },
     };
   }
+  return {};
 };

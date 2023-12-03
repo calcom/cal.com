@@ -184,13 +184,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
   // If user is found, quickly verify bookingForwarding
-  const redirect = handleTypeForwarding({
+  const result = await handleTypeForwarding({
     userId: user.id,
     username,
     slug,
   });
-  if (redirect) {
-    return redirect;
+  if (result && result.redirect?.destination) {
+    return result;
   }
 
   let booking: GetBookingType | null = null;

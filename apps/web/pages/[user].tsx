@@ -306,9 +306,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const dataFetchStart = Date.now();
 
   if (usernameList.length === 1) {
-    const redirect = handleUserForwarding({ username: usernameList[0] });
-    if (redirect) {
-      return redirect;
+    const result = await handleUserForwarding({ username: usernameList[0] });
+    if (result && result.redirect?.destination) {
+      return result;
     }
   }
 

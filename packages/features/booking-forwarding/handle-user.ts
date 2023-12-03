@@ -49,5 +49,6 @@ export const handleUserForwarding = async (props: HandleUserForwardingProps) => 
         },
       };
     }
+    return {};
   }
 };
