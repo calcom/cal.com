@@ -1,13 +1,15 @@
+import { motion } from "framer-motion";
+
 import dayjs from "@calcom/dayjs";
-import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import PageWrapper from "@components/PageWrapper";
+import Card from "./card";
+import Mask from "./mask";
 
-export default function WrapperPage() {
+export default function InsightsPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
 
@@ -84,17 +86,30 @@ export default function WrapperPage() {
   console.log("Total Event Length:", totalEventLength);
 
   return (
-    <div>
+    <div className="relative overflow-hidden">
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
-        <h1>Hi</h1>
-        <h1>{firstTime}</h1>
+        <div className="flex w-full flex-col space-y-8 p-2">
+          <div className="h-32 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg" />
+
+          <div className="h-[650px] w-full space-y-8 overflow-scroll overscroll-none pt-5">
+            <div className="h-64 w-full rounded-xl border-2 shadow-lg" />
+            <div className="flex w-full flex-row space-x-5">
+              <Card />
+              <Card />
+              <Card />
+            </div>
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1.5 }}>
+              <div className="flex h-64 w-full items-center justify-center rounded-xl border-2 bg-gradient-to-r shadow-lg" />
+            </motion.div>
+            <div className="flex h-64 w-full items-center justify-center rounded-xl border-2 bg-gradient-to-r shadow-lg" />
+          </div>
+        </div>
       </ShellMain>
+
+      <Mask />
     </div>
   );
 }
-
-WrapperPage.PageWrapper = PageWrapper;
-WrapperPage.getLayout = getLayout;
 
 // If feature flag is disabled, return not found on getServerSideProps
 export const getServerSideProps = async () => {
