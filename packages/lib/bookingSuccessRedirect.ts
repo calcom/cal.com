@@ -23,7 +23,7 @@ function getNewSeachParams(args: {
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
   "uid" | "title" | "description" | "startTime" | "endTime" | "location"
->;
+> & { hideSuccessScreen: boolean };
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   type BookingResponseKey = keyof SuccessRedirectBookingType;
