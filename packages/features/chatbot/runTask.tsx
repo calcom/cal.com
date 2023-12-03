@@ -2,10 +2,6 @@ import runConversation from "./runnables/conversationRunnable";
 import runRouter from "./runnables/routerRunnable";
 
 const runTask = async (inputValue: string) => {
-  // const urlParamsResponse: any = await runRouter(inputValue);
-
-  // const conversationResponse: any = await runConversation(inputValue);
-
   const [urlParamsResponse, conversationResponse] = await Promise.all([
     // Runnable 1: parse the url params
     runRouter(inputValue),
@@ -14,12 +10,13 @@ const runTask = async (inputValue: string) => {
   ]);
 
   const outValue = {
+    // Response 1: url params
     urlParamsResponse: urlParamsResponse,
+    // Response 2: conversation response
     conversationResponse: conversationResponse,
   };
 
   console.log(outValue);
-
   return outValue;
 };
 
