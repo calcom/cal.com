@@ -24,9 +24,14 @@ export default class BaseEmail {
     return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
-  public async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
+
+  public async getNodeMailerPayloadPublic(): Promise<Record<string, unknown>> {
+    return await this.getNodeMailerPayload();
+  }
+
   public async sendEmail(payload: Record<string, unknown>) {
     const featureFlags = await getFeatureFlagMap(prisma);
     /** If email kill switch exists and is active, we prevent emails being sent. */
@@ -38,7 +43,7 @@ export default class BaseEmail {
     if (process.env.INTEGRATION_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
-      setTestEmail(await this.getNodeMailerPayload());
+      setTestEmail(payload);
       console.log(
         "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
       );

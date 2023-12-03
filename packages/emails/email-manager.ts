@@ -4,8 +4,8 @@ import type { TFunction } from "next-i18next";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
-import type BaseEmail from "@calcom/emails/templates/_base-email";
-import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsSender";
+import BaseEmail from "@calcom/emails/templates/_base-email";
+import { SqsEventTypes, sqsSender, pollSQS } from "@calcom/lib/awsSqsSender";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -51,34 +51,37 @@ import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
-export const sendEmailFromQueue = (serializedPayload: string, prepare: () => BaseEmail) => {
+export const sendEmailFromQueue = (serializedPayload: string) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const email = prepare();
+      const email = new BaseEmail();
 
-      const payload = JSON.parse(serializedPayload);
-
-      resolve(email.sendEmail(payload));
+      resolve(email.sendEmail(serializedPayload));
+      console.log("JRFJRF EMAIL SENT!!!");
     } catch (e) {
-      reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
+      reject(console.error(`sendEmail failed`, e));
     }
   });
 };
+
+// TODO delete below
+
+// TODO delete above
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise(async (resolve, reject) => {
     try {
       const email = prepare();
 
-      const payload = await email.getNodeMailerPayload();
+      const payload = await email.getNodeMailerPayloadPublic();
 
       if (process.env.AWS_SQS_CONSUMER) {
-        console.log("JRJF ", payload);
         const serializedPayload = JSON.stringify(payload);
-        sqsSender(SqsEventTypes.Email, payload);
+        await sqsSender(SqsEventTypes.EmailEvent, payload); // TODO remove await
 
-        const payload2 = JSON.parse(serializedPayload);
-        resolve(email.sendEmail(payload2)); // TODO delete
+        // const payload2 = JSON.parse(serializedPayload); // TODO delete
+        resolve(); // TODO delete
+        await pollSQS(); // TODO delete
       } else {
         resolve(email.sendEmail(payload));
       }
