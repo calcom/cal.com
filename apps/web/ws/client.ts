@@ -1,18 +1,23 @@
-export default function useWebSocket(callback: () => void) {
+export default function useWebSocket({
+  onData,
+  onError = () => {
+    console.log("Websocket onError");
+  },
+}: {
+  onData: (d: string) => void;
+  onError?: () => void;
+}) {
   const ws = new WebSocket("ws://localhost:8080");
 
-  ws.onopen = function (event) {
+  ws.onopen = function () {
     console.log("[open] Connection established");
-    console.log("Sending to server");
   };
 
-  ws.onmessage = function (event) {
-    console.log(event);
-    console.log(`[message] Data received from server: ${event.data}`);
-    callback(event.data);
+  ws.onmessage = function (event: MessageEvent) {
+    onData(event.data);
   };
 
-  return {
-    ws,
+  ws.onerror = function () {
+    onError();
   };
 }
