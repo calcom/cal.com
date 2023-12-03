@@ -26,14 +26,14 @@ export const createCopilotSuggestionHandler = async ({ ctx, input }: CreateCopil
         ...item,
         owner: { connect: { id: ctx.user.id } },
         users: { connect: { id: ctx.user.id } },
-        // locations: [{ type: DailyLocationType }],
       };
-      await ctx.prisma.eventType.create({
-        data: enhancedItem,
-      });
+
+      await ctx.prisma.eventType.create({ data: enhancedItem });
     }
     return {};
   } catch (e) {
+    console.log(e);
+
     if (e instanceof PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
@@ -50,6 +50,7 @@ async function augmentInputsWithCopilot(input: { aboutMe: string; aboutPeopleToM
   const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
   const llmResponse = await openai.chat.completions.create({
+    temperature: 0,
     model: "gpt-4",
     messages: [
       {
@@ -58,6 +59,8 @@ async function augmentInputsWithCopilot(input: { aboutMe: string; aboutPeopleToM
 You're an AI assistant built into a meeting scheduling software.
 You learn who the user is, who they want to meet, and the parameters API accepts,
 and you suggest the value for the parameters based on the user's preferences.
+
+You produce output in JSON format, without any comments, so that it can be used directly by the parameters API.
           `,
       },
       {
@@ -78,12 +81,9 @@ hidden: z.boolean().optional(),
 export const eventTypeLocations = z.array(
 z.object({
 type: z.string(), // "inPerson" | "integrations:daily" | "userPhone"
-address: z.string().optional(),
-link: z.string().url().optional(),
+address: z.string().optional(), // only for inPerson
 displayLocationPublicly: z.boolean().optional(),
 hostPhoneNumber: z.string().optional(),
-credentialId: z.number().optional(),
-teamName: z.string().optional(),
 })
 );
           `,
@@ -126,12 +126,14 @@ Must sound friendly, use simple language, and be easy to understand.
       },
       {
         role: "assistant",
-        content: `Sure! Here's the json array:`,
+        content: `Sure! Here's the array, in valid JSON format:`,
       },
     ],
   });
 
   let responseContent = llmResponse?.choices?.[0]?.message?.content || "[]";
+
+  console.log("responseContent", responseContent);
   // make sure responseContent is valid json, cut off the rest
   if (responseContent) {
     const jsonStartIndex = responseContent.indexOf("[");
