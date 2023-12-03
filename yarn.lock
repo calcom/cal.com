@@ -3013,6 +3013,7 @@ __metadata:
   resolution: "@calcom/ai@workspace:apps/ai"
   dependencies:
     "@calcom/prisma": "*"
+    "@calcom/queues": "*"
     "@t3-oss/env-nextjs": ^0.6.1
     "@types/mailparser": ^3.4.0
     langchain: ^0.0.131
