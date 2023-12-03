@@ -592,6 +592,11 @@ const navigation: NavigationItemType[] = [
     href: "/insights",
     icon: BarChart,
   },
+  {
+    name: "Time Capsule",
+    href: "/time-capsule",
+    icon: BarChart,
+  },
 ];
 
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);

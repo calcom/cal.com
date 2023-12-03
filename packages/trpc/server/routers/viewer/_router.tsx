@@ -3,6 +3,7 @@ import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
+import { timeCapsuleRouter } from "@calcom/features/time-capsule/server/trpc-router";
 
 import { mergeRouters, router } from "../../trpc";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
@@ -43,6 +44,7 @@ export const viewerRouter = mergeRouters(
     workflows: workflowsRouter,
     saml: ssoRouter,
     insights: insightsRouter,
+    timeCapsule: timeCapsuleRouter,
     payments: paymentsRouter,
     // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
     // After that there would just one merge call here for all the apps.

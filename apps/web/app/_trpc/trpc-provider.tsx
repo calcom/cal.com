@@ -24,6 +24,7 @@ const resolveEndpoint = (links: any) => {
     const parts = ctx.op.path.split(".");
     let endpoint;
     let path = "";
+    console.log({ links, parts });
     if (parts.length == 2) {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];

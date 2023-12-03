@@ -117,6 +117,7 @@
     "react-phone-input-2": "^2.15.1",
     "react-phone-number-input": "^3.2.7",
     "react-schemaorg": "^2.0.0",
+    "react-scroll-parallax": "^3.4.5",
     "react-select": "^5.7.0",
     "react-timezone-select": "^1.4.0",
     "react-use-intercom": "1.5.1",

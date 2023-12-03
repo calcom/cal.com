@@ -106,6 +106,7 @@
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",
+    "react-scroll-parallax": "^3.4.5",
     "turbo": "^1.10.1"
   },
   "resolutions": {

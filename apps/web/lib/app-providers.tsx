@@ -10,6 +10,7 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
+import { ParallaxProvider } from "react-scroll-parallax";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -296,7 +297,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
               router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
+                  <ParallaxProvider>
+                    <MetaProvider>{props.children}</MetaProvider>
+                  </ParallaxProvider>
                 </OrgBrandProvider>
               </FeatureFlagsProvider>
             </CalcomThemeProvider>
