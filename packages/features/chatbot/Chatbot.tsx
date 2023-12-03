@@ -49,7 +49,6 @@ const FloatingIcon = () => {
 
     // Update the chatLog state with the new entry
     setChatLog([...chatLog, inputValue]);
-    runTask(inputValue);
 
     if (inputValue === "") return;
 
