@@ -28,7 +28,8 @@ export const useRemainingSeatsStore = create<RemainingSeatsStore>((set) => ({
       const updateData = res.data;
       const { ts, seatsLeft } = updateData;
       const data = { ...state.data };
-      data[ts] = seatsLeft;
+      const key = new Date(ts).toISOString();
+      data[key] = seatsLeft;
       console.log("processed", data);
       return { data };
     });

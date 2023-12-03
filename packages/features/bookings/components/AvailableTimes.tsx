@@ -202,13 +202,16 @@ export const AvailableTimes = ({
         <AnimatePresence initial={false}>
           {slots
             .filter((slot) => {
-              const maxAttendees = seatsPerTimeSlot ?? 1;
-              if (maxAttendees === 1) {
-                const bookedSeat = 1 - remainingSeats?.[slot.time] || 0;
-                return bookedSeat !== (seatsPerTimeSlot ?? 1);
-              }
-              const bookedSeat = maxAttendees - remainingSeats?.[slot.time] || slot.attendees || 0;
-              return bookedSeat !== (seatsPerTimeSlot ?? 1);
+              // const maxAttendees = seatsPerTimeSlot ?? 1;
+              // if (maxAttendees === 1) {
+              //   const bookedSeat = 1 - remainingSeats?.[slot.time] || 0;
+              //   return bookedSeat !== (seatsPerTimeSlot ?? 1);
+              // }
+              // const bookedSeat = maxAttendees - remainingSeats?.[slot.time] || slot.attendees || 0;
+              // return bookedSeat !== (seatsPerTimeSlot ?? 1);
+              const key = new Date(slot.time).toISOString();
+
+              return !remainingSeats?.[key];
             })
             .map((slot) => (
               <m.div

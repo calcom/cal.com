@@ -40,10 +40,18 @@ export default function Type({
   entity,
   duration,
 }: PageProps) {
-  const { data } = useRemainingSeatsStore();
+  const { data, processUpdate } = useRemainingSeatsStore();
   console.log("data: ", data);
   const onData = (data) => {
     console.log("onData: ", data);
+    console.log(typeof data);
+    console.log(JSON.parse(data));
+    const update = {
+      ts: JSON.parse(data).slotUtcStartDate,
+      seatsLeft: 0,
+    };
+    console.log(update);
+    processUpdate(update);
   };
   useWebsocket(onData);
 

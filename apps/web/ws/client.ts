@@ -4,7 +4,6 @@ export default function useWebSocket(callback: () => void) {
   ws.onopen = function (event) {
     console.log("[open] Connection established");
     console.log("Sending to server");
-    ws.send("My name is John");
   };
 
   ws.onmessage = function (event) {
