@@ -134,7 +134,12 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           </div>
 
           <div className="flex w-full items-center justify-center">
-            <AvatarAssistant />
+            <AvatarAssistant
+              username={user.username}
+              userEventTypes={eventTypes.map((x) => {
+                return { title: x.title, slug: x.id, description: x.descriptionAsSafeHTML };
+              })}
+            />
           </div>
 
           <div

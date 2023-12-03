@@ -340,6 +340,8 @@
     "ZOOM_CLIENT_SECRET",
 
     "OPENAI_API_KEY",
-    "ELEVEN_LABS_API_KEY"
+    "ELEVEN_LABS_API_KEY",
+    "BACKEND_URL",
+    "CAL_API_KEY"
   ]
 }
