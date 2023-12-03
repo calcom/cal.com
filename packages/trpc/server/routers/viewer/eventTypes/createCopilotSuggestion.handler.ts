@@ -72,6 +72,7 @@ description: z.string().nullish(),
 length: z.number().int().min(1),
 locations: imports.eventTypeLocations,
 minimumBookingNotice: z.number().int().min(0), // in minutes
+hidden: z.boolean().optional(),
 });
 
 export const eventTypeLocations = z.array(
@@ -113,6 +114,8 @@ Titles must be short, descriptions must call to action.
 
 Typical locations are in-person, online or by phone.
 If location location details are not clear form the context or not specified by the user, must keep it empty.
+
+Non-work related events must be marked as hidden.
 
 Set the length of the event based on the event's purpose.
 Friendly chats, sync calls must be short. Meetings, interviews, presentations must be longer.

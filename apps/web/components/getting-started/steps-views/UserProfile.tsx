@@ -15,6 +15,7 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
   bio: string;
+  purpose: string;
 };
 
 const UserProfile = () => {
@@ -22,14 +23,17 @@ const UserProfile = () => {
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
   const { setValue, handleSubmit, getValues } = useForm<FormData>({
-    defaultValues: { bio: user?.bio || "" },
+    defaultValues: {
+      bio: user?.bio || "",
+      purpose: "",
+    },
   });
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
-  const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const createEventTypesWithCopilot = trpc.viewer.eventTypes.createCopilotSuggestion.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
 
@@ -41,11 +45,18 @@ const UserProfile = () => {
       } else {
         try {
           if (eventTypes?.length === 0) {
-            await Promise.all(
-              DEFAULT_EVENT_TYPES.map(async (event) => {
-                return createEventType.mutate(event);
-              })
-            );
+            await new Promise((resolve, reject) => {
+              createEventTypesWithCopilot.mutate(
+                {
+                  aboutMe: getValues("bio") || "",
+                  aboutPeopleToMeet: getValues("purpose") || "",
+                },
+                {
+                  onError: reject,
+                  onSuccess: resolve,
+                }
+              );
+            });
           }
         } catch (error) {
           console.error(error);
@@ -77,25 +88,6 @@ const UserProfile = () => {
       avatar: enteredAvatar,
     });
   }
-
-  const DEFAULT_EVENT_TYPES = [
-    {
-      title: t("15min_meeting"),
-      slug: "15min",
-      length: 15,
-    },
-    {
-      title: t("30min_meeting"),
-      slug: "30min",
-      length: 30,
-    },
-    {
-      title: t("secret_meeting"),
-      slug: "secret",
-      length: 15,
-      hidden: true,
-    },
-  ];
 
   const organization =
     user.organization && user.organization.id
@@ -156,8 +148,22 @@ const UserProfile = () => {
           {t("few_sentences_about_yourself")}
         </p>
       </fieldset>
+      <fieldset className="mt-8">
+        <Label className="text-default mb-2 block text-sm font-medium">Who can book time with you?</Label>
+        <Editor
+          getText={() => md.render(getValues("purpose") || "")}
+          setText={(value: string) => setValue("purpose", turndown(value))}
+          excludedToolbarItems={["blockType"]}
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
+        />
+        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
+          Tell us a bit about who you want to meet, and we&apos;ll set up your calendar accordingly.
+        </p>
+      </fieldset>
       <Button
         type="submit"
+        loading={createEventTypesWithCopilot.isLoading || mutation.isLoading}
         className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
         {t("finish")}
         <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
