@@ -137,7 +137,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             <AvatarAssistant
               username={user.username}
               userEventTypes={eventTypes.map((x) => {
-                return { title: x.title, slug: x.id, description: x.descriptionAsSafeHTML };
+                return { title: x.title, slug: x.slug, id: x.id, description: x.descriptionAsSafeHTML };
               })}
             />
           </div>

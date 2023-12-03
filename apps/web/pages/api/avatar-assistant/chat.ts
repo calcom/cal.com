@@ -21,13 +21,17 @@ export default async function Chat(req: NextRequest) {
 
   const initialMessage = {
     content: `
-    When being asked, mention what the user wanted to chat about, and you can help scheduling!!!! Do not reply with "Hello! How can I assist you today?"
+    When being asked, mention what the user wanted to chat about, and you can help scheduling!!!! 
+    Do not reply with "Hello! How can I assist you today?"
 
     The current time is ${userTime}
     The current timezone is ${timezone}
     You need to show your time and the user's time and timezone!!!.
     Your name is ${username}. You are the helping the user to schedule an event.
-    You currently have the following event types in json: ${JSON.stringify(userEventTypes)}. 
+    You currently have the following event types in events: 
+    ${userEventTypes.map(
+      (eventType) => `event type slug: ${eventType.slug}, event type id: ${eventType.id}`
+    )} 
     You will need to ask the user to provide the following information:
     - Date range
     - Time range
@@ -42,6 +46,92 @@ export default async function Chat(req: NextRequest) {
   };
 
   console.log(initialMessage);
+
+  const functions: ChatCompletionCreateParams.Function[] = [
+    {
+      name: "get_user_availability",
+      description: "Get user availability by date range and event type.",
+      parameters: {
+        type: "object",
+        properties: {
+          dateFrom: {
+            type: "string",
+            description: "The start date of the range to check. And switch to the user's timezone.",
+          },
+          dateTo: {
+            type: "string",
+            description: "The end date of the range to check. And switch to the user's timezone.",
+          },
+          // eventTypeId: {
+          //   type: "integer",
+          //   description: "The event type ID to check.",
+          // },
+        },
+        required: [
+          "dateFrom",
+          "dateTo",
+          // "eventTypeId"
+        ],
+      },
+    },
+    {
+      name: "create_booking",
+      description: "Create a booking for the user.",
+      parameters: {
+        type: "object",
+        properties: {
+          email: {
+            type: "string",
+            description: "The email from the user.",
+          },
+          name: {
+            type: "string",
+            description: "The name from the user.",
+          },
+          end: {
+            type: "string",
+            description: "The end date of the range to check.",
+          },
+          eventTypeId: {
+            type: "integer",
+            description: "The event type ID to check.",
+          },
+          eventTypeSlug: {
+            type: "string",
+            enum: userEventTypes.map((eventType) => `${eventType.slug}`),
+            description: "The event type slug to check.",
+          },
+          language: {
+            type: "string",
+            description: "The language from the user.",
+          },
+          start: {
+            type: "string",
+            description: "The start date of the range to check.",
+          },
+          timeZone: {
+            type: "string",
+            description: "The time zone of the user using the assistant.",
+          },
+          title: {
+            type: "string",
+            description: "The title of the event.",
+          },
+        },
+        required: [
+          "end",
+          "eventTypeId",
+          "language",
+          "start",
+          "timeZone",
+          "title",
+          "email",
+          "name",
+          "eventTypeSlug",
+        ],
+      },
+    },
+  ];
 
   // Request the OpenAI API for the response based on the prompt
   const response = await openai.chat.completions.create({
@@ -88,20 +178,24 @@ export default async function Chat(req: NextRequest) {
             functions,
           });
         case "create_booking":
-          const { end, eventTypeId, language, start, timeZone, email, name } = CreateBooking.parse(args);
+          const { end, eventTypeId, language, start, timeZone, email, name, eventTypeSlug } =
+            CreateBooking.parse(args);
           const booking = await createBooking({
+            req: req,
             apiKey: process.env.CAL_API_KEY!,
+            eventTypeSlug,
             userId,
             user: {
-              name: username,
-              email: props.email,
+              name: name,
+              email: email,
             },
-            eventTypeId,
+            eventTypeId: userEventTypes.find((eventType) => eventType.slug === eventTypeSlug)!.id!,
             start,
             end,
             timeZone,
             language,
           });
+          console.log("Booking", booking);
           const bookingmessage = createFunctionCallMessages(booking as any);
           return openai.chat.completions.create({
             messages: [...messages, ...bookingmessage],
@@ -137,78 +231,8 @@ const CreateBooking = z.object({
   status: z.string().optional().describe("ACCEPTED, PENDING, CANCELLED or REJECTED"),
   timeZone: z.string(),
   title: z.string().optional(),
+  eventTypeSlug: z.string(),
 });
-
-const functions: ChatCompletionCreateParams.Function[] = [
-  {
-    name: "get_user_availability",
-    description: "Get user availability by date range and event type.",
-    parameters: {
-      type: "object",
-      properties: {
-        dateFrom: {
-          type: "string",
-          description: "The start date of the range to check. And switch to the user's timezone.",
-        },
-        dateTo: {
-          type: "string",
-          description: "The end date of the range to check. And switch to the user's timezone.",
-        },
-        // eventTypeId: {
-        //   type: "integer",
-        //   description: "The event type ID to check.",
-        // },
-      },
-      required: [
-        "dateFrom",
-        "dateTo",
-        // "eventTypeId"
-      ],
-    },
-  },
-  {
-    name: "create_booking",
-    description: "Create a booking for the user.",
-    parameters: {
-      type: "object",
-      properties: {
-        email: {
-          type: "string",
-          description: "The email from the user.",
-        },
-        name: {
-          type: "string",
-          description: "The name from the user.",
-        },
-        end: {
-          type: "string",
-          description: "The end date of the range to check.",
-        },
-        eventTypeId: {
-          type: "integer",
-          description: "The event type ID to check.",
-        },
-        language: {
-          type: "string",
-          description: "The language from the user.",
-        },
-        start: {
-          type: "string",
-          description: "The start date of the range to check.",
-        },
-        timeZone: {
-          type: "string",
-          description: "The time zone of the user using the assistant.",
-        },
-        title: {
-          type: "string",
-          description: "The title of the event.",
-        },
-      },
-      required: ["end", "eventTypeId", "language", "start", "timeZone", "title", "email", "name"],
-    },
-  },
-];
 
 export type Availability = {
   busy: {
@@ -294,6 +318,8 @@ export const fetchAvailability = async ({
 };
 
 const createBooking = async ({
+  req,
+  eventTypeSlug,
   apiKey,
   userId,
   user,
@@ -303,12 +329,14 @@ const createBooking = async ({
   timeZone,
   language,
 }: {
+  req: NextRequest;
   apiKey: string;
   userId: number;
   user: {
     name: string;
     email: string;
   };
+  eventTypeSlug: string;
   eventTypeId: number;
   start: string;
   end: string;
@@ -324,23 +352,42 @@ const createBooking = async ({
 
   const urlParams = new URLSearchParams(params);
 
-  const url = `${process.env.BACKEND_URL}/bookings?${urlParams.toString()}`;
+  //process.env.BACKEND_URL
+
+  const a = new URL(req.url);
+  console.log("test", a.origin, a.url, a.pathname);
+
+  const reqUrl = new URL(req.url);
+
+  const url = `${reqUrl.origin}/api/avatar-assistant/event?${urlParams.toString()}`;
+
+  console.log("log email", url);
 
   const responses = {
     name: user.name,
     email: user.email,
+    guests: [],
+    location: {
+      optionValue: "",
+      value: "",
+    },
   };
 
+  const body = {
+    eventTypeId,
+    eventTypeSlug,
+    start,
+    end,
+    responses,
+    metadata: {},
+    timeZone,
+    language,
+  };
+
+  console.log("body", body);
+
   const response = await fetch(url, {
-    body: JSON.stringify({
-      eventTypeId,
-      start,
-      end,
-      responses,
-      metadata: {},
-      timeZone,
-      language,
-    }),
+    body: JSON.stringify(body),
     headers: {
       "Content-Type": "application/json",
     },
