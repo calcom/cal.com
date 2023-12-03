@@ -42,8 +42,8 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-const getEventType = async (id: number) => {
-  return monitorCallback(_getEventType, id);
+const getEventType = async (...args: Parameters<typeof _getEventType>) => {
+  return monitorCallback(_getEventType, ...args);
 };
 
 const _getEventType = async (id: number) => {
@@ -91,8 +91,8 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (where: Prisma.UserWhereInput) => {
-  return monitorCallback(_getUser, where);
+const getUser = (...args: Parameters<typeof _getUser>) => {
+  return monitorCallback(_getUser, ...args);
 };
 
 const _getUser = (where: Prisma.UserWhereInput) =>
@@ -108,8 +108,8 @@ const _getUser = (where: Prisma.UserWhereInput) =>
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
-  return monitorCallback(_getCurrentSeats, eventTypeId, dateFrom, dateTo);
+export const getCurrentSeats = (...args: Parameters<typeof _getCurrentSeats>) => {
+  return monitorCallback(_getCurrentSeats, ...args);
 };
 
 const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
@@ -135,35 +135,8 @@ const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
-export const getUserAvailability = async (
-  query: {
-    withSource?: boolean;
-    username?: string;
-    userId?: number;
-    dateFrom: string;
-    dateTo: string;
-    eventTypeId?: number;
-    afterEventBuffer?: number;
-    beforeEventBuffer?: number;
-    duration?: number;
-  },
-  initialData?: {
-    user?: User;
-    eventType?: EventType;
-    currentSeats?: CurrentSeats;
-    rescheduleUid?: string | null;
-    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-      eventType: Pick<
-        PrismaEventType,
-        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-      > | null;
-      _count?: {
-        seatsReferences: number;
-      };
-    })[];
-  }
-) => {
-  return monitorCallback(_getUserAvailability, query, initialData);
+export const getUserAvailability = async (...args: Parameters<typeof _getUserAvailability>) => {
+  return monitorCallback(_getUserAvailability, ...args);
 };
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
@@ -349,8 +322,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   };
 };
 
-const getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
-  return monitorCallback(_getPeriodStartDatesBetween, dateFrom, dateTo, period);
+const getPeriodStartDatesBetween = (...args: Parameters<typeof _getPeriodStartDatesBetween>) => {
+  return monitorCallback(_getPeriodStartDatesBetween, ...args);
 };
 
 const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
@@ -425,25 +398,8 @@ class LimitManager {
   }
 }
 
-const getBusyTimesFromLimits = async (
-  bookingLimits: IntervalLimit | null,
-  durationLimits: IntervalLimit | null,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
-  duration: number | undefined,
-  eventType: NonNullable<EventType>,
-  userId: number
-) => {
-  return monitorCallback(
-    _getBusyTimesFromLimits,
-    bookingLimits,
-    durationLimits,
-    dateFrom,
-    dateTo,
-    duration,
-    eventType,
-    userId
-  );
+const getBusyTimesFromLimits = async (...args: Parameters<typeof _getBusyTimesFromLimits>) => {
+  return monitorCallback(_getBusyTimesFromLimits, ...args);
 };
 
 const _getBusyTimesFromLimits = async (
@@ -518,23 +474,8 @@ const _getBusyTimesFromLimits = async (
   return limitManager.getBusyTimes();
 };
 
-const getBusyTimesFromBookingLimits = async (
-  bookings: EventBusyDetails[],
-  bookingLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
-  eventTypeId: number,
-  limitManager: LimitManager
-) => {
-  return monitorCallback(
-    _getBusyTimesFromBookingLimits,
-    bookings,
-    bookingLimits,
-    dateFrom,
-    dateTo,
-    eventTypeId,
-    limitManager
-  );
+const getBusyTimesFromBookingLimits = async (...args: Parameters<typeof _getBusyTimesFromBookingLimits>) => {
+  return monitorCallback(_getBusyTimesFromBookingLimits, ...args);
 };
 
 const _getBusyTimesFromBookingLimits = async (
@@ -592,24 +533,9 @@ const _getBusyTimesFromBookingLimits = async (
 };
 
 const getBusyTimesFromDurationLimits = async (
-  bookings: EventBusyDetails[],
-  durationLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
-  duration: number | undefined,
-  eventType: NonNullable<EventType>,
-  limitManager: LimitManager
+  ...args: Parameters<typeof _getBusyTimesFromDurationLimits>
 ) => {
-  return monitorCallback(
-    _getBusyTimesFromDurationLimits,
-    bookings,
-    durationLimits,
-    dateFrom,
-    dateTo,
-    duration,
-    eventType,
-    limitManager
-  );
+  return monitorCallback(_getBusyTimesFromDurationLimits, ...args);
 };
 
 const _getBusyTimesFromDurationLimits = async (
