@@ -29,7 +29,6 @@ import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
-  sendRescheduledEmails,
   sendRescheduledSeatEmail,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
@@ -1584,10 +1583,12 @@ async function handler(
           if (noEmail !== true && isConfirmedByDefault) {
             const copyEvent = cloneDeep(evt);
             loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-            await sendRescheduledEmails({
-              ...copyEvent,
-              additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+            await dispatchEmail("sendRescheduledEmails", {
+              calEvent: {
+                ...copyEvent,
+                additionalNotes, // Resets back to the additionalNote input and not the override value
+                cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+              }
             });
           }
           const foundBooking = await findBookingQuery(newBooking.id);
@@ -1705,10 +1706,12 @@ async function handler(
           if (noEmail !== true && isConfirmedByDefault) {
             // TODO send reschedule emails to attendees of the old booking
             loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-            await sendRescheduledEmails({
-              ...copyEvent,
-              additionalNotes, // Resets back to the additionalNote input and not the override value
-              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+            await dispatchEmail("sendRescheduledEmails", {
+                calEvent: {
+                  ...copyEvent,
+                  additionalNotes, // Resets back to the additionalNote input and not the override value
+                  cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+                }
             });
           }
 
@@ -2404,11 +2407,13 @@ async function handler(
         );
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        await sendRescheduledEmails({
-          ...copyEvent,
-          additionalInformation: metadata,
-          additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+        await dispatchEmail("sendRescheduledEmails", {
+          calEvent: {
+            ...copyEvent,
+            additionalInformation: metadata,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+          }
         });
       }
     }
