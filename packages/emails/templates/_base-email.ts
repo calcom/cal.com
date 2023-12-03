@@ -24,10 +24,10 @@ export default class BaseEmail {
     return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
-  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+  public async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
-  public async sendEmail() {
+  public async sendEmail(payload: Record<string, unknown>) {
     const featureFlags = await getFeatureFlagMap(prisma);
     /** If email kill switch exists and is active, we prevent emails being sent. */
     if (featureFlags.emails) {
@@ -45,7 +45,7 @@ export default class BaseEmail {
       return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
-    const payload = await this.getNodeMailerPayload();
+    // const payload = await this.getNodeMailerPayload();
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
       headers: this.getMailerOptions().headers,

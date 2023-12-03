@@ -5,6 +5,7 @@ import type { TFunction } from "next-i18next";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsSender";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -50,11 +51,37 @@ import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
-const sendEmail = (prepare: () => BaseEmail) => {
-  return new Promise((resolve, reject) => {
+export const sendEmailFromQueue = (serializedPayload: string, prepare: () => BaseEmail) => {
+  return new Promise(async (resolve, reject) => {
     try {
       const email = prepare();
-      resolve(email.sendEmail());
+
+      const payload = JSON.parse(serializedPayload);
+
+      resolve(email.sendEmail(payload));
+    } catch (e) {
+      reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
+    }
+  });
+};
+
+const sendEmail = (prepare: () => BaseEmail) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const email = prepare();
+
+      const payload = await email.getNodeMailerPayload();
+
+      if (process.env.AWS_SQS_CONSUMER) {
+        console.log("JRJF ", payload);
+        const serializedPayload = JSON.stringify(payload);
+        sqsSender(SqsEventTypes.Email, payload);
+
+        const payload2 = JSON.parse(serializedPayload);
+        resolve(email.sendEmail(payload2)); // TODO delete
+      } else {
+        resolve(email.sendEmail(payload));
+      }
     } catch (e) {
       reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
     }

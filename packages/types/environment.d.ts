@@ -68,9 +68,23 @@ declare namespace NodeJS {
      * "true" -> Use message queueing
      */
     readonly AWS_SQS_CONSUMER: "true" | "false";
+
     /**
      * Endpoint URL of AWS SQS server
      */
     readonly AWS_SQS_URL: string | undefined;
+
+    /**
+     * AWS region that the SQS instance is hosted in
+     */
+    readonly AWS_REGION: string | undefined;
+    /**
+     * AWS IAM Access Key
+     */
+    readonly AWS_ACCESS_KEY: string | undefined;
+    /**
+     * AWS IAM Secret Access Key
+     */
+    readonly AWS_SECRET_KEY: string | undefined;
   }
 }

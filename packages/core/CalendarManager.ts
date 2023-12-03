@@ -224,26 +224,36 @@ export const createEvent = async (
   calEvent: CalendarEvent,
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
-  const uid: string = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  console.log("JRF1 ");
+
+  const t = JSON.stringify({ credential: credential, calEvent: calEvent, externalId: externalId });
+  // let email2 = Object.assign(new OrganizerScheduledEmail({new CalendarEvent()}), JSON.parse(emailSerialized))
+  const raw = JSON.parse(t);
+  const credential2 = raw.credential;
+  const calEvent2 = raw.calEvent;
+  const externalId2 = raw.externalId;
+  // let t2 = Object.assign(new OrganizerScheduledEmail(), )
+
+  const uid: string = getUid(calEvent2);
+  const calendar = await getCalendar(credential2);
   let success = true;
   let calError: string | undefined = undefined;
 
   log.debug(
     "Creating calendar event",
     safeStringify({
-      calEvent: getPiiFreeCalendarEvent(calEvent),
+      calEvent: getPiiFreeCalendarEvent(calEvent2),
     })
   );
   // Check if the disabledNotes flag is set to true
-  if (calEvent.hideCalendarNotes) {
-    calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  if (calEvent2.hideCalendarNotes) {
+    calEvent2.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        .createEvent(calEvent, credential.id)
+        .createEvent(calEvent2, credential2.id)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**
@@ -258,7 +268,7 @@ export const createEvent = async (
           }
           log.error(
             "createEvent failed",
-            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent2) })
           );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949
@@ -273,7 +283,7 @@ export const createEvent = async (
         success,
         uid,
         creationResult,
-        originalEvent: getPiiFreeCalendarEvent(calEvent),
+        originalEvent: getPiiFreeCalendarEvent(calEvent2),
         calError,
       })
     );
@@ -281,21 +291,21 @@ export const createEvent = async (
   log.debug(
     "Created calendar event",
     safeStringify({
-      calEvent: getPiiFreeCalendarEvent(calEvent),
+      calEvent: getPiiFreeCalendarEvent(calEvent2),
       creationResult,
     })
   );
   return {
-    appName: credential.appId || "",
-    type: credential.type,
+    appName: credential2.appId || "",
+    type: credential2.type,
     success,
     uid,
     iCalUID: creationResult?.iCalUID || undefined,
     createdEvent: creationResult,
-    originalEvent: calEvent,
+    originalEvent: calEvent2,
     calError,
     calWarnings: creationResult?.additionalInfo?.calWarnings || [],
-    externalId,
+    externalId2,
     credentialId: credential.id,
   };
 };

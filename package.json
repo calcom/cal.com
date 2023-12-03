@@ -74,7 +74,8 @@
     "web": "yarn workspace @calcom/web",
     "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
     "docker-run-api": "docker run -p 80:80 cal-api",
-    "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop"
+    "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
+    "worker": "npx ts-node worker.ts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
