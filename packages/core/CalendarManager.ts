@@ -6,7 +6,7 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { SqsEventTypes, sqsSender, pollSQS } from "@calcom/lib/awsSqsClient";
+import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsClient";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -234,16 +234,15 @@ export const createEvent = async (
   externalId?: string,
   fromQueue = false
 ): Promise<EventResult<NewCalendarEventType>> => {
-  // log.debug("createEvent  ", typeof calEvent);
   const uid: string = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
 
   if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // if not from queue and AWS_SQS_CONSUMER is set, asynchronously send payload to SQS queue
     const data = { credential: credential, calEvent: calEvent, externalId: externalId };
-    await sqsSender(SqsEventTypes.CalendarCreateEvent, data); // TODO remove await
-    await pollSQS(); // TODO delete
+    sqsSender(SqsEventTypes.CalendarCreateEvent, data);
     return {
       appName: credential.appId || "",
       type: credential.type,
@@ -344,14 +343,14 @@ export const updateEvent = async (
   let calWarnings: string[] | undefined = [];
 
   if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // if not from queue and AWS_SQS_CONSUMER is set, asynchronously send payload to SQS queue
     const data = {
       credential: credential,
       calEvent: calEvent,
       bookingRefUid: bookingRefUid,
       externalCalendarId: externalCalendarId,
     };
-    await sqsSender(SqsEventTypes.CalendarUpdateEvent, data); // TODO remove await
-    await pollSQS(); // TODO delete
+    sqsSender(SqsEventTypes.CalendarUpdateEvent, data);
     return {
       appName: credential.appId || "",
       type: credential.type,
@@ -446,14 +445,14 @@ export const deleteEvent = async ({
   fromQueue?: boolean;
 }): Promise<unknown> => {
   if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
+    // if not from queue and AWS_SQS_CONSUMER is set, asynchronously send payload to SQS queue
     const data = {
       credential: credential,
       bookingRefUid: bookingRefUid,
       event: event,
       externalCalendarId: externalCalendarId,
     };
-    await sqsSender(SqsEventTypes.CalendarDeleteEvent, data); // TODO remove await
-    await pollSQS(); // TODO delete
+    sqsSender(SqsEventTypes.CalendarDeleteEvent, data);
     return Promise.resolve({});
   }
 

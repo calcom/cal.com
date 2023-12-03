@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsClient";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -163,11 +164,16 @@ export const _sendPayload = async (
 ) => {
   if (!fromQueue && process.env.AWS_SQS_CONSUMER) {
     // encrypt secret key using AWS_WEBHOOK_SECRET
-    const secretKeyEncrypted = symmetricEncrypt(secretKey, "hTfxy40QpKWH31EohfgowrMHRWs2T2yvspn4854SVa4="); // TODO replace with env variable process.env.AWS_WEBHOOK_SECRET),
+    let secretKeyEncrypted: string;
+    if (secretKey) {
+      secretKeyEncrypted = symmetricEncrypt(secretKey, "hTfxy40QpKWH31EohfgowrMHRWs2T2yvspn4854SVa4="); // TODO replace with env variable process.env.AWS_WEBHOOK_SECRET),
+    } else {
+      secretKeyEncrypted = "";
+    }
 
+    // create a payload to be sent to SQS that can be serialized and then deserialized by the worker process
     const data = { secretKey: secretKeyEncrypted, webhook: webhook, body: body, contentType: contentType };
-    await sqsSender(SqsEventTypes.WebhookSendPayload, data); // TODO remove await
-    await pollSQS(); // TODO delete
+    sqsSender(SqsEventTypes.WebhookEvent, data);
     return {
       ok: true,
       status: 200,

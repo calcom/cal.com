@@ -5,7 +5,7 @@ import type { TFunction } from "next-i18next";
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import BaseEmail from "@calcom/emails/templates/_base-email";
-import { SqsEventTypes, sqsSender, pollSQS } from "@calcom/lib/awsSqsClient";
+import { SqsEventTypes, sqsSender } from "@calcom/lib/awsSqsClient";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -52,24 +52,13 @@ import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
 export const sendEmailFromQueue = (serializedPayload: string) => {
+  // Function to handle sending emails that is triggered by events received from the AWS SQS queue
   return new Promise(async (resolve, reject) => {
     try {
       const email = new BaseEmail();
-      resolve(email.sendEmail(serializedPayload));
-
-      // try {
-      //   const payload = JSON.parse(serializedPayload);
-      //   if (typeof payload === 'object' && payload !== null) {
-      //     resolve(email.sendEmail(payload as Record<string, unknown>));
-      //     console.log("JRFJRF EMAIL SENT!!!");
-      //   } else {
-      //     throw new Error('String does not represent a valid object');
-      //   }
-      // } catch (error) {
-      //   throw new Error('Invalid JSON string');
-      // }
+      resolve(email.sendEmail(serializedPayload as unknown as Record<string, unknown>));
     } catch (e) {
-      reject(console.error(`sendEmail failed`, e));
+      reject(console.error("sendEmail failed from SQS queue", e));
     }
   });
 };
@@ -79,13 +68,13 @@ const sendEmail = (prepare: () => BaseEmail) => {
     try {
       const email = prepare();
 
+      // Get the payload for the email to serialize such that it can be sent to the SQS queue
       const payload = await email.getNodeMailerPayloadPublic();
 
       if (process.env.AWS_SQS_CONSUMER) {
-        await sqsSender(SqsEventTypes.EmailEvent, payload); // TODO remove await
-
-        resolve("");
-        await pollSQS(); // TODO delete
+        // asynchronously send the email payload to the SQS queue
+        sqsSender(SqsEventTypes.EmailEvent, payload);
+        resolve({});
       } else {
         resolve(email.sendEmail(payload));
       }

@@ -10,7 +10,7 @@ import { sendEmailFromQueue } from "@calcom/emails/email-manager";
 import { _sendPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 
-// ES Modules import
+// TODO create wrapper class around SQS client and subclass for individual handling of emails, calendar events, webhooks
 
 // Initialize SQS client with environment variables for credentials
 const sqsClient = new SQSClient({
@@ -21,6 +21,7 @@ const sqsClient = new SQSClient({
   },
 });
 
+// Enum to represent the different event types
 export enum SqsEventTypes {
   EmailEvent = "Email",
   CalendarCreateEvent = "Calendar.Create",
@@ -30,6 +31,7 @@ export enum SqsEventTypes {
   InvalidEvent = "Invalid",
 }
 
+// Convert string to SqsEventTypes
 export const stringToSqsEventTypes = async (str: string) => {
   switch (str) {
     case "Email":
@@ -47,7 +49,12 @@ export const stringToSqsEventTypes = async (str: string) => {
   }
 };
 
-// Example of a sendMessage function
+/**
+ * Sends a message to an SQS queue.
+ *
+ * @param {SqsEventTypes} event - The type of event.
+ * @param {any} obj - The serialized object payload to send in the message.
+ */
 export const sqsSender = async (event: SqsEventTypes, obj: any) => {
   const messagePayload = { data: obj, event: event, time: Date.now() };
   const command = new SendMessageCommand({
@@ -58,26 +65,13 @@ export const sqsSender = async (event: SqsEventTypes, obj: any) => {
 
   try {
     const data = await sqsClient.send(command);
-    console.log("Success, message sent. Message ID:", data.MessageId);
+    console.debug("Success, message sent. Message ID:", data.MessageId);
     return data; // For API responses
   } catch (err) {
     console.error("Error", err);
     throw err; // For API error handling
   }
 };
-
-// Example usage
-// (async () => {
-//   try {
-//     console.log("Sending message...");
-//     const response = await sqsSender(SqsEventTypes.EmailEvent, "TEST");
-//     console.log("Response:", response);
-//   } catch (error) {
-//     console.error("An error occurred:", error);
-//   }
-// })();
-
-// -------------------------------------
 
 const persistCalendarResult = async (calEvent: Promise<unknown>) => {
   // TODO use result of calendar event create/update/delete and store in database
@@ -92,17 +86,18 @@ const checkWebhookResult = async (status: any) => {
 export const processMessageSQS = async (eventType: SqsEventTypes, payload: any) => {
   switch (eventType) {
     case SqsEventTypes.EmailEvent: {
+      // If message type was EmailEvent, send email
       sendEmailFromQueue(payload);
       break;
     }
     case SqsEventTypes.CalendarCreateEvent: {
-      // const data = JSON.parse(payload);
+      // If message type was CalendarCreateEvent, call createEvent in CalendarManager
       const result = await createEvent(payload.credential, payload.calEvent, payload.externalId, true);
       // await persistCalendarResult(result); TODO implement
       break;
     }
     case SqsEventTypes.CalendarUpdateEvent: {
-      // const data = JSON.parse(payload);
+      // If message type was CalendarUpdateEvent, call updateEvent in CalendarManager
       const result = await updateEvent(
         payload.credential,
         payload.calEvent,
@@ -114,7 +109,7 @@ export const processMessageSQS = async (eventType: SqsEventTypes, payload: any) 
       break;
     }
     case SqsEventTypes.CalendarDeleteEvent: {
-      // const data = JSON.parse(payload);
+      // If message type was CalendarDeleteEvent, call deleteEvent in CalendarManager
       const result = await deleteEvent({
         credential: payload.credential,
         bookingRefUid: payload.bookingRefUid,
@@ -126,9 +121,13 @@ export const processMessageSQS = async (eventType: SqsEventTypes, payload: any) 
       break;
     }
     case SqsEventTypes.WebhookEvent: {
-      const secretKey = symmetricDecrypt(payload.secretKey, "hTfxy40QpKWH31EohfgowrMHRWs2T2yvspn4854SVa4="); // TODO replace with env variable process.env.AWS_WEBHOOK_SECRET),
+      // If message type was WebhookEvent, call _sendPayload in sendPayload webhook lib
+      let secretKey: string | null = null;
+      if (payload.secretKey != "") {
+        secretKey = symmetricDecrypt(payload.secretKey, "hTfxy40QpKWH31EohfgowrMHRWs2T2yvspn4854SVa4="); // TODO replace with env variable process.env.AWS_WEBHOOK_SECRET),
+      }
       const status = await _sendPayload(secretKey, payload.webhook, payload.body, payload.contentType, true);
-      // await checkWebhookResult(status);
+      // await checkWebhookResult(status); TODO implement
       break;
     }
     default: {
@@ -139,7 +138,8 @@ export const processMessageSQS = async (eventType: SqsEventTypes, payload: any) 
   return true;
 };
 
-export const pollSQS = async (fromWorker = false) => {
+export const pollSQS = async () => {
+  // function to be called by the separate worker application that continuously polls SQS queue and processes events
   const receiveParams = {
     QueueUrl: "https://sqs.us-east-1.amazonaws.com/986533719980/cal_msg_queue", //process.env.AWS_SQS_URL,
     MaxNumberOfMessages: 10, // Adjust based on your needs
@@ -147,52 +147,56 @@ export const pollSQS = async (fromWorker = false) => {
     WaitTimeSeconds: 20, // Long polling setting (0-20 seconds)
   };
 
-  try {
-    const receiveMessageCommand = new ReceiveMessageCommand(receiveParams);
-    const response = await sqsClient.send(receiveMessageCommand);
+  while (true) {
+    try {
+      // receive message from AWS SQS queue
+      const receiveMessageCommand = new ReceiveMessageCommand(receiveParams);
+      const response = await sqsClient.send(receiveMessageCommand);
 
-    if (response.Messages) {
-      for (const message of response.Messages) {
-        if (message.Body) {
-          const payload = JSON.parse(message.Body);
-          const messagePayload = payload.data;
-          const eventString = payload.event;
-          const eventType = await stringToSqsEventTypes(eventString);
-          console.debug(
-            "Received eventType (",
-            eventType,
-            ") from (",
-            eventString,
-            ") and message: ",
-            message.Body
-          );
-          await processMessageSQS(eventType, messagePayload);
+      if (response.Messages) {
+        for (const message of response.Messages) {
+          if (message.Body) {
+            // for each message received from SQS, parse it and process it based on the event type and payload
+            const payload = JSON.parse(message.Body);
+            const messagePayload = payload.data;
+            const eventString = payload.event;
+            const eventType = await stringToSqsEventTypes(eventString);
+            console.debug(
+              "Received eventType (",
+              eventType,
+              ") from (",
+              eventString,
+              ") and message: ",
+              message.Body
+            );
+            const success = await processMessageSQS(eventType, messagePayload);
 
-          // Delete the message from the queue after processing
-          try {
-            const deleteParams = {
-              QueueUrl: "https://sqs.us-east-1.amazonaws.com/986533719980/cal_msg_queue", //process.env.AWS_SQS_URL,
-              ReceiptHandle: message.ReceiptHandle,
-            };
-            const deleteMessageCommand = new DeleteMessageCommand(deleteParams);
-            const response = await sqsClient.send(deleteMessageCommand);
+            // Delete the message from the queue after processing if successful
+            if (success) {
+              try {
+                const deleteParams = {
+                  QueueUrl: "https://sqs.us-east-1.amazonaws.com/986533719980/cal_msg_queue", //process.env.AWS_SQS_URL,
+                  ReceiptHandle: message.ReceiptHandle,
+                };
+                const deleteMessageCommand = new DeleteMessageCommand(deleteParams);
+                const response = await sqsClient.send(deleteMessageCommand);
 
-            console.log("Message Deleted ", response);
-          } catch (err) {
-            // error = true;
-            console.error("Error Deleting Message ", err);
+                console.log("Message Deleted ", response);
+              } catch (err) {
+                console.error("Error Deleting Message ", err);
+              }
+            } else {
+              // TODO add to DLQ and try to reprocesses. Need further logic to determine whether a specific type of request failed
+            }
           }
         }
+      } else {
+        console.log("No messages available");
       }
-    } else {
-      console.log("No messages available");
+    } catch (error) {
+      console.error("Error polling SQS queue:", error);
     }
-  } catch (error) {
-    console.error("Error polling SQS queue:", error);
-  }
 
-  // Continue polling
-  if (fromWorker) {
-    setTimeout(pollSQS, 0);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 };
