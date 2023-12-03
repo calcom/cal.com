@@ -1,4 +1,7 @@
+// Checkers
+// Types
 import type { ConversationResponseType, RouterResponseType, TaskResponseType } from "../types/responseTypes";
+import { isNull, isNotNull } from "../utils/checkers";
 
 const map = (
   routerResponse: RouterResponseType,
@@ -12,20 +15,21 @@ const map = (
   const taskResponse = {
     url_param: url_param_enum,
     external_link: external_link_enum,
-    message: "",
+    message: [] as string[],
   };
   // Case 1: url parser succeeded, append the url param message
-  if (url_param_enum !== "None") {
-    taskResponse.message += `${routerResponse.url_param_msg}\n`;
+  if (isNotNull(url_param_enum)) {
+    taskResponse.message.push(routerResponse.url_param_msg);
   }
   // Case 2: external link parser succeeded, append the external link message
-  if (external_link_enum !== "None") {
-    taskResponse.message += `${routerResponse.external_link_msg}\n`;
+  if (isNotNull(external_link_enum)) {
+    taskResponse.message.push(routerResponse.external_link_msg);
   }
   // Case 3: neither parser succeeded, append the conversation response
-  if (url_param_enum === "None" && external_link_enum === "None") {
-    taskResponse.message = conversationResponse.text;
+  if (isNull(url_param_enum) && isNull(external_link_enum)) {
+    taskResponse.message.push(conversationResponse.text);
   }
+
   return taskResponse;
 };
 

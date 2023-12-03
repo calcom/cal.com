@@ -1,4 +1,4 @@
-const other = "None";
+export const other = "None";
 
 export const URL_PARAM_ENUMS: string[] = [
   "/apps",

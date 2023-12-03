@@ -1,7 +1,7 @@
 export type TaskResponseType = {
   url_param: string;
   external_link: string;
-  message: string;
+  message: string[];
 };
 
 export type RouterResponseType = {
