@@ -72,12 +72,12 @@ const useBrandColors = (
     brandColor?: string | null;
     darkBrandColor?: string | null;
   }
-) => {
+): void => {
   const brandTheme = useGetBrandingColours({
     lightVal: brandColor,
     darkVal: darkBrandColor,
   });
-  const selectedTheme = currentTheme ? brandTheme[currentTheme] : {};
+  const selectedTheme = currentTheme ? brandTheme[currentTheme as "light" | "dark"] : {};
   useCalcomTheme({
     root: selectedTheme,
   });
