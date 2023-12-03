@@ -6,21 +6,22 @@ import { trpc } from "@calcom/trpc";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function InsightsPage() {
+export default function WrapperPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
+  const name = user?.name;
 
   return (
     <div>
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
-        <h1>Hi</h1>
+        <h1>{name}</h1>
       </ShellMain>
     </div>
   );
 }
 
-InsightsPage.PageWrapper = PageWrapper;
-InsightsPage.getLayout = getLayout;
+WrapperPage.PageWrapper = PageWrapper;
+WrapperPage.getLayout = getLayout;
 
 // If feature flag is disabled, return not found on getServerSideProps
 export const getServerSideProps = async () => {
