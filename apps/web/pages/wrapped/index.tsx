@@ -1,15 +1,18 @@
 import { motion } from "framer-motion";
 
 import dayjs from "@calcom/dayjs";
+import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
+import PageWrapper from "@components/PageWrapper";
+
 import Card from "./card";
 import Mask from "./mask";
 
-export default function InsightsPage() {
+export default function WrapperPage() {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
 
@@ -34,6 +37,7 @@ export default function InsightsPage() {
       },
     }
   );
+  const { data: teamsQuery, isLoading: isLoadingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
 
   let totalBookings;
   let cancelledPercentage;
@@ -42,6 +46,10 @@ export default function InsightsPage() {
   let bookedHours;
   let bookedMins;
   let totalEventLength;
+  let teamNames;
+  let teamNamesString;
+  let mostCommonEventTypeId;
+  let maxCount = 0;
 
   let firstTime: any = "0";
   if (data != undefined && data.length > 0) {
@@ -77,13 +85,38 @@ export default function InsightsPage() {
       .reduce((acc, length) => acc + length, 0); // Use reduce to calculate the total event length
     bookedHours = Math.floor(totalEventLength / 60);
     bookedMins = totalEventLength % 60;
+
+    const eventTypeCounts: { [key: number]: number } = {};
+    data.forEach((item) => {
+      const eventTypeId = item.eventTypeId;
+      if (typeof eventTypeId === "number") {
+        eventTypeCounts[eventTypeId] = (eventTypeCounts[eventTypeId] || 0) + 1;
+      }
+    });
+
+    // Find the most common eventTypeId
+    for (const eventType in eventTypeCounts) {
+      if (eventTypeCounts[eventType] > maxCount) {
+        maxCount = eventTypeCounts[eventType];
+        mostCommonEventTypeId = eventType;
+      }
+    }
+  }
+  if (teamsQuery && Array.isArray(teamsQuery) && teamsQuery.length > 1) {
+    const teamsFromIndex1 = teamsQuery.slice(1);
+    teamNames = teamsFromIndex1.map((team) => team.name);
+    teamNamesString = teamNames.join(", ");
   }
 
+  console.log(data);
   console.log(cancelledPercentage);
   console.log(rescheduledPercentage);
   console.log(acceptedPercentage);
   console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
   console.log("Total Event Length:", totalEventLength);
+  console.log("My Teams:", teamNamesString);
+  console.log("Most common event Id:", mostCommonEventTypeId);
+  console.log("Number of event occurrences:", maxCount);
 
   return (
     <div className="relative overflow-hidden">
@@ -110,6 +143,9 @@ export default function InsightsPage() {
     </div>
   );
 }
+
+WrapperPage.PageWrapper = PageWrapper;
+WrapperPage.getLayout = getLayout;
 
 // If feature flag is disabled, return not found on getServerSideProps
 export const getServerSideProps = async () => {
