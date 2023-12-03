@@ -24,6 +24,8 @@ function TimeCapsule() {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   //grab bookings data
   const bookings = trpc.viewer.bookings.get.useQuery({ filters: { status: "past" } });
+  const cancelledBookings = trpc.viewer.bookings.get.useQuery({ filters: { status: "cancelled" } });
+  console.log("cancelled", cancelledBookings.data);
   //grab all event types for user
   const { data: eventTypes } = trpc.viewer.eventTypes.bulkEventFetch.useQuery();
   //key = event type id value = length of event
@@ -32,8 +34,10 @@ function TimeCapsule() {
   const bookingsEventIds: number[] | undefined = bookings.data?.bookings.map(
     (booking: any) => booking.eventType.id
   );
-  const eventFrequenciesByName = makeEventNameArr(eventFrequencyObj(eventList), eventNamesById(eventList));
-  console.log(eventFrequenciesByName);
+  const eventFrequenciesByName = makeEventNameArr(
+    eventFrequencyObj(bookingsEventIds),
+    eventNamesById(eventList)
+  );
 
   const totalMeetingTime = calculateTotalMeetingTime(bookingsEventIds, eventLengthRecord);
   const averageMeetingTime =
@@ -178,7 +182,7 @@ function TimeCapsule() {
                             <div className="my-auto flex h-[9px] w-2 shrink-0 flex-col self-center rounded-[50%] blur-[1.0836269855499268px]" />
                           </div>
                           <div className="mt-7 max-w-[351px] self-center text-center text-3xl font-semibold leading-8 text-white">
-                            People met — your social odometer is ticking
+                            Average event duration — Profoundly inspiring
                           </div>
                           <div className="ml-20 mt-12 flex h-[3px] w-[3px] shrink-0 flex-col self-start rounded-[50%] max-md:ml-2.5 max-md:mt-10" />
                           <div className="mt-9 flex w-[164px] max-w-full items-center justify-between gap-5 self-center">
@@ -230,7 +234,7 @@ function TimeCapsule() {
                                       <div
                                         key={crypto.randomUUID()}
                                         className="self-stretch text-2xl font-semibold leading-7 text-white text-opacity-50 max-md:max-w-full">
-                                        <span className="text-white">{event[0]}</span>
+                                        <span className="mr-3 text-white">{event[0]}</span>
                                         <span className="text-white text-opacity-50">{event[1]}</span>
                                       </div>
                                     );
@@ -480,14 +484,14 @@ function TimeCapsule() {
                               <div className="mt-4 flex h-1 w-1 shrink-0 flex-col self-start rounded-[50%]" />
                               <div className="mt-16 flex w-[153px] max-w-full items-stretch justify-between gap-5 self-end px-px max-md:mt-10">
                                 <div className="text-center text-7xl font-semibold leading-[80px] text-neutral-50 max-md:text-4xl max-md:leading-10">
-                                  46
+                                  {cancelledBookings && cancelledBookings?.data?.bookings.length}
                                 </div>
                                 <div className="my-auto flex h-1 w-1 shrink-0 flex-col self-center rounded-[50%]" />
                               </div>
                             </div>
                           </div>
                           <div className="mt-9 self-stretch text-center text-3xl font-semibold leading-8 text-white max-md:max-w-full">
-                            Meeting canceled – they&apos;re in a long nap this year
+                            Meetings canceled – Damn, that&apos;s crazy.
                           </div>
                           <div className="mr-28 mt-2 flex h-3 w-3 shrink-0 flex-col self-end rounded-[50%] blur-[1.5px] max-md:mr-2.5" />
                           <div className="self-stretch max-md:max-w-full">
