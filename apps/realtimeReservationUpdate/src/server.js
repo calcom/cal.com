@@ -26,7 +26,8 @@ app.post("/reserve", (req, res) => {
   // TODO: use ws to send to subscribers
   // ....
   console.log(req.body);
-  pub(req.body);
+  const data = req.body;
+  pub(data);
   res.sendStatus(200);
 });
 
@@ -36,6 +37,15 @@ app.post("/booking", (req, res) => {
   // ....
   console.log(req.body);
   pub(req.body);
+  res.sendStatus(200);
+});
+
+app.post("/slots", (req, res) => {
+  console.log("slots");
+  // TODO: use ws to send to subscribers
+  // ....
+  console.log(req.body);
+  checknumSlots(req.body);
   res.sendStatus(200);
 });
 

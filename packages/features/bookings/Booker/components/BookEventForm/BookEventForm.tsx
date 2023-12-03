@@ -70,10 +70,12 @@ export const BookEventForm = ({ onCancel, hashedLink }: BookEventFormProps) => {
   const eventType = eventQuery.data;
 
   const reserveSlot = () => {
+    console.log("???????: ", bookingData?.uid);
     if (eventType?.id && timeslot && (duration || eventType?.length)) {
       reserveSlotMutation.mutate({
         slotUtcStartDate: dayjs(timeslot).utc().format(),
         eventTypeId: eventType?.id,
+        bookingUid: bookingData?.uid,
         slotUtcEndDate: dayjs(timeslot)
           .utc()
           .add(duration || eventType?.length, "minutes")
