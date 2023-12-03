@@ -24,7 +24,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 import PageWrapper from "@components/PageWrapper";
 
 import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
-import socket from "../../ws/client";
+import useWebsocket from "../../ws/client";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -42,7 +42,10 @@ export default function Type({
 }: PageProps) {
   const { data } = useRemainingSeatsStore();
   console.log("data: ", data);
-  console.log(socket);
+  const onData = (data) => {
+    console.log("onData: ", data);
+  };
+  useWebsocket(onData);
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>

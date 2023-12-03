@@ -44,6 +44,15 @@ export const slotsRouter = router({
       throw new Error("Failed to load handler");
     }
 
+    console.log("input: ", input);
+    fetch("http://localhost:3002/reserve", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
     return UNSTABLE_HANDLER_CACHE.reserveSlot({
       ctx: { ...ctx, req: ctx.req as NextApiRequest, res: ctx.res as NextApiResponse },
       input,

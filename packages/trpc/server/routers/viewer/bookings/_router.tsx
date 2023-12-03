@@ -83,6 +83,14 @@ export const bookingsRouter = router({
       throw new Error("Failed to load handler");
     }
 
+    fetch("http://localhost:3002/booking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
     return UNSTABLE_HANDLER_CACHE.confirm({
       ctx,
       input,
