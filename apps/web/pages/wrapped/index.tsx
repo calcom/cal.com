@@ -18,6 +18,9 @@ export default function WrapperPage() {
   const startDate = endDate.startOf("year");
   const endDateStr = endDate.toISOString();
   const startDateStr = startDate.toISOString();
+  let bookedHours;
+  let bookedMins;
+  let totalEventLength;
 
   const { data, isSuccess, isLoading } = trpc.viewer.insights.AllBookingsForMember.useQuery(
     {
@@ -44,23 +47,18 @@ export default function WrapperPage() {
   // Check if data exists and if data[0] is an array
   if (data && Array.isArray(data)) {
     // Use map to iterate through each item in data[0]
-    const totalEventLength = data
+    totalEventLength = data
       .map((item) => {
         // Access the eventLength property of each item
         const eventLength = item.eventLength || 0;
         return eventLength;
       })
       .reduce((acc, length) => acc + length, 0); // Use reduce to calculate the total event length
-    const hours = Math.floor(totalEventLength / 60);
-    const minutes = totalEventLength % 60;
-    console.log("Total Event Length:", hours, "hours", minutes, "minutes");
-    console.log("Total Event Length:", totalEventLength);
-
-    const userEmails = data.map((item) => item.userEmail);
-    // Use a Set to get unique userEmails and then get the size of the Set
-    // const uniqueUserEmailCount = new Set(userEmails).size;
-    //console.log("Unique User Email Count:", uniqueUserEmailCount);
+    bookedHours = Math.floor(totalEventLength / 60);
+    bookedMins = totalEventLength % 60;
   }
+  console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
+  console.log("Total Event Length:", totalEventLength);
 
   return (
     <div>
