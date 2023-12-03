@@ -389,7 +389,8 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 You can deploy Cal.com DigitalOcean by following this [guide](https://dev.to/smyja/deploy-on-calcom-on-digitalocean-26op)
 
 ### Hetzner
-You can deploy Cal.com DigitalOcean by following this [guide](https://dev.to/smyja/deploy-on-calcom-on-digitalocean-26op)
+You can deploy Cal.com Hetzner by following this [guide](https://dev.to/smyja/deploy-on-calcom-on-hetzner-18n6)
+
 <!-- ROADMAP -->
 
 ## Roadmap
