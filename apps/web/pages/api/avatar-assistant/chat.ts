@@ -13,17 +13,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export default async function Chat(req: NextRequest) {
   // Extract the `messages` from the body of the request
-  const {
-    messages,
-    username,
-    userId,
-    userEventTypes,
-    userTime,
-    timezone,
-    timezoneOffset,
-    userRTime,
-    ...props
-  } = await req.json();
+  const { messages, username, userId, userEventTypes, userTime, timezone, ...props } = await req.json();
 
   // eventTypes is a any[]
 
@@ -35,8 +25,7 @@ export default async function Chat(req: NextRequest) {
 
     The current time is ${userTime}
     The current timezone is ${timezone}
-    The timezone offset is ${timezoneOffset}
-    You need to convert the user's timezone to your timezone and display different time to user!!!.
+    You need to show your time and the user's time and timezone!!!.
     Your name is ${username}. You are the helping the user to schedule an event.
     You currently have the following event types in json: ${JSON.stringify(userEventTypes)}. 
     You will need to ask the user to provide the following information:
@@ -280,8 +269,12 @@ export const fetchAvailability = async ({
   const time = (data.dateRanges as any[]).map((dateRange) => {
     const startDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
-    const formattedStartDate = `${startDate.getHours()}am ${startDate.getFullYear()}-${startDate.getMonth()}-${startDate.getDate()} ${timezone}`;
-    const formattedEndDate = `${endDate.getHours()}am ${endDate.getFullYear()}-${endDate.getMonth()}-${endDate.getDate()} ${timezone}`;
+    const formattedStartDate = `${startDate.getHours()}am ${startDate.getFullYear()}-${
+      startDate.getMonth() + 1
+    }-${startDate.getDate()} ${timezone}`;
+    const formattedEndDate = `${endDate.getHours()}am ${endDate.getFullYear()}-${
+      startDate.getMonth() + 1
+    }-${endDate.getDate()} ${timezone}`;
     return {
       start: formattedStartDate,
       end: formattedEndDate,
