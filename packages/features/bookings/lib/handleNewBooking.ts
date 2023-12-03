@@ -1121,6 +1121,36 @@ async function handler(
     users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
+  const attachNonUserBookUid = async (bookerEmail: string, dateFrom: Dayjs, dateTo: Dayjs) => {
+    const user = await prisma.user.findFirst({ where: { email: bookerEmail } });
+    if (user) return;
+    const bookerUserBookings = (
+      await prisma.attendee.findMany({
+        where: { email: bookerEmail },
+        select: {
+          bookingId: true,
+        },
+      })
+    ).map((booking) => booking?.bookingId);
+
+    const booking = await prisma.booking.findFirst({
+      where: {
+        id: {
+          in: bookerUserBookings.filter((id): id is number => id !== null),
+        },
+        eventTypeId,
+        startTime: {
+          gte: dateFrom.format(),
+          lte: dateTo.format(),
+        },
+        status: BookingStatus.ACCEPTED,
+      },
+      select: { uid: true },
+    });
+    reqBody.bookingUid = booking?.uid;
+  };
+  attachNonUserBookUid(bookerEmail, dayjs(reqBody.start).utc(), dayjs(reqBody.end).utc());
+
   const [organizerUser] = users;
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
@@ -2019,36 +2049,7 @@ async function handler(
     return resultBooking;
   };
 
-  const attachNonUserBookUid = async (bookerEmail: string, dateFrom: Dayjs, dateTo: Dayjs) => {
-    const user = await prisma.user.findFirst({ where: { email: bookerEmail } });
-    if (user) return;
-    const bookerUserBookings = (
-      await prisma.attendee.findMany({
-        where: { email: bookerEmail },
-        select: {
-          bookingId: true,
-        },
-      })
-    ).map((booking) => booking?.bookingId);
-
-    const booking = await prisma.booking.findFirst({
-      where: {
-        id: {
-          in: bookerUserBookings.filter((id): id is number => id !== null),
-        },
-        eventTypeId,
-        startTime: {
-          gte: dateFrom.format(),
-          lte: dateTo.format(),
-        },
-        status: BookingStatus.ACCEPTED,
-      },
-      select: { uid: true },
-    });
-    reqBody.bookingUid = booking?.uid;
-  };
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
-  attachNonUserBookUid(bookerEmail, dayjs.utc(evt.startTime), dayjs.utc(evt.endTime));
   if (eventType.seatsPerTimeSlot && (reqBody.bookingUid || rescheduleUid)) {
     const newBooking = await handleSeats();
     if (newBooking) {
