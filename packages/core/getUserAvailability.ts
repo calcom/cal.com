@@ -42,7 +42,9 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-const getEventType = async (...args: Parameters<typeof _getEventType>) => {
+const getEventType = async (
+  ...args: Parameters<typeof _getEventType>
+): Promise<ReturnType<typeof _getEventType>> => {
   return monitorCallbackAsync(_getEventType, ...args);
 };
 
@@ -91,7 +93,7 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (...args: Parameters<typeof _getUser>) => {
+const getUser = (...args: Parameters<typeof _getUser>): ReturnType<typeof _getUser> => {
   return monitorCallbackSync(_getUser, ...args);
 };
 
@@ -108,7 +110,9 @@ const _getUser = (where: Prisma.UserWhereInput) =>
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (...args: Parameters<typeof _getCurrentSeats>) => {
+export const getCurrentSeats = (
+  ...args: Parameters<typeof _getCurrentSeats>
+): ReturnType<typeof _getCurrentSeats> => {
   return monitorCallbackSync(_getCurrentSeats, ...args);
 };
 
@@ -135,7 +139,9 @@ const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
-export const getUserAvailability = async (...args: Parameters<typeof _getUserAvailability>) => {
+export const getUserAvailability = async (
+  ...args: Parameters<typeof _getUserAvailability>
+): Promise<ReturnType<typeof _getUserAvailability>> => {
   return monitorCallbackAsync(_getUserAvailability, ...args);
 };
 
@@ -322,7 +328,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   };
 };
 
-const getPeriodStartDatesBetween = (...args: Parameters<typeof _getPeriodStartDatesBetween>) => {
+const getPeriodStartDatesBetween = (
+  ...args: Parameters<typeof _getPeriodStartDatesBetween>
+): ReturnType<typeof _getPeriodStartDatesBetween> => {
   return monitorCallbackSync(_getPeriodStartDatesBetween, ...args);
 };
 
@@ -398,7 +406,9 @@ class LimitManager {
   }
 }
 
-const getBusyTimesFromLimits = async (...args: Parameters<typeof _getBusyTimesFromLimits>) => {
+const getBusyTimesFromLimits = async (
+  ...args: Parameters<typeof _getBusyTimesFromLimits>
+): Promise<ReturnType<typeof _getBusyTimesFromLimits>> => {
   return monitorCallbackAsync(_getBusyTimesFromLimits, ...args);
 };
 
@@ -474,7 +484,9 @@ const _getBusyTimesFromLimits = async (
   return limitManager.getBusyTimes();
 };
 
-const getBusyTimesFromBookingLimits = async (...args: Parameters<typeof _getBusyTimesFromBookingLimits>) => {
+const getBusyTimesFromBookingLimits = async (
+  ...args: Parameters<typeof _getBusyTimesFromBookingLimits>
+): Promise<ReturnType<typeof _getBusyTimesFromBookingLimits>> => {
   return monitorCallbackAsync(_getBusyTimesFromBookingLimits, ...args);
 };
 
@@ -534,7 +546,7 @@ const _getBusyTimesFromBookingLimits = async (
 
 const getBusyTimesFromDurationLimits = async (
   ...args: Parameters<typeof _getBusyTimesFromDurationLimits>
-) => {
+): Promise<ReturnType<typeof _getBusyTimesFromDurationLimits>> => {
   return monitorCallbackAsync(_getBusyTimesFromDurationLimits, ...args);
 };
 

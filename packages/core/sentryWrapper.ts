@@ -42,15 +42,18 @@ const finishMonitoring = (transaction: Transaction | Span, span: Span) => {
   }
 };
 
-const monitorCallbackAsync = async (cb: CallableFunction, ...args: unknown[]) => {
+const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
+  cb: T,
+  ...args: Parameters<T>
+): Promise<ReturnType<T>> => {
   // Check if Sentry set
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return (await cb(...args)) as ReturnType<T>;
 
   const [transaction, span] = setUpMonitoring(cb.name);
 
   try {
     const result = await cb(...args);
-    return result;
+    return result as ReturnType<T>;
   } catch (error) {
     Sentry.captureException(error);
     throw error;
@@ -59,15 +62,18 @@ const monitorCallbackAsync = async (cb: CallableFunction, ...args: unknown[]) =>
   }
 };
 
-const monitorCallbackSync = (cb: CallableFunction, ...args: unknown[]) => {
+const monitorCallbackSync = <T extends (...args: any[]) => any>(
+  cb: T,
+  ...args: Parameters<T>
+): ReturnType<T> => {
   // Check if Sentry set
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args) as ReturnType<T>;
 
   const [transaction, span] = setUpMonitoring(cb.name);
 
   try {
     const result = cb(...args);
-    return result;
+    return result as ReturnType<T>;
   } catch (error) {
     Sentry.captureException(error);
     throw error;
