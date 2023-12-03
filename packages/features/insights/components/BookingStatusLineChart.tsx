@@ -53,7 +53,6 @@ export const BookingStatusLineChart = () => {
 
   if (!isSuccess) return null;
 
-  console.log({ eventsTimeLine });
   return (
     <CardInsights>
       <Title className="text-emphasis">{t("event_trends")}</Title>

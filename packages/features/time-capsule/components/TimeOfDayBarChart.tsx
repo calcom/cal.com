@@ -33,11 +33,6 @@ export const TimeOfDayBarChart = () => {
     },
   ];
 
-  //   if (isLoading) return <LoadingInsight />;
-
-  //   if (!isSuccess) return null;
-
-  //   console.log({ eventsTimeLine });
   return (
     <>
       <BarChart
