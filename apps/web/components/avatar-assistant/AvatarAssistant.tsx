@@ -81,15 +81,6 @@ export const AvatarAssistant = (props: { username: string | null; userEventTypes
         const buffer = await audioContextRef.current.decodeAudioData(val);
         _audioSourceNode.buffer = buffer;
 
-        // Scroll the message
-        const chatContainer = document.getElementById("chat-container");
-        if (chatContainer) {
-          chatContainer.scrollTo({
-            top: chatContainer.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-
         setFinalizedMessages((prev) => [...prev, message]);
 
         connectAudioNode(_audioSourceNode);
@@ -105,6 +96,17 @@ export const AvatarAssistant = (props: { username: string | null; userEventTypes
       });
     },
   });
+
+  useEffect(() => {
+    // Scroll the message
+    const chatContainer = document.getElementById("chat-container");
+    if (chatContainer) {
+      chatContainer.scrollTo({
+        top: chatContainer.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [finalizedMessages]);
 
   useEffect(() => {
     const latestMessage = messages[messages.length - 1];
