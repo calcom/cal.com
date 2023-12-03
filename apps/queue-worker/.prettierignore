@@ -1,1 +1,4 @@
 lib
+node_modules
+.tsimp
+.tap

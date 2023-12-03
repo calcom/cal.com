@@ -31,7 +31,9 @@
     "@calcom/types": "*",
     "@temporalio/testing": "^1.8.6",
     "@tsconfig/node20": "20.1.2",
+    "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.2",
+    "mocha": "^10.2.0",
     "nodemon": "^3.0.2",
     "tsx": "^4.6.2",
     "typescript": "^5.3.2"
