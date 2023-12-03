@@ -9,7 +9,7 @@ import runTask from "./runTask";
 type chatResponse = {
   type: string;
   url_param?: string;
-  message?: string;
+  message?: string[];
   external_link?: string;
 };
 
@@ -48,8 +48,6 @@ const FloatingIcon = () => {
     // Handle the confirm button click, you can add your logic here
 
     // Update the chatLog state with the new entry
-    setChatLog([...chatLog, inputValue]);
-
     if (inputValue === "") return;
 
     const responses: chatResponse[] = [];
@@ -57,7 +55,7 @@ const FloatingIcon = () => {
     const currentResponse: chatResponse = {
       type: "human",
       url_param: "None",
-      message: inputValue,
+      message: [inputValue],
     };
     setChatLog([...chatLog, currentResponse]);
     responses.push(currentResponse);
@@ -91,24 +89,75 @@ const FloatingIcon = () => {
     e.stopPropagation();
   };
 
-  const renderChatLog = chatLog.map((val) => {
-    return val.type === "aiResponse" && val.url_param !== "None" ? (
-      <div key={val.message} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
-        <Link
-          href={val.url_param}
-          style={{
-            width: "fit-content",
-            border: hasDarkTheme ? "2px solid white" : "2px solid black",
-            margin: "1rem 0 1rem 0",
-            borderRadius: "30px",
-            padding: "0.5rem 1rem",
-            maxWidth: "80%",
-          }}>
-          {val.message}
-        </Link>
+  const renderChatLog = chatLog.map((val, idx) => {
+    return val.type === "aiResponse" && val.url_param !== "None" && val.external_link !== "None" ? (
+      <div key={idx} style={{ width: "100%", display: "inline-block", margin: "1rem 0 1rem 0" }}>
+        {val.message?.map((msg, idx) => {
+          return (
+            <>
+              <div
+                key={msg + idx}
+                style={{
+                  width: "fit-content",
+                  border: hasDarkTheme ? "2px solid white" : "2px solid black",
+                  margin: "1rem 0 1rem 0",
+                  borderRadius: "30px",
+                  padding: "0.5rem 1rem",
+                  maxWidth: "80%",
+                }}>
+                {msg}
+              </div>
+              {idx === 0 ? (
+                <div
+                  className="chatbot-button"
+                  style={{
+                    width: "fit-content",
+                    border: hasDarkTheme ? "2px solid white" : "2px solid black",
+                    margin: "1rem 0 1rem 0",
+                    borderRadius: "30px",
+                    padding: "0.5rem 1rem",
+                    maxWidth: "80%",
+                  }}>
+                  <Link href={val.url_param}>Got to Page</Link>
+                </div>
+              ) : idx === 1 ? (
+                <div
+                  className="chatbot-button"
+                  style={{
+                    width: "fit-content",
+                    border: hasDarkTheme ? "2px solid white" : "2px solid black",
+                    margin: "1rem 0 1rem 0",
+                    borderRadius: "30px",
+                    padding: "0.5rem 1rem",
+                    maxWidth: "80%",
+                  }}>
+                  <a href={val.external_link}>Go to External Link</a>
+                </div>
+              ) : (
+                ""
+              )}
+            </>
+          );
+        })}
       </div>
-    ) : val.type === "aiResponse" ? (
-      <div key={val.message} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+    ) : val.type === "aiResponse" && val.external_link === "None" ? (
+      <div key={idx} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+        {val.message?.map((msg, idx) => {
+          return (
+            <div
+              key={msg + idx}
+              style={{
+                width: "fit-content",
+                border: hasDarkTheme ? "2px solid white" : "2px solid black",
+                margin: "1rem 0 1rem 0",
+                borderRadius: "30px",
+                padding: "0.5rem 1rem",
+                maxWidth: "80%",
+              }}>
+              {msg}
+            </div>
+          );
+        })}
         <div
           style={{
             width: "fit-content",
@@ -118,12 +167,61 @@ const FloatingIcon = () => {
             padding: "0.5rem 1rem",
             maxWidth: "80%",
           }}>
-          {val.message}
+          <Link href={val.url_param}>{val.url_param}</Link>
         </div>
+      </div>
+    ) : val.type === "aiResponse" && val.url_param === "None" ? (
+      <div key={idx} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+        {val.message?.map((msg, idx) => {
+          return (
+            <div
+              key={msg + idx}
+              style={{
+                width: "fit-content",
+                border: hasDarkTheme ? "2px solid white" : "2px solid black",
+                margin: "1rem 0 1rem 0",
+                borderRadius: "30px",
+                padding: "0.5rem 1rem",
+                maxWidth: "80%",
+              }}>
+              {msg}
+            </div>
+          );
+        })}
+        <div
+          style={{
+            width: "fit-content",
+            border: hasDarkTheme ? "2px solid white" : "2px solid black",
+            margin: "1rem 0 1rem 0",
+            borderRadius: "30px",
+            padding: "0.5rem 1rem",
+            maxWidth: "80%",
+          }}>
+          <a href={val.external_link}>{val.external_link}</a>
+        </div>
+      </div>
+    ) : val.type === "aiResponse" ? (
+      <div key={idx} style={{ width: "100%", display: "flex", margin: "1rem 0 1rem 0" }}>
+        {val.message?.map((msg, idx) => {
+          return (
+            <div
+              key={msg + idx}
+              style={{
+                width: "fit-content",
+                border: hasDarkTheme ? "2px solid white" : "2px solid black",
+                margin: "1rem 0 1rem 0",
+                borderRadius: "30px",
+                padding: "0.5rem 1rem",
+                maxWidth: "80%",
+              }}>
+              {msg}
+            </div>
+          );
+        })}
       </div>
     ) : (
       <div
-        key={val.message}
+        key={idx}
         style={{ width: "100%", display: "flex", justifyContent: "flex-end", margin: "1rem 0 1rem 0" }}>
         <div
           style={{
