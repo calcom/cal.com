@@ -102,7 +102,7 @@ Now that Docker is installed and running, you can deploy cal.com on your virtual
 
 Use the following command to pull the cal.com Docker image from Docker Hub:
 ```bash
-docker pull cal/cal.com
+docker pull cal/calcom
 ```
 ### Run the Docker Container
 
