@@ -42,7 +42,7 @@ const finishMonitoring = (transaction: Transaction | Span, span: Span) => {
   }
 };
 
-const monitorCallbackAsync = async (cb: CallableFunction, ...args: any[]) => {
+const monitorCallbackAsync = async (cb: CallableFunction, ...args: unknown[]) => {
   // Check if Sentry set
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
 
@@ -59,7 +59,7 @@ const monitorCallbackAsync = async (cb: CallableFunction, ...args: any[]) => {
   }
 };
 
-const monitorCallbackSync = (cb: CallableFunction, ...args: any[]) => {
+const monitorCallbackSync = (cb: CallableFunction, ...args: unknown[]) => {
   // Check if Sentry set
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
 
