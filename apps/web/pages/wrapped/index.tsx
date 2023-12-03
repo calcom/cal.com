@@ -68,9 +68,9 @@ export default function WrapperPage() {
     });
 
     totalBookings = cancelledCount + acceptedCount;
-    cancelledPercentage = (cancelledCount / totalBookings) * 100;
-    rescheduledPercentage = (rescheduledCount / totalBookings) * 100;
-    acceptedPercentage = (acceptedCount / totalBookings) * 100;
+    cancelledPercentage = ((cancelledCount / totalBookings) * 100).toFixed(1);
+    rescheduledPercentage = ((rescheduledCount / totalBookings) * 100).toFixed(1);
+    acceptedPercentage = ((acceptedCount / totalBookings) * 100).toFixed(1);
 
     totalEventLength = data
       .map((item) => {
