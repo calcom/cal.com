@@ -71,9 +71,6 @@ export default function CreateEventTypeWithCopilotDialog() {
     data: { teamId },
   } = useTypedQuery(querySchema);
 
-  const aboutMePlaceholder = `I'm a co-founder of a SaaS startup called Cal.com, and our mission is to connect a billion people by 2031 through calendar scheduling.`;
-  const peoplePlaceholder = `I'm looking to connect with other founders, investors, enterprise executives, friends, and anyone else who wants to help us achieve our mission.`;
-
   const form = useForm<z.infer<typeof createEventTypeWithCopilotInput>>({
     resolver: zodResolver(createEventTypeWithCopilotInput),
   });
@@ -120,8 +117,8 @@ export default function CreateEventTypeWithCopilotDialog() {
       <DialogContent
         type="creation"
         enableOverflow
-        title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-        description={t("new_event_type_to_book_description")}>
+        title="New Event Types"
+        description="Create event types for all your needs, with Cal.com Copilot.">
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -129,25 +126,25 @@ export default function CreateEventTypeWithCopilotDialog() {
           }}>
           <div className="mt-3 space-y-6 pb-11">
             <div className="relative">
-              <label className="text-emphasis mb-2 block text-sm font-medium">Who are you?</label>
+              <label className="text-emphasis mb-2 block text-sm font-medium">What do you do?</label>
               <Editor
                 getText={() => md.render(form.getValues("aboutMe") || "")}
                 setText={(value: string) => form.setValue("aboutMe", turndown(value))}
                 excludedToolbarItems={["blockType", "link"]}
-                placeholder={aboutMePlaceholder}
+                placeholder="I'm a co-founder of a SaaS startup"
                 firstRender={firstRender}
                 setFirstRender={setFirstRender}
               />
             </div>
             <div className="relative">
               <label className="text-emphasis mb-2 block text-sm font-medium">
-                Who are you looking to connect with?
+                Who should be able to book time with you?
               </label>
               <Editor
                 getText={() => md.render(form.getValues("aboutPeopleToMeet") || "")}
                 setText={(value: string) => form.setValue("aboutPeopleToMeet", turndown(value))}
                 excludedToolbarItems={["blockType", "link"]}
-                placeholder={peoplePlaceholder}
+                placeholder="Other saas founders, investors, and customers"
                 firstRender={firstRender}
                 setFirstRender={setFirstRender}
               />

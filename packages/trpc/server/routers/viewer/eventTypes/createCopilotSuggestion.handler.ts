@@ -98,7 +98,7 @@ async function augmentInputsWithCopilot(input: { aboutMe: string; aboutPeopleToM
 
             Titles must be short, descriptions must call to action.
 
-            Must sound friendly, professional, use simple language, and be easy to understand.
+            Must sound friendly, use simple language, and be easy to understand.
           `,
       },
       {
