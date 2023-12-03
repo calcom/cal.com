@@ -48,6 +48,10 @@ This is a Node.js application and can be deployed to any Cloud that supports Nod
 
 <!-- TODO: create an optimised Dockerfile and provide instruction for running a container or running in k8s -->
 
+### Test
+
+You can test the code using the command `yarn run test`. For the integration tests, ensure you specify the `DATABASE_URL` environment variable.
+
 ## Architecture
 
 See the [architecture/proposal document](./Architecture.md)
