@@ -187,7 +187,11 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent, dispatch = 
   await Promise.all(emailsToSend);
 };
 
-export const sendRescheduledSeatEmail = async (calEvent: CalendarEvent, attendee: Perso, dispatch = true) => {
+export const sendRescheduledSeatEmail = async (
+  calEvent: CalendarEvent,
+  attendee: Person,
+  dispatch = true
+) => {
   if (await maybeDispatchEmail(dispatch, "sendRescheduledSeatEmail", calEvent, attendee)) return;
 
   const clonedCalEvent = cloneDeep(calEvent);
@@ -348,7 +352,9 @@ export const sendCancelledEmails = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendOrganizerRequestReminderEmail", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerRequestReminderEmail({ calEvent })));
@@ -360,7 +366,9 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
   }
 };
 
-export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
+export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendAwaitingPaymentEmail", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -371,7 +379,9 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendOrganizerPaymentRefundFailedEmail", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
   emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent })));
 
@@ -384,30 +394,43 @@ export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEv
   await Promise.all(emailsToSend);
 };
 
-export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) => {
+export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendPasswordResetEmail", passwordResetEvent)) return;
+
   await sendEmail(() => new ForgotPasswordEmail(passwordResetEvent));
 };
 
-export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
+export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendTeamInviteEmail", teamInviteEvent)) return;
+
   await sendEmail(() => new TeamInviteEmail(teamInviteEvent));
 };
 
-export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite) => {
+export const sendOrganizationAutoJoinEmail = async (orgInviteEvent: OrgAutoInvite, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendOrganizationAutoJoinEmail", orgInviteEvent)) return;
+
   await sendEmail(() => new OrgAutoJoinEmail(orgInviteEvent));
 };
 
-export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
+export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendEmailVerificationLink", verificationInput)) return;
+
   await sendEmail(() => new AccountVerifyEmail(verificationInput));
 };
 
-export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
+export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendEmailVerificationCode", verificationInput)) return;
+
   await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
   calEvent: CalendarEvent,
-  metadata: { rescheduleLink: string }
+  metadata: { rescheduleLink: string },
+  dispatch = true
 ) => {
+  if (await maybeDispatchEmail(dispatch, "sendRequestRescheduleEmail", calEvent, metadata)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerRequestedToRescheduleEmail(calEvent, metadata)));
@@ -417,7 +440,9 @@ export const sendRequestRescheduleEmail = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
+export const sendLocationChangeEmails = async (calEvent: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendLocationChangeEmails", calEvent)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerLocationChangeEmail({ calEvent })));
@@ -436,50 +461,81 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
 
   await Promise.all(emailsToSend);
 };
+
 export const sendFeedbackEmail = async (feedback: Feedback, dispatch = true) => {
   if (await maybeDispatchEmail(dispatch, "sendFeedbackEmail", feedback)) return;
+
   await sendEmail(() => new FeedbackEmail(feedback));
 };
 
-export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "video" | "calendar") => {
+export const sendBrokenIntegrationEmail = async (
+  evt: CalendarEvent,
+  type: "video" | "calendar",
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendBrokenIntegrationEmail", evt, type)) return;
+
   await sendEmail(() => new BrokenIntegrationEmail(evt, type));
 };
 
-export const sendDisabledAppEmail = async ({
-  email,
-  appName,
-  appType,
-  t,
-  title = undefined,
-  eventTypeId = undefined,
-}: {
-  email: string;
-  appName: string;
-  appType: string[];
-  t: TFunction;
-  title?: string;
-  eventTypeId?: number;
-}) => {
+export const sendDisabledAppEmail = async (
+  {
+    email,
+    appName,
+    appType,
+    t,
+    title = undefined,
+    eventTypeId = undefined,
+  }: {
+    email: string;
+    appName: string;
+    appType: string[];
+    t: TFunction;
+    title?: string;
+    eventTypeId?: number;
+  },
+  dispatch = true
+) => {
+  if (
+    await maybeDispatchEmail(dispatch, "sendDisabledAppEmail", {
+      email,
+      appName,
+      appType,
+      t,
+      title,
+      eventTypeId,
+    })
+  )
+    return;
+
   await sendEmail(() => new DisabledAppEmail(email, appName, appType, t, title, eventTypeId));
 };
 
-export const sendSlugReplacementEmail = async ({
-  email,
-  name,
-  teamName,
-  t,
-  slug,
-}: {
-  email: string;
-  name: string;
-  teamName: string | null;
-  t: TFunction;
-  slug: string;
-}) => {
+export const sendSlugReplacementEmail = async (
+  {
+    email,
+    name,
+    teamName,
+    t,
+    slug,
+  }: {
+    email: string;
+    name: string;
+    teamName: string | null;
+    t: TFunction;
+    slug: string;
+  },
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendSlugReplacementEmail", { email, name, teamName, slug, t }))
+    return;
+
   await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
 };
 
-export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {
+export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendNoShowFeeChargedEmail", attendee, evt)) return;
+
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };
 
@@ -489,6 +545,7 @@ export const sendDailyVideoRecordingEmails = async (
   dispatch = true
 ) => {
   if (await maybeDispatchEmail(dispatch, "sendDailyVideoRecordingEmails", calEvent, downloadLink)) return;
+
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calEvent, downloadLink)));
@@ -501,15 +558,24 @@ export const sendDailyVideoRecordingEmails = async (
   await Promise.all(emailsToSend);
 };
 
-export const sendOrganizationEmailVerification = async (sendOrgInput: OrganizationEmailVerify) => {
+export const sendOrganizationEmailVerification = async (
+  sendOrgInput: OrganizationEmailVerify,
+  dispatch = true
+) => {
+  if (await maybeDispatchEmail(dispatch, "sendOrganizationEmailVerification", sendOrgInput)) return;
+
   await sendEmail(() => new OrganizationEmailVerification(sendOrgInput));
 };
 
-export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData) => {
+export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendMonthlyDigestEmails", eventData)) return;
+
   await sendEmail(() => new MonthlyDigestEmail(eventData));
 };
 
-export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
+export const sendAdminOrganizationNotification = async (input: OrganizationNotification, dispatch = true) => {
+  if (await maybeDispatchEmail(dispatch, "sendAdminOrganizationNotification", input)) return;
+
   await sendEmail(() => new AdminOrganizationNotification(input));
 };
 
@@ -527,25 +593,25 @@ export const emailActions = {
   sendAttendeeRequestEmail,
   sendDeclinedEmails,
   sendCancelledEmails,
-  // sendOrganizerRequestReminderEmail,
-  // sendAwaitingPaymentEmail,
-  // sendOrganizerPaymentRefundFailedEmail,
-  // sendPasswordResetEmail,
-  // sendTeamInviteEmail,
-  // sendOrganizationAutoJoinEmail,
-  // sendEmailVerificationLink,
-  // sendEmailVerificationCode,
-  // sendRequestRescheduleEmail,
-  // sendLocationChangeEmails,
+  sendOrganizerRequestReminderEmail,
+  sendAwaitingPaymentEmail,
+  sendOrganizerPaymentRefundFailedEmail,
+  sendPasswordResetEmail,
+  sendTeamInviteEmail,
+  sendOrganizationAutoJoinEmail,
+  sendEmailVerificationLink,
+  sendEmailVerificationCode,
+  sendRequestRescheduleEmail,
+  sendLocationChangeEmails,
   sendFeedbackEmail,
-  // sendBrokenIntegrationEmail,
-  // sendDisabledAppEmail,
-  // sendSlugReplacementEmail,
-  // sendNoShowFeeChargedEmail,
+  sendBrokenIntegrationEmail,
+  sendDisabledAppEmail,
+  sendSlugReplacementEmail,
+  sendNoShowFeeChargedEmail,
   sendDailyVideoRecordingEmails,
-  // sendOrganizationEmailVerification,
-  // sendMonthlyDigestEmails,
-  // sendAdminOrganizationNotification,
+  sendOrganizationEmailVerification,
+  sendMonthlyDigestEmails,
+  sendAdminOrganizationNotification,
 };
 
 export type EmailAction = keyof typeof emailActions;
