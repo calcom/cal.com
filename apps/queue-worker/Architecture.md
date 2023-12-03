@@ -4,11 +4,26 @@ This document describes the architecture of a message queue system that solves t
 
 I have chosen to use [Temporal](https://temporal.io/) as the backbone for this system.
 
+Table Of Content
+
+- [Message Queue System Architecture](#message-queue-system-architecture)
+  - [What Is Temporal?](#what-is-temporal)
+  - [Temporal vs Other Task Queue And Event Systems](#temporal-vs-other-task-queue-and-event-systems)
+  - [The Temporal Programming Model](#the-temporal-programming-model)
+  - [Designing The Actual Message Queue System For Cal.com](#designing-the-actual-message-queue-system-for-calcom)
+  - [Technical Requirements And Consideration](#technical-requirements-and-consideration)
+    - [Scalability](#scalability)
+    - [Reliability](#reliability)
+    - [Monitoring and Logging](#monitoring-and-logging)
+    - [Debugging](#debugging)
+    - [Testing](#testing)
+    - [Security](#security)
+
 ## What Is Temporal?
 
 Temporal is a distributed, scalable, durable, and highly available task queuing and orchestration system. It guarantees the durable execution of your code. That is, it maintains the application state and progress even in the face of failures, crashes, or server outages. This is achieved through Temporal's use of an [Event History](https://docs.temporal.io/workflows#event-history), which records the state of a Workflow Execution at each step. If a failure occurs, the Workflow Execution can resume from the last recorded event, ensuring that progress isn't lost.
 
-## Temporal vs Other queuing systems
+## Temporal vs Other Task Queue And Event Systems
 
 There are other tools available for building event-driven applications, or implementing task queues for Node.js. There's is Kafka or RabbitMQ for implementing event streaming and message based systems. In Node.js, there are Redis-based task queues like [BullMQ](https://github.com/taskforcesh/bullmq) or [Bee Queue](https://www.npmjs.com/package/bee-queue).
 
@@ -55,7 +70,7 @@ Each Cal.com application that needs to execute a Workflow installs the `@tempora
 
 > The associated PR contains proof of concept for workflows to send emails, and a Worker that executes a Workflow when a new meeting event is scheduled.
 
-## Technical Requirements & Consideration
+## Technical Requirements And Consideration
 
 ### Scalability
 
