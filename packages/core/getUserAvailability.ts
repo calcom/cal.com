@@ -25,6 +25,7 @@ import type {
 } from "@calcom/types/Calendar";
 
 import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
+import monitorCallback from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
@@ -42,6 +43,10 @@ const availabilitySchema = z
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
 const getEventType = async (id: number) => {
+  return monitorCallback(_getEventType, id);
+};
+
+const _getEventType = async (id: number) => {
   const eventType = await prisma.eventType.findUnique({
     where: { id },
     select: {
@@ -86,7 +91,11 @@ const getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (where: Prisma.UserWhereInput) =>
+const getUser = (where: Prisma.UserWhereInput) => {
+  return monitorCallback(_getUser, where);
+};
+
+const _getUser = (where: Prisma.UserWhereInput) =>
   prisma.user.findFirst({
     where,
     select: {
@@ -99,7 +108,11 @@ const getUser = (where: Prisma.UserWhereInput) =>
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
+export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
+  return monitorCallback(_getCurrentSeats, eventTypeId, dateFrom, dateTo);
+};
+
+const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
   prisma.booking.findMany({
     where: {
       eventTypeId,
@@ -122,8 +135,39 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
+export const getUserAvailability = async (
+  query: {
+    withSource?: boolean;
+    username?: string;
+    userId?: number;
+    dateFrom: string;
+    dateTo: string;
+    eventTypeId?: number;
+    afterEventBuffer?: number;
+    beforeEventBuffer?: number;
+    duration?: number;
+  },
+  initialData?: {
+    user?: User;
+    eventType?: EventType;
+    currentSeats?: CurrentSeats;
+    rescheduleUid?: string | null;
+    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      eventType: Pick<
+        PrismaEventType,
+        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      > | null;
+      _count?: {
+        seatsReferences: number;
+      };
+    })[];
+  }
+) => {
+  return monitorCallback(_getUserAvailability, query, initialData);
+};
+
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
-export const getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
+const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: {
     withSource?: boolean;
     username?: string;
@@ -306,6 +350,10 @@ export const getUserAvailability = async function getUsersWorkingHoursLifeTheUni
 };
 
 const getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
+  return monitorCallback(_getPeriodStartDatesBetween, dateFrom, dateTo, period);
+};
+
+const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
   const dates = [];
   let startDate = dayjs(dateFrom).startOf(period);
   const endDate = dayjs(dateTo).endOf(period);
@@ -386,6 +434,27 @@ const getBusyTimesFromLimits = async (
   eventType: NonNullable<EventType>,
   userId: number
 ) => {
+  return monitorCallback(
+    _getBusyTimesFromLimits,
+    bookingLimits,
+    durationLimits,
+    dateFrom,
+    dateTo,
+    duration,
+    eventType,
+    userId
+  );
+};
+
+const _getBusyTimesFromLimits = async (
+  bookingLimits: IntervalLimit | null,
+  durationLimits: IntervalLimit | null,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  duration: number | undefined,
+  eventType: NonNullable<EventType>,
+  userId: number
+) => {
   performance.mark("limitsStart");
 
   // shared amongst limiters to prevent processing known busy periods
@@ -457,6 +526,25 @@ const getBusyTimesFromBookingLimits = async (
   eventTypeId: number,
   limitManager: LimitManager
 ) => {
+  return monitorCallback(
+    _getBusyTimesFromBookingLimits,
+    bookings,
+    bookingLimits,
+    dateFrom,
+    dateTo,
+    eventTypeId,
+    limitManager
+  );
+};
+
+const _getBusyTimesFromBookingLimits = async (
+  bookings: EventBusyDetails[],
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  eventTypeId: number,
+  limitManager: LimitManager
+) => {
   for (const key of descendingLimitKeys) {
     const limit = bookingLimits?.[key];
     if (!limit) continue;
@@ -504,6 +592,27 @@ const getBusyTimesFromBookingLimits = async (
 };
 
 const getBusyTimesFromDurationLimits = async (
+  bookings: EventBusyDetails[],
+  durationLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  duration: number | undefined,
+  eventType: NonNullable<EventType>,
+  limitManager: LimitManager
+) => {
+  return monitorCallback(
+    _getBusyTimesFromDurationLimits,
+    bookings,
+    durationLimits,
+    dateFrom,
+    dateTo,
+    duration,
+    eventType,
+    limitManager
+  );
+};
+
+const _getBusyTimesFromDurationLimits = async (
   bookings: EventBusyDetails[],
   durationLimits: IntervalLimit,
   dateFrom: Dayjs,
