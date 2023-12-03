@@ -369,7 +369,7 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
 
   await Promise.all(emailsToSend);
 };
-export const sendFeedbackEmail = async (feedback: Feedback) => {
+export const sendFeedbackEmail = async ({ feedback }: { feedback: Feedback }) => {
   console.log("sending feedback email");
   console.log(JSON.stringify(feedback));
   await sendEmail(() => new FeedbackEmail(feedback));
@@ -417,7 +417,13 @@ export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarE
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };
 
-export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+export const sendDailyVideoRecordingEmails = async ({
+  calEvent,
+  downloadLink,
+}: {
+  calEvent: CalendarEvent;
+  downloadLink: string;
+}) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calEvent, downloadLink)));
@@ -444,43 +450,48 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 
 // create a object will of all the emails actions
 export const emailActions = {
-  sendScheduledEmails,
-  sendRoundRobinScheduledEmails,
-  sendRoundRobinRescheduledEmails,
-  sendRoundRobinCancelledEmails,
-  sendRescheduledEmails,
-  sendRescheduledSeatEmail,
-  sendScheduledSeatsEmails,
-  sendCancelledSeatEmails,
-  sendOrganizerRequestEmail,
-  sendAttendeeRequestEmail,
-  sendDeclinedEmails,
-  sendCancelledEmails,
-  sendOrganizerRequestReminderEmail,
-  sendAwaitingPaymentEmail,
-  sendOrganizerPaymentRefundFailedEmail,
-  sendPasswordResetEmail,
-  sendTeamInviteEmail,
-  sendOrganizationAutoJoinEmail,
-  sendEmailVerificationLink,
-  sendEmailVerificationCode,
-  sendRequestRescheduleEmail,
-  sendLocationChangeEmails,
+  // sendScheduledEmails,
+  // sendRoundRobinScheduledEmails,
+  // sendRoundRobinRescheduledEmails,
+  // sendRoundRobinCancelledEmails,
+  // sendRescheduledEmails,
+  // sendRescheduledSeatEmail,
+  // sendScheduledSeatsEmails,
+  // sendCancelledSeatEmails,
+  // sendOrganizerRequestEmail,
+  // sendAttendeeRequestEmail,
+  // sendDeclinedEmails,
+  // sendCancelledEmails,
+  // sendOrganizerRequestReminderEmail,
+  // sendAwaitingPaymentEmail,
+  // sendOrganizerPaymentRefundFailedEmail,
+  // sendPasswordResetEmail,
+  // sendTeamInviteEmail,
+  // sendOrganizationAutoJoinEmail,
+  // sendEmailVerificationLink,
+  // sendEmailVerificationCode,
+  // sendRequestRescheduleEmail,
+  // sendLocationChangeEmails,
   sendFeedbackEmail,
-  sendBrokenIntegrationEmail,
-  sendDisabledAppEmail,
-  sendSlugReplacementEmail,
-  sendNoShowFeeChargedEmail,
+  // sendBrokenIntegrationEmail,
+  // sendDisabledAppEmail,
+  // sendSlugReplacementEmail,
+  // sendNoShowFeeChargedEmail,
   sendDailyVideoRecordingEmails,
-  sendOrganizationEmailVerification,
-  sendMonthlyDigestEmails,
-  sendAdminOrganizationNotification,
+  // sendOrganizationEmailVerification,
+  // sendMonthlyDigestEmails,
+  // sendAdminOrganizationNotification,
 };
 
 export type EmailAction = keyof typeof emailActions;
-export type EmailActionFunction = { [K in keyof typeof emailActions]: EmailActionParams[K] };
+export type EmailActionFunctionParams = {
+  [K in keyof typeof emailActions]: Parameters<(typeof emailActions)[K]>[0];
+};
 
-export const dispatchEmail = async (action: EmailAction, params: EmailActionFunction[typeof action]) => {
+export const dispatchEmail = async (
+  action: EmailAction,
+  params: EmailActionFunctionParams[typeof action]
+) => {
   console.log(process.env.QSTASH_URL);
   if (process.env.QSTASH_URL === "localhost") {
     console.log("making send_email request locally");
@@ -519,6 +530,7 @@ export const dispatchEmail = async (action: EmailAction, params: EmailActionFunc
     });
     console.log("send_email request made to qstash");
   } else {
-    await emailActions[action](params);
+    const actionFunction = emailActions[action];
+    await actionFunction(params);
   }
 };

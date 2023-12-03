@@ -32,6 +32,6 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
   });
 
   if (process.env.SEND_FEEDBACK_EMAIL && comment) {
-    dispatchEmail("sendFeedbackEmail", feedback);
+    dispatchEmail("sendFeedbackEmail", { feedback });
   }
 };
