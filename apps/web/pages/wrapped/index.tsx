@@ -18,9 +18,6 @@ export default function WrapperPage() {
   const startDate = endDate.startOf("year");
   const endDateStr = endDate.toISOString();
   const startDateStr = startDate.toISOString();
-  let bookedHours;
-  let bookedMins;
-  let totalEventLength;
 
   const { data, isSuccess, isLoading } = trpc.viewer.insights.AllBookingsForMember.useQuery(
     {
@@ -36,16 +33,18 @@ export default function WrapperPage() {
     }
   );
 
-  let total;
+  let totalBookings;
   let cancelledPercentage;
   let rescheduledPercentage;
   let acceptedPercentage;
+  let bookedHours;
+  let bookedMins;
+  let totalEventLength;
 
   let firstTime: any = "0";
   if (data != undefined && data.length > 0) {
     firstTime = data[0].startTime.toISOString();
 
-    // cancelled = status cancelled - timestatus rescheduled
     let cancelledCount = 0;
     let acceptedCount = 0;
     let rescheduledCount = 0;
@@ -62,10 +61,10 @@ export default function WrapperPage() {
       }
     });
 
-    total = cancelledCount + acceptedCount;
-    cancelledPercentage = (cancelledCount / total) * 100;
-    rescheduledPercentage = (rescheduledCount / total) * 100;
-    acceptedPercentage = (acceptedCount / total) * 100;
+    totalBookings = cancelledCount + acceptedCount;
+    cancelledPercentage = (cancelledCount / totalBookings) * 100;
+    rescheduledPercentage = (rescheduledCount / totalBookings) * 100;
+    acceptedPercentage = (acceptedCount / totalBookings) * 100;
 
     totalEventLength = data
       .map((item) => {
