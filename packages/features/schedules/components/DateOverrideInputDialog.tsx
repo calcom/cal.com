@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -34,7 +34,9 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
 }) => {
+  const [isRecurring, setIsRecurring] = useState(false);
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
+  const [selectedDates, setSelectedDates] = useState<Dayjs[]>(value ? [dayjs.utc(value[0].start)] : []);
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
     value &&
@@ -44,7 +46,32 @@ const DateOverrideForm = ({
       value[0].end.getUTCMinutes() === 0
   );
 
-  const [selectedDates, setSelectedDates] = useState<Dayjs[]>(value ? [dayjs.utc(value[0].start)] : []);
+  // Add handleRecurringDates function here
+  const handleRecurringDates = useCallback(() => {
+    // Add logic to generate recurring dates based on selectedDates and interval
+    // For example, let's assume you want to generate dates for the next 5 days with a daily interval
+
+    const generatedDates: Dayjs[] = [];
+
+    if (selectedDates.length > 0) {
+      const interval = 1; // Daily interval
+
+      for (let i = 0; i < 5; i++) {
+        const nextDate = selectedDates[selectedDates.length - 1].add(interval, "day");
+        generatedDates.push(nextDate);
+      }
+    }
+
+    // Do something with the generatedDates, such as updating state or performing other actions
+    // For now, let's update the selectedDates state with the generatedDates
+    setSelectedDates(generatedDates);
+  }, [selectedDates]);
+
+  useEffect(() => {
+    if (isRecurring) {
+      handleRecurringDates();
+    }
+  }, [handleRecurringDates, isRecurring, selectedDates]);
 
   const onDateChange = (newDate: Dayjs) => {
     // If clicking on a selected date unselect it
@@ -99,6 +126,12 @@ const DateOverrideForm = ({
           : defaultRanges,
     },
   });
+
+  // useEffect(() => {
+  //   if (isRecurring) {
+  //     handleRecurringDates();
+  //   }
+  // }, [isRecurring, selectedDates]);
 
   return (
     <Form
@@ -172,6 +205,12 @@ const DateOverrideForm = ({
                 onCheckedChange={setDatesUnavailable}
                 data-testid="date-override-mark-unavailable"
               />
+              <Switch
+                label={t("date_recurring_override")}
+                checked={isRecurring}
+                onCheckedChange={setIsRecurring}
+                data-testid="date_recurring_override"
+              />
             </div>
             <div className="mt-4 flex flex-row-reverse sm:mt-0">
               <Button
@@ -226,3 +265,6 @@ const DateOverrideInputDialog = ({
 };
 
 export default DateOverrideInputDialog;
+// function useCallback(arg0: () => void) {
+//   throw new Error("Function not implemented.");
+// }
