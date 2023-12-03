@@ -385,6 +385,11 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 [![Deploy on Elestio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/cal.com)
 
+### DigitalOcean
+You can deploy Cal.com DigitalOcean by following this [guide](https://dev.to/smyja/deploy-on-calcom-on-digitalocean-26op)
+
+### Hetzner
+You can deploy Cal.com DigitalOcean by following this [guide](https://dev.to/smyja/deploy-on-calcom-on-digitalocean-26op)
 <!-- ROADMAP -->
 
 ## Roadmap
