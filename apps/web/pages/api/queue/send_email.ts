@@ -22,6 +22,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const actionFunction = emailActions[action];
   // call the action function
+  // we ignore the type error but could be fixed with proper typing
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
   await actionFunction(...params, false);
 
   console.log("email sent");

@@ -312,7 +312,8 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent, dispatch = tru
 
 export const sendCancelledEmails = async (
   calEvent: CalendarEvent,
-  eventNameObject: Pick<EventNameObjectType, "eventName">
+  eventNameObject: Pick<EventNameObjectType, "eventName">,
+  dispatch = true
 ) => {
   if (await maybeDispatchEmail(dispatch, "sendCancelledEmails", calEvent, eventNameObject)) return;
 
@@ -620,6 +621,7 @@ export type EmailAction = keyof typeof emailActions;
 // };
 
 export const maybeDispatchEmail = async (dispatch: boolean, action: EmailAction, ...params: any[]) => {
+  console.log("params", params);
   if (dispatch && process.env.QSTASH_URL === "localhost") {
     console.log("making send_email request locally");
     await fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/queue/send_email`, {
