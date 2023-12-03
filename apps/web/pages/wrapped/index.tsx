@@ -36,12 +36,42 @@ export default function WrapperPage() {
     }
   );
 
-  console.log(data);
+  let total;
+  let cancelledPercentage;
+  let rescheduledPercentage;
+  let acceptedPercentage;
 
   let firstTime: any = "0";
   if (data != undefined && data.length > 0) {
     firstTime = data[0].startTime.toISOString();
+
+    // cancelled = status cancelled - timestatus rescheduled
+    let cancelledCount = 0;
+    let acceptedCount = 0;
+    let rescheduledCount = 0;
+
+    data.forEach((item) => {
+      if (item.status === "CANCELLED" && item.timeStatus !== "rescheduled") {
+        cancelledCount++;
+      }
+      if (item.timeStatus === "rescheduled") {
+        rescheduledCount++;
+      }
+      if (item.status === "ACCEPTED") {
+        acceptedCount++;
+      }
+    });
+
+    total = cancelledCount + acceptedCount;
+    cancelledPercentage = (cancelledCount / total) * 100;
+    rescheduledPercentage = (rescheduledCount / total) * 100;
+    acceptedPercentage = (acceptedCount / total) * 100;
   }
+  console.log(cancelledPercentage);
+  console.log(rescheduledPercentage);
+  console.log(acceptedPercentage);
+
+  // timestatus rescheduled - status cancelled
 
   // Check for number of user bookings
   // Check if data exists and if data[0] is an array
