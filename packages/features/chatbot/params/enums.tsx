@@ -1,6 +1,6 @@
 const other = "None";
 
-export const ROUTER_ENUMS: string[] = [
+export const URL_PARAM_ENUMS: string[] = [
   "/apps",
   "/apps/routing-forms/forms",
   "/auth/setup?step=1",
@@ -26,11 +26,16 @@ export const ROUTER_ENUMS: string[] = [
   other,
 ];
 
-// export const EXTERNAL_ROUTER_ENUMS: string[] = [
-//   "https://cal.com/download",
-//   "https://discord.com/invite/calcom",
-//   "https://github.com/calcom/cal.com/milestones",
-//   "https://www.youtube.com/watch?v=jvaBafzVUQc",
-// ];
+export const URL_PARAM_MSGS: string[] = URL_PARAM_ENUMS.map((x) => `Going to ${x}`);
 
-export const ROUTER_MSGS: string[] = ROUTER_ENUMS.map((x) => `Going to ${x}`);
+export const EXTERNAL_LINK_ENUMS: string[] = [
+  "https://cal.com/download",
+  "https://discord.com/invite/calcom",
+  "https://github.com/calcom/cal.com/milestones",
+  "https://www.youtube.com/watch?v=jvaBafzVUQc",
+  other,
+];
+
+export const EXTERNAL_LINK_MSGS: string[] = EXTERNAL_LINK_ENUMS.map(
+  (x) => `You can review this webpage: ${x}`
+);

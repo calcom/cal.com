@@ -6,7 +6,7 @@ import { HumanMessage } from "langchain/schema";
 // Environment variables
 import { OPENAI_API_KEY } from "../.env";
 // Parameters
-import { ROUTER_ENUMS, ROUTER_MSGS } from "../params/enums";
+import { URL_PARAM_ENUMS, URL_PARAM_MSGS, EXTERNAL_LINK_ENUMS, EXTERNAL_LINK_MSGS } from "../params/enums";
 import { GPT_MODEL } from "../params/models";
 // Types
 import type { RouterResponseType } from "../types/responseTypes";
@@ -21,18 +21,28 @@ const extractionFunctionSchema = {
   parameters: {
     type: "object",
     properties: {
-      url_param: {
+      url_param_enum: {
         type: "string",
-        enum: ROUTER_ENUMS,
+        enum: URL_PARAM_ENUMS,
         description: "The URL parameter to extract.",
       },
-      message: {
+      url_param_msg: {
         type: "string",
-        enum: ROUTER_MSGS,
-        description: "The message to send to the user.",
+        enum: URL_PARAM_MSGS,
+        description: "The message about rerouting to the webpage which is sent to the user.",
+      },
+      external_link_enum: {
+        type: "string",
+        enum: EXTERNAL_LINK_ENUMS,
+        description: "The external link to extract.",
+      },
+      external_link_msg: {
+        type: "string",
+        enum: EXTERNAL_LINK_MSGS,
+        description: "The message about rerouting to the external link which is sent to the user.",
       },
     },
-    required: ["url_param", "message"],
+    required: ["url_param_enum", "url_param_msg", "external_link_enum", "external_link_msg"],
   },
 };
 
@@ -59,6 +69,7 @@ const run = async (inputValue: string): Promise<RouterResponseType> => {
   {
     result: {
       url_param: "/apps",
+      external_link: "https://cal.com/download",
       message: "Going to /apps"
     }
   }
