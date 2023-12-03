@@ -2,7 +2,6 @@ import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { OpenAI } from "openai";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -27,7 +26,7 @@ export const createCopilotSuggestionHandler = async ({ ctx, input }: CreateCopil
         ...item,
         owner: { connect: { id: ctx.user.id } },
         users: { connect: { id: ctx.user.id } },
-        locations: [{ type: DailyLocationType }],
+        // locations: [{ type: DailyLocationType }],
       };
       await ctx.prisma.eventType.create({
         data: enhancedItem,
@@ -56,49 +55,70 @@ async function augmentInputsWithCopilot(input: { aboutMe: string; aboutPeopleToM
       {
         role: "system",
         content: `
-  You're an AI assistant built into a meeting scheduling software.
-  You learn who the user is, who they want to meet, and the parameters API accepts,
-  and you suggest the value for the parameters based on the user's preferences.
+You're an AI assistant built into a meeting scheduling software.
+You learn who the user is, who they want to meet, and the parameters API accepts,
+and you suggest the value for the parameters based on the user's preferences.
           `,
       },
       {
         role: "user",
         content: `
-            Here's the parameters API accepts, as zod schema:
+Here's the parameters API accepts, as zod schema:
 
-            export const _EventTypeModel = z.object({
-              title: z.string().min(1),
-              slug: imports.eventTypeSlug,
-              description: z.string().nullish(),
-              length: z.number().int().min(1),
-            });
+export const _EventTypeModel = z.object({
+title: z.string().min(1),
+slug: imports.eventTypeSlug,
+description: z.string().nullish(),
+length: z.number().int().min(1),
+locations: imports.eventTypeLocations,
+minimumBookingNotice: z.number().int().min(0), // in minutes
+});
+
+export const eventTypeLocations = z.array(
+z.object({
+type: z.string(), // "inPerson" | "integrations:daily" | "userPhone"
+address: z.string().optional(),
+link: z.string().url().optional(),
+displayLocationPublicly: z.boolean().optional(),
+hostPhoneNumber: z.string().optional(),
+credentialId: z.number().optional(),
+teamName: z.string().optional(),
+})
+);
           `,
       },
       {
         role: "user",
         content: `
-            Here's the user's preferences:
+Here's the user's preferences:
 
-            About me: "${aboutMe}"
-            About people I want to be booked by: "${aboutPeopleToMeet}"
+About me: "${aboutMe}"
+About people I want to be booked by: "${aboutPeopleToMeet}"
           `,
       },
       {
         role: "user",
         content: `
-            Infer the needs of the user based on their preferences.
-            Write a json array with objects representing the parameters API accepts,
-            given what the user said about themselves and the people they want to meet.
-            Every entry must represent a single user need category.
+Infer the needs of the user based on their preferences.
 
-            Whatever explanation / description you write, it must be written from the perspective of the user.
+Write a json array with objects representing the parameters API accepts, given what the user said about themselves and the people they want to meet.
+Every entry must represent a single user need category, but might include several locations.
 
-            Must be brief with titles / slugs / names.
-            Must be brief, but not too brief with the descriptions / explanations.
+Whatever explanation / description you write, it must be written from the perspective of the user.
 
-            Titles must be short, descriptions must call to action.
+Must be brief with titles / slugs / names.
+Must be brief, but not too brief with the descriptions / explanations.
 
-            Must sound friendly, use simple language, and be easy to understand.
+Titles must be short, descriptions must call to action.
+
+Typical locations are in-person, online or by phone.
+If location location details are not clear form the context or not specified by the user, must keep it empty.
+
+Set the length of the event based on the event's purpose.
+Friendly chats, sync calls must be short. Meetings, interviews, presentations must be longer.
+Length of the meetings must be optimized for the user's needs, not the needs of the people they want to meet.
+
+Must sound friendly, use simple language, and be easy to understand.
           `,
       },
       {
