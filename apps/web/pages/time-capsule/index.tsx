@@ -36,6 +36,8 @@ function TimeCapsule() {
   console.log(eventFrequenciesByName);
 
   const totalMeetingTime = calculateTotalMeetingTime(bookingsEventIds, eventLengthRecord);
+  const averageMeetingTime =
+    totalMeetingTime / (bookingsEventIds !== undefined ? bookingsEventIds.length : 1);
   // const eventNamesAndFrequencies =
 
   return (
@@ -170,7 +172,7 @@ function TimeCapsule() {
                             <div className="flex items-end justify-between gap-4">
                               <div className="mt-12 flex h-2 w-[9px] shrink-0 flex-col rounded-[50%] blur-[1.0836269855499268px] max-md:mt-10" />
                               <div className="self-stretch text-center text-7xl font-semibold leading-[80px] text-neutral-50 max-md:text-4xl max-md:leading-10">
-                                54
+                                {averageMeetingTime}
                               </div>
                             </div>
                             <div className="my-auto flex h-[9px] w-2 shrink-0 flex-col self-center rounded-[50%] blur-[1.0836269855499268px]" />
