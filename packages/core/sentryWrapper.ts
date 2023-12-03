@@ -10,6 +10,9 @@ For smaller loops, the cost incurred may not be very significant on an absolute 
 considering that a million monitored iterations only took roughly 8 seconds when monitored.
 */
 const monitorCallback = async (cb: CallableFunction, ...args: any[]) => {
+  // Check if Sentry set
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
+
   // Attempt to retrieve the current transaction from Sentry's scope
   let transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
 
