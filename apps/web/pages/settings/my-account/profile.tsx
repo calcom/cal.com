@@ -376,6 +376,12 @@ const ProfileView = () => {
   );
 };
 
+type BookingForwardingForm = {
+  startDate: string;
+  endDate: string;
+  toUsernameOrEmail: string;
+};
+
 const ProfileForm = ({
   defaultValues,
   onSubmit,

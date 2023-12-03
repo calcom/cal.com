@@ -255,6 +255,8 @@ model User {
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
+  bookingForwardings   BookingForwarding[]
+  bookingForwardingsTo BookingForwarding[]     @relation(name: "toUser")
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
@@ -310,6 +312,7 @@ model Team {
   apiKeys             ApiKey[]
   credentials         Credential[]
   accessCodes         AccessCode[]
+  bookingForwardings  BookingForwarding[]
 
   @@unique([slug, parentId])
 }
@@ -1026,4 +1029,32 @@ model Avatar {
 
   @@unique([teamId, userId])
   @@map(name: "avatars")
+}
+
+enum BookingForwardingStatus {
+  ACCEPTED @map("accepted")
+  REJECTED @map("rejected")
+  PENDING  @map("pending")
+}
+
+model BookingForwarding {
+  id        Int                     @id @default(autoincrement())
+  uuid      String                  @unique
+  start     DateTime
+  end       DateTime
+  userId    Int
+  user      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId  Int
+  toUser    User?                   @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  toTeamId  Int?
+  toTeam    Team?                   @relation(fields: [toTeamId], references: [id], onDelete: Cascade)
+  status    BookingForwardingStatus @default(PENDING)
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@index([uuid])
+  @@index([userId])
+  @@index([toUserId])
+  @@index([toTeamId])
+  @@index([start, end, status])
 }

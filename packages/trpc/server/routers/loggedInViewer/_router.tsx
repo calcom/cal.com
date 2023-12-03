@@ -3,6 +3,11 @@ import { router } from "../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { ZAwayInputSchema } from "./away.schema";
+import {
+  ZBookingForwardingConfirm,
+  ZBookingForwardingDelete,
+  ZBookingForwardingInputSchema,
+} from "./bookingForwarding.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
@@ -44,6 +49,10 @@ type AppsRouterHandlerCache = {
   getUsersDefaultConferencingApp?: typeof import("./getUsersDefaultConferencingApp.handler").getUsersDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
+  bookingForwardingCreate?: typeof import("./bookingForwarding.handler").bookingForwardingCreate;
+  bookingForwardingAccept?: typeof import("./bookingForwarding.handler").bookingForwardingAccept;
+  bookingForwardingList?: typeof import("./bookingForwarding.handler").bookingForwardingList;
+  bookingForwardingDelete?: typeof import("./bookingForwarding.handler").bookingForwardingDelete;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -416,4 +425,66 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.teamsAndUserProfilesQuery({ ctx });
   }),
+  bookingForwardingCreate: authedProcedure
+    .input(ZBookingForwardingInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingCreate) {
+        UNSTABLE_HANDLER_CACHE.bookingForwardingCreate = (
+          await import("./bookingForwarding.handler")
+        ).bookingForwardingCreate;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingCreate) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.bookingForwardingCreate({ ctx, input });
+    }),
+  bookingForwardingAccept: authedProcedure
+    .input(ZBookingForwardingConfirm)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingAccept) {
+        UNSTABLE_HANDLER_CACHE.bookingForwardingAccept = (
+          await import("./bookingForwarding.handler")
+        ).bookingForwardingAccept;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingAccept) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.bookingForwardingAccept({ ctx, input });
+    }),
+  bookingForwardingList: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.bookingForwardingList) {
+      UNSTABLE_HANDLER_CACHE.bookingForwardingList = (
+        await import("./bookingForwarding.handler")
+      ).bookingForwardingList;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.bookingForwardingList) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.bookingForwardingList({ ctx });
+  }),
+  bookingForwardingDelete: authedProcedure
+    .input(ZBookingForwardingDelete)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingDelete) {
+        UNSTABLE_HANDLER_CACHE.bookingForwardingDelete = (
+          await import("./bookingForwarding.handler")
+        ).bookingForwardingDelete;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingDelete) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.bookingForwardingDelete({ ctx, input });
+    }),
 });

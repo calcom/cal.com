@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { handleTypeForwarding } from "@calcom/features/booking-forwarding/handle-type";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import {
@@ -170,6 +171,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       organization: userOrgQuery(context.req.headers.host ?? "", context.params?.orgSlug),
     },
     select: {
+      id: true,
       away: true,
       hideBranding: true,
       allowSEOIndexing: true,
@@ -180,6 +182,15 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+  // If user is found, quickly verify bookingForwarding
+  const redirect = handleTypeForwarding({
+    userId: user.id,
+    username,
+    slug,
+  });
+  if (redirect) {
+    return redirect;
   }
 
   let booking: GetBookingType | null = null;
