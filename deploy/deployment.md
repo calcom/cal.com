@@ -4,9 +4,9 @@ Deploy cal.com on different providers.
 
 ## Table of content
 
-- [GCP](#gcp)
-- [Azure] (#azure)
-- [AWS](#aws) 
+- GCP
+- AZURE
+- AWS
 
 Deploying Cal.com on Google Cloud Platform (GCP)
 =============================================
