@@ -1,6 +1,9 @@
 import { NativeConnection, Worker } from "@temporalio/worker";
+import "dotenv/config";
 
-import * as activities from "./activities";
+import * as activities from "@calcom/emails/email-manager";
+
+import { NAMESPACE, TASK_QUEUE_NAME } from "./shared";
 
 async function run() {
   // Step 1: Establish a connection with Temporal server.
@@ -14,14 +17,14 @@ async function run() {
   // Step 2: Register Workflows and Activities with the Worker.
   const worker = await Worker.create({
     connection,
-    namespace: "default",
-    taskQueue: "hello-world",
+    namespace: NAMESPACE,
+    taskQueue: TASK_QUEUE_NAME,
     // Workflows are registered using a path as they run in a separate JS context.
-    workflowsPath: require.resolve("./workflows"),
+    workflowsPath: require.resolve("@calcom/emails/email-workflow"),
     activities,
   });
 
-  // Step 3: Start accepting tasks on the `hello-world` queue
+  // Step 3: Start accepting tasks on the queue
   //
   // The worker runs until it encounters an unexepected error or the process receives a shutdown signal registered on
   // the SDK Runtime object.

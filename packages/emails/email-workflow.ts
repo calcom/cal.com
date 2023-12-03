@@ -18,9 +18,16 @@ import type { TeamInvite } from "./templates/team-invite-email";
 
 const emailActivities = proxyActivities<typeof activities>({
   startToCloseTimeout: "3 minutes",
+  retry: {
+    // nonRetryableErrorTypes: ["@calcom/emails/EmailError"],
+    maximumAttempts: 20, //This is just a placeholder value. We should set this to a reasonable value later.
+  },
 });
 
 /* Consideration: For some email workflows (e.g. sendScheduledEmails), it might make sense to re-write them for a better experience and better retry logic. For now, we are just going to use the existing functions which works well as-is.
+ */
+
+/* TODO: The event/task payload for some email workflow needs modification to work properly. For example, sendEmailVerificationLink() needs a language property that is of type TFunction. A function is not serializable, so we need a way to send enough info and then do the language translation in the worker.
  */
 
 export const sendScheduledEmails = async ({

@@ -33,9 +33,9 @@ import {
   sendRoundRobinCancelledEmails,
   sendRoundRobinRescheduledEmails,
   sendRoundRobinScheduledEmails,
-  sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import { sendScheduledEmails } from "@calcom/emails/email-workflow";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -71,6 +71,7 @@ import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
+import { getClient } from "@calcom/lib/temporal/client";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
@@ -2515,17 +2516,29 @@ async function handler(
             calEvent: getPiiFreeCalendarEvent(evt),
           })
         );
-        await sendScheduledEmails(
-          {
-            ...evt,
-            additionalInformation: metadata,
-            additionalNotes,
-            customInputs,
-          },
-          eventNameObject,
-          isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled
-        );
+        const client = await getClient();
+        const handle = await client.workflow.start(sendScheduledEmails, {
+          taskQueue: "calcom", //TODO: this needs to come from a shared config.
+          // type inference works!
+          args: [
+            {
+              data: {
+                calEvent: {
+                  ...evt,
+                  additionalInformation: metadata,
+                  additionalNotes,
+                  customInputs,
+                },
+                eventNameObject,
+                hostEmailDisabled: isHostConfirmationEmailsDisabled,
+                attendeeEmailDisabled: isAttendeeConfirmationEmailDisabled,
+              },
+            },
+          ],
+          // TODO: can we use a meaningful business ID, like eventId instead of uuidv4
+          workflowId: `scheduled-email-${crypto.randomUUID()}`,
+        });
+        console.info(`Started workflow ${handle.workflowId}`);
       }
     }
   } else {

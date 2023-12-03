@@ -79,25 +79,26 @@ export const sendScheduledEmails = async (
     }
   }
 
-  if (!attendeeEmailDisabled) {
-    emailsToSend.push(
-      ...calEvent.attendees.map((attendee) => {
-        return sendEmail(
-          () =>
-            new AttendeeScheduledEmail(
-              {
-                ...calEvent,
-                ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
-                ...(eventNameObject && {
-                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
-                }),
-              },
-              attendee
-            )
-        );
-      })
-    );
-  }
+  //Commented out to test the queuing system. We need a way to get the internationalisation functionality working within the workflow since the function (type TFunction) is not serializable.
+  // if (!attendeeEmailDisabled) {
+  //   emailsToSend.push(
+  //     ...calEvent.attendees.map((attendee) => {
+  //       return sendEmail(
+  //         () =>
+  //           new AttendeeScheduledEmail(
+  //             {
+  //               ...calEvent,
+  //               ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
+  //               ...(eventNameObject && {
+  //                 title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
+  //               }),
+  //             },
+  //             attendee
+  //           )
+  //       );
+  //     })
+  //   );
+  // }
 
   await Promise.all(emailsToSend);
 };

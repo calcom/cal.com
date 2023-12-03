@@ -2,8 +2,10 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "version": "5.3.2",
   "compilerOptions": {
+    "jsx": "preserve",
+    "resolveJsonModule": true,
     "lib": ["es2023"],
-    "module": "node16",
+    "module": "NodeNext",
     "target": "es2022",
     "strict": true,
     "esModuleInterop": true,
