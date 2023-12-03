@@ -1,0 +1,214 @@
+# Deploy Cal.com
+
+Deploy cal.com on different providers.
+
+## Table of content
+
+- [GCP](#gcp)
+- [Azure] (#azure)
+- [AWS](#aws) 
+
+Deploying Cal.com on Google Cloud Platform (GCP)
+=============================================
+
+In this guide, we will go over the steps to deploy cal.com on Google Cloud Platform (GCP). We will cover how to create a virtual machine, configure it, install Docker, and finally deploy the cal.com application.
+
+Step 1: Creating a Virtual Machine
+-------------------------------
+
+### Go to the GCP Console
+
+First, open the Google Cloud Platform console by visiting the <https://console.cloud.google.com/> website.
+
+### Create a New Project
+
+If you haven't already, create a new project by clicking on the "Select a project" dropdown menu and selecting "New Project". Enter a name for your project and click on the "Create" button.
+
+### Create a New VM Instance
+
+Click on the navigation menu icon (three horizontal lines) and select "Compute Engine" from the list. Then, click on "VM instances" in the sub-menu.
+
+Click on the "Create" button to create a new virtual machine.
+
+### Select the Machine Type
+
+Choose the machine type that best suits your needs. For this example, we will use the "f1-micro" machine type, which is a free tier instance.
+
+### Set Up Networking
+
+Make sure the "Networking" tab is selected and click on the "Add network" button. Choose the "Default" network and click on the "Add" button.
+
+### Set Up Authentication
+
+Under "Authentication", make sure the "Google Sign-In" option is enabled. You can also add additional authentication options if needed.
+
+### Create the Instance
+
+Review the details of your virtual machine and click on the "Create" button to create the instance.
+
+Step 2: Configuring the Virtual Machine
+--------------------------------------
+
+Once your virtual machine is created, you need to configure it to allow traffic on port 80.
+
+### Open Port 80
+
+Click on the navigation menu icon (three horizontal lines) and select "Compute Engine" from the list. Then, click on "VM instances" in the sub-menu. Find your newly created instance and click on its name to enter its details page.
+
+Click on the "Firewalls" tab and then click on the "Add firewall rule" button. Select "Allow all" as the source and destination, set the protocol to "tcp" and the ports to "80". Click on the "Add" button to save the changes.
+
+Step 3: Installing Docker
+-------------------------
+
+Now that your virtual machine is configured, you need to install Docker on it.
+
+### Connect to Your Instance
+
+Open a terminal window on your local machine and use SSH to connect to your virtual machine. You can find the external IP address or DNS name of your instance in the GCP console. Use the following command to connect to your instance:
+```bash
+gcloud ssh --project=[PROJECT_ID] --zone=[ZONE] [INSTANCE_NAME]
+```
+Replace `[PROJECT_ID]` with your project ID, `[ZONE]` with the zone where your instance is located, and `[INSTANCE_NAME]` with the name of your instance.
+
+### Install Docker
+
+Once connected, update the package list and install Docker using the following commands:
+```bash
+sudo apt-get update
+sudo apt-get install docker.io
+```
+### Start the Docker Service
+
+Start the Docker service using the following command:
+```bash
+sudo systemctl start docker
+```
+Step 4: Deploying Cal.com
+--------------------------
+
+Now that Docker is installed and running, you can deploy cal.com on your virtual machine.
+
+### Pull the Docker Image
+
+Use the following command to pull the cal.com Docker image from Docker Hub:
+```bash
+docker pull cal/cal.com
+```
+### Run the Docker Container
+
+Run the Docker container using the following command:
+```bash
+docker run -d -p 80:80 cal/cal.com
+```
+This command maps port 80 on your local machine to port 80 inside the container, so you can access cal.com from outside the container.
+
+### Access Cal.com
+
+Open a web browser and navigate to `http://localhost`. You should now be able to access the cal.com homepage.
+
+Congratulations! You have successfully deployed cal.com on Google Cloud Platform.
+
+Deploying Cal.com on Azure
+==========================
+
+### Step 1: Prerequisites
+
+1. Microsoft Azure account
+2. Basic knowledge of Azure services
+3. Access to Cal.com source code
+
+### Step 2: Azure Setup
+
+1. Create an Azure Account
+2. Azure Portal: Familiarize yourself with the Azure Portal.
+
+### Step 3: Creating Azure Resources
+
+1. Creating Azure Resources: In the Azure Portal, create a new resource group for your Cal.com project.
+2. Create Azure Services: Set up required services such as Azure App Service, Azure Database for PostgreSQL, etc.
+#### Create Web App
+#### Setup Database, Networking
+#### Setup Monitoring
+
+### Step 4: Configuring Cal.com
+
+1. Clone Repository: Clone the Cal.com repository to your local machine.
+2. Configuration Files: Update the .env file with necessary Azure configurations (e.g., database connection strings).
+
+### Step 5: Deploying on Azure
+
+1. Deploying Web App: Use Azure App Service to deploy the Cal.com web application.
+2. Database Setup: Deploy and configure the Azure Database for PostgreSQL with Cal.com.
+3. Deployment Verification: Ensure that the application is running smoothly post-deployment.
+
+### Step 6: Post-Deployment Steps
+
+1. DNS Configuration: Configure your DNS settings to point to the Azure deployment.
+2. Monitor and Scale: Utilize Azure monitoring tools to keep track of performance and scale resources as needed.
+
+
+Deploying Cal.com on AWS
+========================
+
+### Step 1: Prerequisites
+
+1. Amazon Web Services account
+2. Familiarity with AWS services and management console
+3. Access to the Cal.com source code
+
+### Step 2: AWS Environment Setup
+
+1. Create an AWS Account: If not already set up, create an account on AWS.
+2. Management Console: Log in to the AWS Management Console.
+
+### Step 3: Creating AWS Resources
+
+1. Create a New IAM User: Set up an IAM user with the necessary permissions for deploying and managing the application.
+2. Set Up Required Services: Establish services like Amazon EC2, RDS for PostgreSQL, etc., as needed for your application.
+
+### Step 4: Configuring Cal.com
+
+1. Clone the Repository: Get the Cal.com repository onto your local environment.
+2. Update Configuration: Modify the .env file to include your AWS resource details (like database endpoints).
+
+### Step 5: Deploying on AWS
+
+1. Deploy Application: Utilize AWS services such as EC2 or Elastic Beanstalk to deploy the Cal.com application.
+2. Database Configuration: Set up and connect the RDS instance to your application.
+3. Verify Deployment: Ensure the application is operational and accessible.
+
+### Step 6: Post-Deployment Steps
+
+1. DNS Setup: Update your DNS settings to point to your AWS deployment.
+2. Monitoring and Scaling: Leverage AWS monitoring tools to keep track of your application's performance and scale resources accordingly.
+
+### Step 7: Best Practices
+
+1. Adhere to AWS's recommended security practices.
+2. Regularly update your deployment with the latest Cal.com releases.
+
+### Step 8: Additional Resources
+https://cal.com/docs
+https://docs.aws.amazon.com/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
