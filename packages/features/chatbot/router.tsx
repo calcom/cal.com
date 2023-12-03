@@ -3,28 +3,7 @@ import { JsonOutputFunctionsParser } from "langchain/output_parsers";
 import { HumanMessage } from "langchain/schema";
 
 import { OPENAI_API_KEY } from "./.env";
-
-const enums: string[] = [
-  "/workflows",
-  "/event-types",
-  "/apps",
-  "/bookings/upcoming",
-  "/bookings/recurring",
-  "/bookings/past",
-  "/bookings/cancelled",
-  "/availability",
-  "/settings/my-account/profile",
-  "/settings/my-account/general",
-  "/settings/my-account/appearance",
-  "/settings/teams",
-  "/settings/security/password",
-  "/settings/security/two-factor-auth",
-  "/settings/security/impersonation",
-  "/auth/setup?step=1",
-  "/settings/developer/webhooks",
-  "/settings/developer/api-keys",
-  "/settings/billing",
-];
+import { routerEnums } from "./params/enums";
 
 const router = async (inputValue: string) => {
   // Instantiate the parser
@@ -39,7 +18,7 @@ const router = async (inputValue: string) => {
       properties: {
         url_param: {
           type: "string",
-          enum: enums,
+          enum: routerEnums,
           description: "The URL parameter to extract.",
         },
       },
@@ -70,9 +49,7 @@ const router = async (inputValue: string) => {
   /**
   {
     result: {
-      tone: 'positive',
-      word_count: 4,
-      chat_response: "Indeed, it's a lovely day!"
+      url_param: "/apps"
     }
   }
   */
