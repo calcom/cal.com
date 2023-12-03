@@ -1,5 +1,4 @@
 import Banner from "@pages/wrapped/banner";
-import { motion } from "framer-motion";
 
 import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/MainLayout";
@@ -12,6 +11,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import Card from "./card";
 import Mask from "./mask";
+import TeamCard from "./teamCard";
 
 export default function WrapperPage() {
   const { t } = useLocale();
@@ -24,6 +24,7 @@ export default function WrapperPage() {
   const startDate = endDate.startOf("year");
   const endDateStr = endDate.toISOString();
   const startDateStr = startDate.toISOString();
+  const currentYear = dayjs().year().toString();
 
   const { data, isSuccess, isLoading } = trpc.viewer.insights.AllBookingsForMember.useQuery(
     {
@@ -51,6 +52,7 @@ export default function WrapperPage() {
   let teamNamesString: string | undefined;
   let mostCommonEventTypeId: string | undefined;
   let maxCount = 0;
+  let teamCards;
 
   if (data != undefined && data.length > 0) {
     let cancelledCount = 0;
@@ -99,56 +101,43 @@ export default function WrapperPage() {
         mostCommonEventTypeId = eventType;
       }
     }
-  }
-  if (teamsQuery && Array.isArray(teamsQuery) && teamsQuery.length > 1) {
+
     const teamsFromIndex1 = teamsQuery.slice(1);
     teamNames = teamsFromIndex1.map((team) => team.name);
     teamNamesString = teamNames.join(", ");
+
+    const randomThemeIdx = () => Math.floor(Math.random() * 4) + 1;
+
+    teamCards = teamNames.map((str) => <TeamCard key={str} content={str} themeIdx={randomThemeIdx()} />);
   }
 
-  console.log(data);
-  // console.log(cancelledPercentage);
-  // console.log(rescheduledPercentage);
-  // console.log(acceptedPercentage);
-  // console.log("Total Event Length:", bookedHours, "hours", bookedMins, "minutes");
-  // console.log("Total Event Length:", totalEventLength);
-  console.log("My Teams:", teamNamesString);
-  console.log("Most common event Id:", mostCommonEventTypeId);
-  console.log("Number of event occurrences:", maxCount);
-  console.log("My Teams:", teamNamesString);
-  console.log("Most common event Id:", mostCommonEventTypeId);
-  console.log("Number of event occurrences:", maxCount);
   const totalMeetingTime = `${bookedHours} hours and ${bookedMins} minutes`;
 
   return (
     <div className="relative overflow-hidden">
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
         <div className="flex w-full flex-col space-y-8 p-2">
-          <div className="h-32 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg" />
+          <div className="h-32 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg">
+            <h1 className="font-cal ml-10 mt-10 text-[48px] text-white">Your {currentYear} in numbers</h1>
+          </div>
 
           <div className="h-[650px] w-full space-y-8 overflow-scroll overscroll-none pt-5">
-            <Banner />
+            <Banner content="STATISTICS" />
             <div className="flex w-full flex-row space-x-5">
               <Card content="Meetings booked" numbers={totalBookings} unit="" themeIdx="1" />
               <Card content="Time in meetings" numbers={bookedHours} unit="hours" themeIdx="2" />
-              {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
 
             <div className="flex w-full flex-row space-x-5">
               <Card content="Cancelled" numbers={cancelledPercentage} unit="%" themeIdx="3" />
               <Card content="Rescheduled" numbers={rescheduledPercentage} unit="%" themeIdx="4" />
               <Card content="Accepted" numbers={acceptedPercentage} unit="%" themeIdx="2" />
-              {/* <Card content={"People met"} numbers={totalBookings} unit={""} /> */}
             </div>
-
-            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1.5 }}>
-              <div className="flex h-64 w-full items-center justify-center rounded-xl border-2 bg-gradient-to-r shadow-lg" />
-            </motion.div>
-            <div className="flex h-64 w-full items-center justify-center rounded-xl border-2 bg-gradient-to-r shadow-lg" />
+            <Banner content={`Teams you were a part of in ${currentYear}`} />
+            <div className="flex w-full flex-row space-x-5">{teamCards}</div>
           </div>
         </div>
       </ShellMain>
-
       <Mask />
     </div>
   );
