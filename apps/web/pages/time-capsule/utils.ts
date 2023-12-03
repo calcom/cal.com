@@ -48,14 +48,13 @@ export function eventNamesById(events: EventType[] | undefined) {
   return eventObj;
 }
 
-export function eventFrequencyObj(events: EventType[] | undefined) {
+export function eventFrequencyObj(events: number[] | undefined) {
   const eventFrequencies: Record<string, number> = {};
   if (events === undefined) {
     return null;
   }
   events.forEach((event) => {
-    eventFrequencies[event.id] =
-      typeof eventFrequencies[event.id] === "number" ? eventFrequencies[event.id] + 1 : 1;
+    eventFrequencies[event] = typeof eventFrequencies[event] === "number" ? eventFrequencies[event] + 1 : 1;
   });
   return eventFrequencies;
 }
