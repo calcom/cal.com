@@ -657,6 +657,8 @@ export const maybeDispatchEmail = async (dispatch: boolean, action: EmailAction,
         action: action,
         params: params,
       },
+      // Can configure retries and other options such as delay, schedules, callback, etc.
+      retries: 2,
     });
     console.log("send_email request made to qstash");
     return true;

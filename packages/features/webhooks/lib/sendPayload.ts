@@ -237,6 +237,8 @@ export const maybeDispatchWebhook = async (dispatch: boolean, ...params: any[]) 
         action: action,
         params: params,
       },
+      // Can configure retries and other options such as delay, schedules, callback, etc.
+      retries: 2,
     });
     console.log("send-webhook request made to qstash");
     return true;

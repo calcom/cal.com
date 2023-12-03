@@ -19,7 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   //@ts-ignore
   await sendPayload(...params, false);
 
-  console.log("email sent");
+  console.log("payload sent");
   return res.status(200).json({ message: `${action} completed` });
 };
 
