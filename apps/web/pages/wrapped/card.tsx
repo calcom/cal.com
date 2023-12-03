@@ -1,12 +1,23 @@
 import React from "react";
 
-const Card = ({}) => {
+interface CardProps {
+  content: string;
+  numbers: string;
+  unit: string;
+}
+
+const Card: React.FC<CardProps> = ({ content, numbers, unit }) => {
   return (
     <div className="flex h-80 flex-1 flex-row rounded-xl border-2 bg-white shadow-lg">
-      <div className="flex w-20 pl-4">
+      <div className="flex w-[30%] pl-4">
         <h1 className="font-caltext-start text-[80px]">🎉</h1>
       </div>
-      <div className="flex-colflex-1 flex" />
+      <div className="flex flex-1 flex-col items-start justify-center space-y-3 border p-3 text-left">
+        <h1 className="font-cal text-[60px]">{content}</h1>
+        <p className="font-cal text-left text-[30px] opacity-70">
+          {numbers} {unit}
+        </p>
+      </div>
     </div>
   );
 };
