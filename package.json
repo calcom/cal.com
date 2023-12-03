@@ -75,7 +75,7 @@
     "docker-build-api": "docker build -t cal-api -f ./infra/docker/api/Dockerfile .",
     "docker-run-api": "docker run -p 80:80 cal-api",
     "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
-    "worker": "npx ts-node scripts/worker.ts --jsx"
+    "worker": "npx ts-node apps/queue-worker/worker.tsx --jsx"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
@@ -105,7 +105,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.465.0",
-    "aws-sdk": "^2.1510.0",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
     "lucide-react": "^0.171.0",

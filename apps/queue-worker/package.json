@@ -2,10 +2,10 @@
   "name": "queue-worker",
   "version": "1.0.0",
   "description": "",
-  "main": "worker.ts",
+  "main": "worker.tsx",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "worker": "npx ts-node ./worker.ts"
+    "worker": "npx ts-node apps/queue-worker/worker.tsx"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
