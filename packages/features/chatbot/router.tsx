@@ -65,6 +65,7 @@ const router = async (inputValue: string) => {
   const result = await runnable.invoke([new HumanMessage(inputValue)]);
 
   console.log({ inputValue, result });
+  return result;
 
   /**
   {
