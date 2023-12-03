@@ -168,7 +168,10 @@ function PaymentChecker(props: PaymentCheckerProps) {
           bookingSuccessRedirect({
             successRedirectUrl: props.eventType.successRedirectUrl,
             query: params,
-            booking: props.booking,
+            booking: {
+              ...props.booking,
+              hideSuccessScreen: false,
+            },
           });
         }
       })();
