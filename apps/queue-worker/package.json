@@ -20,6 +20,8 @@
   },
   "dependencies": {
     "@calcom/emails": "*",
+    "@sentry/node": "^7.84.0",
+    "@sentry/profiling-node": "^1.2.6",
     "@temporalio/activity": "^1.8.6",
     "@temporalio/client": "^1.8.6",
     "@temporalio/worker": "^1.8.6",
