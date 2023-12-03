@@ -51,8 +51,6 @@ describe("Email workflows with mocks", () => {
       workflowsPath: require.resolve("@calcom/emails/email-workflow"),
       activities: {
         sendScheduledEmails: () => {
-          console.log("retryAttempts: ", retryAttempts);
-
           if (retryAttempts < 2) {
             retryAttempts++;
             throw new Error("Mock failure");
