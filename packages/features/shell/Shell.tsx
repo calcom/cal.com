@@ -71,6 +71,7 @@ import {
   Moon,
   MoreHorizontal,
   Settings,
+  Sparkle,
   User as UserIcon,
   Users,
   Zap,
@@ -523,26 +524,26 @@ const navigation: NavigationItemType[] = [
     icon: LinkIcon,
   },
   {
-    name: "bookings",
+    name: "Bookings",
     href: "/bookings/upcoming",
     icon: Calendar,
     badge: <UnconfirmedBookingBadge />,
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {
-    name: "availability",
+    name: "Availability",
     href: "/availability",
     icon: Clock,
   },
   {
-    name: "teams",
+    name: "Teams",
     href: "/teams",
     icon: Users,
     onlyDesktop: true,
     badge: <TeamInviteBadge />,
   },
   {
-    name: "apps",
+    name: "Apps",
     href: "/apps",
     icon: Grid,
     isCurrent: ({ pathname: path, item }) => {
@@ -583,19 +584,19 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
   },
   {
-    name: "workflows",
+    name: "Workflows",
     href: "/workflows",
     icon: Zap,
   },
   {
-    name: "insights",
+    name: "Insights",
     href: "/insights",
     icon: BarChart,
   },
   {
-    name: "time capsule",
+    name: "Time Capsule",
     href: "/time-capsule",
-    icon: BarChart,
+    icon: Sparkle,
   },
 ];
 
