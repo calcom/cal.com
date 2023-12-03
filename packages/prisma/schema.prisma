@@ -76,6 +76,7 @@ model EventType {
   parentId                        Int?
   parent                          EventType?              @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
   children                        EventType[]             @relation("managed_eventtype")
+  ///  contactLists  ContactList[]  @relation("UserContactLists")
   /// @zod.custom(imports.eventTypeBookingFields)
   bookingFields                   Json?
   timeZone                        String?
@@ -124,6 +125,12 @@ model EventType {
   @@index([userId])
   @@index([teamId])
   @@index([scheduleId])
+}
+
+model ContactList {
+  id   Int    @id @default(autoincrement())
+  name String
+  /// users User[] @relation("UserContactLists")
 }
 
 model Credential {

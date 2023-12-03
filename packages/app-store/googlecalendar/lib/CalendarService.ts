@@ -522,6 +522,56 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  async getEventsByKeywords(): any {
+    const calendar = await this.authedCalendar();
+    const allEvents = await calendar.events.get({
+      calendarId: "primary",
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+    });
+
+    const keywords = ["EventBrite", "Eventbrite", "Dice", "Party", "Wedding"];
+    // Filter events based on keywords
+    const filteredEvents = allEvents.data.items.filter((event) => {
+      // Normalize the event title and description for case-insensitive search
+      const title = event.summary?.toLowerCase() || "";
+      const description = event.description?.toLowerCase() || "";
+
+      // Check if any keyword is present in the title or description
+      return keywords.some(
+        (keyword) => title.includes(keyword.toLowerCase()) || description.includes(keyword.toLowerCase())
+      );
+
+      // console.log(filteredEvents);
+
+      // return filteredEvents;
+
+      return filteredEvents;
+    });
+  }
+
+  async sendEmails() {
+    const calendar = await this.authedCalendar();
+    const allEvents = await calendar.events.get({
+      calendarId: "primary",
+    });
+
+    const keywords = ["EventBrite", "Eventbrite", "Dice", "Party", "Wedding"];
+    // Filter events based on keywords
+    const filteredEvents = allEvents.data.items.filter((event) => {
+      // Normalize the event title and description for case-insensitive search
+      const title = event.summary?.toLowerCase() || "";
+      const description = event.description?.toLowerCase() || "";
+
+      // Check if any keyword is present in the title or description
+      return keywords.some(
+        (keyword) => title.includes(keyword.toLowerCase()) || description.includes(keyword.toLowerCase())
+      );
+
+      return filteredEvents;
+    });
+  }
+
   async listCalendars(): Promise<IntegrationCalendar[]> {
     const calendar = await this.authedCalendar();
     try {

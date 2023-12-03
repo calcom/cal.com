@@ -19,7 +19,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
-import getCalendarsEvents from "./getCalendarsEvents";
+import { getCalendarsEvents, getCalendarsEventsByKeywords } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
@@ -217,6 +217,21 @@ export const getBusyCalendarTimes = async (
     log.warn(safeStringify(e));
   }
   return results.reduce((acc, availability) => acc.concat(availability), []);
+};
+
+export const getEventsByKeywords = async (username: string, withCredentials: CredentialPayload[]) => {
+  let results: EventBusyDate[][] = [];
+  // const months = getMonths(dateFrom, dateTo);
+  try {
+    // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+    const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+    // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+    const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
+    results = await getCalendarsEventsByKeywords(withCredentials);
+  } catch (e) {
+    log.warn(safeStringify(e));
+  }
+  return results;
 };
 
 export const createEvent = async (

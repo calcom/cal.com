@@ -30,7 +30,7 @@ import {
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
-import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
+import { Ban, Check, CreditCard, RefreshCcw, Send } from "@calcom/ui/components/icon";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -118,7 +118,6 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
-  // What the fck is pending actions
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -146,51 +145,7 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  // what the fck is booked actions
-
   let bookedActions: ActionType[] = [
-    {
-      id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
-      /* When cancelling we need to let the UI and the API know if the intention is to
-               cancel all remaining bookings or just that booking instance. */
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-      `,
-      icon: X,
-    },
-    {
-      id: "edit_booking",
-      label: t("edit"),
-      actions: [
-        {
-          id: "reschedule",
-          icon: Clock,
-          label: t("reschedule_booking"),
-          href: `${bookerUrl}/reschedule/${booking.uid}${
-            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-          }`,
-        },
-        {
-          id: "reschedule_request",
-          icon: Send,
-          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-          label: t("send_reschedule_request"),
-          onClick: () => {
-            setIsOpenRescheduleDialog(true);
-          },
-        },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: MapPin,
-        },
-      ],
-    },
     {
       id: "share_booking",
       label: t("share"),
@@ -209,48 +164,6 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const bookedActionsAfterhours: ActionType[] = [
-    {
-      id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
-      /* When cancelling we need to let the UI and the API know if the intention is to
-               cancel all remaining bookings or just that booking instance. */
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-      `,
-      icon: X,
-    },
-    {
-      id: "edit_booking",
-      label: t("edit"),
-      actions: [
-        {
-          id: "reschedule",
-          icon: Clock,
-          label: t("reschedule_booking"),
-          href: `${bookerUrl}/reschedule/${booking.uid}${
-            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-          }`,
-        },
-        {
-          id: "reschedule_request",
-          icon: Send,
-          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-          label: t("send_reschedule_request"),
-          onClick: () => {
-            setIsOpenRescheduleDialog(true);
-          },
-        },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: MapPin,
-        },
-      ],
-    },
     {
       id: "share_booking",
       label: t("share"),

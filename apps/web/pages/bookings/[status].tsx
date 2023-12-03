@@ -25,6 +25,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
+import BookingListItemAH from "@components/booking/BookingListItemAH";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { ssgInit } from "@server/lib/ssg";
@@ -75,7 +76,72 @@ const querySchema = z.object({
   status: z.enum(validStatuses),
 });
 
-export default function Bookings() {
+const SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+const TOKEN_PATH = "token.json";
+
+const event_list = ["EventBrite", "Dice", "Party"];
+const party_events: { title: string; location: string; start: string; end: string }[] = [];
+
+export async function getEvents() {
+  const oAuth2Client = await getCredentials();
+  const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+
+  const now = new Date().toISOString();
+
+  const res = await calendar.events.list({
+    calendarId: "primary",
+    timeMin: now,
+    maxResults: 10,
+    singleEvents: true,
+    orderBy: "startTime",
+  });
+
+  const events = res.data.items;
+  if (events?.length) {
+    console.log("No upcoming events found.");
+  } else {
+    for (const event of events) {
+      const start = event.start.dateTime || event.start.date;
+      const end = event.end.dateTime || event.end.date;
+
+      const event_name = event.summary.split();
+
+      for (const i of event_list) {
+        if (event_name.includes(i)) {
+          party_events.push({
+            title: event.summary,
+            location: event.location,
+            start: start,
+            end: end,
+          });
+        }
+      }
+    }
+  }
+
+  return party_events;
+}
+
+async function getCredentials(): Promise<OAuth2Client> {
+  // const content = fs.readFileSync("credentials.json", "utf8");
+  const content = {
+    token:
+      "ya29.a0AfB_byDt7sVFd9CnyJlhO1dH_MfalpsIKCWiJLvNWkiM7eioh-5R42ruyO7eh9FXsRR2e466rOYryHQXr4LyQcb6txmS0rVN8IRAupc2n9cOLKJqsXeAVt9yPChan9i2PXNxWbrFktzge7L_fFL-XxEPJyRvDr7JvjUWbgaCgYKAVcSARISFQHGX2MiZ9YVdJ2sidJCAly3R6SlPA0173",
+    refresh_token:
+      "1//05wIWnZHZi8E9CgYIARAAGAUSNwF-L9Ir9eWDvJSrNFREwk8x5Nb-uCwD_ZfyPftwGth9iVUY3XcYCvj4-ACRwbcmadfVHwR-Zk4",
+    token_uri: "https://oauth2.googleapis.com/token",
+    client_id: "66083480731-cbqjqolmsdjm0ajp55v1bsiamjc7g4b9.apps.googleusercontent.com",
+    client_secret: "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",
+    scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
+    expiry: "2023-12-03T09:37:48.915103Z",
+  };
+  const { client_secret, client_id, redirect_uris } = content;
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  oAuth2Client.setCredentials(content);
+  return oAuth2Client;
+}
+
+export default function Bookings(props) {
   const params = useParamsWithFallback();
   const { data: filterQuery } = useFilterQuery();
   const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
@@ -132,7 +198,7 @@ export default function Bookings() {
 
   let recurringInfoToday: RecurringInfo | undefined;
 
-  const bookingsToday =
+  const bookingsTodayTemp =
     query.data?.pages.map((page) =>
       page.bookings.filter((booking: BookingOutput) => {
         recurringInfoToday = page.recurringInfo.find(
@@ -145,6 +211,23 @@ export default function Bookings() {
         );
       })
     )[0] || [];
+
+  const { data } = trpc.viewer.availability.calendarEventsByKeyword.useQuery(
+    {
+      loggedInUsersTz: "Europe/London",
+    },
+    {
+      enabled: true,
+    }
+  );
+
+  console.log(data);
+
+  const queryGoogleCalendarList = data;
+
+  const bookingsToday = bookingsTodayTemp.push(queryGoogleCalendarList);
+
+  console.log(bookingsToday);
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -193,6 +276,41 @@ export default function Bookings() {
                     </div>
                   </div>
                 )}
+
+                {/* change this to after hours */}
+
+                {!!bookingsToday.length && status === "upcoming" && (
+                  <div className="mb-6 pt-2 xl:pt-0">
+                    <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+                    <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">
+                      {t("After Hours")}
+                    </p>
+                    <div className="border-subtle overflow-hidden rounded-md border">
+                      <table className="w-full max-w-full table-fixed">
+                        <tbody
+                          className="bg-default divide-subtle divide-y"
+                          data-testid="today-bookings-afterhours">
+                          <Fragment>
+                            {bookingsToday.map((booking: BookingOutput) => (
+                              <BookingListItem
+                                key={booking.id}
+                                loggedInUser={{
+                                  userId: user?.id,
+                                  userTimeZone: user?.timeZone,
+                                  userTimeFormat: user?.timeFormat,
+                                  userEmail: user?.email,
+                                }}
+                                listingStatus={status}
+                                recurringInfo={recurringInfoToday}
+                                {...booking}
+                              />
+                            ))}
+                          </Fragment>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
                 <div className="pt-2 xl:pt-0">
                   <div className="border-subtle overflow-hidden rounded-md border">
                     <table data-testid={`${status}-bookings`} className="w-full max-w-full table-fixed">
@@ -204,7 +322,7 @@ export default function Bookings() {
                                 (info) => info.recurringEventId === booking.recurringEventId
                               );
                               return (
-                                <BookingListItem
+                                <BookingListItemAH
                                   key={booking.id}
                                   loggedInUser={{
                                     userId: user?.id,
@@ -257,6 +375,15 @@ export default function Bookings() {
 Bookings.PageWrapper = PageWrapper;
 Bookings.getLayout = getLayout;
 
+// get server side pops
+
+// export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
+//   return {
+//     props: {
+//       allEvents: getEventsByKeywords(),
+//     },
+//   };
+// };
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
   const ssg = await ssgInit(ctx);
@@ -267,6 +394,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
     props: {
       status: params.data.status,
       trpcState: ssg.dehydrate(),
+      // allEvents: getEventsByKeywords(),
     },
   };
 };

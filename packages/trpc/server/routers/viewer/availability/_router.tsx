@@ -80,4 +80,21 @@ export const availabilityRouter = router({
       input,
     });
   }),
+  calendarEventsByKeyword: authedProcedure.query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
+      UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarEventsByKeyword.handler").then(
+        (mod) => mod.calendarOverlayHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.calendarOverlay({
+      ctx,
+      input,
+    });
+  }),
 });
