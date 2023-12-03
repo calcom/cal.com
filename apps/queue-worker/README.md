@@ -1,23 +1,53 @@
-# Starter project
+# queue-worker project
 
-This is an empty project that is scaffolded out when you run `npx @temporalio/create@latest ./myfolder` and choose the `empty` option.
+This project is a Temporal application (worker) responsible for processing the workflows/tasks in the queue.
 
-* Add your Activity Definitions to `src/activities.ts`.
-* Add your Workflow Definitions to `src/workflows.ts`.
-* Set your task queue name in `src/shared.ts`.
-* Modify the `src/client.ts` file and replace `YOUR_WORKFLOW` with the name of your Workflow.
-* Add Activity and Workflow tests to the `src/mocha` directory in files with the extension `.test.ts`.
+At the center of the queue system is Temporal. Temporal is an open-source software that gives you a programming model for building scalable and reliable software systems. Temporal is a mature technology that originated as a fork of Uber's Cadence. It is developed by Temporal Technologies, a startup by the creators of Cadence (and AWS Simple Workflow).
 
-## Running the code
+The `src/worker.ts` contains the Worker that process the tasks in the queue. It currently only uses the workflows in `@calcom/emails/email-workflow`. It can be extended to support more workflows and activities. To do that, you can import all the workflows and/or activities in one file/module, and re-export them from there. For example:
 
-Install dependencies with `npm install`.
+```ts
+//workflows.ts
+export * as email from "@calcom/emails/email-workflow";
+export * as webhook from "@calcom/emails/webhook-workflow";
+```
 
-Run `temporal server start-dev` to start [Temporal Server](https://github.com/temporalio/cli/#installation).
+```ts
+import * as activities from "./activities";
 
-The `package.json` file contains scripts for running the client, the Worker, and tests.
+  const worker = await Worker.create({
+    connection,
+    namespace: NAMESPACE,
+    taskQueue: TASK_QUEUE_NAME,
+    workflowsPath: require.resolve("./workflows"),
+    activities,
+  });
+```
 
-1. In a shell, run `npm run start.watch` to start the Worker and reload it when code changes.
-1. In another shell, run `npm run workflow` to run the Workflow Client.
-1. Run `npm run format` to format your code according to the rules in `.prettierrc`.
-1. Run `npm run lint` to lint your code according to the rules in `eslintrc.js`.
-1. Run `npm test` to run the tests.
+## Pre-requisite
+
+You need a Temporal server is needed to processes client requests. You can either use a self-hosted version, Temporal Cloud offering, or a local server.
+
+For development, we're going to run a local temporal server using the `temporal` CLI. Use the command `brew install temporal` to install the Temporal CLI. For more installation options, check the temporal [documentation](https://docs.temporal.io/dev-guide/typescript/foundations#run-a-development-server).
+
+> Follow the instructions in the official [docker-compose repository](https://github.com/temporalio/docker-compose) if you choose to self-host or run local server using docker-compose or k8s.
+
+## Running The Code
+
+> Make sure you've installed the dependencies before running any code/script in this repo.
+
+The first step is to start run `temporal server start-dev` to start the Temporal Server.
+
+Next, set up the environment variables. Create a `.env` and copy the content of `.env.example` to it. Replace the empty values with the correct values. The `DATABASE_URL` should be the same as what you specified in the root `.env` file.
+
+Now start the worker using the `yarn run dev` command. This starts the worker process in *watch mode*, that means that the server restarts whenever you make changes to the file.
+
+### Production Deployment
+
+This is a Node.js application and can be deployed to any Cloud that supports Node.js runtime. You can also deploy it as a container and run it on any container supported platform (e.g Heroku) or host on a Kubernetes cluster.
+
+<!-- TODO: create an optimised Dockerfile and provide instruction for running a container or running in k8s -->
+
+## Architecture
+
+See the [architecture/proposal document](./Architecture.md)
