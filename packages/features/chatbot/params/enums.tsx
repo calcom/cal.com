@@ -1,7 +1,5 @@
 const other = "None";
 
-export const SWITCH_ENUMS: string[] = ["page-routing", other];
-
 export const ROUTER_ENUMS: string[] = [
   "/workflows",
   "/event-types",
