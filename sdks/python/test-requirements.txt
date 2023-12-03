@@ -1,0 +1,3 @@
+pytest~=7.1.3
+pytest-cov>=2.8.1
+pytest-randomly>=3.12.0

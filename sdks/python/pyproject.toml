@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "openapi_client"
+version = "1.0.0"
+description = "@calcom/api: Public API for Cal.com"
+authors = ["OpenAPI Generator Community <team@openapitools.org>"]
+license = "NoLicense"
+readme = "README.md"
+repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
+keywords = ["OpenAPI", "OpenAPI-Generator", "@calcom/api: Public API for Cal.com"]
+include = ["openapi_client/py.typed"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+urllib3 = ">= 1.25.3"
+python-dateutil = ">=2.8.2"
+pydantic = ">=2"
+typing-extensions = ">=4.7.1"
+
+[tool.poetry.dev-dependencies]
+pytest = ">=7.2.1"
+tox = ">=3.9.0"
+flake8 = ">=4.0.0"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.pylint.'MESSAGES CONTROL']
+extension-pkg-whitelist = "pydantic"
