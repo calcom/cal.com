@@ -4,8 +4,8 @@ import { z } from "zod";
 import { queue } from "../index";
 import { sendgrid } from "../integrations/sendgrid";
 
-// This job sends a basic email to a 'to' email address, a 'subject', a 'text' field and a 'from' email address.
-queue?.defineJob({
+/** This job sends a basic email to a 'to' email address, a 'subject', a 'text' field and a 'from' email address. */
+export const sendEmailJob = queue?.defineJob({
   id: "sendgrid-send-email",
   name: "SendGrid: send email",
   version: "1.0.0",
@@ -21,10 +21,17 @@ queue?.defineJob({
       html: z.string().optional(),
     }),
   }),
-  integrations: {
-    sendgrid,
-  },
+  integrations: sendgrid
+    ? {
+        sendgrid,
+      }
+    : undefined,
   run: async (payload, io, ctx) => {
+    if (!sendgrid) {
+      io.logger.info("SendGrid integration not configured");
+      return;
+    }
+
     await io.sendgrid.sendEmail("send-email", {
       ...payload,
       from: {
