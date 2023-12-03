@@ -226,6 +226,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         keywords: "billing view manage",
         perform: () => router.push("/settings/billing"),
       },
+      {
+        id: "wrapped",
+        name: "wrapped",
+        section: "wrapped",
+        shortcut: ["w", "r"],
+        keywords: "wrapped insights",
+        perform: () => router.push("/wrapped"),
+      },
       ...appStoreActions,
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
