@@ -25,7 +25,7 @@ import type {
 } from "@calcom/types/Calendar";
 
 import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
-import monitorCallback from "./sentryWrapper";
+import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
@@ -43,7 +43,7 @@ const availabilitySchema = z
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
 const getEventType = async (...args: Parameters<typeof _getEventType>) => {
-  return monitorCallback(_getEventType, ...args);
+  return monitorCallbackAsync(_getEventType, ...args);
 };
 
 const _getEventType = async (id: number) => {
@@ -92,7 +92,7 @@ const _getEventType = async (id: number) => {
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
 const getUser = (...args: Parameters<typeof _getUser>) => {
-  return monitorCallback(_getUser, ...args);
+  return monitorCallbackSync(_getUser, ...args);
 };
 
 const _getUser = (where: Prisma.UserWhereInput) =>
@@ -109,7 +109,7 @@ const _getUser = (where: Prisma.UserWhereInput) =>
 type User = Awaited<ReturnType<typeof getUser>>;
 
 export const getCurrentSeats = (...args: Parameters<typeof _getCurrentSeats>) => {
-  return monitorCallback(_getCurrentSeats, ...args);
+  return monitorCallbackSync(_getCurrentSeats, ...args);
 };
 
 const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
@@ -136,7 +136,7 @@ const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
 export const getUserAvailability = async (...args: Parameters<typeof _getUserAvailability>) => {
-  return monitorCallback(_getUserAvailability, ...args);
+  return monitorCallbackAsync(_getUserAvailability, ...args);
 };
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
@@ -323,7 +323,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 };
 
 const getPeriodStartDatesBetween = (...args: Parameters<typeof _getPeriodStartDatesBetween>) => {
-  return monitorCallback(_getPeriodStartDatesBetween, ...args);
+  return monitorCallbackSync(_getPeriodStartDatesBetween, ...args);
 };
 
 const _getPeriodStartDatesBetween = (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit) => {
@@ -399,7 +399,7 @@ class LimitManager {
 }
 
 const getBusyTimesFromLimits = async (...args: Parameters<typeof _getBusyTimesFromLimits>) => {
-  return monitorCallback(_getBusyTimesFromLimits, ...args);
+  return monitorCallbackAsync(_getBusyTimesFromLimits, ...args);
 };
 
 const _getBusyTimesFromLimits = async (
@@ -475,7 +475,7 @@ const _getBusyTimesFromLimits = async (
 };
 
 const getBusyTimesFromBookingLimits = async (...args: Parameters<typeof _getBusyTimesFromBookingLimits>) => {
-  return monitorCallback(_getBusyTimesFromBookingLimits, ...args);
+  return monitorCallbackAsync(_getBusyTimesFromBookingLimits, ...args);
 };
 
 const _getBusyTimesFromBookingLimits = async (
@@ -535,7 +535,7 @@ const _getBusyTimesFromBookingLimits = async (
 const getBusyTimesFromDurationLimits = async (
   ...args: Parameters<typeof _getBusyTimesFromDurationLimits>
 ) => {
-  return monitorCallback(_getBusyTimesFromDurationLimits, ...args);
+  return monitorCallbackAsync(_getBusyTimesFromDurationLimits, ...args);
 };
 
 const _getBusyTimesFromDurationLimits = async (

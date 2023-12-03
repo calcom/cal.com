@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import type { Span, Transaction } from "@sentry/types";
 
 /*
 WHEN TO USE
@@ -9,26 +10,43 @@ This suggests that using these wrappers within large loops can incur significant
 For smaller loops, the cost incurred may not be very significant on an absolute scale
 considering that a million monitored iterations only took roughly 8 seconds when monitored.
 */
-const monitorCallback = async (cb: CallableFunction, ...args: any[]) => {
-  // Check if Sentry set
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
 
+const setUpMonitoring = (name: string) => {
   // Attempt to retrieve the current transaction from Sentry's scope
   let transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
 
   // Check if there's an existing transaction, if not, start a new one
   if (!transaction) {
     transaction = Sentry.startTransaction({
-      op: cb.name,
-      name: cb.name,
+      op: name,
+      name: name,
     });
   }
 
   // Start a new span in the current transaction
   const span = transaction.startChild({
-    op: cb.name,
-    description: `Executing ${cb.name}`,
+    op: name,
+    description: `Executing ${name}`,
   });
+  return [transaction, span];
+};
+
+// transaction will always be Transaction, since returned in a list with Span type must be listed as either or here
+const finishMonitoring = (transaction: Transaction | Span, span: Span) => {
+  // Attempt to retrieve the current transaction from Sentry's scope
+  span.finish();
+
+  // If this was a new transaction, finish it
+  if (!Sentry.getCurrentHub().getScope()?.getTransaction()) {
+    transaction.finish();
+  }
+};
+
+const monitorCallbackAsync = async (cb: CallableFunction, ...args: any[]) => {
+  // Check if Sentry set
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
+
+  const [transaction, span] = setUpMonitoring(cb.name);
 
   try {
     const result = await cb(...args);
@@ -37,14 +55,26 @@ const monitorCallback = async (cb: CallableFunction, ...args: any[]) => {
     Sentry.captureException(error);
     throw error;
   } finally {
-    // Finish the span
-    span.finish();
-
-    // If this was a new transaction, finish it
-    if (!Sentry.getCurrentHub().getScope()?.getTransaction()) {
-      transaction.finish();
-    }
+    finishMonitoring(transaction, span);
   }
 };
 
-export default monitorCallback;
+const monitorCallbackSync = (cb: CallableFunction, ...args: any[]) => {
+  // Check if Sentry set
+  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args);
+
+  const [transaction, span] = setUpMonitoring(cb.name);
+
+  try {
+    const result = cb(...args);
+    return result;
+  } catch (error) {
+    Sentry.captureException(error);
+    throw error;
+  } finally {
+    finishMonitoring(transaction, span);
+  }
+};
+
+export default monitorCallbackAsync;
+export { monitorCallbackSync };
