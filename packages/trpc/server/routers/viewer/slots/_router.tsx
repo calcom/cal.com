@@ -44,7 +44,7 @@ export const slotsRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    console.log("input: ", input);
+    // send to pub micro-service
     fetch("http://localhost:3002/reserve", {
       method: "POST",
       headers: {

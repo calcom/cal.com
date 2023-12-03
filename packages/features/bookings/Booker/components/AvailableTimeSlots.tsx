@@ -56,7 +56,6 @@ export const AvailableTimeSlots = ({
     seatsPerTimeSlot?: number | null,
     bookingUid?: string
   ) => {
-    console.log("onTimeSelect", time);
     setSelectedTimeslot(time);
 
     if (seatsPerTimeSlot) {
@@ -93,9 +92,6 @@ export const AvailableTimeSlots = ({
     : [];
 
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
-
-  // console.log("slotsPerDay", slotsPerDay);
-  // console.log("seatPerTS", seatsPerTimeSlot);
 
   useEffect(() => {
     if (isEmbed) return;

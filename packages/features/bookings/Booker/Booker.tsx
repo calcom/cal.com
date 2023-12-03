@@ -57,7 +57,6 @@ const BookerComponent = ({
     month,
     duration,
   });
-  // console.log("schedule", schedule);
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const timeslotsRef = useRef<HTMLDivElement>(null);
