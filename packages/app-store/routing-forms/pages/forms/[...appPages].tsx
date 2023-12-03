@@ -3,6 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
+import Chatbot from "@calcom/features/chatbot/Chatbot";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
@@ -359,6 +360,7 @@ export default function RoutingForms({
             </div>
           </FormActionsProvider>
         </UpgradeTip>
+        <Chatbot />
       </ShellMain>
     </LicenseRequired>
   );

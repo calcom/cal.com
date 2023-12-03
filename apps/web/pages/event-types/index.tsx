@@ -10,6 +10,7 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayout";
+import Chatbot from "@calcom/features/chatbot/Chatbot";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
@@ -954,6 +955,7 @@ const EventTypesPage = () => {
         description="Create events to share for people to book on your calendar."
       />
       <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
+      <Chatbot />
     </ShellMain>
   );
 };

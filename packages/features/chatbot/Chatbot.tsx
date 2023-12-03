@@ -5,6 +5,7 @@ import router from "./router";
 const FloatingIcon = () => {
   const [isWindowOpen, setIsWindowOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [chatLog, setChatLog] = useState<string[]>([]);
 
   const toggleWindow = () => {
     setIsWindowOpen(!isWindowOpen);
@@ -19,6 +20,9 @@ const FloatingIcon = () => {
     // console.log("Input Value:", inputValue);
     // Close the window after confirming (optional)
     // setIsWindowOpen(false);
+
+    // Update the chatLog state with the new entry
+    setChatLog([...chatLog, inputValue]);
     router(inputValue);
   };
 
@@ -26,6 +30,23 @@ const FloatingIcon = () => {
     // Stop the click event propagation within the window's content
     e.stopPropagation();
   };
+
+  const renderChatLog = chatLog.map((val, idx) => {
+    return (
+      <div
+        key={idx}
+        style={{
+          width: "fit-content",
+          border: "1px solid white",
+          margin: "1rem 0 1rem 0",
+          borderRadius: "30px",
+          padding: "0.5rem 1rem",
+          maxWidth: "80%",
+        }}>
+        {val}
+      </div>
+    );
+  });
 
   return (
     <div
@@ -68,65 +89,54 @@ const FloatingIcon = () => {
           }}
           onClick={handleWindowClick} // Handle click within the window
         >
-          <div style={{ width: "20rem", position: "relative" }}>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder="Enter text..."
-              style={{
-                background: "black",
-                border: "2px solid white",
-                borderRadius: "50px",
-                padding: "1rem 2rem",
-                width: "100%",
-              }}
-            />
-            <button
-              onClick={handleConfirmClick}
-              style={{
-                color: "black",
-                background: "white",
-                borderRadius: "50px",
-                aspectRatio: "1",
-                height: "80%",
-                position: "absolute",
-                top: "10%",
-                right: "5px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M5 12l14 0" />
-                <path d="M13 18l6 -6" />
-                <path d="M13 6l6 6" />
-              </svg>
-            </button>
-            {/* <button
-              onClick={handleConfirmClick}
-              style={{
-                backgroundColor: "white",
-                borderRadius: "50%",
-                height: "80%",
-                aspectRatio: "1",
-                position: "absolute",
-                right: "0",
-                transform: "translateX(-10%)",
-                top: "10%",
-              }}>
-              Confirm
-            </button> */}
+          <div style={{ height: "20rem", width: "20rem" }}>
+            <div>{renderChatLog}</div>
+            <div style={{ width: "20rem", position: "absolute", bottom: "0", marginBottom: "10px" }}>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                placeholder="Enter text..."
+                style={{
+                  background: "black",
+                  border: "2px solid white",
+                  borderRadius: "50px",
+                  padding: "1rem 2rem",
+                  width: "100%",
+                }}
+              />
+              <button
+                onClick={handleConfirmClick}
+                style={{
+                  color: "black",
+                  background: "white",
+                  borderRadius: "50px",
+                  aspectRatio: "1",
+                  height: "80%",
+                  position: "absolute",
+                  top: "10%",
+                  right: "5px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <path d="M5 12l14 0" />
+                  <path d="M13 18l6 -6" />
+                  <path d="M13 6l6 6" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 import React from "react";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
+import Chatbot from "@calcom/features/chatbot/Chatbot";
 import Shell from "@calcom/features/shell/Shell";
 
 export default function InstalledAppsLayout({
@@ -13,6 +14,7 @@ export default function InstalledAppsLayout({
       <AppCategoryNavigation baseURL="/apps/installed" containerClassname="min-w-0 w-full">
         {children}
       </AppCategoryNavigation>
+      <Chatbot />
     </Shell>
   );
 }
