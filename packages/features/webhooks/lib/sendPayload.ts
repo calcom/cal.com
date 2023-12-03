@@ -4,6 +4,7 @@ import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { maybeDispatchEmail } from "@calcom/emails";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -101,8 +102,12 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">,
+  dispatch = true,
 ) => {
+  if (await maybeDispatchWebhook(dispatch, secretKey, triggerEvent, createdAt, webhook, data)) {
+    return;
+  }
   const { appId, payloadTemplate: template } = webhook;
 
   const contentType =
@@ -123,6 +128,8 @@ const sendPayload = async (
       payload: data,
     });
   }
+
+
 
   return _sendPayload(secretKey, webhook, body, contentType);
 };
@@ -192,3 +199,7 @@ const _sendPayload = async (
 };
 
 export default sendPayload;
+
+export const maybeDispatchWebhook = async () => {
+  
+}
