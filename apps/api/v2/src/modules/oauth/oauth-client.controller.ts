@@ -15,19 +15,19 @@ import {
   Logger,
   Res,
   UseGuards,
-  VERSION_NEUTRAL,
-  Version,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 
-@Controller("oauth-clients")
+@Controller({
+  path: "oauth-clients",
+  version: "2",
+})
 export class OAuthClientController {
   private readonly logger = new Logger("OAuthClientController");
 
   constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
 
   @Post("/")
-  @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.CREATED)
   async createOAuthClient(
@@ -49,7 +49,6 @@ export class OAuthClientController {
   }
 
   @Get("/")
-  @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.OK)
   async getOAuthClients(@Res({ passthrough: true }) res: Response) {
@@ -58,7 +57,6 @@ export class OAuthClientController {
   }
 
   @Get("/:clientId")
-  @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.OK)
   async getOAuthClientById(@Param("clientId") clientId: string) {
@@ -66,7 +64,6 @@ export class OAuthClientController {
   }
 
   @Put("/:clientId")
-  @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.OK)
   async updateOAuthClient(
@@ -78,7 +75,6 @@ export class OAuthClientController {
   }
 
   @Delete("/:clientId")
-  @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOAuthClient(@Param("clientId") clientId: string) {
