@@ -24,6 +24,11 @@ This component contains an input form to capture a 6-digit verification code, er
 <Canvas>
   <Story
     name="VerifyCodeDialog"
+    parameters={{
+      nextjs: {
+        appDirectory: true,
+      },
+    }}
     args={{
       isOpenDialog: true,
       setIsOpenDialog: () => {},
