@@ -9,6 +9,7 @@ Table Of Content
 - [Message Queue System Architecture](#message-queue-system-architecture)
   - [What Is Temporal?](#what-is-temporal)
   - [Temporal vs Other Task Queue And Event Systems](#temporal-vs-other-task-queue-and-event-systems)
+    - [Temporal vs HTTP-based Queues](#temporal-vs-http-based-queues)
   - [The Temporal Programming Model](#the-temporal-programming-model)
   - [Designing The Actual Message Queue System For Cal.com](#designing-the-actual-message-queue-system-for-calcom)
   - [Technical Requirements And Consideration](#technical-requirements-and-consideration)
@@ -35,6 +36,15 @@ They all solve a similar common problem, which is to put task within a queue and
 4. Developer friendly: You can monitor or debug task from the UI. There are primitives to efficiently write unit and integration tests. You can also do time-travel debugging and [replay](https://docs.temporal.io/dev-guide/typescript/testing#replay) a particular workflow execution. The TypeScript SDK gives us the advantage of type safety.
 
 While it's possible to implement your own solution to achieve some of those features, they require knowing some advanced integration patterns and are very hard problems to solve and scale. Temporal is built on more 15 years of experience of those who have built similar complex systems in AWS, Microsoft and Uber.
+
+### Temporal vs HTTP-based Queues
+
+There are HTTP-based queues like [QStash](https://upstash.com/blog/qstash-announcement) which is simpler to integrate into serverless applications. This is a good solution if all you need is just calling some APIs and being able to retry those API calls in the case of a failure. However, they're also very limitting in terms of what they offer. Using QStash as an example, here are some of the limitations:
+
+- The retry mechanism is limited to you specifying just the number of attempts.
+- It's hard to ensure atomic transaction/processing. When the API/function called by Qstash fails half-way through, QStash will retry calling it at a designated, and the function will start processing from the beginning, most likely leading to errors or duplicate data/transaction in your system. However, the solution I'm proposing (using Temporal), you can build a Workflow such that your code can re-start right at the point it was before the failure.
+
+Those are just a few example of the limit to trade-off when you choose something like QStash. The sections below highlights the my solution to give Cal.com a robust task queue system.
 
 ## The Temporal Programming Model
 
