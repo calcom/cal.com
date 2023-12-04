@@ -70,6 +70,7 @@ import {
   Map,
   Moon,
   MoreHorizontal,
+  RefreshCcw,
   Settings,
   User as UserIcon,
   Users,
@@ -591,6 +592,11 @@ const navigation: NavigationItemType[] = [
     name: "insights",
     href: "/insights",
     icon: BarChart,
+  },
+  {
+    name: "calendar_sync",
+    href: "/calendar-sync",
+    icon: RefreshCcw,
   },
 ];
 

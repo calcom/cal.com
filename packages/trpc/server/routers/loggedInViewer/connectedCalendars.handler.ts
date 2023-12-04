@@ -18,13 +18,15 @@ type ConnectedCalendarsOptions = {
 export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalendarsOptions) => {
   const { user } = ctx;
   const onboarding = input?.onboarding || false;
-
+  const type = input?.type || "";
+  console.log({ type });
   const userCredentials = await prisma.credential.findMany({
     where: {
       userId: ctx.user.id,
       app: {
         categories: { has: AppCategories.calendar },
         enabled: true,
+        // ...(type && { type: type }),
       },
     },
     select: credentialForCalendarServiceSelect,

@@ -150,6 +150,9 @@ model Credential {
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
 
+  sourceCredential CalendarSyncTask[] @relation(name: "sourceCredential")
+  toCredential     CalendarSyncTask[] @relation(name: "toCredential")
+
   @@index([userId])
   @@index([appId])
   @@index([subscriptionId])
@@ -256,6 +259,7 @@ model User {
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
+  calendarSyncTasks    CalendarSyncTask[]
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
@@ -1028,3 +1032,39 @@ model Avatar {
   @@unique([teamId, userId])
   @@map(name: "avatars")
 }
+
+enum PrivacyCalendarSyncTaskEnum {
+  Personal @map("personal")
+  Busy     @map("busy")
+  Partial  @map("partial")
+}
+
+enum AllDayEventConfigEnum {
+  NoAllDay @map("no-all-day")
+  Busy     @map("busy-only")
+  All      @map("all")
+}
+
+model CalendarSyncTask {
+  id                 Int                         @id @default(autoincrement())
+  userId             Int
+  user               User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceCredentialId Int
+  sourceCredential   Credential?                 @relation(name: "sourceCredential", fields: [sourceCredentialId], references: [id], onDelete: Cascade)
+  sourceExternalId   String
+  toCredentialId     Int
+  toCredential       Credential?                 @relation(name: "toCredential", fields: [toCredentialId], references: [id], onDelete: Cascade)
+  toExternalId       String
+  color              String?
+  privacy            PrivacyCalendarSyncTaskEnum
+  allDayEventConfig  AllDayEventConfigEnum
+  enabled            Boolean                     @default(true)
+
+  @@unique([sourceCredentialId, toCredentialId])
+}
+
+// model CalendarSyncEvents {
+//   id               Int      @id @default(autoincrement())
+//   syncTaskId       Int
+//   credentialId     Int
+// }
