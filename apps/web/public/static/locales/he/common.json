@@ -1581,6 +1581,7 @@
   "enable_apps": "הפעלת אפליקציות",
   "enable_apps_description": "הפעל/הפעילי אפליקציות שמשתמשים יוכלו לשלב עם {{appName}}",
   "purchase_license": "רכוש רישיון",
+  "already_have_account": "כבר יש לך חשבון?",
   "already_have_key": "כבר יש לי מפתח:",
   "already_have_key_suggestion": "אנא העתק את משתנה הסביבה CALCOM_LICENSE_KEY הקיים שלך לכאן.",
   "app_is_enabled": "האפליקציה {{appName}} מופעלת",

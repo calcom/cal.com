@@ -1,3 +1,5 @@
+"use client";
+
 import UsersEditView from "@calcom/features/ee/users/pages/users-edit-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
