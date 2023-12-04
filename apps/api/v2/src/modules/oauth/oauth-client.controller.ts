@@ -14,9 +14,7 @@ import {
   HttpStatus,
   Logger,
   Res,
-  UseGuards,
 } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
 
 @Controller({
   path: "oauth-clients",
@@ -28,7 +26,6 @@ export class OAuthClientController {
   constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
 
   @Post("/")
-  @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.CREATED)
   async createOAuthClient(
     @Res({ passthrough: true }) res: Response,
@@ -49,7 +46,6 @@ export class OAuthClientController {
   }
 
   @Get("/")
-  @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.OK)
   async getOAuthClients(@Res({ passthrough: true }) res: Response) {
     const userId = res.locals.apiKey?.userId;
@@ -57,14 +53,12 @@ export class OAuthClientController {
   }
 
   @Get("/:clientId")
-  @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.OK)
   async getOAuthClientById(@Param("clientId") clientId: string) {
     return this.oauthClientRepository.getOAuthClient(clientId);
   }
 
   @Put("/:clientId")
-  @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.OK)
   async updateOAuthClient(
     @Param("clientId") clientId: string,
@@ -75,7 +69,6 @@ export class OAuthClientController {
   }
 
   @Delete("/:clientId")
-  @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOAuthClient(@Param("clientId") clientId: string) {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
