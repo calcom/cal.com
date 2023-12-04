@@ -13,7 +13,8 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export default async function Chat(req: NextRequest) {
   // Extract the `messages` from the body of the request
-  const { messages, username, userId, userEventTypes, userTime, timezone, ...props } = await req.json();
+  const { messages, username, userId, userEventTypes, userTime, timezone, timezonOffset, ...props } =
+    await req.json();
 
   // eventTypes is a any[]
 
@@ -25,8 +26,7 @@ export default async function Chat(req: NextRequest) {
     Do not reply with "Hello! How can I assist you today?"
 
     The current time is ${userTime}
-    The current timezone is ${timezone}
-    You need to show your time and the user's time and timezone!!!.
+    The timezone offset is ${timezonOffset}
     Your name is ${username}. You are the helping the user to schedule an event.
     You currently have the following event types in events: 
     ${userEventTypes.map(
@@ -118,6 +118,14 @@ export default async function Chat(req: NextRequest) {
             type: "string",
             description: "The title of the event.",
           },
+          utcstarttime: {
+            type: "string",
+            description: "he start time of the event in UTC.",
+          },
+          utcendtime: {
+            type: "string",
+            description: "The end time of the event in UTC.",
+          },
         },
         required: [
           "end",
@@ -179,8 +187,18 @@ export default async function Chat(req: NextRequest) {
             functions,
           });
         case "create_booking":
-          const { end, eventTypeId, language, start, timeZone, email, name, eventTypeSlug } =
-            CreateBooking.parse(args);
+          const {
+            end,
+            eventTypeId,
+            language,
+            start,
+            timeZone,
+            email,
+            name,
+            eventTypeSlug,
+            utcstarttime,
+            utcendtime,
+          } = CreateBooking.parse(args);
 
           const utcDate = new Date(start); // This creates a date object with the specified UTC time
           const dateInTimezone = new Date(utcDate.toLocaleString("en-US", { timeZone: timeZone }));
@@ -197,8 +215,8 @@ export default async function Chat(req: NextRequest) {
               email: email,
             },
             eventTypeId: userEventTypes.find((eventType) => eventType.slug === eventTypeSlug)!.id!,
-            start: new Date(new Date(start).toLocaleString("en-US", { timeZone: timeZone })),
-            end: new Date(new Date(end).toLocaleString("en-US", { timeZone: timeZone })),
+            start: utcstarttime,
+            end: utcendtime,
             timeZone,
             language,
           });
@@ -208,7 +226,7 @@ export default async function Chat(req: NextRequest) {
             messages: [...messages, ...bookingmessage],
             stream: true,
             model: "gpt-4-0613",
-            // see "Recursive Function Calls" below
+            // see "Recursive Function Calls" belowF
             functions,
           });
         default:
@@ -239,6 +257,8 @@ const CreateBooking = z.object({
   timeZone: z.string(),
   title: z.string().optional(),
   eventTypeSlug: z.string(),
+  utcstarttime: z.string(),
+  utcendtime: z.string(),
 });
 
 export type Availability = {
@@ -251,6 +271,8 @@ export type Availability = {
   dateRanges: {
     start: string;
     end: string;
+    utcstarttime?: string;
+    utcendtime?: string;
   }[];
   workingHours: {
     days: number[];
@@ -306,9 +328,20 @@ export const fetchAvailability = async ({
     const formattedEndDate = `${endDate.getHours()}am ${endDate.getFullYear()}-${
       startDate.getMonth() + 1
     }-${endDate.getDate()} ${timezone}`;
+
+    const startt = new Date(
+      new Date(dateRange.start).toLocaleString("en", { timeZone: timezone })
+    ).toString();
+
+    const endt = new Date(new Date(dateRange.end).toLocaleString("en", { timeZone: timezone })).toString();
+
+    console.log("hahaha", startt, endt);
+
     return {
-      start: formattedStartDate,
-      end: formattedEndDate,
+      utcstarttime: dateRange.start,
+      utcendtime: dateRange.end,
+      start: startt,
+      end: endt,
     };
   });
 
