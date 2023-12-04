@@ -1581,6 +1581,7 @@
   "enable_apps": "앱 활성화",
   "enable_apps_description": "사용자가 {{appName}} 앱과 통합할 수 있는 앱 활성화",
   "purchase_license": "라이선스 구매",
+  "already_have_account": "이미 계정이 있으신가요?",
   "already_have_key": "이미 키가 있습니다:",
   "already_have_key_suggestion": "기존 CALCOM_LICENSE_KEY 환경 변수를 여기에 복사하십시오.",
   "app_is_enabled": "{{appName}} 앱이 활성화되었습니다",

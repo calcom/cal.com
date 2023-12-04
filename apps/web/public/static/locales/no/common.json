@@ -1338,6 +1338,7 @@
   "app_disabled_subject": "{{appName}} har blitt deaktivert",
   "navigate_installed_apps": "Gå til installerte apper",
   "enable_apps": "Aktiver Apper",
+  "already_have_account": "Har du allerede en bruker?",
   "app_is_enabled": "{{appName}} er aktivert",
   "app_is_disabled": "{{appName}} er deaktivert",
   "disable_app": "Deaktiver App",

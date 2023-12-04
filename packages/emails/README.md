@@ -8,7 +8,7 @@
 ```ts
 import { renderEmail } from "@calcom/emails";
 
-renderEmail("TeamInviteEmail", */{
+renderEmail("TeamInviteEmail", {
   language: t,
   from: "teampro@example.com",
   to: "pro@example.com",

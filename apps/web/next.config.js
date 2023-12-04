@@ -231,6 +231,9 @@ const nextConfig = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
+      // ignore module resolve errors caused by the server component bundler
+      "pg-native": false,
+      "superagent-proxy": false,
     };
 
     /**

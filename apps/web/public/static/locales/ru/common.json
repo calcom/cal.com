@@ -1581,6 +1581,7 @@
   "enable_apps": "Включить приложения",
   "enable_apps_description": "Выберите приложения, которые пользователи смогут интегрировать с {{appName}}",
   "purchase_license": "Купить лицензию",
+  "already_have_account": "Уже есть аккаунт?",
   "already_have_key": "У меня уже есть ключ:",
   "already_have_key_suggestion": "Скопируйте сюда переменную окружения CALCOM_LICENSE_KEY.",
   "app_is_enabled": "{{appName}} включено",

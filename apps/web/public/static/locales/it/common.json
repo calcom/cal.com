@@ -1581,6 +1581,7 @@
   "enable_apps": "Abilita app",
   "enable_apps_description": "Abilita le app che gli utenti possono integrare con {{appName}}",
   "purchase_license": "Acquista una licenza",
+  "already_have_account": "Hai già un account?",
   "already_have_key": "Ho già una chiave:",
   "already_have_key_suggestion": "Copia qui la variabile di ambiente CALCOM_LICENSE_KEY esistente.",
   "app_is_enabled": "{{appName}} è abilitato",

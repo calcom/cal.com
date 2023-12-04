@@ -1581,6 +1581,7 @@
   "enable_apps": "Activează aplicații",
   "enable_apps_description": "Activați aplicațiile pe care utilizatorii le pot integra cu {{appName}}",
   "purchase_license": "Achiziționați o licență",
+  "already_have_account": "Aveți deja un cont?",
   "already_have_key": "Am deja o cheie:",
   "already_have_key_suggestion": "Copiați aici variabila de mediu CALCOM_LICENSE_KEY existentă.",
   "app_is_enabled": "{{appName}} este activat",
