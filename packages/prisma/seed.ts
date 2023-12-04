@@ -1,11 +1,14 @@
 import type { Prisma } from "@prisma/client";
+import fs from "fs";
 import { uuid } from "short-uuid";
+import { v4 } from "uuid";
 import type z from "zod";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
+import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import prisma from ".";
@@ -52,7 +55,8 @@ async function createTeamAndAddUsers(
 
   const team = await createTeam(teamInput);
   if (!team) {
-    return;
+    const existingTeam = prisma.team.findFirst({ where: { name: teamInput.name } });
+    return existingTeam;
   }
 
   console.log(
@@ -471,7 +475,7 @@ async function main() {
     ],
   });
 
-  await createTeamAndAddUsers(
+  const team = await createTeamAndAddUsers(
     {
       name: "Seeded Team",
       slug: "seeded-team",
@@ -519,6 +523,24 @@ async function main() {
       },
     ]
   );
+
+  // Generate an apiKey for testing
+  const [hashedKey, apiKey] = generateUniqueAPIKey();
+  const args: Prisma.ApiKeyCreateArgs = {
+    data: {
+      id: v4(),
+      userId: proUserTeam.id,
+      note: "Generated API Key for testing",
+      // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
+      expiresAt: null,
+      hashedKey,
+    },
+  };
+
+  await prisma.apiKey.create(args);
+
+  // Write seeded values to file for dredd.js testing
+  fs.writeFileSync("./dredd-data.json", JSON.stringify({ teamId: team?.id, apiKey, userId: proUserTeam.id }));
 }
 
 main()

@@ -1,0 +1,6409 @@
+<h1>Dredd Tests</h1>
+<h2>Fail: GET (200) /attendees?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /attendees?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:12 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /attendees?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /attendees?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /attendees?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:13 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /attendees?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /attendees?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;bookingId&quot;: 0,
+  &quot;email&quot;: &quot;&quot;,
+  &quot;name&quot;: &quot;&quot;,
+  &quot;timeZone&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:13 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /attendees?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /attendees?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;bookingId&quot;: 0,
+  &quot;email&quot;: &quot;&quot;,
+  &quot;name&quot;: &quot;&quot;,
+  &quot;timeZone&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:13 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /attendees?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /attendees/101?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:13 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /attendees/101?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:13 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /attendees/101?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:14 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /attendees/101?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:14 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /attendees/101?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;&quot;,
+  &quot;name&quot;: &quot;&quot;,
+  &quot;timeZone&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:14 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /attendees/101?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;&quot;,
+  &quot;name&quot;: &quot;&quot;,
+  &quot;timeZone&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:14 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /attendees/101?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: POST (201) /availabilities?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /availabilities?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;scheduleId&quot;: 123,
+  &quot;days&quot;: [
+    1,
+    2,
+    3,
+    5
+  ],
+  &quot;startTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;,
+  &quot;endTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:14 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /availabilities?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /availabilities?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;scheduleId&quot;: 123,
+  &quot;days&quot;: [
+    1,
+    2,
+    3,
+    5
+  ],
+  &quot;startTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;,
+  &quot;endTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:14 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /availabilities?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /availabilities/201?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:15 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /availabilities/201?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:15 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /availabilities/201?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:15 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /availabilities/201?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:15 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /availabilities/201?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;scheduleId&quot;: 123,
+  &quot;days&quot;: [
+    1,
+    2,
+    3,
+    5
+  ],
+  &quot;startTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;,
+  &quot;endTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:15 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /availabilities/201?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;scheduleId&quot;: 123,
+  &quot;days&quot;: [
+    1,
+    2,
+    3,
+    5
+  ],
+  &quot;startTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;,
+  &quot;endTime&quot;: &quot;1970-01-01T17:00:00.000Z&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:16 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /availabilities/201?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /teams/123/availability?apiKey=1234abcd5678efgh&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=123</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/timeZone' Missing required property: timeZone
+body: At '/currentSeats' Missing required property: currentSeats
+body: At '/busy' Missing required property: busy
+body: At '/workingHours' Missing required property: workingHours
+body: At '/dateOverrides' Missing required property: dateOverrides
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams/123/availability?apiKey=aed03c756c625fb4976439c1d84539b9&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=123
+headers: 
+    Accept: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;busy&quot;: [
+    {
+      &quot;start&quot;: &quot;2023-05-14T10:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-14T11:00:00.000Z&quot;,
+      &quot;title&quot;: &quot;Team meeting between Alice and Bob&quot;
+    },
+    {
+      &quot;start&quot;: &quot;2023-05-15T14:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-15T15:00:00.000Z&quot;,
+      &quot;title&quot;: &quot;Project review between Carol and Dave&quot;
+    },
+    {
+      &quot;start&quot;: &quot;2023-05-16T09:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-16T10:00:00.000Z&quot;
+    },
+    {
+      &quot;start&quot;: &quot;2023-05-17T13:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-17T14:00:00.000Z&quot;
+    }
+  ],
+  &quot;timeZone&quot;: &quot;America/New_York&quot;,
+  &quot;workingHours&quot;: [
+    {
+      &quot;days&quot;: [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      &quot;startTime&quot;: 540,
+      &quot;endTime&quot;: 1020,
+      &quot;userId&quot;: 101
+    }
+  ],
+  &quot;dateOverrides&quot;: [
+    {
+      &quot;date&quot;: &quot;2023-05-15&quot;,
+      &quot;startTime&quot;: 600,
+      &quot;endTime&quot;: 960,
+      &quot;userId&quot;: 101
+    }
+  ],
+  &quot;currentSeats&quot;: 4
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:16 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /teams/123/availability?apiKey=1234abcd5678efgh&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=123</h2>
+<h2>Fail: GET (404) /teams/123/availability?apiKey=1234abcd5678efgh&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=123</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams/123/availability?apiKey=aed03c756c625fb4976439c1d84539b9&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=123
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:16 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /availability?apiKey=1234abcd5678efgh&amp;userId=42&amp;username=alice&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=701</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/timeZone' Missing required property: timeZone
+body: At '/currentSeats' Missing required property: currentSeats
+body: At '/busy' Missing required property: busy
+body: At '/workingHours' Missing required property: workingHours
+body: At '/dateOverrides' Missing required property: dateOverrides
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /availability?apiKey=aed03c756c625fb4976439c1d84539b9&amp;userId=42&amp;username=alice&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=701
+headers: 
+    Accept: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;busy&quot;: [
+    {
+      &quot;start&quot;: &quot;2023-05-14T10:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-14T11:00:00.000Z&quot;,
+      &quot;title&quot;: &quot;Team meeting between Alice and Bob&quot;
+    },
+    {
+      &quot;start&quot;: &quot;2023-05-15T14:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-15T15:00:00.000Z&quot;,
+      &quot;title&quot;: &quot;Project review between Carol and Dave&quot;
+    },
+    {
+      &quot;start&quot;: &quot;2023-05-16T09:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-16T10:00:00.000Z&quot;
+    },
+    {
+      &quot;start&quot;: &quot;2023-05-17T13:00:00.000Z&quot;,
+      &quot;end&quot;: &quot;2023-05-17T14:00:00.000Z&quot;
+    }
+  ],
+  &quot;timeZone&quot;: &quot;America/New_York&quot;,
+  &quot;workingHours&quot;: [
+    {
+      &quot;days&quot;: [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      &quot;startTime&quot;: 540,
+      &quot;endTime&quot;: 1020,
+      &quot;userId&quot;: 101
+    }
+  ],
+  &quot;dateOverrides&quot;: [
+    {
+      &quot;date&quot;: &quot;2023-05-15&quot;,
+      &quot;startTime&quot;: 600,
+      &quot;endTime&quot;: 960,
+      &quot;userId&quot;: 101
+    }
+  ],
+  &quot;currentSeats&quot;: 4
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:16 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /availability?apiKey=1234abcd5678efgh&amp;userId=42&amp;username=alice&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=701</h2>
+<h2>Fail: GET (404) /availability?apiKey=1234abcd5678efgh&amp;userId=42&amp;username=alice&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=701</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /availability?apiKey=aed03c756c625fb4976439c1d84539b9&amp;userId=42&amp;username=alice&amp;dateFrom=2023-05-14%2000%3A00%3A00&amp;dateTo=2023-05-20%2000%3A00%3A00&amp;eventTypeId=701
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:16 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /booking-references?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /booking-references?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:17 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /booking-references?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /booking-references?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /booking-references?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:17 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /booking-references?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /booking-references?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;type&quot;: &quot;&quot;,
+  &quot;uid&quot;: &quot;&quot;,
+  &quot;meetingId&quot;: &quot;&quot;,
+  &quot;meetingPassword&quot;: &quot;&quot;,
+  &quot;meetingUrl&quot;: &quot;&quot;,
+  &quot;bookingId&quot;: false,
+  &quot;externalCalendarId&quot;: &quot;&quot;,
+  &quot;deleted&quot;: false,
+  &quot;credentialId&quot;: 0
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:17 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /booking-references?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /booking-references?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;type&quot;: &quot;&quot;,
+  &quot;uid&quot;: &quot;&quot;,
+  &quot;meetingId&quot;: &quot;&quot;,
+  &quot;meetingPassword&quot;: &quot;&quot;,
+  &quot;meetingUrl&quot;: &quot;&quot;,
+  &quot;bookingId&quot;: false,
+  &quot;externalCalendarId&quot;: &quot;&quot;,
+  &quot;deleted&quot;: false,
+  &quot;credentialId&quot;: 0
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:17 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /booking-references?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /booking-references/401?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:17 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /booking-references/401?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:17 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /booking-references/401?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:18 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /booking-references/401?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:18 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /booking-references/401?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;type&quot;: &quot;&quot;,
+  &quot;meetingId&quot;: &quot;&quot;,
+  &quot;meetingPassword&quot;: &quot;&quot;,
+  &quot;externalCalendarId&quot;: &quot;&quot;,
+  &quot;deleted&quot;: false,
+  &quot;credentialId&quot;: 0
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:18 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /booking-references/401?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;type&quot;: &quot;&quot;,
+  &quot;meetingId&quot;: &quot;&quot;,
+  &quot;meetingPassword&quot;: &quot;&quot;,
+  &quot;externalCalendarId&quot;: &quot;&quot;,
+  &quot;deleted&quot;: false,
+  &quot;credentialId&quot;: 0
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:18 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /booking-references/401?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /bookings?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '' Invalid type: object (expected array)
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /bookings?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+[
+  {
+    &quot;booking&quot;: {
+      &quot;id&quot;: 91,
+      &quot;userId&quot;: 5,
+      &quot;description&quot;: &quot;&quot;,
+      &quot;eventTypeId&quot;: 7,
+      &quot;uid&quot;: &quot;bFJeNb2uX8ANpT3JL5EfXw&quot;,
+      &quot;title&quot;: &quot;60min between Pro Example and John Doe&quot;,
+      &quot;startTime&quot;: &quot;2023-05-25T09:30:00.000Z&quot;,
+      &quot;endTime&quot;: &quot;2023-05-25T10:30:00.000Z&quot;,
+      &quot;attendees&quot;: [
+        {
+          &quot;email&quot;: &quot;john.doe@example.com&quot;,
+          &quot;name&quot;: &quot;John Doe&quot;,
+          &quot;timeZone&quot;: &quot;Asia/Kolkata&quot;,
+          &quot;locale&quot;: &quot;en&quot;
+        }
+      ],
+      &quot;user&quot;: {
+        &quot;email&quot;: &quot;pro@example.com&quot;,
+        &quot;name&quot;: &quot;Pro Example&quot;,
+        &quot;timeZone&quot;: &quot;Asia/Kolkata&quot;,
+        &quot;locale&quot;: &quot;en&quot;
+      },
+      &quot;payment&quot;: [
+        {
+          &quot;id&quot;: 1,
+          &quot;success&quot;: true,
+          &quot;paymentOption&quot;: &quot;ON_BOOKING&quot;
+        }
+      ],
+      &quot;metadata&quot;: {},
+      &quot;status&quot;: &quot;ACCEPTED&quot;,
+      &quot;responses&quot;: {
+        &quot;email&quot;: &quot;john.doe@example.com&quot;,
+        &quot;name&quot;: &quot;John Doe&quot;,
+        &quot;location&quot;: {
+          &quot;optionValue&quot;: &quot;&quot;,
+          &quot;value&quot;: &quot;inPerson&quot;
+        }
+      }
+    }
+  }
+]
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:18 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /bookings?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /bookings?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /bookings?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (200) /bookings?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/booking' Missing required property: booking
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /bookings?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;eventTypeId&quot;: 2323232,
+  &quot;start&quot;: &quot;2023-05-24T13:00:00.000Z&quot;,
+  &quot;end&quot;: &quot;2023-05-24T13:30:00.000Z&quot;,
+  &quot;responses&quot;: {
+    &quot;name&quot;: &quot;Hello Hello&quot;,
+    &quot;email&quot;: &quot;hello@gmail.com&quot;,
+    &quot;metadata&quot;: {},
+    &quot;location&quot;: &quot;Calcom HQ&quot;
+  },
+  &quot;timeZone&quot;: &quot;Europe/London&quot;,
+  &quot;language&quot;: &quot;en&quot;,
+  &quot;title&quot;: &quot;Debugging between Syed Ali Shahbaz and Hello Hello&quot;,
+  &quot;description&quot;: null,
+  &quot;status&quot;: &quot;PENDING&quot;,
+  &quot;smsReminderNumber&quot;: null
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;booking&quot;: {
+    &quot;id&quot;: 91,
+    &quot;userId&quot;: 5,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;eventTypeId&quot;: 7,
+    &quot;uid&quot;: &quot;bFJeNb2uX8ANpT3JL5EfXw&quot;,
+    &quot;title&quot;: &quot;60min between Pro Example and John Doe&quot;,
+    &quot;startTime&quot;: &quot;2023-05-25T09:30:00.000Z&quot;,
+    &quot;endTime&quot;: &quot;2023-05-25T10:30:00.000Z&quot;,
+    &quot;attendees&quot;: [
+      {
+        &quot;email&quot;: &quot;john.doe@example.com&quot;,
+        &quot;name&quot;: &quot;John Doe&quot;,
+        &quot;timeZone&quot;: &quot;Asia/Kolkata&quot;,
+        &quot;locale&quot;: &quot;en&quot;
+      }
+    ],
+    &quot;user&quot;: {
+      &quot;email&quot;: &quot;pro@example.com&quot;,
+      &quot;name&quot;: &quot;Pro Example&quot;,
+      &quot;timeZone&quot;: &quot;Asia/Kolkata&quot;,
+      &quot;locale&quot;: &quot;en&quot;
+    },
+    &quot;payment&quot;: [
+      {
+        &quot;id&quot;: 1,
+        &quot;success&quot;: true,
+        &quot;paymentOption&quot;: &quot;ON_BOOKING&quot;
+      }
+    ],
+    &quot;metadata&quot;: {},
+    &quot;status&quot;: &quot;ACCEPTED&quot;,
+    &quot;responses&quot;: {
+      &quot;email&quot;: &quot;john.doe@example.com&quot;,
+      &quot;name&quot;: &quot;John Doe&quot;,
+      &quot;location&quot;: {
+        &quot;optionValue&quot;: &quot;&quot;,
+        &quot;value&quot;: &quot;inPerson&quot;
+      }
+    }
+  }
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /bookings?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /bookings?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;eventTypeId&quot;: 2323232,
+  &quot;start&quot;: &quot;2023-05-24T13:00:00.000Z&quot;,
+  &quot;end&quot;: &quot;2023-05-24T13:30:00.000Z&quot;,
+  &quot;responses&quot;: {
+    &quot;name&quot;: &quot;Hello Hello&quot;,
+    &quot;email&quot;: &quot;hello@gmail.com&quot;,
+    &quot;metadata&quot;: {},
+    &quot;location&quot;: &quot;Calcom HQ&quot;
+  },
+  &quot;timeZone&quot;: &quot;Europe/London&quot;,
+  &quot;language&quot;: &quot;en&quot;,
+  &quot;title&quot;: &quot;Debugging between Syed Ali Shahbaz and Hello Hello&quot;,
+  &quot;description&quot;: null,
+  &quot;status&quot;: &quot;PENDING&quot;,
+  &quot;smsReminderNumber&quot;: null
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /bookings?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (200) /bookings/301/cancel?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /bookings/301/cancel?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /bookings/301/cancel?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /bookings/301/cancel?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (404) /bookings/301/cancel?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /bookings/301/cancel?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /bookings/301?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/booking' Missing required property: booking
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /bookings/301?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;booking&quot;: {
+    &quot;id&quot;: 91,
+    &quot;userId&quot;: 5,
+    &quot;description&quot;: &quot;&quot;,
+    &quot;eventTypeId&quot;: 7,
+    &quot;uid&quot;: &quot;bFJeNb2uX8ANpT3JL5EfXw&quot;,
+    &quot;title&quot;: &quot;60min between Pro Example and John Doe&quot;,
+    &quot;startTime&quot;: &quot;2023-05-25T09:30:00.000Z&quot;,
+    &quot;endTime&quot;: &quot;2023-05-25T10:30:00.000Z&quot;,
+    &quot;attendees&quot;: [
+      {
+        &quot;email&quot;: &quot;john.doe@example.com&quot;,
+        &quot;name&quot;: &quot;John Doe&quot;,
+        &quot;timeZone&quot;: &quot;Asia/Kolkata&quot;,
+        &quot;locale&quot;: &quot;en&quot;
+      }
+    ],
+    &quot;user&quot;: {
+      &quot;email&quot;: &quot;pro@example.com&quot;,
+      &quot;name&quot;: &quot;Pro Example&quot;,
+      &quot;timeZone&quot;: &quot;Asia/Kolkata&quot;,
+      &quot;locale&quot;: &quot;en&quot;
+    },
+    &quot;payment&quot;: [
+      {
+        &quot;id&quot;: 1,
+        &quot;success&quot;: true,
+        &quot;paymentOption&quot;: &quot;ON_BOOKING&quot;
+      }
+    ],
+    &quot;metadata&quot;: {},
+    &quot;status&quot;: &quot;ACCEPTED&quot;,
+    &quot;responses&quot;: {
+      &quot;email&quot;: &quot;john.doe@example.com&quot;,
+      &quot;name&quot;: &quot;John Doe&quot;,
+      &quot;location&quot;: {
+        &quot;optionValue&quot;: &quot;&quot;,
+        &quot;value&quot;: &quot;inPerson&quot;
+      }
+    }
+  }
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:19 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /bookings/301?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /bookings/301?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /bookings/301?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:20 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (200) /bookings/301?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/booking' Missing required property: booking
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /bookings/301?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;title&quot;: &quot;Debugging between Syed Ali Shahbaz and Hello Hello&quot;,
+  &quot;start&quot;: &quot;2023-05-24T13:00:00.000Z&quot;,
+  &quot;end&quot;: &quot;2023-05-24T13:30:00.000Z&quot;,
+  &quot;status&quot;: &quot;CANCELLED&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;booking&quot;: {
+    &quot;id&quot;: 11223344,
+    &quot;userId&quot;: 182,
+    &quot;description&quot;: null,
+    &quot;eventTypeId&quot;: 2323232,
+    &quot;uid&quot;: &quot;stoSJtnh83PEL4rZmqdHe2&quot;,
+    &quot;title&quot;: &quot;Debugging between Syed Ali Shahbaz and Hello Hello&quot;,
+    &quot;startTime&quot;: &quot;2023-05-24T13:00:00.000Z&quot;,
+    &quot;endTime&quot;: &quot;2023-05-24T13:30:00.000Z&quot;,
+    &quot;metadata&quot;: {},
+    &quot;status&quot;: &quot;CANCELLED&quot;,
+    &quot;responses&quot;: {
+      &quot;email&quot;: &quot;john.doe@example.com&quot;,
+      &quot;name&quot;: &quot;John Doe&quot;,
+      &quot;location&quot;: {
+        &quot;optionValue&quot;: &quot;&quot;,
+        &quot;value&quot;: &quot;inPerson&quot;
+      }
+    }
+  }
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:20 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /bookings/301?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /bookings/301?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;title&quot;: &quot;Debugging between Syed Ali Shahbaz and Hello Hello&quot;,
+  &quot;start&quot;: &quot;2023-05-24T13:00:00.000Z&quot;,
+  &quot;end&quot;: &quot;2023-05-24T13:30:00.000Z&quot;,
+  &quot;status&quot;: &quot;CANCELLED&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:20 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /bookings/301?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /custom-inputs?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /custom-inputs?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:20 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /custom-inputs?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /custom-inputs?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /custom-inputs?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:21 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /custom-inputs?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /custom-inputs?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;eventTypeID&quot;: 1,
+  &quot;label&quot;: &quot;Phone Number&quot;,
+  &quot;type&quot;: &quot;PHONE&quot;,
+  &quot;required&quot;: true,
+  &quot;placeholder&quot;: &quot;100 101 1234&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:21 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /custom-inputs?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /custom-inputs?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;eventTypeID&quot;: 1,
+  &quot;label&quot;: &quot;Phone Number&quot;,
+  &quot;type&quot;: &quot;PHONE&quot;,
+  &quot;required&quot;: true,
+  &quot;placeholder&quot;: &quot;100 101 1234&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:21 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /custom-inputs?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /custom-inputs/501?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:21 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /custom-inputs/501?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:21 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /custom-inputs/501?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:21 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /custom-inputs/501?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:22 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /custom-inputs/501?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;required&quot;: true
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:22 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /custom-inputs/501?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;required&quot;: true
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:22 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /custom-inputs/501?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /destination-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /destination-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:23 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /destination-calendars?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /destination-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /destination-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:23 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /destination-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /destination-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:24 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /destination-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /destination-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:24 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /destination-calendars?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (200) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /destination-calendars/601?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:24 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (404) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /destination-calendars/601?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:25 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /destination-calendars/601?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:25 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /destination-calendars/601?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:25 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (200) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /destination-calendars/601?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;integration&quot;: &quot;&quot;,
+  &quot;externalId&quot;: &quot;&quot;,
+  &quot;eventTypeId&quot;: 0,
+  &quot;bookingId&quot;: 0
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:25 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: PATCH (404) /destination-calendars/601?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /destination-calendars/601?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;integration&quot;: &quot;&quot;,
+  &quot;externalId&quot;: &quot;&quot;,
+  &quot;eventTypeId&quot;: 0,
+  &quot;bookingId&quot;: 0
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:25 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /event-types?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /event-types?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:25 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /event-types?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /event-types?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /event-types?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:26 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /event-types?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /event-types?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;title&quot;: &quot;Hello World&quot;,
+  &quot;slug&quot;: &quot;hello-world&quot;,
+  &quot;length&quot;: 30,
+  &quot;hidden&quot;: false,
+  &quot;position&quot;: 0,
+  &quot;eventName&quot;: null,
+  &quot;timeZone&quot;: null,
+  &quot;scheduleId&quot;: 5,
+  &quot;periodType&quot;: &quot;UNLIMITED&quot;,
+  &quot;periodStartDate&quot;: &quot;2023-02-15T08:46:16.000Z&quot;,
+  &quot;periodEndDate&quot;: &quot;2023-0-15T08:46:16.000Z&quot;,
+  &quot;periodDays&quot;: null,
+  &quot;periodCountCalendarDays&quot;: false,
+  &quot;requiresConfirmation&quot;: false,
+  &quot;recurringEvent&quot;: null,
+  &quot;disableGuests&quot;: false,
+  &quot;hideCalendarNotes&quot;: false,
+  &quot;minimumBookingNotice&quot;: 120,
+  &quot;beforeEventBuffer&quot;: 0,
+  &quot;afterEventBuffer&quot;: 0,
+  &quot;price&quot;: 0,
+  &quot;currency&quot;: &quot;usd&quot;,
+  &quot;slotInterval&quot;: null,
+  &quot;successRedirectUrl&quot;: null,
+  &quot;description&quot;: &quot;A test event type&quot;,
+  &quot;metadata&quot;: {
+    &quot;apps&quot;: {
+      &quot;stripe&quot;: {
+        &quot;price&quot;: 0,
+        &quot;enabled&quot;: false,
+        &quot;currency&quot;: &quot;usd&quot;
+      }
+    }
+  }
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:26 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /event-types?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /event-types?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;title&quot;: &quot;Hello World&quot;,
+  &quot;slug&quot;: &quot;hello-world&quot;,
+  &quot;length&quot;: 30,
+  &quot;hidden&quot;: false,
+  &quot;position&quot;: 0,
+  &quot;eventName&quot;: null,
+  &quot;timeZone&quot;: null,
+  &quot;scheduleId&quot;: 5,
+  &quot;periodType&quot;: &quot;UNLIMITED&quot;,
+  &quot;periodStartDate&quot;: &quot;2023-02-15T08:46:16.000Z&quot;,
+  &quot;periodEndDate&quot;: &quot;2023-0-15T08:46:16.000Z&quot;,
+  &quot;periodDays&quot;: null,
+  &quot;periodCountCalendarDays&quot;: false,
+  &quot;requiresConfirmation&quot;: false,
+  &quot;recurringEvent&quot;: null,
+  &quot;disableGuests&quot;: false,
+  &quot;hideCalendarNotes&quot;: false,
+  &quot;minimumBookingNotice&quot;: 120,
+  &quot;beforeEventBuffer&quot;: 0,
+  &quot;afterEventBuffer&quot;: 0,
+  &quot;price&quot;: 0,
+  &quot;currency&quot;: &quot;usd&quot;,
+  &quot;slotInterval&quot;: null,
+  &quot;successRedirectUrl&quot;: null,
+  &quot;description&quot;: &quot;A test event type&quot;,
+  &quot;metadata&quot;: {
+    &quot;apps&quot;: {
+      &quot;stripe&quot;: {
+        &quot;price&quot;: 0,
+        &quot;enabled&quot;: false,
+        &quot;currency&quot;: &quot;usd&quot;
+      }
+    }
+  }
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:26 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /event-types?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /event-types/701?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:26 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /event-types/701?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:26 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /event-types/701?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:27 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /event-types/701?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:27 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /event-types/701?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;event-type&quot;: {
+    &quot;summary&quot;: &quot;An example of event type PATCH request&quot;,
+    &quot;value&quot;: {
+      &quot;length&quot;: 60,
+      &quot;requiresConfirmation&quot;: true
+    }
+  }
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:27 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /event-types/701?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;event-type&quot;: {
+    &quot;summary&quot;: &quot;An example of event type PATCH request&quot;,
+    &quot;value&quot;: {
+      &quot;length&quot;: 60,
+      &quot;requiresConfirmation&quot;: true
+    }
+  }
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:27 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /event-types/701?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /memberships</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /memberships
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:27 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /memberships</h2>
+<h2>Fail: GET (404) /memberships</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /memberships
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:27 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /memberships</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /memberships
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:28 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /memberships</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /memberships
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:28 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /memberships</h2>
+<h2>Fail: DELETE (201) /memberships/42_1202</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /memberships/9_1202
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:28 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /memberships/42_1202</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /memberships/9_1202
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:28 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /memberships/42_1202</h2>
+<h2>Fail: GET (200) /memberships/42_1202</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /memberships/9_1202
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:28 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /memberships/42_1202</h2>
+<h2>Fail: GET (404) /memberships/42_1202</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /memberships/9_1202
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:29 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /memberships/42_1202</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /memberships/9_1202
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:29 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /memberships/42_1202</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /memberships/9_1202
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:29 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /memberships/42_1202</h2>
+<h2>Fail: GET (200) /payments/901?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /payments/901?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:29 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /payments/901?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /payments/901?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /payments/901?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:29 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /payments</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /payments
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:29 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /payments</h2>
+<h2>Fail: GET (404) /payments</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /payments
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;3yzkji629ow&quot;
+    content-length: 32
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:30 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;No apiKey provided&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /schedules?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/schedules' Missing required property: schedules
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /schedules?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;schedules&quot;: [
+    {
+      &quot;id&quot;: 1234,
+      &quot;userId&quot;: 5678,
+      &quot;name&quot;: &quot;Sample Schedule 1&quot;,
+      &quot;timeZone&quot;: &quot;America/Chicago&quot;,
+      &quot;availability&quot;: [
+        {
+          &quot;id&quot;: 987,
+          &quot;eventTypeId&quot;: null,
+          &quot;days&quot;: [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          &quot;startTime&quot;: &quot;09:00:00&quot;,
+          &quot;endTime&quot;: null
+        }
+      ]
+    },
+    {
+      &quot;id&quot;: 2345,
+      &quot;userId&quot;: 6789,
+      &quot;name&quot;: &quot;Sample Schedule 2&quot;,
+      &quot;timeZone&quot;: &quot;Europe/Amsterdam&quot;,
+      &quot;availability&quot;: [
+        {
+          &quot;id&quot;: 876,
+          &quot;eventTypeId&quot;: null,
+          &quot;days&quot;: [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          &quot;startTime&quot;: &quot;09:00:00&quot;,
+          &quot;endTime&quot;: null
+        }
+      ]
+    }
+  ]
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:30 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /schedules?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /schedules?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /schedules?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:30 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (200) /schedules?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/message' Missing required property: message
+body: At '/schedule' Missing required property: schedule
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /schedules?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;Sample Schedule&quot;,
+  &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;schedule&quot;: {
+    &quot;id&quot;: 79471,
+    &quot;userId&quot;: 182,
+    &quot;name&quot;: &quot;Total Testing&quot;,
+    &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;,
+    &quot;availability&quot;: [
+      {
+        &quot;id&quot;: 337917,
+        &quot;eventTypeId&quot;: null,
+        &quot;days&quot;: [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        &quot;startTime&quot;: &quot;09:00:00&quot;,
+        &quot;endTime&quot;: null
+      }
+    ]
+  },
+  &quot;message&quot;: &quot;Schedule created successfully&quot;
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:30 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /schedules?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /schedules?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;Sample Schedule&quot;,
+  &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:30 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /schedules?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /schedules/1002?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:31 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /schedules/1002?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:31 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/schedule' Missing required property: schedule
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /schedules/1002?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;schedule&quot;: {
+    &quot;id&quot;: 12345,
+    &quot;userId&quot;: 182,
+    &quot;name&quot;: &quot;Sample Schedule&quot;,
+    &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;,
+    &quot;availability&quot;: [
+      {
+        &quot;id&quot;: 111,
+        &quot;eventTypeId&quot;: null,
+        &quot;days&quot;: [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6
+        ],
+        &quot;startTime&quot;: &quot;00:00:00&quot;,
+        &quot;endTime&quot;: null
+      },
+      {
+        &quot;id&quot;: 112,
+        &quot;eventTypeId&quot;: null,
+        &quot;days&quot;: [
+          5
+        ],
+        &quot;startTime&quot;: &quot;00:00:00&quot;,
+        &quot;endTime&quot;: null
+      },
+      {
+        &quot;id&quot;: 113,
+        &quot;eventTypeId&quot;: null,
+        &quot;days&quot;: [
+          5
+        ],
+        &quot;startTime&quot;: null,
+        &quot;endTime&quot;: null
+      }
+    ]
+  }
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:31 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /schedules/1002?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:31 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (200) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>headers: At '/content-type' No enum match for: &quot;application/json; charset=utf-8&quot;
+body: At '/schedule' Missing required property: schedule
+statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /schedules/1002?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Accept: application/json
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;Updated Schedule&quot;,
+  &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+    Content-Type: application/json
+
+body: 
+{
+  &quot;schedule&quot;: {
+    &quot;id&quot;: 12345,
+    &quot;userId&quot;: 1,
+    &quot;name&quot;: &quot;Total Testing Part 2&quot;,
+    &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;,
+    &quot;availability&quot;: [
+      {
+        &quot;id&quot;: 4567,
+        &quot;eventTypeId&quot;: null,
+        &quot;days&quot;: [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        &quot;startTime&quot;: &quot;09:00:00&quot;,
+        &quot;endTime&quot;: null
+      }
+    ]
+  }
+}
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:31 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /schedules/1002?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;Updated Schedule&quot;,
+  &quot;timeZone&quot;: &quot;Asia/Calcutta&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:31 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /schedules/1002?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /selected-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /selected-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:32 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /selected-calendars?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /selected-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /selected-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:32 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /selected-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /selected-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;integration&quot;: &quot;&quot;,
+  &quot;externalId&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:32 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /selected-calendars?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /selected-calendars?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;integration&quot;: &quot;&quot;,
+  &quot;externalId&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:32 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /selected-calendars?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /selected-calendars/9_google_calendar_1102?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:32 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /selected-calendars/9_google_calendar_1102?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:32 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /selected-calendars/9_google_calendar_1102?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:33 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /selected-calendars/9_google_calendar_1102?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:33 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /selected-calendars/9_google_calendar_1102?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:33 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /selected-calendars/9_google_calendar_1102?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:33 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /selected-calendars/42_google_calendar_1102?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /teams?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:33 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /teams?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /teams?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:34 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (201) /teams?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /teams?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;&quot;,
+  &quot;slug&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:34 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: POST (400) /teams?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /teams?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;&quot;,
+  &quot;slug&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:34 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: POST (401) /teams?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (201) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /teams/1?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:34 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: DELETE (400) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /teams/1?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:34 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: DELETE (401) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams/1?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:35 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams/1?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:35 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /teams/1?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;&quot;,
+  &quot;slug&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:35 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: PATCH (400) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '400', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /teams/1?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;name&quot;: &quot;&quot;,
+  &quot;slug&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 400
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:35 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: PATCH (401) /teams/1202?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (200) /teams/1202/event-types?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams/1/event-types?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:35 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Pass: GET (401) /teams/1202/event-types?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: GET (404) /teams/1202/event-types?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /teams/1/event-types?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (200) /users?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '401'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /users?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 401
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;ksbiy0nqm610&quot;
+    content-length: 36
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;error&quot;: &quot;Your apiKey is not valid&quot;
+}
+
+</code></pre>
+<h2>Fail: GET (401) /users?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /users?apiKey=INVALID_API_KEY
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (404) /users?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /users?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: POST (201) /users?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /users?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;email@example.com&quot;,
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;weekStart&quot;: &quot;MONDAY&quot;,
+  &quot;brandColor&quot;: &quot;#555555&quot;,
+  &quot;darkBrandColor&quot;: &quot;#111111&quot;,
+  &quot;timeZone&quot;: &quot;EUROPE/PARIS&quot;,
+  &quot;theme&quot;: &quot;LIGHT&quot;,
+  &quot;timeFormat&quot;: &quot;TWELVE&quot;,
+  &quot;locale&quot;: &quot;FR&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Pass: POST (400) /users?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: POST (401) /users?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /users?apiKey=INVALID_API_KEY
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;email@example.com&quot;,
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;weekStart&quot;: &quot;MONDAY&quot;,
+  &quot;brandColor&quot;: &quot;#555555&quot;,
+  &quot;darkBrandColor&quot;: &quot;#111111&quot;,
+  &quot;timeZone&quot;: &quot;EUROPE/PARIS&quot;,
+  &quot;theme&quot;: &quot;LIGHT&quot;,
+  &quot;timeFormat&quot;: &quot;TWELVE&quot;,
+  &quot;locale&quot;: &quot;FR&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: DELETE (201) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /users/9?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:36 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Pass: DELETE (400) /users/42?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (401) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /users/9?apiKey=INVALID_API_KEY
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (200) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /users/9?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (401) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /users/9?apiKey=INVALID_API_KEY
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (404) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /users/9?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: PATCH (200) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /users/9?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;email@example.com&quot;,
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;weekStart&quot;: &quot;MONDAY&quot;,
+  &quot;brandColor&quot;: null,
+  &quot;darkBrandColor&quot;: null,
+  &quot;timeZone&quot;: &quot;EUROPE/PARIS&quot;,
+  &quot;theme&quot;: &quot;LIGHT&quot;,
+  &quot;timeFormat&quot;: &quot;TWELVE&quot;,
+  &quot;locale&quot;: &quot;FR&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Pass: PATCH (400) /users/42?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: PATCH (401) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /users/9?apiKey=INVALID_API_KEY
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;email@example.com&quot;,
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;weekStart&quot;: &quot;MONDAY&quot;,
+  &quot;brandColor&quot;: null,
+  &quot;darkBrandColor&quot;: null,
+  &quot;timeZone&quot;: &quot;EUROPE/PARIS&quot;,
+  &quot;theme&quot;: &quot;LIGHT&quot;,
+  &quot;timeFormat&quot;: &quot;TWELVE&quot;,
+  &quot;locale&quot;: &quot;FR&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: PATCH (403) /users/42?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '403', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /users/9?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;email&quot;: &quot;email@example.com&quot;,
+  &quot;username&quot;: &quot;johndoe&quot;,
+  &quot;weekStart&quot;: &quot;MONDAY&quot;,
+  &quot;brandColor&quot;: null,
+  &quot;darkBrandColor&quot;: null,
+  &quot;timeZone&quot;: &quot;EUROPE/PARIS&quot;,
+  &quot;theme&quot;: &quot;LIGHT&quot;,
+  &quot;timeFormat&quot;: &quot;TWELVE&quot;,
+  &quot;locale&quot;: &quot;FR&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 403
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (200) /webhooks?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /webhooks?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:37 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (401) /webhooks?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /webhooks?apiKey=INVALID_API_KEY
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (404) /webhooks?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /webhooks?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: POST (201) /webhooks?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /webhooks?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;subscriberUrl&quot;: &quot;&quot;,
+  &quot;eventTriggers&quot;: &quot;BOOKING_CREATED&quot;,
+  &quot;active&quot;: false,
+  &quot;payloadTemplate&quot;: &quot;&quot;,
+  &quot;eventTypeId&quot;: 0,
+  &quot;secret&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Pass: POST (400) /webhooks?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: POST (401) /webhooks?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: POST
+uri: /webhooks?apiKey=INVALID_API_KEY
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;subscriberUrl&quot;: &quot;&quot;,
+  &quot;eventTriggers&quot;: &quot;BOOKING_CREATED&quot;,
+  &quot;active&quot;: false,
+  &quot;payloadTemplate&quot;: &quot;&quot;,
+  &quot;eventTypeId&quot;: 0,
+  &quot;secret&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: DELETE (201) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /webhooks/1302?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Pass: DELETE (400) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: DELETE (401) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: DELETE
+uri: /webhooks/1302?apiKey=INVALID_API_KEY
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (200) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '200', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /webhooks/1302?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 200
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (401) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /webhooks/1302?apiKey=INVALID_API_KEY
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:38 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: GET (404) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '404', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: GET
+uri: /webhooks/1302?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 404
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:39 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Fail: PATCH (201) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '201', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /webhooks/1302?apiKey=aed03c756c625fb4976439c1d84539b9
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;subscriberUrl&quot;: &quot;&quot;,
+  &quot;eventTriggers&quot;: &quot;BOOKING_CREATED&quot;,
+  &quot;active&quot;: false,
+  &quot;payloadTemplate&quot;: &quot;&quot;,
+  &quot;eventTypeId&quot;: 0,
+  &quot;secret&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 201
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:39 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<h2>Pass: PATCH (400) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h2>Fail: PATCH (401) /webhooks/1302?apiKey=1234abcd5678efgh</h2>
+<h3>Message</h3>
+<pre><code>statusCode: Expected status code '401', but got '400'.
+
+</code></pre>
+<h3>Request</h3>
+<pre><code>method: PATCH
+uri: /webhooks/1302?apiKey=INVALID_API_KEY
+headers: 
+    Content-Type: application/json
+    User-Agent: Dredd/14.1.0 (Darwin 20.6.0; x64)
+
+body: 
+{
+  &quot;subscriberUrl&quot;: &quot;&quot;,
+  &quot;eventTriggers&quot;: &quot;BOOKING_CREATED&quot;,
+  &quot;active&quot;: false,
+  &quot;payloadTemplate&quot;: &quot;&quot;,
+  &quot;eventTypeId&quot;: 0,
+  &quot;secret&quot;: &quot;&quot;
+}
+
+</code></pre>
+<h3>Expected</h3>
+<pre><code>headers: 
+
+statusCode: 401
+
+</code></pre>
+<h3>Actual</h3>
+<pre><code>statusCode: 400
+headers: 
+    content-type: application/json; charset=utf-8
+    etag: &quot;oyrrbs4m2x1y&quot;
+    content-length: 70
+    vary: Accept-Encoding
+    date: Sun, 03 Dec 2023 23:51:39 GMT
+    connection: close
+
+bodyEncoding: utf-8
+body: 
+{
+  &quot;message&quot;: &quot;An error occured while querying the database.&quot;,
+  &quot;error&quot;: {}
+}
+
+</code></pre>
+<hr>
+<h1>Summary</h1>
+<p><strong>Tests completed:</strong> 64 passing,
+144 failing,
+0 errors,
+0 skipped,
+208 total.</p>
+<p><strong>Tests took:</strong> 28526ms.</p>

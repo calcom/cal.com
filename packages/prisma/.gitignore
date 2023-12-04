@@ -1,0 +1,2 @@
+# this file is generated during seeding to be able to run Dredd testing against the API spec
+dredd-data.json
