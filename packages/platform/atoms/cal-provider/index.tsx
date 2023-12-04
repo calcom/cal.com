@@ -1,3 +1,4 @@
+import { NO_KEY_VALUE, INVALID_API_KEY } from "cal-provider/errors";
 import type { ReactNode } from "react";
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 
@@ -25,7 +26,7 @@ export function CalProvider({ apiKey, children }: CalProviderProps) {
         }
       } catch (error) {
         console.error(error);
-        setErrorMessage("invalid api key");
+        setErrorMessage(INVALID_API_KEY);
       }
     },
     [apiKey]
@@ -33,7 +34,7 @@ export function CalProvider({ apiKey, children }: CalProviderProps) {
 
   useEffect(() => {
     if (apiKey.length === 0) {
-      setErrorMessage("no key value");
+      setErrorMessage(NO_KEY_VALUE);
     } else {
       verifyApiKey(apiKey);
     }
