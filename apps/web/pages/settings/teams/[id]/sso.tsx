@@ -1,4 +1,3 @@
-'use client';
 import TeamSSOView from "@calcom/features/ee/sso/page/teams-sso-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";

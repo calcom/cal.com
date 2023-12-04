@@ -1,4 +1,3 @@
-'use client';
 import TeamProfileView from "@calcom/features/ee/teams/pages/team-profile-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";

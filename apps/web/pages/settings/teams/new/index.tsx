@@ -1,4 +1,5 @@
-'use client';
+"use client";
+
 import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
