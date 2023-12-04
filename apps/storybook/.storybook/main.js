@@ -6,7 +6,7 @@ module.exports = {
   stories: [
     "../intro.stories.mdx",
     "../../../packages/ui/components/**/*.stories.mdx",
-    "../../../packages/atoms/**/*.stories.mdx",
+    "../../../packages/platform/atoms/**/*.stories.mdx",
     "../../../packages/features/**/*.stories.mdx",
     "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
   ],
