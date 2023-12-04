@@ -4,7 +4,8 @@ import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, OAuthClientRepository],
+  imports: [PrismaModule],
+  providers: [OAuthClientRepository],
   controllers: [OAuthClientController],
 })
 export class OAuthClientModule {}
