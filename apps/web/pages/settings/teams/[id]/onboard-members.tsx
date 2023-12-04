@@ -1,3 +1,4 @@
+'use client';
 import Head from "next/head";
 
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";

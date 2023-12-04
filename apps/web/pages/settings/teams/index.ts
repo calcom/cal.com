@@ -1,3 +1,4 @@
+'use client';
 import TeamListView from "@calcom/features/ee/teams/pages/team-listing-view";
 
 import PageWrapper from "@components/PageWrapper";

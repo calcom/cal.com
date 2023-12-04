@@ -1,3 +1,4 @@
+'use client';
 import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";
 
