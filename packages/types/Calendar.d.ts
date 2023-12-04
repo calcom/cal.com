@@ -173,7 +173,7 @@ export interface CalendarEvent {
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
-  existingRecurringEvent: ExistingRecurringEvent | null;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
   bookingId?: number;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;

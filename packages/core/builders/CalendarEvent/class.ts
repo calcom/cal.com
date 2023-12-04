@@ -23,7 +23,7 @@ class CalendarEventClass implements CalendarEvent {
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
-  existingRecurringEvent: ExistingRecurringEvent;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
   videoCallData?: VideoCallData;
   paymentInfo?: any;
   destinationCalendar?: DestinationCalendar[] | null;

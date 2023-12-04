@@ -66,8 +66,8 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     createdBookings.push(eachRecurringBooking);
 
     if (thirdPartyRecurringEventId == "") {
-      if (eachRecurringBooking.references.length > 0) {
-        const bookingReference = eachRecurringBooking.references[0];
+      if (eachRecurringBooking.references!.length > 0) {
+        const bookingReference = eachRecurringBooking.references![0];
         thirdPartyRecurringEventId = bookingReference.recurringMeetingId
           ? bookingReference.recurringMeetingId
           : "";

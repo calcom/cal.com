@@ -247,7 +247,7 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: calEventRaw.existingRecurringEvent.recurringEventId,
         });
-        event = recurringEventInstances.data.items[calEventRaw.existingRecurringEvent.eventIndex];
+        event = recurringEventInstances.data.items![calEventRaw.existingRecurringEvent.eventIndex];
         await calendar.events.patch({
           calendarId: selectedCalendar,
           eventId: event.id || "",
@@ -270,9 +270,12 @@ export default class GoogleCalendarService implements Calendar {
             recurringEventId = event.id;
             const recurringEventInstances = await calendar.events.instances({
               calendarId: selectedCalendar,
-              eventId: recurringEventId,
+              eventId: recurringEventId || "",
             });
-            event = recurringEventInstances.data.items[0];
+
+            if (recurringEventInstances.data.items) {
+              event = recurringEventInstances.data.items[0];
+            }
           }
         }
       }

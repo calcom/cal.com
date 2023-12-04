@@ -455,12 +455,9 @@ async function handler(req: CustomRequest) {
           ) {
             if (bookingToDelete.references.length > 0 && bookingToDelete?.references[0].recurringMeetingId) {
               const recurringMeetingId = bookingToDelete?.references[0].recurringMeetingId;
-              const deletedRecurringEvent = await calendar.deleteEvent(
-                recurringMeetingId,
-                evt,
-                externalCalendarId
+              apiDeletes.push(
+                calendar?.deleteEvent(recurringMeetingId, evt, externalCalendarId) as Promise<unknown>
               );
-              apiDeletes.push(deletedRecurringEvent);
             } else {
               const promises = bookingToDelete.user.credentials
                 .filter((credential) => credential.type.endsWith("_calendar"))
@@ -670,7 +667,8 @@ async function handler(req: CustomRequest) {
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   try {
-    const settled = await Promise.allSettled(prismaPromises.concat(apiDeletes));
+    const temp = prismaPromises.concat(apiDeletes);
+    const settled = await Promise.allSettled(temp);
     const rejected = settled.filter(({ status }) => status === "rejected") as PromiseRejectedResult[];
     if (rejected.length) {
       throw new Error(`Reasons: ${rejected.map(({ reason }) => reason)}`);
