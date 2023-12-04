@@ -25,7 +25,7 @@ import {
  *         name: id
  *         schema:
  *           type: integer
- *         example: 101
+ *         example: 901
  *         required: true
  *         description: ID of the payment to get
  *     tags:

@@ -56,7 +56,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        name: id
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 501
  *        required: true
  *        description: ID of the eventTypeCustomInput to edit
  *      - in: query

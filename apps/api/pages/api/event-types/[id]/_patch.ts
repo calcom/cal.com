@@ -31,7 +31,7 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *        name: id
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 701
  *        required: true
  *        description: ID of the eventType to edit
  *     requestBody:

@@ -26,7 +26,7 @@ import getCalLink from "../_utils/getCalLink";
  *        description: Your API Key
  *      - in: path
  *        name: id
- *        example: 4
+ *        example: 701
  *        schema:
  *          type: integer
  *        required: true

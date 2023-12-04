@@ -17,7 +17,7 @@ import { checkPermissions } from "./_auth-middleware";
  *        name: teamId
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 1202
  *        required: true
  *        description: ID of the team to delete
  *      - in: query

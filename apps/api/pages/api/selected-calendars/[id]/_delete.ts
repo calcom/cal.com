@@ -22,14 +22,14 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
  *        name: userId
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 42
  *        required: true
  *        description: userId of the selected calendar to get
  *      - in: path
  *        name: externalId
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 1102
  *        required: true
  *        description: externalId of the selected-calendar to get
  *      - in: path

@@ -15,7 +15,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *        name: id
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 1302
  *        required: true
  *        description: Numeric ID of the hooks to delete
  *      - in: query

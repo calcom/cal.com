@@ -18,7 +18,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        name: id
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 1002
  *        required: true
  *        description: ID of the schedule to edit
  *      - in: query

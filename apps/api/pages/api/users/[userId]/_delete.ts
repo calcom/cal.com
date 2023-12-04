@@ -15,7 +15,7 @@ import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
  *     parameters:
  *      - in: path
  *        name: userId
- *        example: 1
+ *        example: 42
  *        schema:
  *          type: integer
  *        required: true

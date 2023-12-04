@@ -16,7 +16,7 @@ import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
  *         name: id
  *         schema:
  *           type: integer
- *         example: 101
+ *         example: 1302
  *         required: true
  *         description: Numeric ID of the webhook to get
  *       - in: query

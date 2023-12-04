@@ -28,7 +28,7 @@ const querySchema = z.object({
  *        name: teamId
  *        schema:
  *          type: number
- *        example: 101
+ *        example: 1202
  *        required: true
  *     tags:
  *     - event-types

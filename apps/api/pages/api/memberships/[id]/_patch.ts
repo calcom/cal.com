@@ -20,14 +20,14 @@ import {
  *        name: userId
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 42
  *        required: true
  *        description: Numeric userId of the membership to get
  *      - in: path
  *        name: teamId
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 1202
  *        required: true
  *        description: Numeric teamId of the membership to get
  *     tags:

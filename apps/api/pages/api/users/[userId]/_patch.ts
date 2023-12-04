@@ -15,7 +15,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *     parameters:
  *       - in: path
  *         name: userId
- *         example: 4
+ *         example: 42
  *         schema:
  *           type: integer
  *         required: true

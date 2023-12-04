@@ -22,7 +22,7 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *        name: teamId
  *        schema:
  *          type: integer
- *        example: 101
+ *        example: 1202
  *        required: true
  *        description: ID of the team to edit
  *      - in: query

@@ -26,7 +26,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *         required: true
  *         schema:
  *           type: integer
- *         example: 123
+ *         example: 1202
  *         description: ID of the team to fetch the availability for
  *       - in: query
  *         name: dateFrom
@@ -102,7 +102,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *         name: userId
  *         schema:
  *           type: integer
- *         example: 101
+ *         example: 42
  *         description: ID of the user to fetch the availability for
  *       - in: query
  *         name: username
@@ -128,7 +128,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *         name: eventTypeId
  *         schema:
  *           type: integer
- *         example: 123
+ *         example: 701
  *         description: Event Type ID of the event type to fetch the availability for
  *     operationId: user-availability
  *     tags:

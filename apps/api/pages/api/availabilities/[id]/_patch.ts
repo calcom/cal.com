@@ -19,7 +19,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         name: apiKey
  *         required: true
  *         description: Your API key
- *        example: 1234abcd5678efgh
+ *         example: 1234abcd5678efgh
  *         schema:
  *           type: string
  *       - in: path
@@ -27,6 +27,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         required: true
  *         schema:
  *           type: integer
+ *         example: 201
  *         description: ID of the availability to edit
  *     requestBody:
  *       description: Edit an existing availability related to one of your bookings
