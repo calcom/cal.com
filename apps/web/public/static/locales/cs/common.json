@@ -1581,6 +1581,7 @@
   "enable_apps": "Povolit aplikace",
   "enable_apps_description": "Zapněte aplikace, které mohou uživatelé integrovat s aplikací {{appName}}",
   "purchase_license": "Kupte si licenci",
+  "already_have_account": "Už máte účet?",
   "already_have_key": "Klíč již mám:",
   "already_have_key_suggestion": "Zkopírujte sem svou stávající proměnnou prostředí CALCOM_LICENSE_KEY.",
   "app_is_enabled": "Aplikace {{appName}} je povolena",

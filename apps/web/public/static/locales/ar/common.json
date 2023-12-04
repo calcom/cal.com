@@ -1581,6 +1581,7 @@
   "enable_apps": "تمكين التطبيقات",
   "enable_apps_description": "تمكين التطبيقات التي يمكن للمستخدمين دمجها مع {{appName}}",
   "purchase_license": "شراء ترخيص",
+  "already_have_account": "هل لديك حساب بالفعل؟",
   "already_have_key": "لدي مفتاح بالفعل:",
   "already_have_key_suggestion": "يرجى نسخ متغير البيئة الحالي CALCOM_LICENSE_KEY هنا.",
   "app_is_enabled": "تم تمكين {{appName}}",

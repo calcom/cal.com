@@ -1582,6 +1582,7 @@
   "enable_apps": "启用应用",
   "enable_apps_description": "启用用户可以与 {{appName}} 集成的应用",
   "purchase_license": "购买许可证",
+  "already_have_account": "已经有帐号？",
   "already_have_key": "我已经有密钥：",
   "already_have_key_suggestion": "请将您现有的 CALCOM_LICENSE_KEY 环境变量复制到此处。",
   "app_is_enabled": "{{appName}} 已启用",
