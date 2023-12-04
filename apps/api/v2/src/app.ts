@@ -1,5 +1,6 @@
 import { RequestMethod, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+import * as cookieParser from "cookie-parser";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
@@ -20,5 +21,6 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     exclude: [{ path: "health", method: RequestMethod.GET }],
   });
 
+  app.use(cookieParser());
   return app;
 };

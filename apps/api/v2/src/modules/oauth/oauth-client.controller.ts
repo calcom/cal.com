@@ -1,3 +1,4 @@
+import { NextAuthGuard } from "@/modules/auth/next-auth.guard";
 import { CreateOAuthClientDto } from "@/modules/oauth/dtos/create-oauth-client";
 import { UpdateOAuthClientDto } from "@/modules/oauth/dtos/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
@@ -14,7 +15,10 @@ import {
   HttpStatus,
   Logger,
   Res,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
+import type { Request } from "express";
 
 @Controller({
   path: "oauth-clients",
@@ -47,7 +51,10 @@ export class OAuthClientController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  async getOAuthClients(@Res({ passthrough: true }) res: Response) {
+  @UseGuards(NextAuthGuard)
+  async getOAuthClients(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const user = res.locals.user;
+    console.log("email", user.email);
     const userId = res.locals.apiKey?.userId;
     return this.oauthClientRepository.getUserOAuthClients(userId);
   }
