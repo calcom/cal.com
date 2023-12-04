@@ -1,10 +1,11 @@
-import Page from "@pages/settings/teams/[id]/onboard-members";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "@calcom/features/ee/teams/pages/team-profile-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("add_team_members"),
-    (t) => t("add_team_members_description")
+    (t) => t("profile"),
+    (t) => t("profile_team_description")
   );
 
 export default Page;

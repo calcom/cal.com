@@ -1,10 +1,11 @@
-import Page from "@pages/settings/teams/new/index";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "@calcom/features/ee/teams/pages/team-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("create_new_team"),
-    (t) => t("create_new_team_description")
+    (t) => t("teams"),
+    (t) => t("create_manage_teams_collaborative")
   );
 
 export default Page;
