@@ -9,43 +9,57 @@ import type { z } from "nestjs-zod/z";
 export class OAuthClientRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async createOAuthClient(userId: number, data: z.infer<typeof CreateOAuthClientSchema>) {
-    return this.dbWrite.prisma.platformOAuthClient.create({
-      data: {
-        ...data,
-        users: {
-          connect: { id: userId },
-        },
-      },
-    });
+    // note(Lauris): TODO after creating platformOAuthClient table
+    // return this.dbWrite.prisma.platformOAuthClient.create({
+    //   data: {
+    //     ...data,
+    //     users: {
+    //       connect: { id: userId },
+    //     },
+    //   },
+    // });
+    return {
+      id: "sample-id",
+      client_secret: "sample-secret",
+    };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getOAuthClient(clientId: string) {
-    return this.dbRead.prisma.platformOAuthClient.findUnique({
-      where: { id: clientId },
-    });
+    // note(Lauris): TODO after creating platformOAuthClient table
+    // return this.dbRead.prisma.platformOAuthClient.findUnique({
+    //   where: { id: clientId },
+    // });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getUserOAuthClients(userId: number) {
-    return this.dbRead.prisma.platformOAuthClient.findMany({
-      where: {
-        users: {
-          some: { id: userId },
-        },
-      },
-    });
+    // note(Lauris): TODO after creating platformOAuthClient table
+    // return this.dbRead.prisma.platformOAuthClient.findMany({
+    //   where: {
+    //     users: {
+    //       some: { id: userId },
+    //     },
+    //   },
+    // });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async updateOAuthClient(clientId: string, updateData: Partial<z.infer<typeof UpdateOAuthClientSchema>>) {
-    return this.dbWrite.prisma.platformOAuthClient.update({
-      where: { id: clientId },
-      data: updateData,
-    });
+    // note(Lauris): TODO after creating platformOAuthClient table
+    // return this.dbWrite.prisma.platformOAuthClient.update({
+    //   where: { id: clientId },
+    //   data: updateData,
+    // });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deleteOAuthClient(clientId: string) {
-    return this.dbWrite.prisma.platformOAuthClient.delete({
-      where: { id: clientId },
-    });
+    // note(Lauris): TODO after creating platformOAuthClient table
+    // return this.dbWrite.prisma.platformOAuthClient.delete({
+    //   where: { id: clientId },
+    // });
   }
 }
