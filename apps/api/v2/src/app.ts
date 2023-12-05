@@ -1,3 +1,4 @@
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { RequestMethod, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 
@@ -16,6 +17,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     maxAge: 86_400,
   });
 
+  app.useGlobalFilters(new PrismaExceptionFilter());
   app.setGlobalPrefix("api", {
     exclude: [{ path: "health", method: RequestMethod.GET }],
   });
