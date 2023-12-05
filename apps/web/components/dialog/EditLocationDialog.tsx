@@ -382,7 +382,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 }}
               />
               {selectedLocation && LocationOptions}
-              <DialogFooter className="mt-4">
+              <DialogFooter className="!static mt-4">
                 <Button
                   onClick={() => {
                     setShowLocationModal(false);
