@@ -48,7 +48,7 @@ describe("Tests for ColorPicker component", () => {
     const colorInput = screen.getByRole("textbox");
     await act(async () => userEvent.clear(colorInput));
     const newColorValue = "#00FF00";
-    await act(async () => userEvent.type(colorInput, newColorValue));
+    await act(async () => await userEvent.type(colorInput, newColorValue));
     expect(screen.getByRole("button", { name: "pick colors" })).toHaveStyle(
       `background-color: ${newColorValue}`
     );
