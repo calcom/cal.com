@@ -7,7 +7,7 @@ function getDefaultConfig() {
   };
 }
 
-const { publicRuntimeConfig } = typeof window !== "undefined" ? getConfig() : getDefaultConfig();
+const { publicRuntimeConfig } = getConfig() ? getConfig() : getDefaultConfig();
 
 const {
   NEXT_PUBLIC_WEBAPP_URL,
