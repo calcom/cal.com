@@ -12,7 +12,7 @@ type hintsOrErrorsProps = {
   hideIfEmpty?: boolean;
 };
 
-function CustomErrors({ hintErrors, fieldName }: { hintErrors?: string[]; fieldName: string }) {
+function CustomErrors({ hintErrors, fieldName, t }: hintsOrErrorsProps) {
   const methods = useFormContext();
   const fieldErrors = methods.formState.errors[fieldName];
 
@@ -56,7 +56,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
 
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
     // no hints passed, field errors exist and they are custom ones
-    return <CustomErrors hintErrors={hintErrors} fieldName={fieldName} />;
+    return <CustomErrors hintErrors={hintErrors} fieldName={fieldName} t={t} />;
   }
 
   // No hint errors passed and there are no additional errors
