@@ -62,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? getFallbackProps()
     : await getInitialProps(fullUrl);
 
+  console.log(interFont, "?interFont");
   return (
     <html
       lang={locale}
