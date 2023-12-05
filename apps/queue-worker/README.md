@@ -36,7 +36,9 @@ For development, we're going to run a local temporal server using the `temporal`
 
 > Make sure you've installed the dependencies before running any code/script in this repo.
 
-The first step is to start run `temporal server start-dev` to start the Temporal Server.
+The first step is to start run `temporal server start-dev` to start the Temporal Server. That will start a Temporal Server with an in-memory database.
+
+> If you want to use use a persistent database, you can use the command `temporal server start-dev --db-filename calcom-temp.db` to run with SQLite database
 
 Next, set up the environment variables. Create a `.env` and copy the content of `.env.example` to it. Replace the empty values with the correct values. The `DATABASE_URL` should be the same as what you specified in the root `.env` file.
 
