@@ -54,3 +54,5 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
     { user: member.user }
   );
 };
+
+export default getMemberAvailabilityHandler;
