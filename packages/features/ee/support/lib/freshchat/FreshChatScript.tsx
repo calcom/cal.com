@@ -12,9 +12,7 @@ declare global {
   }
 }
 
-// eslint-disable-next-line turbo/no-undeclared-env-vars
 const host = AppConfig.env.NEXT_PUBLIC_FRESHCHAT_HOST;
-// eslint-disable-next-line turbo/no-undeclared-env-vars
 const token = AppConfig.env.NEXT_PUBLIC_FRESHCHAT_TOKEN;
 
 export const isFreshChatEnabled =
