@@ -1,6 +1,6 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
-import type { getEventTypesFromDB } from "bookings/lib/handleNewBooking";
 
+import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
