@@ -7,7 +7,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -276,22 +276,27 @@ export async function getBusyTimesForLimitChecks(params: {
   );
   performance.mark("getBusyTimesForLimitChecksStart");
 
-  const bookings = await prisma.booking.findMany({
-    where: {
-      userId,
-      eventTypeId,
-      status: BookingStatus.ACCEPTED,
-      // FIXME: bookings that overlap on one side will never be counted
-      startTime: {
-        gte: startDate,
-      },
-      endTime: {
-        lte: endDate,
-      },
-      NOT: {
-        uid: rescheduleUid || "",
-      },
+  const where: Prisma.BookingWhereInput = {
+    userId,
+    eventTypeId,
+    status: BookingStatus.ACCEPTED,
+    // FIXME: bookings that overlap on one side will never be counted
+    startTime: {
+      gte: startDate,
     },
+    endTime: {
+      lte: endDate,
+    },
+  };
+
+  if (rescheduleUid) {
+    where.NOT = {
+      uid: rescheduleUid,
+    };
+  }
+
+  const bookings = await prisma.booking.findMany({
+    where,
     select: {
       id: true,
       startTime: true,
