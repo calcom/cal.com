@@ -1,7 +1,9 @@
 import dynamic from "next/dynamic";
 import { Fragment } from "react";
 
-const DynamicHelpscoutProvider = process.env.NEXT_PUBLIC_HELPSCOUT_KEY
+import { AppConfig } from "@calcom/web/app-config";
+
+const DynamicHelpscoutProvider = AppConfig.env.NEXT_PUBLIC_HELPSCOUT_KEY
   ? dynamic(() => import("./provider"))
   : Fragment;
 

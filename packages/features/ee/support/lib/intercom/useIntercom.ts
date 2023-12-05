@@ -7,9 +7,13 @@ import dayjs from "@calcom/dayjs";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { trpc } from "@calcom/trpc/react";
+import { AppConfig } from "@calcom/web/app-config";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
-export const isInterComEnabled = z.string().min(1).safeParse(process.env.NEXT_PUBLIC_INTERCOM_APP_ID).success;
+export const isInterComEnabled = z
+  .string()
+  .min(1)
+  .safeParse(AppConfig.env.NEXT_PUBLIC_INTERCOM_APP_ID).success;
 
 const useIntercomHook = isInterComEnabled
   ? useIntercomLib

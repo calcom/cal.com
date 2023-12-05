@@ -2,6 +2,7 @@ import Script from "next/script";
 import { z } from "zod";
 
 import { trpc } from "@calcom/trpc/react";
+import { AppConfig } from "@calcom/web/app-config";
 
 const nonEmptySchema = z.string().min(1);
 declare global {
@@ -12,9 +13,9 @@ declare global {
 }
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
-const host = process.env.NEXT_PUBLIC_FRESHCHAT_HOST;
+const host = AppConfig.env.NEXT_PUBLIC_FRESHCHAT_HOST;
 // eslint-disable-next-line turbo/no-undeclared-env-vars
-const token = process.env.NEXT_PUBLIC_FRESHCHAT_TOKEN;
+const token = AppConfig.env.NEXT_PUBLIC_FRESHCHAT_TOKEN;
 
 export const isFreshChatEnabled =
   nonEmptySchema.safeParse(host).success && nonEmptySchema.safeParse(token).success;
