@@ -74,6 +74,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     hint,
     type,
     hintErrors,
+    hideErrorsIfValueEmpty,
     labelSrOnly,
     containerClassName,
     readOnly,
@@ -169,7 +170,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           disabled={readOnly || disabled}
         />
       )}
-      <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
+      <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} hideIfEmpty={hideErrorsIfValueEmpty} />
       {hint && <div className="text-default mt-2 flex items-center text-sm">{hint}</div>}
     </div>
   );

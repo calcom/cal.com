@@ -313,6 +313,7 @@ export default function Signup({
                 label={t("password")}
                 {...register("password")}
                 hintErrors={["caplow", "min", "num"]}
+                hideErrorsIfValueEmpty
               />
               <Button
                 type="submit"

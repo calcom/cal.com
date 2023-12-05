@@ -1,23 +1,35 @@
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
+import { classNames } from "@calcom/lib";
+
 import { Check, Circle, Info, X } from "../../icon";
 
 type hintsOrErrorsProps = {
   hintErrors?: string[];
   fieldName: string;
   t: (key: string) => string;
+  hideIfEmpty?: boolean;
 };
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>({
   hintErrors,
   fieldName,
   t,
+  hideIfEmpty = false,
 }: hintsOrErrorsProps) {
   const methods = useFormContext() as ReturnType<typeof useFormContext> | null;
   /* If there's no methods it means we're using these components outside a React Hook Form context */
   if (!methods) return null;
-  const { formState } = methods;
+
+  if (!methods && hintErrors?.length) {
+    throw new Error("InputField is expecting hint errors but is not use within a RHF context");
+  }
+
+  const { formState, getValues } = methods;
+
+  const fieldValue = getValues(fieldName);
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
@@ -90,7 +102,11 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
 
   // hints passed, no errors exist, proceed to just show hints
   return (
-    <div className="text-gray text-default mt-2 flex items-center text-sm">
+    <div
+      className={classNames(
+        "text-gray text-default mt-2 flex items-center text-sm",
+        hideIfEmpty && !fieldValue && "opacity-0"
+      )}>
       <ul className="ml-2">
         {hintErrors.map((key: string) => {
           // if field was changed, as no error exist, show checked status and color

@@ -7,6 +7,7 @@ export type InputFieldProps = {
   LockedIcon?: React.ReactNode;
   hint?: ReactNode;
   hintErrors?: string[];
+  hideErrorsIfValueEmpty?: boolean;
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   inputIsFullWidth?: boolean;
