@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -68,6 +69,8 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
           name: true,
           email: true,
           avatar: true,
+          organization: true,
+          organizationId: true,
         },
       },
     },
@@ -77,7 +80,12 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     skip: offset,
   });
 
-  return members;
+  return members.map((m) => {
+    return {
+      ...m,
+      bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
+    };
+  });
 };
 
 export default listOtherTeamMembers;
