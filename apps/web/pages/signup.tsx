@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AppConfig } from "app-config";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
@@ -296,7 +297,7 @@ export default function Signup({
                 addOnLeading={
                   orgSlug
                     ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
-                    : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                    : `${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/`
                 }
               />
               {/* Email */}
@@ -367,7 +368,7 @@ export default function Signup({
                     onClick={async () => {
                       setIsGoogleLoading(true);
                       const username = formMethods.getValues("username");
-                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                      const baseUrl = AppConfig.env.NEXT_PUBLIC_WEBAPP_URL;
                       const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
                       if (username) {
                         // If username is present we save it in query params to check for premium
@@ -414,7 +415,7 @@ export default function Signup({
                       sp.set("username", formMethods.getValues("username"));
                       sp.set("email", formMethods.getValues("email"));
                       router.push(
-                        `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
+                        `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
                       );
                     }}>
                     <ShieldCheckIcon className="mr-2 h-5 w-5" />
@@ -525,7 +526,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // username + email prepopulated from query params
   const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
 
-  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
+  if ((AppConfig.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
     return {
       notFound: true,
     };

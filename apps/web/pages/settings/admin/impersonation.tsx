@@ -1,5 +1,6 @@
 "use client";
 
+import { AppConfig } from "app-config";
 import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
@@ -27,7 +28,7 @@ function AdminView() {
           <TextField
             containerClassName="w-full"
             name={t("user_impersonation_heading")}
-            addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
+            addOnLeading={<>{AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
             ref={usernameRef}
             hint={t("impersonate_user_tip")}
             defaultValue={undefined}

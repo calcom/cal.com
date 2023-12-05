@@ -1,3 +1,4 @@
+import { AppConfig } from "app-config";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -171,8 +172,8 @@ const getStripePremiumUsernameUrl = async ({
         quantity: 1,
       },
     ],
-    success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
+    success_url: `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}${successDestination}&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: AppConfig.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com",
     allow_promotion_codes: true,
   });
 

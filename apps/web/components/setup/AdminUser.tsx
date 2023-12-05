@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AppConfig } from "app-config";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import React from "react";
@@ -110,7 +111,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                   <span className="block">{t("username")}</span>
                   {longWebsiteUrl && (
                     <small className="items-centerpx-3 bg-subtle border-default text-subtle mt-2 inline-flex rounded-t-md border border-b-0 px-3 py-1">
-                      {process.env.NEXT_PUBLIC_WEBSITE_URL}
+                      {AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}
                     </small>
                   )}
                 </Label>
@@ -118,7 +119,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                   addOnLeading={
                     !longWebsiteUrl && (
                       <span className="text-subtle inline-flex items-center rounded-none px-3 text-sm">
-                        {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+                        {AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/
                       </span>
                     )
                   }

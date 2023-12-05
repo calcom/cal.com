@@ -1,6 +1,8 @@
+import { AppConfig } from "app-config";
+
 export default function NewUserPage() {
   if (typeof window !== "undefined") {
-    window.location.assign(process.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com");
+    window.location.assign(AppConfig.env.NEXT_PUBLIC_WEBAPP_URL || "https://app.cal.com");
   }
   return null;
 }

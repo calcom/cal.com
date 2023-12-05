@@ -1,3 +1,4 @@
+import { AppConfig } from "app-config";
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
 import { debounce, noop } from "lodash";
@@ -197,7 +198,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             isInputUsernamePremium ? "border border-orange-400 " : "",
             "border-default bg-muted text-subtle hidden h-9 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
           )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
+          {AppConfig.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "").replace("http://", "")}/
         </span>
 
         <div className="relative w-full">

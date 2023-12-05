@@ -1,3 +1,4 @@
+import { AppConfig } from "app-config";
 import type { NextApiResponse } from "next";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
@@ -18,7 +19,7 @@ function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
   // Stil allow signups if there is a team invite
   if (token) return;
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
+  if (AppConfig.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
     throw new HttpError({
       statusCode: 403,
       message: "Signup is disabled",

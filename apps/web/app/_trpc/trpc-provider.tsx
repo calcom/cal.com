@@ -1,4 +1,5 @@
 import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AppConfig } from "app-config";
 import { HydrateClient } from "app/_trpc/HydrateClient";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
@@ -45,12 +46,13 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
         defaultOptions: { queries: { staleTime: 5000 } },
       })
   );
+
   const url =
     typeof window !== "undefined"
       ? "/api/trpc"
       : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}/api/trpc`
-      : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+      ? `https://${AppConfig.env.VERCEL_URL}/api/trpc`
+      : `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
   const [trpcClient] = useState(() =>
     trpc.createClient({
@@ -58,7 +60,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
         // adds pretty logs to your console in development and logs errors in production
         loggerLink({
           enabled: (opts) =>
-            !!process.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
+            !!AppConfig.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
         }),
         splitLink({
           // check for context property `skipBatch`
