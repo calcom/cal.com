@@ -1,9 +1,12 @@
 // This is a Next.js Page (/settings/platform/oauth-clients/create)
 // Here we will import the oAuthClientForm component
 // we will call usePersistOAuthClient to get the logic to save the client
+import { OAuthClientForm } from "@pages/settings/platform/oauth-clients/components/OAuthClientForm";
 import React from "react";
 
-import OAuthForm from "./components/OAuthClientForm";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+
+import PageWrapper from "@components/PageWrapper";
 
 export const CreateOAuthClient = () => {
   // get logic from usePersistOAuthClient (only create)
@@ -16,7 +19,7 @@ export const CreateOAuthClient = () => {
 
   return (
     <div>
-      <OAuthForm onSubmit={handleSubmit} />
+      <OAuthClientForm onSubmit={handleSubmit} />
     </div>
   );
 };
