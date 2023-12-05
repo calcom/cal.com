@@ -42,11 +42,11 @@ test.describe("Configure booking forwarding", () => {
 
     await page.goto(`/booking-forwarding/accept/${uuid}`);
 
-    await expect(page.locator("text=You have already accepted booking forwarding.")).toBeVisible();
+    await expect(page.locator("data-testid=success_accept_forwarding")).toBeVisible();
 
     await page.goto(`/booking-forwarding/reject/${uuid}`);
 
-    await expect(page.locator("text=You have already rejected booking forwarding.")).toBeVisible();
+    await expect(page.locator("data-testid=success_reject_forwarding")).toBeVisible();
   });
 
   test("Profile redirection", async ({ page, users }) => {

@@ -4,7 +4,7 @@ import { useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Button, DatePicker, Meta, showToast, SkeletonText, TextField } from "@calcom/ui";
@@ -20,7 +20,7 @@ type BookingForwardingForm = {
 
 const BookingForwardingSection = () => {
   const { t } = useLocale();
-  const [startDate, setStartDate] = useState(dayjs().subtract(1, "d").toISOString());
+  const [startDate, setStartDate] = useState(dayjs().toISOString());
   const [endDate, setEndDate] = useState(dayjs().add(1, "d").toISOString());
   const utils = trpc.useContext();
   const {
@@ -60,20 +60,20 @@ const BookingForwardingSection = () => {
   });
 
   return (
-    <div className="border-subtle rounded-lg rounded-t-none border p-6">
+    <div className="border-subtle rounded-lg rounded-t-none border-x border-y-0  p-6">
       <form
         onSubmit={handleSubmit((data) => {
           createBookingForwardingMutation.mutate(data);
           setValue("toUsernameOrEmail", "");
         })}>
         {/* Add startDate and end date inputs */}
-        <div className="flex flex-row">
+        <div className="flex flex-col sm:flex-row">
           <div className="mt-4">
             <p className="text-emphasis mb-2 block text-sm font-medium">From:</p>
             <DatePicker
               data-testid="start-date"
               date={dayjs(startDate).toDate()}
-              minDate={dayjs().subtract(1, "d").toDate()}
+              minDate={dayjs().toDate()}
               {...register("startDate")}
               onDatesChange={(value) => {
                 setStartDate(value.toISOString());
@@ -81,7 +81,7 @@ const BookingForwardingSection = () => {
               }}
             />
           </div>
-          <div className="ml-2 mt-4">
+          <div className="mt-4 sm:ml-2">
             <p className="text-emphasis mb-2 block text-sm font-medium">To:</p>
             <DatePicker
               data-testid="end-date"
@@ -121,7 +121,7 @@ const BookingForwardingSection = () => {
           <Table className="mt-5">
             <TableHead>
               <TableRow>
-                <TableHeaderCell>{t("from")}</TableHeaderCell>
+                <TableHeaderCell className="capitalize">{t("from")}</TableHeaderCell>
                 <TableHeaderCell>{t("to")}</TableHeaderCell>
                 <TableHeaderCell>{t("username")}</TableHeaderCell>
                 <TableHeaderCell>{t("status")}</TableHeaderCell>
@@ -155,7 +155,7 @@ const BookingForwardingSection = () => {
                   <TableCell>
                     {/* Button to share link to accept */}
                     <Button
-                      tooltip="Copy link to share it directly with selected user"
+                      tooltip={t("copy_link_booking_forwarding_request")}
                       color="minimal"
                       onClick={() => {
                         navigator.clipboard.writeText(`${CAL_URL}/booking-forwarding/accept/${item.uuid}`);
@@ -178,29 +178,21 @@ const BookingForwardingSection = () => {
 
               {isLoading && (
                 <TableRow>
-                  <TableCell>
-                    <SkeletonText className="h-8 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <SkeletonText className="h-8 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <SkeletonText className="h-8 w-full" />
-                  </TableCell>
-                  <TableCell>
-                    <SkeletonText className="h-8 w-full" />
-                  </TableCell>
+                  {new Array(6).fill(0).map((_, index) => (
+                    <TableCell key={index}>
+                      <SkeletonText className="h-8 w-full" />
+                    </TableCell>
+                  ))}
                 </TableRow>
               )}
 
-              {data === undefined ||
-                (data.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      <p className="text-subtle text-sm">{t("no_forwardings_found")}</p>
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {!isLoading && (data === undefined || data.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    <p className="text-subtle text-sm">{t("no_forwardings_found")}</p>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -215,7 +207,7 @@ const OutOfOfficePage = () => {
     <>
       <Meta
         title={t("out_of_office")}
-        description={t("out_of_office_description", { appName: APP_NAME })}
+        description={t("out_of_office_description")}
         borderInShellHeader={true}
       />
       <BookingForwardingSection />

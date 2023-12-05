@@ -2153,9 +2153,9 @@
   "troubleshooter": "Troubleshooter",
   "please_install_a_calendar": "Please install a calendar",
   "user_redirect_title": "{{username}} is currently away for a brief period of time.",
-  "user_redirect_description": "In the meanwhile {{profile.username}} will be in charge of all the new scheduled meetings in behalf of him.",
+  "user_redirect_description": "In the meantime, {{profile.username}} will be in charge of all the new scheduled meetings on behalf of {{username}}.",
   "out_of_office": "Out of office",
-  "out_of_office_description": "Seamlessly reroute all links associated with yourUsername to a destination of your choice. An email notification will be sent to the designated user, prompting them to accept your invitation for the redirection to take effect.",
+  "out_of_office_description": "Seamlessly reroute all links associated with your account to a destination of your choice.",
   "send_request": "Send request",
   "forwarding_list": "Forwarding list",
   "no_forwardings_found": "No forwardings found.",
@@ -2172,5 +2172,8 @@
   "accept_booking_forwarding_email_subject": "Request to accept booking request",
   "accept_booking_forwarding_email_title": "Request Booking Forwarding",
   "accept_booking_forwarding_email_description": "You have received a request from {{toName}} so his profile links are forwarding to yours from this time interval:",
+  "success_accept_booking_forwarding":"You have already accepted this booking forwarding request.",
+  "success_reject_booking_forwarding":"You have already rejected this booking forwarding request.",
+  "copy_link_booking_forwarding_request": "Copy link to share it directly with selected user",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

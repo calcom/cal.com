@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingForwardingStatus } from "@calcom/prisma/enums";
 
 import PageWrapper from "@components/PageWrapper";
@@ -11,15 +12,21 @@ export default function BookingForwardingAction(
   props: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
   const { action } = props;
+  const { t } = useLocale();
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="border-subtle mt-6 rounded-lg border p-6">
         <p className="mb-2 font-sans text-lg font-semibold">Booking Forwarding Request</p>
-        <p className="font-sans text-sm">
-          {action === "reject"
-            ? "You have already rejected booking forwarding. ❌"
-            : "You have already accepted booking forwarding. ✅"}
-        </p>
+        {action === "accept" && (
+          <p className="font-sans text-sm" data-testid="success_accept_forwarding">
+            {`${t("success_accept_booking_forwarding")} ✅`}
+          </p>
+        )}
+        {action === "reject" && (
+          <p className="font-sans text-sm" data-testid="success_reject_forwarding">
+            {`${t("success_accept_booking_forwarding")} ❌`}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { encode } from "querystring";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -423,10 +424,15 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   // if profile only has one public event-type, redirect to it
   if (eventTypes.length === 1 && context.query.redirect !== "false") {
+    // Redirect but don't change the URL
+    const urlDestination = `/${user.username}/${eventTypes[0].slug}`;
+    const { query } = context;
+    const urlQuery = new URLSearchParams(encode(query));
+
     return {
       redirect: {
         permanent: false,
-        destination: `/${user.username}/${eventTypes[0].slug}`,
+        destination: `${urlDestination}?${urlQuery}`,
       },
     };
   }
