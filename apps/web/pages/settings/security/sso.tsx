@@ -1,3 +1,5 @@
+"use client";
+
 import UserSSOView from "@calcom/features/ee/sso/page/user-sso-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
