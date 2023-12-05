@@ -58,6 +58,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -67,7 +68,6 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -272,6 +272,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
+          parentId: true,
         },
       },
       bookingFields: true,
@@ -1247,7 +1248,9 @@ async function handler(
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
   let evt: CalendarEvent = {
-    bookerUrl: await getBookerUrl(organizerUser),
+    bookerUrl: eventType.team
+      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
+      : await getBookerBaseUrl(organizerUser),
     type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
