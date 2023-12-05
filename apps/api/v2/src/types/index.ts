@@ -7,9 +7,6 @@ export interface PlatformApiLocals extends Record<string, unknown> {
     userId: number;
     teamId: number;
   };
-  user?: {
-    email: string;
-  };
 }
 
 export type Response = BaseResponse<unknown, PlatformApiLocals>;

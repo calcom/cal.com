@@ -9,4 +9,7 @@ export type AppConfig = {
     readUrl: string;
     writeUrl: string;
   };
+  next: {
+    authSecret: string;
+  };
 };

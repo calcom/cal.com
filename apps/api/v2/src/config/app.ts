@@ -12,6 +12,9 @@ const loadConfig = (): AppConfig => {
       readUrl: process.env.DATABASE_READ_URL,
       writeUrl: process.env.DATABASE_WRITE_URL,
     },
+    next: {
+      authSecret: process.env.NEXTAUTH_SECRET,
+    },
   };
 };
 

@@ -1,8 +1,8 @@
-import { NextAuthGuard } from "@/modules/auth/next-auth.guard";
+import { GetUser } from "@/modules/auth/decorator";
+import { NextAuthGuard } from "@/modules/auth/guard";
 import { CreateOAuthClientDto } from "@/modules/oauth/dtos/create-oauth-client";
 import { UpdateOAuthClientDto } from "@/modules/oauth/dtos/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
-import { Response } from "@/types";
 import {
   Body,
   Controller,
@@ -14,11 +14,8 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-  Res,
-  Req,
   UseGuards,
 } from "@nestjs/common";
-import type { Request } from "express";
 
 @Controller({
   path: "oauth-clients",
@@ -32,11 +29,7 @@ export class OAuthClientController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  async createOAuthClient(
-    @Res({ passthrough: true }) res: Response,
-    @Body() createOAuthClientDto: CreateOAuthClientDto
-  ) {
-    const userId = res.locals.apiKey?.userId;
+  async createOAuthClient(@GetUser("id") userId: number, @Body() createOAuthClientDto: CreateOAuthClientDto) {
     this.logger.log(`Creating OAuth Client with data: ${JSON.stringify(createOAuthClientDto)}`);
 
     const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(
@@ -52,10 +45,7 @@ export class OAuthClientController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  async getOAuthClients(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const user = res.locals.user;
-    console.log("email", user.email);
-    const userId = res.locals.apiKey?.userId;
+  async getOAuthClients(@GetUser("id") userId: number) {
     return this.oauthClientRepository.getUserOAuthClients(userId);
   }
 
