@@ -1,5 +1,3 @@
-"use client";
-
 import UsersListingView from "@calcom/features/ee/users/pages/users-listing-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";

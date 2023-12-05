@@ -613,6 +613,16 @@ export function getGoogleCalendarCredential() {
   });
 }
 
+export function getAppleCalendarCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "applecalendar",
+    key: {
+      scope:
+        "https://www.applecalendar.example/auth/calendar.events https://www.applecalendar.example/auth/calendar.readonly",
+    },
+  });
+}
+
 export function getZoomAppCredential() {
   return getMockedCredential({
     metadataLookupKey: "zoomvideo",
