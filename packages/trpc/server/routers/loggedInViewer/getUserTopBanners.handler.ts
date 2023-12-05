@@ -30,16 +30,7 @@ const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
     ctx.user.destinationCalendar?.externalId
   );
 
-  let doesInvalidCredentialsExist = false;
-
-  for (const calendar of connectedCalendars) {
-    const isErrorPresent = !!calendar.error;
-    if (isErrorPresent) {
-      doesInvalidCredentialsExist = true;
-    }
-  }
-
-  return doesInvalidCredentialsExist;
+  return connectedCalendars.some((calendar) => !!calendar.error);
 };
 
 export const getUserTopBannersHandler = async ({ ctx }: Props) => {
