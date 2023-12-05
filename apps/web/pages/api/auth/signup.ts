@@ -1,4 +1,3 @@
-import { AppConfig } from "app-config";
 import type { NextApiResponse } from "next";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
@@ -8,6 +7,7 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import { AppConfig } from "@calcom/web/app-config";
 
 function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
   const { token } = signupSchema

@@ -1,6 +1,13 @@
 import getConfig from "next/config";
 
-const { publicRuntimeConfig } = getConfig();
+function getDefaultConfig() {
+  return {
+    publicRuntimeConfig: process.env,
+    serverRuntimeConfig: process.env,
+  };
+}
+
+const { publicRuntimeConfig } = typeof window !== "undefined" ? getConfig() : getDefaultConfig();
 
 const {
   NEXT_PUBLIC_WEBAPP_URL,
@@ -15,6 +22,12 @@ const {
   NEXT_PUBLIC_SENTRY_DSN,
   NEXT_PUBLIC_DEBUG,
   NEXT_PUBLIC_DISABLE_SIGNUP,
+  NEXT_PUBLIC_HOSTED_CAL_FEATURES,
+  NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
+  NEXT_PUBLIC_CALCOM_VERSION,
+  NEXT_PUBLIC_VERCEL_URL,
+  NEXT_PUBLIC_EMBED_LIB_URL,
+  NEXT_PUBLIC_MINUTES_TO_BOOK,
 } = publicRuntimeConfig;
 
 export const AppConfig = {
@@ -31,6 +44,11 @@ export const AppConfig = {
     NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_DEBUG,
     NEXT_PUBLIC_DISABLE_SIGNUP,
-    WEBAPP_URL: NEXT_PUBLIC_WEBAPP_URL,
+    NEXT_PUBLIC_HOSTED_CAL_FEATURES,
+    NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
+    NEXT_PUBLIC_CALCOM_VERSION,
+    NEXT_PUBLIC_VERCEL_URL,
+    NEXT_PUBLIC_EMBED_LIB_URL,
+    NEXT_PUBLIC_MINUTES_TO_BOOK,
   },
 };

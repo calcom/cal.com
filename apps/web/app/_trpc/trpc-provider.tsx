@@ -1,5 +1,4 @@
 import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AppConfig } from "app-config";
 import { HydrateClient } from "app/_trpc/HydrateClient";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
@@ -10,6 +9,7 @@ import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
 import { splitLink } from "@calcom/trpc/client/links/splitLink";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
+import { AppConfig } from "@calcom/web/app-config";
 
 export type Endpoint = (typeof ENDPOINTS)[number];
 
@@ -51,7 +51,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
     typeof window !== "undefined"
       ? "/api/trpc"
       : process.env.VERCEL_URL
-      ? `https://${AppConfig.env.VERCEL_URL}/api/trpc`
+      ? `https://${process.env.VERCEL_URL}/api/trpc`
       : `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
   const [trpcClient] = useState(() =>

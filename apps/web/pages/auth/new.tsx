@@ -1,4 +1,4 @@
-import { AppConfig } from "app-config";
+import { AppConfig } from "@calcom/web/app-config";
 
 export default function NewUserPage() {
   if (typeof window !== "undefined") {

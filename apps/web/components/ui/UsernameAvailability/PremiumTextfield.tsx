@@ -1,4 +1,3 @@
-import { AppConfig } from "app-config";
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
 import { debounce, noop } from "lodash";
@@ -18,6 +17,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Input, Label } from "@calcom/ui";
 import { Check, Edit2, ExternalLink, Star as StarSolid } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",

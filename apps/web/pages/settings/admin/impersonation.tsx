@@ -1,11 +1,11 @@
 "use client";
 
-import { AppConfig } from "app-config";
 import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta, TextField } from "@calcom/ui";
+import { AppConfig } from "@calcom/web/app-config";
 
 import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";

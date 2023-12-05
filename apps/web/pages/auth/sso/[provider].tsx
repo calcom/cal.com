@@ -1,4 +1,3 @@
-import { AppConfig } from "app-config";
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -14,6 +13,7 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
