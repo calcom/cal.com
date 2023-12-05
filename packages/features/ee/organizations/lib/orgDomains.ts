@@ -95,7 +95,7 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug) return WEBAPP_URL;
+  if (!slug) return WEBAPP_URL.replace("https://", "").replace("http://", "");
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;

@@ -1,4 +1,4 @@
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -82,7 +82,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   const userWebhooks = user.webhooks;
   let webhookGroups: WebhookGroup[] = [];
-  const bookerUrl = await getBookerUrl(user);
+  const bookerUrl = await getBookerBaseUrl(user);
 
   const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
   webhookGroups.push({
