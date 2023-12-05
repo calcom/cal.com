@@ -1,6 +1,5 @@
 import { initializeAgentExecutorWithOptions } from "langchain/agents";
 import { Ollama } from "langchain/llms/ollama";
-import { DynamicTool } from "langchain/tools";
 
 import { env } from "../env.mjs";
 import createBookingIfAvailable from "../tools/createBooking";
@@ -24,7 +23,6 @@ const agent = async (
   userId: number,
   agentEmail: string
 ) => {
-  //TODO: implement functions in DynamicTool class
   const tools = [
     // getEventTypes(apiKey),
     getAvailability(apiKey),
@@ -38,64 +36,6 @@ const agent = async (
     temperature: 0,
     model: "mistral",
   });
-
-  // Returning strings to satisfy expected return type
-  // TODO: not actually fetching data. strict console.logs to monitor usage
-  const testTools = [
-    new DynamicTool({
-      name: "getAvailability",
-      description: "Retrieve only available time slots",
-      func: async () => {
-        console.log("here in getAvailability");
-        return "api key";
-      },
-    }),
-    new DynamicTool({
-      name: "getBookings",
-      description: "Retrieve a list of all bookings",
-
-      func: async () => {
-        console.log("here in getBookings");
-        return "";
-      },
-    }),
-    new DynamicTool({
-      name: "createBookingIfAvailable",
-      description: "Create a booking if the time slot is available",
-
-      func: async () => {
-        console.log("here in createBooking");
-        return "CREATED BOOKING";
-      },
-    }),
-    new DynamicTool({
-      name: "updateBooking",
-      description: "Update the details of an existing booking",
-
-      func: async () => {
-        console.log("updated booking");
-        return "";
-      },
-    }),
-    new DynamicTool({
-      name: "deleteBooking",
-      description: "Delete an existing booking",
-
-      func: async () => {
-        console.log("pretend it deleted, STATUS");
-        return "";
-      },
-    }),
-    new DynamicTool({
-      name: "sendBookingEmail",
-      description: "Send an email confirmation for a booking",
-
-      func: async () => {
-        console.log("pretend it sent email, STATUS");
-        return "";
-      },
-    }),
-  ];
 
   //   const prefix = `You are Cal.ai - a bleeding edge scheduling assistant that interfaces via email.
   // Make sure your final answers are definitive, complete and well formatted.
@@ -143,24 +83,23 @@ const agent = async (
   // }
   //             `;
 
-  const testPrefix = `You are Cal.ai - a bleeding edge scheduling assistant that interfaces via email. Make sure your final answers are definitive, complete and well formatted. Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information. Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone. In responses to users, always summarize necessary context and open the door to follow ups. For example, "I have booked your chat with @johndoe for 3pm on Wednesday, December 20th, 2023 EST. Please let me know if you need to reschedule." If you can't find a referenced user, ask the user for their email or @username. Make sure to specify that usernames require the @username format. Users don't know other users' userIds.
+  const testPrefix = `You are Cal.ai - a bleeding edge scheduling assistant that interfaces via email. Make sure your final answers are definitive, complete and well formatted. Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information. Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone. In responses to users, always summarize necessary context and open the door to follow ups. For example, "I have booked your chat with @johndoe for 3pm on Wednesday, December 20th, 2023 EST. Please let me know if you need to reschedule." If you can't find a referenced user, ask the user for their email or @username. Make sure to specify that usernames require the @username format. Users don't know other users' userIds. If the user data given to you is unclear, DO NOT MAKE IT UP. REPLY YOU NEED HELP WITH DATA.
 
-The primary user's id is: 12345
-The primary user's username is: @alexsmith
+The primary user's id is: 40
+The primary user's username is: @filip
 The current time in the primary user's timezone is: 2:00 PM EST
 The primary user's time zone is: EST
 The primary user's event types are:
-ID: 001, Slug: meeting-quick, Title: Quick Meeting, Length: 15 mins;
-ID: 002, Slug: standard-meeting, Title: Standard Meeting, Length: 30 mins;
-ID: 003, Slug: long-discussion, Title: Long Discussion, Length: 60 mins;
+ID: 1, Slug: 30min, Title: 30min, Length: 30;
+ID: 4, Slug: 60min, Title: 60min, Length: 60;
 
 The primary user's working hours are:
 Days: Monday, Tuesday, Wednesday, Start Time (minutes in UTC): 540, End Time (minutes in UTC): 1020;
 Days: Thursday, Friday, Start Time (minutes in UTC): 600, End Time (minutes in UTC): 900;
 
 The email references the following @usernames and emails:
-id: (non user), username: @janedoe, email: janedoe@example.com;
-id: (non user), username: @michaelbrown, email: michaelbrown@example.com;`;
+id: (non user), username: @delete-me, email: wojdafilip@gmail.com;
+id: (non user), username: @onboarding, email: wojdafilipdev@gmail.com;`;
   /**
    * Initialize the agent executor with arguments.
    */
