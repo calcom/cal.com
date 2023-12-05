@@ -787,7 +787,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email}
-                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black  sm:text-sm"
+                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button
@@ -1008,6 +1008,7 @@ const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...eventType,
+    // Calling with fake event to manipulate the ui
     bookingFields: getBookingFieldsWithSystemFields(eventType),
     metadata,
   };

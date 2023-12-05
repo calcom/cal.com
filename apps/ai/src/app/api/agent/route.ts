@@ -21,16 +21,16 @@ export const POST = async (request: NextRequest) => {
   const json = await request.json();
 
   //TODO: destructure every arg
-  // const { apiKey, userId, message, subject, user, users, replyTo: agentEmail } = json;
-  const { message, subject, user } = json;
+  const { apiKey, userId, message, subject, user, users, replyTo: agentEmail } = json;
+  // const { message, subject, user } = json;
 
   if ((!message && !subject) || !user) {
     return new NextResponse("Missing fields", { status: 400 });
   }
 
   try {
-    // const response = await agent(`${message}`, { ...user }, users, apiKey, userId, agentEmail);
-    const response = await agent(`${message}`);
+    const response = await agent(`${message}`, { ...user }, users, apiKey, userId, agentEmail);
+    // const response = await agent(`${message}`);
     //TODO: send mail
     // Send response to user
     // await sendEmail({

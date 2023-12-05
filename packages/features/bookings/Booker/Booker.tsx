@@ -274,7 +274,6 @@ const BookerComponent = ({
                   )}
               </BookerSection>
             </StickyOnDesktop>
-
             <BookerSection
               key="book-event-form"
               area="main"
@@ -291,7 +290,6 @@ const BookerComponent = ({
                 hashedLink={hashedLink}
               />
             </BookerSection>
-
             <BookerSection
               key="datepicker"
               area="main"
@@ -300,8 +298,8 @@ const BookerComponent = ({
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker />
+              BookerLayouts
             </BookerSection>
-
             <BookerSection
               key="large-calendar"
               area="main"
@@ -310,7 +308,6 @@ const BookerComponent = ({
               {...fadeInLeft}>
               <LargeCalendar extraDays={extraDays} />
             </BookerSection>
-
             <BookerSection
               key="timeslots"
               area={{ default: "main", month_view: "timeslots" }}

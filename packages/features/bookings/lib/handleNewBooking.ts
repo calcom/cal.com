@@ -788,6 +788,7 @@ async function createBooking({
     });
   }
 
+  console.log("in create booking");
   return prisma.booking.create(createBookingObj);
 }
 
