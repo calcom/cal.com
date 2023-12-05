@@ -80,7 +80,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
               key={key}
               data-testid="hint-error"
               className={
-                error !== undefined ? (submitted ? "bg-yellow-200 text-red-700" : "") : "text-muted"
+                error !== undefined ? (submitted || hasBeenTouched ? "text-red-700" : "") : "text-muted"
               }>
               {error !== undefined ? (
                 submitted ? (
