@@ -180,3 +180,17 @@ describe("Tests for FilterSearchField Component", () => {
     expect(searchInput.value).toBe("Test search");
   });
 });
+
+// describe("Tests for HintOrErrors", () => {
+//   test("Password Field should throw as it is not in a RHF provider", () => {
+//     const { getAllByTestId } = render(
+//       <TooltipProvider>
+//         <PasswordField name="password" hintErrors={["caplow", "min", "num"]} />
+//       </TooltipProvider>
+//     );
+
+//     const hintErrors = getAllByTestId("hint-error");
+
+//     expect(hintErrors.length).toBe(undefined);
+//   });
+// });
