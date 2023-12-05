@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { AppConfig } from "app-config";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -9,7 +10,7 @@ test.describe.configure({ mode: "parallel" });
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  AppConfig.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_PRIVATE_KEY
 );
 

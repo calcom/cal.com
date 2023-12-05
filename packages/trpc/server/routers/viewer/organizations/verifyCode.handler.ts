@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { totpRawCheck } from "@calcom/lib/totp";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { TRPCError } from "@trpc/server";
 
@@ -22,7 +23,7 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
 
   if (!user || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
 
-  if (!IS_PRODUCTION || process.env.NEXT_PUBLIC_IS_E2E) {
+  if (!IS_PRODUCTION || AppConfig.env.NEXT_PUBLIC_IS_E2E) {
     logger.warn(`Skipping code verification in dev/E2E environment`);
     return true;
   }

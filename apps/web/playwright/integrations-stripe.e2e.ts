@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
+import { AppConfig } from "app-config";
 
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -13,7 +14,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 const IS_STRIPE_ENABLED = !!(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  AppConfig.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_CLIENT_ID &&
   process.env.STRIPE_PRIVATE_KEY &&
   process.env.PAYMENT_FEE_FIXED &&

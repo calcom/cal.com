@@ -1,3 +1,5 @@
+import { AppConfig } from "@calcom/web/app-config";
+
 export function extractDomainFromEmail(email: string) {
   let out = "";
   try {
@@ -7,7 +9,7 @@ export function extractDomainFromEmail(email: string) {
   return out.split(".")[0];
 }
 
-export const extractDomainFromWebsiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
+export const extractDomainFromWebsiteUrl = AppConfig.env.NEXT_PUBLIC_WEBSITE_URL?.replace(
   "https://",
   ""
 )?.replace("http://", "") as string;

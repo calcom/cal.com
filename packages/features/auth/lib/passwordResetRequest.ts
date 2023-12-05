@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { sendPasswordResetEmail } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
 export const PASSWORD_RESET_EXPIRY_HOURS = 6;
 
@@ -19,7 +20,7 @@ const createPasswordReset = async (email: string): Promise<string> => {
     },
   });
 
-  return `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${createdResetPasswordRequest.id}`;
+  return `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${createdResetPasswordRequest.id}`;
 };
 
 const guardAgainstTooManyPasswordResets = async (email: string) => {

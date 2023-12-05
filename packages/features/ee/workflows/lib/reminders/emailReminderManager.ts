@@ -19,6 +19,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { AppConfig } from "@calcom/web/app-config";
 
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
@@ -130,7 +131,7 @@ export const scheduleEmailReminder = async (
     console.error("Sendgrid credentials are missing from the .env file");
   }
 
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
+  const sandboxMode = AppConfig.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let attendeeEmailToBeUsedInMail: string | null = null;
   let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;

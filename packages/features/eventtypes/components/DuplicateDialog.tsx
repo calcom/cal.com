@@ -22,6 +22,7 @@ import {
   TextField,
   Editor,
 } from "@calcom/ui";
+import { AppConfig } from "@calcom/web/app-config";
 
 const querySchema = z.object({
   title: z.string(),
@@ -114,10 +115,10 @@ const DuplicateDialog = () => {
               }}
             />
 
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+            {AppConfig.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
+            AppConfig.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
               <TextField
-                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                label={`${t("url")}: ${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}`}
                 required
                 addOnLeading={<>/{pageSlug}/</>}
                 {...register("slug")}
@@ -131,7 +132,7 @@ const DuplicateDialog = () => {
                 required
                 addOnLeading={
                   <>
-                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
+                    {AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
                   </>
                 }
                 {...register("slug")}

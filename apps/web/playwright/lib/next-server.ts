@@ -1,3 +1,4 @@
+import { AppConfig } from "app-config";
 import detect from "detect-port";
 import type { Server } from "http";
 import { createServer } from "http";
@@ -21,8 +22,8 @@ export const nextServer = async ({ port = 3000 } = { port: 3000 }) => {
     port = await detect(Math.round((1 + Math.random()) * 3000));
   }
   process.env.PLAYWRIGHT_TEST_BASE_URL =
-    process.env.NEXT_PUBLIC_WEBAPP_URL =
-    process.env.NEXT_PUBLIC_WEBSITE_URL =
+    AppConfig.env.NEXT_PUBLIC_WEBAPP_URL =
+    AppConfig.env.NEXT_PUBLIC_WEBSITE_URL =
       `http://localhost:${port}`;
   const app = next({
     dev: dev,

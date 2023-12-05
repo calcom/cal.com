@@ -9,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Badge, Button, showToast } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
@@ -90,7 +91,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
     const authClient = new auth.OAuth2User({
       client_id: props.clientId,
       client_secret: props.clientSecret,
-      callback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/apps/alby/setup?callback=true`,
+      callback: `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/apps/alby/setup?callback=true`,
       scopes: ["invoices:read", "account:read"],
       user_agent: "cal.com",
     });
@@ -105,7 +106,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
     // TODO: add a way to delete the endpoint when the app is uninstalled
     const webhookEndpoint = await client.createWebhookEndpoint({
       filter_types: ["invoice.incoming.settled"],
-      url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/alby/webhook`,
+      url: `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/alby/webhook`,
       description: "Cal.com",
     });
 

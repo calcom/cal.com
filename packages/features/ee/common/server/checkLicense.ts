@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
 
@@ -24,7 +25,7 @@ async function checkLicense(
   prisma: PrismaClient
 ): Promise<boolean> {
   /** We skip for E2E testing */
-  if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
+  if (!!AppConfig.env.NEXT_PUBLIC_IS_E2E) return true;
   /** We check first on env */
   let licenseKey = process.env.CALCOM_LICENSE_KEY;
   if (!licenseKey) {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AppConfig } from "@calcom/web/app-config";
 
 interface HelpscoutMenuItemProps {
   onHelpItemSelect: () => void;
@@ -21,7 +22,7 @@ export default function HelpscoutMenuItem(props: HelpscoutMenuItemProps) {
   }
 
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  if (!process.env.NEXT_PUBLIC_HELPSCOUT_KEY) return null;
+  if (!AppConfig.env.NEXT_PUBLIC_HELPSCOUT_KEY) return null;
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { expect } from "@playwright/test";
+import { AppConfig } from "app-config";
 import { randomBytes } from "crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
@@ -232,7 +233,7 @@ test.describe("Signup Flow Test", async () => {
   });
   test("If signup is disabled allow team invites", async ({ browser, page, users, emails }) => {
     // eslint-disable-next-line playwright/no-skipped-test
-    test.skip(process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true", "Skipping due to signup being enabled");
+    test.skip(AppConfig.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true", "Skipping due to signup being enabled");
 
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });

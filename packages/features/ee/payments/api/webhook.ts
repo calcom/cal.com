@@ -17,6 +17,7 @@ import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { AppConfig } from "@calcom/web/app-config";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -144,7 +145,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // bypassing this validation for e2e tests
     // in order to successfully confirm the payment
-    if (!event.account && !process.env.NEXT_PUBLIC_IS_E2E) {
+    if (!event.account && !AppConfig.env.NEXT_PUBLIC_IS_E2E) {
       throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
     }
 

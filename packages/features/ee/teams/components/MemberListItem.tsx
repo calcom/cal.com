@@ -28,6 +28,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
@@ -116,7 +117,7 @@ export default function MemberListItem(props: Props) {
     editMode &&
     !props.member.disableImpersonation &&
     props.member.accepted &&
-    process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
+    AppConfig.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
   const resendInvitation = editMode && !props.member.accepted;
 
   const bookerUrl = useBookerUrl();

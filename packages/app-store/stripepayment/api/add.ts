@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { getStripeAppKeys } from "../lib/getStripeAppKeys";
 
@@ -32,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: user?.email,
         first_name: user?.name || undefined,
         /** We need this so E2E don't fail for international users */
-        country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
+        country: AppConfig.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
       },
       redirect_uri,
       state: typeof req.query.state === "string" ? req.query.state : undefined,

@@ -32,6 +32,7 @@ import {
   Editor,
   DialogFooter,
 } from "@calcom/ui";
+import { AppConfig } from "@calcom/web/app-config";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -146,7 +147,7 @@ export default function CreateEventTypeDialog({
   });
 
   const flags = useFlagMap();
-  const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
+  const urlPrefix = orgBranding?.fullDomain ?? AppConfig.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
     <Dialog

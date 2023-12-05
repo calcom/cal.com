@@ -3,6 +3,7 @@ import { sendPasswordResetEmail } from "@calcom/emails";
 import { PASSWORD_RESET_EXPIRY_HOURS } from "@calcom/features/auth/lib/passwordResetRequest";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TAdminPasswordResetSchema } from "./sendPasswordReset.schema";
@@ -43,7 +44,7 @@ const sendPasswordResetHandler = async ({ input }: GetOptions) => {
     },
   });
 
-  const resetLink = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${passwordResetToken.id}`;
+  const resetLink = `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/auth/forgot-password/${passwordResetToken.id}`;
   await sendPasswordResetEmail({
     language: t,
     user: {

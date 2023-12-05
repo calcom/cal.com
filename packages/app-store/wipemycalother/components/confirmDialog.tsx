@@ -8,6 +8,7 @@ import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, showToast } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;
@@ -27,7 +28,7 @@ const wipeMyCalAction = async (props: IWipeMyCalAction) => {
   };
   try {
     const endpoint = "/api/integrations/wipemycalother/wipe";
-    return fetch(`${process.env.NEXT_PUBLIC_WEBAPP_URL}${endpoint}`, {
+    return fetch(`${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

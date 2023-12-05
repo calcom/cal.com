@@ -13,6 +13,7 @@ import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import type { NewTeamFormValues } from "../lib/types";
@@ -22,7 +23,7 @@ const querySchema = z.object({
   slug: z.string().optional(),
 });
 
-const isTeamBillingEnabledClient = !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
+const isTeamBillingEnabledClient = !!AppConfig.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
 const flag = isTeamBillingEnabledClient
   ? {
       telemetryEvent: telemetryEventTypes.team_checkout_session_created,

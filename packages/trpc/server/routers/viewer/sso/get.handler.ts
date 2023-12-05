@@ -6,6 +6,7 @@ import {
   samlTenantID,
   tenantPrefix,
 } from "@calcom/features/ee/sso/lib/saml";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { TRPCError } from "@trpc/server";
 
@@ -53,7 +54,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       type,
       acsUrl: type === "saml" ? SPConfig.acsUrl : null,
       entityId: type === "saml" ? SPConfig.entityId : null,
-      callbackUrl: type === "oidc" ? `${process.env.NEXT_PUBLIC_WEBAPP_URL}${oidcPath}` : null,
+      callbackUrl: type === "oidc" ? `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}${oidcPath}` : null,
     };
   } catch (err) {
     console.error("Error getting SSO connection", err);

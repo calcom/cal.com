@@ -1,9 +1,10 @@
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {
   const username = slugify(_username);
-  const premium = !!process.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
+  const premium = !!AppConfig.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
 
   const user = await prisma.user.findFirst({
     where: {

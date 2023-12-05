@@ -4,6 +4,8 @@ import { useCollector } from "next-collect/client";
 // Importing types so we're not directly importing next/server
 import type { NextRequest, NextResponse } from "next/server";
 
+import { AppConfig } from "@calcom/web/app-config";
+
 import { CONSOLE_URL } from "./constants";
 
 export const telemetryEventTypes = {
@@ -56,8 +58,8 @@ const reportUsage: EventHandler = async (event, { fetch }) => {
 
 export const nextCollectBasicSettings: CollectOpts = {
   drivers: [
-    process.env.CALCOM_LICENSE_KEY && process.env.NEXT_PUBLIC_IS_E2E !== "1" ? reportUsage : undefined,
-    process.env.CALCOM_TELEMETRY_DISABLED === "1" || process.env.NEXT_PUBLIC_IS_E2E === "1"
+    process.env.CALCOM_LICENSE_KEY && AppConfig.env.NEXT_PUBLIC_IS_E2E !== "1" ? reportUsage : undefined,
+    process.env.CALCOM_TELEMETRY_DISABLED === "1" || AppConfig.env.NEXT_PUBLIC_IS_E2E === "1"
       ? undefined
       : {
           type: "jitsu",

@@ -76,6 +76,7 @@ import {
   Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
+import { AppConfig } from "@calcom/web/app-config";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
@@ -796,7 +797,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
   const orgBranding = useOrgBranding();
 
   const publicPageUrl = useMemo(() => {
-    if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
+    if (!user?.org?.id) return `${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
     const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.username, user?.org?.id]);

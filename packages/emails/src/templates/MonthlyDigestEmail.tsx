@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -180,7 +181,7 @@ export const MonthlyDigestEmail = (
         <div style={{ marginTop: "30px", marginBottom: "30px" }}>
           <CallToAction
             label="View all stats"
-            href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/insights?teamId=${props.team.id}`}
+            href={`${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/insights?teamId=${props.team.id}`}
             endIconName="white-arrow-right"
           />
         </div>

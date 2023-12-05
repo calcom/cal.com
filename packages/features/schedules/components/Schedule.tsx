@@ -31,6 +31,7 @@ import {
   CheckboxField,
 } from "@calcom/ui";
 import { Copy, Plus, Trash } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 export type { TimeRange };
 
@@ -326,7 +327,7 @@ interface IOption {
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 /** Begin Time Increments For Select */
-const INCREMENT = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
+const INCREMENT = Number(AppConfig.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
 const useOptions = () => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();

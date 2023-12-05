@@ -1,5 +1,6 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { TRPCError } from "@trpc/server";
 
@@ -30,8 +31,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   try {
     return await connectionController.createSAMLConnection({
       encodedRawMetadata,
-      defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/saml-idp`,
-      redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
+      defaultRedirectUrl: `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/auth/saml-idp`,
+      redirectUrl: JSON.stringify([`${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
       tenant: teamId ? tenantPrefix + teamId : samlTenantID,
       product: samlProductID,
     });

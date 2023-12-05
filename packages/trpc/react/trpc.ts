@@ -1,6 +1,8 @@
 import type { NextPageContext } from "next/types";
 import superjson from "superjson";
 
+import { AppConfig } from "@calcom/web/app-config";
+
 import { httpBatchLink } from "../client/links/httpBatchLink";
 import { httpLink } from "../client/links/httpLink";
 import { loggerLink } from "../client/links/loggerLink";
@@ -54,7 +56,7 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
         ? "/api/trpc"
         : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/api/trpc`
-        : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+        : `${AppConfig.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
     /**
      * If you want to use SSR, you need to use the server's full URL
@@ -68,7 +70,7 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
         // adds pretty logs to your console in development and logs errors in production
         loggerLink({
           enabled: (opts) =>
-            !!process.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
+            !!AppConfig.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
         }),
         splitLink({
           // check for context property `skipBatch`

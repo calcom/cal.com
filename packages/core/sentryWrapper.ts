@@ -1,6 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 import type { Span, Transaction } from "@sentry/types";
 
+import { AppConfig } from "@calcom/web/app-config";
+
 /*
 WHEN TO USE
 We ran a script that performs a simple mathematical calculation within a loop of 1000000 iterations. 
@@ -47,7 +49,7 @@ const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   ...args: Parameters<T>
 ): Promise<ReturnType<T>> => {
   // Check if Sentry set
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return (await cb(...args)) as ReturnType<T>;
+  if (!AppConfig.env.NEXT_PUBLIC_SENTRY_DSN) return (await cb(...args)) as ReturnType<T>;
 
   const [transaction, span] = setUpMonitoring(cb.name);
 
@@ -67,7 +69,7 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
   ...args: Parameters<T>
 ): ReturnType<T> => {
   // Check if Sentry set
-  if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args) as ReturnType<T>;
+  if (!AppConfig.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args) as ReturnType<T>;
 
   const [transaction, span] = setUpMonitoring(cb.name);
 

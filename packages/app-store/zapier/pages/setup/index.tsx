@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip, showToast } from "@calcom/ui";
 import { Clipboard } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 export interface IZapierSetupProps {
   inviteLink?: string;
@@ -34,7 +35,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   );
   const [credentialId] = zapierCredentials?.userCredentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
-  const isCalDev = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
+  const isCalDev = AppConfig.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.dev";
 
   async function createApiKey(teamId?: number) {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER, teamId };

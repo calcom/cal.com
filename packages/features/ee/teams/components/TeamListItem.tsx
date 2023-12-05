@@ -40,6 +40,7 @@ import {
   Trash,
   X,
 } from "@calcom/ui/components/icon";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { TeamRole } from "./TeamPill";
@@ -109,7 +110,7 @@ export default function TeamListItem(props: Props) {
             orgBranding ? (
               `${orgBranding.fullDomain}/${team.slug}`
             ) : (
-              `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
+              `${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
             )
           ) : (
             <Badge>{t("upgrade")}</Badge>
@@ -249,7 +250,7 @@ export default function TeamListItem(props: Props) {
                           `${
                             orgBranding
                               ? `${orgBranding.fullDomain}`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
+                              : `${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/team`
                           }/${team.slug}`
                         );
                         showToast(t("link_copied"), "success");
@@ -289,7 +290,7 @@ export default function TeamListItem(props: Props) {
                           href={`${
                             orgBranding
                               ? `${orgBranding.fullDomain}`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
+                              : `${AppConfig.env.NEXT_PUBLIC_WEBSITE_URL}/team`
                           }/${team.slug}`}
                           StartIcon={ExternalLink}>
                           {t("preview_team") as string}

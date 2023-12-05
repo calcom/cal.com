@@ -12,6 +12,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { AppConfig } from "@calcom/web/app-config";
 
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import {
@@ -42,7 +43,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
+  const sandboxMode = AppConfig.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   // delete batch_ids with already past scheduled date from scheduled_sends
   const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();

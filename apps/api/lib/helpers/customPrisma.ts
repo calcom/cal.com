@@ -2,8 +2,9 @@ import type { NextMiddleware } from "next-api-middleware";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { customPrisma } from "@calcom/prisma";
+import { AppConfig } from "@calcom/web/app-config";
 
-const LOCAL_CONSOLE_URL = process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
+const LOCAL_CONSOLE_URL = AppConfig.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
 
 // This replaces the prisma client for the custom one if the key is valid
 export const customPrismaClient: NextMiddleware = async (req, res, next) => {
