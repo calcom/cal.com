@@ -2,19 +2,17 @@ import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@pri
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
-import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
+import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -264,55 +262,14 @@ export async function handleConfirmation(args: {
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
-
       const isFirstBooking = index === 0;
-      const hasExistingWorkflow: boolean = (updatedBookings[index]?.eventType?.workflows || []).some(
-        (workflow) => {
-          return (
-            workflow.workflow?.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
-            ((workflow.workflow.time !== null &&
-              workflow.workflow.time <= 12 &&
-              workflow.workflow?.timeUnit === TimeUnit.HOUR) ||
-              (workflow.workflow.time !== null &&
-                workflow.workflow.time <= 720 &&
-                workflow.workflow?.timeUnit === TimeUnit.MINUTE)) &&
-            workflow.workflow?.steps.some((step) => step?.action === WorkflowActions.EMAIL_ATTENDEE)
-          );
-        }
+      await scheduleMandatoryReminder(
+        evtOfBooking,
+        updatedBookings[index]?.eventType?.workflows || [],
+        false,
+        eventTypeSlug,
+        videoCallUrl
       );
-      if (
-        !hasExistingWorkflow &&
-        evtOfBooking.attendees.some((attendee) => attendee.email.includes("@gmail.com"))
-      ) {
-        try {
-          const filteredAttendees =
-            evtOfBooking.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
-          await scheduleEmailReminder(
-            {
-              ...evtOfBooking,
-              ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
-            },
-            WorkflowTriggerEvents.BEFORE_EVENT,
-            WorkflowActions.EMAIL_ATTENDEE,
-            {
-              time: 1,
-              timeUnit: TimeUnit.HOUR,
-            },
-            filteredAttendees,
-            "",
-            "",
-            WorkflowTemplates.REMINDER,
-            SENDER_NAME,
-            undefined,
-            false,
-            evtOfBooking.attendeeSeatId,
-            false,
-            true
-          );
-        } catch (error) {
-          console.error(error);
-        }
-      }
       await scheduleWorkflowReminders({
         workflows: updatedBookings[index]?.eventType?.workflows || [],
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
