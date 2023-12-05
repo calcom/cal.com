@@ -1,5 +1,5 @@
-import { useApiKey } from "cal-provider";
-import { ConnectButton } from "connect-to-cal-button/Button";
+import { useApiKey } from "../cal-provider/index";
+import { ConnectButton } from "./Button";
 
 // This atom will initiate the oAuth connection process to the users of the platform
 // the user would be redirected to grant oAuth permission page after the user has clicked on Connect Atom

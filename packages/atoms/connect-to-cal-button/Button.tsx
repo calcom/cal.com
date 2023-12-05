@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
 import * as React from "react";
 
+import { Button } from "../src/components/ui/button";
+import { cn } from "../src/lib/utils";
 import type { AtomsGlobalConfigProps } from "../types";
 
 interface ConnectButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
