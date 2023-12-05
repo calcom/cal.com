@@ -24,6 +24,7 @@ import type { Request } from "express";
   path: "oauth-clients",
   version: "2",
 })
+@UseGuards(NextAuthGuard)
 export class OAuthClientController {
   private readonly logger = new Logger("OAuthClientController");
 
@@ -51,7 +52,6 @@ export class OAuthClientController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(NextAuthGuard)
   async getOAuthClients(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const user = res.locals.user;
     console.log("email", user.email);
