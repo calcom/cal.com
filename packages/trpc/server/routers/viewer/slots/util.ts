@@ -157,6 +157,7 @@ export async function getEventType(
       periodType: true,
       periodStartDate: true,
       periodEndDate: true,
+      onlyShowFirstAvailableSlot: true,
       periodCountCalendarDays: true,
       periodDays: true,
       metadata: true,
@@ -368,6 +369,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       eventType: {
         select: {
           id: true,
+          onlyShowFirstAvailableSlot: true,
           afterEventBuffer: true,
           beforeEventBuffer: true,
           seatsPerTimeSlot: true,
@@ -577,6 +579,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       const dateString = formatter.format(time.toDate());
 
       r[dateString] = r[dateString] || [];
+      if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+        return r;
+      }
       r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),

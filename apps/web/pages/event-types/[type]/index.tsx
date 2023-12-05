@@ -132,6 +132,7 @@ export type FormValues = {
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
+  onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
@@ -251,6 +252,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
+      onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
@@ -430,6 +432,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsShowAttendees,
       seatsShowAvailabilityCount,
       bookingLimits,
+      onlyShowFirstAvailableSlot,
       durationLimits,
       recurringEvent,
       locations,
@@ -497,6 +500,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       beforeEventBuffer: beforeBufferTime,
       afterEventBuffer: afterBufferTime,
       bookingLimits,
+      onlyShowFirstAvailableSlot,
       durationLimits,
       seatsPerTimeSlot,
       seatsShowAttendees,
@@ -538,6 +542,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAttendees,
               seatsShowAvailabilityCount,
               bookingLimits,
+              onlyShowFirstAvailableSlot,
               durationLimits,
               recurringEvent,
               locations,
@@ -596,6 +601,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               beforeEventBuffer: beforeBufferTime,
               afterEventBuffer: afterBufferTime,
               bookingLimits,
+              onlyShowFirstAvailableSlot,
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
