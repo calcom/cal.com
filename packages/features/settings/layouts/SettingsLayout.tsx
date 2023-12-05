@@ -122,6 +122,12 @@ const tabs: VerticalTabItemProps[] = [
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
+  {
+    name: "Platform",
+    href: "/settings/platform",
+    icon: Key,
+    children: [{ name: "OAuth Clients", href: "/settings/platform/oauth-clients" }],
+  },
 ];
 
 tabs.find((tab) => {
