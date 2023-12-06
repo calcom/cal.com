@@ -55,7 +55,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
     return null;
   }
 
-  const { source, data } = props;
+  const { source, data, body } = props;
   return (
     <App
       name={data.name}
@@ -84,7 +84,7 @@ function SingleAppPage(props: inferSSRProps<typeof getStaticProps>) {
       //   privacy="https://zoom.us/privacy"
       body={
         <>
-          <div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />
+          <div dangerouslySetInnerHTML={{ __html: body }} />
         </>
       }
     />
@@ -169,8 +169,9 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   return {
     props: {
       isAppDisabled: false as const,
-      source: { content, data },
+      source: { data },
       data: appMeta,
+      body: md.render(content),
     },
   };
 };
