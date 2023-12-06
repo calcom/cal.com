@@ -21,7 +21,7 @@ export class NextAuthStrategy extends PassportStrategy(BaseStrategy, "next-auth"
       const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
       const payload = await getToken({ req, secret: nextAuthSecret });
 
-      if (!payload) {
+      if (!payload || !payload.email) {
         throw new UnauthorizedException();
       }
 

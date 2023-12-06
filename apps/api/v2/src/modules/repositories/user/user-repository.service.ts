@@ -7,7 +7,7 @@ export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
   async findById(userId: number) {
-    const user = await this.dbRead.prisma.user.findUnique({
+    const user = await this.dbRead.prisma.user.findUniqueOrThrow({
       where: {
         id: userId,
       },
@@ -16,7 +16,7 @@ export class UserRepository {
   }
 
   async findByEmail(email: string) {
-    const user = await this.dbRead.prisma.user.findUnique({
+    const user = await this.dbRead.prisma.user.findUniqueOrThrow({
       where: {
         email,
       },

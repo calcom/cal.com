@@ -1,19 +1,21 @@
+import { getEnv } from "@/env";
+
 import type { AppConfig } from "./type";
 
 const loadConfig = (): AppConfig => {
   return {
     env: {
-      type: (process.env.NODE_ENV as "production" | "development") ?? "development",
+      type: getEnv("NODE_ENV") ?? "development",
     },
     api: {
       port: Number(process.env.API_PORT ?? 5555),
     },
     db: {
-      readUrl: process.env.DATABASE_READ_URL,
-      writeUrl: process.env.DATABASE_WRITE_URL,
+      readUrl: getEnv("DATABASE_READ_URL"),
+      writeUrl: getEnv("DATABASE_WRITE_URL"),
     },
     next: {
-      authSecret: process.env.NEXTAUTH_SECRET,
+      authSecret: getEnv("NEXTAUTH_SECRET"),
     },
   };
 };

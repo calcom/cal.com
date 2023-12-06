@@ -1,8 +1,8 @@
+import { GetUser } from "@/modules/auth/decorator";
 import { CreateBookingDto } from "@/modules/booking/dtos/create-booking";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { BookingRepository } from "@/modules/repositories/booking/booking-repository.service";
-import { Response } from "@/types";
 import {
   Body,
   Controller,
@@ -10,7 +10,6 @@ import {
   HttpStatus,
   Logger,
   Post,
-  Res,
   UseGuards,
   VERSION_NEUTRAL,
   Version,
@@ -31,10 +30,8 @@ export class BookingController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.CREATED)
-  async createBooking(@Res({ passthrough: true }) res: Response, @Body() body: CreateBookingDto) {
-    const userId = res.locals.apiKey?.userId;
-
-    this.logger.log(`Created Booking with data ${body}`);
+  async createBooking(@GetUser("id") userId: number, @Body() body: CreateBookingDto) {
+    this.logger.log(`For user with id ${userId} created Booking with data ${JSON.stringify(body)}`);
 
     return this.bookingRepository.createBooking(userId, body);
   }
