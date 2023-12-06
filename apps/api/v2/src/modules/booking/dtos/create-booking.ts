@@ -1,10 +1,12 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "nestjs-zod/z";
+import { IsString } from "class-validator";
 
-export const CreateBookingSchema = z.object({
-  name: z.string(),
-  email: z.string(),
-  timezone: z.string(),
-});
+export class CreateBookingInput {
+  @IsString()
+  name: string;
 
-export class CreateBookingDto extends createZodDto(CreateBookingSchema) {}
+  @IsString()
+  email: string;
+
+  @IsString()
+  timezone: string;
+}

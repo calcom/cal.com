@@ -37,7 +37,6 @@
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.3.1",
     "nest-winston": "^1.9.4",
-    "nestjs-zod": "^3.0.0",
     "next-auth": "^4.24.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
