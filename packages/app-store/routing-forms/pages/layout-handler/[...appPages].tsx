@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import type { AppProps as NextAppProps } from "next/app";
 import React from "react";
@@ -25,7 +27,7 @@ const getComponent = (route: string | NextAppProps["router"]): Component => {
 export default function LayoutHandler(props: { [key: string]: unknown }) {
   const params = useParamsWithFallback();
   const methods = useForm();
-  const pageKey = params?.pages?.[0] || "forms";
+  const pageKey = Array.isArray(params.pages) ? params.pages[0] : params.pages?.split("/")[0] ?? "forms";
   const PageComponent = getComponent(pageKey).default;
   return (
     <FormProvider {...methods}>
