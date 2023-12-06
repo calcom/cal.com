@@ -2,6 +2,7 @@
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
+import { RRule } from "rrule";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -209,23 +210,13 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     if (calEventRaw.recurringEvent) {
-      let freq = null;
-      switch (calEventRaw.recurringEvent.freq) {
-        case 0:
-          freq = "YEARLY";
-          break;
-        case 1:
-          freq = "MONTHLY";
-          break;
-        case 2:
-          freq = "WEEKLY";
-          // freq = "DAILY";
-          break;
-      }
+      const rule = new RRule({
+        freq: calEventRaw.recurringEvent.freq,
+        interval: calEventRaw.recurringEvent.interval,
+        count: calEventRaw.recurringEvent.count,
+      });
 
-      payload["recurrence"] = [
-        `RRULE:FREQ=${freq};COUNT=${calEventRaw.recurringEvent.count};INTERVAL=${calEventRaw.recurringEvent.interval}`,
-      ];
+      payload["recurrence"] = [rule.toString()];
     }
 
     if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
