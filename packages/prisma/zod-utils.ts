@@ -249,7 +249,14 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
-    allRecurringDates: z.string().array().optional(),
+    allRecurringDates: z
+      .array(
+        z.object({
+          start: z.string(),
+          end: z.string(),
+        })
+      )
+      .optional(),
     currentRecurringIndex: z.number().optional(),
     appsStatus: z
       .array(

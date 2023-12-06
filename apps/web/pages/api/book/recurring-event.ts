@@ -20,14 +20,16 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const data: RecurringBookingCreateBody[] = req.body;
   const session = await getServerSession({ req, res });
   const createdBookings: BookingResponse[] = [];
-  const allRecurringDates: string[] = data.map((booking) => booking.start);
+  const allRecurringDates: string[] = data.map((booking) => {
+    return { start: booking.start, end: booking.end };
+  });
   const appsStatus: AppsStatus[] | undefined = undefined;
 
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
   const numSlotsToCheckForAvailability = 2;
 
-  let thirdPartyRecurringEventId = "";
+  let thirdPartyRecurringEventId = null;
   for (let key = 0; key < data.length; key++) {
     const booking = data[key];
     // Disable AppStatus in Recurring Booking Email as it requires us to iterate backwards to be able to compute the AppsStatus for all the bookings except the very first slot and then send that slot's email with statuses
@@ -55,22 +57,25 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       appsStatus,
       allRecurringDates,
       thirdPartyRecurringEventId,
+      numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
       noEmail: key !== 0,
     };
 
     const eachRecurringBooking = await handleNewBooking(recurringEventReq, {
       isNotAnApiCall: true,
-      skipAvailabilityCheck: key >= numSlotsToCheckForAvailability || thirdPartyRecurringEventId !== "",
+      skipAvailabilityCheck: key >= numSlotsToCheckForAvailability || thirdPartyRecurringEventId !== null,
     });
     createdBookings.push(eachRecurringBooking);
 
-    if (thirdPartyRecurringEventId == "") {
+    if (!thirdPartyRecurringEventId) {
       if (eachRecurringBooking.references!.length > 0) {
-        const bookingReference = eachRecurringBooking.references![0];
-        thirdPartyRecurringEventId = bookingReference.recurringMeetingId
-          ? bookingReference.recurringMeetingId
-          : "";
+        for (const reference of eachRecurringBooking.references!) {
+          if (reference.recurringMeetingId) {
+            thirdPartyRecurringEventId = reference.recurringMeetingId;
+            break;
+          }
+        }
       }
     }
   }

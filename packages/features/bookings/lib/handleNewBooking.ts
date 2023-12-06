@@ -1067,17 +1067,20 @@ async function handler(
 
   //checks what users are available
   if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
+    const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
+      users: IsFixedAwareUser[];
+    } = {
+      ...eventType,
+      users: users as IsFixedAwareUser[],
+      ...(eventType.recurringEvent && {
+        recurringEvent: {
+          ...eventType.recurringEvent,
+          count: recurringCount || eventType.recurringEvent.count,
+        },
+      }),
+    };
     const availableUsers = await ensureAvailableUsers(
-      {
-        ...eventType,
-        users: users as IsFixedAwareUser[],
-        ...(eventType.recurringEvent && {
-          recurringEvent: {
-            ...eventType.recurringEvent,
-            count: recurringCount || eventType.recurringEvent.count,
-          },
-        }),
-      },
+      eventTypeWithUsers,
       {
         dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
         dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -1086,6 +1089,26 @@ async function handler(
       },
       loggerWithEventDetails
     );
+    if (req.body.allRecurringDates && req.body.allRecurringDates.length > 1) {
+      for (
+        let i = 1;
+        i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+        i++
+      ) {
+        const start = req.body.allRecurringDates[i].start;
+        const end = req.body.allRecurringDates[i].end;
+        await ensureAvailableUsers(
+          eventTypeWithUsers,
+          {
+            dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+            dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+            timeZone: reqBody.timeZone,
+            originalRescheduledBooking,
+          },
+          loggerWithEventDetails
+        );
+      }
+    }
 
     const luckyUsers: typeof users = [];
     const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
