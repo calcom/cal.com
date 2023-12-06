@@ -18,6 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
     const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
+    // TODO: use input.timeZone to convert the availableSlots into timeZone specific slots
     return availableSlots;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (cause) {
