@@ -12,7 +12,7 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { usernameList, ...rest } = req.query;
-    let slugs: string[] = [];
+    let slugs = usernameList;
     if (!Array.isArray(usernameList)) {
       slugs = usernameList ? [usernameList] : [];
     }
