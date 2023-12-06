@@ -63,7 +63,7 @@ export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] 
 export type NewCalendarEventType = {
   uid: string;
   id: string;
-  recurringMeetingId?: string | null;
+  thirdPartyRecurringEventId?: string | null;
   type: string;
   password: string;
   url: string;

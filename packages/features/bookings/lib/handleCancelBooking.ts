@@ -59,7 +59,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           type: true,
           externalCalendarId: true,
           credentialId: true,
-          recurringMeetingId: true,
+          thirdPartyRecurringEventId: true,
         },
       },
       payment: true,
@@ -453,10 +453,13 @@ async function handler(req: CustomRequest) {
             bookingToDelete.recurringEventId &&
             allRemainingBookings
           ) {
-            if (bookingToDelete.references.length > 0 && bookingToDelete?.references[0].recurringMeetingId) {
-              const recurringMeetingId = bookingToDelete?.references[0].recurringMeetingId;
+            if (
+              bookingToDelete.references.length > 0 &&
+              bookingToDelete?.references[0].thirdPartyRecurringEventId
+            ) {
+              const thirdPartyRecurringEventId = bookingToDelete?.references[0].thirdPartyRecurringEventId;
               apiDeletes.push(
-                calendar?.deleteEvent(recurringMeetingId, evt, externalCalendarId) as Promise<unknown>
+                calendar?.deleteEvent(thirdPartyRecurringEventId, evt, externalCalendarId) as Promise<unknown>
               );
             } else {
               const promises = bookingToDelete.user.credentials

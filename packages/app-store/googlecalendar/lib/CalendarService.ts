@@ -302,7 +302,7 @@ export default class GoogleCalendarService implements Calendar {
         uid: "",
         ...event,
         id: event.id || "",
-        recurringMeetingId: recurringEventId,
+        thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
           hangoutLink: event.hangoutLink || "",
         },

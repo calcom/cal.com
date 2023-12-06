@@ -20,7 +20,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const data: RecurringBookingCreateBody[] = req.body;
   const session = await getServerSession({ req, res });
   const createdBookings: BookingResponse[] = [];
-  const allRecurringDates: { start: string; end: string }[] = data.map((booking) => {
+  const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
     return { start: booking.start, end: booking.end };
   });
   const appsStatus: AppsStatus[] | undefined = undefined;
@@ -71,8 +71,8 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     if (!thirdPartyRecurringEventId) {
       if (eachRecurringBooking.references!.length > 0) {
         for (const reference of eachRecurringBooking.references!) {
-          if (reference.recurringMeetingId) {
-            thirdPartyRecurringEventId = reference.recurringMeetingId;
+          if (reference.thirdPartyRecurringEventId) {
+            thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
             break;
           }
         }
