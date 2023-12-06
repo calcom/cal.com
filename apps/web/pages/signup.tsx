@@ -4,7 +4,6 @@ import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
@@ -238,18 +237,10 @@ export default function Signup({
   };
 
   return (
-    <div
-      className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center"
-      style={
-        {
-          "--cal-brand": "#111827",
-          "--cal-brand-emphasis": "#101010",
-          "--cal-brand-text": "white",
-          "--cal-brand-subtle": "#9CA3AF",
-        } as CSSProperties
-      }>
-      <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
+    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] [--cal-brand-subtle:#9CA3AF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]">
+      <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
+        {/* Left side */}
         <div className="flex w-full flex-col px-4 pt-6 sm:px-16 md:px-20 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
@@ -354,7 +345,10 @@ export default function Signup({
                     StartIcon={() => (
                       <>
                         <img
-                          className={classNames("text-subtle  mr-2 h-4 w-4", premiumUsername && "opacity-50")}
+                          className={classNames(
+                            "text-subtle  mr-2 h-4 w-4 dark:invert",
+                            premiumUsername && "opacity-50"
+                          )}
                           src="/google-icon.svg"
                           alt=""
                         />
@@ -648,5 +642,4 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 };
 
-Signup.isThemeSupported = false;
 Signup.PageWrapper = PageWrapper;
