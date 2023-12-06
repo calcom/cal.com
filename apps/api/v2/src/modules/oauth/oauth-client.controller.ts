@@ -1,7 +1,7 @@
 import { GetUser } from "@/modules/auth/decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
-import { CreateOAuthClientInput } from "@/modules/oauth/dtos/create-oauth-client";
-import { UpdateOAuthClientInput } from "@/modules/oauth/dtos/update-oauth-client";
+import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
+import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
 import {
   Body,
