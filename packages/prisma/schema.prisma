@@ -1041,7 +1041,7 @@ model Avatar {
 model PlatformOAuthClient {
   id            String   @id @default(cuid())
   name          String
-  client_secret String
+  secret        String
   permissions   Int
   users         User[]
   logo          String?

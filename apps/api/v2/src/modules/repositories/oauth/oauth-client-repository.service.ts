@@ -13,7 +13,7 @@ export class OAuthClientRepository {
       data: {
         ...data,
         // TODO: generate client secret
-        client_secret: "x",
+        secret: "x",
         users: {
           connect: {
             id: userId,
