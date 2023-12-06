@@ -20,7 +20,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const data: RecurringBookingCreateBody[] = req.body;
   const session = await getServerSession({ req, res });
   const createdBookings: BookingResponse[] = [];
-  const allRecurringDates: string[] = data.map((booking) => {
+  const allRecurringDates: { start: string; end: string }[] = data.map((booking) => {
     return { start: booking.start, end: booking.end };
   });
   const appsStatus: AppsStatus[] | undefined = undefined;

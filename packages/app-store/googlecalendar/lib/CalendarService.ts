@@ -238,7 +238,27 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: calEventRaw.existingRecurringEvent.recurringEventId,
         });
-        event = recurringEventInstances.data.items![calEventRaw.existingRecurringEvent.eventIndex];
+        const calComEventStartTime = dayjs(calEventRaw.startTime).format();
+        for (let i = 0; i < recurringEventInstances.data.items!.length; i++) {
+          const instance = recurringEventInstances.data.items![i];
+          const instanceStartTime = dayjs(instance.start?.dateTime)
+            .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
+            .format();
+
+          if (instanceStartTime === calComEventStartTime) {
+            event = instance;
+            break;
+          }
+        }
+
+        if (!event) {
+          event = recurringEventInstances.data.items![0];
+          this.log.error(
+            "Unable to find matching event amongst recurring event instances",
+            safeStringify({ selectedCalendar, credentialId })
+          );
+        }
+
         await calendar.events.patch({
           calendarId: selectedCalendar,
           eventId: event.id || "",
@@ -259,14 +279,7 @@ export default class GoogleCalendarService implements Calendar {
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
-            const recurringEventInstances = await calendar.events.instances({
-              calendarId: selectedCalendar,
-              eventId: recurringEventId || "",
-            });
-
-            if (recurringEventInstances.data.items) {
-              event = recurringEventInstances.data.items[0];
-            }
+            event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
           }
         }
       }
@@ -304,6 +317,22 @@ export default class GoogleCalendarService implements Calendar {
         safeStringify({ error, selectedCalendar, credentialId })
       );
       throw error;
+    }
+  }
+  async getFirstEventInRecurrence(
+    recurringEventId: string | null | undefined,
+    selectedCalendar: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<calendar_v3.Schema$Event> {
+    const recurringEventInstances = await calendar.events.instances({
+      calendarId: selectedCalendar,
+      eventId: recurringEventId || "",
+    });
+
+    if (recurringEventInstances.data.items) {
+      return recurringEventInstances.data.items[0];
+    } else {
+      return {} as calendar_v3.Schema$Event;
     }
   }
 

@@ -146,7 +146,6 @@ export type CalEventResponses = Record<
 
 export interface ExistingRecurringEvent {
   recurringEventId: string;
-  eventIndex: number;
 }
 
 // If modifying this interface, probably should update builders/calendarEvent files

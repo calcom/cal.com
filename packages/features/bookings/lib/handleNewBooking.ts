@@ -1309,7 +1309,6 @@ async function handler(
 
   if (req.body.thirdPartyRecurringEventId) {
     evt.existingRecurringEvent = {
-      eventIndex: req.body.currentRecurringIndex,
       recurringEventId: req.body.thirdPartyRecurringEventId,
     };
   }
