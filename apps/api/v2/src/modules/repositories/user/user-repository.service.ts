@@ -1,23 +1,32 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
+import { User } from "@prisma/client";
 
 // TODO make sure we dont expose sensitive data like password
 @Injectable()
 export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
+  sanitize(user: User): Partial<User> {
+    const keys: (keyof User)[] = ["password"];
+    return Object.fromEntries(Object.entries(user).filter(([key]) => !keys.includes(key as keyof User)));
+  }
+
   async findById(userId: number) {
-    return this.dbRead.prisma.user.findUnique({
+    const user = await this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
+    return this.sanitize(user);
   }
+
   async findByEmail(email: string) {
-    return this.dbRead.prisma.user.findUnique({
+    const user = await this.dbRead.prisma.user.findUnique({
       where: {
         email,
       },
     });
+    return this.sanitize(user);
   }
 }
