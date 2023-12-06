@@ -1,14 +1,16 @@
-import { dirname, join } from "path";
+import type { StorybookConfig } from "@storybook/nextjs";
+import path, { dirname, join } from "path";
 
-const path = require("path");
-
-module.exports = {
+const config: StorybookConfig = {
   stories: [
     "../intro.stories.mdx",
-    "../../../packages/ui/components/**/*.stories.mdx",
-    "../../../packages/atoms/**/*.stories.mdx",
-    "../../../packages/features/**/*.stories.mdx",
+    "../../../packages/ui/components/**/*.stories.mdx", // legacy SB6 stories
     "../../../packages/ui/components/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/ui/components/**/*.docs.mdx",
+    "../../../packages/features/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/features/**/*.docs.mdx",
+    "../../../packages/atoms/**/*.stories.@(js|jsx|ts|tsx)",
+    "../../../packages/atoms/**/*.docs.mdx",
   ],
 
   addons: [
@@ -17,23 +19,23 @@ module.exports = {
     getAbsolutePath("@storybook/addon-interactions"),
     getAbsolutePath("storybook-addon-rtl-direction"),
     getAbsolutePath("storybook-react-i18next"),
-    getAbsolutePath("@storybook/addon-mdx-gfm"),
   ],
 
   framework: {
-    name: getAbsolutePath("@storybook/nextjs"),
+    name: getAbsolutePath("@storybook/nextjs") as "@storybook/nextjs",
 
     options: {
-      builder: {
-        fsCache: true,
-        lazyCompilation: true,
-      },
+      // builder: {
+      //   fsCache: true,
+      //   lazyCompilation: true,
+      // },
     },
   },
 
   staticDirs: ["../public"],
 
   webpackFinal: async (config, { configType }) => {
+    config.resolve = config.resolve || {};
     config.resolve.fallback = {
       fs: false,
       assert: false,
@@ -61,6 +63,8 @@ module.exports = {
       zlib: false,
     };
 
+    config.module = config.module || {};
+    config.module.rules = config.module.rules || [];
     config.module.rules.push({
       test: /\.css$/,
       use: [
@@ -84,6 +88,8 @@ module.exports = {
     autodocs: true,
   },
 };
+
+export default config;
 
 function getAbsolutePath(value) {
   return dirname(require.resolve(join(value, "package.json")));
