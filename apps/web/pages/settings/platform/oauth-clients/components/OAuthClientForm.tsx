@@ -33,6 +33,14 @@ type FormValues = {
 export const OAuthClientForm = () => {
   const { register, handleSubmit, control, setValue } = useForm<FormValues>({});
 
+  function handleFormSubmit(e: any) {
+    e.preventDefault();
+
+    handleSubmit((data) => {
+      console.log(data);
+    })();
+  }
+
   return (
     <div>
       <Meta
@@ -42,9 +50,7 @@ export const OAuthClientForm = () => {
       />
       <form
         className="border-subtle rounded-b-lg border border-t-0 px-4 pb-8 pt-2"
-        onSubmit={handleSubmit((data) => {
-          console.log(data);
-        })}>
+        onSubmit={handleFormSubmit}>
         <div className="mt-6">
           <TextField required={true} label="Client name" {...register("name")} />
         </div>
