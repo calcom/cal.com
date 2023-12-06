@@ -1,10 +1,10 @@
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
-import { AppConfig } from "app-config";
 
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";

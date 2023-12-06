@@ -1,8 +1,8 @@
 import { expect } from "@playwright/test";
-import { AppConfig } from "app-config";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { test } from "./lib/fixtures";
 

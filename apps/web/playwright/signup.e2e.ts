@@ -1,8 +1,8 @@
 import { expect } from "@playwright/test";
-import { AppConfig } from "app-config";
 import { randomBytes } from "crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser, localize } from "./lib/testUtils";

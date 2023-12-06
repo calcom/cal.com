@@ -1,9 +1,9 @@
 import { expect } from "@playwright/test";
-import { AppConfig } from "app-config";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { AppConfig } from "@calcom/web/app-config";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
