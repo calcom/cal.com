@@ -22,7 +22,6 @@
     "generate-schemas": "yarn prisma generate && yarn prisma format"
   },
   "dependencies": {
-    "@calcom/prisma": "*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.0.0",
