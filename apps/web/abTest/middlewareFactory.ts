@@ -4,13 +4,11 @@ import { NextResponse, URLPattern } from "next/server";
 import z from "zod";
 
 const ROUTES: [URLPattern, boolean][] = [
-  ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
-].map(([pathname, enabled]) => [
-  new URLPattern({
-    pathname,
-  }),
-  enabled,
-]);
+  ["/event-types", Boolean(process.env.APP_ROUTER_EVENT_TYPES_ENABLED)] as const,
+  ["/payment/:uid", Boolean(process.env.APP_ROUTER_PAYMENT_UID_ENABLED)] as const
+].map(([pathname, enabled]) => [new URLPattern({
+  pathname
+}), enabled]);
 
 const FUTURE_ROUTES_OVERRIDE_COOKIE_NAME = "x-calcom-future-routes-override";
 const FUTURE_ROUTES_ENABLED_COOKIE_NAME = "x-calcom-future-routes-enabled";
@@ -25,9 +23,9 @@ export const abTestMiddlewareFactory =
     const { pathname } = req.nextUrl;
 
     const override = req.cookies.has(FUTURE_ROUTES_OVERRIDE_COOKIE_NAME);
-
+   
     const route = ROUTES.find(([regExp]) => regExp.test(req.url)) ?? null;
-
+    console.log(req.url, route, override, "????")
     const enabled = route !== null ? route[1] || override : false;
 
     if (pathname.includes("future") || !enabled) {

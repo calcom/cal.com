@@ -109,6 +109,7 @@
     "turbo": "^1.10.1"
   },
   "resolutions": {
+    "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/node": "16.9.1",
     "@types/react": "18.0.26",

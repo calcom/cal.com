@@ -1,24 +1,44 @@
-import type { GetServerSidePropsContext } from "next";
+import { ssrInit } from "app/_trpc/ssrInit";
+import type { Params } from "app/_types";
+import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import PaymentPage from "@calcom/features/ee/payments/components/PaymentPage";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
+import PageWrapper from "@components/PageWrapperAppDir";
 
-export type PaymentPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
+export const generateMetadata = async () =>
+  await _generateMetadata(
+    // the title does not contain the eventName as in the legacy page
+    (t) => `${t("payment")} | ${APP_NAME}`,
+    () => ""
+  );
 
 const querySchema = z.object({
   uid: z.string(),
 });
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
+async function getData(params: Params) {
+  const req = { headers: headers(), cookies: cookies() };
 
-  const { uid } = querySchema.parse(context.query);
+  const session = await getServerSession({ req });
+
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
+
+  const ssr = await ssrInit();
+  await ssr.viewer.me.prefetch();
+
+  const { uid } = querySchema.parse(params);
   const rawPayment = await prisma.payment.findFirst({
     where: {
       uid,
@@ -86,7 +106,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) return { notFound: true };
+  if (!rawPayment) {
+    return notFound();
+  }
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
 
@@ -95,7 +117,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as Record<string, unknown>,
   };
 
-  if (!_booking) return { notFound: true };
+  if (!_booking) {
+    return notFound();
+  }
 
   const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -104,9 +128,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     endTime: endTime.toString(),
   };
 
-  if (!eventType) return { notFound: true };
+  if (!eventType) {
+    return notFound();
+  }
 
-  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true };
+  if (eventType.users.length === 0 && !!!eventType.team) {
+    return notFound();
+  }
 
   const [user] = eventType?.users.length
     ? eventType.users
@@ -122,26 +150,36 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking.status as BookingStatus
     )
   ) {
-    return {
-      redirect: {
-        destination: `/booking/${booking.uid}`,
-        permanent: false,
-      },
-    };
+    return redirect(`/booking/${booking.uid}`);
   }
 
   return {
-    props: {
-      user,
-      eventType: {
-        ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      },
-      booking,
-      trpcState: ssr.dehydrate(),
-      payment,
-      clientSecret: getClientSecretFromPayment(payment),
-      profile,
+    user,
+    eventType: {
+      ...eventType,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     },
+    booking,
+    trpcState: await ssr.dehydrate(),
+    payment,
+    clientSecret: getClientSecretFromPayment(payment),
+    profile,
   };
-};
+}
+
+type PageProps = Readonly<{
+  params: Params;
+}>;
+
+export default async function Page({ params }: PageProps) {
+  const props = await getData(params);
+
+  const h = headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+
+  return (
+    <PageWrapper getLayout={null} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
+      <PaymentPage {...props} />
+    </PageWrapper>
+  );
+}

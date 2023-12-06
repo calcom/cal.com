@@ -101,6 +101,9 @@ export const config = {
     "/apps/routing_forms/:path*",
     "/event-types",
     "/future/event-types/",
+
+    "/payment/:uid/", 
+    "/future/payment/:uid/"
   ],
 };
 

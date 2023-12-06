@@ -1,3 +1,4 @@
+'use client'
 import { z } from "zod";
 
 import { filterQuerySchemaStrict } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
