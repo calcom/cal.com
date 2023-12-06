@@ -13,7 +13,7 @@ import type { Action } from "kbar";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { kbarAppRegistry } from "@calcom/app-store/kbar-app-registry.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -27,13 +27,6 @@ type shortcutArrayType = {
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroup = EventTypeGroups[number];
-
-const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
-  id: slug,
-  name,
-  section: "Installable Apps",
-  keywords: `app ${name}`,
-}));
 
 const useEventTypesAction = () => {
   const router = useRouter();
@@ -62,9 +55,12 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   // quick nested actions would be extremely useful
 
   const actions = useMemo(() => {
-    const appStoreActions = getApps.map((item) => ({
-      ...item,
-      perform: () => router.push(`/apps/${item.id}`),
+    const appStoreActions = kbarAppRegistry.map((item) => ({
+      id: item.slug,
+      name: item.name,
+      section: "Installable Apps",
+      keywords: `app ${item.name}`,
+      perform: () => router.push(`/apps/${item.slug}`),
     }));
     return [
       {
