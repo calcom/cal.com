@@ -63,7 +63,7 @@ export default class BasecampCalendarService implements Calendar {
       this.userAgent = user_agent as string;
     });
     this.auth = this.basecampAuth(credential).then((c) => c);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private basecampAuth = async (credential: CredentialPayload) => {

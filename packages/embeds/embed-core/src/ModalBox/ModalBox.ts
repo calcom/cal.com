@@ -41,6 +41,21 @@ export class ModalBox extends HTMLElement {
     this.dispatchEvent(event);
   }
 
+  hideIframe() {
+    const iframe = this.querySelector("iframe");
+    if (iframe) {
+      iframe.style.visibility = "hidden";
+    }
+  }
+
+  showIframe() {
+    const iframe = this.querySelector("iframe");
+    if (iframe) {
+      // Don't use visibility visible as that will make the iframe visible even when the modal is closed
+      iframe.style.visibility = "";
+    }
+  }
+
   getLoaderElement() {
     this.assertHasShadowRoot();
     const loaderEl = this.shadowRoot.querySelector<HTMLElement>(".loader");
@@ -68,10 +83,14 @@ export class ModalBox extends HTMLElement {
       return;
     }
 
-    if (newValue == "loaded") {
-      this.getLoaderElement().style.display = "none";
-    } else if (newValue === "started") {
+    if (newValue === "loading") {
       this.open();
+      this.hideIframe();
+      this.getLoaderElement().style.display = "block";
+    } else if (newValue == "loaded" || newValue === "reopening") {
+      this.open();
+      this.showIframe();
+      this.getLoaderElement().style.display = "none";
     } else if (newValue == "closed") {
       this.close();
     } else if (newValue === "failed") {
@@ -79,6 +98,8 @@ export class ModalBox extends HTMLElement {
       this.getErrorElement().style.display = "inline-block";
       const errorString = getErrorString(this.dataset.errorCode);
       this.getErrorElement().innerText = errorString;
+    } else if (newValue === "prerendering") {
+      this.close();
     }
   }
 

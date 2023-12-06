@@ -7,6 +7,7 @@ import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type {
   Calendar,
   CalendarEvent,
@@ -56,7 +57,7 @@ export default class SalesforceCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "salesforce_other_calendar";
     this.conn = this.getClient(credential).then((c) => c);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private getClient = async (credential: CredentialPayload) => {

@@ -6,11 +6,11 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
+import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -19,6 +19,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { Ensure } from "@calcom/types/utils";
 import {
   Alert,
   Button,
@@ -50,7 +51,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
+      <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
           <SkeletonButton className="h-6 w-32 rounded-md p-5" />
@@ -71,37 +72,22 @@ interface DeleteAccountValues {
 
 type FormValues = {
   username: string;
-  avatar: string | null;
+  avatar: string;
   name: string;
   email: string;
   bio: string;
-};
-
-const checkIfItFallbackImage = (fetchedImgSrc: string) => {
-  return fetchedImgSrc.endsWith(AVATAR_FALLBACK);
 };
 
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { update } = useSession();
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
-
-  const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: async (userData) => {
-      try {
-        if (!userData.organization) {
-          const res = await fetch(userData.avatar);
-          if (res.url) setFetchedImgSrc(res.url);
-        } else {
-          setFetchedImgSrc("");
-        }
-      } catch (err) {
-        setFetchedImgSrc("");
-      }
-    },
+  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
+    enabled: !isLoading && !user?.avatarUrl,
   });
+
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -225,14 +211,15 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || fetchedImgSrc === undefined)
+  if (isLoading || !user) {
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
+  }
 
   const defaultValues = {
     username: user.username || "",
-    avatar: user.avatar || "",
+    avatar: getUserAvatarUrl(user),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -249,8 +236,8 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isLoading={updateProfileMutation.isLoading}
-        isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
-        userAvatar={user.avatar}
+        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
+        user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
@@ -279,9 +266,9 @@ const ProfileView = () => {
         }
       />
 
-      <div className="border-subtle mt-6 rounded-xl rounded-b-none border border-b-0 p-6">
-        <Label className="text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle">{t("account_deletion_cannot_be_undone")}</p>
+      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
+        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
+        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
       </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
@@ -395,7 +382,7 @@ const ProfileForm = ({
   extraField,
   isLoading = false,
   isFallbackImg,
-  userAvatar,
+  user,
   userOrganization,
 }: {
   defaultValues: FormValues;
@@ -403,7 +390,7 @@ const ProfileForm = ({
   extraField?: React.ReactNode;
   isLoading: boolean;
   isFallbackImg: boolean;
-  userAvatar: string;
+  user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
   const { t } = useLocale();
@@ -411,7 +398,7 @@ const ProfileForm = ({
 
   const profileFormSchema = z.object({
     username: z.string(),
-    avatar: z.string().nullable(),
+    avatar: z.string(),
     name: z
       .string()
       .trim()
@@ -433,7 +420,6 @@ const ProfileForm = ({
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
-
   return (
     <Form form={formMethods} handleSubmit={onSubmit}>
       <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
@@ -442,14 +428,22 @@ const ProfileForm = ({
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => {
-              const showRemoveAvatarButton = !isFallbackImg || (value && userAvatar !== value);
+              const showRemoveAvatarButton = value === null ? false : !isFallbackImg;
+              const organization =
+                userOrganization && userOrganization.id
+                  ? {
+                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      slug: userOrganization.slug || null,
+                      requestedSlug: userOrganization.metadata?.requestedSlug || null,
+                    }
+                  : null;
               return (
                 <>
-                  <OrganizationAvatar
-                    alt={formMethods.getValues("username")}
-                    imageSrc={value}
+                  <OrganizationMemberAvatar
+                    previewSrc={value}
                     size="lg"
-                    organizationSlug={userOrganization.slug}
+                    user={user}
+                    organization={organization}
                   />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
@@ -461,7 +455,7 @@ const ProfileForm = ({
                         handleAvatarChange={(newAvatar) => {
                           formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                         }}
-                        imageSrc={value || undefined}
+                        imageSrc={value}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "primary"}
                       />
 
@@ -469,7 +463,7 @@ const ProfileForm = ({
                         <Button
                           color="secondary"
                           onClick={() => {
-                            formMethods.setValue("avatar", null, { shouldDirty: true });
+                            formMethods.setValue("avatar", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>

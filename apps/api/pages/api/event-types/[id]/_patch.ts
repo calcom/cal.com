@@ -209,6 +209,8 @@ export async function patchHandler(req: NextApiRequest) {
     hosts = [],
     bookingLimits,
     durationLimits,
+    /** FIXME: Updating event-type children from API not supported for now  */
+    children: _,
     ...parsedBody
   } = schemaEventTypeEditBodyParams.parse(body);
 

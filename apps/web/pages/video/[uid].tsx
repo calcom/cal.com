@@ -214,7 +214,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("invitee_timezone")}:</h3>
           <p>{booking.user?.timeZone}</p>
           <h3>{t("when")}:</h3>
-          <p>
+          <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
             {formatToLocalizedTime(startTime)}
           </p>

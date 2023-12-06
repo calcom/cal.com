@@ -14,7 +14,7 @@ const BillingView = () => {
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
   return (
     <>
-      <Meta title={t("team_billing")} description={t("team_billing_description")} />
+      <Meta title={t("billing")} description={t("team_billing_description")} borderInShellHeader={true} />
       <div className="text-default flex flex-col text-sm sm:flex-row">
         <div>
           <h2 className="font-medium">{t("view_and_manage_billing_details")}</h2>

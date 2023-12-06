@@ -11,11 +11,14 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/client";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
+
+import { getTemporaryOrgRedirect } from "../../../lib/getTemporaryOrgRedirect";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -71,10 +74,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
-    context.req.headers.host ?? "",
-    context.params?.orgSlug
-  );
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const isOrgContext = currentOrgDomain && isValidOrgDomain;
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slug: teamSlug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: meetingSlug,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
 
   const team = await prisma.team.findFirst({
     where: {

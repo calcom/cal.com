@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
@@ -154,11 +155,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     res.end();
     return { props: {} };
   }
+  const locale = await getLocale(context.req);
 
   return {
     props: {
       csrfToken: await getCsrfToken(context),
-      ...(await serverSideTranslations(context.locale || "en", ["common"])),
+      ...(await serverSideTranslations(locale, ["common"])),
     },
   };
 };

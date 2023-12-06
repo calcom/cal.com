@@ -1,6 +1,7 @@
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
+import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
@@ -77,6 +78,13 @@ export const BookingFields = ({
           return null;
         }
 
+        // Attendee location field can be edited during reschedule
+        if (field.name === SystemField.Enum.location) {
+          if (locationResponse?.value === "attendeeInPerson" || "phone") {
+            readOnly = false;
+          }
+        }
+
         // Dynamically populate location field options
         if (field.name === SystemField.Enum.location && field.type === "radioInput") {
           if (!field.optionsInputs) {
@@ -96,6 +104,29 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
+        }
+
+        if (field?.options) {
+          const organizerInputTypes = getOrganizerInputLocationTypes();
+          const organizerInputObj: Record<string, number> = {};
+
+          field.options.forEach((f) => {
+            if (f.value in organizerInputObj) {
+              organizerInputObj[f.value]++;
+            } else {
+              organizerInputObj[f.value] = 1;
+            }
+          });
+
+          field.options = field.options.map((field) => {
+            return {
+              ...field,
+              value:
+                organizerInputTypes.includes(field.value) && organizerInputObj[field.value] > 1
+                  ? field.label
+                  : field.value,
+            };
+          });
         }
 
         return (

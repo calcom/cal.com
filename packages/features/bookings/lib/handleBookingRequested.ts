@@ -3,10 +3,11 @@ import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWe
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
+const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
 
 /**
  * Supposed to do whatever is needed when a booking is requested.
@@ -31,6 +32,7 @@ export async function handleBookingRequested(args: {
 }) {
   const { evt, booking } = args;
 
+  log.debug("Emails: Sending booking requested emails");
   await sendOrganizerRequestEmail({ ...evt });
   await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
 
@@ -64,6 +66,6 @@ export async function handleBookingRequested(args: {
     await Promise.all(promises);
   } catch (error) {
     // Silently fail
-    log.error(error);
+    log.error("Error in handleBookingRequested", safeStringify(error));
   }
 }

@@ -1,10 +1,11 @@
 // import { debounce } from "lodash";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -60,8 +61,8 @@ function MembersList(props: MembersListProps) {
 const MembersView = () => {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const teamId = Number(searchParams.get("id"));
+  const params = useParamsWithFallback();
+  const teamId = Number(params.id);
   const session = useSession();
   const utils = trpc.useContext();
   // const [query, setQuery] = useState<string | undefined>("");
@@ -75,6 +76,7 @@ const MembersView = () => {
   const { data: team, isLoading: isTeamLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId },
     {
+      enabled: !Number.isNaN(teamId),
       onError: () => {
         router.push("/settings");
       },
@@ -87,7 +89,7 @@ const MembersView = () => {
         distinctUser: true,
       },
       {
-        enabled: searchParams !== null,
+        enabled: !Number.isNaN(teamId),
       }
     );
 
@@ -99,6 +101,7 @@ const MembersView = () => {
           const flatData = data?.pages?.flatMap((page) => page.rows) as Members;
           setMembers(flatData);
         },
+        enabled: !Number.isNaN(teamId),
         onError: () => {
           router.push("/settings");
         },
@@ -187,29 +190,27 @@ const MembersView = () => {
                     language: i18n.language,
                     role: values.role,
                     usernameOrEmail: values.emailOrUsername,
-                    sendEmailInvitation: values.sendInviteEmail,
                   },
                   {
                     onSuccess: async (data) => {
                       await utils.viewer.teams.get.invalidate();
                       setShowMemberInvitationModal(false);
-                      if (data.sendEmailInvitation) {
-                        if (Array.isArray(data.usernameOrEmail)) {
-                          showToast(
-                            t("email_invite_team_bulk", {
-                              userCount: data.usernameOrEmail.length,
-                            }),
-                            "success"
-                          );
-                          resetFields();
-                        } else {
-                          showToast(
-                            t("email_invite_team", {
-                              email: data.usernameOrEmail,
-                            }),
-                            "success"
-                          );
-                        }
+
+                      if (Array.isArray(data.usernameOrEmail)) {
+                        showToast(
+                          t("email_invite_team_bulk", {
+                            userCount: data.usernameOrEmail.length,
+                          }),
+                          "success"
+                        );
+                        resetFields();
+                      } else {
+                        showToast(
+                          t("email_invite_team", {
+                            email: data.usernameOrEmail,
+                          }),
+                          "success"
+                        );
                       }
                     },
                     onError: (error) => {

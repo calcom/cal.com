@@ -4,6 +4,7 @@ import { Button, Tooltip } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
 
 import { DateSelect } from "./DateSelect";
+import { Download } from "./Download/index";
 import { EventTypeList } from "./EventTypeList";
 import { FilterType } from "./FilterType";
 import { TeamAndSelfList } from "./TeamAndSelfList";
@@ -36,7 +37,7 @@ const ClearFilters = () => {
 
 export const Filters = () => {
   return (
-    <div className="mb-4 ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
+    <div className="ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
         <TeamAndSelfList />
 
@@ -72,7 +73,10 @@ export const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
-      <DateSelect />
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-nowrap sm:justify-between">
+        <Download />
+        <DateSelect />
+      </div>
     </div>
   );
 };

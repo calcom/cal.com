@@ -101,6 +101,7 @@ MeetingTimeInTimezones.displayName = "MeetingTimeInTimezones";
 // detaill page.
 const preventBubbling = (event: React.MouseEvent) => {
   event.stopPropagation();
+  event.nativeEvent.preventDefault();
 };
 
 export default MeetingTimeInTimezones;

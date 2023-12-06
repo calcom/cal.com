@@ -78,13 +78,13 @@ export const TeamInviteEmail = (
           marginTop: "48px",
           lineHeightStep: "24px",
         }}>
-        <>
+        {/* <>
           {props.language("email_no_user_invite_steps_intro", {
             entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
           })}
-        </>
+        </> */}
       </p>
-
+      {/* 
       {!props.isCalcomMember && (
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           <EmailStep
@@ -120,7 +120,7 @@ export const TeamInviteEmail = (
             }
           />
         </div>
-      )}
+      )} */}
 
       <div className="">
         <p
@@ -161,8 +161,8 @@ const EmailStep = (props: { translationString: string; iconsrc: string }) => {
         style={{
           backgroundColor: "#E5E7EB",
           borderRadius: "48px",
-          height: "48px",
-          width: "48px",
+          minHeight: "48px",
+          minWidth: "48px",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",

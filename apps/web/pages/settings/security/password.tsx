@@ -164,14 +164,13 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     <>
       <Meta title={t("password")} description={t("password_description")} borderInShellHeader={true} />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
-        <div>
-          <div className="mt-6">
-            <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
-              {t("account_managed_by_identity_provider", {
-                provider: identityProviderNameMap[user.identityProvider],
-              })}
-            </h2>
-          </div>
+        <div className="border-subtle rounded-b-xl border border-t-0 px-4 py-6 sm:px-6">
+          <h2 className="font-cal text-emphasis text-lg font-medium leading-6">
+            {t("account_managed_by_identity_provider", {
+              provider: identityProviderNameMap[user.identityProvider],
+            })}
+          </h2>
+
           <p className="text-subtle mt-1 text-sm">
             {t("account_managed_by_identity_provider_description", {
               provider: identityProviderNameMap[user.identityProvider],
@@ -180,7 +179,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
         </div>
       ) : (
         <Form form={formMethods} handleSubmit={handleSubmit}>
-          <div className="border-x px-4 py-6 sm:px-6">
+          <div className="border-subtle border-x px-4 py-6 sm:px-6">
             {formMethods.formState.errors.apiError && (
               <div className="pb-6">
                 <Alert severity="error" message={formMethods.formState.errors.apiError?.message} />

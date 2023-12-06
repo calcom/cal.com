@@ -124,7 +124,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                         {t("add_webhook_description", { appName: APP_NAME })}
                       </p>
 
-                      <div className="border-subtle mt-8 rounded-md border">
+                      <div className="border-subtle my-8 rounded-md border">
                         {webhooks.map((webhook, index) => {
                           return (
                             <WebhookListItem
@@ -141,7 +141,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                         })}
                       </div>
 
-                      <p className="text-default mt-8 text-sm font-normal">
+                      <p className="text-default text-sm font-normal">
                         <Trans i18nKey="edit_or_manage_webhooks">
                           If you wish to edit or manage your web hooks, please head over to &nbsp;
                           <Link

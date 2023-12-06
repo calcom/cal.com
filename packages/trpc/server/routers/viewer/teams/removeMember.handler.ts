@@ -1,4 +1,5 @@
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
@@ -14,16 +15,22 @@ type RemoveMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
+    sourceIp?: string;
   };
   input: TRemoveMemberInputSchema;
 };
 
 export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
+  await checkRateLimitAndThrowError({
+    identifier: `removeMember.${ctx.sourceIp}`,
+  });
+
   const isAdmin = await isTeamAdmin(ctx.user.id, input.teamId);
   const isOrgAdmin = ctx.user.organizationId
     ? await isTeamAdmin(ctx.user.id, ctx.user.organizationId)
     : false;
-  if (!isAdmin && ctx.user.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!(isAdmin || isOrgAdmin) && ctx.user.id !== input.memberId)
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   // Only a team owner can remove another team owner.
   if ((await isTeamOwner(input.memberId, input.teamId)) && !(await isTeamOwner(ctx.user.id, input.teamId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -120,3 +127,5 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   closeComDeleteTeamMembership(membership.user);
   if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
 };
+
+export default removeMemberHandler;

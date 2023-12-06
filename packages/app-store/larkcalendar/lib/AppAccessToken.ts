@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 import { LARK_HOST, getAppKeys, isExpired } from "../common";
 
-const log = logger.getChildLogger({ prefix: [`[[LarkAppCredential]`] });
+const log = logger.getSubLogger({ prefix: [`[[LarkAppCredential]`] });
 
 function makePoolingPromise<T>(
   promiseCreator: () => Promise<T | null>,

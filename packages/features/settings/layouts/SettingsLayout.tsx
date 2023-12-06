@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
@@ -10,6 +10,8 @@ import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -144,7 +146,7 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${session?.data?.user?.username}/avatar.png`;
+      tab.avatar = getUserAvatarUrl(user);
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
       tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
@@ -194,7 +196,7 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
 }: SettingsSidebarContainerProps) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
@@ -382,7 +384,7 @@ const SettingsSidebarContainer = ({
                                       alt={team.name || "Team logo"}
                                     />
                                   )}
-                                  <p className="w-1/2 truncate">{team.name}</p>
+                                  <p className="w-1/2 truncate leading-normal">{team.name}</p>
                                   {!team.accepted && (
                                     <Badge className="ms-3" variant="orange">
                                       Inv.
@@ -526,7 +528,7 @@ const SettingsSidebarContainer = ({
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
-                                  <p className="w-1/2 truncate">{otherTeam.name}</p>
+                                  <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </div>
                               </CollapsibleTrigger>
                               <CollapsibleContent className="space-y-0.5">
@@ -688,7 +690,7 @@ export function ShellHeader() {
       <header
         className={classNames(
           "border-subtle mx-auto block justify-between sm:flex",
-          meta.borderInShellHeader && "rounded-t-xl border px-4 py-6 sm:px-6",
+          meta.borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           meta.borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
         <div className="flex w-full items-center">
@@ -703,12 +705,12 @@ export function ShellHeader() {
                 {t(meta.title)}
               </h1>
             ) : (
-              <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-md" />
+              <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
             )}
             {meta.description && isLocaleReady ? (
               <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
             ) : (
-              <div className="bg-emphasis h-5 w-32 animate-pulse rounded-md" />
+              <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
             )}
           </div>
           <div className="ms-auto flex-shrink-0">{meta.CTA}</div>

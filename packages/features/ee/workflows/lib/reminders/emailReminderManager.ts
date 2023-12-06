@@ -27,7 +27,7 @@ import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 let sendgridAPIKey, senderEmail: string;
 
-const log = logger.getChildLogger({ prefix: ["[emailReminderManager]"] });
+const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 if (process.env.SENDGRID_API_KEY) {
   sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
   senderEmail = process.env.SENDGRID_EMAIL as string;
