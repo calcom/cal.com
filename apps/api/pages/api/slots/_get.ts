@@ -11,7 +11,12 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const input = getScheduleSchema.parse(req.query);
+    const { usernameList, ...rest } = req.query;
+    let slugs: string[] = [];
+    if (!Array.isArray(usernameList)) {
+      slugs = usernameList ? [usernameList] : [];
+    }
+    const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
     return await getAvailableSlots({ ctx: await createContext({ req, res }), input });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (cause) {
