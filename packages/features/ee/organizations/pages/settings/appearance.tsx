@@ -88,34 +88,35 @@ const OrgAppearanceView = ({
             <div className="flex items-center text-sm">
               <Avatar
                 alt="calVideoLogo"
-                imageSrc={currentOrg?.orgCalVideoLogo}
+                imageSrc={currentOrg?.calVideoLogo}
                 fallback={<Plus className="text-subtle h-6 w-6" />}
                 size="lg"
               />
               <div className="ms-4">
-                <h2 className="mb-2 text-sm font-medium">{t("upload_logo")}</h2>
                 <div className="flex gap-2">
                   <ImageUploader
                     target="avatar"
                     id="cal-video-logo-upload"
-                    buttonMsg={t("upload_cal_video_logo")}
+                    buttonMsg={
+                      currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")
+                    }
                     handleAvatarChange={(newLogo) => {
                       mutation.mutate({
-                        orgCalVideoLogo: newLogo,
+                        calVideoLogo: newLogo,
                       });
                     }}
                     disabled={mutation.isLoading}
-                    imageSrc={currentOrg?.orgCalVideoLogo ?? undefined}
+                    imageSrc={currentOrg?.calVideoLogo ?? undefined}
                     uploadInstruction={t("cal_video_logo_upload_instruction")}
-                    triggerButtonColor={currentOrg?.orgCalVideoLogo ? "secondary" : "primary"}
+                    triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
                   />
-                  {currentOrg?.orgCalVideoLogo && (
+                  {currentOrg?.calVideoLogo && (
                     <Button
                       color="destructive"
                       disabled={mutation.isLoading}
                       onClick={() => {
                         mutation.mutate({
-                          orgCalVideoLogo: null,
+                          calVideoLogo: null,
                         });
                       }}>
                       {t("remove")}

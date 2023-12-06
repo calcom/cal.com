@@ -16,7 +16,7 @@ export const ZUpdateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
-  orgCalVideoLogo: z
+  calVideoLogo: z
     .string()
     .optional()
     .nullable()
