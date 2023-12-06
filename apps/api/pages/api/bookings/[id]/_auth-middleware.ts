@@ -7,16 +7,30 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  const userWithBookings = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { bookings: true },
+  const userBookingJoin = await prisma.user.findUnique({
+    where: {
+      id: userId,
+      teams: {
+        some: {
+          team: {
+            members: {
+              some: {
+                user: {
+                  bookings: {
+                    some: {
+                      id: id,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
-  if (!userWithBookings) throw new HttpError({ statusCode: 404, message: "User not found" });
-
-  const userBookingIds = userWithBookings.bookings.map((booking) => booking.id);
-
-  if (!isAdmin && !userBookingIds.includes(id)) {
+  if (!isAdmin && !userBookingJoin) {
     throw new HttpError({ statusCode: 401, message: "You are not authorized" });
   }
 }
