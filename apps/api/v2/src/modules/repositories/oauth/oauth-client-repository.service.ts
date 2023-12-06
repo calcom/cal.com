@@ -1,16 +1,14 @@
-import { CreateOAuthClientDto } from "@/modules/oauth/dtos/create-oauth-client";
-import { UpdateOAuthClientSchema } from "@/modules/oauth/dtos/update-oauth-client";
+import { CreateOAuthClientInput } from "@/modules/oauth/dtos/create-oauth-client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { PlatformOAuthClient } from "@prisma/client";
-import { z } from "zod";
 
 @Injectable()
 export class OAuthClientRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createOAuthClient(userId: number, data: CreateOAuthClientDto) {
+  async createOAuthClient(userId: number, data: CreateOAuthClientInput) {
     console.log(userId, data);
     return {
       id: "sample-id",
@@ -36,7 +34,7 @@ export class OAuthClientRepository {
 
   async updateOAuthClient(
     clientId: string,
-    updateData: Partial<z.infer<typeof UpdateOAuthClientSchema>>
+    updateData: Partial<CreateOAuthClientInput>
   ): Promise<PlatformOAuthClient> {
     return this.dbWrite.prisma.platformOAuthClient.update({
       where: { id: clientId },

@@ -4,6 +4,7 @@ type Environment = {
   DATABASE_READ_URL: string;
   DATABASE_WRITE_URL: string;
   NEXTAUTH_SECRET: string;
+  DATABASE_URL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K): Environment[K] => {

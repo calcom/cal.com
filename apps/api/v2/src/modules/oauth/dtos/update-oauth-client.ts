@@ -1,11 +1,20 @@
-import { createZodDto } from "nestjs-zod";
-import { z } from "nestjs-zod/z";
+import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
 
-export const UpdateOAuthClientSchema = z.object({
-  logo: z.string().optional(),
-  name: z.string().optional(),
-  redirect_uris: z.array(z.string()).optional(),
-  permissions: z.number().optional(),
-});
+export class UpdateOAuthClientInput {
+  @IsOptional()
+  @IsString()
+  logo?: string;
 
-export class UpdateOAuthClientDto extends createZodDto(UpdateOAuthClientSchema) {}
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsArray()
+  @IsOptional()
+  @IsString({ each: true })
+  redirect_uris?: string[] = [];
+
+  @IsNumber()
+  @IsOptional()
+  permissions?: number;
+}

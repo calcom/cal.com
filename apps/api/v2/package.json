@@ -32,6 +32,8 @@
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^5.6.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.3.1",
     "nest-winston": "^1.9.4",
@@ -42,8 +44,7 @@
     "prisma": "^5.6.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "winston": "^3.11.0",
-    "zod": "^3.22.4"
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

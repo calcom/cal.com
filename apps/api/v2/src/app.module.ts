@@ -4,8 +4,6 @@ import { EndpointsModule } from "@/modules/endpoints-module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { APP_PIPE } from "@nestjs/core";
-import { ZodValidationPipe } from "nestjs-zod";
 
 import { AppController } from "./app.controller";
 
@@ -21,11 +19,5 @@ import { AppController } from "./app.controller";
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [
-    {
-      provide: APP_PIPE,
-      useClass: ZodValidationPipe,
-    },
-  ],
 })
 export class AppModule {}

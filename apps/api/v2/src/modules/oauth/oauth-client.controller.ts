@@ -1,7 +1,7 @@
 import { GetUser } from "@/modules/auth/decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
-import { CreateOAuthClientDto } from "@/modules/oauth/dtos/create-oauth-client";
-import { UpdateOAuthClientDto } from "@/modules/oauth/dtos/update-oauth-client";
+import { CreateOAuthClientInput } from "@/modules/oauth/dtos/create-oauth-client";
+import { UpdateOAuthClientInput } from "@/modules/oauth/dtos/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
 import {
   Body,
@@ -32,13 +32,10 @@ export class OAuthClientController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  async createOAuthClient(@GetUser("id") userId: number, @Body() createOAuthClientDto: CreateOAuthClientDto) {
-    this.logger.log(`Creating OAuth Client with data: ${JSON.stringify(createOAuthClientDto)}`);
-    createOAuthClientDto.name;
-    const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(
-      userId,
-      createOAuthClientDto
-    );
+  async createOAuthClient(@GetUser("id") userId: number, @Body() body: CreateOAuthClientInput) {
+    this.logger.log(`For user ${userId} creating OAuth Client with data: ${JSON.stringify(body)}`);
+
+    const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
 
     return {
       id,
@@ -62,12 +59,9 @@ export class OAuthClientController {
 
   @Put("/:clientId")
   @HttpCode(HttpStatus.OK)
-  async updateOAuthClient(
-    @Param("clientId") clientId: string,
-    @Body() updateOAuthClientDto: UpdateOAuthClientDto
-  ) {
-    this.logger.log(`Updating OAuth Client with ID: ${clientId}`);
-    return this.oauthClientRepository.updateOAuthClient(clientId, updateOAuthClientDto);
+  async updateOAuthClient(@Param("clientId") clientId: string, @Body() body: UpdateOAuthClientInput) {
+    this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
+    return this.oauthClientRepository.updateOAuthClient(clientId, body);
   }
 
   @Delete("/:clientId")
