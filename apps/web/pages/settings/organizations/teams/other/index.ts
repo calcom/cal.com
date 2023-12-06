@@ -1,5 +1,3 @@
-"use client";
-
 import OtherTeamListView from "@calcom/features/ee/organizations/pages/settings/other-team-listing-view";
 
 import PageWrapper from "@components/PageWrapper";
