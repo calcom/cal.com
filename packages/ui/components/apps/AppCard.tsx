@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -54,46 +55,41 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   }, [app.name, searchText]);
 
   return (
-    <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
+    <div className="border-subtle min-h-64 relative flex flex-col justify-between rounded-md border p-5">
       <div className="flex">
-        <img
+        <Image
+          width={48}
+          height={48}
           src={app.logo}
           alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
+            "mb-4 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
           )}
         />
       </div>
-      <div className="flex items-center">
-        <h3 className="text-emphasis font-medium">
-          {searchTextIndex != undefined && searchText ? (
-            <>
-              {app.name.substring(0, searchTextIndex)}
-              <span className="bg-yellow-300" data-testid="highlighted-text">
-                {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
-              </span>
-              {app.name.substring(searchTextIndex + searchText.length)}
-            </>
-          ) : (
-            app.name
-          )}
-        </h3>
-      </div>
-      {/* TODO: add reviews <div className="flex text-sm text-default">
+      <div className="flex flex-col">
+        <div className="flex items-center">
+          <h3 className="text-emphasis font-medium">
+            {searchTextIndex != undefined && searchText ? (
+              <>
+                {app.name.substring(0, searchTextIndex)}
+                <span className="bg-yellow-300" data-testid="highlighted-text">
+                  {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
+                </span>
+                {app.name.substring(searchTextIndex + searchText.length)}
+              </>
+            ) : (
+              app.name
+            )}
+          </h3>
+        </div>
+        {/* TODO: add reviews <div className="flex text-sm text-default">
             <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
-        className="text-default mt-2 flex-grow text-sm"
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}>
-        {app.description}
-      </p>
+        <p className="text-default mt-2 line-clamp-3 text-sm">{app.description}</p>
+      </div>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
