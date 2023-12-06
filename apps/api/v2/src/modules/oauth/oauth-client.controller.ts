@@ -1,5 +1,5 @@
-import { CreateOAuthClientDto } from "@/modules/oauth/dtos/create-oauth-client";
-import { UpdateOAuthClientDto } from "@/modules/oauth/dtos/update-oauth-client";
+import { CreateOAuthClientInput } from "@/modules/oauth/dtos/create-oauth-client";
+import { UpdateOAuthClientInput } from "@/modules/oauth/dtos/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
 import { Response } from "@/types";
 import {
@@ -27,17 +27,11 @@ export class OAuthClientController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  async createOAuthClient(
-    @Res({ passthrough: true }) res: Response,
-    @Body() createOAuthClientDto: CreateOAuthClientDto
-  ) {
+  async createOAuthClient(@Res({ passthrough: true }) res: Response, @Body() body: CreateOAuthClientInput) {
     const userId = res.locals.apiKey?.userId;
-    this.logger.log(`Creating OAuth Client with data: ${JSON.stringify(createOAuthClientDto)}`);
+    this.logger.log(`Creating OAuth Client with data: ${JSON.stringify(body)}`);
 
-    const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(
-      userId,
-      createOAuthClientDto
-    );
+    const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(userId);
 
     return {
       id,
@@ -62,10 +56,11 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.OK)
   async updateOAuthClient(
     @Param("clientId") clientId: string,
-    @Body() updateOAuthClientDto: UpdateOAuthClientDto
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Body() body: UpdateOAuthClientInput
   ) {
     this.logger.log(`Updating OAuth Client with ID: ${clientId}`);
-    return this.oauthClientRepository.updateOAuthClient(clientId, updateOAuthClientDto);
+    return this.oauthClientRepository.updateOAuthClient(clientId);
   }
 
   @Delete("/:clientId")

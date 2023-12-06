@@ -1,5 +1,11 @@
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { RequestMethod, VersioningType } from "@nestjs/common";
+import {
+  BadRequestException,
+  RequestMethod,
+  ValidationError,
+  ValidationPipe,
+  VersioningType,
+} from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
@@ -17,6 +23,19 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     maxAge: 86_400,
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      validationError: {
+        target: true,
+        value: true,
+      },
+      exceptionFactory(errors: ValidationError[]) {
+        return new BadRequestException({ errors });
+      },
+    })
+  );
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.setGlobalPrefix("api", {
     exclude: [{ path: "health", method: RequestMethod.GET }],

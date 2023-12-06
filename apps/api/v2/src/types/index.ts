@@ -10,3 +10,9 @@ export interface PlatformApiLocals extends Record<string, unknown> {
 }
 
 export type Response = BaseResponse<unknown, PlatformApiLocals>;
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string | null;
+  data: T | null;
+}
