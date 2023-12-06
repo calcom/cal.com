@@ -17,7 +17,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       slugs = usernameList ? [usernameList] : [];
     }
     const input = getScheduleSchema.parse({ usernameList: slugs, ...rest });
-    return await getAvailableSlots({ ctx: await createContext({ req, res }), input });
+    const availableSlots = await getAvailableSlots({ ctx: await createContext({ req, res }), input });
+    return availableSlots;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (cause) {
     if (cause instanceof TRPCError) {
