@@ -38,7 +38,7 @@ export class OAuthClientController {
     const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
 
     return {
-      id,
+      client_id: id,
       client_secret,
     };
   }

@@ -9,11 +9,18 @@ export class OAuthClientRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createOAuthClient(userId: number, data: CreateOAuthClientInput) {
-    console.log(userId, data);
-    return {
-      id: "sample-id",
-      client_secret: "sample-secret",
-    };
+    return this.dbWrite.prisma.platformOAuthClient.create({
+      data: {
+        ...data,
+        // TODO: generate client secret
+        client_secret: "x",
+        users: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
   }
 
   async getOAuthClient(clientId: string): Promise<PlatformOAuthClient> {
