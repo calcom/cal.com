@@ -1,13 +1,24 @@
 import getConfig from "next/config";
 
-function getDefaultConfig() {
-  return {
-    publicRuntimeConfig: process.env,
-    serverRuntimeConfig: process.env,
-  };
+function getPublicVariables(env: NodeJS.ProcessEnv): Partial<NodeJS.ProcessEnv> {
+  if (!env) {
+    return {};
+  }
+
+  const variables = Object.keys(env)
+    .filter((key) => key.startsWith("NEXT_PUBLIC_"))
+    .reduce((vars: Partial<NodeJS.ProcessEnv>, key: string) => {
+      vars[key] = env[key];
+      return vars;
+    }, {});
+
+  return variables;
 }
 
-const { publicRuntimeConfig } = getConfig() ? getConfig() : getDefaultConfig();
+const publicRuntimeConfig = {
+  ...getPublicVariables(process.env),
+  ...((getConfig() && getConfig().publicRuntimeConfig) || {}),
+};
 
 const {
   NEXT_PUBLIC_WEBAPP_URL,
