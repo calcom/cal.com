@@ -1,3 +1,5 @@
+"use client";
+
 import type { AppProps as NextAppProps } from "next/app";
 
 import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";

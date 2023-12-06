@@ -1,3 +1,5 @@
+"use client";
+
 import OrgGeneralView from "@calcom/features/ee/organizations/pages/settings/general";
 
 import type { CalPageWrapper } from "@components/PageWrapper";

@@ -1,3 +1,5 @@
+"use client";
+
 import { SetPasswordForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta, WizardLayout } from "@calcom/ui";

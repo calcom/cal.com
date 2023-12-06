@@ -1,3 +1,5 @@
+"use client";
+
 import MembersView from "@calcom/features/ee/organizations/pages/settings/members";
 
 import type { CalPageWrapper } from "@components/PageWrapper";

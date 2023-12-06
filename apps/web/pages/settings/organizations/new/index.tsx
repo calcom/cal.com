@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";

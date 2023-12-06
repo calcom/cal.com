@@ -1,3 +1,5 @@
+"use client";
+
 import TeamAppearenceView from "@calcom/features/ee/teams/pages/team-appearance-view";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
