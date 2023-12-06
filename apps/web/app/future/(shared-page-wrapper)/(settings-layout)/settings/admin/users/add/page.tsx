@@ -1,5 +1,6 @@
-import Page from "@pages/settings/admin/users/add";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "@calcom/features/ee/users/pages/users-add-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -7,7 +8,4 @@ export const generateMetadata = async () =>
     () => "Here you can add a new user."
   );
 
-export default function AppPage() {
-  // @ts-expect-error FIXME AppProps | undefined' does not satisfy the constraint 'PageProps'
-  return <Page />;
-}
+export default Page;

@@ -525,7 +525,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // username + email prepopulated from query params
   const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" || flags["disable-signup"]) {
+  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
     return {
       notFound: true,
     };
