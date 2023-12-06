@@ -7,11 +7,6 @@ import { User } from "@prisma/client";
 export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
-  sanitize(user: User): Partial<User> {
-    const keys: (keyof User)[] = ["password"];
-    return Object.fromEntries(Object.entries(user).filter(([key]) => !keys.includes(key as keyof User)));
-  }
-
   async findById(userId: number) {
     const user = await this.dbRead.prisma.user.findUnique({
       where: {
@@ -28,5 +23,10 @@ export class UserRepository {
       },
     });
     return this.sanitize(user);
+  }
+
+  sanitize(user: User): Partial<User> {
+    const keys: (keyof User)[] = ["password"];
+    return Object.fromEntries(Object.entries(user).filter(([key]) => !keys.includes(key as keyof User)));
   }
 }
