@@ -17,7 +17,6 @@
     ],
     "strictNullChecks": true
   },
-  "sourceMap": true,
   "include": [
     /* Find a way to not require this - App files don't belong here. */
     "../../packages/app-store/routing-forms/env.d.ts",
