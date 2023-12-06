@@ -1,5 +1,3 @@
-"use client";
-
 import AdminOrgsPage from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
 
 import type { CalPageWrapper } from "@components/PageWrapper";

@@ -1,10 +1,10 @@
-import Page from "@pages/settings/admin/users/[id]/edit";
 import { getServerCaller } from "app/_trpc/serverClient";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 
+import Page from "@calcom/features/ee/users/pages/users-edit-view";
 import prisma from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
@@ -33,7 +33,4 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   );
 };
 
-export default function AppPage() {
-  // @ts-expect-error FIXME AppProps | undefined' does not satisfy the constraint 'PageProps'
-  return <Page />;
-}
+export default Page;
