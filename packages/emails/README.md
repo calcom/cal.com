@@ -8,7 +8,7 @@
 ```ts
 import { renderEmail } from "@calcom/emails";
 
-await renderEmail("TeamInviteEmail", */{
+await renderEmail("TeamInviteEmail", {
   language: t,
   from: "teampro@example.com",
   to: "pro@example.com",
