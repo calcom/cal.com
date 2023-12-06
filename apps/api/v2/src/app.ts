@@ -1,3 +1,4 @@
+import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import {
   BadRequestException,
   RequestMethod,
@@ -37,6 +38,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
+  app.useGlobalFilters(new PrismaExceptionFilter());
   app.setGlobalPrefix("api", {
     exclude: [{ path: "health", method: RequestMethod.GET }],
   });
