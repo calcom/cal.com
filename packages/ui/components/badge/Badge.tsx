@@ -1,10 +1,24 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import React from "react";
-import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
 import type { SVGComponent } from "@calcom/types/SVGComponent";
+
+const DotIcon = () => (
+  <svg
+    stroke="currentColor"
+    fill="currentColor"
+    strokeWidth={0}
+    viewBox="0 0 8 16"
+    data-testid="go-primitive-dot"
+    className="h-3 w-3 stroke-[3px]"
+    height="1em"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" d="M0 8c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4-4-1.8-4-4z" />
+  </svg>
+);
 
 export const badgeStyles = cva("font-medium inline-flex items-center justify-center rounded gap-x-1", {
   variants: {
@@ -68,7 +82,7 @@ export const Badge = function Badge(props: BadgeProps) {
 
   const Children = () => (
     <>
-      {withDot ? <GoPrimitiveDot data-testid="go-primitive-dot" className="h-3 w-3 stroke-[3px]" /> : null}
+      {withDot ? <DotIcon /> : null}
       {StartIcon ? <StartIcon data-testid="start-icon" className="h-3 w-3 stroke-[3px]" /> : null}
       {children}
     </>
