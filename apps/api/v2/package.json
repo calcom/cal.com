@@ -21,6 +21,9 @@
     "generate-schemas": "prisma generate && prisma format"
   },
   "dependencies": {
+    "@calcom/platform-constants": "*",
+    "@calcom/platform-types": "*",
+    "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",

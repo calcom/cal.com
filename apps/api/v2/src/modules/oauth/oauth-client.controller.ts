@@ -16,6 +16,9 @@ import {
   Logger,
   UseGuards,
 } from "@nestjs/common";
+import { PlatformOAuthClient } from "@prisma/client";
+
+import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "oauth-clients",
@@ -31,7 +34,7 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.CREATED)
   async createOAuthClient(@GetUser("id") userId: number, @Body() createOAuthClientDto: CreateOAuthClientDto) {
     this.logger.log(`Creating OAuth Client with data: ${JSON.stringify(createOAuthClientDto)}`);
-
+    createOAuthClientDto.name;
     const { id, client_secret } = await this.oauthClientRepository.createOAuthClient(
       userId,
       createOAuthClientDto
@@ -45,8 +48,10 @@ export class OAuthClientController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  async getOAuthClients(@GetUser("id") userId: number) {
-    return this.oauthClientRepository.getUserOAuthClients(userId);
+  async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[], unknown>> {
+    const clients = await this.oauthClientRepository.getUserOAuthClients(userId);
+
+    return { status: "success", data: clients };
   }
 
   @Get("/:clientId")

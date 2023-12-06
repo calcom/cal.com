@@ -220,7 +220,8 @@ model User {
   allowDynamicBooking Boolean?             @default(true)
 
   // participate in SEO indexing or not
-  allowSEOIndexing Boolean? @default(true)
+  allowSEOIndexing     Boolean?              @default(true)
+  platformOAuthClients PlatformOAuthClient[]
 
   // receive monthly digest email for teams or not
   receiveMonthlyDigestEmail Boolean? @default(true)
@@ -1015,4 +1016,15 @@ model Avatar {
 
   @@unique([teamId, userId])
   @@map(name: "avatars")
+}
+
+model PlatformOAuthClient {
+  id            String   @id @default(cuid())
+  name          String
+  client_secret String
+  permissions   Int
+  users         User[]
+  logo          String?
+  redirect_uris String[]
+  // add connection to Access Codes
 }

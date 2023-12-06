@@ -2,7 +2,6 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-// TODO make sure we dont expose sensitive data like password
 @Injectable()
 export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
