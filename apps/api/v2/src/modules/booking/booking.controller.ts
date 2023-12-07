@@ -1,8 +1,8 @@
 import { GetUser } from "@/modules/auth/decorator";
-import { CreateBookingInput } from "@/modules/booking/input/create-booking";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { BookingRepository } from "@/modules/repositories/booking/booking-repository.service";
+import type { CreateBookingInput } from "@/modules/booking/input/create-booking";
+import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import type { BookingRepository } from "@/modules/repositories/booking/booking-repository.service";
 import {
   Body,
   Controller,

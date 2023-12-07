@@ -1,6 +1,6 @@
 import type { CreateBookingInput } from "@/modules/booking/input/create-booking";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

@@ -1,6 +1,6 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
-import { User } from "@prisma/client";
+import type { User } from "@prisma/client";
 
 @Injectable()
 export class UserRepository {

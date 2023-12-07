@@ -1,11 +1,6 @@
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import {
-  BadRequestException,
-  RequestMethod,
-  ValidationError,
-  ValidationPipe,
-  VersioningType,
-} from "@nestjs/common";
+import type { ValidationError } from "@nestjs/common";
+import { BadRequestException, RequestMethod, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as cookieParser from "cookie-parser";
 

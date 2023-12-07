@@ -1,4 +1,5 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from "@nestjs/common";
+import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
+import { Catch, HttpStatus, Logger } from "@nestjs/common";
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -6,7 +7,7 @@ import {
   PrismaClientUnknownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import { Response } from "express";
+import type { Response } from "express";
 
 type PrismaError =
   | PrismaClientInitializationError
