@@ -193,32 +193,30 @@ export const EventSetupTab = (
         const { defaultValue, ...rest } = remainingProps;
 
         return (
-          <>
-            <Controller
-              name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-              control={formMethods.control}
-              defaultValue={defaultValue}
-              render={({ field: { value } }) => {
-                return (
-                  <LocationsAutocomplete
-                    name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                    placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                    required
-                    // saving selected location or typed location
-                    onSave={(place: string) => {
-                      formMethods.setValue(
-                        // @ts-expect-error literals naming collision
-                        `locations[${index}].${eventLocationType.defaultValueVariable}`,
-                        place
-                      );
-                    }}
-                    value={value}
-                    {...rest}
-                  />
-                );
-              }}
-            />
-          </>
+          <Controller
+            name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+            control={formMethods.control}
+            defaultValue={defaultValue}
+            render={({ field: { value } }) => {
+              return (
+                <LocationsAutocomplete
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                  required
+                  // saving selected location or typed location
+                  onSave={(place: string) => {
+                    formMethods.setValue(
+                      // @ts-expect-error literals naming collision
+                      `locations[${index}].${eventLocationType.defaultValueVariable}`,
+                      place
+                    );
+                  }}
+                  value={value}
+                  {...rest}
+                />
+              );
+            }}
+          />
         );
       } else if (eventLocationType?.organizerInputType === "phone") {
         const { defaultValue, ...rest } = remainingProps;
