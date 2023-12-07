@@ -2,8 +2,9 @@ import Image from "next/image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useOnClickOutside } from "@calcom/lib/hooks/useOnClickOutside";
 import { Input } from "@calcom/ui";
+
+import { useOnClickOutside } from "@lib/hooks/useOnClickOutside";
 
 interface LocationsAutocompleteProps {
   value: string | undefined;
