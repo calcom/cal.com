@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { AppConfig } from "@calcom/web/app-config";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
@@ -65,7 +66,7 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 
 export function checkPermission(session: Session | null) {
   if (
-    (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
+    (session?.user.role !== "ADMIN" && AppConfig.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user
   ) {
     throw new Error("You do not have permission to do this.");
