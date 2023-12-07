@@ -25,13 +25,13 @@ import {
   Editor,
   SkeletonContainer,
   SkeletonText,
-  Input,
   PhoneInput,
   Button,
   showToast,
 } from "@calcom/ui";
 import { Plus, X, Check, CornerDownRight } from "@calcom/ui/components/icon";
 
+import LocationsAutocomplete from "@components/eventtype/LocationsAutocomplete";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
@@ -193,25 +193,32 @@ export const EventSetupTab = (
         const { defaultValue, ...rest } = remainingProps;
 
         return (
-          <Controller
-            name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
-            defaultValue={defaultValue}
-            render={({ field: { onChange, value } }) => {
-              return (
-                <Input
-                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
-                  type="text"
-                  required
-                  onChange={onChange}
-                  value={value}
-                  className="my-0"
-                  {...rest}
-                />
-              );
-            }}
-          />
+          <>
+            <Controller
+              name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
+              control={formMethods.control}
+              defaultValue={defaultValue}
+              render={({ field: { value } }) => {
+                return (
+                  <LocationsAutocomplete
+                    name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                    placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                    required
+                    // saving selected location or typed location
+                    onSave={(place: string) => {
+                      formMethods.setValue(
+                        // @ts-expect-error literals naming collision
+                        `locations[${index}].${eventLocationType.defaultValueVariable}`,
+                        place
+                      );
+                    }}
+                    value={value}
+                    {...rest}
+                  />
+                );
+              }}
+            />
+          </>
         );
       } else if (eventLocationType?.organizerInputType === "phone") {
         const { defaultValue, ...rest } = remainingProps;
