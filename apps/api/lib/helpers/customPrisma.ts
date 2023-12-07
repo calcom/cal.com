@@ -2,9 +2,8 @@ import type { NextMiddleware } from "next-api-middleware";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { customPrisma } from "@calcom/prisma";
-import { AppConfig } from "@calcom/web/app-config";
 
-const LOCAL_CONSOLE_URL = AppConfig.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
+const LOCAL_CONSOLE_URL = process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL;
 
 // This replaces the prisma client for the custom one if the key is valid
 export const customPrismaClient: NextMiddleware = async (req, res, next) => {
@@ -29,8 +28,8 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
   }
   req.prisma = customPrisma({ datasources: { db: { url: databaseUrl } } });
   /* @note:
-    In order to skip verifyApiKey for customPrisma requests, 
-    we pass isAdmin true, and userId 0, if we detect them later, 
+    In order to skip verifyApiKey for customPrisma requests,
+    we pass isAdmin true, and userId 0, if we detect them later,
     we skip verifyApiKey logic and pass onto next middleware instead.
      */
   req.isAdmin = true;
