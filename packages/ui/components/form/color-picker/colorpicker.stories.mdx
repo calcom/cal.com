@@ -1,7 +1,4 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import {
-  Tooltip,
-} from "@calcom/ui";
+import { Tooltip } from "@radix-ui/react-tooltip";
 import { Canvas, Meta, Story } from "@storybook/addon-docs";
 
 import {
@@ -69,17 +66,15 @@ The `Color Picker` takes in several props
     {({ defaultValue, onChange, resetDefaultValue, className, popoverAlign }) => (
       <VariantsTable titles={["Default"]} columnMinWidth={150}>
         <VariantRow>
-          <TooltipProvider>
-            <Tooltip content="color picker">
-              <ColorPicker
-                defaultValue={defaultValue}
-                onChange={onChange}
-                resetDefaultValue={resetDefaultValue}
-                className={className}
-                popoverAlign={popoverAlign}
-              />
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip content="color picker">
+            <ColorPicker
+              defaultValue={defaultValue}
+              onChange={onChange}
+              resetDefaultValue={resetDefaultValue}
+              className={className}
+              popoverAlign={popoverAlign}
+            />
+          </Tooltip>
         </VariantRow>
       </VariantsTable>
     )}
