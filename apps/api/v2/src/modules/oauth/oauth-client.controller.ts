@@ -18,7 +18,9 @@ import {
 } from "@nestjs/common";
 import { PlatformOAuthClient } from "@prisma/client";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
+import { hasBookingReadPermission } from "@calcom/platform-utils";
 
 @Controller({
   path: "oauth-clients",
@@ -40,7 +42,7 @@ export class OAuthClientController {
     this.logger.log(`For user ${userId} creating OAuth Client with data: ${JSON.stringify(body)}`);
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
     return {
-      status: "success",
+      status: SUCCESS_STATUS,
       data: {
         client_id: id,
         client_secret: secret,
@@ -52,14 +54,14 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.OK)
   async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[]>> {
     const clients = await this.oauthClientRepository.getUserOAuthClients(userId);
-    return { status: "success", data: clients };
+    return { status: SUCCESS_STATUS, data: clients };
   }
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
-    return { status: "success", data: client };
+    return { status: SUCCESS_STATUS, data: client };
   }
 
   @Put("/:clientId")
@@ -70,7 +72,7 @@ export class OAuthClientController {
   ): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
     const client = await this.oauthClientRepository.updateOAuthClient(clientId, body);
-    return { status: "success", data: client };
+    return { status: SUCCESS_STATUS, data: client };
   }
 
   @Delete("/:clientId")
@@ -78,6 +80,6 @@ export class OAuthClientController {
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
-    return { status: "success", data: client };
+    return { status: SUCCESS_STATUS, data: client };
   }
 }
