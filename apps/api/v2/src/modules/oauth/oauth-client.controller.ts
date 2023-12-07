@@ -18,7 +18,6 @@ import {
 } from "@nestjs/common";
 import type { PlatformOAuthClient } from "@prisma/client";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -35,12 +34,13 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.CREATED)
   async createOAuthClient(
     @GetUser("id") userId: number,
+    @GetUser("organizationId") organizationId: number,
     @Body() body: CreateOAuthClientInput
   ): Promise<ApiResponse<{ client_id: string; client_secret: string }>> {
     this.logger.log(`For user ${userId} creating OAuth Client with data: ${JSON.stringify(body)}`);
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
     return {
-      status: SUCCESS_STATUS,
+      status: "success",
       data: {
         client_id: id,
         client_secret: secret,
@@ -52,14 +52,14 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.OK)
   async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[]>> {
     const clients = await this.oauthClientRepository.getUserOAuthClients(userId);
-    return { status: SUCCESS_STATUS, data: clients };
+    return { status: "success", data: clients };
   }
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
-    return { status: SUCCESS_STATUS, data: client };
+    return { status: "success", data: client };
   }
 
   @Put("/:clientId")
@@ -70,7 +70,7 @@ export class OAuthClientController {
   ): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
     const client = await this.oauthClientRepository.updateOAuthClient(clientId, body);
-    return { status: SUCCESS_STATUS, data: client };
+    return { status: "success", data: client };
   }
 
   @Delete("/:clientId")
@@ -78,6 +78,6 @@ export class OAuthClientController {
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
-    return { status: SUCCESS_STATUS, data: client };
+    return { status: "success", data: client };
   }
 }

@@ -13,16 +13,12 @@ export class OAuthClientRepository {
     private jwtService: JwtService
   ) {}
 
-  async createOAuthClient(userId: number, data: CreateOAuthClientInput) {
+  async createOAuthClient(organizationId: number, data: CreateOAuthClientInput) {
     return this.dbWrite.prisma.platformOAuthClient.create({
       data: {
         ...data,
         secret: await this.jwtService.signAsync(data),
-        users: {
-          connect: {
-            id: userId,
-          },
-        },
+        organizationId,
       },
     });
   }
