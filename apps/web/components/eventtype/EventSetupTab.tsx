@@ -8,7 +8,7 @@ import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, LocationType, MeetLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -244,15 +244,7 @@ export const EventSetupTab = (
         <ul ref={animationRef} className="space-y-2">
           {locationFields.map((field, index) => {
             const eventLocationType = getEventLocationType(field.type);
-            const defaultLocation = formMethods
-              .getValues("locations")
-              ?.find((location: { type: EventLocationType["type"]; address?: string }) => {
-                if (location.type === LocationType.InPerson) {
-                  return location.type === eventLocationType?.type && location.address === field?.address;
-                } else {
-                  return location.type === eventLocationType?.type;
-                }
-              });
+            const defaultLocation = field;
 
             const option = getLocationFromType(field.type, locationOptions);
 
@@ -334,10 +326,12 @@ export const EventSetupTab = (
                         name={eventLocationType.defaultValueVariable}
                         className="text-error my-1 ml-6 text-sm"
                         as="div"
+                        id="location-error"
                       />
                     </div>
                     <div className="ml-6">
                       <CheckboxField
+                        name={`locations[${index}].displayLocationPublicly`}
                         data-testid="display-location"
                         defaultChecked={defaultLocation?.displayLocationPublicly}
                         description={t("display_location_label")}

@@ -3,12 +3,20 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { BookingResponse, RecurringBookingCreateBody } from "@calcom/features/bookings/types";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
+  const userIp = getIP(req);
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: userIp,
+  });
   const data: RecurringBookingCreateBody[] = req.body;
   const session = await getServerSession({ req, res });
   const createdBookings: BookingResponse[] = [];

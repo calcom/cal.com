@@ -71,13 +71,21 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 const informAboutDuplicateTranslations = () => {
-  const valueSet = new Set();
+  const valueMap = {};
 
   for (const key in englishTranslation) {
-    if (valueSet.has(englishTranslation[key])) {
-      console.warn("\x1b[33mDuplicate value found in:", "\x1b[0m", key);
+    const value = englishTranslation[key];
+
+    if (valueMap[value]) {
+      console.warn(
+        "\x1b[33mDuplicate value found in common.json keys:",
+        "\x1b[0m ",
+        key,
+        "and",
+        valueMap[value]
+      );
     } else {
-      valueSet.add(englishTranslation[key]);
+      valueMap[value] = key;
     }
   }
 };
@@ -223,6 +231,9 @@ const nextConfig = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
+      // ignore module resolve errors caused by the server component bundler
+      "pg-native": false,
+      "superagent-proxy": false,
     };
 
     /**

@@ -1,15 +1,16 @@
 import type { InferGetServerSidePropsType } from "next";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { HeadSeo } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
 export default function SetupInformation(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("slug") as string;
   const { status } = useSession();

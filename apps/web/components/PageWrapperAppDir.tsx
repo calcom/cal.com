@@ -1,5 +1,6 @@
 "use client";
 
+import { type DehydratedState } from "@tanstack/react-query";
 import type { SSRConfig } from "next-i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -10,7 +11,6 @@ import type { ReactNode } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers-app-dir";
 import AppProviders from "@lib/app-providers-app-dir";
@@ -29,13 +29,14 @@ const calFont = localFont({
 });
 
 export type PageWrapperProps = Readonly<{
-  getLayout: (page: React.ReactElement) => ReactNode;
+  getLayout: ((page: React.ReactElement) => ReactNode) | null;
   children: React.ReactElement;
   requiresLicense: boolean;
-  isThemeSupported: boolean;
-  isBookingPage: boolean;
   nonce: string | undefined;
   themeBasis: string | null;
+  dehydratedState?: DehydratedState;
+  isThemeSupported?: boolean;
+  isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;
 
@@ -85,4 +86,4 @@ function PageWrapper(props: PageWrapperProps) {
   );
 }
 
-export default trpc.withTRPC(PageWrapper);
+export default PageWrapper;

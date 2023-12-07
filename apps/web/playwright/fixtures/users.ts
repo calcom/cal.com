@@ -10,6 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { Schedule } from "@calcom/types/schedule";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import { TimeZoneEnum } from "./types";
@@ -46,6 +47,7 @@ const createTeamEventType = async (
     schedulingType?: SchedulingType;
     teamEventTitle?: string;
     teamEventSlug?: string;
+    teamEventLength?: number;
   }
 ) => {
   return await prisma.eventType.create({
@@ -65,10 +67,16 @@ const createTeamEventType = async (
           id: user.id,
         },
       },
+      hosts: {
+        create: {
+          userId: user.id,
+          isFixed: scenario?.schedulingType === SchedulingType.COLLECTIVE ? true : false,
+        },
+      },
       schedulingType: scenario?.schedulingType ?? SchedulingType.COLLECTIVE,
       title: scenario?.teamEventTitle ?? `${teamEventTitle}-team-id-${team.id}`,
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
-      length: 30,
+      length: scenario?.teamEventLength ?? 30,
     },
   });
 };
@@ -78,12 +86,14 @@ const createTeamAndAddUser = async (
     user,
     isUnpublished,
     isOrg,
+    isOrgVerified,
     hasSubteam,
     organizationId,
   }: {
-    user: { id: number; username: string | null; role?: MembershipRole };
+    user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
     isOrg?: boolean;
+    isOrgVerified?: boolean;
     hasSubteam?: true;
     organizationId?: number | null;
   },
@@ -95,7 +105,14 @@ const createTeamAndAddUser = async (
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
-    ...(isOrg ? { isOrganization: true } : {}),
+    ...(isOrg
+      ? {
+          isOrganization: true,
+          isOrganizationVerified: !!isOrgVerified,
+          orgAutoAcceptEmail: user.email.split("@")[1],
+          isOrganizationConfigured: false,
+        }
+      : {}),
   };
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
@@ -126,6 +143,17 @@ const createTeamAndAddUser = async (
 export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
+    buildForSignup: (opts?: Pick<CustomUserOpts, "email" | "username" | "useExactUsername" | "password">) => {
+      const uname =
+        opts?.useExactUsername && opts?.username
+          ? opts.username
+          : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+      return {
+        username: uname,
+        email: opts?.email ?? `${uname}@example.com`,
+        password: opts?.password ?? uname,
+      };
+    },
     create: async (
       opts?: CustomUserOpts | null,
       scenario: {
@@ -135,7 +163,9 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
         teamEventSlug?: string;
+        teamEventLength?: number;
         isOrg?: boolean;
+        isOrgVerified?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
       } = {}
@@ -283,9 +313,10 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       if (scenario.hasTeam) {
         const team = await createTeamAndAddUser(
           {
-            user: { id: user.id, username: user.username, role: "OWNER" },
+            user: { id: user.id, email: user.email, username: user.username, role: "OWNER" },
             isUnpublished: scenario.isUnpublished,
             isOrg: scenario.isOrg,
+            isOrgVerified: scenario.isOrgVerified,
             hasSubteam: scenario.hasSubteam,
             organizationId: opts?.organizationId,
           },
@@ -376,6 +407,24 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       await prisma.user.delete({ where: { id } });
       store.users = store.users.filter((b) => b.id !== id);
     },
+    deleteByEmail: async (email: string) => {
+      // Use deleteMany instead of delete to avoid the findUniqueOrThrow error that happens before the delete
+      await prisma.user.deleteMany({
+        where: {
+          email,
+        },
+      });
+      store.users = store.users.filter((b) => b.email !== email);
+    },
+    set: async (email: string) => {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: userIncludes,
+      });
+      const userFixture = createUserFixture(user, store.page);
+      store.users.push(userFixture);
+      return userFixture;
+    },
   };
 };
 
@@ -400,7 +449,11 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
-    apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
+    apiLogin: async (password?: string) =>
+      apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    /**
+     * @deprecated use apiLogin instead
+     */
     login: async () => login({ ...(await self()), password: user.username }, store.page),
     logout: async () => {
       await page.goto("/auth/logout");
@@ -427,7 +480,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       }
       return membership;
     },
-    getOrg: async () => {
+    getOrgMembership: async () => {
       return prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
@@ -438,7 +491,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: { team: { select: { children: true, metadata: true, name: true } } },
+        include: {
+          team: {
+            include: {
+              children: true,
+            },
+          },
+        },
       });
     },
     getFirstEventAsOwner: async () =>
@@ -489,6 +548,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   // ignores adding the worker-index after username
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;
+  schedule?: Schedule;
 };
 
 // creates the actual user in the db.
@@ -520,7 +580,7 @@ const createUser = (
               timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
               availability: {
                 createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
+                  data: getAvailabilityFromSchedule(opts?.schedule ?? DEFAULT_SCHEDULE),
                 },
               },
             },
@@ -641,7 +701,7 @@ export async function apiLogin(
 
 export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
-  await page.locator("div > .ml-auto").first().click();
+  await page.locator("[data-testid='app-switch']").first().click();
   await page.getByPlaceholder("Price").fill("100");
   await page.getByTestId("update-eventtype").click();
 }

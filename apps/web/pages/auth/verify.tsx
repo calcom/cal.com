@@ -1,10 +1,11 @@
 import { signIn } from "next-auth/react";
 import Head from "next/head";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
@@ -54,7 +55,7 @@ const querySchema = z.object({
 });
 
 export default function Verify() {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const routerQuery = useRouterQuery();

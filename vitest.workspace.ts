@@ -72,6 +72,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/packages/lib/hooks",
           include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
+          setupFiles: [],
         },
       },
     ];

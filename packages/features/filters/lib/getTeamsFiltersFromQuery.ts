@@ -1,11 +1,23 @@
+"use client";
+
 import type { ParsedUrlQuery } from "querystring";
 import { z } from "zod";
 
-import { queryNumberArray } from "@calcom/lib/hooks/useTypedQuery";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 export type IEventTypeFilter = IEventTypesFilters[0];
+
+// Take array as a string and return zod array
+const queryNumberArray = z
+  .string()
+  .or(z.number())
+  .or(z.array(z.number()))
+  .transform((a) => {
+    if (typeof a === "string") return a.split(",").map((a) => Number(a));
+    if (Array.isArray(a)) return a;
+    return [a];
+  });
 
 // Use filterQuerySchema when parsing filters out of query, so that additional query params(e.g. slug, appPages) aren't passed in filters
 export const filterQuerySchema = z.object({

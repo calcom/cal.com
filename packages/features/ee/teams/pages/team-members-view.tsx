@@ -1,7 +1,8 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -73,7 +74,7 @@ function MembersList(props: MembersListProps) {
 }
 
 const MembersView = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
 
   const router = useRouter();
@@ -170,7 +171,6 @@ const MembersView = () => {
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
                 <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
-                <hr className="border-subtle my-8" />
               </>
             )}
 
@@ -183,10 +183,7 @@ const MembersView = () => {
             )}
 
             {team && (isAdmin || isOrgAdminOrOwner) && (
-              <>
-                <hr className="border-subtle my-8" />
-                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
-              </>
+              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
             )}
           </div>
           {showMemberInvitationModal && team && (
@@ -209,6 +206,7 @@ const MembersView = () => {
                   {
                     onSuccess: async (data) => {
                       await utils.viewer.teams.get.invalidate();
+                      await utils.viewer.organizations.getMembers.invalidate();
                       setShowMemberInvitationModal(false);
 
                       if (Array.isArray(data.usernameOrEmail)) {

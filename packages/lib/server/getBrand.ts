@@ -17,8 +17,11 @@ export const getBrand = async (orgId: number | null) => {
       metadata: true,
     },
   });
-  const metadata = teamMetadataSchema.parse(org?.metadata);
-  const slug = (org?.slug || metadata?.requestedSlug) as string;
+  if (!org) {
+    return null;
+  }
+  const metadata = teamMetadataSchema.parse(org.metadata);
+  const slug = (org.slug || metadata?.requestedSlug) as string;
   const fullDomain = getOrgFullOrigin(slug);
   const domainSuffix = subdomainSuffix();
 
