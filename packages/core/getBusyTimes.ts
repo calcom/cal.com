@@ -257,8 +257,6 @@ export async function getBusyTimes(params: {
       allBusyTimes: busyTimes,
     })
   );
-  console.log(`user ${username}`);
-  console.log(`busy times ${JSON.stringify(busyTimes)}`);
   return busyTimes;
 }
 
