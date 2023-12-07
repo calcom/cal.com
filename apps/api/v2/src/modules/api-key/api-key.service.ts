@@ -1,5 +1,5 @@
 import { hashAPIKey } from "@/lib/api-key";
-import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import type { Request } from "express";
 

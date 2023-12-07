@@ -1,6 +1,6 @@
-import type { UserRepository } from "@/modules/repositories/user/user-repository.service";
+import { UserRepository } from "@/modules/repositories/user/user-repository.service";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 import { getToken } from "next-auth/jwt";

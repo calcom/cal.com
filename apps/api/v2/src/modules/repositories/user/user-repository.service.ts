@@ -1,4 +1,4 @@
-import type { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import type { User } from "@prisma/client";
 

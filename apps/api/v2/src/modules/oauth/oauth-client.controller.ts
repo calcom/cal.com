@@ -2,7 +2,7 @@ import { GetUser } from "@/modules/auth/decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
 import type { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import type { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
-import type { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
+import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
 import {
   Body,
   Controller,
@@ -16,9 +16,9 @@ import {
   Logger,
   UseGuards,
 } from "@nestjs/common";
-import type { PlatformOAuthClient } from "@prisma/client";
+import { PlatformOAuthClient } from "@prisma/client";
 
-import type { ApiResponse } from "@calcom/platform-types";
+import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "oauth-clients",
