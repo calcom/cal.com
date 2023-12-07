@@ -18,6 +18,7 @@ import {
 } from "@nestjs/common";
 import { PlatformOAuthClient } from "@prisma/client";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -32,41 +33,51 @@ export class OAuthClientController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  async createOAuthClient(@GetUser("id") userId: number, @Body() body: CreateOAuthClientInput) {
+  async createOAuthClient(
+    @GetUser("id") userId: number,
+    @Body() body: CreateOAuthClientInput
+  ): Promise<ApiResponse<{ client_id: string; client_secret: string }>> {
     this.logger.log(`For user ${userId} creating OAuth Client with data: ${JSON.stringify(body)}`);
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
-
     return {
-      client_id: id,
-      client_secret: secret,
+      status: SUCCESS_STATUS,
+      data: {
+        client_id: id,
+        client_secret: secret,
+      },
     };
   }
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[], unknown>> {
+  async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[]>> {
     const clients = await this.oauthClientRepository.getUserOAuthClients(userId);
-
-    return { status: "success", data: clients };
+    return { status: SUCCESS_STATUS, data: clients };
   }
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
-  async getOAuthClientById(@Param("clientId") clientId: string) {
-    return this.oauthClientRepository.getOAuthClient(clientId);
+  async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
+    const client = await this.oauthClientRepository.getOAuthClient(clientId);
+    return { status: SUCCESS_STATUS, data: client };
   }
 
   @Put("/:clientId")
   @HttpCode(HttpStatus.OK)
-  async updateOAuthClient(@Param("clientId") clientId: string, @Body() body: UpdateOAuthClientInput) {
+  async updateOAuthClient(
+    @Param("clientId") clientId: string,
+    @Body() body: UpdateOAuthClientInput
+  ): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
-    return this.oauthClientRepository.updateOAuthClient(clientId, body);
+    const client = await this.oauthClientRepository.updateOAuthClient(clientId, body);
+    return { status: SUCCESS_STATUS, data: client };
   }
 
   @Delete("/:clientId")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteOAuthClient(@Param("clientId") clientId: string) {
+  async deleteOAuthClient(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
-    return this.oauthClientRepository.deleteOAuthClient(clientId);
+    const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
+    return { status: SUCCESS_STATUS, data: client };
   }
 }
