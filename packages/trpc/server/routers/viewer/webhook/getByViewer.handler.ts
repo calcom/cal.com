@@ -39,6 +39,15 @@ export type WebhooksByViewer = {
   }[];
 };
 
+const filterWebhooksWithInvalidSubscriptionUrl = (webhook: Webhook) => {
+  const invalidSubscriptionUrlPatterns = [
+    /^https:\/\/hooks\.zapier\.com\/hooks\/standard/,
+    // Add more patterns if needed
+  ];
+
+  return !invalidSubscriptionUrlPatterns.some((pattern: RegExp) => pattern.test(webhook.subscriberUrl));
+};
+
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -80,7 +89,8 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const userWebhooks = user.webhooks;
+  let userWebhooks = user.webhooks;
+  userWebhooks = userWebhooks.filter(filterWebhooksWithInvalidSubscriptionUrl);
   let webhookGroups: WebhookGroup[] = [];
   const bookerUrl = await getBookerUrl(user);
 
