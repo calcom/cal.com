@@ -6,32 +6,44 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 
 async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin, query } = req;
+  if (isAdmin) {
+    return;
+  }
+
   const { id } = schemaQueryIdParseInt.parse(query);
-  const userBookingJoin = await prisma.user.findUnique({
-    where: {
-      id: userId,
+  const userWithBookingsAndTeamIds = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      bookings: true,
       teams: {
-        some: {
-          team: {
-            members: {
-              some: {
-                user: {
-                  bookings: {
-                    some: {
-                      id: id,
-                    },
-                  },
-                },
-              },
-            },
-          },
+        select: {
+          teamId: true,
         },
       },
     },
   });
 
-  if (!isAdmin && !userBookingJoin) {
-    throw new HttpError({ statusCode: 401, message: "You are not authorized" });
+  if (!userWithBookingsAndTeamIds) throw new HttpError({ statusCode: 404, message: "User not found" });
+
+  const userBookingIds = userWithBookingsAndTeamIds.bookings.map((booking) => booking.id);
+
+  if (!userBookingIds.includes(id)) {
+    const teamBookings = await prisma.booking.findUnique({
+      where: {
+        id: id,
+        eventType: {
+          team: {
+            id: {
+              in: userWithBookingsAndTeamIds.teams.map((team) => team.teamId),
+            },
+          },
+        },
+      },
+    });
+
+    if (!teamBookings) {
+      throw new HttpError({ statusCode: 401, message: "You are not authorized" });
+    }
   }
 }
 
