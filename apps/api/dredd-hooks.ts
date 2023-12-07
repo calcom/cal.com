@@ -1,6 +1,18 @@
-const hooks = require("hooks");
-const fs = require("fs");
-const path = require("path");
+// const hooks = require("hooks");
+// const fs = require("fs");
+// const path = require("path");
+// const { getExistingIds } = require("./dredd-helpers/get-existing-ids.js");
+// const { getTemporaryIds } = require("./dredd-helpers/get-temporary-ids.js");
+import fs from "fs";
+// We must ignore this import because dredd creates this globally for us at runtime
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore-next-line
+import hooks from "hooks";
+import path from "path";
+
+import { getExistingIds } from "./dredd-helpers/get-existing-ids";
+import { getTemporaryIds } from "./dredd-helpers/get-temporary-ids";
+import type { Transaction } from "./dredd-helpers/types";
 
 const placeholderIds = {
   attendeeId: 101,
@@ -15,15 +27,13 @@ const placeholderIds = {
   externalId: 1102,
   teamId: 1202,
   webhookId: 1302,
+  integration: "google_calendar",
 
   userId: 42,
 };
 
-// TODO: Get existing IDs from API.
-const existingIds = {};
-
-// TODO: Create Ids that can be deleted.
-const temporaryIds = {};
+let existingIds = {};
+let temporaryIds = {};
 
 // Get seed values from packages/prisma/dredd-data.json (generated at seed time)
 const apiKeyFilePath = path.resolve(__dirname, "../../packages/prisma/dredd-data.json");
@@ -31,7 +41,14 @@ const apiKeyJson = fs.readFileSync(apiKeyFilePath, { encoding: "utf8" });
 const parsedApiKeyJson = JSON.parse(apiKeyJson);
 const { apiKey, teamId, userId } = parsedApiKeyJson;
 
-hooks.beforeEach((transaction) => {
+hooks.beforeAll(async (transaction: Transaction, done: () => void) => {
+  existingIds = await getExistingIds(apiKey);
+  temporaryIds = await getTemporaryIds(apiKey);
+  console.log({ existingIds });
+  done();
+});
+
+hooks.beforeEach((transaction: Transaction) => {
   if (transaction.origin.resourceName.indexOf("{teamId}")) {
     transaction.request.uri = transaction.request.uri.replace(`/${placeholderIds.teamId}`, `/${teamId}`);
   }

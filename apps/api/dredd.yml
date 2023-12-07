@@ -1,13 +1,13 @@
 color: true
 dry-run: null
-hookfiles: ./dredd-hooks.js
+hookfiles: ./dredd-hooks.ts
 require: null
 # server: yarn dev:api:only
 server-wait: 30
 init: false
 custom: {}
 names: false
-# only: ["/attendees > Find all attendees > 200"]
+only: ["/attendees > Find all attendees > 200"]
 reporter: ["html"]
 output: ["dredd-output.html"]
 # header: []
