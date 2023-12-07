@@ -4,8 +4,6 @@ import { createServer } from "http";
 import next from "next";
 import { parse } from "url";
 
-import { AppConfig } from "@calcom/web/app-config";
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare let process: {
   env: {
@@ -23,8 +21,8 @@ export const nextServer = async ({ port = 3000 } = { port: 3000 }) => {
     port = await detect(Math.round((1 + Math.random()) * 3000));
   }
   process.env.PLAYWRIGHT_TEST_BASE_URL =
-    AppConfig.env.NEXT_PUBLIC_WEBAPP_URL =
-    AppConfig.env.NEXT_PUBLIC_WEBSITE_URL =
+    process.env.NEXT_PUBLIC_WEBAPP_URL =
+    process.env.NEXT_PUBLIC_WEBSITE_URL =
       `http://localhost:${port}`;
   const app = next({
     dev: dev,

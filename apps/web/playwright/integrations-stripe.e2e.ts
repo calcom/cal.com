@@ -4,7 +4,6 @@ import type Prisma from "@prisma/client";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { AppConfig } from "@calcom/web/app-config";
 
 import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
@@ -14,7 +13,7 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 const IS_STRIPE_ENABLED = !!(
-  AppConfig.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_CLIENT_ID &&
   process.env.STRIPE_PRIVATE_KEY &&
   process.env.PAYMENT_FEE_FIXED &&

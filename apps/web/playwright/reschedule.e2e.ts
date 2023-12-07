@@ -3,14 +3,13 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { AppConfig } from "@calcom/web/app-config";
 
 import { test } from "./lib/fixtures";
 import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_CLIENT_ID &&
-  AppConfig.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_PRIVATE_KEY
 );
 
