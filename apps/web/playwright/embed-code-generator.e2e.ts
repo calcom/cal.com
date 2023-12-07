@@ -4,9 +4,9 @@ import { Linter } from "eslint";
 import { parse } from "node-html-parser";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/client";
 
+import { EMBED_LIB_URL, WEBAPP_URL } from "./constants";
 import { test } from "./lib/fixtures";
 
 const linter = new Linter();

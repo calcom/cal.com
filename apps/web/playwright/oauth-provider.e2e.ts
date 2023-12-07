@@ -1,10 +1,10 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
+import { WEBAPP_URL } from "./constants";
 import { test } from "./lib/fixtures";
 
 test.afterEach(async ({ users }) => {

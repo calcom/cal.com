@@ -4,7 +4,6 @@ import type { IncomingMessage } from "http";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
-import { AppConfig } from "@calcom/web/app-config";
 
 const log = logger.getSubLogger({
   prefix: ["orgDomains.ts"],
@@ -15,7 +14,7 @@ const log = logger.getSubLogger({
  */
 export function getOrgSlug(hostname: string, forcedSlug?: string) {
   if (forcedSlug) {
-    if (AppConfig.env.NEXT_PUBLIC_IS_E2E) {
+    if (process.env.NEXT_PUBLIC_IS_E2E) {
       log.debug("Using provided forcedSlug in E2E", {
         forcedSlug,
       });

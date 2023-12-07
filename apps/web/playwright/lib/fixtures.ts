@@ -3,11 +3,11 @@ import { test as base } from "@playwright/test";
 import type { API } from "mailhog";
 import mailhog from "mailhog";
 
-import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
+import { IS_MAILHOG_ENABLED } from "../constants";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmbedsFixture } from "../fixtures/embeds";
 import { createFeatureFixture } from "../fixtures/features";

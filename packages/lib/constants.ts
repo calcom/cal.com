@@ -1,3 +1,9 @@
+/**
+ * NOTES: if you do changes here,
+ * maybe you should do changes in apps/web/playwright/constants.ts
+ * WARNING: Use this only for frontend constants, don't import it
+ * in test processes
+ */
 import { AppConfig } from "@calcom/web/app-config";
 
 const {

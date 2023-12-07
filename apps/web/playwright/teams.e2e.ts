@@ -1,10 +1,10 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
+import { IS_TEAM_BILLING_ENABLED } from "./constants";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,

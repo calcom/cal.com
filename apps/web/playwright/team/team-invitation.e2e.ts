@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-
+import { WEBAPP_URL } from "../constants";
 import { test } from "../lib/fixtures";
 import { localize, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";

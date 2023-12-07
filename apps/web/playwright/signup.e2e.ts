@@ -1,8 +1,7 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
-import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
-
+import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "./constants";
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
