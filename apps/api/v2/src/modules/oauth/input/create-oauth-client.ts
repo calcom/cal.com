@@ -6,12 +6,12 @@ export class CreateOAuthClientInput {
   logo?: string;
 
   @IsString()
-  name: string;
+  name!: string;
 
   @IsArray()
   @IsString({ each: true })
-  redirect_uris: string[];
+  redirect_uris!: string[];
 
   @IsNumber()
-  permissions: number;
+  permissions!: number;
 }

@@ -2,11 +2,11 @@ import { IsString } from "class-validator";
 
 export class CreateBookingInput {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  email: string;
+  email!: string;
 
   @IsString()
-  timezone: string;
+  timezone!: string;
 }

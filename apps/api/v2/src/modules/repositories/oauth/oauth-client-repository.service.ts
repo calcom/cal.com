@@ -2,18 +2,22 @@ import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-clien
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { PlatformOAuthClient } from "@prisma/client";
 
 @Injectable()
 export class OAuthClientRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService,
+    private jwtService: JwtService
+  ) {}
 
   async createOAuthClient(userId: number, data: CreateOAuthClientInput) {
     return this.dbWrite.prisma.platformOAuthClient.create({
       data: {
         ...data,
-        // TODO: generate client secret
-        secret: "x",
+        secret: await this.jwtService.signAsync(data),
         users: {
           connect: {
             id: userId,

@@ -34,7 +34,6 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.CREATED)
   async createOAuthClient(@GetUser("id") userId: number, @Body() body: CreateOAuthClientInput) {
     this.logger.log(`For user ${userId} creating OAuth Client with data: ${JSON.stringify(body)}`);
-
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
 
     return {

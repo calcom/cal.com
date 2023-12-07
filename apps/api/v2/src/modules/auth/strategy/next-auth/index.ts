@@ -32,7 +32,7 @@ export class NextAuthStrategy extends PassportStrategy(BaseStrategy, "next-auth"
 
       return this.success(user);
     } catch (error) {
-      return this.error(error);
+      if (error instanceof Error) return this.error(error);
     }
   }
 }
