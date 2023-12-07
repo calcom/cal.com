@@ -191,6 +191,8 @@ function useRedirectToOnboardingIfNeeded() {
   };
 }
 
+type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
+
 const useBanners = () => {
   const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
@@ -205,13 +207,9 @@ const useBanners = () => {
     impersonationBanner: userImpersonatedByUID ? userSession : null,
   };
 
-  const allBanners = Object.assign({}, getUserTopBanners, userSessionBanners);
+  const allBanners: allBannerProps = Object.assign({}, getUserTopBanners, userSessionBanners);
 
-  const activeBanners = Object.entries(allBanners).filter(([_, value]) => {
-    return value && (!Array.isArray(value) || value.length > 0);
-  });
-
-  return activeBanners;
+  return allBanners;
 };
 
 const Layout = (props: LayoutProps) => {
@@ -220,7 +218,12 @@ const Layout = (props: LayoutProps) => {
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   const bannersHeight = useMemo(() => {
-    return (banners?.length ?? 0) * TOP_BANNER_HEIGHT;
+    const activeBanners =
+      banners &&
+      Object.entries(banners).filter(([_, value]) => {
+        return value && (!Array.isArray(value) || value.length > 0);
+      });
+    return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
   }, [banners]);
 
   return (
@@ -240,9 +243,26 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
-            {banners.map(([key, data]) => {
-              const Banner = BannerComponent[key as keyof BannerComponent];
-              return <Banner data={data} key={key} />;
+            {Object.keys(banners).map((key) => {
+              if (key === "teamUpgradeBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "orgUpgradeBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "verifyEmailBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "adminPasswordBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "impersonationBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "calendarCredentialBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              }
             })}
           </div>
         )}
