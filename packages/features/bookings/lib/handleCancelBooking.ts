@@ -453,11 +453,14 @@ async function handler(req: CustomRequest) {
             bookingToDelete.recurringEventId &&
             allRemainingBookings
           ) {
-            if (
-              bookingToDelete.references.length > 0 &&
-              bookingToDelete?.references[0].thirdPartyRecurringEventId
-            ) {
-              const thirdPartyRecurringEventId = bookingToDelete?.references[0].thirdPartyRecurringEventId;
+            let thirdPartyRecurringEventId;
+            for (const reference of bookingToDelete.references) {
+              if (reference.thirdPartyRecurringEventId) {
+                thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
+                break;
+              }
+            }
+            if (thirdPartyRecurringEventId) {
               apiDeletes.push(
                 calendar?.deleteEvent(thirdPartyRecurringEventId, evt, externalCalendarId) as Promise<unknown>
               );
