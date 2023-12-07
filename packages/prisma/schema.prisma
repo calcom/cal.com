@@ -318,7 +318,7 @@ model Team {
   apiKeys             ApiKey[]
   credentials         Credential[]
   accessCodes         AccessCode[]
-  PlatformOAuthClient PlatformOAuthClient[]
+  platformOAuthClient PlatformOAuthClient[]
 
   @@unique([slug, parentId])
 }
