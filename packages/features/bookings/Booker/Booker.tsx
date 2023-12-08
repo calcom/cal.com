@@ -251,20 +251,22 @@ const BookerComponent = ({
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
           )}>
           <AnimatePresence>
-            <BookerSection
-              area="header"
-              className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
-                (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                  "bg-default dark:bg-muted sticky top-0 z-10"
-              )}>
-              <Header
-                enabledLayouts={bookerLayouts.enabledLayouts}
-                extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
-                isMobile={isMobile}
-                nextSlots={nextSlots}
-              />
-            </BookerSection>
+            {!isInstantMeeting && (
+              <BookerSection
+                area="header"
+                className={classNames(
+                  layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
+                  (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
+                    "bg-default dark:bg-muted sticky top-0 z-10"
+                )}>
+                <Header
+                  enabledLayouts={bookerLayouts.enabledLayouts}
+                  extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
+                  isMobile={isMobile}
+                  nextSlots={nextSlots}
+                />
+              </BookerSection>
+            )}
             <StickyOnDesktop
               key="meta"
               className={classNames(
@@ -299,7 +301,6 @@ const BookerComponent = ({
                   }
                 }}
                 hashedLink={hashedLink}
-                isInstantMeeting={isInstantMeeting}
               />
             </BookerSection>
 

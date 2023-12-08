@@ -6,6 +6,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Clock, CheckSquare, RefreshCcw } from "@calcom/ui/components/icon";
 
+import { useBookerStore } from "../../Booker/store";
 import type { PublicEvent } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
@@ -110,6 +111,7 @@ export const EventMetaBlock = ({
  */
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
+  const isInstantMeeting = useBookerStore((store) => store.isInstantMeeting);
 
   return (
     <>
@@ -127,7 +129,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.LOCATION:
-            if (!event?.locations?.length) return null;
+            if (!event?.locations?.length || isInstantMeeting) return null;
             return (
               <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />

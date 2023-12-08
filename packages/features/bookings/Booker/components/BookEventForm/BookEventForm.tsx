@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
+import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import {
   createBooking,
@@ -24,12 +25,15 @@ import {
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
+import { Dialog, DialogContent } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
@@ -42,12 +46,11 @@ import { FormSkeleton } from "./Skeleton";
 type BookEventFormProps = {
   onCancel?: () => void;
   hashedLink?: string | null;
-  isInstantMeeting?: boolean;
 };
 
 type DefaultValues = Record<string, unknown>;
 
-export const BookEventForm = ({ onCancel, hashedLink, isInstantMeeting }: BookEventFormProps) => {
+export const BookEventForm = ({ onCancel, hashedLink }: BookEventFormProps) => {
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
@@ -67,6 +70,7 @@ export const BookEventForm = ({ onCancel, hashedLink, isInstantMeeting }: BookEv
   const bookingData = useBookerStore((state) => state.bookingData);
   const duration = useBookerStore((state) => state.selectedDuration);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isRescheduling = !!rescheduleUid && !!bookingData;
   const eventQuery = useEvent();
   const eventType = eventQuery.data;
@@ -237,10 +241,12 @@ export const BookEventFormChild = ({
 
   const createInstantBookingMutation = useMutation(createInstantBooking, {
     onSuccess: (responseData) => {
-      console.log("responseData", responseData);
+      updateQueryParam("bookingId", responseData.bookingId);
     },
     onError: (err, _, ctx) => {
       errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
+      console.error("Error creating instant booking", err);
+      showToast(t("something_went_wrong_on_our_end"), "error");
     },
   });
 
@@ -419,7 +425,7 @@ export const BookEventFormChild = ({
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
-            <Button type="submit" color="primary">
+            <Button type="submit" color="primary" loading={createInstantBookingMutation.isLoading}>
               {t("confirm")}
             </Button>
           ) : (
@@ -457,7 +463,51 @@ export const BookEventFormChild = ({
         }}
         isUserSessionRequiredToVerify={false}
       />
+      <RedirectToInstantMeetingModal />
     </div>
+  );
+};
+
+const RedirectToInstantMeetingModal = () => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const bookingId = parseInt(getQueryParam("bookingId") || "0");
+
+  const instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
+    {
+      bookingId: bookingId,
+    },
+    {
+      enabled: !!bookingId,
+      refetchInterval: 2000,
+      onSuccess: (data) => {
+        try {
+          const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+            data.booking?.metadata || {}
+          )?.videoCallUrl;
+
+          if (locationVideoCallUrl) {
+            router.push(locationVideoCallUrl);
+          } else {
+            showToast(t("something_went_wrong_on_our_end"), "error");
+          }
+        } catch (err) {
+          showToast(t("something_went_wrong_on_our_end"), "error");
+        }
+      },
+    }
+  );
+
+  return (
+    <Dialog open={!!bookingId}>
+      <DialogContent type={undefined} enableOverflow className="py-8">
+        <div>
+          <Spinner />
+          <p className="font-medium">We are connecting you to someone.</p>
+          <p className="font-medium">Please do not close this tab</p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

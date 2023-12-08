@@ -132,6 +132,8 @@ export type BookerStore = {
   org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
+
+  isInstantMeeting?: boolean;
 };
 
 /**
@@ -285,6 +287,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
 
       const currentTime = new Date().toISOString();
       setSelectedTimeslot(currentTime);
+      set({ isInstantMeeting });
     }
     //removeQueryParam("layout");
   },
