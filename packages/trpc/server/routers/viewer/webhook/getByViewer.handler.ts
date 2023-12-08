@@ -39,13 +39,13 @@ export type WebhooksByViewer = {
   }[];
 };
 
-const filterWebhooksWithInvalidSubscriptionUrl = (webhook: Webhook) => {
-  const invalidSubscriptionUrlPatterns = [
-    /^https:\/\/hooks\.zapier\.com\/hooks\/standard/,
-    // Add more patterns if needed
+const filterWebhooks = (webhook: Webhook) => {
+  const appIds = [
+    "zapier",
+    // Add more if needed
   ];
 
-  return !invalidSubscriptionUrlPatterns.some((pattern: RegExp) => pattern.test(webhook.subscriberUrl));
+  return !appIds.some((appId: string) => webhook.appId == appId);
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
@@ -90,7 +90,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   }
 
   let userWebhooks = user.webhooks;
-  userWebhooks = userWebhooks.filter(filterWebhooksWithInvalidSubscriptionUrl);
+  userWebhooks = userWebhooks.filter(filterWebhooks);
   let webhookGroups: WebhookGroup[] = [];
   const bookerUrl = await getBookerUrl(user);
 
