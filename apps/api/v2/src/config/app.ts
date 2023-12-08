@@ -8,7 +8,7 @@ const loadConfig = (): AppConfig => {
       type: getEnv("NODE_ENV", "development"),
     },
     api: {
-      port: Number(process.env.API_PORT ?? 5555),
+      port: Number(getEnv("API_PORT", "5555")),
     },
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
