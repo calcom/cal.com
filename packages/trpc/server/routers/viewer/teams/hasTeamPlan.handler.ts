@@ -23,3 +23,5 @@ export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
   });
   return { hasTeamPlan: !!hasTeamPlan };
 };
+
+export default hasTeamPlanHandler;
