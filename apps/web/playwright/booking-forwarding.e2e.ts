@@ -132,7 +132,7 @@ test.describe("Booking forwarding", () => {
 
     await page.locator("data-testid=user-dropdown-trigger-button").first().click();
 
-    await page.locator("data-testid=set-away-button").first().click();
+    await page.locator("data-testid=set-away-button").click();
 
     // expect not to be redirected to /settings/my-account/out-of-office
     await expect(page.url()).not.toBe("/settings/my-account/out-of-office");

@@ -422,7 +422,7 @@ function UserDropdown({ small }: UserDropdownProps) {
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
-          data-testid="user-dropdown-trigger"
+          data-testid="user-dropdown-trigger-button"
           className={classNames(
             "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
