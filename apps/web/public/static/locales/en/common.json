@@ -880,6 +880,7 @@
   "toggle_calendars_conflict": "Toggle the calendars you want to check for conflicts to prevent double bookings.",
   "connect_additional_calendar": "Connect additional calendar",
   "calendar_updated_successfully": "Calendar updated successfully",
+  "check_here":"Check here",
   "conferencing": "Conferencing",
   "calendar": "Calendar",
   "payments": "Payments",
