@@ -238,36 +238,37 @@ export default class GoogleCalendarService implements Calendar {
           calendarId: selectedCalendar,
           eventId: calEventRaw.existingRecurringEvent.recurringEventId,
         });
-        const calComEventStartTime = dayjs(calEventRaw.startTime).format();
-        for (let i = 0; i < recurringEventInstances.data.items!.length; i++) {
-          const instance = recurringEventInstances.data.items![i];
-          const instanceStartTime = dayjs(instance.start?.dateTime)
-            .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
-            .format();
+        if (recurringEventInstances.data.items) {
+          const calComEventStartTime = dayjs(calEventRaw.startTime).format();
+          for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
+            const instance = recurringEventInstances.data.items[i];
+            const instanceStartTime = dayjs(instance.start?.dateTime)
+              .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
+              .format();
 
-          if (instanceStartTime === calComEventStartTime) {
-            event = instance;
-            break;
+            if (instanceStartTime === calComEventStartTime) {
+              event = instance;
+              break;
+            }
           }
-        }
 
-        if (!event) {
-          event = recurringEventInstances.data.items![0];
-          this.log.error(
-            "Unable to find matching event amongst recurring event instances",
-            safeStringify({ selectedCalendar, credentialId })
-          );
+          if (!event) {
+            event = recurringEventInstances.data.items[0];
+            this.log.error(
+              "Unable to find matching event amongst recurring event instances",
+              safeStringify({ selectedCalendar, credentialId })
+            );
+          }
+          await calendar.events.patch({
+            calendarId: selectedCalendar,
+            eventId: event.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...calEventRaw,
+              }),
+            },
+          });
         }
-
-        await calendar.events.patch({
-          calendarId: selectedCalendar,
-          eventId: event.id || "",
-          requestBody: {
-            description: getRichDescription({
-              ...calEventRaw,
-            }),
-          },
-        });
       } else {
         const eventResponse = await calendar.events.insert({
           calendarId: selectedCalendar,
@@ -301,15 +302,15 @@ export default class GoogleCalendarService implements Calendar {
       return {
         uid: "",
         ...event,
-        id: event.id || "",
+        id: event?.id || "",
         thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
-          hangoutLink: event.hangoutLink || "",
+          hangoutLink: event?.hangoutLink || "",
         },
         type: "google_calendar",
         password: "",
         url: "",
-        iCalUID: event.iCalUID,
+        iCalUID: event?.iCalUID,
       };
     } catch (error) {
       this.log.error(
