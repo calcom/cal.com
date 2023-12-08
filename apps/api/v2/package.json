@@ -32,6 +32,8 @@
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.0.0",
     "@prisma/client": "^5.6.0",
+    "@sentry/node": "^7.86.0",
+    "@sentry/tracing": "^7.86.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "cookie-parser": "^1.4.6",

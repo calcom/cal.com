@@ -1,8 +1,9 @@
+import { AppLoggerMiddleware } from "@/app.logger.middleware";
 import appConfig from "@/config/app";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints-module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { Module } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
 import { AppController } from "./app.controller";
@@ -20,4 +21,8 @@ import { AppController } from "./app.controller";
   ],
   controllers: [AppController],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(AppLoggerMiddleware).forRoutes("*");
+  }
+}

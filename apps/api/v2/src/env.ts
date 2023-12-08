@@ -6,6 +6,7 @@ type Environment = {
   NEXTAUTH_SECRET: string;
   DATABASE_URL: string;
   JWT_SECRET: string;
+  SENTRY_DNS: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K): Environment[K] => {

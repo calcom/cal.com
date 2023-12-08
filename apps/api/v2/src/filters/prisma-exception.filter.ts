@@ -1,3 +1,4 @@
+import { Response } from "@/types/api";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
 import {
@@ -7,7 +8,8 @@ import {
   PrismaClientUnknownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import type { Response } from "express";
+
+import { INTERNAL_SERVER_ERROR } from "@calcom/platform-constants";
 
 type PrismaError =
   | PrismaClientInitializationError
@@ -35,8 +37,8 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     });
 
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: "There was an error, please try again later.",
+      status: "error",
+      error: { code: INTERNAL_SERVER_ERROR, message: "There was an error, please try again later." },
     });
   }
 }

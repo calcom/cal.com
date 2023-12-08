@@ -1,7 +1,11 @@
+import { getEnv } from "@/env";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { SentryFilter } from "@/filters/sentry-exception.filter";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, RequestMethod, ValidationPipe, VersioningType } from "@nestjs/common";
+import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
+import * as Sentry from "@sentry/node";
 import * as cookieParser from "cookie-parser";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
@@ -34,6 +38,16 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   );
 
   app.useGlobalFilters(new PrismaExceptionFilter());
+
+  if (process.env.SENTRY_DNS) {
+    Sentry.init({
+      dsn: getEnv("SENTRY_DNS"),
+    });
+  }
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  // Sentry Exception Filter only logs if Sentry.init has not been called
+  app.useGlobalFilters(new SentryFilter(httpAdapter));
+
   app.setGlobalPrefix("api", {
     exclude: [{ path: "health", method: RequestMethod.GET }],
   });

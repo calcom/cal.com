@@ -15,6 +15,10 @@ import {
   Version,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { Booking } from "@prisma/client";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiResponse } from "@calcom/platform-types";
 
 @Controller("booking")
 export class BookingController {
@@ -30,9 +34,11 @@ export class BookingController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.CREATED)
-  async createBooking(@GetUser("id") userId: number, @Body() body: CreateBookingInput) {
+  async createBooking(
+    @GetUser("id") userId: number,
+    @Body() body: CreateBookingInput
+  ): Promise<ApiResponse<Booking>> {
     this.logger.log(`For user with id ${userId} created Booking with data ${JSON.stringify(body)}`);
-
-    return this.bookingRepository.createBooking(userId, body);
+    return { status: SUCCESS_STATUS, data: await this.bookingRepository.createBooking(userId, body) };
   }
 }

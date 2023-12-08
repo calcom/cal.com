@@ -7,7 +7,7 @@ export type API_ERROR_CODES_TYPE = (typeof API_ERROR_CODES)[number];
 export type ErrorType = {
   code: API_ERROR_CODES_TYPE;
   message?: string;
-  details?: string;
+  details?: string | string[];
 };
 
 export type ApiErrorResponse = { status: typeof ERROR_STATUS; error: ErrorType };
