@@ -16,12 +16,10 @@ export class ApiKeyService {
 
     const hashedKey = hashAPIKey(apiKey.replace("cal_", ""));
 
-    const apiKeyResult = await this.dbRead.prisma.apiKey.findUniqueOrThrow({
+    return this.dbRead.prisma.apiKey.findUniqueOrThrow({
       where: {
         hashedKey,
       },
     });
-
-    return apiKeyResult;
   }
 }
