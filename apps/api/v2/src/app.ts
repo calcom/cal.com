@@ -7,6 +7,7 @@ import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as Sentry from "@sentry/node";
 import * as cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
@@ -15,6 +16,8 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     prefix: "v",
     defaultVersion: "1",
   });
+
+  app.use(helmet());
 
   app.enableCors({
     origin: "*",

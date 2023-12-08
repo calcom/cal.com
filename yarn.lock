@@ -3457,6 +3457,8 @@ __metadata:
     "@nestjs/schematics": ^10.0.0
     "@nestjs/testing": ^10.0.0
     "@prisma/client": ^5.6.0
+    "@sentry/node": ^7.86.0
+    "@sentry/tracing": ^7.86.0
     "@types/cookie-parser": ^1.4.6
     "@types/express": ^4.17.17
     "@types/jest": ^29.5.2
@@ -3467,6 +3469,7 @@ __metadata:
     class-validator: ^0.14.0
     cookie-parser: ^1.4.6
     dotenv: ^16.3.1
+    helmet: ^7.1.0
     jest: ^29.5.0
     nest-winston: ^1.9.4
     next-auth: ^4.24.5
@@ -10366,6 +10369,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry-internal/tracing@npm:7.86.0":
+  version: 7.86.0
+  resolution: "@sentry-internal/tracing@npm:7.86.0"
+  dependencies:
+    "@sentry/core": 7.86.0
+    "@sentry/types": 7.86.0
+    "@sentry/utils": 7.86.0
+  checksum: b02b2f7bf3f26c1ddf2e13276bacc827e52b21101b1b732cae5ffca37124b5ef68fd094f1d39ebee6b62ba4e8ddad3428979361cea3a8605b0d278461f7ac9e6
+  languageName: node
+  linkType: hard
+
 "@sentry/browser@npm:7.77.0":
   version: 7.77.0
   resolution: "@sentry/browser@npm:7.77.0"
@@ -10402,6 +10416,16 @@ __metadata:
     "@sentry/types": 7.77.0
     "@sentry/utils": 7.77.0
   checksum: f76e83ba5da4710b87b5e03f747ac5b5f93c93814447d29e1863b6bd3734d87f3a8fb197060a9a8370430d1d47b5c8c33dc86acc7f7b212322630e280435c6d8
+  languageName: node
+  linkType: hard
+
+"@sentry/core@npm:7.86.0":
+  version: 7.86.0
+  resolution: "@sentry/core@npm:7.86.0"
+  dependencies:
+    "@sentry/types": 7.86.0
+    "@sentry/utils": 7.86.0
+  checksum: 67fa607293a7da23a9cd63eca30d16cc4af63efc9b97a8ab2af517e55dbe1b717332af627928ae34df117efdf5f9b33c475bb75dd25605897f0b574ed8ffc410
   languageName: node
   linkType: hard
 
@@ -10458,6 +10482,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/node@npm:^7.86.0":
+  version: 7.86.0
+  resolution: "@sentry/node@npm:7.86.0"
+  dependencies:
+    "@sentry-internal/tracing": 7.86.0
+    "@sentry/core": 7.86.0
+    "@sentry/types": 7.86.0
+    "@sentry/utils": 7.86.0
+    https-proxy-agent: ^5.0.0
+  checksum: 3d6a39dd368c58e1dfd4832293275490d7b0710ff6c3be99fe6c60687724f210d24d98295dc3d3d4c0128dc610586cc8e9dda53da8d89df32c58ad296b09dec0
+  languageName: node
+  linkType: hard
+
 "@sentry/react@npm:7.77.0":
   version: 7.77.0
   resolution: "@sentry/react@npm:7.77.0"
@@ -10484,10 +10521,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry/tracing@npm:^7.86.0":
+  version: 7.86.0
+  resolution: "@sentry/tracing@npm:7.86.0"
+  dependencies:
+    "@sentry-internal/tracing": 7.86.0
+  checksum: 5c60199cc5d47f0ad4da86d97ceba35cbe694873217b901fc40b52d7e509dece5af8b42fae5745c8421261fe8d5bffeeefdec6352ec838404149b65dd1ff7602
+  languageName: node
+  linkType: hard
+
 "@sentry/types@npm:7.77.0":
   version: 7.77.0
   resolution: "@sentry/types@npm:7.77.0"
   checksum: ff8047425d4b0caae9221a9fa52fa0122ddf23b51152b7d71914f6465cf72dc3fdf00b7db16e3e95b4a1d2d429824d91ed586b1abac6d5286bd7800504e30824
+  languageName: node
+  linkType: hard
+
+"@sentry/types@npm:7.86.0":
+  version: 7.86.0
+  resolution: "@sentry/types@npm:7.86.0"
+  checksum: 17b59c8ccf33af2d2477c9af769fe9579c18ad9cf0728574577357ccc8c2e406592f725eb31e70519a7bad505a218626aa241d25ed3fb9fa45e066f5668977dc
   languageName: node
   linkType: hard
 
@@ -10497,6 +10550,15 @@ __metadata:
   dependencies:
     "@sentry/types": 7.77.0
   checksum: 000bb1caec44812dc39a8026ecba78c14a8332f15cb78d2935c91a7ba8d61eab9553a791a4af528a113ca90b83db6e81791e3562b2559b76596accc69e4d57ad
+  languageName: node
+  linkType: hard
+
+"@sentry/utils@npm:7.86.0":
+  version: 7.86.0
+  resolution: "@sentry/utils@npm:7.86.0"
+  dependencies:
+    "@sentry/types": 7.86.0
+  checksum: 19c36d6fa03ad2ebce422aa6987cfc3e63eaa95e56a5d500db7a49c3f255dec1b633b27d52c8a27f015fb9fa970282575cba3320f80e4347b8058c4f9b6b55b1
   languageName: node
   linkType: hard
 
@@ -21816,6 +21878,13 @@ __metadata:
   version: 3.0.7
   resolution: "headers-polyfill@npm:3.0.7"
   checksum: ee392c1acdd2be797090837a085b14c8dc79f221e2501508afc1474667fba0627d583e06f9ab5cad57cf9dd570942d3166f791c75b92522a17c69c1e6bfcfbc4
+  languageName: node
+  linkType: hard
+
+"helmet@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "helmet@npm:7.1.0"
+  checksum: 16aaa0df997eaa18821e71389bc9ceffeeaa935df98427ede2bb006065f7e02bb1941caabea16d5a93a791cb3fe7d8a760266bc57b3b9ca5dd7da17ea84244b8
   languageName: node
   linkType: hard
 
