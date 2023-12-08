@@ -9,10 +9,13 @@ type Environment = {
   SENTRY_DNS: string;
 };
 
-export const getEnv = <K extends keyof Environment>(key: K): Environment[K] => {
+export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
   const value = process.env[key] as Environment[K] | undefined;
 
   if (typeof value === "undefined") {
+    if (typeof fallback !== "undefined") {
+      return fallback;
+    }
     throw new Error(`Missing environment variable: ${key}`);
   }
 

@@ -5,7 +5,7 @@ import type { AppConfig } from "./type";
 const loadConfig = (): AppConfig => {
   return {
     env: {
-      type: getEnv("NODE_ENV") ?? "development",
+      type: getEnv("NODE_ENV", "development"),
     },
     api: {
       port: Number(process.env.API_PORT ?? 5555),
