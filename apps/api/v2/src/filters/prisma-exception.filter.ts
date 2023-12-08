@@ -9,7 +9,7 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 
-import { INTERNAL_SERVER_ERROR } from "@calcom/platform-constants";
+import { ERROR_STATUS, INTERNAL_SERVER_ERROR } from "@calcom/platform-constants";
 
 type PrismaError =
   | PrismaClientInitializationError
@@ -35,9 +35,9 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
     });
-
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      status: "error",
+      status: ERROR_STATUS,
+      timestamp: new Date().toISOString(),
       error: { code: INTERNAL_SERVER_ERROR, message: "There was an error, please try again later." },
     });
   }

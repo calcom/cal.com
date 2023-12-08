@@ -1,4 +1,5 @@
 import { getEnv } from "@/env";
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { SentryFilter } from "@/filters/sentry-exception.filter";
 import type { ValidationError } from "@nestjs/common";
@@ -50,6 +51,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   const { httpAdapter } = app.get(HttpAdapterHost);
   // Sentry Exception Filter only logs if Sentry.init has not been called
   app.useGlobalFilters(new SentryFilter(httpAdapter));
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.setGlobalPrefix("api", {
     exclude: [{ path: "health", method: RequestMethod.GET }],

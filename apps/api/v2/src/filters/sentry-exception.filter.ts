@@ -3,6 +3,8 @@ import { ArgumentsHost, Catch, Logger, HttpStatus } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import * as Sentry from "@sentry/node";
 
+import { ERROR_STATUS, INTERNAL_SERVER_ERROR } from "@calcom/platform-constants";
+
 @Catch()
 export class SentryFilter extends BaseExceptionFilter {
   private readonly logger = new Logger("SentryExceptionFilter");
@@ -19,8 +21,9 @@ export class SentryFilter extends BaseExceptionFilter {
       Sentry.captureException(exception);
     }
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      status: "error",
-      error: { code: "INTERNAL_SERVER_ERROR", message: "internal server error." },
+      status: ERROR_STATUS,
+      timestamp: new Date().toISOString(),
+      error: { code: INTERNAL_SERVER_ERROR, message: "Internal server error." },
     });
   }
 }

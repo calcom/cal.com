@@ -5,11 +5,16 @@ export type ApiSuccessResponse<T> = { status: typeof SUCCESS_STATUS; data: T };
 export type API_ERROR_CODES_TYPE = (typeof API_ERROR_CODES)[number];
 
 export type ErrorType = {
-  code: API_ERROR_CODES_TYPE;
+  code: API_ERROR_CODES_TYPE | string;
   message?: string;
   details?: string | string[];
 };
 
-export type ApiErrorResponse = { status: typeof ERROR_STATUS; error: ErrorType };
+export type ApiErrorResponse = {
+  status: typeof ERROR_STATUS;
+  timestamp?: string;
+  path?: string;
+  error: ErrorType;
+};
 
 export type ApiResponse<T> = ApiErrorResponse | ApiSuccessResponse<T>;
