@@ -147,7 +147,7 @@ export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: 
 };
 
 const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
-type WeekDays = (typeof weekDays)[number];
+export type WeekDays = (typeof weekDays)[number];
 type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
