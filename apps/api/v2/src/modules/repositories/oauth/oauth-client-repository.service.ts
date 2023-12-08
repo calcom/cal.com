@@ -17,7 +17,7 @@ export class OAuthClientRepository {
     return this.dbWrite.prisma.platformOAuthClient.create({
       data: {
         ...data,
-        secret: await this.jwtService.signAsync(data),
+        secret: await this.jwtService.signAsync(JSON.stringify(data)),
         organizationId,
       },
     });
