@@ -3,8 +3,7 @@ import { z } from "zod";
 export const ZBookingForwardingInputSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
-  toUsernameOrEmail: z.string().optional(),
-  teamId: z.string().optional(),
+  toTeamUserId: z.number().nullable(),
 });
 
 export type TBookingForwardingInputSchema = z.infer<typeof ZBookingForwardingInputSchema>;

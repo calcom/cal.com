@@ -24,6 +24,7 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
@@ -308,6 +309,7 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { data: user } = useMeQuery();
   const utils = trpc.useContext();
   const bookerUrl = useBookerUrl();
+  const { hasTeamPlan } = useHasTeamPlan();
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -361,6 +363,7 @@ function UserDropdown({ small }: UserDropdownProps) {
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
+          data-testid="user-dropdown-trigger"
           className={classNames(
             "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
@@ -432,16 +435,31 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    StartIcon={(props) => (
-                      <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
-                    )}
-                    onClick={() => {
-                      mutation.mutate({ away: !user.away });
-                    }}>
-                    {user.away ? t("set_as_free") : t("set_as_away")}
-                  </DropdownItem>
+                  {/* If not in a team simple set as away */}
+                  {!hasTeamPlan && (
+                    <DropdownItem
+                      data-testid="set-away-button"
+                      type="button"
+                      StartIcon={(props) => (
+                        <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
+                      )}
+                      onClick={() => {
+                        mutation.mutate({ away: !user.away });
+                      }}>
+                      {user.away ? t("set_as_free") : t("set_as_away")}
+                    </DropdownItem>
+                  )}
+                  {/* If in a team show new button of Out of office */}
+                  {hasTeamPlan && (
+                    <DropdownItem
+                      type="button"
+                      StartIcon={(props) => (
+                        <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
+                      )}
+                      href="/settings/my-account/out-of-office">
+                      {t("set_as_away")}
+                    </DropdownItem>
+                  )}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>

@@ -77,6 +77,16 @@ export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
 export { Table } from "./components/table/Table";
+export {
+  Table as TableNew,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/table/TableNew";
 export { TableActions, DropdownActions } from "./components/table/TableActions";
 export type { ActionType } from "./components/table/TableActions";
 export { ErrorBoundary } from "./components/errorBoundary";

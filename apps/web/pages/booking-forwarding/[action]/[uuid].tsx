@@ -1,10 +1,13 @@
+import { CalendarCheck, CalendarX } from "lucide-react";
 import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingForwardingStatus } from "@calcom/prisma/enums";
+import { EmptyScreen } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -14,21 +17,25 @@ export default function BookingForwardingAction(
   const { action } = props;
   const { t } = useLocale();
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="border-subtle mt-6 rounded-lg border p-6">
-        <p className="mb-2 font-sans text-lg font-semibold">Booking Forwarding Request</p>
-        {action === "accept" && (
-          <p className="font-sans text-sm" data-testid="success_accept_forwarding">
-            {`${t("success_accept_booking_forwarding")} ✅`}
-          </p>
-        )}
-        {action === "reject" && (
-          <p className="font-sans text-sm" data-testid="success_reject_forwarding">
-            {`${t("success_accept_booking_forwarding")} ❌`}
-          </p>
-        )}
-      </div>
-    </div>
+    <ShellMain
+      heading={t("forward_request_feature_title")}
+      subtitle={t("forward_request_feature_description")}>
+      <EmptyScreen
+        headline={t("booking_forwarding_request_title")}
+        title={t("booking_forwarding_request_title")}
+        description={
+          action === "accept"
+            ? t("success_accept_booking_forwarding")
+            : t("success_reject_booking_forwarding")
+        }
+        Icon={action === "accept" ? CalendarCheck : CalendarX}
+      />
+      {action === "accept" ? (
+        <input data-testid="success_reject_forwarding" type="hidden" />
+      ) : (
+        <input data-testid="success_accept_forwarding" type="number" />
+      )}
+    </ShellMain>
   );
 }
 

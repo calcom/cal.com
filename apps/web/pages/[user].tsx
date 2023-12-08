@@ -107,8 +107,8 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           {isRedirect && (
-            <div className="mb-8 rounded-md bg-blue-100 p-4">
-              <h2 className="text-default mb-2 text-sm font-semibold">
+            <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent dark:bg-transparent">
+              <h2 className="text-default mb-2 text-sm font-semibold dark:text-white">
                 {t("user_redirect_title", {
                   username: fromUserNameRedirected,
                 })}{" "}
@@ -119,6 +119,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   profile: {
                     username: user.username,
                   },
+                  username: fromUserNameRedirected,
                 })}{" "}
                 😄
               </p>

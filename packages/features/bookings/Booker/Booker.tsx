@@ -237,7 +237,7 @@ const BookerComponent = ({
         )}>
         {/* redirect from other user profile */}
         {isRedirect && (
-          <div className="mb-8 rounded-md bg-blue-100 p-4">
+          <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
             <h2 className="text-default mb-2 text-sm font-semibold">
               {t("user_redirect_title", {
                 username: fromUserNameRedirected,
@@ -249,6 +249,7 @@ const BookerComponent = ({
                 profile: {
                   username: username,
                 },
+                username: fromUserNameRedirected,
               })}{" "}
               😄
             </p>

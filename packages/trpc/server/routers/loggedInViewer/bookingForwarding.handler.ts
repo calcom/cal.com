@@ -7,7 +7,6 @@ import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { isEmail as isEmailValidator } from "../viewer/teams/util";
 import type { TBookingForwardingConfirm, TBookingForwardingInputSchema } from "./bookingForwarding.schema";
 
 type BookingForwardingT = {
@@ -37,37 +36,16 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
   }
 
   let toUserId;
-  let toTeamId;
 
-  if (input.toUsernameOrEmail) {
-    const isEmail = isEmailValidator(input.toUsernameOrEmail);
-    const user = await prisma.user.findFirst({
+  if (input.toTeamUserId) {
+    const user = await prisma.user.findUnique({
       where: {
-        ...(isEmail && { email: input.toUsernameOrEmail }),
-        ...(!isEmail && { username: input.toUsernameOrEmail }),
+        id: input.toTeamUserId,
       },
       select: {
         id: true,
       },
     });
-
-    // Validate user belongs to team if isEmail = true
-    if (isEmail) {
-      const userTeam = await prisma.membership.findFirst({
-        select: {
-          teamId: true,
-        },
-        where: {
-          userId: user?.id,
-        },
-      });
-
-      // This will only fetch userTeamId but allow org invitations if member it's on another team from org
-      if (userTeam) {
-        toTeamId = userTeam.teamId;
-      }
-    }
-
     toUserId = user?.id;
   }
   if (!toUserId) {
@@ -80,7 +58,6 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
       start: dayjs(input.startDate).startOf("day").toISOString(),
       end: dayjs(input.endDate).endOf("day").toISOString(),
       userId: ctx.user.id,
-      ...(!!toTeamId && { toTeamId: Number(input.teamId) }),
       toUserId: toUserId,
     },
   });
@@ -106,7 +83,7 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
     throw new Error("booking_forwarding_infinite_not_allowed");
   }
 
-  // Count number of booking redirects with accepted status
+  // Count number of booking redirects with accepted status and start date in the future
   const acceptedBookingForwardings = await prisma.bookingForwarding.count({
     where: {
       userId: ctx.user.id,
@@ -127,7 +104,6 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
       start: dayjs(input.startDate).startOf("day").toISOString(),
       end: dayjs(input.endDate).endOf("day").toISOString(),
       userId: ctx.user.id,
-      ...{ ...(input.teamId && { toTeamId: Number(input.teamId) }) },
       toUserId: toUserId,
       status: "PENDING",
       createdAt: new Date(),
@@ -258,7 +234,6 @@ export const bookingForwardingList = async ({ ctx }: { ctx: { user: NonNullable<
           username: true,
         },
       },
-      toTeamId: true,
     },
   });
 

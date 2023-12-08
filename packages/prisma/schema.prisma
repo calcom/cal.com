@@ -313,7 +313,6 @@ model Team {
   apiKeys             ApiKey[]
   credentials         Credential[]
   accessCodes         AccessCode[]
-  bookingForwardings  BookingForwarding[]
 
   @@unique([slug, parentId])
 }
@@ -1047,8 +1046,6 @@ model BookingForwarding {
   user      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   toUserId  Int
   toUser    User?                   @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  toTeamId  Int?
-  toTeam    Team?                   @relation(fields: [toTeamId], references: [id], onDelete: Cascade)
   status    BookingForwardingStatus @default(PENDING)
   createdAt DateTime                @default(now())
   updatedAt DateTime                @updatedAt
@@ -1056,6 +1053,5 @@ model BookingForwarding {
   @@index([uuid])
   @@index([userId])
   @@index([toUserId])
-  @@index([toTeamId])
   @@index([start, end, status])
 }

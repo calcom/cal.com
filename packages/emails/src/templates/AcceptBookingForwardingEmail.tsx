@@ -13,6 +13,7 @@ export const AcceptBookingForwardingEmail = (
           color: "black",
           fontSize: "16px",
           lineHeight: "24px",
+          fontWeight: "400",
         }}>
         {props.language("accept_booking_forwarding_email_description", {
           toName: props.toName,
