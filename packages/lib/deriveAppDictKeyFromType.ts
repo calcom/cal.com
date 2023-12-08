@@ -32,7 +32,7 @@ export function deriveAppDictKeyFromType(appType: string, dict: Record<string, u
 
   return appType;
 
-  // const categories = ["video", "other", "calendar", "web3", "payment", "messaging"];
+  // const categories = ["video", "other", "calendar", "payment", "messaging"];
 
   // // Instead of doing a blind split at _ and using the first part, apply this hack only on strings that match legacy type.
   // // Transform zoomvideo to zoom

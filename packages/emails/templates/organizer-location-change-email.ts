@@ -4,7 +4,7 @@ import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
@@ -20,7 +20,7 @@ export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmai
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("OrganizerLocationChangeEmail", {
+      html: await renderEmail("OrganizerLocationChangeEmail", {
         attendee: this.calEvent.organizer,
         calEvent: this.calEvent,
       }),
