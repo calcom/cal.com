@@ -4,6 +4,7 @@ import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
@@ -22,6 +23,7 @@ import {
   BookingLocations,
   getZoomAppCredential,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
@@ -30,10 +32,8 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-
-import { createMockNextJsRequest } from "../lib/createMockNextJsRequest";
-import { getMockRequestDataForBooking } from "../lib/getMockRequestDataForBooking";
-import { setupAndTeardown } from "../lib/setupAndTeardown";
+import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -213,6 +213,9 @@ describe("handleNewBooking", () => {
             });
 
             expectSuccessfulBookingCreationEmails({
+              booking: {
+                uid: createdBooking.uid!,
+              },
               booker,
               organizer,
               otherTeamMembers,
@@ -225,7 +228,7 @@ describe("handleNewBooking", () => {
               organizer,
               location: BookingLocations.CalVideo,
               subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           },
           timeout
@@ -351,7 +354,7 @@ describe("handleNewBooking", () => {
 
             await expect(async () => {
               await handleNewBooking(req);
-            }).rejects.toThrowError("Some of the hosts are unavailable for booking");
+            }).rejects.toThrowError(ErrorCode.HostsUnavailableForBooking);
           },
           timeout
         );
@@ -525,6 +528,9 @@ describe("handleNewBooking", () => {
             });
 
             expectSuccessfulBookingCreationEmails({
+              booking: {
+                uid: createdBooking.uid!,
+              },
               booker,
               organizer,
               otherTeamMembers,
@@ -537,7 +543,7 @@ describe("handleNewBooking", () => {
               organizer,
               location: BookingLocations.CalVideo,
               subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           },
           timeout
@@ -661,7 +667,7 @@ describe("handleNewBooking", () => {
 
             await expect(async () => {
               await handleNewBooking(req);
-            }).rejects.toThrowError("No available users found.");
+            }).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
           },
           timeout
         );
@@ -842,6 +848,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             otherTeamMembers,
@@ -854,7 +863,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/DYNAMIC_UID`,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -1056,6 +1065,9 @@ describe("handleNewBooking", () => {
           });
 
           expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
             booker,
             organizer,
             otherTeamMembers,

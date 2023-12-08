@@ -4,8 +4,7 @@ import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import type { CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
@@ -17,6 +16,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
@@ -53,7 +53,7 @@ export default function Login({
   totpEmail,
 }: // eslint-disable-next-line @typescript-eslint/ban-types
 inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const formSchema = z
@@ -83,7 +83,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
   const telemetry = useTelemetry();
 
-  let callbackUrl = searchParams.get("callbackUrl") || "";
+  let callbackUrl = searchParams?.get("callbackUrl") || "";
 
   if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
 
@@ -97,9 +97,9 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
   callbackUrl = safeCallbackUrl || "";
 
   const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
       {t("dont_have_an_account")}
-    </a>
+    </Link>
   );
 
   const TwoFactorFooter = (
@@ -173,15 +173,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
     : isSAMLLoginEnabled && !isLoading && data?.connectionExists;
 
   return (
-    <div
-      style={
-        {
-          "--cal-brand": "#111827",
-          "--cal-brand-emphasis": "#101010",
-          "--cal-brand-text": "white",
-          "--cal-brand-subtle": "#9CA3AF",
-        } as CSSProperties
-      }>
+    <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
         title={t("login")}
         description={t("login")}
@@ -237,7 +229,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center dark:bg-white dark:text-black">
+                className="w-full justify-center">
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
             </div>
@@ -250,6 +242,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                   <Button
                     color="secondary"
                     className="w-full justify-center"
+                    disabled={formState.isSubmitting}
                     data-testid="google"
                     StartIcon={FaGoogle}
                     onClick={async (e) => {
@@ -278,7 +271,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
 // TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
 const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req, res, query } = context;
 
   const session = await getServerSession({ req, res });
   const ssr = await ssrInit(context);
@@ -318,6 +311,24 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
   }
 
   if (session) {
+    const { callbackUrl } = query;
+
+    if (callbackUrl) {
+      try {
+        const destination = getSafeRedirectUrl(callbackUrl as string);
+        if (destination) {
+          return {
+            redirect: {
+              destination,
+              permanent: false,
+            },
+          };
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     return {
       redirect: {
         destination: "/",

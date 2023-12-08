@@ -236,7 +236,7 @@ export class Cal {
   }: {
     calLink: string;
     queryObject?: PrefillAndIframeAttrsConfig & { guest?: string | string[] };
-    calOrigin?: string;
+    calOrigin: string | null;
   }) {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
@@ -473,10 +473,12 @@ class CalApi {
     }
 
     config.embedType = "inline";
+    const calConfig = this.cal.getConfig();
 
     const iframe = this.cal.createIframe({
       calLink,
       queryObject: withColorScheme(Cal.getQueryObject(config), containerEl),
+      calOrigin: calConfig.calOrigin,
     });
 
     iframe.style.height = "100%";
@@ -555,6 +557,7 @@ class CalApi {
   modal({
     calLink,
     config = {},
+    calOrigin,
     __prerender = false,
   }: {
     calLink: string;
@@ -607,6 +610,7 @@ class CalApi {
       iframe = this.cal.createIframe({
         calLink,
         queryObject,
+        calOrigin: calOrigin || null,
       });
     }
 

@@ -9,7 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 
-const log = logger.getChildLogger({ prefix: [`[[intercom/api/callback]`] });
+const log = logger.getSubLogger({ prefix: [`[[intercom/api/callback]`] });
 
 let client_id = "";
 let client_secret = "";

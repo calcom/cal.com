@@ -16,6 +16,10 @@ Emails are cleaned and routed in [receive/route.ts](/apps/ai/src/app/api/receive
 
 Incoming emails are routed by email address. Addresses are verified by [DKIM record](https://support.google.com/a/answer/174124?hl=en), making them hard to spoof.
 
+## Recognition
+
+<a href="https://www.producthunt.com/posts/cal-ai?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-cal&#0045;ai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=419860&theme=light&period=daily" alt="Cal&#0046;ai - World&#0039;s&#0032;first&#0032;open&#0032;source&#0032;AI&#0032;scheduling&#0032;assistant | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a> <a href="https://www.producthunt.com/posts/cal-ai?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-cal&#0045;ai" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=419860&theme=light" alt="Cal&#0046;ai - World&#0039;s&#0032;first&#0032;open&#0032;source&#0032;AI&#0032;scheduling&#0032;assistant | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 ## Getting Started
 
 ### Development
@@ -44,7 +48,7 @@ Here is the full architecture:
 
 ### Email Router
 
-To expose the AI app, run `ngrok http 3000` (or the AI app's port number) in a new terminal. You may need to install [nGrok](https://ngrok.com/).
+To expose the AI app, run `ngrok http 3005` (or the AI app's port number) in a new terminal. You may need to install [nGrok](https://ngrok.com/).
 
 To forward incoming emails to the serverless function at `/agent`, we use [SendGrid's Inbound Parse](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook).
 

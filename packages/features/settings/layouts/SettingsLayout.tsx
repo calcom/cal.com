@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
 
@@ -10,6 +10,8 @@ import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -144,7 +146,7 @@ const useTabs = () => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";
       tab.icon = undefined;
-      tab.avatar = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${session?.data?.user?.username}/avatar.png`;
+      tab.avatar = getUserAvatarUrl(user);
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
       tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
@@ -194,7 +196,7 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
 }: SettingsSidebarContainerProps) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
@@ -211,7 +213,9 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org,
   });
 
-  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
 
   useEffect(() => {
     if (teams) {

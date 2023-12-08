@@ -23,23 +23,22 @@ export const AddNewOrgAdminsForm = () => {
   }>();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
-      if (data.sendEmailInvitation) {
-        if (Array.isArray(data.usernameOrEmail)) {
-          showToast(
-            t("email_invite_team_bulk", {
-              userCount: data.usernameOrEmail.length,
-            }),
-            "success"
-          );
-        } else {
-          showToast(
-            t("email_invite_team", {
-              email: data.usernameOrEmail,
-            }),
-            "success"
-          );
-        }
+      if (Array.isArray(data.usernameOrEmail)) {
+        showToast(
+          t("email_invite_team_bulk", {
+            userCount: data.usernameOrEmail.length,
+          }),
+          "success"
+        );
+      } else {
+        showToast(
+          t("email_invite_team", {
+            email: data.usernameOrEmail,
+          }),
+          "success"
+        );
       }
+
       router.push(`/settings/organizations/${orgId}/add-teams`);
     },
     onError: (error) => {
@@ -56,7 +55,6 @@ export const AddNewOrgAdminsForm = () => {
           language: i18n.language,
           role: MembershipRole.ADMIN,
           usernameOrEmail: values.emails,
-          sendEmailInvitation: true,
           isOrg: true,
         });
       }}>

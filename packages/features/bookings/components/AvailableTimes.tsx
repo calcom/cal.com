@@ -8,9 +8,11 @@ import dayjs from "@calcom/dayjs";
 import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { Button, SkeletonText } from "@calcom/ui";
 
 import { useBookerStore } from "../Booker/store";
+import { useEvent } from "../Booker/utils/event";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
@@ -48,11 +50,12 @@ const SlotItem = ({
 }) => {
   const { t } = useLocale();
 
-  const overlayCalendarToggled = getQueryParam("overlayCalendar") === "true";
+  const overlayCalendarToggled =
+    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
+  const { data: event } = useEvent();
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
@@ -66,11 +69,12 @@ const SlotItem = ({
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
 
-  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay(
-    computedDateWithUsersTimezone,
-    selectedDuration,
-    offset
-  );
+  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
+    start: computedDateWithUsersTimezone,
+    selectedDuration: event?.length ?? 0,
+    offset,
+  });
+
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {

@@ -1,6 +1,6 @@
-import { prisma } from "@calcom/prisma";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";

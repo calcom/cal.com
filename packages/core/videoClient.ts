@@ -15,7 +15,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
+const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
@@ -144,7 +144,7 @@ const updateMeeting = async (
   if (!updatedMeeting) {
     log.error(
       "updateMeeting failed",
-      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+      safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
       appName: credential.appId || "",

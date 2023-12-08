@@ -42,6 +42,9 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *               darkBrandColor:
  *                 description: The new user's brand color for dark mode
  *                 type: string
+ *               hideBranding:
+ *                 description: Remove branding from the user's calendar page
+ *                 type: boolean
  *               weekStart:
  *                 description: Start of the week. Acceptable values are one of [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY]
  *                 type: string
@@ -56,6 +59,9 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *                 type: string
  *               locale:
  *                 description: The new user's locale. Acceptable values are one of [EN, FR, IT, RU, ES, DE, PT, RO, NL, PT_BR, ES_419, KO, JA, PL, AR, IW, ZH_CH, ZH_TW, CS, SR, SV, VI]
+ *                 type: string
+ *               avatar:
+ *                 description: The user's avatar, in base64 format
  *                 type: string
  *           examples:
  *              user:

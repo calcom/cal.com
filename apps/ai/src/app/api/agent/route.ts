@@ -40,6 +40,13 @@ export const POST = async (request: NextRequest) => {
 
     return new NextResponse("ok");
   } catch (error) {
+    await sendEmail({
+      subject: `Re: ${subject}`,
+      text: "Thanks for using Cal.ai! We're experiencing high demand and can't currently process your request. Please try again later.",
+      to: user.email,
+      from: agentEmail,
+    });
+
     return new NextResponse(
       (error as Error).message || "Something went wrong. Please try again or reach out for help.",
       { status: 500 }

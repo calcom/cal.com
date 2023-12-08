@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "http";
+import { dir } from "i18next";
 import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
@@ -50,21 +51,15 @@ class MyDocument extends Document<Props> {
   render() {
     const { isEmbed, embedColorScheme } = this.props;
     const newLocale = this.props.newLocale || "en";
+    const newDir = dir(newLocale);
 
     const nonceParsed = z.string().safeParse(this.props.nonce);
     const nonce = nonceParsed.success ? nonceParsed.data : "";
 
-    const intlLocale = new Intl.Locale(newLocale);
-    // @ts-expect-error INFO: Typescript does not know about the Intl.Locale textInfo attribute
-    const direction = intlLocale.textInfo?.direction;
-    if (!direction) {
-      throw new Error("NodeJS major breaking change detected, use getTextInfo() instead.");
-    }
-
     return (
       <Html
         lang={newLocale}
-        dir={direction}
+        dir={newDir}
         style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
           <script
