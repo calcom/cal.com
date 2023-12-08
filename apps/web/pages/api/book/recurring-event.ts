@@ -69,7 +69,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     createdBookings.push(eachRecurringBooking);
 
     if (!thirdPartyRecurringEventId) {
-      if (eachRecurringBooking.references!.length > 0) {
+      if (eachRecurringBooking.references && eachRecurringBooking.references.length > 0) {
         for (const reference of eachRecurringBooking.references!) {
           if (reference.thirdPartyRecurringEventId) {
             thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
