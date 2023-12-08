@@ -54,7 +54,6 @@ test.describe("Organization", () => {
         // Code verification
         await expect(page.locator("#modal-title")).toBeVisible();
         await page.locator("input[name='2fa1']").fill(generateTotpCode(`john@${orgDomain}.com`));
-        await page.locator("button:text('Verify')").click();
 
         // Check admin email about DNS pending action
         await expectInvitationEmailToBeReceived(
