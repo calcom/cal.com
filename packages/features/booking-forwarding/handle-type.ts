@@ -23,6 +23,7 @@ export const handleTypeForwarding = async (props: HandleTypeForwardingProps) => 
       },
     },
     where: {
+      status: "ACCEPTED",
       userId: userId,
       start: {
         lte: new Date(),

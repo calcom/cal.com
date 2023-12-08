@@ -30,8 +30,8 @@ export const handleUserForwarding = async (props: HandleUserForwardingProps) => 
         end: true,
       },
       where: {
-        userId: fromUser.id,
         status: "ACCEPTED",
+        userId: fromUser.id,
         start: {
           lte: new Date(),
         },

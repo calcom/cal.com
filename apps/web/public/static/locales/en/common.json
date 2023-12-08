@@ -2172,7 +2172,7 @@
   "success_request": "Successfully sent request",
   "accept_booking_forwarding_email_subject": "Request to accept booking request",
   "accept_booking_forwarding_email_title": "Request Booking Forwarding",
-  "accept_booking_forwarding_email_description": "You have received a request from {{toName}} so their profile links are forwarding to yours from this time interval:",
+  "accept_booking_forwarding_email_description": "You have received a request from {{toName}} so their profile links will be forwarded to yours from this time interval:",
   "success_accept_booking_forwarding":"You have already accepted this booking forwarding request.",
   "success_reject_booking_forwarding":"You have already rejected this booking forwarding request.",
   "copy_link_booking_forwarding_request": "Copy link to share it directly with selected user",

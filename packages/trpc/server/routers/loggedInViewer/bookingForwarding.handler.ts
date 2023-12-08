@@ -7,6 +7,8 @@ import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TBookingForwardingConfirm, TBookingForwardingInputSchema } from "./bookingForwarding.schema";
 
 type BookingForwardingT = {
@@ -17,22 +19,18 @@ type BookingForwardingT = {
 };
 
 export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT) => {
-  if (!ctx.user.id) {
-    throw new Error("user_not_found");
-  }
-
   if (!input.startDate || !input.endDate) {
-    throw new Error("start_date_and_end_date_required");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
   }
 
   // Validate start date is before end date
   if (dayjs(input.startDate).isAfter(dayjs(input.endDate))) {
-    throw new Error("start_date_must_be_before_end_date");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
   }
 
   // Validate start and end date are in the future
   if (dayjs(input.startDate).isBefore(dayjs().subtract(1, "d").startOf("day"))) {
-    throw new Error("start_date_must_be_in_the_future");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 
   let toUserId;
@@ -49,7 +47,7 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
     toUserId = user?.id;
   }
   if (!toUserId) {
-    throw new Error("user_not_found");
+    throw new TRPCError({ code: "NOT_FOUND", message: "user_not_found" });
   }
 
   // Validate if already exists
@@ -63,7 +61,7 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
   });
 
   if (bookingForwarding) {
-    throw new Error("booking_forwarding_already_exists");
+    throw new TRPCError({ code: "CONFLICT", message: "booking_forwarding_already_exists" });
   }
 
   // Prevent infinite redirects
@@ -80,7 +78,7 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
   });
 
   if (existingBookingForwarding) {
-    throw new Error("booking_forwarding_infinite_not_allowed");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "booking_forwarding_infinite_not_allowed" });
   }
 
   // Count number of booking redirects with accepted status and start date in the future
@@ -95,7 +93,7 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
 
   // Limit to 10 always
   if (acceptedBookingForwardings >= 10) {
-    throw new Error("booking_redirect_limit_reached");
+    throw new TRPCError({ code: "CONFLICT", message: "booking_redirect_limit_reached" });
   }
 
   const createdForwarding = await prisma.bookingForwarding.create({
@@ -146,7 +144,7 @@ type BookingForwardingConfirmT = {
 
 export const bookingForwardingAccept = async ({ ctx, input }: BookingForwardingConfirmT) => {
   if (!input.bookingForwardingUid) {
-    throw new Error("booking_redirect_id_required");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_id_required" });
   }
 
   // Validate bookingForwarding is targeted to the user accepting it
@@ -158,7 +156,7 @@ export const bookingForwardingAccept = async ({ ctx, input }: BookingForwardingC
   });
 
   if (!bookingForwarding) {
-    throw new Error("booking_redirect_not_found");
+    throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
   }
 
   await prisma.bookingForwarding.update({
@@ -183,7 +181,7 @@ type BookingForwardingDeleteT = {
 
 export const bookingForwardingDelete = async ({ ctx, input }: BookingForwardingDeleteT) => {
   if (!input.bookingForwardingUid) {
-    throw new Error("booking_redirect_id_required");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_id_required" });
   }
 
   // Validate bookingForwarding belongs to the user deleting it
@@ -199,7 +197,7 @@ export const bookingForwardingDelete = async ({ ctx, input }: BookingForwardingD
   });
 
   if (!bookingForwarding) {
-    throw new Error("booking_redirect_not_found");
+    throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
   }
 
   await prisma.bookingForwarding.delete({
