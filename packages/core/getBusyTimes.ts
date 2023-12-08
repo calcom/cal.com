@@ -83,9 +83,10 @@ export async function getBusyTimes(params: {
   const endTimeDate =
     rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
 
+  // startTime is less than endTimeDate and endTime grater than startTimeDate
   const sharedQuery = {
-    startTime: { gte: startTimeDate },
-    endTime: { lte: endTimeDate },
+    startTime: { lte: endTimeDate },
+    endTime: { gte: startTimeDate },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
