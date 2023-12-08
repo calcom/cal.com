@@ -25,11 +25,11 @@ export default function InsightsPage() {
   const { data: user } = trpc.viewer.me.useQuery();
 
   const features = [
-    {
-      icon: <Users className="h-5 w-5" />,
-      title: t("view_bookings_across"),
-      description: t("view_bookings_across_description"),
-    },
+    // {
+    //   icon: <Users className="h-5 w-5" />,
+    //   title: t("view_bookings_across"),
+    //   description: t("view_bookings_across_description"),
+    // },
     {
       icon: <RefreshCcw className="h-5 w-5" />,
       title: t("identify_booking_trends"),
