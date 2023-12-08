@@ -1,5 +1,7 @@
 import { GetUser } from "@/modules/auth/decorator";
+import { Roles } from "@/modules/auth/decorator/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
+import { RolesGuard } from "@/modules/auth/guard/roles";
 import type { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import type { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
@@ -16,17 +18,16 @@ import {
   Logger,
   UseGuards,
 } from "@nestjs/common";
-import { PlatformOAuthClient } from "@prisma/client";
+import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
-import { hasBookingReadPermission } from "@calcom/platform-utils";
 
 @Controller({
   path: "oauth-clients",
   version: "2",
 })
-@UseGuards(NextAuthGuard)
+@UseGuards(NextAuthGuard, RolesGuard)
 export class OAuthClientController {
   private readonly logger = new Logger("OAuthClientController");
 
@@ -34,6 +35,7 @@ export class OAuthClientController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async createOAuthClient(
     @GetUser("id") userId: number,
     @GetUser("organizationId") organizationId: number,
@@ -52,6 +54,7 @@ export class OAuthClientController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[]>> {
     const clients = await this.oauthClientRepository.getUserOAuthClients(userId);
     return { status: SUCCESS_STATUS, data: clients };
@@ -59,6 +62,7 @@ export class OAuthClientController {
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
     return { status: SUCCESS_STATUS, data: client };
@@ -66,6 +70,7 @@ export class OAuthClientController {
 
   @Put("/:clientId")
   @HttpCode(HttpStatus.OK)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async updateOAuthClient(
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
@@ -77,6 +82,7 @@ export class OAuthClientController {
 
   @Delete("/:clientId")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
