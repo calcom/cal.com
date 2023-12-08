@@ -29,11 +29,11 @@ export class OAuthClientRepository {
     });
   }
 
-  async getUserOAuthClients(userId: number): Promise<PlatformOAuthClient[]> {
+  async getOrganizationOAuthClients(organizationId: number): Promise<PlatformOAuthClient[]> {
     return this.dbRead.prisma.platformOAuthClient.findMany({
       where: {
-        users: {
-          some: { id: userId },
+        organization: {
+          id: organizationId,
         },
       },
     });

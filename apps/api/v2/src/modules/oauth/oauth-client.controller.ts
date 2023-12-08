@@ -37,12 +37,13 @@ export class OAuthClientController {
   @HttpCode(HttpStatus.CREATED)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async createOAuthClient(
-    @GetUser("id") userId: number,
     @GetUser("organizationId") organizationId: number,
     @Body() body: CreateOAuthClientInput
   ): Promise<ApiResponse<{ client_id: string; client_secret: string }>> {
-    this.logger.log(`For user ${userId} creating OAuth Client with data: ${JSON.stringify(body)}`);
-    const { id, secret } = await this.oauthClientRepository.createOAuthClient(userId, body);
+    this.logger.log(
+      `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
+    );
+    const { id, secret } = await this.oauthClientRepository.createOAuthClient(organizationId, body);
     return {
       status: SUCCESS_STATUS,
       data: {
@@ -55,8 +56,10 @@ export class OAuthClientController {
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
-  async getOAuthClients(@GetUser("id") userId: number): Promise<ApiResponse<PlatformOAuthClient[]>> {
-    const clients = await this.oauthClientRepository.getUserOAuthClients(userId);
+  async getOAuthClients(
+    @GetUser("organizationId") organizationId: number
+  ): Promise<ApiResponse<PlatformOAuthClient[]>> {
+    const clients = await this.oauthClientRepository.getOrganizationOAuthClients(organizationId);
     return { status: SUCCESS_STATUS, data: clients };
   }
 
