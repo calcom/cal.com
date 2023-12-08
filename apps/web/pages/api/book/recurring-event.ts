@@ -62,10 +62,16 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       noEmail: key !== 0,
     };
 
-    const eachRecurringBooking = await handleNewBooking(recurringEventReq, {
-      isNotAnApiCall: true,
-      skipAvailabilityCheck: key >= numSlotsToCheckForAvailability || thirdPartyRecurringEventId !== null,
-    });
+    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking(
+      recurringEventReq,
+      {
+        isNotAnApiCall: true,
+        skipAvailabilityCheck: key >= numSlotsToCheckForAvailability || thirdPartyRecurringEventId !== null,
+      }
+    );
+
+    const eachRecurringBooking = await promiseEachRecurringBooking;
+
     createdBookings.push(eachRecurringBooking);
 
     if (!thirdPartyRecurringEventId) {

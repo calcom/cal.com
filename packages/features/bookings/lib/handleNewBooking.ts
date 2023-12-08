@@ -2077,7 +2077,9 @@ async function handler(
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
-  let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
+  let booking: (Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number }) | null =
+    null;
+
   loggerWithEventDetails.debug(
     "Going to create booking in DB now",
     safeStringify({
