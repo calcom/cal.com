@@ -1581,6 +1581,7 @@
   "enable_apps": "Увімкнути додатки",
   "enable_apps_description": "Активуйте застосунки, які користувачі зможуть інтегрувати із застосунком {{appName}}",
   "purchase_license": "Придбати ліцензію",
+  "already_have_account": "Уже маєте обліковий запис?",
   "already_have_key": "У мене вже є ключ:",
   "already_have_key_suggestion": "Скопіюйте сюди наявну змінну оточення CALCOM_LICENSE_KEY.",
   "app_is_enabled": "{{appName}} увімкнено",

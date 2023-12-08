@@ -21,6 +21,7 @@ import {
   Avatar,
   FilterSearchField,
   Tooltip,
+  Button,
 } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
@@ -94,6 +95,8 @@ const PeopleFilter = () => {
 export function FiltersContainer() {
   const { t } = useLocale();
 
+  const { removeAllQueryParams } = useFilterQuery();
+
   const [addFilterOptions, toggleOption, isFilterActive] = useBookingMultiFilterStore((state) => [
     state.addFilterOptions,
     state.toggleOption,
@@ -135,7 +138,18 @@ export function FiltersContainer() {
 
       {isPeopleFilterActive && <PeopleFilter />}
       {isEventTypeFilterActive && <EventTypeFilter />}
-
+      {(isPeopleFilterActive || isEventTypeFilterActive) && (
+        <Tooltip content={t("remove_filters")}>
+          <Button
+            color="secondary"
+            type="button"
+            onClick={() => {
+              removeAllQueryParams();
+            }}>
+            {t("remove_filters")}
+          </Button>
+        </Tooltip>
+      )}
       <TeamsFilter />
     </div>
   );

@@ -4,7 +4,8 @@ import { randomBytes } from "crypto";
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser } from "./lib/testUtils";
+import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
+import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -12,8 +13,9 @@ test.describe("Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
     features.reset(); // This resets to the inital state not an empt yarray
   });
-  test.afterAll(async ({ users }) => {
+  test.afterAll(async ({ users, emails }) => {
     await users.deleteAll();
+    emails?.deleteAll();
   });
   test("Username is taken", async ({ page, users }) => {
     // log in trail user
@@ -227,5 +229,56 @@ test.describe("Signup Flow Test", async () => {
 
     const verifyEmail = receivedEmails?.items[0];
     expect(verifyEmail?.subject).toBe(`${APP_NAME}: Verify your account`);
+  });
+  test("If signup is disabled allow team invites", async ({ browser, page, users, emails }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip(process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true", "Skipping due to signup being enabled");
+
+    const t = await localize("en");
+    const teamOwner = await users.create(undefined, { hasTeam: true });
+    const { team } = await teamOwner.getFirstTeam();
+    await teamOwner.apiLogin();
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.waitForLoadState("networkidle");
+
+    await test.step("Invite User to team", async () => {
+      // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
+      const invitedUserEmail = `rick_${Date.now()}@domain-${Date.now()}.com`;
+      await page.locator(`button:text("${t("add")}")`).click();
+      await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
+      await page.locator(`button:text("${t("send_invite")}")`).click();
+      await page.waitForLoadState("networkidle");
+      const inviteLink = await expectInvitationEmailToBeReceived(
+        page,
+        emails,
+        invitedUserEmail,
+        `${team.name}'s admin invited you to join the team ${team.name} on Cal.com`,
+        "signup?token"
+      );
+
+      //Check newly invited member exists and is pending
+      await expect(
+        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
+      ).toHaveCount(1);
+
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (!inviteLink) return;
+
+      // Follow invite link to new window
+      const context = await browser.newContext();
+      const newPage = await context.newPage();
+      await newPage.goto(inviteLink);
+      await newPage.waitForLoadState("networkidle");
+
+      const url = new URL(newPage.url());
+      expect(url.pathname).toBe("/signup");
+
+      // Check required fields
+      await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      await newPage.locator("button[type=submit]").click();
+      await newPage.waitForURL("/getting-started?from=signup");
+      await newPage.close();
+      await context.close();
+    });
   });
 });

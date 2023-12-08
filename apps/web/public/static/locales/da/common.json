@@ -1367,6 +1367,7 @@
   "disabled_calendar": "Hvis du har en anden kalender installeret vil nye bookinger blive tilføjet til den. Hvis ikke, så forbind en ny kalender, så du ikke går glip af nye bookinger.",
   "enable_apps": "Aktivér Apps",
   "purchase_license": "Køb en licens",
+  "already_have_account": "Har du allerede en konto?",
   "already_have_key": "Jeg har allerede en nøgle:",
   "already_have_key_suggestion": "Kopiér venligst din eksisterende CALCOM_LICENSE_KEY environment variabel her.",
   "app_is_enabled": "{{appName}} er aktiveret",
