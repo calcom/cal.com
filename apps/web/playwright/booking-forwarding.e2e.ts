@@ -130,7 +130,7 @@ test.describe("Booking forwarding", () => {
 
     await page.goto("/event-types");
 
-    await page.locator("data-testid=user-dropdown-trigger").first().click();
+    await page.locator("data-testid=user-dropdown-trigger-button").first().click();
 
     await page.locator("data-testid=set-away-button").first().click();
 
