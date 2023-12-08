@@ -3,6 +3,7 @@ import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -40,6 +41,7 @@ function getZapierPayload(
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
+      utcOffset: getUTCOffsetByTimezone(attendee.timeZone),
     };
   });
 
@@ -62,6 +64,7 @@ function getZapierPayload(
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
+      utcOffset: getUTCOffsetByTimezone(data.organizer.timeZone),
       locale: data.organizer.locale,
     },
     eventType: {
