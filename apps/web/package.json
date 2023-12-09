@@ -83,7 +83,7 @@
     "ics": "^2.37.0",
     "jose": "^4.13.1",
     "kbar": "^0.1.0-beta.36",
-    "libphonenumber-js": "^1.10.12",
+    "libphonenumber-js": "^1.10.51",
     "lodash": "^4.17.21",
     "lottie-react": "^2.3.1",
     "markdown-it": "^13.0.1",
