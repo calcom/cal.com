@@ -26,7 +26,7 @@ import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { UserAvatar } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";

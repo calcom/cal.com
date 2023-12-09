@@ -27,7 +27,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { UserAvatar } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";

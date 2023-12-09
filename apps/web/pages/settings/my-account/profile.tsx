@@ -40,7 +40,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui/components/avatar/UserAvatar";
+import { UserAvatar } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
