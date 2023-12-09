@@ -11,38 +11,13 @@ import { createTRPCNext } from "../next";
 import type { TRPCClientErrorLike } from "../react";
 import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
 import type { AppRouter } from "../server/routers/_app";
+import { ENDPOINTS } from "./shared";
 
 /**
  * We deploy our tRPC router on multiple lambdas to keep number of imports as small as possible
  * TODO: Make this dynamic based on folders in trpc server?
  */
-const ENDPOINTS = [
-  "admin",
-  "apiKeys",
-  "appRoutingForms",
-  "apps",
-  "auth",
-  "availability",
-  "appBasecamp3",
-  "bookings",
-  "deploymentSetup",
-  "eventTypes",
-  "features",
-  "insights",
-  "payments",
-  "public",
-  "saml",
-  "slots",
-  "teams",
-  "organizations",
-  "users",
-  "viewer",
-  "webhook",
-  "workflows",
-  "appsRouter",
-  "googleWorkspace",
-  "oAuth",
-] as const;
+
 export type Endpoint = (typeof ENDPOINTS)[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
