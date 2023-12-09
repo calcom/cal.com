@@ -53,24 +53,25 @@ function ConnectAndJoin() {
           description={t("uprade_to_create_instant_bookings")}
           buttonRaw={
             <div className="flex flex-col items-center justify-center	gap-4">
-              <Button
-                loading={mutation.isLoading}
-                tooltip={t("not_part_of_org")}
-                // disabled={!isUserPartOfOrg}
-                onClick={() => {
-                  mutation.mutate({ token });
-                }}>
-                {t("join_meeting")}
-              </Button>
-              {meetingUrl && (
-                <Trans
-                  i18nKey="some_other_host_already_accepted_the_meeting"
-                  className="text-center font-semibold">
-                  Some other host already accepted the meeting. Do you still want to join?
-                  <Link className="cursor-pointer underline" href={meetingUrl}>
-                    Continue to Meeting Url
-                  </Link>
-                </Trans>
+              {meetingUrl ? (
+                <div className="text-default flex flex-col items-center gap-2 text-center text-sm font-normal">
+                  <Trans i18nKey="some_other_host_already_accepted_the_meeting">
+                    Some other host already accepted the meeting. Do you still want to join?
+                    <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
+                      Continue to Meeting Url
+                    </Link>
+                  </Trans>
+                </div>
+              ) : (
+                <Button
+                  loading={mutation.isLoading}
+                  tooltip={t("not_part_of_org")}
+                  // disabled={!isUserPartOfOrg}
+                  onClick={() => {
+                    mutation.mutate({ token });
+                  }}>
+                  {t("join_meeting")}
+                </Button>
               )}
             </div>
           }
