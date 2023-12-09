@@ -328,8 +328,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
   const sharedQuery = {
-    startTime: { gte: startTimeDate },
-    endTime: { lte: endTimeDate },
+    startTime: { lte: endTimeDate },
+    endTime: { gte: startTimeDate },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
