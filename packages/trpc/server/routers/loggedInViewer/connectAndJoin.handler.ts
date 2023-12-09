@@ -74,12 +74,12 @@ export const Handler = async ({ ctx, input }: Options) => {
   }
 
   // Check if Booking is already accepted by any other user
-  let isBookingAlreadyAccepted = false;
+  let isBookingAlreadyAcceptedBySomeoneElse = false;
   if (
     instantMeetingToken.booking.status === BookingStatus.ACCEPTED &&
     instantMeetingToken.booking?.user?.id !== user.id
   ) {
-    isBookingAlreadyAccepted = true;
+    isBookingAlreadyAcceptedBySomeoneElse = true;
   }
 
   // Update User in Booking
@@ -88,7 +88,7 @@ export const Handler = async ({ ctx, input }: Options) => {
       id: instantMeetingToken.booking.id,
     },
     data: {
-      ...(isBookingAlreadyAccepted
+      ...(isBookingAlreadyAcceptedBySomeoneElse
         ? { status: BookingStatus.ACCEPTED }
         : {
             status: BookingStatus.ACCEPTED,
@@ -105,9 +105,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     },
   });
 
-  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-    updatedBooking.metadata || {}
-  )?.videoCallUrl;
+  const locationVideoCallUrl = bookingMetadataSchema.parse(updatedBooking.metadata || {})?.videoCallUrl;
 
   if (!locationVideoCallUrl) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "meeting_url_not_found" });
@@ -116,5 +114,5 @@ export const Handler = async ({ ctx, input }: Options) => {
   // TODO:
   // Send Email to all Attendees and Create Calendar Events
 
-  return { isBookingAlreadyAccepted, meetingUrl: locationVideoCallUrl };
+  return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };
 };

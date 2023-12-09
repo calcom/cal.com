@@ -25,9 +25,9 @@ function ConnectAndJoin() {
 
   const mutation = trpc.viewer.connectAndJoin.useMutation({
     onSuccess: (res) => {
-      if (res.meetingUrl && !res.isBookingAlreadyAccepted) {
+      if (res.meetingUrl && !res.isBookingAlreadyAcceptedBySomeoneElse) {
         router.push(res.meetingUrl);
-      } else if (res.isBookingAlreadyAccepted && res.meetingUrl) {
+      } else if (res.isBookingAlreadyAcceptedBySomeoneElse && res.meetingUrl) {
         setMeetingUrl(res.meetingUrl);
       }
     },

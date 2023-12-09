@@ -278,16 +278,18 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     if (month) set({ month });
 
     if (isInstantMeeting) {
-      const setSelectedTimeslot = get().setSelectedTimeslot;
-      const setMonth = get().setMonth;
-      const setSelectedDate = get().setSelectedDate;
-
-      setMonth(dayjs().format("YYYY-MM"));
-      setSelectedDate(dayjs().format("YYYY-MM-DD"));
-
-      const currentTime = new Date().toISOString();
-      setSelectedTimeslot(currentTime);
-      set({ isInstantMeeting });
+      const month = dayjs().format("YYYY-MM");
+      const selectedDate = dayjs().format("YYYY-MM-DD");
+      const selectedTimeslot = new Date().toISOString();
+      set({
+        month,
+        selectedDate,
+        selectedTimeslot,
+        isInstantMeeting,
+      });
+      updateQueryParam("month", month);
+      updateQueryParam("date", selectedDate ?? "");
+      updateQueryParam("slot", selectedTimeslot ?? "");
     }
     //removeQueryParam("layout");
   },
