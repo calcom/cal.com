@@ -9,10 +9,9 @@ type hintsOrErrorsProps = {
   hintErrors?: string[];
   fieldName: string;
   t: (key: string) => string;
-  hideIfEmpty?: boolean;
 };
 
-function CustomErrors({ hintErrors, fieldName, t }: hintsOrErrorsProps) {
+function CustomErrors({ fieldName, t }: hintsOrErrorsProps) {
   const methods = useFormContext();
   const fieldErrors = methods.formState.errors[fieldName];
 
@@ -37,18 +36,17 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   hintErrors,
   fieldName,
   t,
-  hideIfEmpty = false,
 }: hintsOrErrorsProps) {
   const methods = useFormContext() as ReturnType<typeof useFormContext> | null;
   /* If there's no methods it means we're using these components outside a React Hook Form context */
-  if (!methods) return null;
 
-  if (!methods && hintErrors?.length) {
+  if (!methods && hintErrors && hintErrors?.length > 0) {
     throw new Error("InputField is expecting hint errors but is not use within a RHF context");
   }
 
-  const { formState, watch } = methods;
-  const hasBeenTouched = watch(fieldName);
+  if (!methods) return null;
+
+  const { formState } = methods;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -62,35 +60,41 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   // No hint errors passed and there are no additional errors
   if (!hintErrors) return null;
 
+  function IconRenderer({
+    submitted,
+    error,
+    isDirty,
+  }: {
+    submitted: boolean;
+    error: string | undefined;
+    isDirty: boolean;
+  }) {
+    console.log({ submitted, error, isDirty });
+    if (!isDirty && !error) {
+      return <Circle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />;
+    }
+
+    if (isDirty && error) {
+      return <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />;
+      // return <Check size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />;
+    }
+
+    return <Check size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />;
+  }
+
   // hints passed, field errors exist
   return (
-    <div
-      className={classNames(
-        "text-gray text-default mt-2 flex items-center text-sm",
-        !hasBeenTouched && hideIfEmpty && "opacity-0"
-      )}>
+    <div className={classNames("text-gray text-default mt-2 flex items-center text-sm")}>
       <ul className="ml-2">
         {hintErrors.map((key: string) => {
           const submitted = formState.isSubmitted;
           const error: string | undefined =
             fieldErrors && fieldErrors[key] ? fieldErrors[key] : fieldErrors?.message;
+          const isDirty = !!formState.dirtyFields[fieldName];
 
           return (
-            <li
-              key={key}
-              data-testid="hint-error"
-              className={
-                error !== undefined ? (submitted || hasBeenTouched ? "text-red-700" : "") : "text-muted"
-              }>
-              {error !== undefined ? (
-                submitted ? (
-                  <X size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
-                ) : (
-                  <Circle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
-                )
-              ) : (
-                <Check size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
-              )}
+            <li key={key} data-testid="hint-error" className={error ? "text-red-700" : "text-muted"}>
+              <IconRenderer submitted={submitted} error={error} isDirty={isDirty} />
               {t(`${fieldName}_hint_${key}`)}
             </li>
           );
