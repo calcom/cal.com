@@ -23,16 +23,16 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
-  const methods = useFormContext<FormValues>();
+  const formMethods = useFormContext<FormValues>();
   const installedApps =
     eventTypeApps?.items.filter((app) => app.userCredentialIds.length || app.teams.length) || [];
   const notInstalledApps =
     eventTypeApps?.items.filter((app) => !app.userCredentialIds.length && !app.teams.length) || [];
-  const allAppsData = methods.watch("metadata")?.apps || {};
+  const allAppsData = formMethods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
-    methods.setValue("metadata", {
-      ...methods.getValues("metadata"),
+    formMethods.setValue("metadata", {
+      ...formMethods.getValues("metadata"),
       apps: _allAppsData,
     });
   };
@@ -50,7 +50,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const getAppDataSetter = (appId: EventTypeAppsList, credentialId?: number): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
-      const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+      const allAppsDataFromForm = formMethods.getValues("metadata")?.apps || {};
       const appData = allAppsDataFromForm[appId];
       setAllAppsData({
         ...allAppsDataFromForm,

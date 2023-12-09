@@ -9,9 +9,5 @@ export const EventRecurringTab = ({ eventType }: Pick<EventTypeSetupProps, "even
 
   const requirePayment = paymentAppData.price > 0;
 
-  return (
-    <>
-      <RecurringEventController paymentEnabled={requirePayment} eventType={eventType} />
-    </>
-  );
+  return <RecurringEventController paymentEnabled={requirePayment} eventType={eventType} />;
 };

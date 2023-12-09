@@ -67,6 +67,7 @@ type Props = {
   isUpdateMutationLoading?: boolean;
   availability?: AvailabilityOption;
   isUserOrganizationAdmin: boolean;
+  activeWebhooksNumber: number;
 };
 
 type getNavigationProps = {
@@ -145,6 +146,7 @@ function EventTypeSingleLayout({
   formMethods,
   availability,
   isUserOrganizationAdmin,
+  activeWebhooksNumber,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -154,7 +156,7 @@ function EventTypeSingleLayout({
   const hasPermsToDelete =
     currentUserMembership?.role !== "MEMBER" ||
     !currentUserMembership ||
-    eventType.schedulingType === SchedulingType.MANAGED ||
+    formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -176,22 +178,23 @@ function EventTypeSingleLayout({
   });
 
   const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    eventType,
+    formMethods.getValues(),
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
 
-  const enabledWebhooks = formMethods.watch("enabledWebhooks");
   const length = formMethods.watch("length");
   const multipleDuration = formMethods.watch("metadata")?.multipleDuration;
 
+  const watchSchedulingType = formMethods.watch("schedulingType");
+  const watchChildrenCount = formMethods.watch("children").length;
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
     const navigation = getNavigation({
       t,
       length,
       multipleDuration,
-      id: eventType.id,
+      id: formMethods.getValues("id"),
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
@@ -200,31 +203,29 @@ function EventTypeSingleLayout({
 
     navigation.splice(1, 0, {
       name: "availability",
-      href: `/event-types/${eventType.id}?tabName=availability`,
+      href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
       icon: Calendar,
       info:
         isManagedEventType || isChildrenManagedEventType
-          ? eventType.schedule === null
+          ? formMethods.getValues("schedule") === null
             ? "members_default_schedule"
             : isChildrenManagedEventType
             ? `${
-                eventType.scheduleName
-                  ? `${eventType.scheduleName} - ${t("managed")}`
+                formMethods.getValues("scheduleName")
+                  ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
                   : `default_schedule_name`
               }`
-            : eventType.scheduleName ?? `default_schedule_name`
-          : eventType.scheduleName ?? `default_schedule_name`,
+            : formMethods.getValues("scheduleName") ?? `default_schedule_name`
+          : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
       navigation.splice(2, 0, {
         name: "assignment",
-        href: `/event-types/${eventType.id}?tabName=team`,
+        href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
         icon: Users,
-        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType
-            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
-            : ""
+        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
+          isManagedEventType ? ` - ${t("count_members", { count: watchChildrenCount || 0 })}` : ""
         }`,
       });
     }
@@ -232,15 +233,14 @@ function EventTypeSingleLayout({
     if (showWebhooks) {
       navigation.push({
         name: "webhooks",
-        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
         icon: TbWebhook,
-        info: `${enabledWebhooks} ${t("active")}`,
+        info: `${activeWebhooksNumber} ${t("active")}`,
       });
     }
     return navigation;
   }, [
     t,
-    eventType,
     enabledAppsNumber,
     installedAppsNumber,
     enabledWorkflowsNumber,
@@ -250,19 +250,23 @@ function EventTypeSingleLayout({
     team,
     length,
     multipleDuration,
-    enabledWebhooks,
-    formMethods,
+    formMethods.getValues("id"),
+    watchSchedulingType,
+    watchChildrenCount,
+    activeWebhooksNumber,
   ]);
 
   const orgBranding = useOrgBranding();
   const isOrgEvent = orgBranding?.fullDomain;
   const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
-    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
-  }/${eventType.slug}`;
+    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
+  }/${formMethods.getValues("slug")}`;
 
-  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
-  const isManagedEvent = eventType.schedulingType === SchedulingType.MANAGED ? "_managed" : "";
-
+  const embedLink = `${
+    team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
+  }/${formMethods.getValues("slug")}`;
+  const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
+  // const title = formMethods.watch("title");
   return (
     <Shell
       backPath="/event-types"
@@ -270,7 +274,7 @@ function EventTypeSingleLayout({
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
-          {!eventType.metadata?.managedEventConfig && (
+          {!formMethods.getValues("metadata")?.managedEventConfig && (
             <>
               <div
                 className={classNames(
@@ -344,7 +348,7 @@ function EventTypeSingleLayout({
                   tooltip={t("embed")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
-                  eventId={eventType.id}
+                  eventId={formMethods.getValues("id")}
                 />
               </>
             )}
@@ -464,7 +468,7 @@ function EventTypeSingleLayout({
           loadingText={t(`confirm_delete_event_type`)}
           onConfirm={(e) => {
             e.preventDefault();
-            deleteMutation.mutate({ id: eventType.id });
+            deleteMutation.mutate({ id: formMethods.getValues("id") });
           }}>
           <p className="mt-5">
             <Trans

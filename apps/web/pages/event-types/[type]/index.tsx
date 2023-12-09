@@ -80,6 +80,7 @@ const EventWebhooksTab = dynamic(() =>
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
 export type FormValues = {
+  id: number;
   title: string;
   eventTitle: string;
   eventName: string;
@@ -118,6 +119,7 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
+  scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
   beforeBufferTime: number;
@@ -138,7 +140,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
-  enabledWebhooks: number;
+  users: EventTypeSetup["users"];
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -179,7 +181,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
       formMethods.setValue(
@@ -247,6 +248,18 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const defaultValues: any = useMemo(() => {
     return {
       title: eventType.title,
+      id: eventType.id,
+      slug: eventType.slug,
+      afterEventBuffer: eventType.afterEventBuffer,
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      eventName: eventType.eventName || "",
+      scheduleName: eventType.scheduleName,
+      periodDays: eventType.periodDays || 30,
+      requiresBookerEmailVerification: eventType.requiresBookerEmailVerification,
+      seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+      seatsShowAttendees: eventType.seatsShowAttendees,
+      seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
+      lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
@@ -271,8 +284,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
       hosts: eventType.hosts,
-      successRedirectUrl: eventType.successRedirectUrl,
-      enabledWebhooks: eventType.webhooks.filter((webhook) => webhook.active).length,
+      successRedirectUrl: eventType.successRedirectUrl || "",
+      users: eventType.users,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
@@ -413,7 +426,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab eventType={eventType} />,
+    limits: <EventLimitsTab />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
@@ -486,7 +499,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, enabledWebhooks, ...rest } = input;
+    const { availability, users, scheduleName, ...rest } = input;
     updateMutation.mutate({
       ...rest,
       length,
@@ -520,6 +533,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         installedAppsNumber={eventTypeApps?.items.length || 0}
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
+        activeWebhooksNumber={eventType.webhooks.filter((webhook) => webhook.active).length}
         team={team}
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
@@ -581,7 +595,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               }
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { availability, enabledWebhooks, ...rest } = input;
+            const { availability, users, scheduleName, ...rest } = input;
             updateMutation.mutate({
               ...rest,
               length,

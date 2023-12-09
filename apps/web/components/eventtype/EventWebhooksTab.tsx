@@ -2,9 +2,8 @@ import type { Webhook } from "@prisma/client";
 import { Webhook as TbWebhook } from "lucide-react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
+import { useState } from "react";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { WebhookForm } from "@calcom/features/webhooks/components";
@@ -23,12 +22,6 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const utils = trpc.useContext();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
-
-  const enabledWebhooks = webhooks?.filter((webhook) => webhook.active).length;
-  const formMethods = useFormContext<FormValues>();
-  useEffect(() => {
-    if (enabledWebhooks !== undefined) formMethods.setValue("enabledWebhooks", enabledWebhooks);
-  }, [enabledWebhooks]);
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
@@ -41,8 +34,9 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
-      await utils.viewer.webhook.list.invalidate();
       showToast(t("webhook_updated_successfully"), "success");
+      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -51,9 +45,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
+      setCreateModalOpen(false);
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      setCreateModalOpen(false);
+      await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
       showToast(`${error.message}`, "error");

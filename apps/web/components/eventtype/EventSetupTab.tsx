@@ -48,21 +48,19 @@ const getLocationFromType = (
   }
 };
 
-const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
+const getLocationInfo = ({
+  eventType,
+  locationOptions,
+}: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
   const locationAvailable =
-    props.eventType.locations &&
-    props.eventType.locations.length > 0 &&
-    props.locationOptions.some((op) =>
-      op.options.find((opt) => opt.value === props.eventType.locations[0].type)
-    );
-  const locationDetails = props.eventType.locations &&
-    props.eventType.locations.length > 0 &&
+    eventType.locations &&
+    eventType.locations.length > 0 &&
+    locationOptions.some((op) => op.options.find((opt) => opt.value === eventType.locations[0].type));
+  const locationDetails = eventType.locations &&
+    eventType.locations.length > 0 &&
     !locationAvailable && {
-      slug: props.eventType.locations[0].type
-        .replace("integrations:", "")
-        .replace(":", "-")
-        .replace("_video", ""),
-      name: props.eventType.locations[0].type
+      slug: eventType.locations[0].type.replace("integrations:", "").replace(":", "-").replace("_video", ""),
+      name: eventType.locations[0].type
         .replace("integrations:", "")
         .replace(":", " ")
         .replace("_video", "")
@@ -72,16 +70,11 @@ const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locatio
     };
   return { locationAvailable, locationDetails };
 };
-interface DescriptionEditorProps {
-  description?: string | null;
-  editable?: boolean;
-}
 
-const DescriptionEditor = (props: DescriptionEditorProps) => {
+const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
   const formMethods = useFormContext<FormValues>();
   const [mounted, setIsMounted] = useState(false);
   const { t } = useLocale();
-  const { description } = props;
   const [firstRender, setFirstRender] = useState(true);
   useEffect(() => {
     setIsMounted(true);
@@ -89,11 +82,11 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
 
   return mounted ? (
     <Editor
-      getText={() => md.render(formMethods.getValues("description") || description || "")}
+      getText={() => md.render(formMethods.getValues("description") || "")}
       setText={(value: string) => formMethods.setValue("description", turndown(value))}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
-      editable={props.editable}
+      editable={isEditable}
       firstRender={firstRender}
       setFirstRender={setFirstRender}
     />
@@ -150,7 +143,7 @@ export const EventSetupTab = (
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
     useLockedFieldsManager(
-      eventType,
+      formMethods.getValues(),
       t("locked_fields_admin_description"),
       t("locked_fields_member_description")
     );
@@ -197,7 +190,6 @@ export const EventSetupTab = (
         return (
           <Controller
             name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
@@ -221,7 +213,6 @@ export const EventSetupTab = (
         return (
           <Controller
             name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
@@ -341,7 +332,7 @@ export const EventSetupTab = (
                         defaultChecked={defaultLocation?.displayLocationPublicly}
                         description={t("display_location_label")}
                         onChange={(e) => {
-                          const fieldValues = formMethods.getValues().locations[index];
+                          const fieldValues = formMethods.getValues("locations")[index];
                           updateLocationField(index, {
                             ...fieldValues,
                             displayLocationPublicly: e.target.checked,
@@ -359,7 +350,6 @@ export const EventSetupTab = (
             <div className="flex">
               <LocationSelect
                 defaultMenuIsOpen={showEmptyLocationSelect}
-                autoFocus
                 placeholder={t("select")}
                 options={locationOptions}
                 value={selectedNewOption}
@@ -411,7 +401,7 @@ export const EventSetupTab = (
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                   Change it{" "}
                   <Link
-                    href={`${CAL_URL}/event-types/${eventType.id}?tabName=advanced`}
+                    href={`${CAL_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
                     className="underline">
                     here.
                   </Link>{" "}
@@ -466,7 +456,6 @@ export const EventSetupTab = (
             required
             label={t("title")}
             {...shouldLockDisableProps("title")}
-            defaultValue={eventType.title}
             {...formMethods.register("title")}
           />
           <div>
@@ -474,23 +463,19 @@ export const EventSetupTab = (
               {t("description")}
               {shouldLockIndicator("description")}
             </Label>
-            <DescriptionEditor
-              description={eventType?.description}
-              editable={!descriptionLockedProps.disabled}
-            />
+            <DescriptionEditor isEditable={!descriptionLockedProps.disabled} />
           </div>
           <TextField
             required
             label={t("URL")}
             {...shouldLockDisableProps("slug")}
-            defaultValue={eventType.slug}
             addOnLeading={
               <>
                 {urlPrefix}/
                 {!isManagedEventType
                   ? team
                     ? (orgBranding ? "" : "team/") + team.slug
-                    : eventType.users[0].username
+                    : formMethods.getValues("users")[0].username
                   : t("username_placeholder")}
                 /
               </>
@@ -605,12 +590,7 @@ export const EventSetupTab = (
               {shouldLockIndicator("locations")}
             </Skeleton>
 
-            <Controller
-              name="locations"
-              control={formMethods.control}
-              defaultValue={eventType.locations || []}
-              render={() => <Locations />}
-            />
+            <Controller name="locations" render={() => <Locations />} />
           </div>
         </div>
       </div>
