@@ -41,9 +41,12 @@ function LocationsAutocomplete({
     }
 
     const res = await fetch(`/api/location-autocomplete?place=${debouncedLocation}`);
-    const places = await res.json();
 
-    setSuggestedLocations(places);
+    // if the response is not ok, don't search
+    if (res.ok) {
+      const places = await res.json();
+      setSuggestedLocations(places);
+    }
   }, [debouncedLocation, value]);
 
   const saveLocation = (place: string) => {
@@ -62,7 +65,10 @@ function LocationsAutocomplete({
         placeholder={placeholder}
         type="text"
         required={required}
-        onChange={(e) => setLocation(e.target.value)}
+        onChange={(e) => {
+          setLocation(e.target.value);
+          saveLocation(e.target.value);
+        }}
         value={location}
         className="my-0"
         {...rest}
