@@ -120,7 +120,7 @@ async function main() {
       },
     ],
   });
-  await createUserAndEventType({
+  const proUser = await createUserAndEventType({
     user: {
       email: "pro@example.com",
       name: "Pro Example",
@@ -524,23 +524,78 @@ async function main() {
     ]
   );
 
+  // Generate an apiKey for testing proUser
+  const [proUserHashedKey, proUserApiKey] = generateUniqueAPIKey();
+
+  await prisma.apiKey.create({
+    data: {
+      id: v4(),
+      userId: proUser.id,
+      note: "Generated API Key for testing",
+      // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
+      expiresAt: null,
+      hashedKey: proUserHashedKey,
+    },
+  });
+
   // Generate an apiKey for testing
-  const [hashedKey, apiKey] = generateUniqueAPIKey();
-  const args: Prisma.ApiKeyCreateArgs = {
+  const [proUserTeamHashedKey, proUserTeamApiKey] = generateUniqueAPIKey();
+
+  await prisma.apiKey.create({
     data: {
       id: v4(),
       userId: proUserTeam.id,
       note: "Generated API Key for testing",
       // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
       expiresAt: null,
-      hashedKey,
+      hashedKey: proUserTeamHashedKey,
     },
-  };
+  });
 
-  await prisma.apiKey.create(args);
+  const deletableUser = await createUserAndEventType({
+    user: {
+      email: "deleteme@example.com",
+      password: "deleteME123$%^",
+      username: "deleteme",
+      name: "Delete Me",
+    },
+    eventTypes: [
+      {
+        title: "15min",
+        slug: "15min",
+        length: 15,
+      },
+    ],
+  });
+
+  // Generate an apiKey for testing
+  const [deletableUserHashedKey, deletableUserApiKey] = generateUniqueAPIKey();
+
+  await prisma.apiKey.create({
+    data: {
+      id: v4(),
+      userId: deletableUser.id,
+      note: "Generated API Key for testing",
+      // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
+      expiresAt: null,
+      hashedKey: deletableUserHashedKey,
+    },
+  });
 
   // Write seeded values to file for dredd.js testing
-  fs.writeFileSync("./dredd-data.json", JSON.stringify({ teamId: team?.id, apiKey, userId: proUserTeam.id }));
+  fs.writeFileSync(
+    "./dredd-data.json",
+    JSON.stringify({
+      proUserApiKey,
+      proUserTeamApiKey,
+      deletableUserApiKey,
+      // keys below possibly fetchable at Dredd time instead
+      teamId: team?.id,
+      userId: proUser.id,
+      teamUserId: proUserTeam?.id,
+      deletableUserId: deletableUser.id,
+    })
+  );
 }
 
 main()
