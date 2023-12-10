@@ -17,16 +17,16 @@ export type EventTypeInfo = {
   length?: number | null;
 };
 
-export type withUTCOffset<T> = T & {
-  user?: {
-    utcOffset: number | null;
-  };
+export type UTCOffset = {
+  utcOffset: number | null;
+};
+
+export type WithUTCOffsetType<T> = T & {
+  user?: Person & UTCOffset;
 } & {
-  organizer?: { utcOffset: number | null };
+  organizer?: Person & UTCOffset;
 } & {
-  attendees?: {
-    utcOffset: number | null;
-  }[];
+  attendees?: Person[] & UTCOffset[];
 };
 
 export type WebhookDataType = CalendarEvent &
@@ -45,7 +45,7 @@ export type WebhookDataType = CalendarEvent &
     paymentId?: number;
   };
 
-function addUTCOffset(data: WebhookDataType): withUTCOffset<WebhookDataType> {
+function addUTCOffset(data: WebhookDataType): WithUTCOffsetType<WebhookDataType> {
   if (data.user?.timeZone) {
     data.user.utcOffset = getUTCOffsetByTimezone(data.user.timeZone);
   }
@@ -60,11 +60,11 @@ function addUTCOffset(data: WebhookDataType): withUTCOffset<WebhookDataType> {
     });
   }
 
-  return data as withUTCOffset<WebhookDataType>;
+  return data as WithUTCOffsetType<WebhookDataType>;
 }
 
 function getZapierPayload(
-  data: withUTCOffset<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
+  data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
   const attendees = data.attendees.map((attendee) => {
     return {
@@ -142,7 +142,7 @@ const sendPayload = async (
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
   data.description = data.description || data.additionalNotes;
-  data = addUTCOffset(data);
+  data = addUTCOffset(data) as WithUTCOffsetTypeType<typeof data>;
 
   let body;
 
