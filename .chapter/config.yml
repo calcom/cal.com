@@ -1,0 +1,12 @@
+# Path: .chapter/config.yml
+
+version: 1
+
+source-language: en
+
+target-languages:
+  - de
+  - fr
+  - es
+
+translation-file-pattern: apps/web/public/static/locales/[lang]/common.json

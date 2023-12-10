@@ -1,0 +1,23 @@
+name: Chapter.sh
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Translate react app with chapter.sh
+        uses: maxprilutskiy/chapter-action@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          chapter-token: ${{ secrets.CHAPTER_TOKEN }}
