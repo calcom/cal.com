@@ -25,7 +25,8 @@
     "../../packages/types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "pages/teams/index.tsx"
   ],
   "exclude": ["node_modules"]
 }

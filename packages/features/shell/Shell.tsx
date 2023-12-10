@@ -86,6 +86,7 @@ import {
   User as UserIcon,
   Users,
   Zap,
+  Bot,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
@@ -592,6 +593,12 @@ const navigation: NavigationItemType[] = [
     name: "availability",
     href: "/availability",
     icon: Clock,
+  },
+  {
+    name: "Agents",
+    href: "/agents",
+    icon: Bot,
+    onlyDesktop: true,
   },
   {
     name: "teams",

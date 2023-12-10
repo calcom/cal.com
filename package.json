@@ -103,9 +103,13 @@
     "vitest-mock-extended": "^1.1.3"
   },
   "dependencies": {
+    "axios": "^1.6.2",
     "city-timezones": "^1.2.1",
     "eslint": "^8.34.0",
+    "langchain": "^0.0.203",
     "lucide-react": "^0.171.0",
+    "react-audio-player": "^0.17.0",
+    "react-speech-recognition": "^3.10.0",
     "turbo": "^1.10.1"
   },
   "resolutions": {
