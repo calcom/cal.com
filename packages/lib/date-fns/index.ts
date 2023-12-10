@@ -239,5 +239,5 @@ export function getUTCOffsetByTimezone(timeZone: string) {
     return getUTCOffsetInDST(timeZone);
   }
 
-  return dayjs.tz(timeZone).utcOffset();
+  return dayjs().tz(timeZone).utcOffset();
 }
