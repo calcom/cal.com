@@ -2085,7 +2085,7 @@
   "oAuth": "OAuth",
   "recently_added":"Recently added",
   "connect_all_calendars":"Connect all your calendars",
-  "connect_all_calendars_description":"{{appName}} reads availability from all your existing calendars.",  
+  "connect_all_calendars_description":"{{appName}} reads availability from all your existing calendars.",
   "workflow_automation":"Workflow automation",
   "workflow_automation_description":"Personalise your scheduling experience with workflows",
   "scheduling_for_your_team":"Workflow automation",
@@ -2150,5 +2150,6 @@
   "need_help": "Need help?",
   "troubleshooter": "Troubleshooter",
   "please_install_a_calendar": "Please install a calendar",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "calendar-not-available": "This calendar is not available at the moment. Please try again later."
 }
