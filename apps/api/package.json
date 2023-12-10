@@ -16,12 +16,13 @@
     "docker-start-api": "PORT=80 next start",
     "type-check": "tsc --pretty --noEmit",
     "openapi:generate": "ts-node scripts/generate-openapi-files.ts",
-    "test:dredd:compile": "tsc  --module node16 --target es2017 --moduleResolution node ./dredd-hooks.ts",
-    "test:dredd": "yarn dredd"
+    "test:dredd:compile": "tsc  -p tsconfig.dredd.json",
+    "test:dredd": "yarn test:dredd:compile && yarn dredd"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*",
     "@calcom/types": "*",
+    "@types/node": "^20.10.4",
     "dredd": "^14.1.0",
     "node-mocks-http": "^1.11.0",
     "openapi-types": "^12.1.3",

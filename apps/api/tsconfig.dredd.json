@@ -1,0 +1,13 @@
+// --module node16 --target es2017 --moduleResolution node
+{
+  "compilerOptions": {
+    "module": "node16",
+    "skipLibCheck": true,
+    "target": "ES2017",
+    "moduleResolution": "node",
+    "strict": true,
+    "baseUrl": "."
+  },
+  "include": ["dredd-hooks.ts", "dredd-helpers/*.ts"],
+  "exclude": ["node_modules", "../../node_modules"]
+}

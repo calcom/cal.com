@@ -1,4 +1,4 @@
-import { baseUrl } from "~/dredd-helpers/constants";
+import { baseUrl } from "./constants";
 
 export async function getMe(apiKey: string) {
   const response = await fetch(`${baseUrl}/me?apiKey=${apiKey}`);

@@ -1,22 +1,22 @@
 color: true
 dry-run: null
-hookfiles: ./dredd-hooks.ts
+hookfiles: ./dredd-hooks.js
 require: null
 # server: yarn dev:api:only
 server-wait: 30
 init: false
 custom: {}
-names: false
-only: ["/attendees > Find all attendees > 200"]
+# names: true
+# only: ["/users/{userId} > Remove an existing user > 201"]
 reporter: ["html"]
 output: ["dredd-output.html"]
 # header: []
 sorted: false
 user: null
 inline-errors: true
-details: false
+details: true
 # method: [GET]
-# loglevel: debug
+# loglevel: error
 path: []
 hooks-worker-timeout: 50000
 hooks-worker-connect-timeout: 1500
@@ -29,33 +29,3 @@ hooks-worker-handler-port: 61321
 config: ./dredd.yml
 blueprint: "http://localhost:3002/openapi.yaml"
 endpoint: "http://localhost:3002"
-
-
-
-# color: true
-# dry-run: null
-# # hookfiles: "./hooks.js"
-# hookfiles: ./dredd-hooks.js
-# language: nodejs
-# server-wait: 3
-# custom: {}
-# only: ["Public API for Cal.com > /users/{userId} > Edit an existing user > 200"]
-# reporter: []
-# output: []
-# header: []
-# sorted: false
-# inline-errors: true
-# method: []
-# loglevel: debug
-# path: []
-# hooks-worker-timeout: 5000
-# hooks-worker-connect-timeout: 1500
-# hooks-worker-connect-retry: 500
-# hooks-worker-after-connect-wait: 100
-# hooks-worker-term-timeout: 5000
-# hooks-worker-term-retry: 500
-# hooks-worker-handler-host: 127.0.0.1
-# hooks-worker-handler-port: 61321
-# # blueprint: 'http://localhost:3002/docs'
-# blueprint: './openapi-mini.yml'
-# endpoint: 'http://localhost:3002'
