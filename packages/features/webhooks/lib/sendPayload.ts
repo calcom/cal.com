@@ -4,7 +4,7 @@ import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -18,7 +18,7 @@ export type EventTypeInfo = {
 };
 
 export type UTCOffset = {
-  utcOffset: number | null;
+  utcOffset?: number | null;
 };
 
 export type WithUTCOffsetType<T> = T & {
@@ -26,7 +26,7 @@ export type WithUTCOffsetType<T> = T & {
 } & {
   organizer?: Person & UTCOffset;
 } & {
-  attendees?: Person[] & UTCOffset[];
+  attendees?: (Person & UTCOffset)[];
 };
 
 export type WebhookDataType = CalendarEvent &
@@ -45,17 +45,15 @@ export type WebhookDataType = CalendarEvent &
     paymentId?: number;
   };
 
-function addUTCOffset(data: WebhookDataType): WithUTCOffsetType<WebhookDataType> {
-  if (data.user?.timeZone) {
-    data.user.utcOffset = getUTCOffsetByTimezone(data.user.timeZone);
-  }
-
+function addUTCOffset(
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+): WithUTCOffsetType<WebhookDataType> {
   if (data.organizer?.timeZone) {
-    data.organizer.utcOffset = getUTCOffsetByTimezone(data.organizer.timeZone);
+    (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(data.organizer.timeZone);
   }
 
   if (data?.attendees?.length) {
-    data.attendees.forEach((attendee) => {
+    (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
       attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone);
     });
   }
@@ -66,7 +64,7 @@ function addUTCOffset(data: WebhookDataType): WithUTCOffsetType<WebhookDataType>
 function getZapierPayload(
   data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
-  const attendees = data.attendees.map((attendee) => {
+  const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,
@@ -142,7 +140,7 @@ const sendPayload = async (
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
   data.description = data.description || data.additionalNotes;
-  data = addUTCOffset(data) as WithUTCOffsetTypeType<typeof data>;
+  data = addUTCOffset(data);
 
   let body;
 
