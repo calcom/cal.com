@@ -35,6 +35,24 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       teamId: organizationId,
       accepted: true,
     },
+    include: {
+      team: {
+        include: {
+          children: {
+            where: {
+              members: {
+                some: {
+                  userId: input.userId,
+                },
+              },
+            },
+            include: {
+              members: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!requestedMember)
@@ -72,6 +90,21 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     }),
   ]);
 
+  if (input.role === MembershipRole.ADMIN || input.role === MembershipRole.OWNER) {
+    await prisma.membership.updateMany({
+      where: {
+        userId: input.userId,
+        teamId: {
+          in: requestedMember.team.children.map((sub_team) => {
+            return sub_team.members.find((item) => item.userId === input.userId).teamId;
+          }),
+        },
+      },
+      data: {
+        role: input.role,
+      },
+    });
+  }
   // TODO: audit log this
 
   return {
