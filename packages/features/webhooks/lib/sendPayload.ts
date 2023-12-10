@@ -17,6 +17,18 @@ export type EventTypeInfo = {
   length?: number | null;
 };
 
+export type withUTCOffset<T> = T & {
+  user?: {
+    utcOffset: number | null;
+  };
+} & {
+  organizer?: { utcOffset: number | null };
+} & {
+  attendees?: {
+    utcOffset: number | null;
+  }[];
+};
+
 export type WebhookDataType = CalendarEvent &
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
@@ -33,15 +45,33 @@ export type WebhookDataType = CalendarEvent &
     paymentId?: number;
   };
 
+function addUTCOffset(data: WebhookDataType): withUTCOffset<WebhookDataType> {
+  if (data.user?.timeZone) {
+    data.user.utcOffset = getUTCOffsetByTimezone(data.user.timeZone);
+  }
+
+  if (data.organizer?.timeZone) {
+    data.organizer.utcOffset = getUTCOffsetByTimezone(data.organizer.timeZone);
+  }
+
+  if (data?.attendees?.length) {
+    data.attendees.forEach((attendee) => {
+      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone);
+    });
+  }
+
+  return data as withUTCOffset<WebhookDataType>;
+}
+
 function getZapierPayload(
-  data: CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
+  data: withUTCOffset<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
   const attendees = data.attendees.map((attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
-      utcOffset: getUTCOffsetByTimezone(attendee.timeZone),
+      utcOffset: attendee.utcOffset,
     };
   });
 
@@ -64,7 +94,7 @@ function getZapierPayload(
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
-      utcOffset: getUTCOffsetByTimezone(data.organizer.timeZone),
+      utcOffset: data.organizer.utcOffset,
       locale: data.organizer.locale,
     },
     eventType: {
@@ -112,6 +142,8 @@ const sendPayload = async (
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
   data.description = data.description || data.additionalNotes;
+  data = addUTCOffset(data);
+
   let body;
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
