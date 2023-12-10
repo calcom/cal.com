@@ -2,16 +2,17 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee, Booking } from "@prisma/client";
+import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
+import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import type { getMockRequestDataForBooking } from "@calcom/features/bookings/lib/handleNewBooking/test/lib/getMockRequestDataForBooking";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -19,7 +20,7 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
@@ -68,6 +69,14 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   credentials?: InputCredential[];
   organizationId?: number | null;
   selectedCalendars?: InputSelectedCalendar[];
+  teams?: {
+    membership: Partial<Membership>;
+    team: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }[];
   schedules: {
     // Allows giving id in the input directly so that it can be referenced somewhere else as well
     id?: number;
@@ -81,6 +90,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
     timeZone: string;
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  weekStart?: string;
 };
 
 export type InputEventType = {
@@ -98,10 +108,13 @@ export type InputEventType = {
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
+  teamId?: number | null;
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
-} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type WhiteListedBookingProps = {
   id?: number;
@@ -199,6 +212,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
     timeZone: null,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
+    bookingLimits: {},
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
@@ -369,6 +383,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
       allUsers: await prismock.user.findMany({
         include: {
           credentials: true,
+          teams: true,
           schedules: {
             include: {
               availability: true,
@@ -381,9 +396,32 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   );
 }
 
+async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
+  log.silly("TestData: Creating Teams", JSON.stringify(teams));
+  await prismock.team.createMany({
+    data: teams,
+  });
+  const addedTeams = await prismock.team.findMany({
+    where: {
+      id: {
+        in: teams.map((team) => team.id),
+      },
+    },
+  });
+  log.silly(
+    "Added teams to Db",
+    safeStringify({
+      addedTeams,
+    })
+  );
+  return addedTeams;
+}
+
 async function addUsers(users: InputUser[]) {
-  const prismaUsersCreate = users.map((user) => {
-    const newUser = user;
+  const prismaUsersCreate = [];
+  for (let i = 0; i < users.length; i++) {
+    const newUser = users[i];
+    const user = users[i];
     if (user.schedules) {
       newUser.schedules = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -411,6 +449,22 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+
+    if (user.teams) {
+      const addedTeams = await addTeamsToDb(user.teams.map((team) => team.team));
+      newUser.teams = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.teams.map((team, index) => {
+            return {
+              teamId: addedTeams[index].id,
+              ...team.membership,
+            };
+          }),
+        },
+      };
+    }
     if (user.selectedCalendars) {
       newUser.selectedCalendars = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -421,8 +475,8 @@ async function addUsers(users: InputUser[]) {
       };
     }
 
-    return newUser;
-  });
+    prismaUsersCreate.push(newUser);
+  }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   await addUsersToDb(prismaUsersCreate);
@@ -483,20 +537,32 @@ export async function createOrganization(orgData: { name: string; slug: string }
  * - `dateIncrement` adds the increment to current day
  * - `monthIncrement` adds the increment to current month
  * - `yearIncrement` adds the increment to current year
+ * - `fromDate` starts incrementing from this date (default: today)
  */
 export const getDate = (
-  param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number } = {}
+  param: {
+    dateIncrement?: number;
+    monthIncrement?: number;
+    yearIncrement?: number;
+    fromDate?: Date;
+  } = {}
 ) => {
-  let { dateIncrement, monthIncrement, yearIncrement } = param;
+  let { dateIncrement, monthIncrement, yearIncrement, fromDate } = param;
+
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;
   yearIncrement = yearIncrement || 0;
+  fromDate = fromDate || new Date();
 
-  let _date = new Date().getDate() + dateIncrement;
-  let year = new Date().getFullYear() + yearIncrement;
+  fromDate.setDate(fromDate.getDate() + dateIncrement);
+  fromDate.setMonth(fromDate.getMonth() + monthIncrement);
+  fromDate.setFullYear(fromDate.getFullYear() + yearIncrement);
+
+  let _date = fromDate.getDate();
+  let year = fromDate.getFullYear();
 
   // Make it start with 1 to match with DayJS requiremet
-  let _month = new Date().getMonth() + monthIncrement + 1;
+  let _month = fromDate.getMonth() + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
   const lastDayOfMonth = new Date(year, _month, 0).getDate();
@@ -515,11 +581,33 @@ export const getDate = (
   const month = _month < 10 ? `0${_month}` : _month;
 
   return {
-    date,
-    month,
-    year,
+    date: String(date),
+    month: String(month),
+    year: String(year),
     dateString: `${year}-${month}-${date}`,
   };
+};
+
+const isWeekStart = (date: Date, weekStart: WeekDays) => {
+  return date.getDay() === weekdayToWeekIndex(weekStart);
+};
+
+export const getNextMonthNotStartingOnWeekStart = (weekStart: WeekDays, from?: Date) => {
+  const date = from ?? new Date();
+
+  const incrementMonth = (date: Date) => {
+    date.setMonth(date.getMonth() + 1);
+  };
+
+  // start searching from the 1st day of next month
+  incrementMonth(date);
+  date.setDate(1);
+
+  while (isWeekStart(date, weekStart)) {
+    incrementMonth(date);
+  }
+
+  return getDate({ fromDate: date });
 };
 
 export function getMockedCredential({
@@ -556,6 +644,16 @@ export function getGoogleCalendarCredential() {
     key: {
       scope:
         "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly",
+    },
+  });
+}
+
+export function getAppleCalendarCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "applecalendar",
+    key: {
+      scope:
+        "https://www.applecalendar.example/auth/calendar.events https://www.applecalendar.example/auth/calendar.readonly",
     },
   });
 }
@@ -735,6 +833,8 @@ export function getOrganizer({
   selectedCalendars,
   destinationCalendar,
   defaultScheduleId,
+  weekStart = "Sunday",
+  teams,
 }: {
   name: string;
   email: string;
@@ -744,6 +844,8 @@ export function getOrganizer({
   selectedCalendars?: InputSelectedCalendar[];
   defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  weekStart?: WeekDays;
+  teams?: InputUser["teams"];
 }) {
   return {
     ...TestData.users.example,
@@ -756,6 +858,8 @@ export function getOrganizer({
     selectedCalendars,
     destinationCalendar,
     defaultScheduleId,
+    weekStart,
+    teams,
   };
 }
 
@@ -1205,7 +1309,7 @@ export function getExpectedCalEventForBookingRequest({
 }) {
   return {
     // keep adding more fields as needed, so that they can be verified in all scenarios
-    type: eventType.title,
+    type: eventType.slug,
     // Not sure why, but milliseconds are missing in cal Event.
     startTime: bookingRequest.start.replace(".000Z", "Z"),
     endTime: bookingRequest.end.replace(".000Z", "Z"),
