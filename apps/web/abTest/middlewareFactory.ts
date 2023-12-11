@@ -6,7 +6,7 @@ import z from "zod";
 const ROUTES: [URLPattern, boolean][] = [
   ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
   ["/settings/admin/:path*", process.env.APP_ROUTER_SETTINGS_ADMIN_ENABLED === "1"] as const,
-  ["/apps/installed/:category", Boolean(process.env.APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED)] as const,
+  ["/apps/installed/:category", process.env.APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
