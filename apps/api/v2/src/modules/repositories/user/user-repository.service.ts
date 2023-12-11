@@ -6,22 +6,20 @@ import type { User } from "@prisma/client";
 export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
-  async findById(userId: number, includeRelations?: UserRelations) {
+  async findById(userId: number) {
     const user = await this.dbRead.prisma.user.findUniqueOrThrow({
       where: {
         id: userId,
       },
-      include: includeRelations,
     });
     return this.sanitize(user);
   }
 
-  async findByEmail(email: string, includeRelations?: UserRelations) {
+  async findByEmail(email: string) {
     const user = await this.dbRead.prisma.user.findUniqueOrThrow({
       where: {
         email,
       },
-      include: includeRelations,
     });
     return this.sanitize(user);
   }
