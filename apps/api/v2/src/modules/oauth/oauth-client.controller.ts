@@ -56,7 +56,6 @@ export class OAuthClientController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getOAuthClients(
     @GetUser("organizationId") organizationId: number
   ): Promise<ApiResponse<PlatformOAuthClient[]>> {
@@ -66,7 +65,6 @@ export class OAuthClientController {
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
     return { status: SUCCESS_STATUS, data: client };
