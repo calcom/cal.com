@@ -2,6 +2,7 @@ import { CAL_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
+import { getApiName } from "./getApiName";
 import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
@@ -44,7 +45,7 @@ export const Codes = {
 	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
 	  ${previewState.layout ? `config={{layout: '${previewState.layout}'}}` : ""}
     ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
-	  ${IS_SELF_HOSTED ? `calJsUrl="${embedLibUrl}"` : ""}
+	  ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
 	/>;
   };`;
     },
@@ -64,7 +65,7 @@ export const Codes = {
 	useEffect(()=>{
 	  (async function () {
 		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
-		cal.ns.${namespace}("floatingButton", ${floatingButtonArg});
+		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -115,7 +116,7 @@ export const Codes = {
       previewState: PreviewState;
       namespace: string;
     }) => {
-      return code`Cal.ns.${namespace}("inline", {
+      return code`${getApiName({ namespace })}("inline", {
 	elementOrSelector:"#my-cal-inline",
 	calLink: "${calLink}",
 	layout: "${previewState.layout}"
@@ -133,7 +134,7 @@ export const Codes = {
       uiInstructionCode: string;
       namespace: string;
     }) => {
-      return code`Cal.ns.${namespace}("floatingButton", ${floatingButtonArg});
+      return code`${getApiName({ namespace, mainApiName: "Cal" })}("floatingButton", ${floatingButtonArg});
   ${uiInstructionCode}`;
     },
     "element-click": ({

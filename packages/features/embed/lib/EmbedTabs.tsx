@@ -11,6 +11,7 @@ import { Code, Trello } from "@calcom/ui/components/icon";
 import type { EmbedType, PreviewState, EmbedFramework } from "../types";
 import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
 import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
+import { getApiName } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
 
@@ -278,8 +279,4 @@ function useGetEmbedSnippetString(namespace: string | null) {
   return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${embedLibUrl}", "init");
 Cal("init", ${namespace ? `"${namespace}",` : ""} {origin:"${bookerUrl}"});
 `;
-}
-
-function getApiName({ namespace, mainApiName = "Cal" }: { namespace: string | null; mainApiName?: string }) {
-  return namespace ? `${mainApiName}.ns.${namespace}` : mainApiName;
 }
