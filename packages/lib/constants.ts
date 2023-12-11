@@ -5,6 +5,7 @@ const RENDER_URL = process.env.RENDER_EXTERNAL_URL ? `https://${process.env.REND
 export const CALCOM_ENV = process.env.CALCOM_ENV || process.env.NODE_ENV;
 export const IS_PRODUCTION = CALCOM_ENV === "production";
 export const IS_PRODUCTION_BUILD = process.env.NODE_ENV === "production";
+const IS_DEV = CALCOM_ENV === "development";
 
 /** https://app.cal.com */
 export const WEBAPP_URL =
@@ -17,7 +18,7 @@ export const WEBAPP_URL =
 
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
-export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION ? WEBAPP_URL : "http://localhost:3000";
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3000";
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
@@ -87,7 +88,7 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
-export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
+export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES;
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 
@@ -106,4 +107,20 @@ export const APP_CREDENTIAL_SHARING_ENABLED =
 
 export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
-export const AB_TEST_BUCKET_PROBABILITY = Number(process.env.AB_TEST_BUCKET_PROBABILITY ?? "10");
+
+export const TOP_BANNER_HEIGHT = 40;
+
+const defaultOnNaN = (testedValue: number, defaultValue: number) =>
+  !Number.isNaN(testedValue) ? testedValue : defaultValue;
+
+export const AB_TEST_BUCKET_PROBABILITY = defaultOnNaN(
+  parseInt(process.env.AB_TEST_BUCKET_PROBABILITY ?? "10", 10),
+  10
+);
+
+export const IS_PREMIUM_USERNAME_ENABLED =
+  (IS_CALCOM || (process.env.NEXT_PUBLIC_IS_E2E && IS_STRIPE_ENABLED)) &&
+  process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY;
+
+// Max number of invites to join a team/org that can be sent at once
+export const MAX_NB_INVITES = 100;

@@ -4,7 +4,7 @@ import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalend
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
@@ -545,6 +545,51 @@ export function expectCalendarEventCreationFailureEmails({
     },
     `${booker.name} <${booker.email}>`
   );
+}
+
+export function expectSuccessfulRoundRobinReschedulingEmails({
+  emails,
+  newOrganizer,
+  prevOrganizer,
+}: {
+  emails: Fixtures["emails"];
+  newOrganizer: { email: string; name: string };
+  prevOrganizer: { email: string; name: string };
+}) {
+  if (newOrganizer !== prevOrganizer) {
+    vi.waitFor(() => {
+      // new organizer should recieve scheduling emails
+      expect(emails).toHaveEmail(
+        {
+          heading: "new_event_scheduled",
+          to: `${newOrganizer.email}`,
+        },
+        `${newOrganizer.email}`
+      );
+    });
+
+    vi.waitFor(() => {
+      // old organizer should recieve cancelled emails
+      expect(emails).toHaveEmail(
+        {
+          heading: "event_request_cancelled",
+          to: `${prevOrganizer.email}`,
+        },
+        `${prevOrganizer.email}`
+      );
+    });
+  } else {
+    vi.waitFor(() => {
+      // organizer should recieve rescheduled emails
+      expect(emails).toHaveEmail(
+        {
+          heading: "event_has_been_rescheduled",
+          to: `${newOrganizer.email}`,
+        },
+        `${newOrganizer.email}`
+      );
+    });
+  }
 }
 
 export function expectSuccessfulBookingRescheduledEmails({

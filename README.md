@@ -7,7 +7,7 @@
   <h3 align="center">Cal.com (formerly Calendso)</h3>
 
   <p align="center">
-    The open-source Calendly alternative.
+    The open-source Calendly successor.
     <br />
     <a href="https://cal.com"><strong>Learn more »</strong></a>
     <br />
@@ -50,7 +50,7 @@
 
 # Scheduling infrastructure for absolutely everyone
 
-The open source Calendly alternative. You are in charge
+The open source Calendly successor. You are in charge
 of your own data, workflow, and appearance.
 
 Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes, and even calls with our families. However, most tools are very limited in terms of control and customization.
@@ -221,7 +221,6 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set a 24 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:

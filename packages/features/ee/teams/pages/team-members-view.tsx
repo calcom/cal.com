@@ -206,6 +206,7 @@ const MembersView = () => {
                   {
                     onSuccess: async (data) => {
                       await utils.viewer.teams.get.invalidate();
+                      await utils.viewer.organizations.getMembers.invalidate();
                       setShowMemberInvitationModal(false);
 
                       if (Array.isArray(data.usernameOrEmail)) {

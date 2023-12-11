@@ -80,7 +80,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
-  if (!bookingToReschedule.eventType) {
+  if (!bookingToReschedule.eventType && !bookingToReschedule.dynamicEventSlugRef) {
     throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
   }
 
@@ -192,7 +192,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
-  if (event) {
+  if (Object.keys(event).length) {
     await director.buildForRescheduleEmail();
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
