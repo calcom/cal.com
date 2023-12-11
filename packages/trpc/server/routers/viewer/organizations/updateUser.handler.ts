@@ -15,7 +15,7 @@ type UpdateUserOptions = {
   input: TUpdateUserInputSchema;
 };
 
-const applyRoleToAllTeams = async (userId: string, teamIds: number[], role: MembershipRole) => {
+const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: MembershipRole) => {
   await prisma.membership.updateMany({
     where: {
       userId,
