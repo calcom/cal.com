@@ -11,6 +11,7 @@ import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { Fixtures } from "./fixtures";
 import { test } from "./fixtures";
@@ -245,6 +246,38 @@ export async function expectEmailsToHaveSubject({
   expect(organizerFirstEmail.subject).toBe(emailSubject);
   expect(bookerFirstEmail.subject).toBe(emailSubject);
 }
+
+export const createUserWithLimits = ({
+  users,
+  slug,
+  title,
+  length,
+  bookingLimits,
+  durationLimits,
+}: {
+  users: Fixtures["users"];
+  slug: string;
+  title?: string;
+  length?: number;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+}) => {
+  if (!bookingLimits && !durationLimits) {
+    throw new Error("Need to supply at least one of bookingLimits or durationLimits");
+  }
+
+  return users.create({
+    eventTypes: [
+      {
+        slug,
+        title: title ?? slug,
+        length: length ?? 30,
+        bookingLimits,
+        durationLimits,
+      },
+    ],
+  });
+};
 
 // this method is not used anywhere else
 // but I'm keeping it here in case we need in the future

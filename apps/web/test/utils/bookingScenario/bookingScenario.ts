@@ -12,6 +12,7 @@ import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -19,7 +20,7 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
 
@@ -89,6 +90,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
     timeZone: string;
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  weekStart?: string;
 };
 
 export type InputEventType = {
@@ -110,10 +112,9 @@ export type InputEventType = {
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
-  bookingLimits?: {
-    PER_DAY?: number;
-  };
-} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule">>;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+} & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type WhiteListedBookingProps = {
   id?: number;
@@ -536,20 +537,32 @@ export async function createOrganization(orgData: { name: string; slug: string }
  * - `dateIncrement` adds the increment to current day
  * - `monthIncrement` adds the increment to current month
  * - `yearIncrement` adds the increment to current year
+ * - `fromDate` starts incrementing from this date (default: today)
  */
 export const getDate = (
-  param: { dateIncrement?: number; monthIncrement?: number; yearIncrement?: number } = {}
+  param: {
+    dateIncrement?: number;
+    monthIncrement?: number;
+    yearIncrement?: number;
+    fromDate?: Date;
+  } = {}
 ) => {
-  let { dateIncrement, monthIncrement, yearIncrement } = param;
+  let { dateIncrement, monthIncrement, yearIncrement, fromDate } = param;
+
   dateIncrement = dateIncrement || 0;
   monthIncrement = monthIncrement || 0;
   yearIncrement = yearIncrement || 0;
+  fromDate = fromDate || new Date();
 
-  let _date = new Date().getDate() + dateIncrement;
-  let year = new Date().getFullYear() + yearIncrement;
+  fromDate.setDate(fromDate.getDate() + dateIncrement);
+  fromDate.setMonth(fromDate.getMonth() + monthIncrement);
+  fromDate.setFullYear(fromDate.getFullYear() + yearIncrement);
+
+  let _date = fromDate.getDate();
+  let year = fromDate.getFullYear();
 
   // Make it start with 1 to match with DayJS requiremet
-  let _month = new Date().getMonth() + monthIncrement + 1;
+  let _month = fromDate.getMonth() + 1;
 
   // If last day of the month(As _month is plus 1 already it is going to be the 0th day of next month which is the last day of current month)
   const lastDayOfMonth = new Date(year, _month, 0).getDate();
@@ -568,11 +581,33 @@ export const getDate = (
   const month = _month < 10 ? `0${_month}` : _month;
 
   return {
-    date,
-    month,
-    year,
+    date: String(date),
+    month: String(month),
+    year: String(year),
     dateString: `${year}-${month}-${date}`,
   };
+};
+
+const isWeekStart = (date: Date, weekStart: WeekDays) => {
+  return date.getDay() === weekdayToWeekIndex(weekStart);
+};
+
+export const getNextMonthNotStartingOnWeekStart = (weekStart: WeekDays, from?: Date) => {
+  const date = from ?? new Date();
+
+  const incrementMonth = (date: Date) => {
+    date.setMonth(date.getMonth() + 1);
+  };
+
+  // start searching from the 1st day of next month
+  incrementMonth(date);
+  date.setDate(1);
+
+  while (isWeekStart(date, weekStart)) {
+    incrementMonth(date);
+  }
+
+  return getDate({ fromDate: date });
 };
 
 export function getMockedCredential({
@@ -798,6 +833,7 @@ export function getOrganizer({
   selectedCalendars,
   destinationCalendar,
   defaultScheduleId,
+  weekStart = "Sunday",
   teams,
 }: {
   name: string;
@@ -808,6 +844,7 @@ export function getOrganizer({
   selectedCalendars?: InputSelectedCalendar[];
   defaultScheduleId?: number | null;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
+  weekStart?: WeekDays;
   teams?: InputUser["teams"];
 }) {
   return {
@@ -821,6 +858,7 @@ export function getOrganizer({
     selectedCalendars,
     destinationCalendar,
     defaultScheduleId,
+    weekStart,
     teams,
   };
 }
