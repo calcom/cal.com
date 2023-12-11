@@ -10,11 +10,7 @@ class BaseStrategy {
 
 @Injectable()
 export class NextAuthMockStrategy extends PassportStrategy(BaseStrategy, "next-auth") {
-  constructor(
-    private readonly email: string,
-    private readonly userRepository: UserRepository,
-    private readonly config: ConfigService
-  ) {
+  constructor(private readonly email: string, private readonly userRepository: UserRepository) {
     super();
   }
   async authenticate() {
