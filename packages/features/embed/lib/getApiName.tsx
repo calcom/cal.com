@@ -8,7 +8,7 @@ export function getApiName({
   if (!namespace) {
     return mainApiName;
   }
-  const isANumber = /^\d+$/.test(namespace);
-  // Because cal.ns.123 is not a valid JS syntax
-  return isANumber ? `${mainApiName}.ns["${namespace}"]` : `${mainApiName}.ns.${namespace}`;
+  const isAValidVariableName = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/.test(namespace);
+  // Try to use dot notation if possible because it's more readable otherwise use bracket notation
+  return isAValidVariableName ? `${mainApiName}.ns.${namespace}` : `${mainApiName}.ns["${namespace}"]`;
 }
