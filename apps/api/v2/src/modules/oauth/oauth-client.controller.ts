@@ -1,8 +1,8 @@
 import { GetUser } from "@/modules/auth/decorator";
-import { Roles } from "@/modules/auth/decorator/roles.decorator";
+import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
-import { OrganizationGuard } from "@/modules/auth/guard/organization";
-import { RolesGuard } from "@/modules/auth/guard/roles";
+import { OrganizationGuard } from "@/modules/auth/guard/organization/organization.guard";
+import { RolesGuard } from "@/modules/auth/guard/roles/roles.guard";
 import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";

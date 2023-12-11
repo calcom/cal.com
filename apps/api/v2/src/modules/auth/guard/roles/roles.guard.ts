@@ -1,4 +1,4 @@
-import { Roles } from "@/modules/auth/decorator/roles.decorator";
+import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { MembershipRepository } from "@/modules/repositories/membership/membership-repository.service";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";

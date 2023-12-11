@@ -1,7 +1,7 @@
 import { ApiKeyModule } from "@/modules/api-key/api-key.module";
-import { ApiKeyAuthStrategy } from "@/modules/auth/auth-api-key.strategy";
 import { NextAuthGuard } from "@/modules/auth/guard";
 import { NextAuthStrategy } from "@/modules/auth/strategy";
+import { ApiKeyAuthStrategy } from "@/modules/auth/strategy/api-key-auth/api-key-auth.strategy";
 import { MembershipModule } from "@/modules/repositories/membership/membership-repository.module";
 import { UserModule } from "@/modules/repositories/user/user-repository.module";
 import { Module } from "@nestjs/common";
