@@ -1,7 +1,7 @@
-import { Response } from "@/types/api";
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from "@nestjs/common";
 
 import { ERROR_STATUS } from "@calcom/platform-constants";
+import { Response } from "@calcom/platform-types";
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter<HttpException> {

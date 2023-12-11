@@ -1,4 +1,3 @@
-import { Response } from "@/types/api";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
 import {
@@ -10,6 +9,7 @@ import {
 } from "@prisma/client/runtime/library";
 
 import { ERROR_STATUS, INTERNAL_SERVER_ERROR } from "@calcom/platform-constants";
+import { Response } from "@calcom/platform-types";
 
 type PrismaError =
   | PrismaClientInitializationError

@@ -1,3 +1,5 @@
+import type { Response as BaseResponse } from "express";
+
 import type { ERROR_STATUS, SUCCESS_STATUS, API_ERROR_CODES } from "@calcom/platform-constants";
 
 export type ApiSuccessResponse<T> = { status: typeof SUCCESS_STATUS; data: T };
@@ -16,5 +18,7 @@ export type ApiErrorResponse = {
   path?: string;
   error: ErrorType;
 };
+
+export type Response<T = unknown> = BaseResponse<ApiResponse<T>>;
 
 export type ApiResponse<T> = ApiErrorResponse | ApiSuccessResponse<T>;

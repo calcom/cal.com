@@ -1,9 +1,9 @@
-import { Response } from "@/types/api";
 import { ArgumentsHost, Catch, Logger, HttpStatus } from "@nestjs/common";
 import { BaseExceptionFilter } from "@nestjs/core";
 import * as Sentry from "@sentry/node";
 
 import { ERROR_STATUS, INTERNAL_SERVER_ERROR } from "@calcom/platform-constants";
+import { Response } from "@calcom/platform-types";
 
 @Catch()
 export class SentryFilter extends BaseExceptionFilter {
