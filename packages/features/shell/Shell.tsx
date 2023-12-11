@@ -4,27 +4,39 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, { cloneElement, Fragment, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
-import { OrgUpgradeBanner } from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+import ImpersonatingBanner, {
+  type ImpersonatingBannerProps,
+} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+import {
+  OrgUpgradeBanner,
+  type OrgUpgradeBannerProps,
+} from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { TeamsUpgradeBanner, type TeamsUpgradeBannerProps } from "@calcom/features/ee/teams/components";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
-import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
-import VerifyEmailBanner from "@calcom/features/users/components/VerifyEmailBanner";
+import AdminPasswordBanner, {
+  type AdminPasswordBannerProps,
+} from "@calcom/features/users/components/AdminPasswordBanner";
+import CalendarCredentialBanner, {
+  type CalendarCredentialBannerProps,
+} from "@calcom/features/users/components/CalendarCredentialBanner";
+import VerifyEmailBanner, {
+  type VerifyEmailBannerProps,
+} from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
+import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
-import { useIsomorphicLayoutEffect } from "@calcom/lib/hooks/useIsomorphicLayoutEffect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
@@ -131,38 +143,29 @@ function useRedirectToLoginIfUnauthenticated(isPublic = false) {
   };
 }
 
-function AppTop({ setBannersHeight }: { setBannersHeight: Dispatch<SetStateAction<number>> }) {
-  const bannerRef = useRef<HTMLDivElement | null>(null);
+type BannerTypeProps = {
+  teamUpgradeBanner: TeamsUpgradeBannerProps;
+  orgUpgradeBanner: OrgUpgradeBannerProps;
+  verifyEmailBanner: VerifyEmailBannerProps;
+  adminPasswordBanner: AdminPasswordBannerProps;
+  impersonationBanner: ImpersonatingBannerProps;
+  calendarCredentialBanner: CalendarCredentialBannerProps;
+};
 
-  useIsomorphicLayoutEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      const { offsetHeight } = entries[0].target as HTMLElement;
-      setBannersHeight(offsetHeight);
-    });
+type BannerType = keyof BannerTypeProps;
 
-    const currentBannerRef = bannerRef.current;
+type BannerComponent = {
+  [Key in BannerType]: (props: BannerTypeProps[Key]) => JSX.Element;
+};
 
-    if (currentBannerRef) {
-      resizeObserver.observe(currentBannerRef);
-    }
-
-    return () => {
-      if (currentBannerRef) {
-        resizeObserver.unobserve(currentBannerRef);
-      }
-    };
-  }, [bannerRef]);
-
-  return (
-    <div ref={bannerRef} className="sticky top-0 z-10 w-full divide-y divide-black">
-      <TeamsUpgradeBanner />
-      <OrgUpgradeBanner />
-      <ImpersonatingBanner />
-      <AdminPasswordBanner />
-      <VerifyEmailBanner />
-    </div>
-  );
-}
+const BannerComponent: BannerComponent = {
+  teamUpgradeBanner: (props: TeamsUpgradeBannerProps) => <TeamsUpgradeBanner {...props} />,
+  orgUpgradeBanner: (props: OrgUpgradeBannerProps) => <OrgUpgradeBanner {...props} />,
+  verifyEmailBanner: (props: VerifyEmailBannerProps) => <VerifyEmailBanner {...props} />,
+  adminPasswordBanner: (props: AdminPasswordBannerProps) => <AdminPasswordBanner {...props} />,
+  impersonationBanner: (props: ImpersonatingBannerProps) => <ImpersonatingBanner {...props} />,
+  calendarCredentialBanner: (props: CalendarCredentialBannerProps) => <CalendarCredentialBanner {...props} />,
+};
 
 function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
@@ -188,9 +191,40 @@ function useRedirectToOnboardingIfNeeded() {
   };
 }
 
+type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
+
+const useBanners = () => {
+  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: userSession } = useSession();
+
+  if (isLoading || !userSession) return null;
+
+  const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
+  const userImpersonatedByUID = userSession?.user.impersonatedByUID;
+
+  const userSessionBanners = {
+    adminPasswordBanner: isUserInactiveAdmin ? userSession : null,
+    impersonationBanner: userImpersonatedByUID ? userSession : null,
+  };
+
+  const allBanners: allBannerProps = Object.assign({}, getUserTopBanners, userSessionBanners);
+
+  return allBanners;
+};
+
 const Layout = (props: LayoutProps) => {
-  const [bannersHeight, setBannersHeight] = useState<number>(0);
+  const banners = useBanners();
+
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+
+  const bannersHeight = useMemo(() => {
+    const activeBanners =
+      banners &&
+      Object.entries(banners).filter(([_, value]) => {
+        return value && (!Array.isArray(value) || value.length > 0);
+      });
+    return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
+  }, [banners]);
 
   return (
     <>
@@ -207,7 +241,32 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <AppTop setBannersHeight={setBannersHeight} />
+        {banners && (
+          <div className="sticky top-0 z-10 w-full divide-y divide-black">
+            {Object.keys(banners).map((key) => {
+              if (key === "teamUpgradeBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "orgUpgradeBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "verifyEmailBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "adminPasswordBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "impersonationBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              } else if (key === "calendarCredentialBanner") {
+                const Banner = BannerComponent[key];
+                return <Banner data={banners[key]} key={key} />;
+              }
+            })}
+          </div>
+        )}
+
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer ? (
             cloneElement(props.SidebarContainer, { bannersHeight })
