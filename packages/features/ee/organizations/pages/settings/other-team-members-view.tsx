@@ -1,7 +1,7 @@
 // import { debounce } from "lodash";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,20 +16,21 @@ import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
 import MemberListItem from "../components/MemberListItem";
 
-type Members = RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"];
+type Members = RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"];
 type Team = RouterOutputs["viewer"]["organizations"]["getOtherTeam"];
 
 interface MembersListProps {
   members: Members | undefined;
   team: Team | undefined;
-  offset: number;
-  setOffset: (offset: number) => void;
-  displayLoadMore: boolean;
+  fetchNextPage: () => void;
+  hasNextPage: boolean | undefined;
+  isFetchingNextPage: boolean | undefined;
 }
 
 function MembersList(props: MembersListProps) {
   const { t } = useLocale();
-  const { displayLoadMore, members, team } = props;
+  const { hasNextPage, members = [], team, fetchNextPage, isFetchingNextPage } = props;
+
   return (
     <div className="flex flex-col gap-y-3">
       {members?.length && team ? (
@@ -44,13 +45,15 @@ function MembersList(props: MembersListProps) {
           <p className="text-default text-sm font-bold">{t("no_members_found")}</p>
         </div>
       )}
-      {displayLoadMore && (
-        <button
-          className="text-primary-500 hover:text-primary-600"
-          onClick={() => props.setOffset(props.offset + 1)}>
-          {t("load_more")}
-        </button>
-      )}
+      <div className="text-default p-4 text-center">
+        <Button
+          color="minimal"
+          loading={isFetchingNextPage}
+          disabled={!hasNextPage}
+          onClick={() => fetchNextPage()}>
+          {hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -62,11 +65,9 @@ const MembersView = () => {
   const teamId = Number(params.id);
   const session = useSession();
   const utils = trpc.useContext();
-  const [offset, setOffset] = useState<number>(1);
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
-  const [loadMore, setLoadMore] = useState<boolean>(true);
-  const limit = 100;
+  const limit = 20;
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState<boolean>(false);
   const [members, setMembers] = useState<Members>([]);
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
@@ -91,26 +92,25 @@ const MembersView = () => {
         enabled: !Number.isNaN(teamId),
       }
     );
-  const { data: membersFetch, isLoading: isLoadingMembers } =
-    trpc.viewer.organizations.listOtherTeamMembers.useQuery(
-      { teamId, limit, offset: (offset - 1) * limit },
+
+  const { fetchNextPage, isFetchingNextPage, hasNextPage } =
+    trpc.viewer.organizations.listOtherTeamMembers.useInfiniteQuery(
+      { teamId, limit },
       {
+        onSuccess: (data) => {
+          const flatData = data?.pages?.flatMap((page) => page.rows) as Members;
+          setMembers(flatData);
+        },
         enabled: !Number.isNaN(teamId),
         onError: () => {
           router.push("/settings");
         },
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        keepPreviousData: true,
       }
     );
 
-  useEffect(() => {
-    if (membersFetch) {
-      setLoadMore(membersFetch.length >= limit);
-      setMembers((m) => m.concat(membersFetch));
-    }
-  }, [membersFetch]);
-
-  const isLoading = isTeamLoading || isLoadingMembers || isOrgListLoading;
-
+  const isLoading = isTeamLoading || isOrgListLoading;
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     onSuccess: () => {
       utils.viewer.organizations.listOtherTeams.invalidate();
@@ -162,9 +162,9 @@ const MembersView = () => {
               <MembersList
                 members={members}
                 team={team}
-                setOffset={setOffset}
-                offset={offset}
-                displayLoadMore={loadMore}
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
               />
             </>
 

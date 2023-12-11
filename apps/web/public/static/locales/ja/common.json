@@ -1994,7 +1994,7 @@
   "select_time": "時間帯を選ぶ",
   "select_date": "日付を選ぶ",
   "see_all_available_times": "出席できる時間帯をすべて表示",
-  "org_team_names_example": "例：マーケティングチーム",
+  "org_team_names_example_1": "例：マーケティングチーム",
   "org_team_names_example_2": "例：営業チーム",
   "org_team_names_example_3": "例：デザインチーム",
   "org_team_names_example_4": "例：エンジニアリングチーム",
