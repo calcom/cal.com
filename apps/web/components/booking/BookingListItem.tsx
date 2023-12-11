@@ -262,15 +262,21 @@ function BookingListItem(booking: BookingItemProps) {
 
   const title = booking.title;
 
-  const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
+  const showViewRecordingsButton = !!(booking.isRecorded && isPast && isConfirmed);
+  const showCheckRecordingButton =
+    isPast &&
+    isConfirmed &&
+    !booking.isRecorded &&
+    (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
 
   const showRecordingActions: ActionType[] = [
     {
       id: "view_recordings",
-      label: t("view_recordings"),
+      label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
       onClick: () => {
         setViewRecordingsDialogIsOpen(true);
       },
+      color: showCheckRecordingButton ? "secondary" : "primary",
       disabled: mutation.isLoading,
     },
   ];
@@ -298,7 +304,7 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {showRecordingsButtons && (
+      {(showViewRecordingsButton || showCheckRecordingButton) && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
@@ -478,7 +484,9 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
+          {(showViewRecordingsButton || showCheckRecordingButton) && (
+            <TableActions actions={showRecordingActions} />
+          )}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -517,8 +525,8 @@ const RecurringBookingsTooltip = ({
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toDateString())
-        .includes(recurringDate.toDateString())
+        .map((date) => date.toString())
+        .includes(recurringDate.toString())
     );
   }).length;
 
@@ -535,8 +543,8 @@ const RecurringBookingsTooltip = ({
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toDateString())
-                    .includes(aDate.toDateString());
+                    .map((date) => date.toString())
+                    .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, userTimeFormat, userTimeZone)}

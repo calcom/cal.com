@@ -5,6 +5,7 @@ import z from "zod";
 
 const ROUTES: [URLPattern, boolean][] = [
   ["/event-types", process.env.APP_ROUTER_EVENT_TYPES_ENABLED === "1"] as const,
+  ["/settings/admin/:path*", process.env.APP_ROUTER_SETTINGS_ADMIN_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
@@ -27,7 +28,6 @@ export const abTestMiddlewareFactory =
     const override = req.cookies.has(FUTURE_ROUTES_OVERRIDE_COOKIE_NAME);
 
     const route = ROUTES.find(([regExp]) => regExp.test(req.url)) ?? null;
-
     const enabled = route !== null ? route[1] || override : false;
 
     if (pathname.includes("future") || !enabled) {

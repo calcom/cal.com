@@ -6,8 +6,18 @@ import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/use
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { signupSchema } from "@calcom/prisma/zod-utils";
 
-function ensureSignupIsEnabled() {
+function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
+  const { token } = signupSchema
+    .pick({
+      token: true,
+    })
+    .parse(req.body);
+
+  // Stil allow signups if there is a team invite
+  if (token) return;
+
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true") {
     throw new HttpError({
       statusCode: 403,
@@ -29,7 +39,7 @@ export default async function handler(req: RequestWithUsernameStatus, res: NextA
   // Use a try catch instead of returning res every time
   try {
     ensureReqIsPost(req);
-    ensureSignupIsEnabled();
+    ensureSignupIsEnabled(req);
 
     /**
      * Im not sure its worth merging these two handlers. They are different enough to be separate.
