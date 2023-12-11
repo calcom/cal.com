@@ -1,12 +1,13 @@
 import { Roles } from "@/modules/auth/decorator/roles.decorator";
+import { MembershipRepository } from "@/modules/repositories/membership/membership-repository.service";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector, private membershipRepository: MembershipRepository) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.get(Roles, context.getHandler());
     if (!requiredRoles) {
       return true;
@@ -15,6 +16,11 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    return user && requiredRoles.includes(user.role);
+    const membership = await this.membershipRepository.findOrgUserMembership(user.organizationId, user.id);
+
+    const hasRequiredRole = requiredRoles.includes(membership.role);
+    const isAccepted = membership.accepted;
+
+    return user && hasRequiredRole && isAccepted;
   }
 }
