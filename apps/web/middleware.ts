@@ -118,10 +118,8 @@ export const config = {
     "/apps/routing_forms/:path*",
     "/event-types",
     "/future/event-types/",
-    
     "/settings/admin/:path*",
     "/future/settings/admin/:path*",
-
     "/apps/installed/:category/",
     "/future/apps/installed/:category/",
   ],
