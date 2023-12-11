@@ -107,7 +107,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     if (autoJoinUsers.length) {
       await prisma.membership.createMany({
         data: autoJoinUsers.map((userToAutoJoin) => {
-          const organizationRole = userToAutoJoin?.teams?.[0]?.role;
+          const organizationRole = userToAutoJoin.teams?.[0]?.role;
           return {
             userId: userToAutoJoin.id,
             teamId: team.id,

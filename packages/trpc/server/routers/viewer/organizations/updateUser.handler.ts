@@ -15,6 +15,20 @@ type UpdateUserOptions = {
   input: TUpdateUserInputSchema;
 };
 
+const applyRoleToAllTeams = async (userId: string, teamIds: number[], role: MembershipRole) => {
+  await prisma.membership.updateMany({
+    where: {
+      userId,
+      teamId: {
+        in: teamIds,
+      },
+    },
+    data: {
+      role,
+    },
+  });
+};
+
 export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { user } = ctx;
   const { id: userId, organizationId } = user;
@@ -91,19 +105,11 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   ]);
 
   if (input.role === MembershipRole.ADMIN || input.role === MembershipRole.OWNER) {
-    await prisma.membership.updateMany({
-      where: {
-        userId: input.userId,
-        teamId: {
-          in: requestedMember.team.children.map((sub_team) => {
-            return sub_team.members.find((item) => item.userId === input.userId).teamId;
-          }),
-        },
-      },
-      data: {
-        role: input.role,
-      },
-    });
+    const teamIds = requestedMember.team.children
+      .map((sub_team) => sub_team.members.find((item) => item.userId === input.userId)?.teamId)
+      .filter(Boolean) as number[]; //filter out undefined
+
+    await applyRoleToAllTeams(input.userId, teamIds, input.role);
   }
   // TODO: audit log this
 
