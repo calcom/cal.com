@@ -43,7 +43,7 @@ describe("oAuth: User is not authenticated", () => {
   });
 });
 
-describe("oAuth: User is  authenticated", () => {
+describe("oAuth: User is authenticated but not part of an organization", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -60,19 +60,19 @@ describe("oAuth: User is  authenticated", () => {
   });
 
   it(`/GET`, () => {
-    return request(app.getHttpServer()).get("/oauth-clients").expect(401);
+    return request(app.getHttpServer()).get("/oauth-clients").expect(403);
   });
   it(`/GET/:id`, () => {
-    return request(app.getHttpServer()).get("/oauth-clients/1234").expect(401);
+    return request(app.getHttpServer()).get("/oauth-clients/1234").expect(403);
   });
   it(`/POST`, () => {
-    return request(app.getHttpServer()).post("/oauth-clients").expect(401);
+    return request(app.getHttpServer()).post("/oauth-clients").expect(403);
   });
   it(`/PUT:id`, () => {
-    return request(app.getHttpServer()).put("/oauth-clients/1234").expect(401);
+    return request(app.getHttpServer()).put("/oauth-clients/1234").expect(403);
   });
   it(`/delete:id`, () => {
-    return request(app.getHttpServer()).delete("/oauth-clients/1234").expect(401);
+    return request(app.getHttpServer()).delete("/oauth-clients/1234").expect(403);
   });
 
   afterAll(async () => {
