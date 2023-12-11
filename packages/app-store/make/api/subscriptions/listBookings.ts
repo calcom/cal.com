@@ -22,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Unable to get bookings." });
   }
   if (bookings.length === 0) {
-    const requested = validKey.teamId ? "teamId: " + validKey.teamId : "userId: " + validKey.userId;
+    const requested = validKey.teamId ? `teamId: ${validKey.teamId}` : `userId: ${validKey.userId}`;
     return res.status(404).json({
       message: `There are no bookings to retrieve, please create a booking first. Requested: \`${requested}\``,
     });

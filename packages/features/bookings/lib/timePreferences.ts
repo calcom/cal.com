@@ -24,7 +24,7 @@ export const timePreferencesStore = create<TimePreferencesStore>((set) => ({
     setIs24hClockInLocalStorage(format === TimeFormat.TWENTY_FOUR_HOUR);
     set({ timeFormat: format });
   },
-  timezone: localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess(),
+  timezone: localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess() || "Europe/London",
   setTimezone: (timezone: string) => {
     localStorage.setItem(timezoneLocalStorageKey, timezone);
     set({ timezone });

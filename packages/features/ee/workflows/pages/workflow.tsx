@@ -269,7 +269,7 @@ function WorkflowPage() {
         CTA={
           !readOnly && (
             <div>
-              <Button data-testid="save-workflow" type="submit">
+              <Button data-testid="save-workflow" type="submit" loading={updateMutation.isLoading}>
                 {t("save")}
               </Button>
             </div>

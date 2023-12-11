@@ -164,12 +164,12 @@ export function UserListTable() {
           const { username, email } = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Avatar size="sm" alt={username || email} imageSrc={domain + "/" + username + "/avatar.png"} />
+              <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
               <div className="">
                 <div className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
                 </div>
-                <div className="text-subtle text-sm leading-none">{email}</div>
+                <div className="text-subtle mt-1 text-sm leading-none">{email}</div>
               </div>
             </div>
           );
@@ -204,12 +204,15 @@ export function UserListTable() {
         id: "teams",
         header: "Teams",
         cell: ({ row }) => {
-          const { teams, accepted } = row.original;
+          const { teams, accepted, email } = row.original;
           // TODO: Implement click to filter
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {accepted ? null : (
-                <Badge variant="red" className="text-xs">
+                <Badge
+                  variant="red"
+                  className="text-xs"
+                  data-testid={`email-${email.replace("@", "")}-pending`}>
                   Pending
                 </Badge>
               )}

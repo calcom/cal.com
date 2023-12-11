@@ -128,7 +128,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(translateEvent(event)),
@@ -152,7 +152,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       const resultString = await fetch("https://graph.microsoft.com/v1.0/me/onlineMeetings", {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(translateEvent(event)),

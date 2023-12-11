@@ -166,7 +166,7 @@
   "starting": "Kezdés",
   "length": "Hossz",
   "delete_account": "Fiók törlése",
-  "delete_account_confirmation_message": "Biztosan törölnéd a {{appName}} fiókod? Senki akinek elküldted a fiókod linkjét nem fog tudni időpontot foglalni, az eddig elmentett beállításaid is el fognak veszni.",
+  "delete_account_confirmation_message": "Senki akinek elküldted a fiókod linkjét nem fog tudni időpontot foglalni, az eddig elmentett beállításaid is el fognak veszni.",
   "apps": "Alkalmazások",
   "app_store": "App Store",
   "settings": "Beállítások",
@@ -205,9 +205,5 @@
   "minute_timeUnit": "Perc",
   "remove_app": "Alkalmazás eltávolítása",
   "yes_remove_app": "Igen, távolítsd el az alkalmazást",
-  "web_conference": "Online konferencia",
-  "timezone_variable": "Időzóna",
-  "location_variable": "Helyszín",
-  "additional_notes_variable": "Egyéb jegyzetek",
-  "insights_all_org_filter": "Minden alkalmazás"
+  "web_conference": "Online konferencia"
 }

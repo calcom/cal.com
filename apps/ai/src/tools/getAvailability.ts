@@ -12,13 +12,11 @@ export const fetchAvailability = async ({
   userId,
   dateFrom,
   dateTo,
-  eventTypeId,
 }: {
   apiKey: string;
   userId: number;
   dateFrom: string;
   dateTo: string;
-  eventTypeId?: number;
 }): Promise<Partial<Availability> | { error: string }> => {
   const params: { [k: string]: string } = {
     apiKey,
@@ -26,8 +24,6 @@ export const fetchAvailability = async ({
     dateFrom,
     dateTo,
   };
-
-  if (eventTypeId) params["eventTypeId"] = eventTypeId.toString();
 
   const urlParams = new URLSearchParams(params);
 
@@ -51,30 +47,29 @@ export const fetchAvailability = async ({
   };
 };
 
-const getAvailabilityTool = (apiKey: string, userId: number) => {
+const getAvailabilityTool = (apiKey: string) => {
   return new DynamicStructuredTool({
-    description: "Get availability within range.",
-    func: async ({ dateFrom, dateTo, eventTypeId }) => {
+    description: "Get availability of users within range.",
+    func: async ({ userIds, dateFrom, dateTo }) => {
       return JSON.stringify(
-        await fetchAvailability({
-          apiKey,
-          userId,
-          dateFrom,
-          dateTo,
-          eventTypeId,
-        })
+        await Promise.all(
+          userIds.map(
+            async (userId) =>
+              await fetchAvailability({
+                userId: userId,
+                apiKey,
+                dateFrom,
+                dateTo,
+              })
+          )
+        )
       );
     },
     name: "getAvailability",
     schema: z.object({
+      userIds: z.array(z.number()).describe("The users to fetch availability for."),
       dateFrom: z.string(),
       dateTo: z.string(),
-      eventTypeId: z
-        .number()
-        .optional()
-        .describe(
-          "The ID of the event type to filter availability for if you've called getEventTypes, otherwise do not include."
-        ),
     }),
   });
 };

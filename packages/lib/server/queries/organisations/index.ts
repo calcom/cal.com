@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 // export type OrganisationWithMembers = Awaited<ReturnType<typeof getOrganizationMembers>>;
 
@@ -9,7 +10,7 @@ export async function isOrganisationAdmin(userId: number, orgId: number) {
       where: {
         userId,
         teamId: orgId,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+        OR: [{ role: MembershipRole.ADMIN }, { role: MembershipRole.OWNER }],
       },
     })) || false
   );
@@ -19,7 +20,7 @@ export async function isOrganisationOwner(userId: number, orgId: number) {
     where: {
       userId,
       teamId: orgId,
-      role: "OWNER",
+      role: MembershipRole.OWNER,
     },
   }));
 }

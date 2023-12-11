@@ -4,7 +4,7 @@ import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { isAdminGuard } from "~/lib/utils/isAdmin";
+import { isAdminGuard } from "../utils/isAdmin";
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {

@@ -86,6 +86,7 @@ model EventType {
   periodEndDate                   DateTime?
   periodDays                      Int?
   periodCountCalendarDays         Boolean?
+  lockTimeZoneToggleOnBookingPage Boolean                 @default(false)
   requiresConfirmation            Boolean                 @default(false)
   requiresBookerEmailVerification Boolean                 @default(false)
   /// @zod.custom(imports.recurringEventType)
@@ -97,6 +98,7 @@ model EventType {
   beforeEventBuffer               Int                     @default(0)
   afterEventBuffer                Int                     @default(0)
   seatsPerTimeSlot                Int?
+  onlyShowFirstAvailableSlot      Boolean                 @default(false)
   seatsShowAttendees              Boolean?                @default(false)
   seatsShowAvailabilityCount      Boolean?                @default(true)
   schedulingType                  SchedulingType?
@@ -122,20 +124,27 @@ model EventType {
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
+  @@index([scheduleId])
 }
 
 model Credential {
-  id                   Int                   @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   // @@type is deprecated
-  type                 String
-  key                  Json
-  user                 User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId               Int?
-  team                 Team?                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId               Int?
-  app                  App?                  @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  type   String
+  key    Json
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId Int?
+  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId                String?
+  appId  String?
+
+  // paid apps
+  subscriptionId    String?
+  paymentStatus     String?
+  billingCycleStart Int?
+
   destinationCalendars DestinationCalendar[]
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
@@ -143,6 +152,7 @@ model Credential {
 
   @@index([userId])
   @@index([appId])
+  @@index([subscriptionId])
 }
 
 enum IdentityProvider {
@@ -183,6 +193,7 @@ model User {
   password            String?
   bio                 String?
   avatar              String?
+  avatarUrl           String?
   timeZone            String               @default("Europe/London")
   weekStart           String               @default("Sunday")
   // DEPRECATED - TO BE REMOVED
@@ -244,14 +255,19 @@ model User {
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  accessCodes          AccessCode[]
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
   //linkedUsers          User[]                  @relation("linked_account")*/
 
+  // Used to lock the user account
+  locked Boolean @default(false)
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
+  @@index([username])
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
@@ -265,6 +281,8 @@ model Team {
   /// @zod.min(1)
   slug                String?
   logo                String?
+  logoUrl             String?
+  calVideoLogo        String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
@@ -293,6 +311,7 @@ model Team {
   routingForms        App_RoutingForms_Form[]
   apiKeys             ApiKey[]
   credentials         Credential[]
+  accessCodes         AccessCode[]
 
   @@unique([slug, parentId])
 }
@@ -331,6 +350,7 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@index([token])
+  @@index([teamId])
 }
 
 model BookingReference {
@@ -420,6 +440,7 @@ model Booking {
   @@index([recurringEventId])
   @@index([uid])
   @@index([status])
+  @@index([startTime, endTime, status])
 }
 
 model Schedule {
@@ -539,6 +560,7 @@ enum PaymentOption {
 
 enum WebhookTriggerEvents {
   BOOKING_CREATED
+  BOOKING_PAYMENT_INITIATED
   BOOKING_PAID
   BOOKING_RESCHEDULED
   BOOKING_REQUESTED
@@ -816,6 +838,8 @@ model WorkflowReminder {
   @@index([bookingUid])
   @@index([workflowStepId])
   @@index([seatReferenceId])
+  @@index([method, scheduled, scheduledDate])
+  @@index([cancelled, scheduledDate])
 }
 
 model WebhookScheduledTriggers {
@@ -908,6 +932,33 @@ model SelectedSlots {
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
 }
 
+model OAuthClient {
+  clientId     String       @id @unique
+  redirectUri  String
+  clientSecret String
+  name         String
+  logo         String?
+  accessCodes  AccessCode[]
+}
+
+model AccessCode {
+  id        Int           @id @default(autoincrement())
+  code      String
+  clientId  String?
+  client    OAuthClient?  @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  expiresAt DateTime
+  scopes    AccessScope[]
+  userId    Int?
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    Int?
+  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+enum AccessScope {
+  READ_BOOKING
+  READ_PROFILE
+}
+
 view BookingTimeStatus {
   id            Int            @unique
   uid           String?
@@ -926,6 +977,8 @@ view BookingTimeStatus {
   eventLength   Int?
   timeStatus    String?
   eventParentId Int?
+  userEmail     String?
+  username      String?
 }
 
 model CalendarCache {
@@ -938,4 +991,41 @@ model CalendarCache {
 
   @@id([credentialId, key])
   @@unique([credentialId, key])
+}
+
+enum RedirectType {
+  UserEventType @map("user-event-type")
+  TeamEventType @map("team-event-type")
+  User          @map("user")
+  Team          @map("team")
+}
+
+model TempOrgRedirect {
+  id        Int          @id @default(autoincrement())
+  // Better would be to have fromOrgId and toOrgId as well and then we should have just to instead toUrl
+  from      String
+  // 0 would mean it is non org
+  fromOrgId Int
+  type      RedirectType
+  // It doesn't have any query params
+  toUrl     String
+  enabled   Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([from, type, fromOrgId])
+}
+
+model Avatar {
+  // e.g. NULL(0), organization ID or team logo
+  teamId    Int    @default(0)
+  // Avatar, NULL(0) if team logo
+  userId    Int    @default(0)
+  // base64 string
+  data      String
+  // different every time to pop the cache.
+  objectKey String @unique
+
+  @@unique([teamId, userId])
+  @@map(name: "avatars")
 }

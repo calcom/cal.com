@@ -18,6 +18,7 @@ export function TimezoneSelect({
   classNames: timezoneClassNames,
   components,
   variant = "default",
+  value,
   ...props
 }: SelectProps & { variant?: "default" | "minimal" }) {
   const [cities, setCities] = useState<ICity[]>([]);
@@ -36,6 +37,7 @@ export function TimezoneSelect({
 
   return (
     <BaseSelect
+      value={value}
       className={className}
       isLoading={isLoading}
       isDisabled={isLoading}

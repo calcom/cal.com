@@ -7,13 +7,14 @@ import { useEffect, useState } from "react";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { getPayIcon } from "@calcom/features/bookings/components/event-meta/getPayIcon";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import { CreditCard } from "@calcom/ui/components/icon";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -31,6 +32,13 @@ const PaypalPaymentComponent = dynamic(
   }
 );
 
+const AlbyPaymentComponent = dynamic(
+  () => import("@calcom/app-store/alby/components/AlbyPaymentComponent").then((m) => m.AlbyPaymentComponent),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -41,7 +49,8 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const paymentAppData = getPaymentAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
-    const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
+    const _timezone =
+      localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
     setTimezone(_timezone);
     setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());
@@ -53,7 +62,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         )?.parentElement;
         if (stripeIframeWrapper) {
           stripeIframeWrapper.style.margin = "0 auto";
-          stripeIframeWrapper.style.width = embedIframeWidth + "px";
+          stripeIframeWrapper.style.width = `${embedIframeWidth}px`;
         }
         requestAnimationFrame(fixStripeIframe);
       });
@@ -65,6 +74,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   }, [isEmbed]);
 
   const eventName = props.booking.title;
+  const PayIcon = getPayIcon(paymentAppData.currency);
 
   return (
     <div className="h-screen">
@@ -91,7 +101,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <CreditCard className="h-8 w-8 text-green-600" />
+                    <PayIcon className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -120,10 +130,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {props.payment.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
                       </div>
                       <div className="col-span-2 mb-6 font-semibold">
-                        {new Intl.NumberFormat(i18n.language, {
-                          style: "currency",
-                          currency: paymentAppData.currency,
-                        }).format(paymentAppData.price / 100.0)}
+                        <Price
+                          currency={paymentAppData.currency}
+                          price={paymentAppData.price}
+                          displayAlternateSymbol={false}
+                        />
                       </div>
                     </div>
                   </div>
@@ -144,6 +155,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "paypal" && !props.payment.success && (
                     <PaypalPaymentComponent payment={props.payment} />
+                  )}
+                  {props.payment.appId === "alby" && !props.payment.success && (
+                    <AlbyPaymentComponent payment={props.payment} paymentPageProps={props} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

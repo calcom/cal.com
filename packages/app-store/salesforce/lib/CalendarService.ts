@@ -7,6 +7,7 @@ import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type {
   Calendar,
   CalendarEvent,
@@ -56,7 +57,7 @@ export default class SalesforceCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "salesforce_other_calendar";
     this.conn = this.getClient(credential).then((c) => c);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private getClient = async (credential: CredentialPayload) => {
@@ -73,33 +74,44 @@ export default class SalesforceCalendarService implements Calendar {
 
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
 
-    const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
-      method: "POST",
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: consumer_key,
-        client_secret: consumer_secret,
-        refresh_token: credentialKey.refresh_token,
-        format: "json",
-      }),
-    });
+    try {
+      /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
+              Needs further investigation ASAP */
+      const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          client_id: consumer_key,
+          client_secret: consumer_secret,
+          refresh_token: credentialKey.refresh_token,
+        }),
+      });
 
-    if (response.statusText !== "OK") throw new HttpError({ statusCode: 400, message: response.statusText });
+      if (!response.ok) {
+        const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
+        throw new Error(message);
+      }
 
-    const accessTokenJson = await response.json();
+      const accessTokenJson = await response.json();
 
-    const accessTokenParsed: ParseRefreshTokenResponse<typeof salesforceTokenSchema> =
-      parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
+      const accessTokenParsed: ParseRefreshTokenResponse<typeof salesforceTokenSchema> =
+        parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
 
-    await prisma.credential.update({
-      where: { id: credential.id },
-      data: { key: { ...accessTokenParsed, refresh_token: credentialKey.refresh_token } },
-    });
+      await prisma.credential.update({
+        where: { id: credential.id },
+        data: { key: { ...accessTokenParsed, refresh_token: credentialKey.refresh_token } },
+      });
+    } catch (err: unknown) {
+      console.error(err); // log but proceed
+    }
 
     return new jsforce.Connection({
       clientId: consumer_key,
       clientSecret: consumer_secret,
-      redirectUri: WEBAPP_URL + "/api/integrations/salesforce/callback",
+      redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
       instanceUrl: credentialKey.instance_url,
       accessToken: credentialKey.access_token,
       refreshToken: credentialKey.refresh_token,

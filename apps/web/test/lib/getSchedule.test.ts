@@ -1,20 +1,19 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { diff } from "jest-diff";
 import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
 
-import prisma from "@calcom/prisma";
+import dayjs from "@calcom/dayjs";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-import { getDate, getGoogleCalendarCredential, createBookingScenario } from "../utils/bookingScenario";
-
-// TODO: Mock properly
-prismaMock.eventType.findUnique.mockResolvedValue(null);
-// @ts-expect-error Prisma v5 typings are not yet available
-prismaMock.user.findMany.mockResolvedValue([]);
+import {
+  getDate,
+  getGoogleCalendarCredential,
+  createBookingScenario,
+} from "../utils/bookingScenario/bookingScenario";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
@@ -146,13 +145,13 @@ const TestData = {
 };
 
 const cleanup = async () => {
-  await prisma.eventType.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.schedule.deleteMany();
-  await prisma.selectedCalendar.deleteMany();
-  await prisma.credential.deleteMany();
-  await prisma.booking.deleteMany();
-  await prisma.app.deleteMany();
+  await prismock.eventType.deleteMany();
+  await prismock.user.deleteMany();
+  await prismock.schedule.deleteMany();
+  await prismock.selectedCalendar.deleteMany();
+  await prismock.credential.deleteMany();
+  await prismock.booking.deleteMany();
+  await prismock.app.deleteMany();
 };
 
 beforeEach(async () => {
@@ -201,7 +200,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
       // An event with one accepted booking
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
         input: {
@@ -228,7 +227,7 @@ describe("getSchedule", () => {
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
       // An event with one accepted booking
-      createBookingScenario({
+      await createBookingScenario({
         // An event with length 30 minutes, slotInterval 45 minutes, and minimumBookingNotice 1440 minutes (24 hours)
         eventTypes: [
           {
@@ -354,7 +353,7 @@ describe("getSchedule", () => {
     });
 
     test("slots are available as per `length`, `slotInterval` of the event", async () => {
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           {
             id: 1,
@@ -453,7 +452,7 @@ describe("getSchedule", () => {
         })()
       );
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           {
             id: 1,
@@ -569,7 +568,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
         input: {
@@ -643,7 +642,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithCalBooking = await getSchedule({
         input: {
@@ -701,7 +700,7 @@ describe("getSchedule", () => {
         apps: [TestData.apps.googleCalendar],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const schedule = await getSchedule({
         input: {
@@ -765,7 +764,7 @@ describe("getSchedule", () => {
         ],
       };
 
-      createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       const scheduleForEventOnADayWithDateOverride = await getSchedule({
         input: {
@@ -790,7 +789,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // A Collective Event Type hosted by this user
           {
@@ -876,6 +875,124 @@ describe("getSchedule", () => {
         }
       );
     });
+    test("test that booking limit is working correctly if user is all day available", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 1,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          {
+            id: 2,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 2,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                name: "All Day available",
+                availability: [
+                  {
+                    userId: null,
+                    eventTypeId: null,
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T00:00:00.000Z"),
+                    endTime: new Date("1970-01-01T23:59:59.999Z"),
+                    date: null,
+                  },
+                ],
+                timeZone: Timezones["+6:00"],
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+          {
+            userId: 101,
+            eventTypeId: 2,
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const thisUserAvailabilityBookingLimitOne = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      const thisUserAvailabilityBookingLimitTwo = await getSchedule({
+        input: {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      let availableSlotsInTz: dayjs.Dayjs[] = [];
+      for (const date in thisUserAvailabilityBookingLimitOne.slots) {
+        thisUserAvailabilityBookingLimitOne.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(0); // 1 booking per day as limit
+
+      availableSlotsInTz = [];
+      for (const date in thisUserAvailabilityBookingLimitTwo.slots) {
+        thisUserAvailabilityBookingLimitTwo.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
+    });
   });
 
   describe("Team Event", () => {
@@ -885,7 +1002,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // An event having two users with one accepted booking
           {
@@ -1010,7 +1127,7 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-      createBookingScenario({
+      await createBookingScenario({
         eventTypes: [
           // An event having two users with one accepted booking
           {

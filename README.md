@@ -7,7 +7,7 @@
   <h3 align="center">Cal.com (formerly Calendso)</h3>
 
   <p align="center">
-    The open-source Calendly alternative.
+    The open-source Calendly successor.
     <br />
     <a href="https://cal.com"><strong>Learn more »</strong></a>
     <br />
@@ -50,7 +50,7 @@
 
 # Scheduling infrastructure for absolutely everyone
 
-The open source Calendly alternative. You are in charge
+The open source Calendly successor. You are in charge
 of your own data, workflow, and appearance.
 
 Calendly and other scheduling tools are awesome. It made our lives massively easier. We're using it for business meetings, seminars, yoga classes, and even calls with our families. However, most tools are very limited in terms of control and customization.
@@ -122,7 +122,7 @@ Here is what you need to be able to run Cal.com.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales))
+1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales)
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -131,22 +131,38 @@ Here is what you need to be able to run Cal.com.
    > If you are on Windows, run the following command on `gitbash` with admin privileges: <br> > `git clone -c core.symlinks=true https://github.com/calcom/cal.com.git` <br>
    > See [docs](https://cal.com/docs/how-to-guides/how-to-troubleshoot-symbolic-link-issues-on-windows#enable-symbolic-links) for more details.
 
-1. Go to the project folder
+2. Go to the project folder
 
    ```sh
    cd cal.com
    ```
 
-1. Install packages with yarn
+3. Install packages with yarn
 
    ```sh
    yarn
    ```
 
-1. Set up your `.env` file
+4. Set up your `.env` file
+
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+
+5. Setup Node
+   If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+
+   ```sh
+   nvm use
+   ```
+
+   You first might need to install the specific version and then use it:
+
+   ```sh
+   nvm install && nvm use
+   ```
+
+   You can install nvm from [here](https://github.com/nvm-sh/nvm).
 
 #### Quick start with `yarn dx`
 
@@ -205,7 +221,6 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set a 32 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:
@@ -221,6 +236,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
    ```sh
@@ -236,6 +252,8 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Setting up your first user
 
+##### Approach 1
+
 1. Open [Prisma Studio](https://prisma.io/studio) to look at or modify the database content:
 
    ```sh
@@ -247,6 +265,17 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
    > New users are set on a `TRIAL` plan by default. You might want to adjust this behavior to your needs in the `packages/prisma/schema.prisma` file.
 1. Open a browser to [http://localhost:3000](http://localhost:3000) and login with your just created, first user.
 
+##### Approach 2
+
+Seed the local db by running
+
+```sh
+cd packages/prisma
+yarn db-seed
+```
+
+The above command will populate the local db with dummy users.
+
 ### E2E-Testing
 
 Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
@@ -257,6 +286,16 @@ yarn test-e2e
 
 # To open the last HTML report run:
 yarn playwright show-report test-results/reports/playwright-html-report
+```
+
+#### Resolving issues
+
+##### E2E test browsers not installed
+
+Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
+
+```
+Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1048/chrome-mac/Chromium.app/Contents/MacOS/Chromium
 ```
 
 ### Upgrading from earlier versions
@@ -340,6 +379,10 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 ### Render
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
+
+### Elestio
+
+[![Deploy on Elestio](https://pub-da36157c854648669813f3f76c526c2b.r2.dev/deploy-on-elestio-black.png)](https://elest.io/open-source/cal.com)
 
 <!-- ROADMAP -->
 
@@ -470,9 +513,8 @@ following
 4. Select Basecamp 4 as the product to integrate with.
 5. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/basecamp3/callback` replacing Cal.com URL with the URI at which your application runs.
 6. Click on done and copy the Client ID and secret into the `BASECAMP3_CLIENT_ID` and `BASECAMP3_CLIENT_SECRET` fields.
-7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`. 
-For example, `Cal.com (support@cal.com)`.
-
+7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
+   For example, `Cal.com (support@cal.com)`.
 
 ### Obtaining HubSpot Client ID and Secret
 
@@ -503,6 +545,10 @@ For example, `Cal.com (support@cal.com)`.
 8. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
 9. Click the "Save"/ "UPDATE" button at the bottom footer.
 10. You're good to go. Now you can easily add your ZohoCRM integration in the Cal.com settings.
+
+### Obtaining Zoho Calendar Client ID and Secret
+
+[Follow these steps](./packages/app-store/zohocalendar/)
 
 ### Obtaining Zoho Bigin Client ID and Secret
 
@@ -549,8 +595,6 @@ Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/ma
 ## Acknowledgements
 
 Special thanks to these amazing projects which help power Cal.com:
-
-[<img src="https://cal.com/powered-by-vercel.svg">](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 
 - [Vercel](https://vercel.com/?utm_source=calend-so&utm_campaign=oss)
 - [Next.js](https://nextjs.org/)

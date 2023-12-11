@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 
-const log = logger.getChildLogger({ prefix: [`[[Auth] `] });
+const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 interface VerifyEmailType {
   username?: string;

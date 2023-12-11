@@ -121,7 +121,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: `Invalid URL for ${eventLocationType.label}. ${
-                sampleUrl ? "Sample URL: " + sampleUrl : ""
+                sampleUrl ? `Sample URL: ${sampleUrl}` : ""
               }`,
             });
           }
@@ -356,9 +356,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             onChange={(val) => {
                               if (val) {
                                 locationFormMethods.setValue("locationType", val.value);
-                                if (val.credential) {
-                                  locationFormMethods.setValue("credentialId", val.credential.id);
-                                  locationFormMethods.setValue("teamName", val.credential.team?.name);
+                                if (!!val.credentialId) {
+                                  locationFormMethods.setValue("credentialId", val.credentialId);
+                                  locationFormMethods.setValue("teamName", val.teamName);
                                 }
 
                                 locationFormMethods.unregister([
@@ -382,7 +382,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 }}
               />
               {selectedLocation && LocationOptions}
-              <DialogFooter className="mt-4">
+              <DialogFooter className="relative">
                 <Button
                   onClick={() => {
                     setShowLocationModal(false);

@@ -20,6 +20,7 @@ import {
   CheckboxField,
 } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
+import InfoBadge from "@calcom/web/components/ui/InfoBadge";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -255,16 +256,14 @@ export const Components: Record<FieldType, Component> = {
                       placeholder={placeholder}
                       label={<></>}
                       required
+                      onClickAddon={() => {
+                        value.splice(index, 1);
+                        setValue(value);
+                      }}
                       addOnSuffix={
                         !readOnly ? (
                           <Tooltip content="Remove email">
-                            <button
-                              className="m-1 disabled:hover:cursor-not-allowed"
-                              type="button"
-                              onClick={() => {
-                                value.splice(index, 1);
-                                setValue(value);
-                              }}>
+                            <button className="m-1" type="button">
                               <X width={12} className="text-default" />
                             </button>
                           </Tooltip>
@@ -397,6 +396,7 @@ export const Components: Record<FieldType, Component> = {
         }
       }, [options, setValue, value]);
 
+      const { t } = useLocale();
       return (
         <div>
           <div>
@@ -420,17 +420,25 @@ export const Components: Record<FieldType, Component> = {
                         checked={value?.value === option.value}
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                      <span>
+                        {option.value === "phone" && (
+                          <InfoBadge content={t("number_in_international_format")} />
+                        )}
+                      </span>
                     </label>
                   );
                 })
               ) : (
                 // Show option itself as label because there is just one option
                 <>
-                  <Label>
+                  <Label className="flex">
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}
+                    {options[0].value === "phone" && (
+                      <InfoBadge content={t("number_in_international_format")} />
+                    )}
                   </Label>
                 </>
               )}

@@ -1,5 +1,5 @@
 import classNames from "@calcom/lib/classNames";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -20,7 +20,6 @@ interface Props {
     id?: number;
     name?: string | null;
     slug?: string | null;
-    logo?: string | null;
     bio?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;
@@ -66,7 +65,7 @@ export default function TeamInviteListItem(props: Props) {
     <div className="flex">
       <Avatar
         size="mdLg"
-        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
+        imageSrc={`${WEBAPP_URL}/team/${team.slug}/avatar.png`}
         alt="Team Logo"
         className=""
       />

@@ -60,7 +60,7 @@ const fetchBookings = async ({
 
 const getBookingsTool = (apiKey: string, userId: number) => {
   return new DynamicStructuredTool({
-    description: "Get bookings for a user between two dates.",
+    description: "Get bookings for the primary user between two dates.",
     func: async ({ from, to }) => {
       return JSON.stringify(await fetchBookings({ apiKey, userId, from, to }));
     },

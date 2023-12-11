@@ -17,8 +17,10 @@ export const env = createEnv({
    */
   runtimeEnv: {
     BACKEND_URL: process.env.BACKEND_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL,
     APP_ID: process.env.APP_ID,
     APP_URL: process.env.APP_URL,
+    SENDER_DOMAIN: process.env.SENDER_DOMAIN,
     PARSE_KEY: process.env.PARSE_KEY,
     NODE_ENV: process.env.NODE_ENV,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
@@ -32,8 +34,10 @@ export const env = createEnv({
    */
   server: {
     BACKEND_URL: z.string().url(),
+    FRONTEND_URL: z.string().url(),
     APP_ID: z.string().min(1),
     APP_URL: z.string().url(),
+    SENDER_DOMAIN: z.string().min(1),
     PARSE_KEY: z.string().min(1),
     NODE_ENV: z.enum(["development", "test", "production"]),
     OPENAI_API_KEY: z.string().min(1),

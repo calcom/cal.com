@@ -44,6 +44,7 @@ const BookerComponent = ({
   isTeamEvent,
   entity,
   duration,
+  hashedLink,
 }: BookerProps) => {
   /**
    * Prioritize dateSchedule load
@@ -115,6 +116,7 @@ const BookerComponent = ({
     columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
   const prefetchNextMonth =
+    layout === BookerLayouts.COLUMN_VIEW &&
     dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
   const monthCount =
     dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
@@ -245,6 +247,8 @@ const BookerComponent = ({
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>
               <Header
+                username={username}
+                eventSlug={eventSlug}
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                 isMobile={isMobile}
@@ -284,6 +288,7 @@ const BookerComponent = ({
                     setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
                   }
                 }}
+                hashedLink={hashedLink}
               />
             </BookerSection>
 

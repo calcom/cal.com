@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { afterEach, expect, test, vi } from "vitest";
 
@@ -74,22 +74,19 @@ test("Calendar Cache is being called", async () => {
     // First call won't have a cache
     .mockResolvedValueOnce(null)
     // Second call will have a cache
-    // @ts-expect-error expects a "null" here due to previous call
     .mockResolvedValueOnce(calendarCacheResponse);
 
   // prismaMock.calendarCache.create.mock.
   const calendarService = new CalendarService(testCredential);
-  // @ts-expect-error authedCalendar is a private method, hence the TS error
-  vi.spyOn(calendarService, "authedCalendar").mockReturnValue(
-    // @ts-expect-error trust me bro
-    {
-      freebusy: {
-        query: vi.fn().mockReturnValue({
-          data: testFreeBusyResponse,
-        }),
-      },
-    }
-  );
+  vi.spyOn(calendarService, "authedCalendar").mockReturnValue({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore - Mocking the authedCalendar so can't return the actual response
+    freebusy: {
+      query: vi.fn().mockReturnValue({
+        data: testFreeBusyResponse,
+      }),
+    },
+  });
 
   await calendarService.getAvailability(new Date().toISOString(), new Date().toISOString(), [
     testSelectedCalendar,

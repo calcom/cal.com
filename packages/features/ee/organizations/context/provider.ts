@@ -10,10 +10,15 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
  */
 export type OrganizationBranding =
   | ({
+      /** 1 */
       id: number;
+      /** Acme */
       name?: string;
+      /** acme */
       slug: string;
+      /** https://acme.cal.com */
       fullDomain: string;
+      /** cal.com */
       domainSuffix: string;
     } & z.infer<typeof teamMetadataSchema>)
   | null

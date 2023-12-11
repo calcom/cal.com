@@ -16,7 +16,10 @@ import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigg
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
+import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -35,11 +38,11 @@ type RequestRescheduleOptions = {
   };
   input: TRequestRescheduleInputSchema;
 };
-
+const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
-
+  log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
   const bookingToReschedule = await prisma.booking.findFirstOrThrow({
     select: {
       id: true,
@@ -77,7 +80,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
-  if (!bookingToReschedule.eventType) {
+  if (!bookingToReschedule.eventType && !bookingToReschedule.dynamicEventSlugRef) {
     throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
   }
 
@@ -97,6 +100,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
       throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
     }
+    log.debug(
+      "Request reschedule for team booking",
+      safeStringify({
+        teamId: bookingToReschedule.eventType?.teamId,
+      })
+    );
   }
   if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
@@ -167,7 +176,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const builder = new CalendarEventBuilder();
   builder.init({
     title: bookingToReschedule.title,
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    bookerUrl: await getBookerUrl(user),
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
     attendees: usersToPeopleType(
@@ -182,7 +192,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
-  if (event) {
+  if (Object.keys(event).length) {
     await director.buildForRescheduleEmail();
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
@@ -205,14 +215,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        const calendar = await getCalendar(
+          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+        );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+        return deleteMeeting(
+          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          bookingRef.uid
+        );
       }
     })
   );
 
+  log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
   // Send emails
   await sendRequestRescheduleEmail(builder.calendarEvent, {
     rescheduleLink: builder.rescheduleLink,
@@ -220,7 +236,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const evt: CalendarEvent = {
     title: bookingToReschedule?.title,
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     description: bookingToReschedule?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
     ...getCalEventResponses({

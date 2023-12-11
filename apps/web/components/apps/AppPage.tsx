@@ -42,6 +42,7 @@ export type AppPageProps = {
   disableInstall?: boolean;
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
+  paid?: AppType["paid"];
 };
 
 export const AppPage = ({
@@ -67,6 +68,7 @@ export const AppPage = ({
   isTemplate,
   dependencies,
   concurrentMeetings,
+  paid,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
@@ -89,6 +91,7 @@ export const AppPage = ({
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
+
   const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
     { appType: type },
     {
@@ -162,6 +165,19 @@ export const AppPage = ({
                 className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
+              {paid && (
+                <>
+                  <Badge className="mr-1">
+                    {Intl.NumberFormat(i18n.language, {
+                      style: "currency",
+                      currency: "USD",
+                      useGrouping: false,
+                      maximumFractionDigits: 0,
+                    }).format(paid.priceInUsd)}
+                    /{t("month")}
+                  </Badge>
+                </>
+              )}
               •{" "}
               <a target="_blank" rel="noreferrer" href={website}>
                 {t("published_by", { author })}
@@ -205,6 +221,7 @@ export const AppPage = ({
                         addAppMutationInput={{ type, variant, slug }}
                         multiInstall
                         concurrentMeetings={concurrentMeetings}
+                        paid={paid}
                         {...props}
                       />
                     );
@@ -243,6 +260,7 @@ export const AppPage = ({
                     addAppMutationInput={{ type, variant, slug }}
                     credentials={appDbQuery.data?.credentials}
                     concurrentMeetings={concurrentMeetings}
+                    paid={paid}
                     {...props}
                   />
                 );
@@ -262,33 +280,37 @@ export const AppPage = ({
             <SkeletonButton className="mt-6 h-20 grow" />
           ))}
 
-        {price !== 0 && (
+        {price !== 0 && !paid && (
           <span className="block text-right">
-            {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}
-            {feeType === "monthly" && "/" + t("month")}
+            {feeType === "usage-based" ? `${commission}% + ${priceInDollar}/booking` : priceInDollar}
+            {feeType === "monthly" && `/${t("month")}`}
           </span>
         )}
 
         <div className="prose-sm prose prose-a:text-default prose-headings:text-emphasis prose-code:text-default prose-strong:text-default text-default mt-8">
           {body}
         </div>
-        <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
-        <span className="text-default">
-          {teamsPlanRequired ? (
-            t("teams_plan_required")
-          ) : price === 0 ? (
-            t("free_to_use_apps")
-          ) : (
-            <>
-              {Intl.NumberFormat(i18n.language, {
-                style: "currency",
-                currency: "USD",
-                useGrouping: false,
-              }).format(price)}
-              {feeType === "monthly" && "/" + t("month")}
-            </>
-          )}
-        </span>
+        {!paid && (
+          <>
+            <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
+            <span className="text-default">
+              {teamsPlanRequired ? (
+                t("teams_plan_required")
+              ) : price === 0 ? (
+                t("free_to_use_apps")
+              ) : (
+                <>
+                  {Intl.NumberFormat(i18n.language, {
+                    style: "currency",
+                    currency: "USD",
+                    useGrouping: false,
+                  }).format(price)}
+                  {feeType === "monthly" && `/${t("month")}`}
+                </>
+              )}
+            </span>
+          </>
+        )}
 
         <h4 className="text-emphasis mb-2 mt-8 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
@@ -322,7 +344,7 @@ export const AppPage = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
-                href={"mailto:" + email}>
+                href={`mailto:${email}`}>
                 <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}

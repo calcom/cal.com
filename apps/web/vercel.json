@@ -4,5 +4,13 @@
       "path": "/api/cron/calendar-cache-cleanup",
       "schedule": "0 5 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "pages/api/trpc/public/[trpc].ts": {
+      "memory": 768
+    },
+    "pages/api/trpc/slots/[trpc].ts": {
+      "memory": 768
+    }
+  }
 }

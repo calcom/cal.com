@@ -18,7 +18,7 @@ import {
   Skeleton,
   TextField,
 } from "@calcom/ui";
-import { Plus, FileText, X } from "@calcom/ui/components/icon";
+import { Plus, FileText, X, ArrowUp, ArrowDown } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -29,7 +29,7 @@ import SingleForm, {
 
 export { getServerSideProps };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
-type SelectOption = { placeholder: string; value: string };
+type SelectOption = { placeholder: string; value: string; id: string };
 
 export const FieldTypes = [
   {
@@ -88,12 +88,13 @@ function Field({
   appUrl: string;
 }) {
   const { t } = useLocale();
+  const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   const [options, setOptions] = useState<SelectOption[]>([
-    { placeholder: "< 10", value: "" },
-    { placeholder: "10-100", value: "" },
-    { placeholder: "100-500", value: "" },
-    { placeholder: "> 500", value: "" },
+    { placeholder: "< 10", value: "", id: uuidv4() },
+    { placeholder: "10-100", value: "", id: uuidv4() },
+    { placeholder: "100-500", value: "", id: uuidv4() },
+    { placeholder: "> 500", value: "", id: uuidv4() },
   ]);
 
   const handleRemoveOptions = (index: number) => {
@@ -108,6 +109,7 @@ function Field({
       {
         placeholder: "New Option",
         value: "",
+        id: uuidv4(),
       },
     ]);
   };
@@ -118,6 +120,7 @@ function Field({
       const values: SelectOption[] = originalValues.split("\n").map((fieldValue) => ({
         value: fieldValue,
         placeholder: "",
+        id: uuidv4(),
       }));
       setOptions(values);
     }
@@ -132,6 +135,7 @@ function Field({
       ...opt,
       ...(index === optionIndex ? { value: e.target.value } : {}),
     }));
+
     setOptions(updatedOptions);
     updateSelectText(updatedOptions);
   };
@@ -155,6 +159,19 @@ function Field({
     control: hookForm.control,
     name: `${hookFieldNamespace}.identifier`,
   });
+
+  function move(index: number, increment: 1 | -1) {
+    const newList = [...options];
+
+    const type = options[index];
+    const tmp = options[index + increment];
+    if (tmp) {
+      newList[index] = tmp;
+      newList[index + increment] = type;
+    }
+    setOptions(newList);
+    updateSelectText(newList);
+  }
 
   return (
     <div
@@ -242,29 +259,51 @@ function Field({
               <Skeleton as={Label} loadingClassName="w-16" title={t("Options")}>
                 {t("options")}
               </Skeleton>
-              {options.map((field, index) => (
-                <div key={`select-option-${index}`}>
-                  <TextField
-                    disabled={!!router}
-                    containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
-                    className="border-0 focus:ring-0 focus:ring-offset-0"
-                    labelSrOnly
-                    placeholder={field.placeholder.toString()}
-                    value={field.value}
-                    type="text"
-                    addOnClassname="bg-transparent border-0"
-                    onChange={(e) => handleChange(e, index)}
-                    addOnSuffix={
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveOptions(index)}
-                        aria-label={t("remove")}>
-                        <X className="h-4 w-4" />
-                      </button>
-                    }
-                  />
-                </div>
-              ))}
+              <ul ref={animationRef}>
+                {options.map((field, index) => (
+                  <li key={`select-option-${field.id}`} className="group mt-2 flex items-center gap-2">
+                    <div className="flex flex-col gap-2">
+                      {options.length && index !== 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => move(index, -1)}
+                          className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
+                          <ArrowUp />
+                        </button>
+                      ) : null}
+                      {options.length && index !== options.length - 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => move(index, 1)}
+                          className="bg-default text-muted hover:text-emphasis invisible flex h-6 w-6 scale-0 items-center   justify-center rounded-md border p-1 transition-all hover:border-transparent  hover:shadow group-hover:visible group-hover:scale-100 ">
+                          <ArrowDown />
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="w-full">
+                      <TextField
+                        disabled={!!router}
+                        containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
+                        className="border-0 focus:ring-0 focus:ring-offset-0"
+                        labelSrOnly
+                        placeholder={field.placeholder.toString()}
+                        value={field.value}
+                        type="text"
+                        addOnClassname="bg-transparent border-0"
+                        onChange={(e) => handleChange(e, index)}
+                        addOnSuffix={
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveOptions(index)}
+                            aria-label={t("remove")}>
+                            <X className="h-4 w-4" />
+                          </button>
+                        }
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
               <div className={classNames("flex")}>
                 <Button
                   data-testid="add-attribute"

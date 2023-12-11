@@ -39,8 +39,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const { t } = useLocale();
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
-
-  const enabledOnTeams = doesAppSupportTeamInstall(app.categories, app.concurrentMeetings);
+  const enabledOnTeams = doesAppSupportTeamInstall({
+    appCategories: app.categories,
+    concurrentMeetings: app.concurrentMeetings,
+    isPaid: !!app.paid,
+  });
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
@@ -55,11 +58,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
       <div className="flex">
         <img
           src={app.logo}
-          alt={app.name + " Logo"}
+          alt={`${app.name} Logo`}
           className={classNames(
             app.logo.includes("-dark") && "dark:invert",
-            "mb-4 h-12 w-12 rounded-sm",
-            app.dirName == "caldavcalendar" && "dark:invert" // TODO: Maybe find a better way to handle this @Hariom?
+            "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
           )}
         />
       </div>
@@ -68,7 +70,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}
-              <span className="bg-yellow-300">
+              <span className="bg-yellow-300" data-testid="highlighted-text">
                 {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
               </span>
               {app.name.substring(searchTextIndex + searchText.length)}
@@ -121,6 +123,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       addAppMutationInput={{ type: app.type, variant: app.variant, slug: app.slug }}
                       appCategories={app.categories}
                       concurrentMeetings={app.concurrentMeetings}
+                      paid={app.paid}
                     />
                   );
                 }}
@@ -147,6 +150,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       appCategories={app.categories}
                       credentials={credentials}
                       concurrentMeetings={app.concurrentMeetings}
+                      paid={app.paid}
                       {...props}
                     />
                   );
@@ -175,6 +179,7 @@ const InstallAppButtonChild = ({
   appCategories,
   credentials,
   concurrentMeetings,
+  paid,
   ...props
 }: {
   userAdminTeams?: UserAdminTeams;
@@ -182,6 +187,7 @@ const InstallAppButtonChild = ({
   appCategories: string[];
   credentials?: Credential[];
   concurrentMeetings?: boolean;
+  paid: App["paid"];
 } & ButtonProps) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -190,7 +196,9 @@ const InstallAppButtonChild = ({
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
-      router.replace(pathname);
+      if (pathname !== null) {
+        router.replace(pathname);
+      }
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
@@ -199,7 +207,25 @@ const InstallAppButtonChild = ({
     },
   });
 
-  if (!userAdminTeams?.length || !doesAppSupportTeamInstall(appCategories, concurrentMeetings)) {
+  // Paid apps don't support team installs at the moment
+  // Also, cal.ai(the only paid app at the moment) doesn't support team install either
+  if (paid) {
+    return (
+      <Button
+        color="secondary"
+        className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+        StartIcon={Plus}
+        data-testid="install-app-button"
+        {...props}>
+        {paid.trial ? t("start_paid_trial") : t("subscribe")}
+      </Button>
+    );
+  }
+
+  if (
+    !userAdminTeams?.length ||
+    !doesAppSupportTeamInstall({ appCategories, concurrentMeetings, isPaid: !!paid })
+  ) {
     return (
       <Button
         color="secondary"

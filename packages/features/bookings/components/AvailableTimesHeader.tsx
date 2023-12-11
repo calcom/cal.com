@@ -18,9 +18,7 @@ type AvailableTimesHeaderProps = {
 
 export const AvailableTimesHeader = ({
   date,
-
   showTimeFormatToggle = true,
-
   availableMonth,
 }: AvailableTimesHeaderProps) => {
   const { t, i18n } = useLocale();

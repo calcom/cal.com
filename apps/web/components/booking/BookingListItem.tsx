@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
@@ -26,13 +26,11 @@ import {
   DialogFooter,
   MeetingTimeInTimezones,
   showToast,
-  Tooltip,
   TableActions,
   TextAreaField,
+  Tooltip,
 } from "@calcom/ui";
-import { Check, Clock, MapPin, RefreshCcw, Send, Ban, X, CreditCard } from "@calcom/ui/components/icon";
-
-import useMeQuery from "@lib/hooks/useMeQuery";
+import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -45,20 +43,23 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
+  loggedInUser: {
+    userId: number | undefined;
+    userTimeZone: string | undefined;
+    userTimeFormat: number | null | undefined;
+    userEmail: string | undefined;
+  };
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
   const bookerUrl = useBookerUrl();
+  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
 
-  const user = query.data;
   const {
     t,
     i18n: { language },
   } = useLocale();
   const utils = trpc.useContext();
-  const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
@@ -142,17 +143,6 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  const showRecordingActions: ActionType[] = [
-    {
-      id: "view_recordings",
-      label: t("view_recordings"),
-      onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
-      },
-      disabled: mutation.isLoading,
-    },
-  ];
-
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -227,6 +217,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const startTime = dayjs(booking.startTime)
+    .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
@@ -259,20 +250,36 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const onClickTableData = () => {
+  const buildBookingLink = () => {
     const urlSearchParams = new URLSearchParams({
       allRemainingBookings: isTabRecurring.toString(),
     });
     if (booking.attendees[0]) urlSearchParams.set("email", booking.attendees[0].email);
-    router.push(`/booking/${booking.uid}?${urlSearchParams.toString()}`);
+    return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
   };
 
-  const title = booking.title;
-  // To be used after we run query on legacy bookings
-  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
+  const bookingLink = buildBookingLink();
 
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+  const title = booking.title;
+
+  const showViewRecordingsButton = !!(booking.isRecorded && isPast && isConfirmed);
+  const showCheckRecordingButton =
+    isPast &&
+    isConfirmed &&
+    !booking.isRecorded &&
+    (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
+
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      color: showCheckRecordingButton ? "secondary" : "primary",
+      disabled: mutation.isLoading,
+    },
+  ];
 
   return (
     <>
@@ -297,12 +304,12 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {showRecordingsButtons && (
+      {(showViewRecordingsButton || showCheckRecordingButton) && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
-          timeFormat={user?.timeFormat ?? null}
+          timeFormat={userTimeFormat ?? null}
         />
       )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
@@ -337,135 +344,149 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
-        <td
-          className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
-          onClick={onClickTableData}>
-          <div className="cursor-pointer py-4">
-            <div className="text-emphasis text-sm leading-6">{startTime}</div>
-            <div className="text-subtle text-sm">
-              {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-              {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
-              <MeetingTimeInTimezones
-                timeFormat={user?.timeFormat}
-                userTimezone={user?.timeZone}
-                startTime={booking.startTime}
-                endTime={booking.endTime}
-                attendees={booking.attendees}
-              />
-            </div>
-            {isPending && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("unconfirmed")}
-              </Badge>
-            )}
-            {booking.eventType?.team && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                {booking.eventType.team.name}
-              </Badge>
-            )}
-            {booking.paid && !booking.payment[0] ? (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("error_collecting_card")}
-              </Badge>
-            ) : booking.paid ? (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
-                {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-              </Badge>
-            ) : null}
-            {recurringDates !== undefined && (
-              <div className="text-muted mt-2 text-sm">
-                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
-              </div>
-            )}
-          </div>
-        </td>
-        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
-          {/* Time and Badges for mobile */}
-          <div className="w-full pb-2 pt-4 sm:hidden">
-            <div className="flex w-full items-center justify-between sm:hidden">
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <Link href={bookingLink}>
+            <div className="cursor-pointer py-4">
               <div className="text-emphasis text-sm leading-6">{startTime}</div>
-              <div className="text-subtle pr-2 text-sm">
-                {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-                {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+              <div className="text-subtle text-sm">
+                {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
                 <MeetingTimeInTimezones
-                  timeFormat={user?.timeFormat}
-                  userTimezone={user?.timeZone}
+                  timeFormat={userTimeFormat}
+                  userTimezone={userTimeZone}
                   startTime={booking.startTime}
                   endTime={booking.endTime}
                   attendees={booking.attendees}
                 />
               </div>
+              {isPending && (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                  {t("unconfirmed")}
+                </Badge>
+              )}
+              {booking.eventType?.team && (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                  {booking.eventType.team.name}
+                </Badge>
+              )}
+              {booking.paid && !booking.payment[0] ? (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                  {t("error_collecting_card")}
+                </Badge>
+              ) : booking.paid ? (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+                  {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+                </Badge>
+              ) : null}
+              {recurringDates !== undefined && (
+                <div className="text-muted mt-2 text-sm">
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
+                </div>
+              )}
             </div>
-
-            {isPending && (
-              <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                {t("unconfirmed")}
-              </Badge>
-            )}
-            {booking.eventType?.team && (
-              <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
-                {booking.eventType.team.name}
-              </Badge>
-            )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                {t("pending_payment")}
-              </Badge>
-            )}
-            {recurringDates !== undefined && (
-              <div className="text-muted text-sm sm:hidden">
-                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+          </Link>
+        </td>
+        <td className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+          <Link href={bookingLink}>
+            {/* Time and Badges for mobile */}
+            <div className="w-full pb-2 pt-4 sm:hidden">
+              <div className="flex w-full items-center justify-between sm:hidden">
+                <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                <div className="text-subtle pr-2 text-sm">
+                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                  <MeetingTimeInTimezones
+                    timeFormat={userTimeFormat}
+                    userTimezone={userTimeZone}
+                    startTime={booking.startTime}
+                    endTime={booking.endTime}
+                    attendees={booking.attendees}
+                  />
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="cursor-pointer py-4">
-            <div
-              title={title}
-              className={classNames(
-                "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
-                isCancelled ? "line-through" : ""
-              )}>
-              {title}
-              <span> </span>
-
-              {paymentAppData.enabled && !booking.paid && booking.payment.length && (
-                <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
+              {isPending && (
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                  {t("unconfirmed")}
+                </Badge>
+              )}
+              {booking.eventType?.team && (
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                  {booking.eventType.team.name}
+                </Badge>
+              )}
+              {!!booking?.eventType?.price && !booking.paid && (
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}
+              {recurringDates !== undefined && (
+                <div className="text-muted text-sm sm:hidden">
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
+                </div>
+              )}
             </div>
-            {booking.description && (
+
+            <div className="cursor-pointer py-4">
               <div
-                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
-                title={booking.description}>
-                &quot;{booking.description}&quot;
+                title={title}
+                className={classNames(
+                  "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
+                  isCancelled ? "line-through" : ""
+                )}>
+                {title}
+                <span> </span>
+
+                {paymentAppData.enabled && !booking.paid && booking.payment.length && (
+                  <Badge className="me-2 ms-2 hidden sm:inline-flex" variant="orange">
+                    {t("pending_payment")}
+                  </Badge>
+                )}
               </div>
-            )}
-            {booking.attendees.length !== 0 && (
-              <DisplayAttendees
-                attendees={booking.attendees}
-                user={booking.user}
-                currentEmail={user?.email}
-              />
-            )}
-            {isCancelled && booking.rescheduled && (
-              <div className="mt-2 inline-block md:hidden">
-                <RequestSentMessage />
-              </div>
-            )}
-          </div>
+              {booking.description && (
+                <div
+                  className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                  title={booking.description}>
+                  &quot;{booking.description}&quot;
+                </div>
+              )}
+              {booking.attendees.length !== 0 && (
+                <DisplayAttendees
+                  attendees={booking.attendees}
+                  user={booking.user}
+                  currentEmail={userEmail}
+                />
+              )}
+              {isCancelled && booking.rescheduled && (
+                <div className="mt-2 inline-block md:hidden">
+                  <RequestSentMessage />
+                </div>
+              )}
+            </div>
+          </Link>
         </td>
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && userId === booking.user?.id && <TableActions actions={pendingActions} />}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
+          {(showViewRecordingsButton || showCheckRecordingButton) && (
+            <TableActions actions={showRecordingActions} />
+          )}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -485,12 +506,16 @@ function BookingListItem(booking: BookingItemProps) {
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
   recurringDates: Date[];
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
 }
 
-const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
+const RecurringBookingsTooltip = ({
+  booking,
+  recurringDates,
+  userTimeZone,
+  userTimeFormat,
+}: RecurringBookingsTooltipProps) => {
   const {
     t,
     i18n: { language },
@@ -500,8 +525,8 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toDateString())
-        .includes(recurringDate.toDateString())
+        .map((date) => date.toString())
+        .includes(recurringDate.toString())
     );
   }).length;
 
@@ -518,11 +543,11 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toDateString())
-                    .includes(aDate.toDateString());
+                    .map((date) => date.toString())
+                    .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
-                    {formatTime(aDate, user?.timeFormat, user?.timeZone)}
+                    {formatTime(aDate, userTimeFormat, userTimeZone)}
                     {" - "}
                     {dayjs(aDate).locale(language).format("D MMMM YYYY")}
                   </p>
@@ -535,7 +560,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
-                    ? `${t("event_remaining", {
+                    ? `${t("event_remaining_other", {
                         count: recurringCount,
                       })}`
                     : getEveryFreqFor({
@@ -573,7 +598,7 @@ const FirstAttendee = ({
     <a
       key={user.email}
       className=" hover:text-blue-500"
-      href={"mailto:" + user.email}
+      href={`mailto:${user.email}`}
       onClick={(e) => e.stopPropagation()}>
       {user.name}
     </a>
@@ -587,7 +612,7 @@ type AttendeeProps = {
 
 const Attendee = ({ email, name }: AttendeeProps) => {
   return (
-    <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
+    <a className="hover:text-blue-500" href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
       {name || email}
     </a>
   );

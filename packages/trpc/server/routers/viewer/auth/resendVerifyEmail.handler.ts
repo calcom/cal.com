@@ -9,7 +9,7 @@ type ResendEmailOptions = {
   };
 };
 
-const log = logger.getChildLogger({ prefix: [`[[Auth] `] });
+const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 export const resendVerifyEmail = async ({ ctx }: ResendEmailOptions) => {
   if (ctx.user.emailVerified) {

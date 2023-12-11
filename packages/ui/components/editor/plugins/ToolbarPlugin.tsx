@@ -420,7 +420,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
             <Dropdown>
               <DropdownMenuTrigger className="text-subtle">
                 <>
-                  <span className={"icon" + blockType} />
+                  <span className={`icon${blockType}`} />
                   <span className="text text-default hidden sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
@@ -440,7 +440,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                           blockType === key ? "bg-subtle w-full" : ""
                         )}>
                         <>
-                          <span className={"icon block-type " + key} />
+                          <span className={`icon block-type ${key}`} />
                           <span>{blockTypeToBlockName[key]}</span>
                         </>
                       </Button>

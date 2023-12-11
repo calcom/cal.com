@@ -1,14 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TimezoneSelect } from "@calcom/ui";
+import { Button, TimezoneSelect, Input } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
@@ -22,7 +23,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { nextStep } = props;
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
+  const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
   const telemetry = useTelemetry();
   const userSettingsSchema = z.object({
     name: z
@@ -75,7 +76,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           <label htmlFor="name" className="text-default mb-2 block text-sm font-medium">
             {t("full_name")}
           </label>
-          <input
+          <Input
             {...register("name", {
               required: true,
             })}
@@ -84,7 +85,6 @@ const UserSettings = (props: IUserSettingsProps) => {
             type="text"
             autoComplete="off"
             autoCorrect="off"
-            className="border-default w-full rounded-md border text-sm"
           />
           {errors.name && (
             <p data-testid="required" className="py-2 text-xs text-red-500">
@@ -105,7 +105,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="mt-2 w-full rounded-md text-sm"
           />
 
-          <p className="text-subtle dark:text-inverted mt-3 flex flex-row font-sans text-xs leading-tight">
+          <p className="text-subtle mt-3 flex flex-row font-sans text-xs leading-tight">
             {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
           </p>
         </div>

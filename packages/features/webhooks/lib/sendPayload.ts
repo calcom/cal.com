@@ -22,6 +22,7 @@ export type WebhookDataType = CalendarEvent &
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
+    rescheduleId?: number;
     rescheduleUid?: string;
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;
@@ -86,7 +87,7 @@ function applyTemplate(template: string, data: WebhookDataType, contentType: Con
   return compiled;
 }
 
-function jsonParse(jsonString: string) {
+export function jsonParse(jsonString: string) {
   try {
     return JSON.parse(jsonString);
   } catch (e) {

@@ -1,8 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
+import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
@@ -19,8 +20,10 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import { getDefaultScheduleId } from "../viewer/availability/util";
 import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
+const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -29,11 +32,38 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
+const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
+  const objectKey = uuidv4();
+
+  await prisma.avatar.upsert({
+    where: {
+      teamId_userId: {
+        teamId: 0,
+        userId,
+      },
+    },
+    create: {
+      userId: userId,
+      data,
+      objectKey,
+    },
+    update: {
+      data,
+      objectKey,
+    },
+  });
+
+  return `/api/avatar/${objectKey}.png`;
+};
+
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
+  const locale = input.locale || user.locale;
   const data: Prisma.UserUpdateInput = {
     ...input,
+    // DO NOT OVERWRITE AVATAR.
+    avatar: undefined,
     metadata: userMetadata,
   };
 
@@ -44,7 +74,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
   if (layoutError) {
-    const t = await getTranslation("en", "common");
+    const t = await getTranslation(locale, "common");
     throw new TRPCError({ code: "BAD_REQUEST", message: t(layoutError) });
   }
 
@@ -56,12 +86,10 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       const response = await checkUsername(username);
       isPremiumUsername = response.premium;
       if (!response.available) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
+        const t = await getTranslation(locale, "common");
+        throw new TRPCError({ code: "BAD_REQUEST", message: t("username_already_taken") });
       }
     }
-  }
-  if (input.avatar) {
-    data.avatar = await resizeBase64Image(input.avatar);
   }
 
   if (isPremiumUsername) {
@@ -84,7 +112,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // @TODO: iterate if stripeSubscriptions.hasMore is true
     const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
       (subscription) =>
-        subscription.items.data[0].price.product === getPremiumPlanProductId() &&
+        subscription.items.data[0].price.id === getPremiumMonthlyPlanPriceId() &&
         subscription.status === "active"
     );
 
@@ -114,6 +142,22 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // when the email changes, the user needs to sign in again.
     signOutUser = true;
   }
+  // if defined AND a base 64 string, upload and set the avatar URL
+  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
+    const avatar = await resizeBase64Image(input.avatar);
+    data.avatarUrl = await uploadAvatar({
+      avatar,
+      userId: user.id,
+    });
+    // as this is still used in the backwards compatible endpoint, we also write it here
+    // to ensure no data loss.
+    data.avatar = avatar;
+  }
+  // Unset avatar url if avatar is empty string.
+  if ("" === input.avatar) {
+    data.avatarUrl = null;
+    data.avatar = null;
+  }
 
   const updatedUser = await prisma.user.update({
     where: {
@@ -129,9 +173,41 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       metadata: true,
       name: true,
       createdDate: true,
+      avatarUrl: true,
       locale: true,
+      schedules: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
+
+  if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
+    // on timezone change update timezone of default schedule
+    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
+    if (!user.defaultScheduleId) {
+      // set default schedule if not already set
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
+
+    await prisma.schedule.updateMany({
+      where: {
+        id: defaultScheduleId,
+      },
+      data: {
+        timeZone: data.timeZone,
+      },
+    });
+  }
 
   if (hasEmailChangedOnNonCalProvider) {
     // Because the email has changed, we are now attempting to use the CAL provider-
@@ -155,28 +231,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     });
   }
-  // Revalidate booking pages
-  // Disabled because the booking pages are currently not using getStaticProps
-  /*const res = ctx.res as NextApiResponse;
-  if (typeof res?.revalidate !== "undefined") {
-    const eventTypes = await prisma.eventType.findMany({
-      where: {
-        userId: user.id,
-        team: null,
-      },
-      select: {
-        id: true,
-        slug: true,
-      },
-    });
-    // waiting for this isn't needed
-    Promise.all(
-      eventTypes.map((eventType) => res?.revalidate(`/new-booker/${ctx.user.username}/${eventType.slug}`))
-    )
-      .then(() => console.info("Booking pages revalidated"))
-      .catch((e) => console.error(e));
-  }*/
-  return { ...input, signOutUser, passwordReset };
+
+  // don't return avatar, we don't need it anymore.
+  delete input.avatar;
+
+  return { ...input, signOutUser, passwordReset, avatarUrl: updatedUser.avatarUrl };
 };
 
 const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["metadata"]) => {

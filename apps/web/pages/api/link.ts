@@ -7,7 +7,7 @@ import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
-import { viewerRouter } from "@calcom/trpc/server/routers/viewer/_router";
+import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -55,13 +55,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     const ctx = await createContext({ req, res }, sessionGetter);
-    const caller = viewerRouter.createCaller({
+    const caller = bookingsRouter.createCaller({
       ...ctx,
       req,
       res,
       user: { ...user, locale: user?.locale ?? "en" },
     });
-    await caller.bookings.confirm({
+    await caller.confirm({
       bookingId: booking.id,
       recurringEventId: booking.recurringEventId || undefined,
       confirmed: action === DirectAction.ACCEPT,

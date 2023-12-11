@@ -97,7 +97,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                 </div>
               </div>
             ) : (
-              <div className="flex-grow">
+              <div className="mb-4 flex-grow">
                 <EditForm
                   selectedUser={loadedUser}
                   avatarUrl={avatarURL}

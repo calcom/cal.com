@@ -10,9 +10,9 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 
 /**
  * @swagger
- * /availability:
+ * /teams/{teamId}/availability:
  *   get:
- *     summary: Find user or team availability
+ *     summary: Find team availability
  *     parameters:
  *       - in: query
  *         name: apiKey
@@ -21,24 +21,13 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *           type: string
  *         example: "1234abcd5678efgh"
  *         description: Your API key
- *       - in: query
- *         name: userId
- *         schema:
- *           type: integer
- *         example: 101
- *         description: ID of the user to fetch the availability for
- *       - in: query
+ *       - in: path
  *         name: teamId
+ *         required: true
  *         schema:
  *           type: integer
  *         example: 123
  *         description: ID of the team to fetch the availability for
- *       - in: query
- *         name: username
- *         schema:
- *           type: string
- *         example: "alice"
- *         description: username of the user to fetch the availability for
  *       - in: query
  *         name: dateFrom
  *         schema:
@@ -59,7 +48,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *           type: integer
  *         example: 123
  *         description: Event Type ID of the event type to fetch the availability for
- *     operationId: availability
+ *     operationId: team-availability
  *     tags:
  *     - availability
  *     responses:
@@ -96,7 +85,89 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
- *         description: User not found | Team not found | Team has no members
+ *         description: Team not found | Team has no members
+ *
+ * /availability:
+ *   get:
+ *     summary: Find user availability
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "1234abcd5678efgh"
+ *         description: Your API key
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         example: 101
+ *         description: ID of the user to fetch the availability for
+ *       - in: query
+ *         name: username
+ *         schema:
+ *           type: string
+ *         example: "alice"
+ *         description: username of the user to fetch the availability for
+ *       - in: query
+ *         name: dateFrom
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2023-05-14 00:00:00"
+ *         description: Start Date of the availability query
+ *       - in: query
+ *         name: dateTo
+ *         schema:
+ *           type: string
+ *           format: date
+ *         example: "2023-05-20 00:00:00"
+ *         description: End Date of the availability query
+ *       - in: query
+ *         name: eventTypeId
+ *         schema:
+ *           type: integer
+ *         example: 123
+ *         description: Event Type ID of the event type to fetch the availability for
+ *     operationId: user-availability
+ *     tags:
+ *     - availability
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 busy:
+ *                   - start: "2023-05-14T10:00:00.000Z"
+ *                     end: "2023-05-14T11:00:00.000Z"
+ *                     title: "Team meeting between Alice and Bob"
+ *                   - start: "2023-05-15T14:00:00.000Z"
+ *                     end: "2023-05-15T15:00:00.000Z"
+ *                     title: "Project review between Carol and Dave"
+ *                   - start: "2023-05-16T09:00:00.000Z"
+ *                     end: "2023-05-16T10:00:00.000Z"
+ *                   - start: "2023-05-17T13:00:00.000Z"
+ *                     end: "2023-05-17T14:00:00.000Z"
+ *                 timeZone: "America/New_York"
+ *                 workingHours:
+ *                   - days: [1, 2, 3, 4, 5]
+ *                     startTime: 540
+ *                     endTime: 1020
+ *                     userId: 101
+ *                 dateOverrides:
+ *                   - date: "2023-05-15"
+ *                     startTime: 600
+ *                     endTime: 960
+ *                     userId: 101
+ *                 currentSeats: 4
+ *       401:
+ *        description: Authorization information is missing or invalid.
+ *       404:
+ *         description: User not found
  */
 interface MemberRoles {
   [userId: number | string]: MembershipRole;

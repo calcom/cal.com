@@ -54,3 +54,5 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
 
   return Object.values(users);
 };
+
+export default listMembersHandler;

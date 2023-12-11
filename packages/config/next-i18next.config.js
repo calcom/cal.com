@@ -31,7 +31,12 @@ const config = {
       "vi",
       "zh-CN",
       "zh-TW",
+      "km",
     ],
+  },
+  fallbackLng: {
+    default: ["en"],
+    zh: ["zh-CN"],
   },
   reloadOnPrerender: process.env.NODE_ENV !== "production",
 };
