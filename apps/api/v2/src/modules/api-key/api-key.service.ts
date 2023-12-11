@@ -19,6 +19,11 @@ export class ApiKeyService {
     response.locals.apiKey = key;
   };
 
+  getApiKeyFromRequest(request: Request): string | null {
+    const apiKey = request.get("Authorization")?.replace("Bearer ", "");
+    return apiKey;
+  }
+
   async retrieveApiKey(request: Request, response?: Response) {
     const apiKey = request.get("Authorization")?.replace("Bearer ", "");
     const hashedKey = hashAPIKey(apiKey.replace("cal_", ""));
