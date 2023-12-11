@@ -20,7 +20,6 @@ const paramsSchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const { user: teamOrUserSlug, orgSlug, type } = paramsSchema.parse(ctx.params);
-  if (!teamOrUserSlug) return { notFound: true } as const;
   const team = await prisma.team.findFirst({
     where: {
       slug: teamOrUserSlug,
