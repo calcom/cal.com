@@ -31,13 +31,14 @@ export class PrismaExceptionFilter implements ExceptionFilter {
   catch(error: PrismaError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-
+    const request = ctx.getRequest();
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
     });
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       status: ERROR_STATUS,
       timestamp: new Date().toISOString(),
+      path: request.url,
       error: { code: INTERNAL_SERVER_ERROR, message: "There was an error, please try again later." },
     });
   }

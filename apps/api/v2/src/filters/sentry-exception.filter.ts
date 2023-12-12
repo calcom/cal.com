@@ -12,6 +12,8 @@ export class SentryFilter extends BaseExceptionFilter {
   handleUnknownError(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest();
+
     this.logger.error(`Sentry Exception Filter: ${exception?.message}`, {
       exception,
     });
@@ -23,6 +25,7 @@ export class SentryFilter extends BaseExceptionFilter {
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       status: ERROR_STATUS,
       timestamp: new Date().toISOString(),
+      path: request.url,
       error: { code: INTERNAL_SERVER_ERROR, message: "Internal server error." },
     });
   }
