@@ -1,8 +1,7 @@
 import { GetUser } from "@/modules/auth/decorator";
 import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
-import { OrganizationGuard } from "@/modules/auth/guard/organization/organization.guard";
-import { RolesGuard } from "@/modules/auth/guard/roles/roles.guard";
+import { OrganizationRolesGuard } from "@/modules/auth/guard/organization-roles/organization-roles.guard";
 import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
@@ -28,7 +27,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "oauth-clients",
   version: "2",
 })
-@UseGuards(NextAuthGuard, OrganizationGuard, RolesGuard)
+@UseGuards(NextAuthGuard, OrganizationRolesGuard)
 export class OAuthClientController {
   private readonly logger = new Logger("OAuthClientController");
 

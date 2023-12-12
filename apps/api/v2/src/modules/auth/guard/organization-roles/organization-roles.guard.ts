@@ -4,7 +4,7 @@ import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class OrganizationRolesGuard implements CanActivate {
   constructor(private reflector: Reflector, private membershipRepository: MembershipRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -15,12 +15,12 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-
     const membership = await this.membershipRepository.findOrgUserMembership(user.organizationId, user.id);
 
-    const hasRequiredRole = requiredRoles.includes(membership.role);
+    const partOfOrganization = !!user.organizationId;
     const isAccepted = membership.accepted;
+    const hasRequiredRole = requiredRoles.includes(membership.role);
 
-    return user && hasRequiredRole && isAccepted;
+    return user && partOfOrganization && isAccepted && hasRequiredRole;
   }
 }
