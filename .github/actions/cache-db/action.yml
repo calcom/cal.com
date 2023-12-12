@@ -23,6 +23,8 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}
         DATABASE_URL: ${{ inputs.CI_DATABASE_URL }}
     - run: yarn db-seed
+      env:
+        DATABASE_URL: ${{ inputs.CI_DATABASE_URL }
       # if: steps.cache-db.outputs.cache-hit != 'true'
       #  with:
       #   database_url: ${{ inputs.DATABASE_URL }}
