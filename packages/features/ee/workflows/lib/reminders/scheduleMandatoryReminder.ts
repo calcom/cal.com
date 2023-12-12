@@ -4,8 +4,11 @@ import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNe
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+
+const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
 export type NewBookingEventType =
   | Awaited<ReturnType<typeof getDefaultEvent>>
@@ -73,10 +76,10 @@ export async function scheduleMandatoryReminder(
           true
         );
       } catch (error) {
-        console.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
+        log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
       }
     }
   } catch (error) {
-    console.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
+    log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
   }
 }

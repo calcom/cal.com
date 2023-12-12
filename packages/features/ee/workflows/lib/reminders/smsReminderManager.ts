@@ -173,7 +173,7 @@ export const scheduleSMSReminder = async (
       try {
         await twilio.sendSMS(reminderPhone, message, senderID);
       } catch (error) {
-        console.log(`Error sending SMS with error ${error}`);
+        log.error(`Error sending SMS with error ${error}`);
       }
     } else if (
       (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -205,7 +205,7 @@ export const scheduleSMSReminder = async (
             },
           });
         } catch (error) {
-          console.log(`Error scheduling SMS with error ${error}`);
+          log.error(`Error scheduling SMS with error ${error}`);
         }
       } else if (scheduledDate.isAfter(currentDate.add(7, "day"))) {
         // Write to DB and send to CRON if scheduled reminder date is past 7 days
@@ -236,6 +236,6 @@ export const deleteScheduledSMSReminder = async (reminderId: number, referenceId
       },
     });
   } catch (error) {
-    console.log(`Error canceling reminder with error ${error}`);
+    log.error(`Error canceling reminder with error ${error}`);
   }
 };

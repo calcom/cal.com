@@ -290,7 +290,7 @@ export const scheduleEmailReminder = async (
       // TODO: Maybe don't await for this?
       await Promise.all(promises);
     } catch (error) {
-      console.log("Error sending Email");
+      log.error("Error sending Email");
     }
   } else if (
     (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -338,7 +338,7 @@ export const scheduleEmailReminder = async (
           });
         }
       } catch (error) {
-        console.log(`Error scheduling email with error ${error}`);
+        log.error(`Error scheduling email with error ${error}`);
       }
     } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
       // Write to DB and send to CRON if scheduled reminder date is past 72 hours
@@ -390,6 +390,6 @@ export const deleteScheduledEmailReminder = async (reminderId: number, reference
       },
     });
   } catch (error) {
-    console.log(`Error canceling reminder with error ${error}`);
+    log.error(`Error canceling reminder with error ${error}`);
   }
 };
