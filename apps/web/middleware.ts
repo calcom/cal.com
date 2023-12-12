@@ -122,6 +122,12 @@ export const config = {
     "/future/settings/admin/:path*",
     "/apps/installed/:category/",
     "/future/apps/installed/:category/",
+
+    "/apps/:slug/",
+    "/future/apps/:slug/",
+
+    "/apps/:slug/setup/",
+    "/future/apps/:slug/setup/",
   ],
 };
 
