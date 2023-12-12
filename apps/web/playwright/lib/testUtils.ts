@@ -9,6 +9,8 @@ import { noop } from "lodash";
 import type { API, Messages } from "mailhog";
 import { totp } from "otplib";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
@@ -335,4 +337,16 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=cardCvc]", "111");
   await page.fill("[name=billingName]", "Stripe Stripeson");
   await page.click(".SubmitButton--complete-Shimmer");
+}
+
+export async function sendTeamInviteAndGetLink(page: Page, prisma: PrismaClient, identifier: string) {
+  const response = page.waitForResponse("**/api/trpc/teams/inviteMember?batch=1");
+  await page.getByTestId("invite-new-member-button").click();
+  await response;
+  const verificationToken = await prisma.verificationToken.findFirstOrThrow({
+    where: { identifier },
+  });
+  expect(verificationToken).toBeDefined();
+  const token = verificationToken.token;
+  return `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
 }

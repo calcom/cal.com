@@ -1,11 +1,10 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
-import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import { APP_NAME, IS_MAILHOG_ENABLED, IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 
 import { test } from "./lib/fixtures";
-import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
-import { expectInvitationEmailToBeReceived } from "./team/expects";
+import { getEmailsReceivedByUser, localize, sendTeamInviteAndGetLink } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -230,7 +229,7 @@ test.describe("Signup Flow Test", async () => {
     const verifyEmail = receivedEmails?.items[0];
     expect(verifyEmail?.subject).toBe(`${APP_NAME}: Verify your account`);
   });
-  test("If signup is disabled allow team invites", async ({ browser, page, users, emails }) => {
+  test("If signup is disabled allow team invites", async ({ browser, page, users, prisma }) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true", "Skipping due to signup being enabled");
 
@@ -246,24 +245,11 @@ test.describe("Signup Flow Test", async () => {
       const invitedUserEmail = `rick_${Date.now()}@domain-${Date.now()}.com`;
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator(`button:text("${t("send_invite")}")`).click();
-      await page.waitForLoadState("networkidle");
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
-        emails,
-        invitedUserEmail,
-        `${team.name}'s admin invited you to join the team ${team.name} on Cal.com`,
-        "signup?token"
-      );
-
+      const inviteLink = await sendTeamInviteAndGetLink(page, prisma, invitedUserEmail);
       //Check newly invited member exists and is pending
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(1);
-
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!inviteLink) return;
-
       // Follow invite link to new window
       const context = await browser.newContext();
       const newPage = await context.newPage();

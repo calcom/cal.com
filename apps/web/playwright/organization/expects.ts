@@ -6,6 +6,10 @@ import type { API, Messages } from "mailhog";
 
 import { getEmailsReceivedByUser } from "../lib/testUtils";
 
+/**
+ * @deprecated
+ * Avoid using this function, it's not 100% reliable. And it will slow down the tests.
+ */
 export async function expectInvitationEmailToBeReceived(
   page: Page,
   emails: API | undefined,

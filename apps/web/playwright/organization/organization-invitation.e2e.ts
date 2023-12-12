@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
-import { getInviteLink } from "../lib/testUtils";
+import { getInviteLink, sendTeamInviteAndGetLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -12,7 +12,7 @@ test.afterEach(async ({ users, emails }) => {
 });
 
 test.describe("Organization", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
+  test("Invitation (non verified)", async ({ browser, page, users, prisma }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
@@ -23,23 +23,12 @@ test.describe("Organization", () => {
       const invitedUserEmail = `rick@domain-${Date.now()}.com`;
       await page.locator('button:text("Add")').click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator('button:text("Send invite")').click();
-      await page.waitForLoadState("networkidle");
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
-        emails,
-        invitedUserEmail,
-        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
-        "signup?token"
-      );
+      const inviteLink = await sendTeamInviteAndGetLink(page, prisma, invitedUserEmail);
 
       // Check newly invited member exists and is pending
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(1);
-
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!inviteLink) return null;
 
       // Follow invite link in new window
       const context = await browser.newContext();
