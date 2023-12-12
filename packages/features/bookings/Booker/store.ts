@@ -256,14 +256,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
     });
 
-    if (eventId) {
-      if (durationConfig?.includes(Number(getQueryParam("duration")))) {
-        set({
-          selectedDuration: Number(getQueryParam("duration")),
-        });
-      } else {
-        removeQueryParam("duration");
-      }
+    if (durationConfig?.includes(Number(getQueryParam("duration")))) {
+      set({
+        selectedDuration: Number(getQueryParam("duration")),
+      });
+    } else {
+      removeQueryParam("duration");
     }
 
     // Unset selected timeslot if user is rescheduling. This could happen
