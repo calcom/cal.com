@@ -34,7 +34,7 @@ export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelect
           initial={{ opacity: 0, y: 0 }}
           animate={{ opacity: 1, y: 20 }}
           exit={{ opacity: 0, y: 0 }}
-          className="bg-brand-default text-brand item-center fixed bottom-6 left-1/2 flex -translate-x-1/2 gap-4 rounded-lg p-2">
+          className="bg-brand-default text-brand item-center fixed bottom-6 left-1/4 hidden gap-4 rounded-lg p-2 md:flex lg:left-1/2">
           <div className="text-brand-subtle my-auto px-2">{numberOfSelectedRows} selected</div>
           {actions?.map((action, index) => (
             <Fragment key={index}>
