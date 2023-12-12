@@ -2,11 +2,11 @@ import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/clie
 
 import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import type { BookingInfo } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
@@ -15,20 +15,15 @@ export type NewBookingEventType =
   | Awaited<ReturnType<typeof getEventTypesFromDB>>;
 
 export async function scheduleMandatoryReminder(
-  evt: CalendarEvent,
+  evt: BookingInfo,
   workflows: (WorkflowsOnEventTypes & {
     workflow: Workflow & {
       steps: WorkflowStep[];
     };
   })[],
   requiresConfirmation: boolean,
-  slug: string,
-  metadataFromEvent:
-    | {
-        videoCallUrl: string;
-      }
-    | undefined,
-  hideBranding: boolean
+  hideBranding: boolean,
+  seatReferenceUid: string | undefined
 ) {
   try {
     const hasExistingWorkflow = workflows.some((workflow) => {
@@ -54,10 +49,7 @@ export async function scheduleMandatoryReminder(
           evt.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
 
         await scheduleEmailReminder(
-          {
-            ...evt,
-            ...{ metadata: metadataFromEvent, eventType: { slug } },
-          },
+          evt,
           WorkflowTriggerEvents.BEFORE_EVENT,
           WorkflowActions.EMAIL_ATTENDEE,
           {
@@ -71,7 +63,7 @@ export async function scheduleMandatoryReminder(
           SENDER_NAME,
           undefined,
           hideBranding,
-          evt.attendeeSeatId,
+          seatReferenceUid,
           false,
           true
         );

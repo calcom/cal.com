@@ -2725,9 +2725,8 @@ async function handler(
     evtWithMetadata,
     eventType.workflows || [],
     !isConfirmedByDefault,
-    eventType.slug,
-    metadataFromEvent,
-    !!eventType.owner?.hideBranding
+    !!eventType.owner?.hideBranding,
+    evt.attendeeSeatId
   );
 
   try {

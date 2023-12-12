@@ -267,9 +267,8 @@ export async function handleConfirmation(args: {
         evtOfBooking,
         updatedBookings[index]?.eventType?.workflows || [],
         false,
-        eventTypeSlug,
-        videoCallUrl,
-        !!updatedBookings[index].eventType?.owner?.hideBranding
+        !!updatedBookings[index].eventType?.owner?.hideBranding,
+        evt.attendeeSeatId
       );
       await scheduleWorkflowReminders({
         workflows: updatedBookings[index]?.eventType?.workflows || [],
