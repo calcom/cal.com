@@ -10,7 +10,6 @@ import {
   deleteScheduledWhatsappReminder,
   scheduleWhatsappReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -209,7 +208,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             emailSubject: step.emailSubject || "",
             emailBody: step.reminderBody || "",
             template: step.template,
-            sender: step.sender || SENDER_NAME,
+            sender: step.sender,
             workflowStepId: step.id,
           });
         } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
