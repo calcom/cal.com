@@ -19,4 +19,13 @@ module.exports = {
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "off",
   },
+  overrides: [
+    {
+      files: ["./src/**/*.controller.ts"],
+      excludedFiles: "*.spec.js",
+      rules: {
+        "@typescript-eslint/explicit-function-return-type": "error",
+      },
+    },
+  ],
 };

@@ -1,9 +1,8 @@
-import type { INestApplication } from "@nestjs/common";
-import type { TestingModule } from "@nestjs/testing";
+import { AppModule } from "@/app.module";
+import { INestApplication } from "@nestjs/common";
+import { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
-
-import { AppModule } from "../src/app.module";
 
 describe("AppController (e2e)", () => {
   let app: INestApplication;
@@ -19,5 +18,9 @@ describe("AppController (e2e)", () => {
 
   it("/ (GET)", () => {
     return request(app.getHttpServer()).get("/health").expect("OK");
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 });

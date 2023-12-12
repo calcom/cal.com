@@ -36,7 +36,8 @@
         "NEXT_PUBLIC_WEBSITE_URL",
         "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
-        "STRIPE_ORG_MONTHLY_PRICE_ID"
+        "STRIPE_ORG_MONTHLY_PRICE_ID",
+        "NEXT_PUBLIC_API_V2_URL"
       ]
     },
     "@calcom/web#dx": {
@@ -49,7 +50,14 @@
     },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
-      "env": ["NODE_ENV", "API_PORT", "DATABASE_READ_URL", "DATABASE_WRITE_URL", "LOG_LEVEL"]
+      "env": [
+        "NODE_ENV",
+        "API_PORT",
+        "DATABASE_READ_URL",
+        "DATABASE_WRITE_URL",
+        "LOG_LEVEL",
+        "NEXTAUTH_SECRET"
+      ]
     },
     "@calcom/ai#build": {
       "env": [
