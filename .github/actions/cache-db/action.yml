@@ -22,6 +22,10 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}
     - run: yarn db-seed
       # if: steps.cache-db.outputs.cache-hit != 'true'
+       with:
+        database_url: ${{ inputs.DATABASE_URL }}
+        path: ${{ inputs.path }}
+        options: "-O"
       shell: bash
     - name: Postgres Dump Backup
       if: steps.cache-db.outputs.cache-hit != 'true'
