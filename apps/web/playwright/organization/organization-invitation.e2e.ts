@@ -43,16 +43,18 @@ test.describe("Organization", () => {
 
       // Follow invite link in new window
       const context = await browser.newContext();
-      const newPage = await context.newPage();
-      newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
+      const signupPage = await context.newPage();
+      signupPage.goto(inviteLink);
+      await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
+      await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
+      await signupPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
-      await newPage.locator("button[type=submit]").click();
-      await newPage.waitForURL("/getting-started?from=signup");
+      await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      await signupPage.locator("button[type=submit]").click();
+      await signupPage.waitForURL("/getting-started?from=signup");
       await context.close();
-      await newPage.close();
+      await signupPage.close();
 
       // Check newly invited member is not pending anymore
       await page.bringToFront();
