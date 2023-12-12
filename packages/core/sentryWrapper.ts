@@ -3,8 +3,8 @@ import type { Span, Transaction } from "@sentry/types";
 
 /*
 WHEN TO USE
-We ran a script that performs a simple mathematical calculation within a loop of 1000000 iterations. 
-Our results were: Plain execution time: 441, Monitored execution time: 8094. 
+We ran a script that performs a simple mathematical calculation within a loop of 1000000 iterations.
+Our results were: Plain execution time: 441, Monitored execution time: 8094.
 This suggests that using these wrappers within large loops can incur significant overhead and is thus not recommended.
 
 For smaller loops, the cost incurred may not be very significant on an absolute scale
@@ -21,6 +21,10 @@ const setUpMonitoring = (name: string) => {
       op: name,
       name: name,
     });
+  }
+
+  if (!transaction) {
+    return [null, null];
   }
 
   // Start a new span in the current transaction
@@ -50,6 +54,8 @@ const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return (await cb(...args)) as ReturnType<T>;
 
   const [transaction, span] = setUpMonitoring(cb.name);
+
+  if (!transaction || !span) return (await cb(...args)) as ReturnType<T>;
 
   try {
     const result = await cb(...args);
