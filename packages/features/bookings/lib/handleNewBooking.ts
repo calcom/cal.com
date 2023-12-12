@@ -2719,21 +2719,22 @@ async function handler(
   }
 
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
+  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+
   await scheduleMandatoryReminder(
-    evt,
+    evtWithMetadata,
     eventType.workflows || [],
-    eventType.requiresConfirmation,
+    !isConfirmedByDefault,
     eventType.slug,
-    metadataFromEvent
+    metadataFromEvent,
+    !!eventType.owner?.hideBranding
   );
+
   try {
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: {
-        ...evt,
-        ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
-      },
+      calendarEvent: evtWithMetadata,
       isNotConfirmed: !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,

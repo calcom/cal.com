@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -243,7 +244,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 to: sendTo,
                 from: {
                   email: senderEmail,
-                  name: reminder.workflowStep.sender || "Cal.com",
+                  name: reminder.workflowStep.sender || SENDER_NAME,
                 },
                 subject: emailContent.emailSubject,
                 html: emailContent.emailBody,
@@ -322,7 +323,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               to: sendTo,
               from: {
                 email: senderEmail,
-                name: "Cal.com",
+                name: reminder.workflowStep?.sender || SENDER_NAME,
               },
               subject: emailContent.emailSubject,
               html: emailContent.emailBody,

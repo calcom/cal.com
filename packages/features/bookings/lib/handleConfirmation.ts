@@ -257,26 +257,24 @@ export async function handleConfirmation(args: {
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
-      const evtOfBooking = evt;
+      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const evtOfBooking = { ...evt, metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
-      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
       const isFirstBooking = index === 0;
       await scheduleMandatoryReminder(
         evtOfBooking,
         updatedBookings[index]?.eventType?.workflows || [],
         false,
         eventTypeSlug,
-        videoCallUrl
+        videoCallUrl,
+        !!updatedBookings[index].eventType?.owner?.hideBranding
       );
       await scheduleWorkflowReminders({
         workflows: updatedBookings[index]?.eventType?.workflows || [],
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
-        calendarEvent: {
-          ...evtOfBooking,
-          ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
-        },
+        calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
         eventTypeRequiresConfirmation: true,

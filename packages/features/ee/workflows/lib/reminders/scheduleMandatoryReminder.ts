@@ -24,7 +24,8 @@ export async function scheduleMandatoryReminder(
     | {
         videoCallUrl: string;
       }
-    | undefined
+    | undefined,
+  hideBranding: boolean
 ) {
   try {
     const hasExistingWorkflow = workflows.some((workflow) => {
@@ -66,7 +67,7 @@ export async function scheduleMandatoryReminder(
           WorkflowTemplates.REMINDER,
           SENDER_NAME,
           undefined,
-          false,
+          hideBranding,
           evt.attendeeSeatId,
           false,
           true
