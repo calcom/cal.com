@@ -24,7 +24,7 @@ runs:
         DATABASE_URL: ${{ inputs.CI_DATABASE_URL }}
     - run: yarn db-seed
       env:
-        DATABASE_URL: ${{ inputs.CI_DATABASE_URL }}
+        DATABASE_URL: ${{ secrets.CI_DATABASE_URL  }}
       # if: steps.cache-db.outputs.cache-hit != 'true'
       #  with:
       #   database_url: ${{ inputs.DATABASE_URL }}
