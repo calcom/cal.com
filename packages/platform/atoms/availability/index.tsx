@@ -4,11 +4,20 @@ import { useForm, Controller } from "react-hook-form";
 
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
+import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
 import { SkeletonText } from "@calcom/ui";
 
 import EditableHeading from "@components/ui/EditableHeading";
 
 import { useApiKey } from "../cal-provider";
+
+export type AvailabilityFormValues = {
+  name: string;
+  schedule: ScheduleType;
+  dateOverrides: { ranges: TimeRange[] }[];
+  timeZone: string;
+  isDefault: boolean;
+};
 
 type AvailabilityProps = {
   id?: string;
@@ -23,7 +32,7 @@ export function Availability({ id }: AvailabilityProps) {
 
   const { timeFormat } = user.data || { timeFormat: null };
 
-  const form = useForm({
+  const form = useForm<AvailabilityFormValues>({
     values: schedule && {
       ...schedule,
       schedule: schedule?.availability || [],
