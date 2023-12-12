@@ -80,6 +80,7 @@ async function throwIfSlugConflicts({ id, slug }: { id: number; slug: string }) 
 
   const foundOrg = organizationsWithSameSlug[0];
   if (!foundOrg) {
+    // No org with same slug found - So, no conflict.
     return;
   }
 

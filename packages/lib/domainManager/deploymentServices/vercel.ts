@@ -87,7 +87,9 @@ function handleDomainCreationError(error: { code?: string | null; domain?: strin
       statusCode: 400,
     });
   }
+
   if (error.code === "domain_already_in_use") {
+    // Domain is already configured correctly, this is not an error when it happens during creation as it could be re-attempt to create an existing domain
     return true;
   }
 
@@ -137,9 +139,7 @@ function assertVercelEnvVars(env: typeof process.env): asserts env is {
     throw new Error("Missing env var: PROJECT_ID_VERCEL");
   }
 
-  if (!env.TEAM_ID_VERCEL) {
-    // TEAM_ID_VERCEL is optional
-  }
+  // TEAM_ID_VERCEL is optional
 
   if (!env.AUTH_BEARER_TOKEN_VERCEL) {
     throw new Error("Missing env var: AUTH_BEARER_TOKEN_VERCEL");
