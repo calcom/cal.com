@@ -348,21 +348,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 teamId: userWorkflow.teamId,
               });
             } else if (step.action === WorkflowActions.WHATSAPP_NUMBER) {
-              await scheduleWhatsappReminder(
-                bookingInfo,
-                step.sendTo || "",
-                trigger,
-                step.action,
-                {
+              await scheduleWhatsappReminder({
+                evt: bookingInfo,
+                reminderPhone: step.sendTo || "",
+                triggerEvent: trigger,
+                action: step.action,
+                timeSpan: {
                   time,
                   timeUnit,
                 },
-                step.reminderBody || "",
-                step.id || 0,
-                step.template,
-                user.id,
-                userWorkflow.teamId
-              );
+                message: step.reminderBody || "",
+                workflowStepId: step.id || 0,
+                template: step.template,
+                userId: user.id,
+                teamId: userWorkflow.teamId,
+              });
             }
           });
           await Promise.all(promiseScheduleReminders);
@@ -585,21 +585,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               teamId: userWorkflow.teamId,
             });
           } else if (newStep.action === WorkflowActions.WHATSAPP_NUMBER) {
-            await scheduleWhatsappReminder(
-              bookingInfo,
-              newStep.sendTo || "",
-              trigger,
-              newStep.action,
-              {
+            await scheduleWhatsappReminder({
+              evt: bookingInfo,
+              reminderPhone: newStep.sendTo || "",
+              triggerEvent: trigger,
+              action: newStep.action,
+              timeSpan: {
                 time,
                 timeUnit,
               },
-              newStep.reminderBody || "",
-              newStep.id || 0,
-              newStep.template,
-              user.id,
-              userWorkflow.teamId
-            );
+              message: newStep.reminderBody || "",
+              workflowStepId: newStep.id || 0,
+              template: newStep.template,
+              userId: user.id,
+              teamId: userWorkflow.teamId,
+            });
           }
         });
         await Promise.all(promiseScheduleReminders);
@@ -736,21 +736,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 teamId: userWorkflow.teamId,
               });
             } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
-              await scheduleWhatsappReminder(
-                bookingInfo,
-                step.sendTo,
-                trigger,
-                step.action,
-                {
+              await scheduleWhatsappReminder({
+                evt: bookingInfo,
+                reminderPhone: step.sendTo,
+                triggerEvent: trigger,
+                action: step.action,
+                timeSpan: {
                   time,
                   timeUnit,
                 },
-                step.reminderBody || "",
-                createdStep.id,
-                step.template,
-                user.id,
-                userWorkflow.teamId
-              );
+                message: step.reminderBody || "",
+                workflowStepId: createdStep.id,
+                template: step.template,
+                userId: user.id,
+                teamId: userWorkflow.teamId,
+              });
             }
           }
         }

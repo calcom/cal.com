@@ -1,6 +1,7 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
 import {
+  isSMSAction,
   isTextMessageToAttendeeAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
@@ -9,6 +10,7 @@ import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { deleteScheduledEmailReminder, scheduleEmailReminder } from "./emailReminderManager";
+import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { deleteScheduledSMSReminder, scheduleSMSReminder } from "./smsReminderManager";
 import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./whatsappReminderManager";
 
@@ -51,13 +53,13 @@ const processWorkflowStep = async (
 ) => {
   if (isTextMessageToAttendeeAction(step.action) && !eventTypeRequiresConfirmation) return;
 
-  if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
+  if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder({
       evt,
       reminderPhone: sendTo,
       triggerEvent: workflow.trigger,
-      action: step.action,
+      action: step.action as ScheduleTextReminderAction,
       timeSpan: {
         time: workflow.time,
         timeUnit: workflow.timeUnit,
@@ -108,23 +110,23 @@ const processWorkflowStep = async (
     });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
-    await scheduleWhatsappReminder(
+    await scheduleWhatsappReminder({
       evt,
-      sendTo,
-      workflow.trigger,
-      step.action,
-      {
+      reminderPhone: sendTo,
+      triggerEvent: workflow.trigger,
+      action: step.action as ScheduleTextReminderAction,
+      timeSpan: {
         time: workflow.time,
         timeUnit: workflow.timeUnit,
       },
-      step.reminderBody || "",
-      step.id,
-      step.template,
-      workflow.userId,
-      workflow.teamId,
-      step.numberVerificationPending,
-      seatReferenceUid
-    );
+      message: step.reminderBody || "",
+      workflowStepId: step.id,
+      template: step.template,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      isVerificationPending: step.numberVerificationPending,
+      seatReferenceUid,
+    });
   }
 };
 

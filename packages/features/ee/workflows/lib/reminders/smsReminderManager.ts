@@ -56,18 +56,20 @@ export type BookingInfo = {
   metadata?: Prisma.JsonValue;
 };
 
-type ScheduleSMSReminderAction = Extract<WorkflowActions, "SMS_ATTENDEE" | "SMS_NUMBER">;
-
-interface ScheduleSMSReminderArgs extends ScheduleReminderArgs {
+export type ScheduleTextReminderAction = Extract<
+  WorkflowActions,
+  "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
+>;
+export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   reminderPhone: string | null;
   message: string;
-  action: ScheduleSMSReminderAction;
+  action: ScheduleTextReminderAction;
   userId?: number | null;
   teamId?: number | null;
   isVerificationPending?: boolean;
 }
 
-export const scheduleSMSReminder = async (args: ScheduleSMSReminderArgs) => {
+export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   const {
     evt,
     reminderPhone,
