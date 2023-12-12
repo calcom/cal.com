@@ -28,7 +28,7 @@ export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelect
   if (numberOfSelectedRows === 0) return null;
 
   return (
-    <div className="bg-brand-default text-brand item-center absolute bottom-0 left-1/2 flex -translate-x-1/2 gap-4 rounded-lg p-2">
+    <div className="bg-brand-default text-brand item-center fixed bottom-6 left-1/2 flex -translate-x-1/2 gap-4 rounded-lg p-2">
       <div className="text-brand-subtle my-auto px-2">{numberOfSelectedRows} selected</div>
       {actions?.map((action, index) => (
         <Fragment key={index}>
