@@ -89,12 +89,10 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
 
   return {
     rows: members.map((m) => {
-      return (
-        {
-          ...m,
-          bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
-        } || []
-      );
+      return {
+        ...m,
+        bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
+      };
     }),
     nextCursor,
   };
