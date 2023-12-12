@@ -46,6 +46,7 @@ import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/va
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: SelectedCalendar was not found
  */

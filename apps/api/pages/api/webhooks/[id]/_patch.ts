@@ -67,6 +67,7 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  *        description: Bad request. Webhook body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, userId, isAdmin } = req;

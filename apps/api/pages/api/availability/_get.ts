@@ -84,6 +84,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *                 currentSeats: 4
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: Team not found | Team has no members
  *
@@ -166,6 +167,7 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
  *                 currentSeats: 4
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: User not found
  */

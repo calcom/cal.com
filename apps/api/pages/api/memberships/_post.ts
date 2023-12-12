@@ -20,6 +20,7 @@ import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/valida
  *        description: Bad request. Membership body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma } = req;

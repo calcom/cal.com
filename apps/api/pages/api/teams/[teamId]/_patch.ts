@@ -55,6 +55,7 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *        description: Bad request. Team body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, body, userId } = req;

@@ -16,6 +16,7 @@ import { schemaPaymentPublic } from "~/lib/validations/payment";
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: No payments were found
  */

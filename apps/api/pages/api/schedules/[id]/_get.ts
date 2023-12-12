@@ -69,6 +69,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *                   }
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: Schedule was not found
  */

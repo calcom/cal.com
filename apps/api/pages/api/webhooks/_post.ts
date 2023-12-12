@@ -64,6 +64,7 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  *        description: Bad request. webhook body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;

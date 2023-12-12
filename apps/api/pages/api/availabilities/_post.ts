@@ -70,6 +70,7 @@ import {
  *        description: Bad request. Availability body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma } = req;
@@ -94,6 +95,7 @@ async function checkPermissions(req: NextApiRequest) {
     where: { userId, id: data.scheduleId },
   });
   if (!schedule)
+    // 401 doesn't make much sense here. 403 for lack of permission or maybe 400 for bad scheduleId?
     throw new HttpError({ statusCode: 401, message: "You can't add availabilities to this schedule" });
 }
 

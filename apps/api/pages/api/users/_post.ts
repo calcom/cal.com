@@ -86,6 +86,7 @@ import { schemaUserCreateBodyParams } from "~/lib/validations/user";
  *        description: Bad request. user body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma, isAdmin } = req;

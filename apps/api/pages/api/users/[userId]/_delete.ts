@@ -36,6 +36,7 @@ import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
  *        description: Bad request. User id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function deleteHandler(req: NextApiRequest) {
   const { prisma, isAdmin } = req;

@@ -33,8 +33,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
- *       404:
- *         description: Attendee was not found
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;

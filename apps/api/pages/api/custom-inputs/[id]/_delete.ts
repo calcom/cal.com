@@ -33,6 +33,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Bad request. EventType id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function deleteHandler(req: NextApiRequest) {
   const { prisma, query } = req;

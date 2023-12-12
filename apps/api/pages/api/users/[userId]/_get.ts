@@ -34,6 +34,7 @@ import { schemaUserReadPublic } from "~/lib/validations/user";
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: User was not found
  */

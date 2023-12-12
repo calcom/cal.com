@@ -77,6 +77,7 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *        description: Bad request. Schedule body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 
 async function postHandler(req: NextApiRequest) {

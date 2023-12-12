@@ -27,8 +27,7 @@ import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
- *       404:
- *         description: No attendees were found
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;

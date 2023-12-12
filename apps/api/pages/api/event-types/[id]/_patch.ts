@@ -203,6 +203,7 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *        description: Bad request. EventType body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, body } = req;

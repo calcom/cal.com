@@ -263,6 +263,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        description: Bad request. EventType body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma, body } = req;

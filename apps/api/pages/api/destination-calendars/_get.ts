@@ -26,6 +26,7 @@ import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destinati
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: No destination calendars were found
  */

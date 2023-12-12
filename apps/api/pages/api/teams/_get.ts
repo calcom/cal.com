@@ -26,6 +26,7 @@ import { schemaTeamsReadPublic } from "~/lib/validations/team";
  *         description: OK
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  *       404:
  *         description: No teams were found
  */

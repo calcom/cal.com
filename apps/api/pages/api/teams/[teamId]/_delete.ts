@@ -36,6 +36,7 @@ import { checkPermissions } from "./_auth-middleware";
  *        description: Bad request. Team id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function deleteHandler(req: NextApiRequest) {
   const { prisma, query } = req;

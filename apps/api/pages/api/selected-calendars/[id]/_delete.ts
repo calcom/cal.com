@@ -48,6 +48,7 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
  *        description: Bad request. SelectedCalendar id is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
+ *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 export async function deleteHandler(req: NextApiRequest) {
   const { prisma, query } = req;
