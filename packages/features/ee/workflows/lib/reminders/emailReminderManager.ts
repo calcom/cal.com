@@ -125,7 +125,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     triggerEvent,
     timeSpan,
     template,
-    sender = SENDER_NAME,
+    sender,
     workflowStepId,
     seatReferenceUid,
     sendTo,
@@ -275,7 +275,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       to: data.to,
       from: {
         email: senderEmail,
-        name: sender,
+        name: sender || SENDER_NAME,
       },
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,

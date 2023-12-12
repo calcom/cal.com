@@ -77,7 +77,7 @@ export const scheduleSMSReminder = async (args: ScheduleSMSReminderArgs) => {
     message = "",
     workflowStepId,
     template,
-    sender = SENDER_ID,
+    sender,
     userId,
     teamId,
     isVerificationPending = false,
@@ -89,7 +89,7 @@ export const scheduleSMSReminder = async (args: ScheduleSMSReminderArgs) => {
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
 
-  const senderID = getSenderId(reminderPhone, sender);
+  const senderID = getSenderId(reminderPhone, sender || SENDER_ID);
 
   //SMS_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
