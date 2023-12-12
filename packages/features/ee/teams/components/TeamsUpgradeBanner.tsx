@@ -2,12 +2,17 @@ import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { showToast, TopBanner } from "@calcom/ui";
 
-export function TeamsUpgradeBanner() {
+export type TeamsUpgradeBannerProps = {
+  data: RouterOutputs["viewer"]["getUserTopBanners"]["teamUpgradeBanner"];
+};
+
+export function TeamsUpgradeBanner({ data }: TeamsUpgradeBannerProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { data } = trpc.viewer.teams.getUpgradeable.useQuery();
+
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
