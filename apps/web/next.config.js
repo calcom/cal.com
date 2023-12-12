@@ -161,7 +161,7 @@ const nextConfig = {
     ...i18n,
     localeDetection: false,
   },
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
