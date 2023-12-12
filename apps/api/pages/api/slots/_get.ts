@@ -19,6 +19,7 @@ dayjs.extend(timezone);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    throw new Error("This should go to Sentry");
     const { usernameList, ...rest } = req.query;
     let slugs = usernameList;
     if (!Array.isArray(usernameList)) {
