@@ -18,13 +18,18 @@ export const sendFeedbackFormbricks = async (userId: number, feedback: Feedback)
   });
   if (process.env.FORMBRICKS_FEEDBACK_SURVEY_ID) {
     const formbricksUserId = userId.toString();
+    const ratingValue = Object.keys(Rating).includes(feedback.rating)
+      ? Rating[feedback.rating as keyof typeof Rating]
+      : undefined;
+    if (ratingValue === undefined) throw new Error("Invalid rating value");
+
     await api.client.response.create({
       surveyId: process.env.FORMBRICKS_FEEDBACK_SURVEY_ID,
       userId: formbricksUserId,
       finished: true,
       data: {
         "formbricks-share-comments-question": feedback.comment,
-        "formbricks-rating-question": Rating[feedback.rating],
+        "formbricks-rating-question": ratingValue,
       },
     });
     await api.client.people.update(formbricksUserId, {
