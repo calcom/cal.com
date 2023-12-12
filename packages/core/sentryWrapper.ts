@@ -23,10 +23,6 @@ const setUpMonitoring = (name: string) => {
     });
   }
 
-  if (!transaction) {
-    return [null, null];
-  }
-
   // Start a new span in the current transaction
   const span = transaction.startChild({
     op: name,
@@ -54,8 +50,6 @@ const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return (await cb(...args)) as ReturnType<T>;
 
   const [transaction, span] = setUpMonitoring(cb.name);
-
-  if (!transaction || !span) return (await cb(...args)) as ReturnType<T>;
 
   try {
     const result = await cb(...args);
