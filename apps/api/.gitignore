@@ -83,3 +83,4 @@ yarn-error.log
 #  Dredd
 dredd-hooks.js
 dredd-helpers/*.js
+dredd-output.html
