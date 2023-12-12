@@ -1,11 +1,16 @@
 import { useSession } from "next-auth/react";
 import { Fragment, useState } from "react";
 
+import {
+  FilterCheckboxFieldsContainer,
+  FilterCheckboxField,
+} from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover } from "@calcom/ui";
-import { CheckboxField } from "@calcom/ui";
+import { Divider } from "@calcom/ui";
+import { Link } from "@calcom/ui/components/icon";
 
 import { groupBy } from "../groupBy";
 import { useFilterQuery } from "../lib/useFilterQuery";
@@ -29,7 +34,7 @@ type GroupedEventTypeState = Record<
 export const EventTypeFilter = () => {
   const { t } = useLocale();
   const { data: user } = useSession();
-  const { data: query, pushItemToKey, removeItemByKeyAndValue } = useFilterQuery();
+  const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
 
   const [groupedEventTypes, setGroupedEventTypes] = useState<GroupedEventTypeState>();
 
@@ -56,24 +61,32 @@ export const EventTypeFilter = () => {
   const getTextForPopover = () => {
     const eventTypeIds = query.eventTypeIds;
     if (eventTypeIds) {
-      return `${t("event_type")}:  ${t("number_selected", { count: eventTypeIds.length })}`;
+      return `${t("number_selected", { count: eventTypeIds.length })}`;
     }
-    return `${t("event_type")}: ${t("all")}`;
+    return `${t("all")}`;
   };
 
   return (
-    <AnimatedPopover text={getTextForPopover()}>
-      <div>
-        {groupedEventTypes &&
-          !isEmpty &&
-          Object.keys(groupedEventTypes).map((teamName) => (
-            <Fragment key={teamName}>
-              <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
-                {teamName === "user_own_event_types" ? t("individual") : teamName}
-              </div>
-              {groupedEventTypes[teamName].map((eventType) => (
-                <div key={eventType.id} className="flex items-center px-4 py-1.5">
-                  <CheckboxField
+    <AnimatedPopover text={getTextForPopover()} prefix={`${t("event_type")}: `}>
+      {!isEmpty ? (
+        <FilterCheckboxFieldsContainer>
+          <FilterCheckboxField
+            id="all"
+            icon={<Link className="h-4 w-4" />}
+            checked={!query.eventTypeIds?.length}
+            onChange={removeAllQueryParams}
+            label={t("all_event_types_filter_label")}
+          />
+          <Divider />
+          {groupedEventTypes &&
+            Object.keys(groupedEventTypes).map((teamName) => (
+              <Fragment key={teamName}>
+                <div className="text-subtle px-4 py-2 text-xs font-medium uppercase leading-none">
+                  {teamName === "user_own_event_types" ? t("individual") : teamName}
+                </div>
+                {groupedEventTypes[teamName].map((eventType) => (
+                  <FilterCheckboxField
+                    key={eventType.id}
                     checked={query.eventTypeIds?.includes(eventType.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -82,16 +95,15 @@ export const EventTypeFilter = () => {
                         removeItemByKeyAndValue("eventTypeIds", eventType.id);
                       }
                     }}
-                    description={eventType.title}
+                    label={eventType.title}
                   />
-                </div>
-              ))}
-            </Fragment>
-          ))}
-        {isEmpty && (
-          <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
-        )}
-      </div>
+                ))}
+              </Fragment>
+            ))}
+        </FilterCheckboxFieldsContainer>
+      ) : (
+        <h2 className="text-default px-4 py-2 text-sm font-medium">{t("no_options_available")}</h2>
+      )}
     </AnimatedPopover>
   );
 };
