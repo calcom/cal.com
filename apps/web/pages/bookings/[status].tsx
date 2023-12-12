@@ -1,12 +1,13 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import React from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/MainLayout";
+import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
@@ -81,6 +82,7 @@ export default function Bookings() {
   const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -151,12 +153,11 @@ export default function Bookings() {
   return (
     <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex flex-col">
-        <div className="flex flex-col flex-wrap lg:flex-row">
+        <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />
-          <div className="max-w-full overflow-x-auto xl:ml-auto">
-            <FiltersContainer />
-          </div>
+          <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
         </div>
+        <FiltersContainer isFiltersVisible={isFiltersVisible} />
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
             {query.status === "error" && (
