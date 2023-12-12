@@ -15,6 +15,7 @@ import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as make_zod_ts } from "./make/zod";
+import { appDataSchema as matomo_zod_ts } from "./matomo/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
@@ -51,6 +52,7 @@ export const appDataSchemas = {
   jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   make: make_zod_ts,
+  matomo: matomo_zod_ts,
   metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,

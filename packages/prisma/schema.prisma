@@ -282,6 +282,7 @@ model Team {
   slug                String?
   logo                String?
   logoUrl             String?
+  calVideoLogo        String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
