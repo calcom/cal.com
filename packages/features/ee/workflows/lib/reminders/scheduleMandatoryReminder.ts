@@ -3,7 +3,6 @@ import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/clie
 import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import type { BookingInfo } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -48,25 +47,21 @@ export async function scheduleMandatoryReminder(
         const filteredAttendees =
           evt.attendees?.filter((attendee) => attendee.email.includes("@gmail.com")) || [];
 
-        await scheduleEmailReminder(
+        await scheduleEmailReminder({
           evt,
-          WorkflowTriggerEvents.BEFORE_EVENT,
-          WorkflowActions.EMAIL_ATTENDEE,
-          {
+          triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+          action: WorkflowActions.EMAIL_ATTENDEE,
+          timeSpan: {
             time: 1,
             timeUnit: TimeUnit.HOUR,
           },
-          filteredAttendees,
-          "",
-          "",
-          WorkflowTemplates.REMINDER,
-          SENDER_NAME,
-          undefined,
+          sendTo: filteredAttendees,
+          template: WorkflowTemplates.REMINDER,
           hideBranding,
           seatReferenceUid,
-          false,
-          true
-        );
+          includeCalendarEvent: false,
+          isMandatoryReminder: true,
+        });
       } catch (error) {
         log.error("Error while scheduling mandatory reminders", JSON.stringify({ error }));
       }

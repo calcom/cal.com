@@ -1,15 +1,16 @@
 import dayjs from "@calcom/dayjs";
+import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import type { ScheduleReminderArgs } from "./emailReminderManager";
 import * as twilio from "./smsProviders/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -57,24 +58,31 @@ export type BookingInfo = {
 
 type ScheduleSMSReminderAction = Extract<WorkflowActions, "SMS_ATTENDEE" | "SMS_NUMBER">;
 
-export const scheduleSMSReminder = async (
-  evt: BookingInfo,
-  reminderPhone: string | null,
-  triggerEvent: WorkflowTriggerEvents,
-  action: ScheduleSMSReminderAction,
-  timeSpan: {
-    time: number | null;
-    timeUnit: TimeUnit | null;
-  },
-  message: string,
-  workflowStepId: number,
-  template: WorkflowTemplates,
-  sender: string,
-  userId?: number | null,
-  teamId?: number | null,
-  isVerificationPending = false,
-  seatReferenceUid?: string
-) => {
+interface ScheduleSMSReminderArgs extends ScheduleReminderArgs {
+  reminderPhone: string | null;
+  message: string;
+  action: ScheduleSMSReminderAction;
+  userId?: number | null;
+  teamId?: number | null;
+  isVerificationPending?: boolean;
+}
+
+export const scheduleSMSReminder = async (args: ScheduleSMSReminderArgs) => {
+  const {
+    evt,
+    reminderPhone,
+    triggerEvent,
+    action,
+    timeSpan,
+    message = "",
+    workflowStepId,
+    template,
+    sender = SENDER_ID,
+    userId,
+    teamId,
+    isVerificationPending = false,
+    seatReferenceUid,
+  } = args;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -126,7 +134,9 @@ export const scheduleSMSReminder = async (
       ? attendeeToBeUsedInSMS.language?.locale
       : evt.organizer.language.locale;
 
-  if (message) {
+  let smsMessage = message;
+
+  if (smsMessage) {
     const variables: VariablesType = {
       eventName: evt.title,
       organizerName: evt.organizer.name,
@@ -144,10 +154,10 @@ export const scheduleSMSReminder = async (
       cancelLink: `/booking/${evt.uid}?cancel=true`,
       rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
     };
-    const customMessage = customTemplate(message, variables, locale, evt.organizer.timeFormat);
-    message = customMessage.text;
+    const customMessage = customTemplate(smsMessage, variables, locale, evt.organizer.timeFormat);
+    smsMessage = customMessage.text;
   } else if (template === WorkflowTemplates.REMINDER) {
-    message =
+    smsMessage =
       smsReminderTemplate(
         false,
         action,
@@ -161,9 +171,9 @@ export const scheduleSMSReminder = async (
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails
-  log.debug(`Sending sms for trigger ${triggerEvent}`, message);
+  log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
-  if (message.length > 0 && reminderPhone && isNumberVerified) {
+  if (smsMessage.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -171,7 +181,7 @@ export const scheduleSMSReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message, senderID);
+        await twilio.sendSMS(reminderPhone, smsMessage, senderID);
       } catch (error) {
         log.error(`Error sending SMS with error ${error}`);
       }
@@ -188,7 +198,7 @@ export const scheduleSMSReminder = async (
         try {
           const scheduledSMS = await twilio.scheduleSMS(
             reminderPhone,
-            message,
+            smsMessage,
             scheduledDate.toDate(),
             senderID
           );

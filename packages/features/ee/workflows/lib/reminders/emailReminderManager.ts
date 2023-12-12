@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -94,25 +95,47 @@ type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export const scheduleEmailReminder = async (
-  evt: BookingInfo,
-  triggerEvent: WorkflowTriggerEvents,
-  action: ScheduleEmailReminderAction,
+export interface ScheduleReminderArgs {
+  evt: BookingInfo;
+  triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
-  },
-  sendTo: MailData["to"],
-  emailSubject: string,
-  emailBody: string,
-  template: WorkflowTemplates,
-  sender: string,
-  workflowStepId?: number,
-  hideBranding?: boolean,
-  seatReferenceUid?: string,
-  includeCalendarEvent?: boolean,
-  isMandatoryReminder?: boolean
-) => {
+  };
+
+  template: WorkflowTemplates;
+  sender?: string | null;
+  workflowStepId?: number;
+  seatReferenceUid?: string;
+}
+
+interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
+  sendTo: MailData["to"];
+  action: ScheduleEmailReminderAction;
+  emailSubject?: string;
+  emailBody?: string;
+  hideBranding?: boolean;
+  includeCalendarEvent?: boolean;
+  isMandatoryReminder?: boolean;
+}
+
+export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
+  const {
+    evt,
+    triggerEvent,
+    timeSpan,
+    template,
+    sender = SENDER_NAME,
+    workflowStepId,
+    seatReferenceUid,
+    sendTo,
+    emailSubject = "",
+    emailBody = "",
+    hideBranding,
+    includeCalendarEvent,
+    isMandatoryReminder,
+    action,
+  } = args;
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

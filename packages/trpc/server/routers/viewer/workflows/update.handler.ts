@@ -315,38 +315,38 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                       sendTo = step.sendTo || "";*/
               }
 
-              await scheduleEmailReminder(
-                bookingInfo,
-                trigger,
-                step.action,
-                {
+              await scheduleEmailReminder({
+                evt: bookingInfo,
+                triggerEvent: trigger,
+                action: step.action,
+                timeSpan: {
                   time,
                   timeUnit,
                 },
                 sendTo,
-                step.emailSubject || "",
-                step.reminderBody || "",
-                step.template,
-                step.senderName || SENDER_NAME,
-                step.id
-              );
+                emailSubject: step.emailSubject || "",
+                emailBody: step.reminderBody || "",
+                template: step.template,
+                sender: step.senderName || SENDER_NAME,
+                workflowStepId: step.id,
+              });
             } else if (step.action === WorkflowActions.SMS_NUMBER) {
-              await scheduleSMSReminder(
-                bookingInfo,
-                step.sendTo || "",
-                trigger,
-                step.action,
-                {
+              await scheduleSMSReminder({
+                evt: bookingInfo,
+                reminderPhone: step.sendTo || "",
+                triggerEvent: trigger,
+                action: step.action,
+                timeSpan: {
                   time,
                   timeUnit,
                 },
-                step.reminderBody || "",
-                step.id,
-                step.template,
-                step.sender || SENDER_ID,
-                user.id,
-                userWorkflow.teamId
-              );
+                message: step.reminderBody || "",
+                workflowStepId: step.id,
+                template: step.template,
+                sender: step.sender,
+                userId: user.id,
+                teamId: userWorkflow.teamId,
+              });
             } else if (step.action === WorkflowActions.WHATSAPP_NUMBER) {
               await scheduleWhatsappReminder(
                 bookingInfo,
