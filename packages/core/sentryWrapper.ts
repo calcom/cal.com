@@ -3,8 +3,8 @@ import type { Span, Transaction } from "@sentry/types";
 
 /*
 WHEN TO USE
-We ran a script that performs a simple mathematical calculation within a loop of 1000000 iterations.
-Our results were: Plain execution time: 441, Monitored execution time: 8094.
+We ran a script that performs a simple mathematical calculation within a loop of 1000000 iterations. 
+Our results were: Plain execution time: 441, Monitored execution time: 8094. 
 This suggests that using these wrappers within large loops can incur significant overhead and is thus not recommended.
 
 For smaller loops, the cost incurred may not be very significant on an absolute scale
