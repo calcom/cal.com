@@ -9,6 +9,8 @@ import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
+import PageWrapper from "@components/PageWrapperAppDir";
+
 export const generateMetadata = async () => {
   return await _generateMetadata(
     () => `${APP_NAME} | ${APP_NAME}`,
@@ -16,7 +18,7 @@ export const generateMetadata = async () => {
   );
 };
 
-export const getStaticParams = async () => {
+export const generateStaticParams = async () => {
   const paths = Object.keys(AppCategories);
 
   try {
@@ -67,7 +69,11 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
 
 export default async function Page({ params }: { params: Record<string, string | string[]> }) {
   const { apps } = await getPageProps({ params });
-  return <CategoryPage apps={apps} />;
+  return (
+    <PageWrapper getLayout={null} requiresLicense={false} nonce={undefined} themeBasis={null}>
+      <CategoryPage apps={apps} />
+    </PageWrapper>
+  );
 }
 
 export const dynamic = "force-static";
