@@ -15,12 +15,16 @@ export class OrganizationRolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    const membership = await this.membershipRepository.findOrgUserMembership(user.organizationId, user.id);
+    const partOfOrganization = !!user?.organizationId;
 
-    const partOfOrganization = !!user.organizationId;
+    if (!user || !partOfOrganization) {
+      return false;
+    }
+
+    const membership = await this.membershipRepository.findOrgUserMembership(user.organizationId, user.id);
     const isAccepted = membership.accepted;
     const hasRequiredRole = requiredRoles.includes(membership.role);
 
-    return user && partOfOrganization && isAccepted && hasRequiredRole;
+    return isAccepted && hasRequiredRole;
   }
 }
