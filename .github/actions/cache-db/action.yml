@@ -21,6 +21,7 @@ runs:
       with:
         path: ${{ inputs.path }}
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}
+        DATABASE_URL: ${{ inputs.CI_DATABASE_URL }}
     - run: yarn db-seed
       # if: steps.cache-db.outputs.cache-hit != 'true'
       #  with:
