@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Form, TextField } from "@calcom/ui";
+import { Alert, Button, Form, PasswordField, TextField } from "@calcom/ui";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();
@@ -20,8 +20,8 @@ export default function AppleCalendarSetup() {
   const [errorMessage, setErrorMessage] = useState("");
 
   return (
-    <div className="bg-emphasis flex h-screen">
-      <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
+    <div className="bg-emphasis flex h-screen dark:bg-inherit">
+      <div className="bg-default dark:bg-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
         <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
@@ -32,12 +32,14 @@ export default function AppleCalendarSetup() {
             />
           </div>
           <div>
-            <h1 className="text-default">{t("connect_apple_server")}</h1>
+            <h1 className="text-default dark:text-emphasis mb-3 font-semibold">
+              {t("connect_apple_server")}
+            </h1>
 
             <div className="mt-1 text-sm">
               {t("apple_server_generate_password", { appName: APP_NAME })}{" "}
               <a
-                className="text-indigo-400"
+                className="font-bold hover:underline"
                 href="https://appleid.apple.com/account/manage"
                 target="_blank"
                 rel="noopener noreferrer">
@@ -45,7 +47,7 @@ export default function AppleCalendarSetup() {
               </a>
               . {t("credentials_stored_encrypted")}
             </div>
-            <div className="my-2 mt-3">
+            <div className="my-2 mt-4">
               <Form
                 form={form}
                 handleSubmit={async (values) => {
@@ -65,7 +67,7 @@ export default function AppleCalendarSetup() {
                   }
                 }}>
                 <fieldset
-                  className="space-y-2"
+                  className="space-y-4"
                   disabled={form.formState.isSubmitting}
                   data-testid="apple-calendar-form">
                   <TextField
@@ -76,9 +78,8 @@ export default function AppleCalendarSetup() {
                     placeholder="appleid@domain.com"
                     data-testid="apple-calendar-email"
                   />
-                  <TextField
+                  <PasswordField
                     required
-                    type="password"
                     {...form.register("password")}
                     label={t("password")}
                     placeholder="•••••••••••••"

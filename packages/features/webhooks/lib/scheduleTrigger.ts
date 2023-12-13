@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
@@ -75,7 +76,10 @@ export async function addSubscription({
     const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
     const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
 
-    log.error(`Error creating subscription for ${teamId ? `team ${teamId}` : `user ${userId}`}.`);
+    log.error(
+      `Error creating subscription for ${teamId ? `team ${teamId}` : `user ${userId}`}.`,
+      safeStringify(error)
+    );
   }
 }
 
@@ -157,7 +161,8 @@ export async function deleteSubscription({
     log.error(
       `Error deleting subscription for user ${
         teamId ? `team ${teamId}` : `userId ${userId}`
-      }, webhookId ${webhookId}`
+      }, webhookId ${webhookId}`,
+      safeStringify(err)
     );
   }
 }
@@ -260,7 +265,10 @@ export async function listBookings(
     const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
     const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
 
-    log.error(`Error retrieving list of bookings for ${teamId ? `team ${teamId}` : `user ${userId}`}.`);
+    log.error(
+      `Error retrieving list of bookings for ${teamId ? `team ${teamId}` : `user ${userId}`}.`,
+      safeStringify(err)
+    );
   }
 }
 
