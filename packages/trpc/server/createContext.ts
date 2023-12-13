@@ -4,6 +4,7 @@ import type { Session } from "next-auth";
 import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import getIP from "@calcom/lib/getIP";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
 import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
 
@@ -12,6 +13,7 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
 
 export type CreateInnerContextOptions = {
+  sourceIp?: string;
   session?: Session | null;
   locale: string;
   user?:
@@ -64,8 +66,12 @@ export async function createContextInner(opts: CreateInnerContextOptions) {
  */
 export const createContext = async ({ req, res }: CreateContextOptions, sessionGetter?: GetSessionFn) => {
   const locale = await getLocale(req);
+
+  // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.
+  // TODO: @sean - figure out a way to make getIP be happy with trpc req. params
+  const sourceIp = getIP(req as NextApiRequest);
   const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
-  const contextInner = await createContextInner({ locale, session });
+  const contextInner = await createContextInner({ locale, session, sourceIp });
   return {
     ...contextInner,
     req,

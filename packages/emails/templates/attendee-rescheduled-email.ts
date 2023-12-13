@@ -3,7 +3,7 @@ import generateIcsString from "../lib/generateIcsString";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       icalEvent: {
         filename: "event.ics",
@@ -23,7 +23,7 @@ export default class AttendeeRescheduledEmail extends AttendeeScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("AttendeeRescheduledEmail", {
+      html: await renderEmail("AttendeeRescheduledEmail", {
         calEvent: this.calEvent,
         attendee: this.attendee,
       }),
