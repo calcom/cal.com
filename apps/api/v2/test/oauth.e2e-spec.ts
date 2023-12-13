@@ -225,6 +225,7 @@ describe("OAuth Client Endpoints", () => {
       let membership: Membership;
       let client: { client_id: string; client_secret: string };
       const oAuthClientName = "test-oauth-client-owner";
+      const oAuthClientPermissions = 32;
 
       beforeAll(async () => {
         membership = await membershipFixtures.addUserToOrg(user, org, "OWNER", true);
@@ -264,6 +265,7 @@ describe("OAuth Client Endpoints", () => {
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data).toBeInstanceOf(Array);
             expect(responseBody.data[0].name).toEqual(oAuthClientName);
+            expect(responseBody.data[0].permissions).toEqual(oAuthClientPermissions);
           });
       });
       it(`/GET/:id`, () => {
@@ -274,6 +276,7 @@ describe("OAuth Client Endpoints", () => {
             const responseBody: ApiSuccessResponse<PlatformOAuthClient> = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.name).toEqual(oAuthClientName);
             expect(responseBody.data.name).toEqual(oAuthClientName);
           });
       });
