@@ -20,7 +20,7 @@ const CreateNewTeamPage = () => {
     </>
   );
 };
-const LayoutWrapper = (page: React.ReactElement) => {
+export const LayoutWrapper = (page: React.ReactElement) => {
   return (
     <WizardLayout currentStep={1} maxSteps={2}>
       {page}
