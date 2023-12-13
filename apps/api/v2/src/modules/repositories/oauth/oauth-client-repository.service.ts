@@ -23,8 +23,8 @@ export class OAuthClientRepository {
     });
   }
 
-  async getOAuthClient(clientId: string): Promise<PlatformOAuthClient> {
-    return this.dbRead.prisma.platformOAuthClient.findUniqueOrThrow({
+  async getOAuthClient(clientId: string): Promise<PlatformOAuthClient | null> {
+    return this.dbRead.prisma.platformOAuthClient.findUnique({
       where: { id: clientId },
     });
   }

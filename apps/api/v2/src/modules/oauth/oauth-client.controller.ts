@@ -1,3 +1,4 @@
+import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { GetUser } from "@/modules/auth/decorator";
 import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
@@ -17,6 +18,9 @@ import {
   HttpStatus,
   Logger,
   UseGuards,
+  NotFoundException,
+  UseFilters,
+  HttpException,
 } from "@nestjs/common";
 import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
@@ -66,8 +70,12 @@ export class OAuthClientController {
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @UseFilters(HttpExceptionFilter)
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
+    if (!client) {
+      throw new NotFoundException();
+    }
     return { status: SUCCESS_STATUS, data: client };
   }
 
