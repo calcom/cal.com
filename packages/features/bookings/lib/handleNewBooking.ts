@@ -1387,6 +1387,12 @@ async function handler(
     teamId,
   };
 
+  const subscriberOptionsMeetingStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+    teamId,
+  };
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -2652,13 +2658,28 @@ async function handler(
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
       subscribersMeetingEnded.forEach((subscriber) => {
         if (rescheduleUid && originalRescheduledBooking) {
           cancelScheduledJobs(originalRescheduledBooking, undefined, true);
         }
         if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        }
+      });
+
+      subscribersMeetingStarted.forEach((subscriber) => {
+        if (rescheduleUid && originalRescheduledBooking) {
+          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+        }
+        if (booking && booking.status === BookingStatus.ACCEPTED) {
+          scheduleTrigger(
+            booking,
+            subscriber.subscriberUrl,
+            subscriber,
+            WebhookTriggerEvents.MEETING_STARTED
+          );
         }
       });
     } catch (error) {

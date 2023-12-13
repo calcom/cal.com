@@ -300,6 +300,12 @@ export async function handleConfirmation(args: {
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
     });
+    const subscribersMeetingStarted = await getWebhooks({
+      userId: triggerForUser ? booking.userId : null,
+      eventTypeId: booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+      teamId: booking.eventType?.teamId,
+    });
     const subscribersMeetingEnded = await getWebhooks({
       userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
@@ -307,9 +313,14 @@ export async function handleConfirmation(args: {
       teamId: booking.eventType?.teamId,
     });
 
+    subscribersMeetingStarted.forEach((subscriber) => {
+      updatedBookings.forEach((booking) => {
+        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_STARTED);
+      });
+    });
     subscribersMeetingEnded.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
       });
     });
 
