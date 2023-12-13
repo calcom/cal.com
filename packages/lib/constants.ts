@@ -108,6 +108,8 @@ export const APP_CREDENTIAL_SHARING_ENABLED =
 export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
+export const TOP_BANNER_HEIGHT = 40;
+
 const defaultOnNaN = (testedValue: number, defaultValue: number) =>
   !Number.isNaN(testedValue) ? testedValue : defaultValue;
 

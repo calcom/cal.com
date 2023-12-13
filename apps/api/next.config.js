@@ -1,6 +1,8 @@
 const { withAxiom } = require("next-axiom");
+const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = withAxiom({
+const plugins = [withAxiom];
+const nextConfig = {
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/core",
@@ -66,4 +68,15 @@ module.exports = withAxiom({
       ],
     };
   },
-});
+};
+
+if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  nextConfig["sentry"] = {
+    autoInstrumentServerFunctions: true,
+    hideSourceMaps: true,
+  };
+
+  plugins.push(withSentryConfig);
+}
+
+module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
