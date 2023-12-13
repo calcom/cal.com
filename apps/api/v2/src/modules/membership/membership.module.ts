@@ -1,5 +1,5 @@
+import { MembershipRepository } from "@/modules/membership/membership-repository.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { MembershipRepository } from "@/modules/repositories/membership/membership-repository.service";
 import { Module } from "@nestjs/common";
 
 @Module({

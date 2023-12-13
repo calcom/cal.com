@@ -4,7 +4,7 @@ import { NextAuthGuard } from "@/modules/auth/guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guard/organization-roles/organization-roles.guard";
 import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
-import { OAuthClientRepository } from "@/modules/repositories/oauth/oauth-client-repository.service";
+import { OAuthClientRepository } from "@/modules/oauth/oauth-client-repository.service";
 import {
   Body,
   Controller,
