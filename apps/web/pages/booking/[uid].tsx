@@ -312,6 +312,8 @@ export default function Success(props: SuccessProps) {
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
 
+  console.log("Response event", props.bookingInfo.responses.title);
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && (
@@ -542,6 +544,14 @@ export default function Success(props: SuccessProps) {
                         </div>
                         <div className="col-span-2 mb-2 mt-3">
                           <Price currency={props.paymentStatus.currency} price={props.paymentStatus.amount} />
+                        </div>
+                      </>
+                    )}
+                    {bookingInfo?.responses && (
+                      <>
+                        <div className="mt-9 font-medium">{t("what_is_this_meeting_about")}</div>
+                        <div className="col-span-2 mb-2 mt-9">
+                          <p className="break-words">{bookingInfo.responses.title as any}</p>
                         </div>
                       </>
                     )}
