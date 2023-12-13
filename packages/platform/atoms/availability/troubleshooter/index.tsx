@@ -1,8 +1,12 @@
 import { Skeleton, Button } from "@calcom/ui";
 
-export function Troubleshooter() {
+type TroubleshooterProps = {
+  isDisplayBlock: boolean;
+};
+
+export function Troubleshooter({ isDisplayBlock = false }: TroubleshooterProps) {
   return (
-    <div className="rounded-md">
+    <div className={isDisplayBlock ? "rounded-md md:block" : "rounded-md"}>
       <Skeleton as="h3" className="mb-0 inline-block text-sm font-medium">
         Something doesn&apos;t look right?
       </Skeleton>
