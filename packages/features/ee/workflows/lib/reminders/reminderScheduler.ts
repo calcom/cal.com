@@ -1,14 +1,16 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
 import {
+  isSMSAction,
   isTextMessageToAttendeeAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { deleteScheduledEmailReminder, scheduleEmailReminder } from "./emailReminderManager";
+import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { deleteScheduledSMSReminder, scheduleSMSReminder } from "./smsReminderManager";
 import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./whatsappReminderManager";
 
@@ -51,26 +53,26 @@ const processWorkflowStep = async (
 ) => {
   if (isTextMessageToAttendeeAction(step.action) && !eventTypeRequiresConfirmation) return;
 
-  if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
+  if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
-    await scheduleSMSReminder(
+    await scheduleSMSReminder({
       evt,
-      sendTo,
-      workflow.trigger,
-      step.action,
-      {
+      reminderPhone: sendTo,
+      triggerEvent: workflow.trigger,
+      action: step.action as ScheduleTextReminderAction,
+      timeSpan: {
         time: workflow.time,
         timeUnit: workflow.timeUnit,
       },
-      step.reminderBody || "",
-      step.id,
-      step.template,
-      step.sender || SENDER_ID,
-      workflow.userId,
-      workflow.teamId,
-      step.numberVerificationPending,
-      seatReferenceUid
-    );
+      message: step.reminderBody || "",
+      workflowStepId: step.id,
+      template: step.template,
+      sender: step.sender,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      isVerificationPending: step.numberVerificationPending,
+      seatReferenceUid,
+    });
   } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
     let sendTo: string[] = [];
 
@@ -88,43 +90,43 @@ const processWorkflowStep = async (
         break;
     }
 
-    await scheduleEmailReminder(
+    await scheduleEmailReminder({
       evt,
-      workflow.trigger,
-      step.action,
-      {
+      triggerEvent: workflow.trigger,
+      action: step.action,
+      timeSpan: {
         time: workflow.time,
         timeUnit: workflow.timeUnit,
       },
       sendTo,
-      step.emailSubject || "",
-      step.reminderBody || "",
-      step.id,
-      step.template,
-      step.sender || SENDER_NAME,
+      emailSubject: step.emailSubject || "",
+      emailBody: step.reminderBody || "",
+      template: step.template,
+      sender: step.sender || SENDER_NAME,
+      workflowStepId: step.id,
       hideBranding,
       seatReferenceUid,
-      step.includeCalendarEvent
-    );
+      includeCalendarEvent: step.includeCalendarEvent,
+    });
   } else if (isWhatsappAction(step.action)) {
     const sendTo = step.action === WorkflowActions.WHATSAPP_ATTENDEE ? smsReminderNumber : step.sendTo;
-    await scheduleWhatsappReminder(
+    await scheduleWhatsappReminder({
       evt,
-      sendTo,
-      workflow.trigger,
-      step.action,
-      {
+      reminderPhone: sendTo,
+      triggerEvent: workflow.trigger,
+      action: step.action as ScheduleTextReminderAction,
+      timeSpan: {
         time: workflow.time,
         timeUnit: workflow.timeUnit,
       },
-      step.reminderBody || "",
-      step.id,
-      step.template,
-      workflow.userId,
-      workflow.teamId,
-      step.numberVerificationPending,
-      seatReferenceUid
-    );
+      message: step.reminderBody || "",
+      workflowStepId: step.id,
+      template: step.template,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      isVerificationPending: step.numberVerificationPending,
+      seatReferenceUid,
+    });
   }
 };
 
@@ -164,7 +166,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     ) {
       continue;
     }
-
     for (const step of workflow.steps) {
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,
