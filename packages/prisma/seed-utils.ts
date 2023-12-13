@@ -154,12 +154,13 @@ export async function createUserAndEventType({
     console.log("🚀 ~ file: seed-utils.ts:154 ~ credentials:", credentials);
     for (const credential of credentials) {
       if (credential) {
-        await prisma.credential.create({
+        const createdCredential = await prisma.credential.create({
           data: {
             ...credential,
             userId: theUser.id,
           },
         });
+        console.log("🚀 ~ file: seed-utils.ts:163 ~ createdCredential:", createdCredential);
 
         console.log(`🔑 ${credential.type} credentials created for ${theUser.email}`);
       }
