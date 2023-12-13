@@ -1,8 +1,8 @@
-import { CreateBookingDto } from "@/modules/booking/dtos/create-booking";
+import { GetUser } from "@/modules/auth/decorator";
+import { BookingRepository } from "@/modules/booking/booking-repository.service";
+import { CreateBookingInput } from "@/modules/booking/input/create-booking";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { BookingRepository } from "@/modules/repositories/booking/booking-repository.service";
-import { Response } from "@/types";
 import {
   Body,
   Controller,
@@ -10,12 +10,15 @@ import {
   HttpStatus,
   Logger,
   Post,
-  Res,
   UseGuards,
   VERSION_NEUTRAL,
   Version,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { Booking } from "@prisma/client";
+
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiResponse } from "@calcom/platform-types";
 
 @Controller("booking")
 export class BookingController {
@@ -31,11 +34,11 @@ export class BookingController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(AuthGuard("api-key"))
   @HttpCode(HttpStatus.CREATED)
-  async createBooking(@Res({ passthrough: true }) res: Response, @Body() body: CreateBookingDto) {
-    const userId = res.locals.apiKey?.userId;
-
-    this.logger.log(`Created Booking with data ${body}`);
-
-    return this.bookingRepository.createBooking(userId, body);
+  async createBooking(
+    @GetUser("id") userId: number,
+    @Body() body: CreateBookingInput
+  ): Promise<ApiResponse<Booking>> {
+    this.logger.log(`For user with id ${userId} created Booking with data ${JSON.stringify(body)}`);
+    return { status: SUCCESS_STATUS, data: await this.bookingRepository.createBooking(userId, body) };
   }
 }

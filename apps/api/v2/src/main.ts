@@ -20,7 +20,6 @@ const run = async () => {
     bootstrap(app);
     const port = app.get(ConfigService<AppConfig, true>).get("api.port", { infer: true });
     await app.listen(port);
-
     logger.log(`Application started on port: ${port}`);
   } catch (error) {
     logger.error("Application crashed", {

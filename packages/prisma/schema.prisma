@@ -289,6 +289,7 @@ model Team {
   slug                String?
   logo                String?
   logoUrl             String?
+  calVideoLogo        String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
@@ -318,6 +319,7 @@ model Team {
   apiKeys             ApiKey[]
   credentials         Credential[]
   accessCodes         AccessCode[]
+  platformOAuthClient PlatformOAuthClient[]
 
   @@unique([slug, parentId])
 }
@@ -829,17 +831,18 @@ enum TimeUnit {
 }
 
 model WorkflowReminder {
-  id              Int             @id @default(autoincrement())
-  bookingUid      String?
-  booking         Booking?        @relation(fields: [bookingUid], references: [uid])
-  method          WorkflowMethods
-  scheduledDate   DateTime
-  referenceId     String?         @unique
-  scheduled       Boolean
-  workflowStepId  Int?
-  workflowStep    WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
-  cancelled       Boolean?
-  seatReferenceId String?
+  id                  Int             @id @default(autoincrement())
+  bookingUid          String?
+  booking             Booking?        @relation(fields: [bookingUid], references: [uid])
+  method              WorkflowMethods
+  scheduledDate       DateTime
+  referenceId         String?         @unique
+  scheduled           Boolean
+  workflowStepId      Int?
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  cancelled           Boolean?
+  seatReferenceId     String?
+  isMandatoryReminder Boolean?        @default(false)
 
   @@index([bookingUid])
   @@index([workflowStepId])
@@ -1039,12 +1042,14 @@ model Avatar {
 // Platform
 
 model PlatformOAuthClient {
-  id            String   @id @default(cuid())
-  name          String
-  client_secret String
-  permissions   Int
-  users         User[]
-  logo          String?
-  redirect_uris String[]
+  id             String   @id @default(cuid())
+  name           String
+  secret         String
+  permissions    Int
+  users          User[]
+  logo           String?
+  redirect_uris  String[]
+  organizationId Int
+  organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   // add connection to Access Codes
 }

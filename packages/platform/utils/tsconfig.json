@@ -1,9 +1,10 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES5",
     "resolveJsonModule": true,
-    "types": ["jest"]
+    "types": ["jest"],
+    "outDir": "./dist"
   },
   "include": [".", "./tests"],
   "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]

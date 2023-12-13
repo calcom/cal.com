@@ -1,4 +1,6 @@
 import { dir } from "i18next";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import Script from "next/script";
 import React from "react";
@@ -9,6 +11,14 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+
+const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const calFont = localFont({
+  src: "../fonts/CalSans-SemiBold.woff2",
+  variable: "--font-cal",
+  preload: true,
+  display: "block",
+});
 
 export const generateMetadata = () =>
   prepareRootMetadata({
@@ -66,6 +76,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
           />
         )}
+        <style>{`
+          :root {
+            --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+          }
+        `}</style>
       </head>
       <body
         className="dark:bg-darkgray-50 desktop-transparent bg-subtle antialiased"

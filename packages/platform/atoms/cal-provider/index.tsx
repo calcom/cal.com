@@ -1,6 +1,7 @@
-import { NO_KEY_VALUE, INVALID_API_KEY } from "cal-provider/errors";
 import type { ReactNode } from "react";
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
+
+import { NO_KEY_VALUE, INVALID_API_KEY } from "./errors";
 
 type CalProviderProps = {
   apiKey: string;
