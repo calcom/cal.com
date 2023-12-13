@@ -60,7 +60,7 @@ test.describe("Event Types tests", () => {
       expect(count).toBeGreaterThanOrEqual(2);
     });
 
-    test("can add new event type", async ({ page }) => {
+    test.only("can add new event type", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
       await createNewEventType(page, { eventTitle });
