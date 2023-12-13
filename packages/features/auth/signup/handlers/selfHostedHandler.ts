@@ -7,14 +7,18 @@ import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateAndGetCorrectUsernameAndEmail } from "@calcom/lib/validateUsername";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
-import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "../utils/token";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const data = req.body;
@@ -29,18 +33,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
-  let computedUsername = username;
+  let correctedUsername = username;
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    computedUsername = await validateUsernameForTeam({
+    correctedUsername = await validateAndGetCorrectedUsernameForTeam({
       username,
       email: userEmail,
       teamId: foundToken?.teamId,
       isSignup: true,
     });
   } else {
-    const userValidation = await validateAndGetCorrectUsernameAndEmail({
+    const userValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,
       email: userEmail,
       isSignup: true,
@@ -52,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!userValidation.username) {
       return res.status(422).json({ message: "Invalid username" });
     }
-    computedUsername = userValidation.username;
+    correctedUsername = userValidation.username;
   }
 
   const hashedPassword = await hashPassword(password);
@@ -69,13 +73,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
-          username: computedUsername,
+          username: correctedUsername,
           password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
-          username: computedUsername,
+          username: correctedUsername,
           email: userEmail,
           password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
@@ -129,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } else {
     if (IS_PREMIUM_USERNAME_ENABLED) {
-      const checkUsername = await checkPremiumUsername(computedUsername);
+      const checkUsername = await checkPremiumUsername(correctedUsername);
       if (checkUsername.premium) {
         res.status(422).json({
           message: "Sign up from https://cal.com/signup to claim your premium username",
@@ -140,13 +144,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.user.upsert({
       where: { email: userEmail },
       update: {
-        username: computedUsername,
+        username: correctedUsername,
         password: hashedPassword,
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
-        username: computedUsername,
+        username: correctedUsername,
         email: userEmail,
         password: hashedPassword,
         identityProvider: IdentityProvider.CAL,
@@ -154,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     await sendEmailVerification({
       email: userEmail,
-      username: computedUsername,
+      username: correctedUsername,
       language,
     });
   }

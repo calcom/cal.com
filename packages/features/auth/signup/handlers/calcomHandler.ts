@@ -10,13 +10,17 @@ import { HttpError } from "@calcom/lib/http-error";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateAndGetCorrectUsernameAndEmail } from "@calcom/lib/validateUsername";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
-import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "../utils/token";
 
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const {
@@ -52,14 +56,14 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    username = await validateUsernameForTeam({
+    username = await validateAndGetCorrectedUsernameForTeam({
       username,
       email,
       teamId: foundToken?.teamId ?? null,
       isSignup: true,
     });
   } else {
-    const usernameAndEmailValidation = await validateAndGetCorrectUsernameAndEmail({
+    const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
       username,
       email,
       isSignup: true,

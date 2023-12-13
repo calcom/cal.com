@@ -610,8 +610,8 @@ export const emailSchemaRefinement = (value: string) => {
 };
 
 export const signupSchema = z.object({
-  // Username is marked optional here because it's requireablity depends on if it's the Organization invite or a team invite which isn't easily done in zod
-  // It's better handled beyond zod in `validateAndGetCorrectUsernameAndEmail`
+  // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
+  // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
   username: z.string().optional(),
   email: z.string().email(),
   password: z.string().superRefine((data, ctx) => {

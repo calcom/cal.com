@@ -37,7 +37,7 @@ import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
 const signupSchema = apiSignupSchema.extend({
-  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API\
+  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
 });
 
 type FormValues = z.infer<typeof signupSchema>;
@@ -318,7 +318,7 @@ export default function Signup({
                   : t("create_account")}
               </Button>
             </Form>
-            {/* Continue with Social Logins */}
+            {/* Continue with Social Logins - Only for non-invite links */}
             {token || (!isGoogleLoginEnabled && !isSAMLLoginEnabled) ? null : (
               <div className="mt-6">
                 <div className="relative flex items-center">
@@ -330,7 +330,7 @@ export default function Signup({
                 </div>
               </div>
             )}
-            {/* Social Logins */}
+            {/* Social Logins - Only for non-invite links*/}
             {!token && (
               <div className="mt-6 flex flex-col gap-2 md:flex-row">
                 {isGoogleLoginEnabled ? (

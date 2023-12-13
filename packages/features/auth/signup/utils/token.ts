@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
-import { validateUsernameInTeam } from "@calcom/lib/validateUsername";
+import { validateAndGetCorrectedUsernameInTeam } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 
 export async function findTokenByToken({ token }: { token: string }) {
@@ -35,7 +35,7 @@ export function throwIfTokenExpired(expires?: Date) {
   }
 }
 
-export async function validateUsernameForTeam({
+export async function validateAndGetCorrectedUsernameForTeam({
   username,
   email,
   teamId,
@@ -48,7 +48,7 @@ export async function validateUsernameForTeam({
 }) {
   if (!teamId) return username;
 
-  const teamUserValidation = await validateUsernameInTeam(username, email, teamId, isSignup);
+  const teamUserValidation = await validateAndGetCorrectedUsernameInTeam(username, email, teamId, isSignup);
   if (!teamUserValidation.isValid) {
     throw new HttpError({
       statusCode: 409,

@@ -24,7 +24,7 @@ export const getUsernameForOrgMember = async ({
   return username;
 };
 
-export const validateAndGetCorrectUsernameAndEmail = async ({
+export const validateAndGetCorrectedUsernameAndEmail = async ({
   username,
   email,
   organizationId,
@@ -81,7 +81,7 @@ export const validateAndGetCorrectUsernameAndEmail = async ({
   return { isValid: !existingUser, username: validatedUsername, email: existingUser?.email };
 };
 
-export const validateUsernameInTeam = async (
+export const validateAndGetCorrectedUsernameInTeam = async (
   username: string,
   email: string,
   teamId: number,
@@ -104,7 +104,7 @@ export const validateUsernameInTeam = async (
       const orgMetadata = teamData.metadata;
       // Organization context -> org-context username check
       const orgId = teamData.parentId || teamId;
-      return validateAndGetCorrectUsernameAndEmail({
+      return validateAndGetCorrectedUsernameAndEmail({
         username,
         email,
         organizationId: orgId,
@@ -113,7 +113,7 @@ export const validateUsernameInTeam = async (
       });
     } else {
       // Regular team context -> regular username check
-      return validateAndGetCorrectUsernameAndEmail({ username, email, isSignup });
+      return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
     }
   } catch (error) {
     console.error(error);
