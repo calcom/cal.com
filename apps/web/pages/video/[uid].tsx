@@ -1,6 +1,5 @@
 "use client";
 
-import type { DailyEventObjectRecordingStarted } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
@@ -22,7 +21,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
+export type JoinCallPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function JoinCall(props: JoinCallPageProps) {

@@ -28,9 +28,11 @@ type PageProps = Readonly<{
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolvedUrl">) {
+  const ssr = await ssrInit();
+
   const booking = await prisma.booking.findUnique({
     where: {
-      uid: typeof context?.params?.uid === "string" ? context.params.uid : "",
+      uid: context.query.uid as string,
     },
     select: {
       ...bookingMinimalSelect,
@@ -43,6 +45,11 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
           timeZone: true,
           name: true,
           email: true,
+          organization: {
+            select: {
+              calVideoLogo: true,
+            },
+          },
         },
       },
       references: {
@@ -87,8 +94,6 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
     });
   }
 
-  const ssr = await ssrInit();
-
   return {
     meetingUrl: bookingObj.references[0].meetingUrl ?? "",
     ...(typeof bookingObj.references[0].meetingPassword === "string" && {
@@ -108,7 +113,7 @@ const Page = async ({ params }: PageProps) => {
 
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
   // @ts-expect-error `req` of type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to `req` in `GetServerSidePropsContext`
-  const props = await getData(legacyCtx);
+  const { dehydratedState, ...restProps } = await getData(legacyCtx);
 
   return (
     <PageWrapper
@@ -116,8 +121,8 @@ const Page = async ({ params }: PageProps) => {
       requiresLicense={false}
       nonce={nonce}
       themeBasis={null}
-      dehydratedState={props.dehydratedState}>
-      <OldPage {...props} trpcState={props.dehydratedState} />
+      dehydratedState={dehydratedState}>
+      <OldPage {...restProps} />
     </PageWrapper>
   );
 };
