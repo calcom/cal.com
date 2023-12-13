@@ -277,7 +277,7 @@ describe("OAuth Client Endpoints", () => {
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(oAuthClientName);
-            expect(responseBody.data.name).toEqual(oAuthClientName);
+            expect(responseBody.data.permissions).toEqual(oAuthClientPermissions);
           });
       });
       it(`/PUT/:id`, () => {
