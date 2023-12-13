@@ -162,6 +162,17 @@ export async function createUserAndEventType({
         });
         console.log("🚀 ~ file: seed-utils.ts:163 ~ createdCredential:", createdCredential);
 
+        const credentials = await prisma.credential.findMany({
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        });
+        console.log("🚀 ~ file: seed-utils.ts:174 ~ credentials:", credentials);
+
         console.log(`🔑 ${credential.type} credentials created for ${theUser.email}`);
       }
     }
