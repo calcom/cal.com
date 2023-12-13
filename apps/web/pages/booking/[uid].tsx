@@ -94,12 +94,23 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
 });
 
+const nameObjectSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+});
+function parseName(name: { firstName: string; lastName: string } | string | undefined) {
+  if (typeof name === "string") return name;
+  else if (typeof name === "object" && nameObjectSchema.parse(name))
+    return `${name.firstName} ${name.lastName}`.trim();
+  else return "Nameless";
+}
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
+  const { eventType, bookingInfo } = props;
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -132,10 +143,7 @@ export default function Success(props: SuccessProps) {
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason || props.bookingInfo.rejectionReason;
 
-  const attendeeName =
-    typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
-      ? props?.bookingInfo?.attendees?.[0]?.name
-      : "Nameless";
+  const attendeeName = parseName(bookingInfo.responses.name);
 
   const attendees = props?.bookingInfo?.attendees;
 
@@ -147,7 +155,6 @@ export default function Success(props: SuccessProps) {
   const { data: session } = useSession();
 
   const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
-  const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
   const isEmbed = useIsEmbed();
@@ -1038,21 +1045,23 @@ const handleSeatsEventTypeOnBooking = async (
     }>
   >,
   seatReferenceUid?: string,
-  userId?: number
+  isHost?: boolean
 ) => {
-  if (eventType?.seatsPerTimeSlot !== null) {
-    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
-    delete bookingInfo.description;
-  } else {
-    return;
-  }
-  // @TODO: If handling teams, we need to do more check ups for this.
-  if (bookingInfo?.user?.id === userId) {
-    return;
-  }
-
-  if (!eventType.seatsShowAttendees) {
-    const seatAttendee = await prisma.bookingSeat.findFirst({
+  bookingInfo["responses"] = {};
+  type seatAttendee = {
+    attendee: {
+      email: string;
+      name: string;
+    };
+    id: number;
+    data: Prisma.JsonValue;
+    bookingId: number;
+    attendeeId: number;
+    referenceUid: string;
+  } | null;
+  let seatAttendee: seatAttendee = null;
+  if (seatReferenceUid) {
+    seatAttendee = await prisma.bookingSeat.findFirst({
       where: {
         referenceUid: seatReferenceUid,
       },
@@ -1065,7 +1074,13 @@ const handleSeatsEventTypeOnBooking = async (
         },
       },
     });
+  }
+  if (seatAttendee) {
+    bookingInfo["description"] = seatAttendee.data?.description;
+    bookingInfo["responses"] = seatAttendee.data?.responses;
+  }
 
+  if (!eventType.seatsShowAttendees && !isHost) {
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
         return a.email === seatAttendee.attendee?.email;
@@ -1075,6 +1090,11 @@ const handleSeatsEventTypeOnBooking = async (
       bookingInfo["attendees"] = [];
     }
   }
+
+  // // @TODO: If handling teams, we need to do more check ups for this.
+  // if (bookingInfo?.user?.id === userId) {
+  //   return;
+  // }
   return bookingInfo;
 };
 
@@ -1093,12 +1113,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const parsedQuery = querySchema.safeParse(context.query);
 
   if (!parsedQuery.success) return { notFound: true } as const;
-  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
+  const { eventTypeSlug } = parsedQuery.data;
+  let { uid, seatReferenceUid } = parsedQuery.data;
 
-  const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
+  const maybeBookingUidFromSeat = await maybeGetBookingUidFromSeat(prisma, uid);
+  if (maybeBookingUidFromSeat.uid) uid = maybeBookingUidFromSeat.uid;
+  if (maybeBookingUidFromSeat.seatReferenceUid) seatReferenceUid = maybeBookingUidFromSeat.seatReferenceUid;
   const bookingInfoRaw = await prisma.booking.findFirst({
     where: {
-      uid: maybeUid,
+      uid: uid,
     },
     select: {
       title: true,
@@ -1205,7 +1228,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
+    await handleSeatsEventTypeOnBooking(
+      eventType,
+      bookingInfo,
+      seatReferenceUid,
+      session?.user.id === eventType.userId
+    );
   }
 
   const payment = await prisma.payment.findFirst({
