@@ -7,10 +7,12 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
+import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -27,7 +29,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form, Alert } from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -35,7 +37,7 @@ import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 import { ssrInit } from "../server/lib/ssr";
 
 const signupSchema = apiSignupSchema.extend({
-  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API\
 });
 
 type FormValues = z.infer<typeof signupSchema>;
@@ -65,16 +67,6 @@ const FEATURES = [
     },
   },
 ];
-
-const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
-  const [emailUser, emailDomain = ""] = email.split("@");
-  const username =
-    emailDomain === autoAcceptEmailDomain
-      ? slugify(emailUser)
-      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-
-  return username;
-};
 
 function UsernameField({
   username,
@@ -276,21 +268,23 @@ export default function Signup({
                 await signUp(updatedValues);
               }}>
               {/* Username */}
-              <UsernameField
-                label={t("username")}
-                username={watch("username")}
-                premium={premiumUsername}
-                usernameTaken={usernameTaken}
-                disabled={!!orgSlug}
-                setUsernameTaken={(value) => setUsernameTaken(value)}
-                data-testid="signup-usernamefield"
-                setPremium={(value) => setPremiumUsername(value)}
-                addOnLeading={
-                  orgSlug
-                    ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
-                    : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
-                }
-              />
+              {!isOrgInviteByLink ? (
+                <UsernameField
+                  label={t("username")}
+                  username={watch("username") || ""}
+                  premium={premiumUsername}
+                  usernameTaken={usernameTaken}
+                  disabled={!!orgSlug}
+                  setUsernameTaken={(value) => setUsernameTaken(value)}
+                  data-testid="signup-usernamefield"
+                  setPremium={(value) => setPremiumUsername(value)}
+                  addOnLeading={
+                    orgSlug
+                      ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
+                      : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                  }
+                />
+              ) : null}
               {/* Email */}
               <TextField
                 {...register("email")}
@@ -368,7 +362,7 @@ export default function Signup({
                       if (username) {
                         // If username is present we save it in query params to check for premium
                         const searchQueryParams = new URLSearchParams();
-                        searchQueryParams.set("username", formMethods.getValues("username"));
+                        searchQueryParams.set("username", username);
                         localStorage.setItem("username", username);
                         router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
                         return;
@@ -404,10 +398,14 @@ export default function Signup({
                         return;
                       }
                       const username = formMethods.getValues("username");
+                      if (!username) {
+                        showToast("error", t("username_required"));
+                        return;
+                      }
                       localStorage.setItem("username", username);
                       const sp = new URLSearchParams();
                       // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                      sp.set("username", formMethods.getValues("username"));
+                      sp.set("username", username);
                       sp.set("email", formMethods.getValues("email"));
                       router.push(
                         `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
@@ -493,6 +491,7 @@ export default function Signup({
           </div>
         </div>
       </div>
+      <Toaster position="bottom-right" />
     </div>
   );
 }

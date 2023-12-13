@@ -10,7 +10,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsername } from "@calcom/lib/validateUsername";
+import { validateAndGetCorrectUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -52,15 +52,33 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    await validateUsernameForTeam({ username, email, teamId: foundToken?.teamId ?? null });
+    username = await validateUsernameForTeam({
+      username,
+      email,
+      teamId: foundToken?.teamId ?? null,
+      isSignup: true,
+    });
   } else {
-    const usernameAndEmailValidation = await validateUsername(username, email);
+    const usernameAndEmailValidation = await validateAndGetCorrectUsernameAndEmail({
+      username,
+      email,
+      isSignup: true,
+    });
     if (!usernameAndEmailValidation.isValid) {
       throw new HttpError({
         statusCode: 409,
         message: "Username or email is already taken",
       });
     }
+
+    if (!usernameAndEmailValidation.username) {
+      throw new HttpError({
+        statusCode: 422,
+        message: "Invalid username",
+      });
+    }
+
+    username = usernameAndEmailValidation.username;
   }
 
   // Create the customer in Stripe

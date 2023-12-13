@@ -4,9 +4,10 @@ import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsername } from "@calcom/lib/validateUsername";
+import { validateAndGetCorrectUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
@@ -28,15 +29,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
+  let computedUsername = username;
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    await validateUsernameForTeam({ username, email: userEmail, teamId: foundToken?.teamId });
+    computedUsername = await validateUsernameForTeam({
+      username,
+      email: userEmail,
+      teamId: foundToken?.teamId,
+      isSignup: true,
+    });
   } else {
-    const userValidation = await validateUsername(username, userEmail);
+    const userValidation = await validateAndGetCorrectUsernameAndEmail({
+      username,
+      email: userEmail,
+      isSignup: true,
+    });
     if (!userValidation.isValid) {
+      logger.error("User validation failed", { userValidation });
       return res.status(409).json({ message: "Username or email is already taken" });
     }
+    if (!userValidation.username) {
+      return res.status(422).json({ message: "Invalid username" });
+    }
+    computedUsername = userValidation.username;
   }
 
   const hashedPassword = await hashPassword(password);
@@ -53,13 +69,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
-          username,
+          username: computedUsername,
           password: hashedPassword,
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
-          username,
+          username: computedUsername,
           email: userEmail,
           password: hashedPassword,
           identityProvider: IdentityProvider.CAL,
@@ -113,7 +129,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } else {
     if (IS_PREMIUM_USERNAME_ENABLED) {
-      const checkUsername = await checkPremiumUsername(username);
+      const checkUsername = await checkPremiumUsername(computedUsername);
       if (checkUsername.premium) {
         res.status(422).json({
           message: "Sign up from https://cal.com/signup to claim your premium username",
@@ -124,13 +140,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.user.upsert({
       where: { email: userEmail },
       update: {
-        username,
+        username: computedUsername,
         password: hashedPassword,
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
-        username,
+        username: computedUsername,
         email: userEmail,
         password: hashedPassword,
         identityProvider: IdentityProvider.CAL,
@@ -138,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     await sendEmailVerification({
       email: userEmail,
-      username,
+      username: computedUsername,
       language,
     });
   }
