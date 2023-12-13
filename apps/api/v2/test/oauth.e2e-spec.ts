@@ -7,7 +7,7 @@ import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-clien
 import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UserModule } from "@/modules/repositories/user/user-repository.module";
+import { UserModule } from "@/modules/user/user.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";

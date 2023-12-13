@@ -1,13 +1,22 @@
+import { getEnv } from "@/env";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { MembershipModule } from "@/modules/membership/membership.module";
+import { OAuthClientRepository } from "@/modules/oauth/oauth-client-repository.service";
 import { OAuthClientController } from "@/modules/oauth/oauth-client.controller";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { MembershipModule } from "@/modules/repositories/membership/membership-repository.module";
-import { OAuthClientRepositoryModule } from "@/modules/repositories/oauth/oauth-client-repository.module";
-import { UserModule } from "@/modules/repositories/user/user-repository.module";
+import { UserModule } from "@/modules/user/user.module";
 import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
 
 @Module({
-  imports: [PrismaModule, OAuthClientRepositoryModule, AuthModule, UserModule, MembershipModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UserModule,
+    MembershipModule,
+    JwtModule.register({ secret: getEnv("JWT_SECRET") }),
+  ],
+  providers: [OAuthClientRepository],
   controllers: [OAuthClientController],
 })
 export class OAuthClientModule {}
