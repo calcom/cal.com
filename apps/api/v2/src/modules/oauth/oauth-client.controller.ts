@@ -1,4 +1,3 @@
-import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { GetUser } from "@/modules/auth/decorator";
 import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
