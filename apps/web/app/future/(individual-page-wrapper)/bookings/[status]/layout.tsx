@@ -1,6 +1,6 @@
 import { ssgInit } from "app/_trpc/ssgInit";
+import type { Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { z } from "zod";
@@ -16,7 +16,6 @@ const querySchema = z.object({
   status: z.enum(validStatuses),
 });
 
-type Params = { status: string };
 type Props = { params: Params; children: ReactElement };
 
 export const generateMetadata = async () =>
@@ -25,13 +24,18 @@ export const generateMetadata = async () =>
     () => ""
   );
 
+export const generateStaticParams = async () => {
+  return validStatuses.map((status) => ({ status }));
+};
+
 const getData = async ({ params }: { params: Params }) => {
   const parsedParams = querySchema.safeParse(params);
-  const ssg = await ssgInit();
 
   if (!parsedParams.success) {
-    return notFound();
+    notFound();
   }
+
+  const ssg = await ssgInit();
 
   return {
     status: parsedParams.data.status,
@@ -41,12 +45,12 @@ const getData = async ({ params }: { params: Params }) => {
 
 export default async function BookingPageLayout({ params, children }: Props) {
   const props = await getData({ params });
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
 
   return (
-    <PageWrapper requiresLicense={false} getLayout={getLayout} nonce={nonce} themeBasis={null} {...props}>
+    <PageWrapper requiresLicense={false} getLayout={getLayout} nonce={undefined} themeBasis={null} {...props}>
       {children}
     </PageWrapper>
   );
 }
+
+export const dynamic = "force-static";
