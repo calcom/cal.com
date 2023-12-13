@@ -90,7 +90,7 @@ export function EditForm({
     }
 
     return options;
-  }, [isOwner]);
+  }, [t, isOwner]);
 
   const mutation = trpc.viewer.organizations.updateUser.useMutation({
     onSuccess: () => {
