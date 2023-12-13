@@ -27,6 +27,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   description: true,
   eventName: true,
   slug: true,
+  isInstantEvent: true,
   schedulingType: true,
   length: true,
   locations: true,

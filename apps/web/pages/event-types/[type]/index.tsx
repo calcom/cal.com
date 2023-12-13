@@ -88,6 +88,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  isInstantEvent: boolean;
   length: number;
   offsetStart: number;
   description: string;
@@ -253,6 +254,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       title: eventType.title,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
+      isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,

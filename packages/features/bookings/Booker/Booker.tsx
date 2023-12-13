@@ -224,10 +224,10 @@ const BookerComponent = ({
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
-      {bookerState !== "booking" && (
+      {bookerState !== "booking" && event.data?.isInstantEvent && (
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "3s" }}>
+          style={{ animationDelay: "2s" }}>
           <InstantBooking />
         </div>
       )}
@@ -414,7 +414,6 @@ export const InstantBooking = () => {
         <div>{t("dont_want_to_wait")}</div>
       </div>
       <div className="mt-2 sm:mt-0">
-        {/* TODO: onClick listener that takes data from the immediate time */}
         <Button
           color="primary"
           onClick={() => {
