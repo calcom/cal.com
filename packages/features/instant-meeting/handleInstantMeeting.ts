@@ -110,6 +110,7 @@ async function handler(req: NextApiRequest) {
     throw new Error("Cal Video Meeting Creation Failed");
   }
 
+  eventType.team.id;
   const bookingReferenceToCreate = [
     {
       type: calVideoMeeting.type,
@@ -120,6 +121,7 @@ async function handler(req: NextApiRequest) {
     },
   ];
 
+  // Create Partial
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
     responses: reqBody.responses === null ? Prisma.JsonNull : reqBody.responses,
@@ -174,7 +176,6 @@ async function handler(req: NextApiRequest) {
       updatedAt: new Date().toISOString(),
     },
   });
-  console.log("instantMeetingToken", instantMeetingToken);
 
   // Trigger Webhook
   const subscriberOptions: GetSubscriberOptions = {
@@ -199,7 +200,12 @@ async function handler(req: NextApiRequest) {
     webhookData,
   });
 
-  return { message: "Success", meetingTokenId: instantMeetingToken.id, bookingId: newBooking.id };
+  return {
+    message: "Success",
+    meetingTokenId: instantMeetingToken.id,
+    bookingId: newBooking.id,
+    expires: instantMeetingToken.expires,
+  };
 }
 
 export default handler;

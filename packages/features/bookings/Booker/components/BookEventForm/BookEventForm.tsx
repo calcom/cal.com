@@ -3,7 +3,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -173,6 +173,8 @@ export const BookEventFormChild = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
+  const [expiryTime, setExpiryTime] = useState<string | undefined>();
+
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
     responses: z.infer<typeof bookingFormSchema>["responses"] | null;
@@ -242,11 +244,12 @@ export const BookEventFormChild = ({
   const createInstantBookingMutation = useMutation(createInstantBooking, {
     onSuccess: (responseData) => {
       updateQueryParam("bookingId", responseData.bookingId);
+      setExpiryTime(responseData.expires);
     },
     onError: (err, _, ctx) => {
-      errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
       console.error("Error creating instant booking", err);
-      showToast(t("something_went_wrong_on_our_end"), "error");
+
+      errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
 
@@ -406,6 +409,7 @@ export const BookEventFormChild = ({
         />
         {(createBookingMutation.isError ||
           createRecurringBookingMutation.isError ||
+          createInstantBookingMutation.isError ||
           bookingForm.formState.errors["globalError"]) && (
           <div data-testid="booking-fail">
             <Alert
@@ -417,6 +421,7 @@ export const BookEventFormChild = ({
                 bookingForm.formState.errors["globalError"],
                 createBookingMutation,
                 createRecurringBookingMutation,
+                createInstantBookingMutation,
                 t,
                 responseVercelIdHeader
               )}
@@ -463,25 +468,29 @@ export const BookEventFormChild = ({
         }}
         isUserSessionRequiredToVerify={false}
       />
-      <RedirectToInstantMeetingModal />
+      <RedirectToInstantMeetingModal expiryTime={expiryTime} />
     </div>
   );
 };
 
-const RedirectToInstantMeetingModal = () => {
+const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: string }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const bookingId = parseInt(getQueryParam("bookingId") || "0");
+  const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
 
   const instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
       bookingId: bookingId,
     },
     {
-      enabled: !!bookingId,
+      enabled: !!bookingId && !hasInstantMeetingTokenExpired,
       refetchInterval: 2000,
       onSuccess: (data) => {
         try {
+          showToast(t("something_went_wrong_on_our_end"), "error");
+
           const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
             data.booking?.metadata || {}
           )?.videoCallUrl;
@@ -500,11 +509,27 @@ const RedirectToInstantMeetingModal = () => {
 
   return (
     <Dialog open={!!bookingId}>
-      <DialogContent type={undefined} enableOverflow className="py-8">
+      <DialogContent enableOverflow className="py-8">
         <div>
-          <Spinner />
-          <p className="font-medium">We are connecting you to someone.</p>
-          <p className="font-medium">Please do not close this tab</p>
+          {hasInstantMeetingTokenExpired ? (
+            <div>
+              <p className="font-medium">{t("please_book_a_time_sometime_later")}</p>
+              <Button
+                className="mt-4"
+                onClick={() => {
+                  window.location.href = pathname;
+                }}
+                color="primary">
+                {t("go_back")}
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <p className="font-medium">{t("connecting_you_to_someone")}</p>
+              <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
+              <Spinner className="relative mt-8" />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -520,12 +545,13 @@ const getError = (
   bookingMutation: UseMutationResult<any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recurringBookingMutation: UseMutationResult<any, any, any, any>,
+  createInstantBookingMutation: UseMutationResult<any, any, any, any>,
   t: TFunction,
   responseVercelIdHeader: string | null
 ) => {
   if (globalError) return globalError.message;
 
-  const error = bookingMutation.error || recurringBookingMutation.error;
+  const error = bookingMutation.error || recurringBookingMutation.error || createInstantBookingMutation.error;
 
   return error.message ? (
     <>

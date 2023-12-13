@@ -13,9 +13,14 @@ import { Zap } from "@calcom/ui/components/icon";
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
   paymentEnabled: boolean;
+  isTeamEvent: boolean;
 };
 
-export default function InstantEventController({ eventType, paymentEnabled }: InstantEventControllerProps) {
+export default function InstantEventController({
+  eventType,
+  paymentEnabled,
+  isTeamEvent,
+}: InstantEventControllerProps) {
   const { t } = useLocale();
   const session = useSession();
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
@@ -36,7 +41,7 @@ export default function InstantEventController({ eventType, paymentEnabled }: In
   return (
     <LicenseRequired>
       <div className="block items-start sm:flex">
-        {!isOrg ? (
+        {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("instant_tab_title")}
             Icon={Zap}

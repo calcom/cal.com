@@ -19,9 +19,11 @@ export const Handler = async ({ ctx, input }: Options) => {
   const { user } = ctx;
   const isLoggedInUserPartOfOrg = !!user.organization.id;
 
-  // if (!isLoggedInUserPartOfOrg) {
-  //   throw new TRPCError({ code: "UNAUTHORIZED", message: "Logged in user is not member of Organization" });
-  // }
+  throw new TRPCError({ code: "BAD_REQUEST", message: "token_invalid_expired" });
+
+  if (!isLoggedInUserPartOfOrg) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Logged in user is not member of Organization" });
+  }
 
   const instantMeetingToken = await prisma.instantMeetingToken.findUnique({
     select: {

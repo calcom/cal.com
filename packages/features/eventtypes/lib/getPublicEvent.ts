@@ -191,6 +191,7 @@ export const getPublicEvent = async (
         orgSlug: org,
         name: unPublishedOrgUser?.organization?.name ?? null,
       },
+      isInstantEvent: false,
     };
   }
 
@@ -252,6 +253,7 @@ export const getPublicEvent = async (
       name: (event.owner?.organization?.name || event.team?.parent?.name || event.team?.name) ?? null,
     },
     isDynamic: false,
+    isInstantEvent: event.isInstantEvent,
   };
 };
 

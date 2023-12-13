@@ -1,6 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -382,6 +382,7 @@ export const Booker = (props: BookerProps) => {
 export const InstantBooking = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <div className=" bg-default border-subtle mx-2 block items-center gap-3 rounded-xl border p-[6px] text-sm shadow-sm delay-1000 sm:flex">
@@ -417,8 +418,7 @@ export const InstantBooking = () => {
         <Button
           color="primary"
           onClick={() => {
-            const currentPath = router.asPath;
-            const newPath = `/instant-meeting${currentPath}`;
+            const newPath = `${pathname}?isInstantMeeting=true`;
             router.push(newPath);
           }}
           size="sm"

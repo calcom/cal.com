@@ -87,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
+
   const eventData = await ssr.viewer.public.event.fetch({
     username: teamSlug,
     eventSlug: meetingSlug,
@@ -94,7 +95,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     org,
   });
 
-  if (!eventData) {
+  if (!eventData || !org) {
     return {
       notFound: true,
     } as const;

@@ -9,7 +9,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { TRPCClientError } from "@calcom/trpc/react";
-import { showToast, Button, EmptyScreen } from "@calcom/ui";
+import { Button, EmptyScreen, Alert } from "@calcom/ui";
 import { Zap } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -19,6 +19,7 @@ function ConnectAndJoin() {
   const router = useRouter();
   const token = getQueryParam("token");
   const [meetingUrl, setMeetingUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const session = useSession();
   const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
@@ -32,17 +33,18 @@ function ConnectAndJoin() {
       }
     },
     onError: (err) => {
+      console.log("err", err, err instanceof TRPCClientError);
       if (err instanceof TRPCClientError) {
-        showToast(t(err.message), "error");
+        setErrorMessage(t(err.message));
       } else {
-        showToast(t("something_went_wrong"), "error");
+        setErrorMessage(t("something_went_wrong"));
       }
     },
   });
 
   if (session.status === "loading") return <p>{t("loading")}</p>;
 
-  if (!token) return <p>Token Not Present</p>;
+  if (!token) return <p>{t("token_not_found")}</p>;
 
   return (
     <div className="mx-8 mt-12 block items-start sm:flex">
@@ -65,14 +67,15 @@ function ConnectAndJoin() {
               ) : (
                 <Button
                   loading={mutation.isLoading}
-                  tooltip={t("not_part_of_org")}
-                  // disabled={!isUserPartOfOrg}
+                  tooltip={isUserPartOfOrg ? t("join_meeting") : t("not_part_of_org")}
+                  disabled={!isUserPartOfOrg}
                   onClick={() => {
                     mutation.mutate({ token });
                   }}>
                   {t("join_meeting")}
                 </Button>
               )}
+              {errorMessage && <Alert severity="error" message={errorMessage} />}
             </div>
           }
         />
@@ -83,7 +86,7 @@ function ConnectAndJoin() {
   );
 }
 
-ConnectAndJoin.requiresLicense = false;
+ConnectAndJoin.requiresLicense = true;
 ConnectAndJoin.PageWrapper = PageWrapper;
 
 export default ConnectAndJoin;

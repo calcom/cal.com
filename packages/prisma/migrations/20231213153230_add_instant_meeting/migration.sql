@@ -1,9 +1,17 @@
+-- AlterEnum
+ALTER TYPE "BookingStatus" ADD VALUE 'awaiting_host';
+
+-- AlterEnum
+ALTER TYPE "WebhookTriggerEvents" ADD VALUE 'INSTANT_MEETING';
+
+-- AlterTable
+ALTER TABLE "EventType" ADD COLUMN     "isInstantEvent" BOOLEAN NOT NULL DEFAULT false;
+
 -- CreateTable
 CREATE TABLE "InstantMeetingToken" (
     "id" SERIAL NOT NULL,
     "token" TEXT NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL,
-    "responses" JSONB,
     "teamId" INTEGER NOT NULL,
     "bookingId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -354,12 +354,9 @@ model VerificationToken {
 }
 
 model InstantMeetingToken {
-  id      Int      @id @default(autoincrement())
-  token   String   @unique
-  expires DateTime
-
-  /// @zod.custom(imports.bookingResponses)
-  responses Json?
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expires   DateTime
   teamId    Int
   team      Team     @relation(fields: [teamId], references: [id])
   bookingId Int?     @unique
