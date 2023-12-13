@@ -50,7 +50,7 @@ describe("OAuth Client Endpoints", () => {
     it(`/PUT/:id`, () => {
       return request(appWithoutAuth.getHttpServer()).put("/api/v2/oauth-clients/1234").expect(401);
     });
-    it(`/delete/:id`, () => {
+    it(`/DELETE/:id`, () => {
       return request(appWithoutAuth.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(401);
     });
 
@@ -111,7 +111,7 @@ describe("OAuth Client Endpoints", () => {
       it(`/PUT/:id`, () => {
         return request(app.getHttpServer()).put("/api/v2/oauth-clients/1234").expect(403);
       });
-      it(`/delete/:id`, () => {
+      it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(403);
       });
     });
@@ -134,7 +134,7 @@ describe("OAuth Client Endpoints", () => {
       it(`/PUT/:id`, () => {
         return request(app.getHttpServer()).put("/api/v2/oauth-clients/1234").expect(403);
       });
-      it(`/delete/:id`, () => {
+      it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(403);
       });
 
@@ -212,7 +212,7 @@ describe("OAuth Client Endpoints", () => {
             expect(responseBody.data.name).toEqual(clientUpdatedName);
           });
       });
-      it(`/delete/:id`, () => {
+      it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(204);
       });
 
@@ -294,7 +294,7 @@ describe("OAuth Client Endpoints", () => {
             expect(responseBody.data.name).toEqual(clientUpdatedName);
           });
       });
-      it(`/delete/:id`, () => {
+      it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(204);
       });
 
