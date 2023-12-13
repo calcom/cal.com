@@ -30,7 +30,7 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
 };
 
 export default async function Page({ params }: { params: Record<string, string | string[]> }) {
-  const { category } = await getPageProps({ params });
+  await getPageProps({ params });
 
   return <LegacyPage />;
 }
