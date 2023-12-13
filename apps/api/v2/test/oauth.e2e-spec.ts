@@ -25,9 +25,9 @@ import { NextAuthMockStrategy } from "./mocks/next-auth-mock.strategy";
 import { withNextAuth } from "./utils/withNextAuth";
 
 describe("OAuth Client Endpoints", () => {
-  let appWithoutAuth: INestApplication;
-
   describe("User Not Authenticated", () => {
+    let appWithoutAuth: INestApplication;
+
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
@@ -66,8 +66,8 @@ describe("OAuth Client Endpoints", () => {
     let user: User;
     let org: Team;
     let app: INestApplication;
-
     const userEmail = "test-e2e@api.com";
+
     beforeAll(async () => {
       const moduleRef = await withNextAuth(
         userEmail,
@@ -78,11 +78,9 @@ describe("OAuth Client Endpoints", () => {
       ).compile();
       const strategy = moduleRef.get(NextAuthStrategy);
       expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
-
       usersFixtures = new UsersFixtures(moduleRef);
       membershipFixtures = new MembershipFixtures(moduleRef);
       teamFixtures = new TeamFixtures(moduleRef);
-
       user = await usersFixtures.create({
         email: userEmail,
       });
@@ -149,6 +147,7 @@ describe("OAuth Client Endpoints", () => {
       let membership: Membership;
       let client: { client_id: string; client_secret: string };
       const oAuthClientName = "test-oauth-client-admin";
+
       beforeAll(async () => {
         membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
       });
@@ -176,7 +175,6 @@ describe("OAuth Client Endpoints", () => {
             };
           });
       });
-
       it(`/GET`, () => {
         return request(app.getHttpServer())
           .get("/api/v2/oauth-clients")
@@ -227,6 +225,7 @@ describe("OAuth Client Endpoints", () => {
       let membership: Membership;
       let client: { client_id: string; client_secret: string };
       const oAuthClientName = "test-oauth-client-owner";
+
       beforeAll(async () => {
         membership = await membershipFixtures.addUserToOrg(user, org, "OWNER", true);
       });
