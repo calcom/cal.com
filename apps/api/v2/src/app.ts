@@ -41,16 +41,16 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-  app.useGlobalFilters(new PrismaExceptionFilter());
-
   if (process.env.SENTRY_DNS) {
     Sentry.init({
       dsn: getEnv("SENTRY_DNS"),
     });
   }
+
+  // Exception filters, new filters go at the bottom, keep the order
   const { httpAdapter } = app.get(HttpAdapterHost);
-  // Sentry Exception Filter only logs if Sentry.init has not been called
   app.useGlobalFilters(new SentryFilter(httpAdapter));
+  app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.setGlobalPrefix("api", {

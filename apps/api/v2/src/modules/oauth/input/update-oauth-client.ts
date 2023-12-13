@@ -1,4 +1,4 @@
-import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsOptional, IsString } from "class-validator";
 
 export class UpdateOAuthClientInput {
   @IsOptional()
@@ -13,8 +13,4 @@ export class UpdateOAuthClientInput {
   @IsOptional()
   @IsString({ each: true })
   redirect_uris?: string[] = [];
-
-  @IsNumber()
-  @IsOptional()
-  permissions?: number;
 }

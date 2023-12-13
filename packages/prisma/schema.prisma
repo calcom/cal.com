@@ -1050,6 +1050,6 @@ model PlatformOAuthClient {
   logo           String?
   redirect_uris  String[]
   organizationId Int
-  organization   Team     @relation(fields: [organizationId], references: [id])
+  organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   // add connection to Access Codes
 }

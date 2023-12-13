@@ -17,6 +17,7 @@ import {
   HttpStatus,
   Logger,
   UseGuards,
+  NotFoundException,
 } from "@nestjs/common";
 import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
@@ -68,6 +69,9 @@ export class OAuthClientController {
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
+    if (!client) {
+      throw new NotFoundException();
+    }
     return { status: SUCCESS_STATUS, data: client };
   }
 
