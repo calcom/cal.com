@@ -95,9 +95,9 @@ async function postHandler(req: NextApiRequest) {
   return {
     team: schemaTeamReadPublic.parse(team),
     owner: schemaMembershipPublic.parse(team.members[0]),
-    message: !isAdmin
-      ? "Team created successfully, we also made you the owner of this team"
-      : "Team created successfully, we also made user with submitted userId the owner of this team",
+    message: isAdmin
+      ? "Team created successfully, we also made user with submitted userId the owner of this team"
+      : "Team created successfully, we also made you the owner of this team",
   };
 }
 
@@ -113,7 +113,8 @@ async function checkPermissions(req: NextApiRequest) {
     });
 
   /* Admin users are required to pass in a userId */
-  if (isAdmin && !body.ownerId) throw new HttpError({ statusCode: 400, message: "`ownerId` required" });
+  if (isAdmin && !body.ownerId)
+    throw new HttpError({ statusCode: 400, message: "`ownerId` required for ADMIN" });
 }
 
 export default defaultResponder(postHandler);
