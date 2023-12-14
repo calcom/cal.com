@@ -22,6 +22,17 @@ test.describe("Google Calendar", async () => {
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
+      if (process.env.E2E_TEST_CALCOM_GCAL_KEYS) {
+        await prisma.app.update({
+          where: {
+            slug: "google-calendar",
+          },
+          data: {
+            keys: process.env.E2E_TEST_CALCOM_GCAL_KEYS,
+          },
+        });
+      }
+
       test.skip(!process.env.E2E_TEST_CALCOM_QA_EMAIL, "QA email not found");
       test.skip(!process.env.E2E_TEST_CALCOM_QA_PASSWORD, "QA password not found");
 
