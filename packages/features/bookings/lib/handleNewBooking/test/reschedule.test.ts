@@ -147,7 +147,7 @@ describe("handleNewBooking", () => {
             },
             update: {
               uid: "UPDATED_MOCK_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              iCalUID,
             },
           });
 
@@ -375,7 +375,7 @@ describe("handleNewBooking", () => {
               uid: "MOCK_ID",
             },
             update: {
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              iCalUID,
               uid: "UPDATED_MOCK_ID",
             },
           });
