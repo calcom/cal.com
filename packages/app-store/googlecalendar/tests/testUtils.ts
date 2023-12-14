@@ -27,6 +27,7 @@ export const createBookingAndFetchGCalEvent = async (
 
   const bookingUrl = await page.url();
   const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
+  console.log("🚀 ~ file: testUtils.ts:30 ~ bookingUid:", bookingUid);
   assertValueExists(bookingUid, "bookingUid");
 
   const [gCalReference, booking] = await Promise.all([
