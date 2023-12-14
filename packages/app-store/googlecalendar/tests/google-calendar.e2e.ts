@@ -23,12 +23,13 @@ test.describe("Google Calendar", async () => {
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
       if (process.env.E2E_TEST_CALCOM_GCAL_KEYS) {
+        const gCalKeys = JSON.parse(process.env.E2E_TEST_CALCOM_GCAL_KEYS);
         await prisma.app.update({
           where: {
             slug: "google-calendar",
           },
           data: {
-            keys: process.env.E2E_TEST_CALCOM_GCAL_KEYS,
+            keys: gCalKeys,
           },
         });
       } else {
