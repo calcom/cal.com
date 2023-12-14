@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
+
 import { test } from "../lib/fixtures";
 import { getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
@@ -20,7 +22,9 @@ test.describe("Organization", () => {
     await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (external user)", async () => {
-      const invitedUserEmail = `rick@domain-${Date.now()}.com`;
+      const invitedUserEmail = `rick-${Date.now()}@domain.com`;
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
       await page.locator('button:text("Add")').click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator('button:text("Send invite")').click();
@@ -38,21 +42,24 @@ test.describe("Organization", () => {
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(1);
 
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!inviteLink) return null;
+      assertInviteLink(inviteLink);
 
       // Follow invite link in new window
       const context = await browser.newContext();
-      const newPage = await context.newPage();
-      newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
+      const signupPage = await context.newPage();
+      signupPage.goto(inviteLink);
+      await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
+      await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
+      await signupPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
-      await newPage.locator("button[type=submit]").click();
-      await newPage.waitForURL("/getting-started?from=signup");
+      await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      await signupPage.locator("button[type=submit]").click();
+      await signupPage.waitForURL("/getting-started?from=signup");
+      const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
       await context.close();
-      await newPage.close();
+      await signupPage.close();
 
       // Check newly invited member is not pending anymore
       await page.bringToFront();
@@ -80,10 +87,15 @@ test.describe("Organization", () => {
       await expect(button).toBeVisible(); // email + 3 password hints
 
       // Happy path
-      await inviteLinkPage.locator("input[name=email]").fill(`rick@domain-${Date.now()}.com`);
+      const email = `rick-${Date.now()}@domain.com`;
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+      await inviteLinkPage.locator("input[name=email]").fill(email);
       await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await inviteLinkPage.locator("button[type=submit]").click();
       await inviteLinkPage.waitForURL("/getting-started");
+      const dbUser = await prisma.user.findUnique({ where: { email } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
     });
   });
 
@@ -96,21 +108,74 @@ test.describe("Organization", () => {
 
     await test.step("To the organization by email (internal user)", async () => {
       const invitedUserEmail = `rick-${Date.now()}@example.com`;
+      const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
       await page.locator('button:text("Add")').click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator('button:text("Send invite")').click();
       await page.waitForLoadState("networkidle");
-      await expectInvitationEmailToBeReceived(
+      const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
         invitedUserEmail,
-        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`
+        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+        "signup?token"
       );
+
+      assertInviteLink(inviteLink);
 
       // Check newly invited member exists and is not pending
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);
+
+      // Follow invite link in new window
+      const context = await browser.newContext();
+      const signupPage = await context.newPage();
+      signupPage.goto(inviteLink);
+      await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
+      await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
+      await signupPage.waitForLoadState("networkidle");
+
+      // Check required fields
+      await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      await signupPage.locator("button[type=submit]").click();
+      await signupPage.waitForURL("/getting-started?from=signup");
+      const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+      await context.close();
+      await signupPage.close();
+    });
+
+    await test.step("To the organization by invite link", async () => {
+      // Get the invite link
+      await page.locator('button:text("Add")').click();
+      await page.locator(`[data-testid="copy-invite-link-button"]`).click();
+
+      const inviteLink = await getInviteLink(page);
+      // Follow invite link in new window
+      const context = await browser.newContext();
+      const inviteLinkPage = await context.newPage();
+      await inviteLinkPage.goto(inviteLink);
+      await inviteLinkPage.waitForLoadState("networkidle");
+
+      // Check required fields
+      const button = inviteLinkPage.locator("button[type=submit][disabled]");
+      await expect(button).toBeVisible(); // email + 3 password hints
+
+      // Happy path
+      const email = `rick-${Date.now()}@example.com`;
+      // '-domain' because the email doesn't match orgAutoAcceptEmail
+      const usernameDerivedFromEmail = `${email.split("@")[0]}`;
+      await inviteLinkPage.locator("input[name=email]").fill(email);
+      await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+      await inviteLinkPage.locator("button[type=submit]").click();
+      await inviteLinkPage.waitForURL("/getting-started");
+      const dbUser = await prisma.user.findUnique({ where: { email } });
+      expect(dbUser?.username).toBe(usernameDerivedFromEmail);
     });
   });
 });
+
+function assertInviteLink(inviteLink: string | null | undefined): asserts inviteLink is string {
+  if (!inviteLink) throw new Error("Invite link not found");
+}
