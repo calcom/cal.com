@@ -99,6 +99,7 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
+      { name: "oauth", href: "/settings/organizations/oauth-clients" },
     ],
   },
   {
@@ -122,12 +123,6 @@ const tabs: VerticalTabItemProps[] = [
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
-  {
-    name: "Platform",
-    href: "/settings/platform",
-    icon: Key,
-    children: [{ name: "OAuth Clients", href: "/settings/platform/oauth-clients" }],
-  },
 ];
 
 tabs.find((tab) => {
@@ -139,15 +134,13 @@ tabs.find((tab) => {
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
-const organizationRequiredKeys = ["organization"];
+const organizationRequiredKeys = ["organization", ""];
 
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
   const orgBranding = useOrgBranding();
-
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isOrgMember = session.data?.user.belongsToActiveTeam;
 
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
@@ -157,11 +150,6 @@ const useTabs = () => {
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
       tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
-    } else if (tab.href === "/settings/platform" && !isOrgMember && !isAdmin) {
-      tab.name = "";
-      tab.href = "";
-      tab.icon = undefined;
-      tab.children = [];
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&
