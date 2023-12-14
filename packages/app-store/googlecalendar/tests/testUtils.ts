@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { bookFirstEvent } from "@calcom/web/playwright/lib/testUtils";
+import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
@@ -20,9 +20,10 @@ export const createBookingAndFetchGCalEvent = async (
   qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }> | null,
   qaUsername: string
 ) => {
-  await page.goto(`/${qaUsername}`);
-  await page.waitForSelector('[data-testid="avatar"]');
-  await bookFirstEvent(page);
+  await page.goto(`/${qaUsername}/15min`);
+  // await page.waitForSelector('[data-testid="avatar"]');
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await bookTimeSlot(page);
 
   const bookingUrl = await page.url();
   const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
