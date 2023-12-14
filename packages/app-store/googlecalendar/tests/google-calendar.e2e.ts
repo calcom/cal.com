@@ -31,6 +31,8 @@ test.describe("Google Calendar", async () => {
             keys: process.env.E2E_TEST_CALCOM_GCAL_KEYS,
           },
         });
+      } else {
+        test.skip(!process.env.E2E_TEST_CALCOM_GCAL_KEYS, "GCal keys not found");
       }
 
       test.skip(!process.env.E2E_TEST_CALCOM_QA_EMAIL, "QA email not found");
