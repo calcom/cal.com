@@ -99,9 +99,7 @@ function BookingListItem(booking: BookingItemProps) {
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
-  const locationVideoCallUrl = bookingMetadataSchema.parse(
-    booking?.metadata || {}
-  )?.videoCallUrl;
+  const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
 
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
@@ -379,30 +377,28 @@ function BookingListItem(booking: BookingItemProps) {
               {!isPending && (
                 <div>
                   {(provider?.label || locationToDisplay?.startsWith("https://")) &&
-                  locationToDisplay.startsWith("http") ? (
-                    <a
-                      href={locationToDisplay}
-                      onClick={(e) => e.stopPropagation()}
-                      target="_blank"
-                      title={locationToDisplay}
-                      rel="noreferrer"
-                      className="text-sm leading-6 text-blue-600 hover:underline">
-                      <div className="flex items-center gap-2">
-                     {provider?.iconUrl && (
-                          <img
-                            src={provider.iconUrl}
-                            className="h-4 w-4 rounded-sm"
-                            alt={`${provider?.label} logo`}
-                          />
-                        )}
-                        {provider?.label
-                          ? t("join_event_location", { eventLocationType: provider?.label })
-                          : t("join_meeting")}
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="text-sm leading-6">{locationToDisplay}</div>
-                  )}
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
                 </div>
               )}
               {isPending && (
