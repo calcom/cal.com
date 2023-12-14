@@ -7,7 +7,16 @@ interface IUsePersistOAuthClient {
   onError?: () => void;
 }
 // hook to update, save and delete oauth clients data
-export const usePersistOAuthClient = ({ onSuccess, onError }: IUsePersistOAuthClient) => {
+export const usePersistOAuthClient = (
+  { onSuccess, onError }: IUsePersistOAuthClient = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
+) => {
   const mutation = useMutation<
     ApiSuccessResponse<{ client_id: string; client_secret: string }>,
     unknown,
