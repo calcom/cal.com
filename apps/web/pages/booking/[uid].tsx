@@ -545,7 +545,7 @@ export default function Success(props: SuccessProps) {
                         </div>
                       </>
                     )}
-                    {bookingInfo?.responses.title && (
+                    {bookingInfo?.responses?.title && typeof bookingInfo?.responses?.title === "string" && (
                       <>
                         <div className="mt-9 font-medium">{t("what_is_this_meeting_about")}</div>
                         <div className="col-span-2 mb-2 mt-9">
