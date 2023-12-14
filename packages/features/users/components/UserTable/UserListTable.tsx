@@ -290,7 +290,10 @@ export function UserListTable() {
           {
             type: "render",
             render: (table) => (
-              <DeleteBulkUsers users={table.getSelectedRowModel().flatRows.map((row) => row.original)} />
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
             ),
           },
         ]}
