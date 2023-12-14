@@ -610,9 +610,9 @@ export const emailSchemaRefinement = (value: string) => {
 };
 
 export const signupSchema = z.object({
-  username: z.string().refine((value) => !value.includes("+"), {
-    message: "String should not contain a plus symbol (+).",
-  }),
+  // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
+  // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
+  username: z.string().optional(),
   email: z.string().email(),
   password: z.string().superRefine((data, ctx) => {
     const isStrict = false;

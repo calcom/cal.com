@@ -80,7 +80,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     disabled={disabled}
                     id={rest.id ? rest.id : id}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 border-default bg-default focus:bg-default active:bg-default h-4 w-4 rounded checked:hover:bg-gray-600 focus:outline-none focus:ring-0 ltr:mr-2 rtl:ml-2",
+                      "text-emphasis focus:ring-emphasis dark:text-muted border-default bg-default focus:bg-default active:bg-default h-4 w-4 rounded checked:hover:bg-gray-600 focus:outline-none focus:ring-0 ltr:mr-2 rtl:ml-2",
                       !error && disabled
                         ? "cursor-not-allowed bg-gray-300 checked:bg-gray-300 hover:bg-gray-300 hover:checked:bg-gray-300"
                         : "hover:bg-subtle hover:border-emphasis checked:bg-gray-800",

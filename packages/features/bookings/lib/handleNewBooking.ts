@@ -25,6 +25,7 @@ import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -2718,15 +2719,21 @@ async function handler(
   }
 
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
+  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+
+  await scheduleMandatoryReminder(
+    evtWithMetadata,
+    eventType.workflows || [],
+    !isConfirmedByDefault,
+    !!eventType.owner?.hideBranding,
+    evt.attendeeSeatId
+  );
 
   try {
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: {
-        ...evt,
-        ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
-      },
+      calendarEvent: evtWithMetadata,
       isNotConfirmed: !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
