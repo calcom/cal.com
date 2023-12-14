@@ -418,6 +418,45 @@ test.describe("Teams - Org", () => {
     expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(true);
     // TODO: Assert whether the user received an email
   });
+
+  test("Can access booking page with event slug and team page in lowercase/uppercase/mixedcase", async ({
+    page,
+    orgs,
+    users,
+  }) => {
+    const org = await orgs.create({
+      name: "TestOrg",
+    });
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(
+      {
+        username: "pro-user",
+        name: "pro-user",
+        organizationId: org.id,
+        roleInOrganization: MembershipRole.MEMBER,
+      },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+    const { team } = await owner.getFirstTeam();
+    const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
+
+    const teamSlugUpperCase = team.slug?.toUpperCase();
+    const teamEventSlugUpperCase = teamEventSlug.toUpperCase();
+
+    // This is the most closest to the actual user flow as org1.cal.com maps to /org/orgSlug
+    await page.goto(`/org/${org.slug}/${teamSlugUpperCase}/${teamEventSlugUpperCase}`);
+    await page.waitForSelector("[data-testid=day]");
+  });
 });
 
 async function doOnOrgDomain(

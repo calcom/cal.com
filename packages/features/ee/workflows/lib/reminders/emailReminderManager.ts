@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -94,24 +95,46 @@ type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export const scheduleEmailReminder = async (
-  evt: BookingInfo,
-  triggerEvent: WorkflowTriggerEvents,
-  action: ScheduleEmailReminderAction,
+export interface ScheduleReminderArgs {
+  evt: BookingInfo;
+  triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
-  },
-  sendTo: MailData["to"],
-  emailSubject: string,
-  emailBody: string,
-  workflowStepId: number,
-  template: WorkflowTemplates,
-  sender: string,
-  hideBranding?: boolean,
-  seatReferenceUid?: string,
-  includeCalendarEvent?: boolean
-) => {
+  };
+  template: WorkflowTemplates;
+  sender?: string | null;
+  workflowStepId?: number;
+  seatReferenceUid?: string;
+}
+
+interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
+  sendTo: MailData["to"];
+  action: ScheduleEmailReminderAction;
+  emailSubject?: string;
+  emailBody?: string;
+  hideBranding?: boolean;
+  includeCalendarEvent?: boolean;
+  isMandatoryReminder?: boolean;
+}
+
+export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
+  const {
+    evt,
+    triggerEvent,
+    timeSpan,
+    template,
+    sender,
+    workflowStepId,
+    seatReferenceUid,
+    sendTo,
+    emailSubject = "",
+    emailBody = "",
+    hideBranding,
+    includeCalendarEvent,
+    isMandatoryReminder,
+    action,
+  } = args;
   if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -251,7 +274,7 @@ export const scheduleEmailReminder = async (
       to: data.to,
       from: {
         email: senderEmail,
-        name: sender,
+        name: sender || SENDER_NAME,
       },
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
@@ -289,7 +312,7 @@ export const scheduleEmailReminder = async (
       // TODO: Maybe don't await for this?
       await Promise.all(promises);
     } catch (error) {
-      console.log("Error sending Email");
+      log.error("Error sending Email");
     }
   } else if (
     (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -311,32 +334,59 @@ export const scheduleEmailReminder = async (
           },
           triggerEvent
         );
+        if (!isMandatoryReminder) {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              workflowStepId: workflowStepId,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: batchId,
+              seatReferenceId: seatReferenceUid,
+            },
+          });
+        } else {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: batchId,
+              seatReferenceId: seatReferenceUid,
+              isMandatoryReminder: true,
+            },
+          });
+        }
+      } catch (error) {
+        log.error(`Error scheduling email with error ${error}`);
+      }
+    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
+      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
+      if (!isMandatoryReminder) {
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
             workflowStepId: workflowStepId,
             method: WorkflowMethods.EMAIL,
             scheduledDate: scheduledDate.toDate(),
-            scheduled: true,
-            referenceId: batchId,
+            scheduled: false,
             seatReferenceId: seatReferenceUid,
           },
         });
-      } catch (error) {
-        console.log(`Error scheduling email with error ${error}`);
+      } else {
+        await prisma.workflowReminder.create({
+          data: {
+            bookingUid: uid,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+            seatReferenceId: seatReferenceUid,
+            isMandatoryReminder: true,
+          },
+        });
       }
-    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
-      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
-      await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.EMAIL,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: false,
-          seatReferenceId: seatReferenceUid,
-        },
-      });
     }
   }
 };
@@ -362,6 +412,6 @@ export const deleteScheduledEmailReminder = async (reminderId: number, reference
       },
     });
   } catch (error) {
-    console.log(`Error canceling reminder with error ${error}`);
+    log.error(`Error canceling reminder with error ${error}`);
   }
 };
