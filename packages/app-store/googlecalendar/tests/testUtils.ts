@@ -21,7 +21,7 @@ export const createBookingAndFetchGCalEvent = async (
   qaUsername: string
 ) => {
   await page.goto(`/${qaUsername}`);
-  await page.locator('[data-testid="avatar"]');
+  await page.waitForSelector('[data-testid="avatar"]');
   await bookFirstEvent(page);
 
   const bookingUrl = await page.url();
