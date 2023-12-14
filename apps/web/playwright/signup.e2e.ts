@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 import { getEmailsReceivedByUser, localize } from "./lib/testUtils";
@@ -103,6 +104,8 @@ test.describe("Signup Flow Test", async () => {
     const userToCreate = users.buildForSignup({
       username: "rick-jones",
       password: "Password99!",
+      // Email intentonally kept as different from username
+      email: `rickjones${Math.random()}-${Date.now()}@example.com`,
     });
 
     await page.goto("/signup");
@@ -120,6 +123,9 @@ test.describe("Signup Flow Test", async () => {
 
     // Check that the URL matches the expected URL
     expect(page.url()).toContain("/auth/verify-email");
+    const dbUser = await prisma.user.findUnique({ where: { email: userToCreate.email } });
+    // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
+    expect(dbUser?.username).toBe(userToCreate.username);
   });
   test("Signup fields prefilled with query params", async ({ page, users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
