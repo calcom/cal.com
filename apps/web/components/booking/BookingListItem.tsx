@@ -99,7 +99,7 @@ function BookingListItem(booking: BookingItemProps) {
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
-  const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+  const locationVideoCallUrl = bookingMetadataSchema.parse(
     booking?.metadata || {}
   )?.videoCallUrl;
 
@@ -388,11 +388,13 @@ function BookingListItem(booking: BookingItemProps) {
                       rel="noreferrer"
                       className="text-sm leading-6 text-blue-600 hover:underline">
                       <div className="flex items-center gap-2">
-                        <img
-                          src={provider?.iconUrl || ""}
-                          className="h-4 w-4 rounded-sm"
-                          alt={`${provider?.label} logo`}
-                        />
+                     {provider?.iconUrl && (
+                          <img
+                            src={provider.iconUrl}
+                            className="h-4 w-4 rounded-sm"
+                            alt={`${provider?.label} logo`}
+                          />
+                        )}
                         {provider?.label
                           ? t("join_event_location", { eventLocationType: provider?.label })
                           : t("join_meeting")}
