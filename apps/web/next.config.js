@@ -568,13 +568,13 @@ const nextConfig = {
   },
 };
 
-if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-  };
+// if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+//   nextConfig["sentry"] = {
+//     autoInstrumentServerFunctions: true,
+//     hideSourceMaps: true,
+//   };
 
-  plugins.push(withSentryConfig);
-}
+//   plugins.push(withSentryConfig);
+// }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
