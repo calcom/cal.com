@@ -13,11 +13,11 @@ export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamReq
 
 export const schemaTeamUpdateBodyParams = schemaTeamBodyParams.partial();
 
-const schemaUserId = z.object({
-  userId: z.number().optional(),
+const schemaOwnerId = z.object({
+  ownerId: z.number().optional(),
 });
 
-export const schemaTeamCreateBodyParams = schemaTeamBodyParams.merge(schemaUserId).strict();
+export const schemaTeamCreateBodyParams = schemaTeamBodyParams.merge(schemaOwnerId).strict();
 
 export const schemaTeamReadPublic = Team.omit({});
 

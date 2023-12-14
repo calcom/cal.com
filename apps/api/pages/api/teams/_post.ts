@@ -50,11 +50,11 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma, body, userId, isAdmin } = req;
-  const data = schemaTeamCreateBodyParams.parse(body);
+  const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);
 
-  const effectiveUserId = isAdmin && data.userId ? data.userId : userId;
+  const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
 
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
@@ -106,14 +106,14 @@ async function checkPermissions(req: NextApiRequest) {
   const body = schemaTeamCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create teams for themselves */
-  if (!isAdmin && body.userId)
+  if (!isAdmin && body.ownerId)
     throw new HttpError({
       statusCode: 401,
-      message: "ADMIN required for `userId`",
+      message: "ADMIN required for `ownerId`",
     });
 
   /* Admin users are required to pass in a userId */
-  if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
+  if (isAdmin && !body.ownerId) throw new HttpError({ statusCode: 400, message: "`ownerId` required" });
 }
 
 export default defaultResponder(postHandler);
