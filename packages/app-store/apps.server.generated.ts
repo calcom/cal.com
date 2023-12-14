@@ -33,6 +33,7 @@ export const apiHandlers = {
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
   make: import("./make/api"),
+  matomo: import("./matomo/api"),
   metapixel: import("./metapixel/api"),
   mirotalk: import("./mirotalk/api"),
   n8n: import("./n8n/api"),

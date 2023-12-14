@@ -101,6 +101,7 @@ export default async function getEventTypeById({
       slotInterval: true,
       hashedLink: true,
       bookingLimits: true,
+      onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       successRedirectUrl: true,
       currency: true,

@@ -1,5 +1,3 @@
-import type { TimeUnit } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -11,7 +9,7 @@ import {
 } from "@calcom/prisma/enums";
 
 import * as twilio from "./smsProviders/twilioProvider";
-import type { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
+import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import { deleteScheduledSMSReminder } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
@@ -22,23 +20,21 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
-export const scheduleWhatsappReminder = async (
-  evt: BookingInfo,
-  reminderPhone: string | null,
-  triggerEvent: WorkflowTriggerEvents,
-  action: WorkflowActions,
-  timeSpan: {
-    time: number | null;
-    timeUnit: TimeUnit | null;
-  },
-  message: string,
-  workflowStepId: number,
-  template: WorkflowTemplates,
-  userId?: number | null,
-  teamId?: number | null,
-  isVerificationPending = false,
-  seatReferenceUid?: string
-) => {
+export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+  const {
+    evt,
+    reminderPhone,
+    triggerEvent,
+    action,
+    timeSpan,
+    message = "",
+    workflowStepId,
+    template,
+    userId,
+    teamId,
+    isVerificationPending = false,
+    seatReferenceUid,
+  } = args;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -72,9 +68,11 @@ export const scheduleWhatsappReminder = async (
   const timeZone =
     action === WorkflowActions.WHATSAPP_ATTENDEE ? evt.attendees[0].timeZone : evt.organizer.timeZone;
 
+  let textMessage = message;
+
   switch (template) {
     case WorkflowTemplates.REMINDER:
-      message =
+      textMessage =
         whatsappReminderTemplate(
           false,
           action,
@@ -87,7 +85,7 @@ export const scheduleWhatsappReminder = async (
         ) || message;
       break;
     case WorkflowTemplates.CANCELLED:
-      message =
+      textMessage =
         whatsappEventCancelledTemplate(
           false,
           action,
@@ -100,7 +98,7 @@ export const scheduleWhatsappReminder = async (
         ) || message;
       break;
     case WorkflowTemplates.RESCHEDULED:
-      message =
+      textMessage =
         whatsappEventRescheduledTemplate(
           false,
           action,
@@ -113,7 +111,7 @@ export const scheduleWhatsappReminder = async (
         ) || message;
       break;
     case WorkflowTemplates.COMPLETED:
-      message =
+      textMessage =
         whatsappEventCompletedTemplate(
           false,
           action,
@@ -126,7 +124,7 @@ export const scheduleWhatsappReminder = async (
         ) || message;
       break;
     default:
-      message =
+      textMessage =
         whatsappReminderTemplate(
           false,
           action,
@@ -140,8 +138,8 @@ export const scheduleWhatsappReminder = async (
   }
 
   // Allows debugging generated whatsapp content without waiting for twilio to send whatsapp messages
-  log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, message);
-  if (message.length > 0 && reminderPhone && isNumberVerified) {
+  log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, textMessage);
+  if (textMessage.length > 0 && reminderPhone && isNumberVerified) {
     //send WHATSAPP when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -149,7 +147,7 @@ export const scheduleWhatsappReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message, "", true);
+        await twilio.sendSMS(reminderPhone, textMessage, "", true);
       } catch (error) {
         console.log(`Error sending WHATSAPP with error ${error}`);
       }
@@ -166,7 +164,7 @@ export const scheduleWhatsappReminder = async (
         try {
           const scheduledWHATSAPP = await twilio.scheduleSMS(
             reminderPhone,
-            message,
+            textMessage,
             scheduledDate.toDate(),
             "",
             true

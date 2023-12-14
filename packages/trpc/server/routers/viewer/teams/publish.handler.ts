@@ -157,3 +157,5 @@ export const publishHandler = async ({ ctx, input }: PublishOptions) => {
     message: "Team published successfully",
   };
 };
+
+export default publishHandler;

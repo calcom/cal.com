@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import type { ComponentType, ReactNode } from "react";
 
+import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 import type { LucideIcon, LucideProps } from "@calcom/ui/components/icon";
 import { AlertTriangle, Info } from "@calcom/ui/components/icon";
 
@@ -40,8 +41,9 @@ export function TopBanner(props: TopBannerProps) {
   return (
     <div
       data-testid="banner"
+      style={{ minHeight: TOP_BANNER_HEIGHT }}
       className={classNames(
-        "flex min-h-[40px] w-full items-start justify-between gap-8 px-4 py-2 text-center lg:items-center",
+        "flex w-full items-start justify-between gap-8 px-4 py-2 text-center lg:items-center",
         variantClassName[variant]
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
