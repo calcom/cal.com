@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaMembershipPublic } from "~/lib/validations/membership";
-import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
+import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -49,8 +49,12 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { prisma, body, userId } = req;
-  const data = schemaTeamBodyParams.parse(body);
+  const { prisma, body, userId, isAdmin } = req;
+  const data = schemaTeamCreateBodyParams.parse(body);
+
+  await checkPermissions(req);
+
+  const effectiveUserId = isAdmin && data.userId ? data.userId : userId;
 
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
@@ -81,7 +85,7 @@ async function postHandler(req: NextApiRequest) {
       createdAt: new Date(),
       members: {
         // We're also creating the relation membership of team ownership in this call.
-        create: { userId, role: MembershipRole.OWNER, accepted: true },
+        create: { userId: effectiveUserId, role: MembershipRole.OWNER, accepted: true },
       },
     },
     include: { members: true },
@@ -91,8 +95,25 @@ async function postHandler(req: NextApiRequest) {
   return {
     team: schemaTeamReadPublic.parse(team),
     owner: schemaMembershipPublic.parse(team.members[0]),
-    message: "Team created successfully, we also made you the owner of this team",
+    message: !isAdmin
+      ? "Team created successfully, we also made you the owner of this team"
+      : "Team created successfully, we also made user with submitted userId the owner of this team",
   };
+}
+
+async function checkPermissions(req: NextApiRequest) {
+  const { isAdmin } = req;
+  const body = schemaTeamCreateBodyParams.parse(req.body);
+
+  /* Non-admin users can only create teams for themselves */
+  if (!isAdmin && body.userId)
+    throw new HttpError({
+      statusCode: 401,
+      message: "ADMIN required for `userId`",
+    });
+
+  /* Admin users are required to pass in a userId */
+  if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
 }
 
 export default defaultResponder(postHandler);
