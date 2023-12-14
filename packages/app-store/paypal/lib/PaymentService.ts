@@ -6,6 +6,7 @@ import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -91,7 +92,7 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Paypal: Payment could not be created for bookingId", bookingId);
+      log.error("Paypal: Payment could not be created for bookingId", bookingId, safeStringify(error));
       throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
@@ -170,7 +171,11 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      log.error("Paypal: Payment method could not be collected for bookingId", bookingId);
+      log.error(
+        "Paypal: Payment method could not be collected for bookingId",
+        bookingId,
+        safeStringify(error)
+      );
       throw new Error("Paypal: Payment method could not be collected");
     }
   }
