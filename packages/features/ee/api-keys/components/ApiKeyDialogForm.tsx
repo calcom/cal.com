@@ -202,10 +202,10 @@ export default function ApiKeyDialogForm({
                   );
                 }}
               />
-              <span className="text-subtle mt-2 text-xs">
+              {!watchNeverExpires && <span className="text-subtle mt-2 text-xs">
                 {t("api_key_expires_on")}
                 <span className="font-bold"> {dayjs(expiryDate).format("DD-MM-YYYY")}</span>
-              </span>
+              </span>}
             </div>
           )}
 
