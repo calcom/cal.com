@@ -40,6 +40,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       theme: true,
       createdDate: true,
       hideBranding: true,
+      singleEventRedirect: true,
       twoFactorEnabled: true,
       disableImpersonation: true,
       identityProvider: true,

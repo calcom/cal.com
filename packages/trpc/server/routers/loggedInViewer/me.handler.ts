@@ -40,6 +40,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     weekStart: user.weekStart,
     theme: user.theme,
     hideBranding: user.hideBranding,
+    singleEventRedirect: user.singleEventRedirect,
     metadata: user.metadata,
     defaultBookerLayouts: user.defaultBookerLayouts,
     allowDynamicBooking: user.allowDynamicBooking,

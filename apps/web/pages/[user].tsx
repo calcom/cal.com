@@ -296,6 +296,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      singleEventRedirect: true,
       avatarUrl: true,
       organizationId: true,
       organization: {
@@ -390,7 +391,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   }));
 
   // if profile only has one public event-type, redirect to it
-  if (eventTypes.length === 1 && context.query.redirect !== "false") {
+  if (eventTypes.length === 1 && context.query.redirect !== "false" && user.singleEventRedirect) {
     return {
       redirect: {
         permanent: false,

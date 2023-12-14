@@ -2158,5 +2158,7 @@
   "need_help": "Need help?",
   "troubleshooter": "Troubleshooter",
   "please_install_a_calendar": "Please install a calendar",
+  "redirect_to_event_type": "Redirect to event type if you have less than 1",
+  "redirect_to_event_type_description": "Skip the profile and automatically redirect to your first event type if you only have one",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

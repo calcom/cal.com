@@ -75,6 +75,7 @@ const AppearanceView = ({
     user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
   const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
+  const [singleEventRedirect, setSingleEventRedirect] = useState(user?.singleEventRedirect ?? true);
 
   const userThemeFormMethods = useForm({
     defaultValues: {
@@ -306,6 +307,18 @@ const AppearanceView = ({
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("redirect_to_event_type", { appName: APP_NAME })}
+        disabled={mutation?.isLoading}
+        description={t("redirect_to_event_type_description", { appName: APP_NAME })}
+        checked={singleEventRedirect}
+        onCheckedChange={(checked) => {
+          setSingleEventRedirect(checked);
+          mutation.mutate({ singleEventRedirect: checked });
+        }}
+        switchContainerClassName="mt-6"
+      />
 
       <SettingsToggle
         toggleSwitchAtTheEnd={true}

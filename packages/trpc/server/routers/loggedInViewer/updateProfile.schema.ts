@@ -28,6 +28,7 @@ export const ZUpdateProfileInputSchema = z.object({
   timeFormat: z.number().optional(),
   disableImpersonation: z.boolean().optional(),
   metadata: userMetadata.optional(),
+  singleEventRedirect: z.boolean().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

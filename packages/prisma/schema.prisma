@@ -202,6 +202,7 @@ model User {
   // </DEPRECATED>
   bufferTime          Int                  @default(0)
   hideBranding        Boolean              @default(false)
+  singleEventRedirect Boolean              @default(true)
   theme               String?
   createdDate         DateTime             @default(now()) @map(name: "created")
   trialEndsAt         DateTime?
