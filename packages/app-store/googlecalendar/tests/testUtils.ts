@@ -21,6 +21,7 @@ export const createBookingAndFetchGCalEvent = async (
   qaUsername: string
 ) => {
   await page.goto(`/${qaUsername}`);
+  await page.waitForURL("https://example.com");
   await bookFirstEvent(page);
 
   const bookingUrl = await page.url();
