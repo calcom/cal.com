@@ -130,14 +130,14 @@ export const config = {
     "/future/apps/categories/",
     "/apps/categories/:category/",
     "/future/apps/categories/:category/",
-    "/workflows/:path*", 
-    "/future/workflows/:path*", 
+    "/workflows/:path*",
+    "/future/workflows/:path*",
     "/settings/teams/:path*",
     "/future/settings/teams/:path*",
     "/getting-started/:step",
-    "/future/getting-started/:step", 
-    "/apps", 
-    "/future/apps"
+    "/future/getting-started/:step",
+    "/apps",
+    "/future/apps",
   ],
 };
 
