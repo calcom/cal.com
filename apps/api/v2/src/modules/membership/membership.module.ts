@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@/modules/membership/membership-repository.service";
+import { MembershipRepository } from "@/modules/membership/membership.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
 

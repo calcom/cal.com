@@ -1,5 +1,5 @@
 import { GetUser } from "@/modules/auth/decorator";
-import { BookingRepository } from "@/modules/booking/booking-repository.service";
+import { BookingRepository } from "@/modules/booking/booking.repository";
 import { CreateBookingInput } from "@/modules/booking/input/create-booking";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";

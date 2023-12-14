@@ -1,5 +1,5 @@
 import { NextAuthStrategy } from "@/modules/auth/strategy";
-import { UserRepository } from "@/modules/user/user-repository.service";
+import { UserRepository } from "@/modules/user/user.repository";
 import { TestingModuleBuilder } from "@nestjs/testing";
 
 import { NextAuthMockStrategy } from "../mocks/next-auth-mock.strategy";

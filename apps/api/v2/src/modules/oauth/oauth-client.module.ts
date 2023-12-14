@@ -1,8 +1,8 @@
 import { getEnv } from "@/env";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { MembershipModule } from "@/modules/membership/membership.module";
-import { OAuthClientRepository } from "@/modules/oauth/oauth-client-repository.service";
 import { OAuthClientController } from "@/modules/oauth/oauth-client.controller";
+import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UserModule } from "@/modules/user/user.module";
 import { Module } from "@nestjs/common";
