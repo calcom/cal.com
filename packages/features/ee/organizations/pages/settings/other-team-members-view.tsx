@@ -113,6 +113,7 @@ const MembersView = () => {
   const isLoading = isTeamLoading || isOrgListLoading;
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     onSuccess: () => {
+      utils.viewer.organizations.getMembers.invalidate();
       utils.viewer.organizations.listOtherTeams.invalidate();
       utils.viewer.teams.list.invalidate();
       utils.viewer.organizations.listOtherTeamMembers.invalidate();
