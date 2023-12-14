@@ -147,6 +147,7 @@ const useTabs = () => {
   const orgBranding = useOrgBranding();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isOrgMember = session.data?.user.belongsToActiveTeam;
 
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
@@ -156,6 +157,11 @@ const useTabs = () => {
     } else if (tab.href === "/settings/organizations") {
       tab.name = orgBranding?.name || "organization";
       tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
+    } else if (tab.href === "/settings/platform" && !isOrgMember && !isAdmin) {
+      tab.name = "";
+      tab.href = "";
+      tab.icon = undefined;
+      tab.children = [];
     } else if (
       tab.href === "/settings/security" &&
       user?.identityProvider === IdentityProvider.GOOGLE &&

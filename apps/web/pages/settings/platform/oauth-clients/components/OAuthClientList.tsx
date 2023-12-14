@@ -10,7 +10,7 @@ type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
   redirect_uris: string[];
-  permissions: string;
+  permissions: number;
   lastItem: boolean;
 };
 

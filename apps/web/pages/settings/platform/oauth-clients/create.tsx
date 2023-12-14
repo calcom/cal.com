@@ -19,7 +19,7 @@ export const CreateOAuthClient = () => {
 
   return (
     <div>
-      <OAuthClientForm onSubmit={handleSubmit} />
+      <OAuthClientForm />
     </div>
   );
 };

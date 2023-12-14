@@ -14,6 +14,8 @@ import { Controller } from "react-hook-form";
 
 import { Meta, Button, TextField, Avatar, Label, ImageUploader } from "@calcom/ui";
 
+import { PERMISSIONS_GROUPED_MAP } from "../../../../../../../packages/platform/constants/permissions";
+
 type FormValues = {
   name: string;
   logo?: string;
@@ -33,13 +35,48 @@ type FormValues = {
 export const OAuthClientForm = () => {
   const { register, handleSubmit, control, setValue } = useForm<FormValues>({});
 
-  function handleFormSubmit(e: any) {
-    e.preventDefault();
+  const onSubmit = (data: FormValues) => {
+    console.log(data);
+    let userPermissions = 0;
+    Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
+      const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
+      const entityKey = PERMISSIONS_GROUPED_MAP[entity].key;
+      const read = PERMISSIONS_GROUPED_MAP[entity].read;
+      const write = PERMISSIONS_GROUPED_MAP[entity].write;
+      if (data[`${entityKey}Read`]) userPermissions |= read;
+      if (data[`${entityKey}Write`]) userPermissions |= write;
+    });
+    console.log(userPermissions);
+  };
 
-    handleSubmit((data) => {
-      console.log(data);
-    })();
-  }
+  const permissionsCheckboxes = Object.keys(PERMISSIONS_GROUPED_MAP).map((key) => {
+    const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
+    const label = PERMISSIONS_GROUPED_MAP[entity].key;
+
+    return (
+      <div className="mt-3" key={key}>
+        <p className="text-sm font-semibold">{label}</p>
+        <div className="mt-1 flex gap-x-5">
+          <div className="flex items-center gap-x-2">
+            <input
+              {...register(`${label}Read`)}
+              className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              type="checkbox"
+            />
+            <label className="text-sm">Read</label>
+          </div>
+          <div className="flex items-center gap-x-2">
+            <input
+              {...register(`${label}Write`)}
+              className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              type="checkbox"
+            />
+            <label className="text-sm">Write</label>
+          </div>
+        </div>
+      </div>
+    );
+  });
 
   return (
     <div>
@@ -50,7 +87,7 @@ export const OAuthClientForm = () => {
       />
       <form
         className="border-subtle rounded-b-lg border border-t-0 px-4 pb-8 pt-2"
-        onSubmit={handleFormSubmit}>
+        onSubmit={handleSubmit(onSubmit)}>
         <div className="mt-6">
           <TextField required={true} label="Client name" {...register("name")} />
         </div>
@@ -96,75 +133,7 @@ export const OAuthClientForm = () => {
 
         <div className="mt-6">
           <h1 className="text-base font-semibold underline">Permissions</h1>
-          <div>
-            <div className="mt-3">
-              <p className="text-sm">Event type</p>
-              <div className="mt-1 flex gap-x-5">
-                <div className="flex items-center gap-x-2">
-                  <input
-                    className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-                    type="checkbox"
-                    {...register("eventTypeRead")}
-                  />
-                  <label className="text-sm" htmlFor="eventTypeWrite">
-                    Read
-                  </label>
-                </div>
-                <div className="flex items-center gap-x-2">
-                  <input
-                    className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-                    type="checkbox"
-                    {...register("eventTypeWrite")}
-                  />
-                  <label className="text-sm" htmlFor="eventTypeWrite">
-                    Write
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <p className="text-sm font-semibold">Booking</p>
-              <div className="mt-1 flex gap-x-5">
-                <div className="flex items-center gap-x-2">
-                  <input
-                    {...register("bookingRead")}
-                    className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-                    type="checkbox"
-                  />
-                  <label className="text-sm">Read</label>
-                </div>
-                <div className="flex items-center gap-x-2">
-                  <input
-                    {...register("bookingWrite")}
-                    className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-                    type="checkbox"
-                  />
-                  <label className="text-sm">Write</label>
-                </div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <p className="text-sm font-semibold">Schedule</p>
-              <div className="mt-1 flex gap-x-5">
-                <div className="flex items-center gap-x-2">
-                  <input
-                    {...register("scheduleRead")}
-                    className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-                    type="checkbox"
-                  />
-                  <label className="text-sm">Read</label>
-                </div>
-                <div className="flex items-center gap-x-2">
-                  <input
-                    {...register("scheduleWrite")}
-                    className="bg-default border-default h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
-                    type="checkbox"
-                  />
-                  <label className="text-sm">Write</label>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div>{permissionsCheckboxes}</div>
         </div>
         <Button className="mt-6" type="submit">
           Submit
