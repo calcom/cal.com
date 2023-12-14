@@ -39,7 +39,7 @@ export function ConnectButton({
         if (onSuccess) {
           await onSuccess();
         }
-      } catch (error) {
+      } catch (error: any) {
         setIsProcessing(false);
 
         if (onError) {

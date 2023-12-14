@@ -1,1 +1,2 @@
-export type * from "./permissions";
+export * from "./permissions";
+export * from "./api";

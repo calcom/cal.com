@@ -62,7 +62,7 @@ export default function TeamList(props: Props) {
             (team, i) =>
               team.role !== "MEMBER" &&
               i === 0 && (
-                <div className="bg-subtle p-6">
+                <div className="bg-subtle p-6" key={`listing${team.id}`}>
                   <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
@@ -75,22 +75,6 @@ export default function TeamList(props: Props) {
                         child: t("invite"),
                       }}
                     />
-                    {/* @TODO: uncomment once managed event types is live
-                    <Card
-                      icon={<Unlock className="h-5 w-5 text-blue-700" />}
-                      variant="basic"
-                      title={t("create_a_managed_event")}
-                      description={t("create_a_one_one_template")}
-                      actionButton={{
-                        href:
-                          "/event-types?dialog=new-eventtype&eventPage=team%2F" +
-                          team.slug +
-                          "&teamId=" +
-                          team.id +
-                          "&managed=true",
-                        child: t("create"),
-                      }}
-                    /> */}
                     <Card
                       icon={<Users className="h-5 w-5 text-orange-700" />}
                       variant="basic"

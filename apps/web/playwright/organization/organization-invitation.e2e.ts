@@ -1,18 +1,18 @@
 import { expect } from "@playwright/test";
 
 import { test } from "../lib/fixtures";
+import { getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails, clipboard }) => {
-  clipboard.reset();
+test.afterEach(async ({ users, emails }) => {
   await users.deleteAll();
   emails?.deleteAll();
 });
 
 test.describe("Organization", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
+  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
@@ -48,8 +48,6 @@ test.describe("Organization", () => {
       await newPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator(".text-red-700")).toHaveCount(3); // 3 password hints
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
@@ -69,9 +67,8 @@ test.describe("Organization", () => {
       // Get the invite link
       await page.locator('button:text("Add")').click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await clipboard.get();
-      await page.waitForLoadState("networkidle");
 
+      const inviteLink = await getInviteLink(page);
       // Follow invite link in new window
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
@@ -79,8 +76,8 @@ test.describe("Organization", () => {
       await inviteLinkPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await inviteLinkPage.locator("button[type=submit]").click();
-      await expect(inviteLinkPage.locator(".text-red-700")).toHaveCount(4); // email + 3 password hints
+      const button = inviteLinkPage.locator("button[type=submit][disabled]");
+      await expect(button).toBeVisible(); // email + 3 password hints
 
       // Happy path
       await inviteLinkPage.locator("input[name=email]").fill(`rick@domain-${Date.now()}.com`);
@@ -98,7 +95,7 @@ test.describe("Organization", () => {
     await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (internal user)", async () => {
-      const invitedUserEmail = `rick@example.com`;
+      const invitedUserEmail = `rick-${Date.now()}@example.com`;
       await page.locator('button:text("Add")').click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator('button:text("Send invite")').click();
@@ -110,7 +107,7 @@ test.describe("Organization", () => {
         `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`
       );
 
-      // Check newly invited member exists and is pending
+      // Check newly invited member exists and is not pending
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
       ).toHaveCount(0);

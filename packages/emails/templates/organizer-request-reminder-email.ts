@@ -4,7 +4,7 @@ import { renderEmail } from "../";
 import OrganizerRequestEmail from "./organizer-request-email";
 
 export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
@@ -15,7 +15,7 @@ export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("OrganizerRequestReminderEmail", {
+      html: await renderEmail("OrganizerRequestReminderEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
       }),

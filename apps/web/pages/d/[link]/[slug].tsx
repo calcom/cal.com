@@ -1,7 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { Booker } from "@calcom/atoms";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
@@ -9,6 +8,7 @@ import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
+import { Booker } from "@calcom/platform-atoms";
 import prisma from "@calcom/prisma";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
