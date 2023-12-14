@@ -1044,12 +1044,40 @@ model Avatar {
 model PlatformOAuthClient {
   id             String   @id @default(cuid())
   name           String
-  secret         String
+  secret         String // auth secret?
   permissions    Int
   users          User[]
   logo           String?
   redirect_uris  String[]
   organizationId Int
   organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  // add connection to Access Codes
+
+  accessTokens AccessToken[]
+  refreshToken RefreshToken[]
+}
+
+model AccessToken {
+  id Int @id @default(autoincrement())
+
+  secret    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  client                PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+  platformOAuthClientId String
+
+  @@map("platform_access_tokens")
+}
+
+model RefreshToken {
+  id Int @id @default(autoincrement())
+
+  secret    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  client                PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+  platformOAuthClientId String
+
+  @@map("platform_refresh_token")
 }
