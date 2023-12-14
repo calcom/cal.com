@@ -97,6 +97,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           });
         }
+        if (team.parentId) {
+          await tx.membership.upsert({
+            where: {
+              userId_teamId: { userId: user.id, teamId: team.parentId },
+            },
+            update: {
+              accepted: true,
+            },
+            create: {
+              userId: user.id,
+              teamId: team.parentId,
+              role: MembershipRole.MEMBER,
+              accepted: true,
+            },
+          });
+        }
         const membership = await tx.membership.upsert({
           where: {
             userId_teamId: { userId: user.id, teamId: team.id },
