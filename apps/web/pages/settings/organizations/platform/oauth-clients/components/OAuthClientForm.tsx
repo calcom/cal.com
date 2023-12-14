@@ -7,14 +7,15 @@
 // create form state using react hook form (use react hook form hooks)
 // so in this component we manage the form and the values of the form
 // when the user clicks on save we just call handleSubmit from the props passing the form data
+import { usePersistOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { Plus } from "lucide-react";
+import type { FC } from "react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
+import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { Meta, Button, TextField, Avatar, Label, ImageUploader } from "@calcom/ui";
-
-import { PERMISSIONS_GROUPED_MAP } from "../../../../../../../packages/platform/constants/permissions";
 
 type FormValues = {
   name: string;
@@ -32,11 +33,11 @@ type FormValues = {
   scheduleWrite: boolean;
 };
 
-export const OAuthClientForm = () => {
+export const OAuthClientForm: FC = () => {
   const { register, handleSubmit, control, setValue } = useForm<FormValues>({});
+  const { mutateAsync, isLoading, error, data } = usePersistOAuthClient();
 
   const onSubmit = (data: FormValues) => {
-    console.log(data);
     let userPermissions = 0;
     Object.keys(PERMISSIONS_GROUPED_MAP).forEach((key) => {
       const entity = key as keyof typeof PERMISSIONS_GROUPED_MAP;
@@ -46,7 +47,12 @@ export const OAuthClientForm = () => {
       if (data[`${entityKey}Read`]) userPermissions |= read;
       if (data[`${entityKey}Write`]) userPermissions |= write;
     });
-    console.log(userPermissions);
+    mutateAsync({
+      name: data.name,
+      permissions: userPermissions,
+      logo: data.logo,
+      redirect_uris: [data.redirect_uri_one],
+    }).then((response) => console.log(response));
   };
 
   const permissionsCheckboxes = Object.keys(PERMISSIONS_GROUPED_MAP).map((key) => {

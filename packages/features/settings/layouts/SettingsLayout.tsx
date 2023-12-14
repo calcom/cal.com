@@ -99,7 +99,7 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
-      { name: "oauth", href: "/settings/organizations/oauth-clients" },
+      { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
     ],
   },
   {

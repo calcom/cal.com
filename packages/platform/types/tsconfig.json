@@ -2,7 +2,9 @@
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "target": "ES6",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": ["."],
   "exclude": ["dist", "build", "node_modules"]

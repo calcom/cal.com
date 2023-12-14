@@ -5,6 +5,7 @@
   "types": "./index.ts",
   "dependencies": {
     "@calcom/platform-constants": "*",
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "class-validator": "^0.14.0"
   }
 }
