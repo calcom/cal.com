@@ -4,6 +4,7 @@
 // updating part can come later
 // here we will map over the oAuthClients returned by useOAuthClients and display a OAuthClientCard for each oauth client
 import { OAuthClientList } from "@pages/settings/platform/oauth-clients/components/OAuthClientList";
+import { useOAuthClients } from "@pages/settings/platform/oauth-clients/hooks/useOAuthClients";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/router";
@@ -29,22 +30,28 @@ export const OAuthClients = () => {
 
   // this custom hook should only be called once the oauth client endpoint is ready
   // until then we mock the data
-  // const { data, error, isLoading } = useOAuthClient();
+  const { data: oauthData, error: oauthError, isLoading: oauthIsLoading } = useOAuthClients();
+
+  console.log("IS LOADING", oauthIsLoading);
+
+  console.log("THIS IS THE OAUTH CLIENT DATA THAT I GET FROM NESTJS:", oauthData);
 
   const isLoading = false;
   const error = "";
 
   // const data = [];
 
+  // schema for oauth client
+  // logo: z.string().optional(),
+  // name: z.string(),
+  // redirect_uris: z.array(z.string()),
+  // permissions: z.number(),
+
   const data = [
     {
       name: "Cal.com",
-      redirect_uris: [
-        "https://discord.com/developers/docs/topics/permissions",
-        "https://app.cal.com/settings/developer/api-keys",
-        "https://auth0.com/docs/get-started/authentication-and-authorization-flow/",
-      ],
-      permissions: "1111",
+      redirect_uris: ["https://discord.com/developers/docs/topics/permissions"],
+      permissions: 10,
     },
     {
       name: "Acme.com",
@@ -52,7 +59,7 @@ export const OAuthClients = () => {
         "https://discord.com/developers/docs/topics/permissions",
         "https://app.cal.com/settings/developer/api-keys",
       ],
-      permissions: "1111",
+      permissions: 3,
     },
   ];
 
