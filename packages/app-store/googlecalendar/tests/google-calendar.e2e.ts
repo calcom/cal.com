@@ -40,14 +40,6 @@ test.describe("Google Calendar", async () => {
       test.skip(!process.env.E2E_TEST_CALCOM_QA_PASSWORD, "QA password not found");
 
       if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
-        const gCalApp = await prisma.app.findFirst({
-          where: {
-            slug: "google-calendar",
-          },
-        });
-        console.log("🚀 ~ file: google-calendar.e2e.ts:34 ~ test.beforeAll ~ gCalApp:", gCalApp);
-        const credentials = await prisma.credential.findMany();
-        console.log("🚀 ~ file: google-calendar.e2e.ts:30 ~ test.beforeAll ~ credentials:", credentials);
         qaGCalCredential = await prisma.credential.findFirstOrThrow({
           where: {
             user: {
@@ -88,6 +80,7 @@ test.describe("Google Calendar", async () => {
         const googleCalendarService = new GoogleCalendarService(qaGCalCredential);
 
         const calendars = await googleCalendarService.listCalendars();
+        console.log("🚀 ~ file: google-calendar.e2e.ts:83 ~ test.beforeAll ~ calendars:", calendars);
 
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
