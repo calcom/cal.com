@@ -32,3 +32,7 @@ export const API_ERROR_CODES = [
   RESOURCE_NOT_FOUND,
   DUPLICATE_RESOURCE,
 ] as const;
+
+// Request headers
+export const X_CAL_CLIENT_ID = "x-cal-client-id";
+export const X_CAL_SECRET_KEY = "x-cal-secret-key";
