@@ -142,7 +142,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
                 : MembershipRole.MEMBER
               : MembershipRole.MEMBER),
         },
-        webhooks: membership.team.webhooks,
+        webhooks: membership.team.webhooks.filter(filterWebhooks),
       };
     });
 
