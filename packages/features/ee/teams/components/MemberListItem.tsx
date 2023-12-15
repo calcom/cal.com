@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -48,9 +47,7 @@ const useCurrentUserId = () => {
 };
 
 const checkIsOrg = (team: Props["team"]) => {
-  const metadata = teamMetadataSchema.safeParse(team.metadata);
-  if (metadata.success && metadata.data?.isOrganization) return true;
-  return false;
+  return team.isOrganization;
 };
 
 export default function MemberListItem(props: Props) {
