@@ -37,6 +37,7 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -717,6 +718,7 @@ async function createBooking({
     },
     dynamicEventSlugRef,
     dynamicGroupSlugRef,
+    iCalUID: evt.iCalUID ?? "",
     user: {
       connect: {
         id: organizerUser.id,
@@ -821,6 +823,21 @@ function getCustomInputsResponses(
   }
 
   return customInputsResponses;
+}
+
+function getICalSequence(originalRescheduledBooking: BookingType | null) {
+  // If new booking set the sequence to 0
+  if (!originalRescheduledBooking) {
+    return 0;
+  }
+
+  // If rescheduling and there is no sequence set, assume sequence should be 1
+  if (!originalRescheduledBooking.iCalSequence) {
+    return 1;
+  }
+
+  // If rescheduling then increment sequence by 1
+  return originalRescheduledBooking.iCalSequence + 1;
 }
 
 async function handler(
@@ -1247,6 +1264,13 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
+  const iCalUID = getICalUID({
+    event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },
+    uid,
+  });
+  // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
+  const iCalSequence = getICalSequence(originalRescheduledBooking);
+
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.slug,
@@ -1283,6 +1307,8 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
+    iCalUID,
+    iCalSequence,
   };
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
@@ -2488,6 +2514,18 @@ async function handler(
         evt.appsStatus = handleAppsStatus(results, booking);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+
+        if (evt.iCalUID !== booking.iCalUID) {
+          // The eventManager could change the iCalUID. At this point we can update the DB record
+          await prisma.booking.update({
+            where: {
+              id: booking.id,
+            },
+            data: {
+              iCalUID: evt.iCalUID || booking.iCalUID,
+            },
+          });
+        }
       }
       if (noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;
