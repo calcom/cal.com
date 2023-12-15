@@ -26,11 +26,9 @@ const checkForMultiplePaymentApps = (
     } else if ("price" in app && app.enabled) {
       enabledPaymentApps++;
     }
-
-    return (inclusive && enabledPaymentApps >= 1) || (!inclusive && enabledPaymentApps > 1);
   }
 
-  return false;
+  return inclusive ? enabledPaymentApps >= 1 : enabledPaymentApps > 1;
 };
 
 export default checkForMultiplePaymentApps;
