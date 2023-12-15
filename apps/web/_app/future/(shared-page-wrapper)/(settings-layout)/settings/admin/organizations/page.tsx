@@ -1,4 +1,4 @@
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata } from "_app/_utils";
 
 import Page from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
 
