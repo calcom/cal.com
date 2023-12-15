@@ -24,7 +24,7 @@ export const createBookingAndFetchGCalEvent = async (
   // await page.waitForSelector('[data-testid="avatar"]');
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
-  // await page.locator("[data-testid=success-page]");
+  await page.locator("[data-testid=success-page]");
 
   const bookingUrl = await page.url();
   const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);

@@ -101,10 +101,14 @@ export default class GoogleCalendarService implements Calendar {
           googleCredentials,
           googleCredentialSchema
         );
-        await prisma.credential.update({
+        const updatedCred = await prisma.credential.update({
           where: { id: credential.id },
           data: { key: { ...parsedKey } as Prisma.InputJsonValue },
         });
+        console.log(
+          "🚀 ~ file: CalendarService.ts:108 ~ GoogleCalendarService ~ refreshAccessToken ~ updatedCred:",
+          updatedCred
+        );
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
         this.log.error("Error Refreshing Google Token", safeStringify(err));
