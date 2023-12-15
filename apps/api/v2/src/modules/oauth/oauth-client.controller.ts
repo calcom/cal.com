@@ -2,7 +2,6 @@ import { GetUser } from "@/modules/auth/decorator";
 import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guard/organization-roles/organization-roles.guard";
-import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
 import {
@@ -22,7 +21,8 @@ import {
 import { MembershipRole, PlatformOAuthClient } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
+import { CreateOAuthClientInput } from "@calcom/platform-types";
+import type { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "oauth-clients",

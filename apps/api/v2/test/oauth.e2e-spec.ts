@@ -3,7 +3,6 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { NextAuthStrategy } from "@/modules/auth/strategy";
-import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
 import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -15,6 +14,7 @@ import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { CreateOAuthClientInput } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 import { bootstrap } from "../src/app";
