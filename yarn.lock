@@ -3340,6 +3340,7 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@sentry/nextjs": ^7.73.0
+    "@types/node": ^20.10.4
     bcryptjs: ^2.4.3
     dredd: ^14.1.0
     memory-cache: ^0.2.0
