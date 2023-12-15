@@ -29,6 +29,51 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
 
+/**
+ * Used to generate a checkout session when trying to create a team
+ */
+export const generateTeamCheckoutSession = async ({
+  teamName,
+  teamSlug,
+  userId,
+}: {
+  teamName: string;
+  teamSlug: string;
+  userId: number;
+}) => {
+  const customer = await getStripeCustomerIdFromUserId(userId);
+  const session = await stripe.checkout.sessions.create({
+    customer,
+    mode: "subscription",
+    allow_promotion_codes: true,
+    success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
+    line_items: [
+      {
+        /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
+        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        /**Initially it will be just the team owner */
+        quantity: 1,
+      },
+    ],
+    customer_update: {
+      address: "auto",
+    },
+    automatic_tax: {
+      enabled: true,
+    },
+    metadata: {
+      teamName,
+      teamSlug,
+      userId,
+    },
+  });
+  return session;
+};
+
+/**
+ * Used to generate a checkout session when creating a new org (parent team) or backwards compatibility for old teams
+ */
 export const purchaseTeamSubscription = async (input: {
   teamId: number;
   seats: number;

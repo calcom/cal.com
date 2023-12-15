@@ -67,6 +67,7 @@ export default function MemberListItem(props: Props) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
+      await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -152,7 +153,14 @@ export default function MemberListItem(props: Props) {
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
-                <span className=" block text-sm" data-testid="member-email" data-email={props.member.email}>
+                <span
+                  className=" block text-sm"
+                  data-testid={
+                    props.member.accepted
+                      ? "member-email"
+                      : `email-${props.member.email.replace("@", "")}-pending`
+                  }
+                  data-email={props.member.email}>
                   {props.member.email}
                 </span>
                 {bookingLink && (

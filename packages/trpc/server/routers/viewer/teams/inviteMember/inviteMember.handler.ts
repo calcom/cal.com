@@ -1,28 +1,24 @@
-import { randomBytes } from "crypto";
-
-import { sendTeamInviteEmail } from "@calcom/emails";
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { isEmail } from "../util";
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import {
   checkPermissions,
   getTeamOrThrow,
-  getEmailsToInvite,
-  getUserToInviteOrThrowIfExists,
-  checkInputEmailIsValid,
+  getUsernameOrEmailsToInvite,
   getOrgConnectionInfo,
-  createNewUserConnectToOrgIfExists,
-  throwIfInviteIsToOrgAndUserExists,
-  createProvisionalMembership,
   getIsOrgVerified,
   sendVerificationEmail,
-  createAndAutoJoinIfInOrg,
+  getUsersToInvite,
+  createNewUsersConnectToOrgIfExists,
+  createProvisionalMemberships,
+  groupUsersByJoinability,
+  sendTeamInviteEmails,
+  sendEmails,
 } from "./utils";
 
 type InviteMemberOptions = {
@@ -33,10 +29,10 @@ type InviteMemberOptions = {
 };
 
 export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) => {
+  const translation = await getTranslation(input.language ?? "en", "common");
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
   });
-
   await checkPermissions({
     userId: ctx.user.id,
     teamId:
@@ -46,95 +42,92 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
-
-  const translation = await getTranslation(input.language ?? "en", "common");
-
-  const emailsToInvite = await getEmailsToInvite(input.usernameOrEmail);
-
-  for (const usernameOrEmail of emailsToInvite) {
-    const connectionInfo = getOrgConnectionInfo({
-      orgVerified,
-      orgAutoAcceptDomain: autoAcceptEmailDomain,
-      usersEmail: usernameOrEmail,
-      team,
-      isOrg: input.isOrg,
-    });
-    const invitee = await getUserToInviteOrThrowIfExists({
-      usernameOrEmail,
-      teamId: input.teamId,
-      isOrg: input.isOrg,
-    });
-
-    if (!invitee) {
-      checkInputEmailIsValid(usernameOrEmail);
-
-      // valid email given, create User and add to team
-      await createNewUserConnectToOrgIfExists({
-        usernameOrEmail,
-        input,
-        connectionInfo,
-        autoAcceptEmailDomain,
-        parentId: team.parentId,
-      });
-
-      await sendVerificationEmail({ usernameOrEmail, team, translation, ctx, input, connectionInfo });
-    } else {
-      throwIfInviteIsToOrgAndUserExists(invitee, team, input.isOrg);
-
-      const shouldAutoJoinOrgTeam = await createAndAutoJoinIfInOrg({
-        invitee,
-        role: input.role,
+  const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
+  const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
+    return {
+      ...acc,
+      [usernameOrEmail]: getOrgConnectionInfo({
+        orgVerified,
+        orgAutoAcceptDomain: autoAcceptEmailDomain,
+        usersEmail: usernameOrEmail,
         team,
-      });
-      if (shouldAutoJoinOrgTeam.autoJoined) {
-        // Continue here because if this is true we dont need to send an email to the user
-        // we also dont need to update stripe as thats handled on an ORG level and not a team level.
-        continue;
-      }
+        isOrg: input.isOrg,
+      }),
+    };
+  }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
+  const existingUsersWithMembersips = await getUsersToInvite({
+    usernamesOrEmails: usernameOrEmailsToInvite,
+    isInvitedToOrg: input.isOrg,
+    team,
+  });
+  const existingUsersEmailsAndUsernames = existingUsersWithMembersips.reduce(
+    (acc, user) => ({
+      emails: user.email ? [...acc.emails, user.email] : acc.emails,
+      usernames: user.username ? [...acc.usernames, user.username] : acc.usernames,
+    }),
+    { emails: [], usernames: [] } as { emails: string[]; usernames: string[] }
+  );
+  const newUsersEmailsOrUsernames = usernameOrEmailsToInvite.filter(
+    (usernameOrEmail) =>
+      !existingUsersEmailsAndUsernames.emails.includes(usernameOrEmail) &&
+      !existingUsersEmailsAndUsernames.usernames.includes(usernameOrEmail)
+  );
 
-      // create provisional membership
-      await createProvisionalMembership({
+  // deal with users to create and invite to team/org
+  if (newUsersEmailsOrUsernames.length) {
+    await createNewUsersConnectToOrgIfExists({
+      usernamesOrEmails: newUsersEmailsOrUsernames,
+      input,
+      connectionInfoMap: orgConnectInfoByUsernameOrEmail,
+      autoAcceptEmailDomain,
+      parentId: team.parentId,
+    });
+    const sendVerifEmailsPromises = newUsersEmailsOrUsernames.map((usernameOrEmail) => {
+      return sendVerificationEmail({
+        usernameOrEmail,
+        team,
+        translation,
+        ctx,
         input,
-        invitee,
+        connectionInfo: orgConnectInfoByUsernameOrEmail[usernameOrEmail],
       });
+    });
+    sendEmails(sendVerifEmailsPromises);
+  }
 
-      let sendTo = usernameOrEmail;
-      if (!isEmail(usernameOrEmail)) {
-        sendTo = invitee.email;
-      }
-      // inform user of membership by email
-      if (ctx?.user?.name && team?.name) {
-        const inviteTeamOptions = {
-          joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
-          isCalcomMember: true,
-        };
-        /**
-         * Here we want to redirect to a different place if onboarding has been completed or not. This prevents the flash of going to teams -> Then to onboarding - also show a different email template.
-         * This only changes if the user is a CAL user and has not completed onboarding and has no password
-         */
-        if (!invitee.completedOnboarding && !invitee.password && invitee.identityProvider === "CAL") {
-          const token = randomBytes(32).toString("hex");
-          await prisma.verificationToken.create({
-            data: {
-              identifier: usernameOrEmail,
-              token,
-              expires: new Date(new Date().setHours(168)), // +1 week
-            },
-          });
+  // deal with existing users invited to join the team/org
+  if (existingUsersWithMembersips.length) {
+    const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
+      existingUsersWithMembersips,
+      team,
+    });
 
-          inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-          inviteTeamOptions.isCalcomMember = false;
-        }
+    // invited users can autojoin, create their memberships in org
+    if (autoJoinUsers.length) {
+      await prisma.membership.createMany({
+        data: autoJoinUsers.map((userToAutoJoin) => ({
+          userId: userToAutoJoin.id,
+          teamId: team.id,
+          accepted: true,
+          role: input.role,
+        })),
+      });
+    }
 
-        await sendTeamInviteEmail({
-          language: translation,
-          from: ctx.user.name,
-          to: sendTo,
-          teamName: team.name,
-          ...inviteTeamOptions,
-          isOrg: input.isOrg,
-        });
-      }
+    // invited users cannot autojoin, create provisional memberships and send email
+    if (regularUsers.length) {
+      await createProvisionalMemberships({
+        input,
+        invitees: regularUsers,
+      });
+      await sendTeamInviteEmails({
+        currentUserName: ctx?.user?.name,
+        currentUserTeamName: team?.name,
+        existingUsersWithMembersips: regularUsers,
+        language: translation,
+        isOrg: input.isOrg,
+        teamId: team.id,
+      });
     }
   }
 
@@ -147,3 +140,5 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   }
   return input;
 };
+
+export default inviteMemberHandler;

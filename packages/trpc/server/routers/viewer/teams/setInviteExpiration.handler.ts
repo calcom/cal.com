@@ -39,3 +39,5 @@ export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpira
     },
   });
 };
+
+export default setInviteExpirationHandler;

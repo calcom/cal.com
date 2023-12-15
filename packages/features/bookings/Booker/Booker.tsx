@@ -43,6 +43,7 @@ const BookerComponent = ({
   hideBranding = false,
   isTeamEvent,
   entity,
+  durationConfig,
   duration,
   hashedLink,
 }: BookerProps) => {
@@ -147,7 +148,7 @@ const BookerComponent = ({
     layout: defaultLayout,
     isTeamEvent,
     org: entity.orgSlug,
-    durationConfig: event?.data?.metadata?.multipleDuration,
+    durationConfig,
   });
 
   useEffect(() => {
@@ -247,6 +248,8 @@ const BookerComponent = ({
                   "bg-default dark:bg-muted sticky top-0 z-10"
               )}>
               <Header
+                username={username}
+                eventSlug={eventSlug}
                 enabledLayouts={bookerLayouts.enabledLayouts}
                 extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                 isMobile={isMobile}

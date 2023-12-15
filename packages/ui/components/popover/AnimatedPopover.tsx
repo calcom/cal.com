@@ -13,6 +13,7 @@ export const AnimatedPopover = ({
   children,
   Trigger,
   defaultOpen,
+  prefix,
 }: {
   text: string;
   count?: number;
@@ -20,6 +21,7 @@ export const AnimatedPopover = ({
   popoverTriggerClassNames?: string;
   Trigger?: React.ReactNode;
   defaultOpen?: boolean;
+  prefix?: string;
 }) => {
   const [open, setOpen] = React.useState(defaultOpen ?? false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -58,8 +60,9 @@ export const AnimatedPopover = ({
             Trigger
           ) : (
             <div className="max-w-36 flex items-center">
-              <Tooltip content={text}>
+              <Tooltip content={`${prefix}${text}`}>
                 <div className="flex select-none truncate font-medium">
+                  {prefix && <span className="text-subtle">{prefix}&nbsp;</span>}
                   {text}
                   {count && count > 0 && (
                     <div className="text-emphasis flex items-center justify-center rounded-full font-semibold">
