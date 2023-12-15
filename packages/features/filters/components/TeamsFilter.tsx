@@ -161,7 +161,7 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label,
             {...rest}
             ref={ref}
             type="checkbox"
-            className="text-emphasis focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
           />
         </div>
       </label>
