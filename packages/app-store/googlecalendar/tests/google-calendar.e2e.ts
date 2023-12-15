@@ -100,6 +100,16 @@ test.describe("Google Calendar", async () => {
           },
         });
 
+        const selectedCalendar = await prisma.selectedCalendar.findMany({
+          where: {
+            userId: qaUserQuery.id,
+          },
+        });
+        console.log(
+          "🚀 ~ file: google-calendar.e2e.ts:108 ~ test.beforeAll ~ selectedCalendar:",
+          selectedCalendar
+        );
+
         if (qaGCalCredential && qaUsername) runIntegrationTest = true;
       }
 
