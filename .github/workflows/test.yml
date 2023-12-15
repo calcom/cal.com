@@ -2,7 +2,7 @@ name: Unit tests
 on:
   workflow_call:
   workflow_run:
-    workflows: [Crowdin Action]
+    workflows: [Translations Action]
     types: [completed]
 jobs:
   test:

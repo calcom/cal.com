@@ -1,0 +1,43 @@
+# Path: .chapter/config.yml
+
+# Version of the config file.
+version: 1
+
+# Language the source code is authored in.
+source-language: en
+
+# List of languages you want to translate your app to.
+target-languages:
+  - ar,
+  - cs,
+  - da,
+  - de,
+  - en,
+  - // es-419, // Disabled until translations reach at least 80% completion
+  - es,
+  - fr,
+  - he,
+  - it,
+  - ja,
+  - ko,
+  - km,
+  - nl,
+  - no,
+  - pl,
+  - pt-BR,
+  - pt,
+  - ro,
+  - ru,
+  - sr,
+  - sv,
+  - tr,
+  - uk,
+  - vi,
+  - zh-CN,
+  - zh-TW,
+
+# Path to your translation files, relative to the root of your repository.
+# Examples:
+# - translations/[lang]/data.json
+# - translations/[lang].json
+translation-file-pattern: apps/web/public/static/locales/[lang]/common.json

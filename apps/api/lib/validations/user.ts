@@ -30,7 +30,7 @@ enum locales {
   RO = "ro",
   NL = "nl",
   PT_BR = "pt-BR",
-  // ES_419 = "es-419", // Disabled until Crowdin reaches at least 80% completion
+  // ES_419 = "es-419", // Disabled until translations reach at least 80% completion
   KO = "ko",
   JA = "ja",
   PL = "pl",

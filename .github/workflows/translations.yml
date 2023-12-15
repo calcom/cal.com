@@ -1,0 +1,25 @@
+name: Translations Action
+
+on:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  synchronize-translations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Use chapter.sh for translations
+        uses: maxprilutskiy/chapter-action@main
+        with:
+          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
+          chapter-token: ${{ secrets.CHAPTER_TOKEN }}
