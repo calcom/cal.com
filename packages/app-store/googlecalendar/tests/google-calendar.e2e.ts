@@ -2,7 +2,6 @@ import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
-import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -23,19 +22,19 @@ test.describe("Google Calendar", async () => {
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
-      if (process.env.E2E_TEST_CALCOM_GCAL_KEYS) {
-        const gCalKeys = JSON.parse(process.env.E2E_TEST_CALCOM_GCAL_KEYS);
-        await prisma.app.update({
-          where: {
-            slug: "google-calendar",
-          },
-          data: {
-            keys: gCalKeys,
-          },
-        });
-      } else {
-        test.skip(!process.env.E2E_TEST_CALCOM_GCAL_KEYS, "GCal keys not found");
-      }
+      // if (process.env.E2E_TEST_CALCOM_GCAL_KEYS) {
+      //   const gCalKeys = JSON.parse(process.env.E2E_TEST_CALCOM_GCAL_KEYS);
+      //   await prisma.app.update({
+      //     where: {
+      //       slug: "google-calendar",
+      //     },
+      //     data: {
+      //       keys: gCalKeys,
+      //     },
+      //   });
+      // } else {
+      //   test.skip(!process.env.E2E_TEST_CALCOM_GCAL_KEYS, "GCal keys not found");
+      // }
 
       test.skip(!process.env.E2E_TEST_CALCOM_QA_EMAIL, "QA email not found");
       test.skip(!process.env.E2E_TEST_CALCOM_QA_PASSWORD, "QA password not found");
@@ -91,18 +90,17 @@ test.describe("Google Calendar", async () => {
         const googleCalendarService = new GoogleCalendarService(qaGCalCredential);
 
         const calendars = await googleCalendarService.listCalendars();
-        console.log("🚀 ~ file: google-calendar.e2e.ts:83 ~ test.beforeAll ~ calendars:", calendars);
 
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
 
-        const users = await ensureAvailableUsers(qaEventType, {
-          dateFrom: "2023-12-15T05:30:00-05:00",
-          dateTo: "2023-12-15T06:00:00-05:00",
-          timeZone: "America/Toronto",
-          originalRescheduledBooking: null,
-        });
-        console.log("🚀 ~ file: google-calendar.e2e.ts:105 ~ test.beforeAll ~ users:", users);
+        // const users = await ensureAvailableUsers(qaEventType, {
+        //   dateFrom: "2023-12-15T05:30:00-05:00",
+        //   dateTo: "2023-12-15T06:00:00-05:00",
+        //   timeZone: "America/Toronto",
+        //   originalRescheduledBooking: null,
+        // });
+        // console.log("🚀 ~ file: google-calendar.e2e.ts:105 ~ test.beforeAll ~ users:", users);
 
         // const selectedCalendar = await prisma.selectedCalendar.upsert({
         //   where: {

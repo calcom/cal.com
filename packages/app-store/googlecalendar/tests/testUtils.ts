@@ -24,6 +24,7 @@ export const createBookingAndFetchGCalEvent = async (
   // await page.waitForSelector('[data-testid="avatar"]');
   await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
+  await page.waitForNavigation({ state: "networkidle" });
   await page.locator("[data-testid=success-page]");
 
   const bookingUrl = await page.url();
@@ -86,6 +87,8 @@ export const createBookingAndFetchGCalEvent = async (
 
   expect(refreshedCredential).toBeTruthy();
 
+  console.log("🚀 ~ file: testUtils.ts:102 ~ gCalReference.uid:", gCalReference.uid);
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   const googleCalendarService = new GoogleCalendarService(refreshedCredential);
@@ -98,6 +101,7 @@ export const createBookingAndFetchGCalEvent = async (
     //@ts-ignore
     eventId: gCalReference.uid,
   });
+  // console.log("🚀 ~ file: testUtils.ts:102 ~ gCalEventResponse:", gCalEventResponse.data);
 
   expect(gCalEventResponse.status).toBe(200);
 
