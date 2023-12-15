@@ -823,17 +823,18 @@ enum TimeUnit {
 }
 
 model WorkflowReminder {
-  id              Int             @id @default(autoincrement())
-  bookingUid      String?
-  booking         Booking?        @relation(fields: [bookingUid], references: [uid])
-  method          WorkflowMethods
-  scheduledDate   DateTime
-  referenceId     String?         @unique
-  scheduled       Boolean
-  workflowStepId  Int?
-  workflowStep    WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
-  cancelled       Boolean?
-  seatReferenceId String?
+  id                  Int             @id @default(autoincrement())
+  bookingUid          String?
+  booking             Booking?        @relation(fields: [bookingUid], references: [uid])
+  method              WorkflowMethods
+  scheduledDate       DateTime
+  referenceId         String?         @unique
+  scheduled           Boolean
+  workflowStepId      Int?
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  cancelled           Boolean?
+  seatReferenceId     String?
+  isMandatoryReminder Boolean?        @default(false)
 
   @@index([bookingUid])
   @@index([workflowStepId])
