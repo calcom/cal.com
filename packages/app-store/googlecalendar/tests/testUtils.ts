@@ -23,6 +23,8 @@ export const createBookingAndFetchGCalEvent = async (
   await page.goto(`/${qaUsername}/15min`);
   await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   await page.waitForNavigation({ state: "networkidle" });
   await page.locator("[data-testid=success-page]");
 
