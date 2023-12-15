@@ -22,19 +22,19 @@ test.describe("Google Calendar", async () => {
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
-      // if (process.env.E2E_TEST_CALCOM_GCAL_KEYS) {
-      //   const gCalKeys = JSON.parse(process.env.E2E_TEST_CALCOM_GCAL_KEYS);
-      //   await prisma.app.update({
-      //     where: {
-      //       slug: "google-calendar",
-      //     },
-      //     data: {
-      //       keys: gCalKeys,
-      //     },
-      //   });
-      // } else {
-      //   test.skip(!process.env.E2E_TEST_CALCOM_GCAL_KEYS, "GCal keys not found");
-      // }
+      if (process.env.E2E_TEST_CALCOM_GCAL_KEYS) {
+        const gCalKeys = JSON.parse(process.env.E2E_TEST_CALCOM_GCAL_KEYS);
+        await prisma.app.update({
+          where: {
+            slug: "google-calendar",
+          },
+          data: {
+            keys: gCalKeys,
+          },
+        });
+      } else {
+        test.skip(!process.env.E2E_TEST_CALCOM_GCAL_KEYS, "GCal keys not found");
+      }
 
       test.skip(!process.env.E2E_TEST_CALCOM_QA_EMAIL, "QA email not found");
       test.skip(!process.env.E2E_TEST_CALCOM_QA_PASSWORD, "QA password not found");
@@ -56,7 +56,7 @@ test.describe("Google Calendar", async () => {
           },
         });
         if (!qaGCalCredential) errorMessage = "QA credential not found";
-        // test.skip(!qaGCalCredential, "Google QA credential not found");
+        test.skip(!qaGCalCredential, "Google QA credential not found");
 
         const qaUserQuery = await prisma.user.findFirstOrThrow({
           where: {
@@ -65,16 +65,6 @@ test.describe("Google Calendar", async () => {
           select: {
             id: true,
             username: true,
-          },
-        });
-
-        const qaEventType = await prisma.eventType.findFirst({
-          where: {
-            slug: "15min",
-            userId: qaUserQuery.id,
-          },
-          include: {
-            users: true,
           },
         });
 
@@ -93,29 +83,6 @@ test.describe("Google Calendar", async () => {
 
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
-
-        // const users = await ensureAvailableUsers(qaEventType, {
-        //   dateFrom: "2023-12-15T05:30:00-05:00",
-        //   dateTo: "2023-12-15T06:00:00-05:00",
-        //   timeZone: "America/Toronto",
-        //   originalRescheduledBooking: null,
-        // });
-        // console.log("🚀 ~ file: google-calendar.e2e.ts:105 ~ test.beforeAll ~ users:", users);
-
-        // const selectedCalendar = await prisma.selectedCalendar.upsert({
-        //   where: {
-        //     userId: qaUserQuery.id,
-        //     integration: "google_calendar",
-        //     externalId: primaryCalendarName,
-        //   },
-        //   update: {},
-        //   create: {
-        //     integration: "google_calendar",
-        //     userId: qaUserQuery.id,
-        //     externalId: primaryCalendarName,
-        //     credentialId: qaGCalCredential.id,
-        //   },
-        // });
 
         const destinationCalendar = await prisma.destinationCalendar.upsert({
           where: {
