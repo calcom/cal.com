@@ -1,4 +1,3 @@
-// --module node16 --target es2017 --moduleResolution node
 {
   "compilerOptions": {
     "module": "node16",

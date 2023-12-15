@@ -7,7 +7,7 @@ init: false
 custom: {}
 #  Be warned that no tests will run if this is true.
 # names: true
-#  Useful for iterating quickly on one test
+#  Useful for iterating quickly on specific tests
 # only: ["/webhooks > Creates a new webhook > 201", "/webhooks/{id} > Edit an existing webhook > 200"]
 reporter: ["html"]
 output: ["dredd-output.html"]

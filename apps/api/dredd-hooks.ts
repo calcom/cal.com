@@ -7,10 +7,7 @@ import path from "path";
 
 import { getExistingIds } from "./dredd-helpers/get-existing-ids";
 import { getTemporaryIds } from "./dredd-helpers/get-temporary-ids";
-
-// import type { Transaction } from "./dredd-helpers/types";
-
-type Transaction = any;
+import type { Transaction } from "./dredd-helpers/types";
 
 const placeholderIds = {
   attendeeId: 101,
@@ -26,7 +23,6 @@ const placeholderIds = {
   teamId: 1202,
   webhookId: 1302,
   integration: "google_calendar",
-
   userId: 42,
 };
 
@@ -48,6 +44,7 @@ const {
   deletableUserApiKey,
 } = parsedApiKeyJson;
 
+// Fetch existing IDs for entities and create temporary IDs for deleting entities
 hooks.beforeAll(async (_transaction: Transaction, done: () => void) => {
   try {
     existingIds = await getExistingIds(proUserApiKey, proUserTeamApiKey);
@@ -59,29 +56,21 @@ hooks.beforeAll(async (_transaction: Transaction, done: () => void) => {
   }
 });
 
-// Skip tests that cannot be tested properly right now
+// Skip tests that cannot be tested properly right now due to various reasons
 const skippedTests = [
-  // "/destination-calendars > Find all destination calendars > 200",
-  // "/destination-calendars > Find all destination calendars > 401",
   "/destination-calendars > Find all destination calendars > 404",
   "/destination-calendars > Creates a new destination calendar > 201",
   "/destination-calendars > Creates a new destination calendar > 400",
-  // "/destination-calendars > Creates a new destination calendar > 401",
   "/destination-calendars/{id} > Remove an existing destination calendar > 200",
-  // "/destination-calendars/{id} > Remove an existing destination calendar > 401",
   "/destination-calendars/{id} > Remove an existing destination calendar > 404",
   "/destination-calendars/{id} > Find a destination calendar > 200",
-  // "/destination-calendars/{id} > Find a destination calendar > 401",
   "/destination-calendars/{id} > Find a destination calendar > 404",
   "/destination-calendars/{id} > Edit an existing destination calendar > 200",
-  // "/destination-calendars/{id} > Edit an existing destination calendar > 401",
   "/destination-calendars/{id} > Edit an existing destination calendar > 404",
 
-  // "/memberships > Find all memberships > 401 > application/json; charset=utf-8",
   "/memberships > Find all memberships > 404",
   "/memberships > Creates a new membership > 201",
   "/memberships > Creates a new membership > 400",
-  // "/memberships > Creates a new membership > 401 > application/json; charset=utf-8",
   "/memberships/{userId}_{teamId} > Remove an existing membership > 201",
   "/memberships/{userId}_{teamId} > Remove an existing membership > 400",
   "/memberships/{userId}_{teamId} > Remove an existing membership > 401 > application/json; charset=utf-8",
@@ -93,48 +82,34 @@ const skippedTests = [
   "/memberships/{userId}_{teamId} > Edit an existing membership > 401 > application/json; charset=utf-8",
 
   "/payments/{id} > Find a payment > 200",
-  // "/payments/{id} > Find a payment > 401 > application/json; charset=utf-8",
   "/payments/{id} > Find a payment > 404",
   "/payments > Find all payments > 200",
-  // "/payments > Find all payments > 401 > application/json; charset=utf-8",
   "/payments > Find all payments > 404",
 
-  // "/selected-calendars > Find all selected calendars > 401 > application/json; charset=utf-8",
   "/selected-calendars > Creates a new selected calendar > 201",
   "/selected-calendars > Creates a new selected calendar > 400",
-  // "/selected-calendars > Creates a new selected calendar > 401 > application/json; charset=utf-8",
   "/selected-calendars/{userId}_{integration}_{externalId} > Remove a selected calendar > 201",
   "/selected-calendars/{userId}_{integration}_{externalId} > Remove a selected calendar > 400",
-  // "/selected-calendars/{userId}_{integration}_{externalId} > Remove a selected calendar > 401 > application/json; charset=utf-8",
   "/selected-calendars/{userId}_{integration}_{externalId} > Find a selected calendar by providing the compoundId(userId_integration_externalId) separated by `_` > 200",
-  // "/selected-calendars/{userId}_{integration}_{externalId} > Find a selected calendar by providing the compoundId(userId_integration_externalId) separated by `_` > 401 > application/json; charset=utf-8",
   "/selected-calendars/{userId}_{integration}_{externalId} > Find a selected calendar by providing the compoundId(userId_integration_externalId) separated by `_` > 404",
   "/selected-calendars/{userId}_{integration}_{externalId} > Edit a selected calendar > 200",
   "/selected-calendars/{userId}_{integration}_{externalId} > Edit a selected calendar > 400",
-  // "/selected-calendars/{userId}_{integration}_{externalId} > Edit a selected calendar > 401 > application/json; charset=utf-8",
 
-  // "/users > Find all users. > 200",
-  // "/users > Find all users. > 401 > application/json; charset=utf-8",
   "/users > Creates a new user > 201",
   "/users > Creates a new user > 400",
-  // "/users > Creates a new user > 401 > application/json; charset=utf-8",
   "/users/{userId} > Remove an existing user > 201",
   "/users/{userId} > Remove an existing user > 400",
-  // "/users/{userId} > Remove an existing user > 401 > application/json; charset=utf-8",
-  // "/users/{userId} > Find a user, returns your user if regular user. > 200",
-  // "/users/{userId} > Find a user, returns your user if regular user. > 401 > application/json; charset=utf-8",
   "/users/{userId} > Find a user, returns your user if regular user. > 404",
   "/users/{userId} > Edit an existing user > 200",
   "/users/{userId} > Edit an existing user > 400",
-  // "/users/{userId} > Edit an existing user > 401",
   "/users/{userId} > Edit an existing user > 403",
 ];
 
-// these endpoints need to handle their own logic rather than being globally interpolated
+// These endpoints need to handle their own logic rather than being globally interpolated
 const skippedBeforeEachTests = ["/users/{userId} > Remove an existing user > 201"];
 
 hooks.beforeEach((transaction: Transaction) => {
-  // bail out of tests that need their own specific logic
+  // Bail out of tests that need their own specific logic
   if (skippedBeforeEachTests.indexOf(transaction.name) > -1) {
     return;
   }
@@ -144,13 +119,13 @@ hooks.beforeEach((transaction: Transaction) => {
     return;
   }
 
-  if (transaction.expected.statusCode === "401") {
+  if (transaction.expected.statusCode === 401) {
     transaction.fullPath = transaction.fullPath.replace("apiKey=1234abcd5678efgh", "apiKey=INVALID_API_KEY");
     return;
   }
 
   let NOT_FOUND_ID: number | null = null;
-  if (transaction.expected.statusCode === "404") {
+  if (transaction.expected.statusCode === 404) {
     NOT_FOUND_ID = 999;
   }
 
