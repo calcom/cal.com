@@ -417,13 +417,14 @@ const loadUsers = async (
   }
 };
 
-async function ensureAvailableUsers(
+export async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
   loggerWithEventDetails: Logger<unknown>
 ) {
+  console.log("🚀 ~ file: handleNewBooking.ts:427 ~ input:", input);
   const availableUsers: IsFixedAwareUser[] = [];
   const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
 

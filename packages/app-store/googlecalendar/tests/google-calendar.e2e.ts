@@ -1,8 +1,8 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
+import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -69,6 +69,16 @@ test.describe("Google Calendar", async () => {
           },
         });
 
+        const qaEventType = await prisma.eventType.findFirst({
+          where: {
+            slug: "15min",
+            userId: qaUserQuery.id,
+          },
+          include: {
+            users: true,
+          },
+        });
+
         if (!qaUserQuery) errorMessage = "QA user not found";
         // test.skip(!qaUserQuery, "QA user not found");
 
@@ -86,15 +96,13 @@ test.describe("Google Calendar", async () => {
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
 
-        const userAvailability = await getUserAvailability({
-          username: qaUsername,
-          dateFrom: "2023-12-14 00:00:00",
-          dateTo: "2023-12-15 00:00:00",
+        const users = await ensureAvailableUsers(qaEventType, {
+          dateFrom: "2023-12-15T05:30:00-05:00",
+          dateTo: "2023-12-15T06:00:00-05:00",
+          timeZone: "America/Toronto",
+          originalRescheduledBooking: null,
         });
-        console.log(
-          "🚀 ~ file: google-calendar.e2e.ts:94 ~ test.beforeAll ~ userAvailability:",
-          userAvailability
-        );
+        console.log("🚀 ~ file: google-calendar.e2e.ts:105 ~ test.beforeAll ~ users:", users);
 
         // const selectedCalendar = await prisma.selectedCalendar.upsert({
         //   where: {
