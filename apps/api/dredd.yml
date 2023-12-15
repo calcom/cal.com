@@ -2,21 +2,20 @@ color: true
 dry-run: null
 hookfiles: ./dredd-hooks.js
 require: null
-# server: yarn dev:api:only
 server-wait: 30
 init: false
 custom: {}
+#  Be warned that no tests will run if this is true.
 # names: true
-# only: ["/users/{userId} > Remove an existing user > 201"]
+#  Useful for iterating quickly on one test
+# only: ["/webhooks > Creates a new webhook > 201", "/webhooks/{id} > Edit an existing webhook > 200"]
 reporter: ["html"]
 output: ["dredd-output.html"]
-# header: []
 sorted: false
 user: null
 inline-errors: true
 details: true
-# method: [GET]
-# loglevel: error
+loglevel: error
 path: []
 hooks-worker-timeout: 50000
 hooks-worker-connect-timeout: 1500

@@ -1,5 +1,5 @@
 import { baseUrl } from "./constants";
-import { getTeams, getUsers } from "./getters";
+import { getUsers } from "./getters";
 
 export async function createUser(apiKey: string) {
   const email = "deleteme@example.com";
@@ -14,8 +14,6 @@ export async function createUser(apiKey: string) {
     }),
   });
 
-  console.log("createResponse", createResponse.status);
-
   const users = await getUsers(apiKey);
 
   // TODO: is there an interface we can use here?
@@ -27,26 +25,87 @@ export async function createUser(apiKey: string) {
 }
 
 export async function createTeam(apiKey: string) {
-  const slug = "delete-me-team";
-  await fetch(`${baseUrl}/teams?apiKey=${apiKey}`, {
+  const slug = `delete-me-team-${Date.now()}`;
+  const response = await fetch(`${baseUrl}/teams?apiKey=${apiKey}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       slug,
-      teamname: "Delete Me",
+      name: "Delete Me",
+      isPrivate: false,
+      hideBookATeamMember: false,
+      brandColor: "#00FF00",
+      darkBrandColor: "#FF00FF",
+      timeZone: "America/Los_Angeles",
+      weekStart: "Sunday",
     }),
   });
 
-  const teams = await getTeams(apiKey);
+  const responseJson = await response.json();
+  return responseJson.team;
+}
 
-  // TODO: is there an interface we can use here?
-  const deleteMeTeam = teams.find((team: any) => {
-    return team.slug === slug;
+export async function createSchedule(apiKey: string) {
+  const response = await fetch(`${baseUrl}/schedules?apiKey=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: "Delete This Schedule",
+      timeZone: "America/Los_Angeles",
+    }),
   });
 
-  return deleteMeTeam;
+  const responseJson = await response.json();
+  return responseJson.schedule;
+}
+
+export async function createAvailability(apiKey: string, scheduleId: number) {
+  const response = await fetch(`${baseUrl}/availabilities?apiKey=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      scheduleId,
+      startTime: "1970-01-01T17:00:00.000Z",
+      endTime: "2030-01-01T17:00:00.000Z",
+    }),
+  });
+
+  const responseJson = await response.json();
+  return responseJson.availability;
+}
+
+export async function createBooking(apiKey: string, eventTypeId: number, seatsPerTimeSlot = 0) {
+  const response = await fetch(`${baseUrl}/bookings?apiKey=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      eventTypeId,
+      responses: {
+        name: "Foo Bar",
+        email: "foobar@example.com",
+        location: {
+          optionValue: "Email",
+          value: "bazbot@example.com",
+        },
+      },
+      language: "English",
+      start: "2024-12-01T17:00:00.000Z",
+      timeZone: "America/Los_Angeles",
+      metadata: {},
+      seatsPerTimeSlot,
+    }),
+  });
+
+  const responseJson = await response.json();
+  return responseJson;
 }
 
 export async function createBookingReference(
@@ -76,11 +135,32 @@ export async function createBookingReference(
   return responseBody.booking_reference;
 }
 
+export async function createAttendee(apiKey: string, bookingId: number) {
+  const attendeeRequest = {
+    name: "Foo Bar",
+    email: "foobar@example.com",
+    timeZone: "America/Los_Angeles",
+    bookingId,
+  };
+
+  const response = await fetch(`${baseUrl}/attendees?apiKey=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(attendeeRequest),
+  });
+
+  const responseBody = await response.json();
+
+  return responseBody.attendee;
+}
+
 export async function createEventType(
   apiKey: string,
   title: string,
   slug: string,
-  lengthInMinutes: number,
+  lengthInMinutes = 30,
   metadata = {}
 ) {
   const eventTypeRequest = {
@@ -88,6 +168,7 @@ export async function createEventType(
     slug,
     length: lengthInMinutes,
     metadata,
+    seatsPerTimeSlot: 3,
   };
 
   const response = await fetch(`${baseUrl}/event-types?apiKey=${apiKey}`, {
@@ -173,9 +254,6 @@ export async function createDestinationCalendar(apiKey: string, integration: str
   });
 
   const responseBody = await response.json();
-
-  console.log("DESTINATION CALENDAR", response.status, { responseBody });
-
   return responseBody.destinationCalendar;
 }
 

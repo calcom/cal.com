@@ -23,8 +23,8 @@ export async function getExistingIds(proUserApiKey: string, proUserTeamApiKey: s
   const customInput = await createCustomInput(proUserApiKey, eventType.id, "Custom Input", "42");
 
   const integration = "foogle_calendar";
-  const externalId = `${Date.now()}`;
-  await createSelectedCalendar(proUserApiKey, integration, externalId);
+  const externalId = Date.now();
+  await createSelectedCalendar(proUserApiKey, integration, `${externalId}`);
 
   // const destinationCalendar = await createDestinationCalendar(proUserApiKey, integration, externalId);
   const webhook = await createWebhook(
