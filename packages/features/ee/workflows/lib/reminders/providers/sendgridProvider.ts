@@ -3,6 +3,7 @@ import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { setTestEmail } from "@calcom/lib/testEmails";
 
 let sendgridAPIKey: string;
 let senderEmail: string;
@@ -40,7 +41,25 @@ export function sendSendgridMail(
     return Promise.resolve();
   }
 
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE ? true : false;
+  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE ? true : false;
+  if (testMode) {
+    if (!mailData.sendAt) {
+      setTestEmail({
+        to: mailData.to?.toString() || "",
+        from: {
+          email: senderEmail,
+          name: addData.sender || SENDER_NAME,
+        },
+        subject: mailData.subject || "",
+        html: mailData.html || "",
+      });
+    }
+    console.log(
+      "Skipped Sending Email as process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set. Emails are available in globalThis.testEmails"
+    );
+
+    return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
+  }
 
   return sgMail.send({
     to: mailData.to,
@@ -52,11 +71,6 @@ export function sendSendgridMail(
     html: mailData.html || "",
     batchId: mailData.batchId,
     replyTo: mailData.replyTo || senderEmail,
-    mailSettings: {
-      sandboxMode: {
-        enable: sandboxMode,
-      },
-    },
     attachments: mailData.attachments,
     sendAt: mailData.sendAt,
   });

@@ -306,8 +306,42 @@ type BookingRequest = {
   videoCallUrl?: string | null;
 };
 
-export function expectWorkflowToBeTriggered(params?: BookingRequest) {
-  // TODO: Implement this.
+export function expectWorkflowToBeTriggered({
+  emails,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string; timeZone: string };
+}) {
+  const subjectPattern = /^Reminder: event_between_users/i; // Regular expression to match the specified subject pattern (case-insensitive)
+
+  expect(emails.get()).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        subject: expect.stringMatching(subjectPattern),
+        to: organizer.email,
+      }),
+    ])
+  );
+}
+
+export function expectWorkflowToBeNotTriggered({
+  emails,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string; timeZone: string };
+}) {
+  const subjectPattern = /^Reminder: event_between_users/i; // Regular expression to match the specified subject pattern (case-insensitive)
+
+  expect(emails.get()).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        subject: expect.stringMatching(subjectPattern),
+        to: organizer.email,
+      }),
+    ])
+  );
 }
 
 export async function expectBookingToBeInDatabase(
