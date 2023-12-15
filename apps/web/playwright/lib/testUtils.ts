@@ -336,3 +336,5 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=billingName]", "Stripe Stripeson");
   await page.click(".SubmitButton--complete-Shimmer");
 }
+
+export const NotFoundPageText = "ERROR 404";
