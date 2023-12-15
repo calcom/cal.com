@@ -3,7 +3,6 @@ import { randomBytes } from "crypto";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -22,8 +21,7 @@ export const createInviteHandler = async ({ ctx, input }: CreateInviteOptions) =
   const membership = await isTeamAdmin(ctx.user.id, teamId);
 
   if (!membership || !membership?.team) throw new TRPCError({ code: "UNAUTHORIZED" });
-  const teamMetadata = teamMetadataSchema.parse(membership.team.metadata);
-  const isOrg = !!(membership.team?.parentId === null && teamMetadata?.isOrganization);
+  const isOrg = !!(membership.team?.parentId === null && membership.team.isOrganization);
   const orgMembers = await getMembersHandler({
     ctx,
     input: { teamIdToExclude: teamId, distinctUser: true },

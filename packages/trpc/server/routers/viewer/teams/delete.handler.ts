@@ -4,7 +4,6 @@ import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -71,12 +70,10 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
   });
 
-  const deletedTeamMetadata = teamMetadataSchema.parse(deletedTeam.metadata);
-
   if (IS_PRODUCTION)
     deleteVercelDomain({
       slug: deletedTeam.slug,
-      isOrganization: deletedTeamMetadata?.isOrganization,
+      isOrganization: deletedTeam.isOrganization,
     });
 
   // Sync Services: Close.cm
