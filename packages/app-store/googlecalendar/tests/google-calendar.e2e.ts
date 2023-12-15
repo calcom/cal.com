@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
+import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
@@ -85,6 +86,16 @@ test.describe("Google Calendar", async () => {
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
 
+        const userAvailability = await getUserAvailability({
+          username: qaUsername,
+          dateFrom: "2023-12-14 00:00:00",
+          dateTo: "2023-12-15 00:00:00",
+        });
+        console.log(
+          "🚀 ~ file: google-calendar.e2e.ts:94 ~ test.beforeAll ~ userAvailability:",
+          userAvailability
+        );
+
         // const selectedCalendar = await prisma.selectedCalendar.upsert({
         //   where: {
         //     userId: qaUserQuery.id,
@@ -124,10 +135,6 @@ test.describe("Google Calendar", async () => {
         //     userId: qaUserQuery.id,
         //   },
         // });
-        console.log(
-          "🚀 ~ file: google-calendar.e2e.ts:108 ~ test.beforeAll ~ selectedCalendar:",
-          selectedCalendar
-        );
 
         if (qaGCalCredential && qaUsername) runIntegrationTest = true;
       }
