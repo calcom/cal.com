@@ -32,7 +32,7 @@ export const schemaUserIds = z
  *       200:
  *         description: OK
  *         content:
- *           application/json:
+ *           application/json; charset=utf-8:
  *             examples:
  *               schedules:
  *                 value:
@@ -73,8 +73,6 @@ export const schemaUserIds = z
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
- *       404:
- *         description: No schedules were found
  */
 
 async function handler(req: NextApiRequest) {

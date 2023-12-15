@@ -30,7 +30,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     externalDocs:
  *        url: https://docs.cal.com/availability
  *     responses:
- *       201:
+ *       200:
  *         description: OK, availability removed successfully
  *       400:
  *        description: Bad request. Availability id is invalid.

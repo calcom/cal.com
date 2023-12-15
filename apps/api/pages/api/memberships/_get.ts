@@ -15,6 +15,14 @@ import {
  * /memberships:
  *   get:
  *     summary: Find all memberships
+ *     parameters:
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        example: 1234abcd5678efgh
+ *        description: Your API Key
  *     tags:
  *     - memberships
  *     responses:

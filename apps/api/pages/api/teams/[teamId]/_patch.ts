@@ -49,7 +49,7 @@ import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validati
  *     tags:
  *     - teams
  *     responses:
- *       201:
+ *       200:
  *         description: OK, team edited successfully
  *       400:
  *        description: Bad request. Team body is invalid.

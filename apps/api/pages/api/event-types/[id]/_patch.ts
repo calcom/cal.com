@@ -197,7 +197,7 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *     externalDocs:
  *        url: https://docs.cal.com/core-features/event-types
  *     responses:
- *       201:
+ *       200:
  *         description: OK, eventType edited successfully
  *       400:
  *        description: Bad request. EventType body is invalid.

@@ -30,7 +30,7 @@ import { checkPermissions } from "./_auth-middleware";
  *     tags:
  *     - teams
  *     responses:
- *       201:
+ *       200:
  *         description: OK, team removed successfully
  *       400:
  *        description: Bad request. Team id is invalid.

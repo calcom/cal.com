@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
@@ -44,7 +44,7 @@ import {
  *               meetingUrl:
  *                 type: string
  *               bookingId:
- *                 type: boolean
+ *                 type: integer
  *               externalCalendarId:
  *                 type: string
  *               deleted:
@@ -62,7 +62,7 @@ import {
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaBookingCreateBodyParams.parse(req.body);
   const args: Prisma.BookingFindFirstOrThrowArgs = isAdmin
@@ -78,6 +78,8 @@ async function postHandler(req: NextApiRequest) {
       bookingId: body.bookingId,
     },
   });
+
+  res.status(201);
 
   return {
     booking_reference: schemaBookingReferenceReadPublic.parse(data),

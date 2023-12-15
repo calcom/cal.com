@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -22,7 +22,7 @@ import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/valida
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { prisma } = req;
   const data = membershipCreateBodySchema.parse(req.body);
   const args: Prisma.MembershipCreateArgs = { data };
@@ -30,6 +30,8 @@ async function postHandler(req: NextApiRequest) {
   await checkPermissions(req);
 
   const result = await prisma.membership.create(args);
+
+  res.status(201);
 
   return {
     membership: schemaMembershipPublic.parse(result),

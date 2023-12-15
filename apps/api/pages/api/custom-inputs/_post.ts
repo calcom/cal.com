@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -80,7 +80,7 @@ import {
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin, prisma } = req;
   const { eventTypeId, ...body } = schemaEventTypeCustomInputBodyParams.parse(req.body);
 
@@ -95,6 +95,8 @@ async function postHandler(req: NextApiRequest) {
   const data = await prisma.eventTypeCustomInput.create({
     data: { ...body, eventType: { connect: { id: eventTypeId } } },
   });
+
+  res.status(201);
 
   return {
     event_type_custom_input: schemaEventTypeCustomInputPublic.parse(data),

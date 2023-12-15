@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -72,7 +72,7 @@ import {
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { prisma } = req;
   const data = schemaAvailabilityCreateBodyParams.parse(req.body);
   await checkPermissions(req);
@@ -80,7 +80,7 @@ async function postHandler(req: NextApiRequest) {
     data,
     include: { Schedule: { select: { userId: true } } },
   });
-  req.statusCode = 201;
+  res.status(201);
   return {
     availability: schemaAvailabilityReadPublic.parse(availability),
     message: "Availability created successfully",

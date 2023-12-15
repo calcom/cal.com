@@ -61,7 +61,7 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  *     externalDocs:
  *        url: https://docs.cal.com/core-features/webhooks
  *     responses:
- *       201:
+ *       200:
  *         description: OK, webhook edited successfully
  *       400:
  *        description: Bad request. Webhook body is invalid.

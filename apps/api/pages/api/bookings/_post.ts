@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { defaultResponder } from "@calcom/lib/server";
@@ -125,15 +125,14 @@ import { defaultResponder } from "@calcom/lib/server";
  *     tags:
  *       - bookings
  *     responses:
- *       200:
+ *       201:
  *         description: Booking(s) created successfully.
  *         content:
- *           application/json:
+ *           application/json; charset=utf-8:
  *             examples:
  *               booking created successfully example:
  *                 value:
  *                   {
- *                     "booking": {
  *                       "id": 91,
  *                       "userId": 5,
  *                       "description": "",
@@ -154,7 +153,7 @@ import { defaultResponder } from "@calcom/lib/server";
  *                         "email": "pro@example.com",
  *                         "name": "Pro Example",
  *                         "timeZone": "Asia/Kolkata",
- *                         "locale": "en"
+ *                         "username": "pro"
  *                       },
  *                       "payment": [
  *                         {
@@ -173,7 +172,6 @@ import { defaultResponder } from "@calcom/lib/server";
  *                           "value": "inPerson"
  *                         }
  *                       }
- *                     }
  *                   }
  *       400:
  *         description: |
@@ -203,11 +201,13 @@ import { defaultResponder } from "@calcom/lib/server";
  *       401:
  *         description: Authorization information is missing or invalid.
  */
-async function handler(req: NextApiRequest) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin } = req;
   if (isAdmin) req.userId = req.body.userId || userId;
 
-  return await handleNewBooking(req);
+  const booking = await handleNewBooking(req);
+  res.status(201);
+  return booking;
 }
 
 export default defaultResponder(handler);

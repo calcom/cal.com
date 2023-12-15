@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
 import { HttpError } from "@calcom/lib/http-error";
@@ -38,8 +38,10 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  *                 format: uri
  *                 description: The URL to subscribe to this webhook
  *               eventTriggers:
- *                 type: string
- *                 enum: [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED]
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   enum: [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED]
  *                 description: The events which should trigger this webhook call
  *               active:
  *                 type: boolean
@@ -66,7 +68,7 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin, prisma } = req;
   const { eventTypeId, userId: bodyUserId, ...body } = schemaWebhookCreateBodyParams.parse(req.body);
   const args: Prisma.WebhookCreateArgs = { data: { id: uuidv4(), ...body } };
@@ -90,6 +92,8 @@ async function postHandler(req: NextApiRequest) {
   }
 
   const data = await prisma.webhook.create(args);
+
+  res.status(201);
 
   return {
     webhook: schemaWebhookReadPublic.parse(data),

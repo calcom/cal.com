@@ -30,7 +30,7 @@ import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
  *     externalDocs:
  *        url: https://docs.cal.com/core-features/webhooks
  *     responses:
- *       201:
+ *       200:
  *         description: OK, hook removed successfully
  *       400:
  *        description: Bad request. hook id is invalid.

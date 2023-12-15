@@ -28,7 +28,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *      - booking-references
  *     responses:
- *       201:
+ *       200:
  *         description: OK, bookingReference removed successfully
  *       400:
  *        description: Bad request. BookingReference id is invalid.

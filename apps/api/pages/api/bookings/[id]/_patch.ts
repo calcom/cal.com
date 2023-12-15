@@ -69,12 +69,11 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *       200:
  *         description: OK, booking edited successfully
  *         content:
- *           application/json:
+ *           application/json; charset=utf-8:
  *             examples:
  *               bookings:
  *                 value:
  *                   {
- *                     "booking": {
  *                       "id": 11223344,
  *                       "userId": 182,
  *                       "description": null,
@@ -93,7 +92,6 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *                           "value": "inPerson"
  *                         }
  *                       }
- *                     }
  *                   }
  *       400:
  *        description: Bad request. Booking body is invalid.

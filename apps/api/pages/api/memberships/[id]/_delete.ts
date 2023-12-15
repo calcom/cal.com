@@ -28,7 +28,7 @@ import { membershipIdSchema } from "~/lib/validations/membership";
  *     tags:
  *     - memberships
  *     responses:
- *       201:
+ *       200:
  *         description: OK, membership removed successfuly
  *       400:
  *        description: Bad request. Membership id is invalid.

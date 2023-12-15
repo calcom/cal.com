@@ -33,7 +33,7 @@ import {
  *     tags:
  *     - memberships
  *     responses:
- *       201:
+ *       200:
  *         description: OK, membership edited successfully
  *       400:
  *        description: Bad request. Membership body is invalid.

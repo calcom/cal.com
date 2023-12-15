@@ -66,7 +66,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     externalDocs:
  *        url: https://docs.cal.com/availability
  *     responses:
- *       201:
+ *       200:
  *         description: OK, availability edited successfully
  *       400:
  *        description: Bad request. Availability body is invalid.

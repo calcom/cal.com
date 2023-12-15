@@ -48,7 +48,7 @@ import {
  *     tags:
  *     - selected-calendars
  *     responses:
- *       201:
+ *       200:
  *         description: OK, selected-calendar edited successfully
  *       400:
  *        description: Bad request. SelectedCalendar body is invalid.

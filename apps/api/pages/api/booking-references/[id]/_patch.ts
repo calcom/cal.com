@@ -53,7 +53,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *      - booking-references
  *     responses:
- *       201:
+ *       200:
  *         description: OK, BookingReference edited successfully
  *       400:
  *        description: Bad request. BookingReference body is invalid.

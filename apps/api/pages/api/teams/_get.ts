@@ -27,8 +27,6 @@ import { schemaTeamsReadPublic } from "~/lib/validations/team";
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
- *       404:
- *         description: No teams were found
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, prisma, isAdmin } = req;

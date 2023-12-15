@@ -29,8 +29,6 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
- *       404:
- *         description: No selected calendars were found
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;

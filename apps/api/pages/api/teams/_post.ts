@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -49,8 +49,10 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
+ *       409:
+ *        description: Team slug already exists
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { prisma, body, userId } = req;
   const data = schemaTeamBodyParams.parse(body);
 
@@ -88,7 +90,7 @@ async function postHandler(req: NextApiRequest) {
     },
     include: { members: true },
   });
-  req.statusCode = 201;
+  res.status(201);
   // We are also returning the new ownership relation as owner besides team.
   return {
     team: schemaTeamReadPublic.parse(team),

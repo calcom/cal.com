@@ -42,7 +42,7 @@ import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
  *     tags:
  *     - selected-calendars
  *     responses:
- *       201:
+ *       200:
  *         description: OK, selected-calendar removed successfully
  *       400:
  *        description: Bad request. SelectedCalendar id is invalid.

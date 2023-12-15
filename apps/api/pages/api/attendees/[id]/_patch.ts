@@ -46,7 +46,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *     - attendees
  *     responses:
- *       201:
+ *       200:
  *         description: OK, attendee edited successfully
  *       400:
  *        description: Bad request. Attendee body is invalid.

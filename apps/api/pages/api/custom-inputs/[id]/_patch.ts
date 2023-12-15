@@ -70,7 +70,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *     - custom-inputs
  *     responses:
- *       201:
+ *       200:
  *         description: OK, eventTypeCustomInput edited successfully
  *       400:
  *        description: Bad request. EventType body is invalid.

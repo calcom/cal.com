@@ -23,34 +23,10 @@ const swaggerHandler = withSwagger({
       responses: {
         ErrorUnauthorized: {
           description: "Invalid API Key",
-          headers: {
-            schema: {
-              content: {
-                "content-type": {
-                  type: "string",
-                },
-                etag: {
-                  type: "string",
-                },
-                "content-length": {
-                  type: "number",
-                },
-                vary: {
-                  type: "string",
-                },
-                date: {
-                  type: "string",
-                },
-                connection: {
-                  type: "string",
-                },
-              },
-            },
-          },
           content: {
             "application/json; charset=utf-8": {
               example: {
-                error: "string",
+                error: "Your apiKey is not valid",
               },
             },
           },

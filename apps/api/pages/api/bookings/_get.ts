@@ -52,7 +52,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *       200:
  *         description: OK
  *         content:
- *           application/json:
+ *           application/json; charset=utf-8:
  *             schema:
  *               $ref: "#/components/schemas/ArrayOfBookings"
  *             examples:
@@ -104,8 +104,6 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *                 ]
  *       401:
  *         description: Authorization information is missing or invalid.
- *       404:
- *         description: No bookings were found
  */
 
 /**

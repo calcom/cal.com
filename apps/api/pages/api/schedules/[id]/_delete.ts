@@ -28,7 +28,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     tags:
  *     - schedules
  *     responses:
- *       201:
+ *       200:
  *         description: OK, schedule removed successfully
  *       400:
  *        description: Bad request. Schedule id is invalid.

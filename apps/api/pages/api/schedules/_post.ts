@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
@@ -25,7 +25,7 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *       description: Create a new schedule
  *       required: true
  *       content:
- *         application/json:
+ *         application/json; charset=utf-8:
  *           schema:
  *             type: object
  *             required:
@@ -48,10 +48,10 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *     tags:
  *     - schedules
  *     responses:
- *       200:
+ *       201:
  *         description: OK, schedule created
  *         content:
- *           application/json:
+ *           application/json; charset=utf-8:
  *             examples:
  *               schedule:
  *                 value:
@@ -80,7 +80,7 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
 
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaCreateScheduleBodyParams.parse(req.body);
   let args: Prisma.ScheduleCreateArgs = { data: { ...body, userId } };
@@ -105,6 +105,8 @@ async function postHandler(req: NextApiRequest) {
   args.include = { availability: true };
 
   const data = await prisma.schedule.create(args);
+
+  res.status(201);
 
   return {
     schedule: schemaSchedulePublic.parse(data),

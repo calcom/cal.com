@@ -40,8 +40,6 @@ import { schemaUsersReadPublic } from "~/lib/validations/user";
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
- *       404:
- *         description: No users were found
  */
 export async function getHandler(req: NextApiRequest) {
   const {

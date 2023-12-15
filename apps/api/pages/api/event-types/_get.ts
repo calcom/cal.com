@@ -33,8 +33,6 @@ import getCalLink from "./_utils/getCalLink";
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
- *       404:
- *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, prisma } = req;

@@ -55,7 +55,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *       200:
  *         description: OK, schedule edited successfully
  *         content:
- *           application/json:
+ *           application/json; charset=utf-8:
  *             examples:
  *               schedule:
  *                 value:

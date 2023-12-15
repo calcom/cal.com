@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -50,7 +50,7 @@ import {
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin, prisma } = req;
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
   const args: Prisma.SelectedCalendarCreateArgs = { data: { ...body, userId } };
@@ -64,6 +64,8 @@ async function postHandler(req: NextApiRequest) {
   }
 
   const data = await prisma.selectedCalendar.create(args);
+
+  res.status(201);
 
   return {
     selected_calendar: schemaSelectedCalendarPublic.parse(data),

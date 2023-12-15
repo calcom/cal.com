@@ -1,4 +1,4 @@
-import type { NextApiRequest } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -52,7 +52,7 @@ import { schemaAttendeeCreateBodyParams, schemaAttendeeReadPublic } from "~/lib/
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
  */
-async function postHandler(req: NextApiRequest) {
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaAttendeeCreateBodyParams.parse(req.body);
 
@@ -73,6 +73,8 @@ async function postHandler(req: NextApiRequest) {
       booking: { connect: { id: body.bookingId } },
     },
   });
+
+  res.status(201);
 
   return {
     attendee: schemaAttendeeReadPublic.parse(data),

@@ -26,8 +26,6 @@ import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-c
  *       401:
  *        description: Authorization information is missing or invalid.
  *        $ref: "#/components/responses/ErrorUnauthorized"
- *       404:
- *         description: No eventTypeCustomInputs were found
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;

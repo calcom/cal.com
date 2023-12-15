@@ -31,7 +31,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     externalDocs:
  *        url: https://docs.cal.com/core-features/event-types
  *     responses:
- *       201:
+ *       200:
  *         description: OK, eventType removed successfully
  *       400:
  *        description: Bad request. EventType id is invalid.
