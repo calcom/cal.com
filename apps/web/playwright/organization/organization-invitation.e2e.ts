@@ -14,7 +14,7 @@ test.afterEach(async ({ users, emails }) => {
   emails?.deleteAll();
 });
 
-test.describe("Organization", () => {
+test.describe.serial("Organization", () => {
   test.describe("Email not matching orgAutoAcceptEmail", () => {
     test("Org Invitation", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
