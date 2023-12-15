@@ -1,6 +1,5 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const getUsernameForOrgMember = async ({
   email,
@@ -94,21 +93,20 @@ export const validateAndGetCorrectedUsernameInTeam = async (
       },
       select: {
         metadata: true,
+        isOrganization: true,
         parentId: true,
+        organzationSettings: true,
       },
     });
 
-    const teamData = { ...team, metadata: teamMetadataSchema.parse(team?.metadata) };
-
-    if (teamData.metadata?.isOrganization || teamData.parentId) {
-      const orgMetadata = teamData.metadata;
+    if (team?.isOrganization || team?.parentId) {
       // Organization context -> org-context username check
-      const orgId = teamData.parentId || teamId;
+      const orgId = team?.parentId || teamId;
       return validateAndGetCorrectedUsernameAndEmail({
         username,
         email,
         organizationId: orgId,
-        orgAutoAcceptEmail: orgMetadata?.orgAutoAcceptEmail || "",
+        orgAutoAcceptEmail: team?.organzationSettings?.orgAutoAcceptEmail || "",
         isSignup,
       });
     } else {
