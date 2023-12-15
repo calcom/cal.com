@@ -69,6 +69,8 @@ export const createBookingAndFetchGCalEvent = async (
     }),
   ]);
   assertValueExists(gCalReference, "gCalReference");
+  console.log("🚀 ~ file: testUtils.ts:110 ~ gCalReference:", gCalReference);
+
   assertValueExists(booking, "booking");
 
   // Need to refresh keys from DB
