@@ -1,9 +1,10 @@
+import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma, PlatformOAuthClient } from "@prisma/client";
+import { PlatformOAuthClient } from "@prisma/client";
 
-export class OAuthClientFixture {
+export class OAuthClientRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
@@ -16,8 +17,14 @@ export class OAuthClientFixture {
     return this.prismaReadClient.platformOAuthClient.findFirst({ where: { id: clientId } });
   }
 
-  async create(data: Prisma.PlatformOAuthClientCreateInput) {
-    return this.prismaWriteClient.platformOAuthClient.create({ data });
+  async create(organizationId: number, data: CreateOAuthClientInput, secret: string) {
+    return this.prismaWriteClient.platformOAuthClient.create({
+      data: {
+        ...data,
+        secret,
+        organizationId,
+      },
+    });
   }
 
   async delete(clientId: PlatformOAuthClient["id"]) {
