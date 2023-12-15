@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
+import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
@@ -22,7 +22,7 @@ export const createBookingAndFetchGCalEvent = async (
 ) => {
   await page.goto(`/${qaUsername}/15min`);
   // await page.waitForSelector('[data-testid="avatar"]');
-  await selectFirstAvailableTimeSlotNextMonth(page);
+  await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
   await page.locator("[data-testid=success-page]");
 
