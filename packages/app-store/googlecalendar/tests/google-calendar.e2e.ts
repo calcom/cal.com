@@ -85,7 +85,22 @@ test.describe("Google Calendar", async () => {
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
 
-        await prisma.destinationCalendar.upsert({
+        const selectedCalendar = await prisma.selectedCalendar.upsert({
+          where: {
+            userId: qaUserQuery.id,
+            integration: "google_calendar",
+            externalId: primaryCalendarName,
+          },
+          update: {},
+          create: {
+            integration: "google_calendar",
+            userId: qaUserQuery.id,
+            externalId: primaryCalendarName,
+            credentialId: qaGCalCredential.id,
+          },
+        });
+
+        const destinationCalendar = await prisma.destinationCalendar.upsert({
           where: {
             userId: qaUserQuery.id,
             externalId: primaryCalendarName,
@@ -99,12 +114,16 @@ test.describe("Google Calendar", async () => {
             credentialId: qaGCalCredential.id,
           },
         });
+        console.log(
+          "🚀 ~ file: google-calendar.e2e.ts:117 ~ test.beforeAll ~ destinationCalendar:",
+          destinationCalendar
+        );
 
-        const selectedCalendar = await prisma.selectedCalendar.findMany({
-          where: {
-            userId: qaUserQuery.id,
-          },
-        });
+        // const selectedCalendar = await prisma.selectedCalendar.findMany({
+        //   where: {
+        //     userId: qaUserQuery.id,
+        //   },
+        // });
         console.log(
           "🚀 ~ file: google-calendar.e2e.ts:108 ~ test.beforeAll ~ selectedCalendar:",
           selectedCalendar
