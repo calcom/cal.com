@@ -2,6 +2,7 @@ import { CAL_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
+import { getApiName } from "./getApiName";
 import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
@@ -18,14 +19,17 @@ export const Codes = {
       uiInstructionCode,
       previewState,
       embedCalOrigin,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
       embedCalOrigin: string;
+      namespace: string;
     }) => {
       const width = getDimension(previewState.inline.width);
       const height = getDimension(previewState.inline.height);
+      const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       return code`
   import Cal, { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
@@ -36,21 +40,23 @@ export const Codes = {
 		${uiInstructionCode}
 	  })();
 	}, [])
-	return <Cal
+	return <Cal ${namespaceProp}
 	  calLink="${calLink}"
 	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
 	  ${previewState.layout ? `config={{layout: '${previewState.layout}'}}` : ""}
     ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
-	  ${IS_SELF_HOSTED ? `calJsUrl="${embedLibUrl}"` : ""}
+	  ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
 	/>;
   };`;
     },
     "floating-popup": ({
       floatingButtonArg,
       uiInstructionCode,
+      namespace,
     }: {
       floatingButtonArg: string;
       uiInstructionCode: string;
+      namespace: string;
     }) => {
       return code`
   import { getCalApi } from "@calcom/embed-react";
@@ -59,7 +65,7 @@ export const Codes = {
 	useEffect(()=>{
 	  (async function () {
 		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
-		cal("floatingButton", ${floatingButtonArg});
+		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -70,11 +76,13 @@ export const Codes = {
       uiInstructionCode,
       previewState,
       embedCalOrigin,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
       embedCalOrigin: string;
+      namespace: string;
     }) => {
       return code`
   import { getCalApi } from "@calcom/embed-react";
@@ -86,7 +94,7 @@ export const Codes = {
 		${uiInstructionCode}
 	  })();
 	}, [])
-	return <button
+	return <button data-cal-namespace="${namespace}"
 	  data-cal-link="${calLink}"
     ${doWeNeedCalOriginProp(embedCalOrigin) ? `  data-cal-origin="${embedCalOrigin}"` : ""}
 	  ${`data-cal-config='${JSON.stringify({
@@ -101,12 +109,14 @@ export const Codes = {
       calLink,
       uiInstructionCode,
       previewState,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
+      namespace: string;
     }) => {
-      return code`Cal("inline", {
+      return code`${getApiName({ namespace })}("inline", {
 	elementOrSelector:"#my-cal-inline",
 	calLink: "${calLink}",
 	layout: "${previewState.layout}"
@@ -118,25 +128,30 @@ export const Codes = {
     "floating-popup": ({
       floatingButtonArg,
       uiInstructionCode,
+      namespace,
     }: {
       floatingButtonArg: string;
       uiInstructionCode: string;
+      namespace: string;
     }) => {
-      return code`Cal("floatingButton", ${floatingButtonArg});
+      return code`${getApiName({ namespace, mainApiName: "Cal" })}("floatingButton", ${floatingButtonArg});
   ${uiInstructionCode}`;
     },
     "element-click": ({
       calLink,
       uiInstructionCode,
       previewState,
+      namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState;
+      namespace: string;
     }) => {
       return code`
-  // Important: Please add following attributes to the element you want to open Cal on click
+  // Important: Please add the following attributes to the element that should trigger the calendar to open upon clicking.
   // \`data-cal-link="${calLink}"\`
+  // data-cal-namespace="${namespace}"
   // \`data-cal-config='${JSON.stringify({
     layout: previewState.layout,
   })}'\`
