@@ -15,6 +15,13 @@ components:
       type: apiKey
       in: query
       name: apiKey
+  responses:
+    ErrorUnauthorized:
+      description: Invalid API Key
+      content:
+        application/json; charset=utf-8:
+          example:
+            error: Your apiKey is not valid
   schemas:
     ArrayOfBookings:
       type: array
@@ -120,8 +127,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No attendees were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       operationId: addAttendee
       summary: Creates a new attendee
@@ -164,6 +170,7 @@ paths:
           description: Bad request. Attendee body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /attendees/{id}:
     delete:
       operationId: removeAttendeeById
@@ -186,12 +193,13 @@ paths:
       tags:
         - attendees
       responses:
-        "201":
+        "200":
           description: OK, attendee removed successfully
         "400":
           description: Bad request. Attendee id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getAttendeeById
       summary: Find an attendee
@@ -217,8 +225,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: Attendee was not found
+          $ref: "#/components/responses/ErrorUnauthorized"
     patch:
       operationId: editAttendeeById
       summary: Edit an existing attendee
@@ -255,12 +262,13 @@ paths:
       tags:
         - attendees
       responses:
-        "201":
+        "200":
           description: OK, attendee edited successfully
         "400":
           description: Bad request. Attendee body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /availabilities:
     post:
       operationId: addAvailability
@@ -329,6 +337,7 @@ paths:
           description: Bad request. Availability body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /availabilities/{id}:
     delete:
       operationId: removeAvailabilityById
@@ -353,12 +362,13 @@ paths:
       externalDocs:
         url: https://docs.cal.com/availability
       responses:
-        "201":
+        "200":
           description: OK, availability removed successfully
         "400":
           description: Bad request. Availability id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getAvailabilityById
       summary: Find an availability
@@ -452,12 +462,13 @@ paths:
       externalDocs:
         url: https://docs.cal.com/availability
       responses:
-        "201":
+        "200":
           description: OK, availability edited successfully
         "400":
           description: Bad request. Availability body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /teams/{teamId}/availability:
     get:
       summary: Find team availability
@@ -474,7 +485,7 @@ paths:
           required: true
           schema:
             type: integer
-          example: 123
+          example: 1202
           description: ID of the team to fetch the availability for
         - in: query
           name: dateFrom
@@ -537,6 +548,7 @@ paths:
                   currentSeats: 4
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Team not found | Team has no members
   /availability:
@@ -623,6 +635,7 @@ paths:
                   currentSeats: 4
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: User not found
   /booking-references:
@@ -644,8 +657,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No booking references were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       parameters:
         - in: query
@@ -679,7 +691,7 @@ paths:
                 meetingUrl:
                   type: string
                 bookingId:
-                  type: boolean
+                  type: integer
                 externalCalendarId:
                   type: string
                 deleted:
@@ -695,6 +707,7 @@ paths:
           description: Bad request. BookingReference body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /booking-references/{id}:
     delete:
       operationId: removeBookingReferenceById
@@ -717,12 +730,13 @@ paths:
       tags:
         - booking-references
       responses:
-        "201":
+        "200":
           description: OK, bookingReference removed successfully
         "400":
           description: Bad request. BookingReference id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getBookingReferenceById
       summary: Find a booking reference
@@ -748,6 +762,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: BookingReference was not found
     patch:
@@ -791,12 +806,13 @@ paths:
       tags:
         - booking-references
       responses:
-        "201":
+        "200":
           description: OK, BookingReference edited successfully
         "400":
           description: Bad request. BookingReference body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /bookings:
     get:
       summary: Find all bookings
@@ -844,7 +860,7 @@ paths:
         "200":
           description: OK
           content:
-            application/json:
+            application/json; charset=utf-8:
               schema:
                 $ref: "#/components/schemas/ArrayOfBookings"
               examples:
@@ -1001,44 +1017,43 @@ paths:
       tags:
         - bookings
       responses:
-        "200":
+        "201":
           description: Booking(s) created successfully.
           content:
-            application/json:
+            application/json; charset=utf-8:
               examples:
                 booking created successfully example:
                   value:
-                    booking:
-                      id: 91
-                      userId: 5
-                      description: ""
-                      eventTypeId: 7
-                      uid: bFJeNb2uX8ANpT3JL5EfXw
-                      title: 60min between Pro Example and John Doe
-                      startTime: 2023-05-25T09:30:00.000Z
-                      endTime: 2023-05-25T10:30:00.000Z
-                      attendees:
-                        - email: john.doe@example.com
-                          name: John Doe
-                          timeZone: Asia/Kolkata
-                          locale: en
-                      user:
-                        email: pro@example.com
-                        name: Pro Example
+                    id: 91
+                    userId: 5
+                    description: ""
+                    eventTypeId: 7
+                    uid: bFJeNb2uX8ANpT3JL5EfXw
+                    title: 60min between Pro Example and John Doe
+                    startTime: 2023-05-25T09:30:00.000Z
+                    endTime: 2023-05-25T10:30:00.000Z
+                    attendees:
+                      - email: john.doe@example.com
+                        name: John Doe
                         timeZone: Asia/Kolkata
                         locale: en
-                      payment:
-                        - id: 1
-                          success: true
-                          paymentOption: ON_BOOKING
-                      metadata: {}
-                      status: ACCEPTED
-                      responses:
-                        email: john.doe@example.com
-                        name: John Doe
-                        location:
-                          optionValue: ""
-                          value: inPerson
+                    user:
+                      email: pro@example.com
+                      name: Pro Example
+                      timeZone: Asia/Kolkata
+                      username: pro
+                    payment:
+                      - id: 1
+                        success: true
+                        paymentOption: ON_BOOKING
+                    metadata: {}
+                    status: ACCEPTED
+                    responses:
+                      email: john.doe@example.com
+                      name: John Doe
+                      location:
+                        optionValue: ""
+                        value: inPerson
         "400":
           description: >
             Bad request
@@ -1186,6 +1201,7 @@ paths:
                           value: inPerson
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Booking was not found
     patch:
@@ -1245,31 +1261,31 @@ paths:
         "200":
           description: OK, booking edited successfully
           content:
-            application/json:
+            application/json; charset=utf-8:
               examples:
                 bookings:
                   value:
-                    booking:
-                      id: 11223344
-                      userId: 182
-                      description: null
-                      eventTypeId: 2323232
-                      uid: stoSJtnh83PEL4rZmqdHe2
-                      title: Debugging between Syed Ali Shahbaz and Hello Hello
-                      startTime: 2023-05-24T13:00:00.000Z
-                      endTime: 2023-05-24T13:30:00.000Z
-                      metadata: {}
-                      status: CANCELLED
-                      responses:
-                        email: john.doe@example.com
-                        name: John Doe
-                        location:
-                          optionValue: ""
-                          value: inPerson
+                    id: 11223344
+                    userId: 182
+                    description: null
+                    eventTypeId: 2323232
+                    uid: stoSJtnh83PEL4rZmqdHe2
+                    title: Debugging between Syed Ali Shahbaz and Hello Hello
+                    startTime: 2023-05-24T13:00:00.000Z
+                    endTime: 2023-05-24T13:30:00.000Z
+                    metadata: {}
+                    status: CANCELLED
+                    responses:
+                      email: john.doe@example.com
+                      name: John Doe
+                      location:
+                        optionValue: ""
+                        value: inPerson
         "400":
           description: Bad request. Booking body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /custom-inputs:
     get:
       summary: Find all eventTypeCustomInputs
@@ -1288,8 +1304,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No eventTypeCustomInputs were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       summary: Creates a new eventTypeCustomInput
       parameters:
@@ -1356,6 +1371,7 @@ paths:
           description: Bad request. EventTypeCustomInput body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /custom-inputs/{id}:
     delete:
       summary: Remove an existing eventTypeCustomInput
@@ -1377,12 +1393,13 @@ paths:
       tags:
         - custom-inputs
       responses:
-        "201":
+        "200":
           description: OK, eventTypeCustomInput removed successfully
         "400":
           description: Bad request. EventType id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       summary: Find a eventTypeCustomInput
       parameters:
@@ -1407,6 +1424,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: EventType was not found
     patch:
@@ -1466,12 +1484,13 @@ paths:
       tags:
         - custom-inputs
       responses:
-        "201":
+        "200":
           description: OK, eventTypeCustomInput edited successfully
         "400":
           description: Bad request. EventType body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /destination-calendars:
     get:
       parameters:
@@ -1490,6 +1509,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: No destination calendars were found
     post:
@@ -1538,6 +1558,7 @@ paths:
           description: Bad request. DestinationCalendar body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /destination-calendars/{id}:
     delete:
       summary: Remove an existing destination calendar
@@ -1563,6 +1584,7 @@ paths:
           description: OK, destinationCalendar removed successfully
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Destination calendar not found
     get:
@@ -1589,6 +1611,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Destination calendar not found
     patch:
@@ -1635,6 +1658,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Destination calendar not found
   /event-types:
@@ -1658,8 +1682,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No event types were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       summary: Creates a new event type
       operationId: addEventType
@@ -1919,6 +1942,7 @@ paths:
           description: Bad request. EventType body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /event-types/{id}:
     delete:
       operationId: removeEventTypeById
@@ -1943,12 +1967,13 @@ paths:
       externalDocs:
         url: https://docs.cal.com/core-features/event-types
       responses:
-        "201":
+        "200":
           description: OK, eventType removed successfully
         "400":
           description: Bad request. EventType id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getEventTypeById
       summary: Find a eventType
@@ -1976,6 +2001,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: EventType was not found
     patch:
@@ -2173,15 +2199,24 @@ paths:
       externalDocs:
         url: https://docs.cal.com/core-features/event-types
       responses:
-        "201":
+        "200":
           description: OK, eventType edited successfully
         "400":
           description: Bad request. EventType body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /memberships:
     get:
       summary: Find all memberships
+      parameters:
+        - in: query
+          name: apiKey
+          schema:
+            type: string
+          required: true
+          example: 1234abcd5678efgh
+          description: Your API Key
       tags:
         - memberships
       responses:
@@ -2189,6 +2224,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: No memberships were found
     post:
@@ -2202,6 +2238,7 @@ paths:
           description: Bad request. Membership body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /memberships/{userId}_{teamId}:
     delete:
       summary: Remove an existing membership
@@ -2223,12 +2260,13 @@ paths:
       tags:
         - memberships
       responses:
-        "201":
+        "200":
           description: OK, membership removed successfuly
         "400":
           description: Bad request. Membership id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       summary: Find a membership by userID and teamID
       parameters:
@@ -2253,6 +2291,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Membership was not found
     patch:
@@ -2275,12 +2314,13 @@ paths:
       tags:
         - memberships
       responses:
-        "201":
+        "200":
           description: OK, membership edited successfully
         "400":
           description: Bad request. Membership body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /payments/{id}:
     get:
       summary: Find a payment
@@ -2306,6 +2346,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Payment was not found
   /payments:
@@ -2318,6 +2359,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: No payments were found
   /schedules:
@@ -2338,7 +2380,7 @@ paths:
         "200":
           description: OK
           content:
-            application/json:
+            application/json; charset=utf-8:
               examples:
                 schedules:
                   value:
@@ -2375,8 +2417,7 @@ paths:
                             endTime: 17:00:00
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No schedules were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       operationId: addSchedule
       summary: Creates a new schedule
@@ -2392,7 +2433,7 @@ paths:
         description: Create a new schedule
         required: true
         content:
-          application/json:
+          application/json; charset=utf-8:
             schema:
               type: object
               required:
@@ -2413,10 +2454,10 @@ paths:
       tags:
         - schedules
       responses:
-        "200":
+        "201":
           description: OK, schedule created
           content:
-            application/json:
+            application/json; charset=utf-8:
               examples:
                 schedule:
                   value:
@@ -2441,6 +2482,7 @@ paths:
           description: Bad request. Schedule body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /schedules/{id}:
     delete:
       operationId: removeScheduleById
@@ -2463,12 +2505,13 @@ paths:
       tags:
         - schedules
       responses:
-        "201":
+        "200":
           description: OK, schedule removed successfully
         "400":
           description: Bad request. Schedule id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getScheduleById
       summary: Find a schedule
@@ -2528,6 +2571,7 @@ paths:
                           endTime: 23:45:00
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Schedule was not found
     patch:
@@ -2573,7 +2617,7 @@ paths:
         "200":
           description: OK, schedule edited successfully
           content:
-            application/json:
+            application/json; charset=utf-8:
               examples:
                 schedule:
                   value:
@@ -2597,6 +2641,7 @@ paths:
           description: Bad request. Schedule body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /selected-calendars:
     get:
       operationId: listSelectedCalendars
@@ -2616,8 +2661,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No selected calendars were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       summary: Creates a new selected calendar
       parameters:
@@ -2654,6 +2698,7 @@ paths:
           description: Bad request. SelectedCalendar body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /selected-calendars/{userId}_{integration}_{externalId}:
     delete:
       operationId: removeSelectedCalendarById
@@ -2690,12 +2735,13 @@ paths:
       tags:
         - selected-calendars
       responses:
-        "201":
+        "200":
           description: OK, selected-calendar removed successfully
         "400":
           description: Bad request. SelectedCalendar id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getSelectedCalendarById
       summary: Find a selected calendar by providing the
@@ -2736,6 +2782,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: SelectedCalendar was not found
     patch:
@@ -2773,12 +2820,13 @@ paths:
       tags:
         - selected-calendars
       responses:
-        "201":
+        "200":
           description: OK, selected-calendar edited successfully
         "400":
           description: Bad request. SelectedCalendar body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /teams:
     get:
       operationId: listTeams
@@ -2798,8 +2846,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No teams were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       operationId: addTeam
       summary: Creates a new team
@@ -2837,6 +2884,9 @@ paths:
           description: Bad request. Team body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "409":
+          description: Team slug already exists
   /teams/{teamId}:
     delete:
       operationId: removeTeamById
@@ -2859,12 +2909,13 @@ paths:
       tags:
         - teams
       responses:
-        "201":
+        "200":
           description: OK, team removed successfully
         "400":
           description: Bad request. Team id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       operationId: getTeamById
       summary: Find a team
@@ -2890,6 +2941,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Team was not found
     patch:
@@ -2927,12 +2979,13 @@ paths:
       tags:
         - teams
       responses:
-        "201":
+        "200":
           description: OK, team edited successfully
         "400":
           description: Bad request. Team body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /teams/{teamId}/event-types:
     get:
       summary: Find all event types that belong to teamId
@@ -2992,8 +3045,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No users were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       operationId: addUser
       summary: Creates a new user
@@ -3077,6 +3129,7 @@ paths:
           description: Bad request. user body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /users/{userId}:
     delete:
       summary: Remove an existing user
@@ -3099,12 +3152,13 @@ paths:
       tags:
         - users
       responses:
-        "201":
+        "200":
           description: OK, user removed successfuly
         "400":
           description: Bad request. User id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       summary: Find a user, returns your user if regular user.
       operationId: getUserById
@@ -3130,6 +3184,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: User was not found
     patch:
@@ -3242,8 +3297,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
-        "404":
-          description: No webhooks were found
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       summary: Creates a new webhook
       operationId: addWebhook
@@ -3272,12 +3326,14 @@ paths:
                   format: uri
                   description: The URL to subscribe to this webhook
                 eventTriggers:
-                  type: string
-                  enum:
-                    - BOOKING_CREATED
-                    - BOOKING_RESCHEDULED
-                    - BOOKING_CANCELLED
-                    - MEETING_ENDED
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - BOOKING_CREATED
+                      - BOOKING_RESCHEDULED
+                      - BOOKING_CANCELLED
+                      - MEETING_ENDED
                   description: The events which should trigger this webhook call
                 active:
                   type: boolean
@@ -3304,6 +3360,7 @@ paths:
           description: Bad request. webhook body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
   /webhooks/{id}:
     delete:
       summary: Remove an existing hook
@@ -3328,12 +3385,13 @@ paths:
       externalDocs:
         url: https://docs.cal.com/core-features/webhooks
       responses:
-        "201":
+        "200":
           description: OK, hook removed successfully
         "400":
           description: Bad request. hook id is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
     get:
       summary: Find a webhook
       operationId: getWebhookById
@@ -3361,6 +3419,7 @@ paths:
           description: OK
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           description: Webhook was not found
     patch:
@@ -3420,9 +3479,10 @@ paths:
       externalDocs:
         url: https://docs.cal.com/core-features/webhooks
       responses:
-        "201":
+        "200":
           description: OK, webhook edited successfully
         "400":
           description: Bad request. Webhook body is invalid.
         "401":
           description: Authorization information is missing or invalid.
+          $ref: "#/components/responses/ErrorUnauthorized"
