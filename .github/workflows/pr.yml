@@ -64,11 +64,6 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
-  build-without-database:
-    name: Production build (without database)
-    uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
-
   analyze:
     needs: build
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
