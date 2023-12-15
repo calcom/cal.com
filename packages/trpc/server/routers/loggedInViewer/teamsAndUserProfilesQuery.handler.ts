@@ -1,4 +1,4 @@
-import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -33,6 +33,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           team: {
             select: {
               id: true,
+              isOrganization: true,
               name: true,
               slug: true,
               metadata: true,
@@ -54,7 +55,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
   const bookerUrl = await getBookerUrl(user);
 
   const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
-  const nonOrgTeams = user.teams.filter((membership) => !isOrganization({ team: membership.team }));
+  const nonOrgTeams = user.teams.filter((membership) => !membership.team.isOrganization);
 
   return [
     {

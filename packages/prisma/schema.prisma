@@ -316,6 +316,7 @@ model Team {
   organizationSettings OrganizationSettings?
 
   @@unique([slug, parentId])
+  @@unique([slug, isOrganization])
 }
 
 model OrganizationSettings {

@@ -75,11 +75,11 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       where: { id: input.teamId },
       select: {
         isOrganization: true,
-        organzationSettings: true,
+        organizationSettings: true,
         metadata: true,
       },
     });
-    const orgMetadata = orgInfo?.organzationSettings;
+    const orgMetadata = orgInfo?.organizationSettings;
 
     if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
 
