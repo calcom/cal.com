@@ -403,7 +403,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
                         <UserAvatarGroup
-                          className="relative right-3 top-1"
+                          className="relative right-3"
                           size="sm"
                           truncateAfter={4}
                           users={type?.users ?? []}
@@ -411,7 +411,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       )}
                       {isManagedEventType && type?.children && type.children?.length > 0 && (
                         <AvatarGroup
-                          className="relative right-3 top-1"
+                          className="relative right-3"
                           size="sm"
                           truncateAfter={4}
                           items={type?.children
