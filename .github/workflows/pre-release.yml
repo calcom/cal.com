@@ -7,6 +7,45 @@ on:
       - main
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    permissions:
+      pull-requests: read
+    outputs:
+      app-store: ${{ steps.filter.outputs.app-store }}
+      embed: ${{ steps.filter.outputs.embed }}
+      embed-react: ${{ steps.filter.outputs.embed-react }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            app-store:
+              - 'apps/web/**'
+              - 'packages/app-store/**'
+              - 'playwright.config.ts'
+            embed:
+              - 'apps/web/**'
+              - 'packages/embeds/**'
+              - 'playwright.config.ts'
+            embed-react:
+              - 'apps/web/**'
+              - 'packages/embeds/**'
+              - 'playwright.config.ts'
+
+  lint:
+    name: Linters
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  build:
+    name: Production build
+    uses: ./.github/workflows/production-build.yml
+    secrets: inherit
+
   e2e-main:
     name: E2E tests
     needs: [changes, lint, build]
