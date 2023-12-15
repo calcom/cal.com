@@ -68,6 +68,8 @@ type ImageUploaderProps = {
   imageSrc?: string;
   target: string;
   triggerButtonColor?: ButtonColor;
+  uploadInstruction?: string;
+  disabled?: boolean;
 };
 
 interface FileEvent<T = Element> extends FormEvent<T> {
@@ -122,6 +124,8 @@ export default function ImageUploader({
   handleAvatarChange,
   triggerButtonColor,
   imageSrc,
+  uploadInstruction,
+  disabled = false,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -173,6 +177,7 @@ export default function ImageUploader({
         <Button
           color={triggerButtonColor ?? "secondary"}
           type="button"
+          disabled={disabled}
           data-testid="open-upload-avatar-dialog"
           className="cursor-pointer py-1 text-sm">
           {buttonMsg}
@@ -207,6 +212,9 @@ export default function ImageUploader({
               />
               {t("choose_a_file")}
             </label>
+            {uploadInstruction && (
+              <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
+            )}
           </div>
         </div>
         <DialogFooter className="relative">
