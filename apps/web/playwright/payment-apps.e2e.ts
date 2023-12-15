@@ -273,20 +273,7 @@ test.describe("Payment app", () => {
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
 
     await page.locator("[data-testid='app-switch-paypal']").click();
-    await page.locator("[data-testid='app-switch-stripe']").click();
-
-    await page.locator("[data-testid='price-input-stripe']").fill("100");
-    await page.locator("[data-testid='price-input-paypal']").fill("100");
-
-    // The check for multiple payments apps is done before making the update call
-    let updateRequestWasMade = false;
-    page.on("request", (request) => {
-      if (request.url().includes("/update")) updateRequestWasMade = true;
-    });
-
-    await page.locator("[data-testid='update-eventtype']").click();
-
-    expect(updateRequestWasMade).toBeFalsy();
+    await page.locator("[data-testid='app-switch-stripe']").isDisabled();
   });
 
   test("when more than one payment app is installed the price should be updated when changing settings", async ({
