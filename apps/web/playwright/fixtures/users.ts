@@ -474,7 +474,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           };
         })
-        .find((membership) => !membership.team?.metadata?.isOrganization);
+        .find((membership) => !membership.team.isOrganization);
       if (!membership) {
         throw new Error("No team found for user");
       }
@@ -485,10 +485,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         where: {
           userId: user.id,
           team: {
-            metadata: {
-              path: ["isOrganization"],
-              equals: true,
-            },
+            isOrganization: true,
           },
         },
         include: {
