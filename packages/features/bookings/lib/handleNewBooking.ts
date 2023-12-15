@@ -1452,6 +1452,12 @@ async function handler(
     ? await getBookerBaseUrl(eventType.team.parentId)
     : await getBookerBaseUrl(organizerOrganizationId ?? null);
 
+  const destinationCalendar = eventType.destinationCalendar
+    ? [eventType.destinationCalendar]
+    : organizerUser.destinationCalendar
+    ? [organizerUser.destinationCalendar]
+    : null;
+
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1464,7 +1470,7 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email: organizerUser.email || "Email-less",
+      email: destinationCalendar[0]?.externalId || organizerUser.email || "Email-less",
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
@@ -1475,11 +1481,7 @@ async function handler(
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
-    destinationCalendar: eventType.destinationCalendar
-      ? [eventType.destinationCalendar]
-      : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null,
+    destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: !isConfirmedByDefault,
     eventTypeId: eventType.id,
