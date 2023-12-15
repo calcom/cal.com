@@ -177,7 +177,7 @@ export interface CalendarEvent {
   hideCalendarNotes?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
-  eventTypeId?: number | null;
+  eventTypeIdeventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
   seatsShowAvailabilityCount?: boolean | null;

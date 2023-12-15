@@ -4,14 +4,15 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 
 import InstantEventController from "./InstantEventController";
 
-export const EventInstantTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
+export const EventInstantTab = ({
+  eventType,
+  isTeamEvent,
+}: Pick<EventTypeSetupProps, "eventType"> & { isTeamEvent: boolean }) => {
   const paymentAppData = getPaymentAppData(eventType);
 
   const requirePayment = paymentAppData.price > 0;
 
   return (
-    <div>
-      <InstantEventController paymentEnabled={requirePayment} eventType={eventType} />
-    </div>
+    <InstantEventController paymentEnabled={requirePayment} eventType={eventType} isTeamEvent={isTeamEvent} />
   );
 };

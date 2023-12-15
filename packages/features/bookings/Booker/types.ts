@@ -72,6 +72,7 @@ export interface BookerProps {
    * Refers to the private link from event types page.
    */
   hashedLink?: string | null;
+  isInstantMeeting?: boolean;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

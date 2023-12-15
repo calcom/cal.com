@@ -88,6 +88,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  isInstantEvent: boolean;
   length: number;
   offsetStart: number;
   description: string;
@@ -254,6 +255,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       title: eventType.title,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
+      isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
@@ -416,7 +418,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
-    instant: <EventInstantTab eventType={eventType} />,
+    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (

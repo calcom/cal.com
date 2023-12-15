@@ -1,5 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -48,6 +49,7 @@ const BookerComponent = ({
   durationConfig,
   duration,
   hashedLink,
+  isInstantMeeting = false,
 }: BookerProps) => {
   /**
    * Prioritize dateSchedule load
@@ -151,6 +153,7 @@ const BookerComponent = ({
     isTeamEvent,
     org: entity.orgSlug,
     durationConfig,
+    isInstantMeeting,
   });
 
   useEffect(() => {
@@ -222,10 +225,10 @@ const BookerComponent = ({
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
-      {bookerState !== "booking" && (
+      {bookerState !== "booking" && event.data?.isInstantEvent && (
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "3s" }}>
+          style={{ animationDelay: "2s" }}>
           <InstantBooking />
         </div>
       )}
@@ -249,22 +252,24 @@ const BookerComponent = ({
             !isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-subtle"
           )}>
           <AnimatePresence>
-            <BookerSection
-              area="header"
-              className={classNames(
-                layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
-                (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                  "bg-default dark:bg-muted sticky top-0 z-10"
-              )}>
-              <Header
-                username={username}
-                eventSlug={eventSlug}
-                enabledLayouts={bookerLayouts.enabledLayouts}
-                extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
-                isMobile={isMobile}
-                nextSlots={nextSlots}
-              />
-            </BookerSection>
+            {!isInstantMeeting && (
+              <BookerSection
+                area="header"
+                className={classNames(
+                  layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
+                  (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
+                    "bg-default dark:bg-muted sticky top-0 z-10"
+                )}>
+                <Header
+                  username={username}
+                  eventSlug={eventSlug}
+                  enabledLayouts={bookerLayouts.enabledLayouts}
+                  extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
+                  isMobile={isMobile}
+                  nextSlots={nextSlots}
+                />
+              </BookerSection>
+            )}
             <StickyOnDesktop
               key="meta"
               className={classNames(
@@ -379,6 +384,8 @@ export const Booker = (props: BookerProps) => {
 
 export const InstantBooking = () => {
   const { t } = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <div className=" bg-default border-subtle mx-2 block items-center gap-3 rounded-xl border p-[6px] text-sm shadow-sm delay-1000 sm:flex">
@@ -411,8 +418,14 @@ export const InstantBooking = () => {
         <div>{t("dont_want_to_wait")}</div>
       </div>
       <div className="mt-2 sm:mt-0">
-        {/* TODO: onClick listener that takes data from the immediate time */}
-        <Button color="primary" size="sm" className="w-full justify-center rounded-lg sm:w-auto">
+        <Button
+          color="primary"
+          onClick={() => {
+            const newPath = `${pathname}?isInstantMeeting=true`;
+            router.push(newPath);
+          }}
+          size="sm"
+          className="w-full justify-center rounded-lg sm:w-auto">
           {t("connect_now")}
         </Button>
       </div>
