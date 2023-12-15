@@ -107,11 +107,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       { value: MembershipRole.ADMIN, label: t("admin") },
       { value: MembershipRole.OWNER, label: t("owner") },
     ];
-    // If it's an organization and the user isn't the owner, remove the last element (owner) from the options.
-    // Only owners can award owner role in an organization.
+
+    // Adjust options for organizations where the user isn't the owner
     if (isOrg && !isOrgOwner) {
-      options.pop();
+      return options.filter((option) => option.value !== MembershipRole.OWNER);
     }
+
     return options;
   }, [t, isOrgOwner, isOrg]);
 
