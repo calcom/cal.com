@@ -67,16 +67,21 @@ function AdminOrgTable() {
               </Cell>
               <Cell>
                 <div className="space-x-2">
-                  {!org.metadata?.isOrganizationVerified && <Badge variant="blue">{t("unverified")}</Badge>}
-                  {!org.metadata?.isOrganizationConfigured && <Badge variant="red">{t("dns_missing")}</Badge>}
+                  {!org.organizationSettings?.isOrganizationVerified && (
+                    <Badge variant="blue">{t("unverified")}</Badge>
+                  )}
+                  {!org.organizationSettings?.isOrganizationConfigured && (
+                    <Badge variant="red">{t("dns_missing")}</Badge>
+                  )}
                 </div>
               </Cell>
               <Cell widthClassNames="w-auto">
                 <div className="flex w-full justify-end">
-                  {(!org.metadata?.isOrganizationVerified || !org.metadata?.isOrganizationConfigured) && (
+                  {(!org.organizationSettings?.isOrganizationVerified ||
+                    !org.organizationSettings?.isOrganizationConfigured) && (
                     <DropdownActions
                       actions={[
-                        ...(!org.metadata?.isOrganizationVerified
+                        ...(!org.organizationSettings?.isOrganizationVerified
                           ? [
                               {
                                 id: "accept",
@@ -102,7 +107,7 @@ function AdminOrgTable() {
                               },
                             ]
                           : []),
-                        ...(!org.metadata?.isOrganizationConfigured
+                        ...(!org.organizationSettings?.isOrganizationConfigured
                           ? [
                               {
                                 id: "dns",

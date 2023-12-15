@@ -229,7 +229,7 @@ export default function Signup({
   };
 
   return (
-    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] [--cal-brand-subtle:#9CA3AF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]">
+    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:#FFFFFF] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:#000000] dark:[--cal-brand:white]">
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
@@ -549,14 +549,16 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       team: {
         select: {
           metadata: true,
+          isOrganization: true,
           parentId: true,
           parent: {
             select: {
               slug: true,
-              metadata: true,
+              organizationSettings: true,
             },
           },
           slug: true,
+          organizationSettings: true,
         },
       },
     },
@@ -605,7 +607,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
+  const isOrganization = tokenTeam.isOrganization || tokenTeam?.parentId !== null;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganization
     ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
@@ -621,9 +623,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganization && !isValidEmail;
-  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
-    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
-    : null;
+  const parentMetaDataForSubteam = tokenTeam?.parent?.organizationSettings ?? null;
 
   return {
     props: {
@@ -637,7 +637,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
+        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ??
+          parentMetaDataForSubteam?.orgAutoAcceptEmail ??
+          null
         : null,
     },
   };
