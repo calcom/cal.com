@@ -173,7 +173,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <div className="w-full">
             <Label htmlFor="beforeBufferTime">
               {t("before_event")}
-              {shouldLockIndicator("bookingLimits")}
+              {shouldLockIndicator("beforeBufferTime")}
             </Label>
             <Controller
               name="beforeBufferTime"
@@ -209,7 +209,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           <div className="w-full">
             <Label htmlFor="afterBufferTime">
               {t("after_event")}
-              {shouldLockIndicator("bookingLimits")}
+              {shouldLockIndicator("afterBufferTime")}
             </Label>
             <Controller
               name="afterBufferTime"
