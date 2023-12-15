@@ -52,6 +52,7 @@ import {
   expectBrokenIntegrationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
   expectWorkflowToBeNotTriggered,
+  expectICalUIDAsString,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -142,7 +143,6 @@ describe("handleNewBooking", () => {
         const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           },
         });
 
@@ -163,6 +163,7 @@ describe("handleNewBooking", () => {
         });
 
         const createdBooking = await handleNewBooking(req);
+
         expect(createdBooking.responses).toContain({
           email: booker.email,
           name: booker.name,
@@ -194,6 +195,7 @@ describe("handleNewBooking", () => {
               meetingUrl: "https://UNUSED_URL",
             },
           ],
+          iCalUID: createdBooking.iCalUID,
         });
 
         // expectWorkflowToBeTriggered({organizer, emails});
@@ -201,6 +203,8 @@ describe("handleNewBooking", () => {
           calendarId: "event-type-1@google-calendar.com",
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
         });
+
+        const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
         expectSuccessfulBookingCreationEmails({
           booking: {
@@ -210,7 +214,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID,
         });
 
         expectBookingCreatedWebhookToHaveBeenFired({
@@ -291,7 +295,6 @@ describe("handleNewBooking", () => {
             create: {
               id: "GOOGLE_CALENDAR_EVENT_ID",
               uid: "MOCK_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             },
           });
 
@@ -343,6 +346,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
+            iCalUID: createdBooking.iCalUID,
           });
 
           // expectWorkflowToBeTriggered({organizer, emails});
@@ -354,6 +358,8 @@ describe("handleNewBooking", () => {
             calendarId: null,
           });
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -361,7 +367,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
@@ -442,7 +448,6 @@ describe("handleNewBooking", () => {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             },
           });
 
@@ -494,6 +499,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
+            iCalUID: createdBooking.iCalUID,
           });
 
           // expectWorkflowToBeTriggered({organizer, emails});
@@ -502,6 +508,8 @@ describe("handleNewBooking", () => {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
           });
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -509,7 +517,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -706,7 +714,6 @@ describe("handleNewBooking", () => {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             },
           });
 
@@ -758,6 +765,7 @@ describe("handleNewBooking", () => {
                 meetingUrl: "https://UNUSED_URL",
               },
             ],
+            iCalUID: createdBooking.iCalUID,
           });
 
           // expectWorkflowToBeTriggered({organizer, emails});
@@ -767,6 +775,8 @@ describe("handleNewBooking", () => {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
           });
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -774,7 +784,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1000,6 +1010,8 @@ describe("handleNewBooking", () => {
           });
           const createdBooking = await handleNewBooking(req);
 
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
           expectSuccessfulBookingCreationEmails({
             booking: {
               uid: createdBooking.uid!,
@@ -1007,8 +1019,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            // Because no calendar was involved, we don't have an ics UID
-            iCalUID: createdBooking.uid!,
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1563,11 +1574,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -1601,9 +1608,12 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
+            iCalUID: createdBooking.iCalUID,
           });
 
           // expectWorkflowToBeTriggered({organizer, emails});
+
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
           expectSuccessfulBookingCreationEmails({
             booking: {
@@ -1612,7 +1622,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
 
           expectBookingCreatedWebhookToHaveBeenFired({
@@ -1688,11 +1698,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -1726,6 +1732,7 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
+            iCalUID: createdBooking.iCalUID,
           });
 
           // expectWorkflowToBeTriggered({organizer, emails});
@@ -1875,11 +1882,7 @@ describe("handleNewBooking", () => {
           apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
         });
 
-        mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-          },
-        });
+        mockCalendarToHaveNoBusySlots("googlecalendar", {});
         await createBookingScenario(scenarioData);
 
         const createdBooking = await handleNewBooking(req);
@@ -1898,9 +1901,12 @@ describe("handleNewBooking", () => {
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
+          iCalUID: createdBooking.iCalUID,
         });
 
         // expectWorkflowToBeTriggered({organizer, emails});
+
+        const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
         expectSuccessfulBookingCreationEmails({
           booking: {
@@ -1909,7 +1915,7 @@ describe("handleNewBooking", () => {
           booker,
           organizer,
           emails,
-          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          iCalUID,
         });
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,

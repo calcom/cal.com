@@ -22,6 +22,7 @@ import office365video_config_json from "./office365video/config.json";
 import ping_config_json from "./ping/config.json";
 import plausible_config_json from "./plausible/config.json";
 import riverside_config_json from "./riverside/config.json";
+import roam_config_json from "./roam/config.json";
 import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
@@ -56,6 +57,7 @@ export const appStoreMetadata = {
   ping: ping_config_json,
   plausible: plausible_config_json,
   riverside: riverside_config_json,
+  roam: roam_config_json,
   shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
