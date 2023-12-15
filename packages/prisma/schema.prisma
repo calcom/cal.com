@@ -312,8 +312,19 @@ model Team {
   apiKeys             ApiKey[]
   credentials         Credential[]
   accessCodes         AccessCode[]
+  isOrganization      Boolean                 @default(false)
+  organzationSettings OrganizationSettings?
 
   @@unique([slug, parentId])
+}
+
+model OrganizationSettings {
+  id                       Int     @id @default(autoincrement())
+  team                     Team    @relation(fields: [teamId], references: [id])
+  teamId                   Int     @unique
+  isOrganizationConfigured Boolean @default(false)
+  isOrganizationVerified   Boolean @default(false)
+  orgAutoAcceptEmail       String
 }
 
 enum MembershipRole {
