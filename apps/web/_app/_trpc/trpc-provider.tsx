@@ -1,6 +1,6 @@
 import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HydrateClient } from "app/_trpc/HydrateClient";
-import { trpc } from "app/_trpc/client";
+import { HydrateClient } from "_app/_trpc/HydrateClient";
+import { trpc } from "_app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
