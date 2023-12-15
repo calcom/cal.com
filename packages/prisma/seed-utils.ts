@@ -151,27 +151,14 @@ export async function createUserAndEventType({
   console.log("👤 User with it's event-types and bookings created", theUser.email);
 
   if (credentials) {
-    console.log("🚀 ~ file: seed-utils.ts:154 ~ credentials:", credentials);
     for (const credential of credentials) {
       if (credential) {
-        const createdCredential = await prisma.credential.create({
+        await prisma.credential.create({
           data: {
             ...credential,
             userId: theUser.id,
           },
         });
-        console.log("🚀 ~ file: seed-utils.ts:163 ~ createdCredential:", createdCredential);
-
-        const credentials = await prisma.credential.findMany({
-          include: {
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        });
-        console.log("🚀 ~ file: seed-utils.ts:174 ~ credentials:", credentials);
 
         console.log(`🔑 ${credential.type} credentials created for ${theUser.email}`);
       }

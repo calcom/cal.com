@@ -21,7 +21,6 @@ export const createBookingAndFetchGCalEvent = async (
   qaUsername: string
 ) => {
   await page.goto(`/${qaUsername}/15min`);
-  // await page.waitForSelector('[data-testid="avatar"]');
   await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
   await page.waitForNavigation({ state: "networkidle" });
@@ -29,7 +28,6 @@ export const createBookingAndFetchGCalEvent = async (
 
   const bookingUrl = await page.url();
   const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
-  console.log("🚀 ~ file: testUtils.ts:30 ~ bookingUid:", bookingUid);
   assertValueExists(bookingUid, "bookingUid");
 
   const [gCalReference, booking] = await Promise.all([
@@ -69,7 +67,6 @@ export const createBookingAndFetchGCalEvent = async (
     }),
   ]);
   assertValueExists(gCalReference, "gCalReference");
-  console.log("🚀 ~ file: testUtils.ts:110 ~ gCalReference:", gCalReference);
 
   assertValueExists(booking, "booking");
 
@@ -89,8 +86,6 @@ export const createBookingAndFetchGCalEvent = async (
 
   expect(refreshedCredential).toBeTruthy();
 
-  console.log("🚀 ~ file: testUtils.ts:102 ~ gCalReference.uid:", gCalReference.uid);
-
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   const googleCalendarService = new GoogleCalendarService(refreshedCredential);
@@ -103,7 +98,6 @@ export const createBookingAndFetchGCalEvent = async (
     //@ts-ignore
     eventId: gCalReference.uid,
   });
-  // console.log("🚀 ~ file: testUtils.ts:102 ~ gCalEventResponse:", gCalEventResponse.data);
 
   expect(gCalEventResponse.status).toBe(200);
 
