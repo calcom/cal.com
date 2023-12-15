@@ -1,6 +1,4 @@
-import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
-import { sendSendgridMail } from "ee/workflows/lib/reminders/smsProviders/sendgridProvider";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
 import type { DateArray } from "ics";
@@ -20,24 +18,13 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
-
-async function getBatchId() {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
-    return "DUMMY_BATCH_ID";
-  }
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
-  return batchIdResponse[1].batch_id as string;
-}
 
 function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   const uid = uuidv4();

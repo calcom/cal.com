@@ -1,6 +1,5 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
 import client from "@sendgrid/client";
-import { sendSendgridMail } from "ee/workflows/lib/reminders/smsProviders/sendgridProvider";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
@@ -20,6 +19,7 @@ import {
   getAllUnscheduledReminders,
 } from "../lib/getWorkflowReminders";
 import { getiCalEventAsString } from "../lib/getiCalEventAsString";
+import { sendSendgridMail } from "../lib/reminders/providers/sendgridProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";

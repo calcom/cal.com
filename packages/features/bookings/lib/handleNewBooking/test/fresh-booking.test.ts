@@ -71,7 +71,7 @@ describe("handleNewBooking", () => {
           1. Should create a booking in the database
           2. Should send emails to the booker as well as organizer
           3. Should create a booking in the event's destination calendar
-          3. Should trigger BOOKING_CREATED webhook
+          4. Should trigger BOOKING_CREATED webhook
     `,
       async ({ emails, org }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2098,6 +2098,15 @@ describe("handleNewBooking", () => {
                 active: true,
                 eventTypeId: 1,
                 appId: null,
+              },
+            ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_ATTENDEE",
+                template: "REMINDER",
+                activeEventTypeId: 1,
               },
             ],
             eventTypes: [
