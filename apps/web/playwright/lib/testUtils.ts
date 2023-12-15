@@ -337,4 +337,6 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.click(".SubmitButton--complete-Shimmer");
 }
 
+// When App directory is there, this is the 404 page text. It is commented till it's disabled
+// export const NotFoundPageText = "This page could not be found";
 export const NotFoundPageText = "ERROR 404";
