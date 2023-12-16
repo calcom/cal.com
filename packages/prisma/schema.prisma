@@ -280,20 +280,20 @@ model Team {
   /// @zod.min(1)
   name                 String
   /// @zod.min(1)
-  slug                String?
-  logo                String?
-  logoUrl             String?
-  calVideoLogo        String?
-  appLogo             String?
-  appIconLogo         String?
-  bio                 String?
-  hideBranding        Boolean                 @default(false)
-  isPrivate           Boolean                 @default(false)
-  hideBookATeamMember Boolean                 @default(false)
-  members             Membership[]
-  eventTypes          EventType[]
-  workflows           Workflow[]
-  createdAt           DateTime                @default(now())
+  slug                 String?
+  logo                 String?
+  logoUrl              String?
+  calVideoLogo         String?
+  appLogo              String?
+  appIconLogo          String?
+  bio                  String?
+  hideBranding         Boolean                 @default(false)
+  isPrivate            Boolean                 @default(false)
+  hideBookATeamMember  Boolean                 @default(false)
+  members              Membership[]
+  eventTypes           EventType[]
+  workflows            Workflow[]
+  createdAt            DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata             Json?
   theme                String?
