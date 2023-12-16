@@ -24,7 +24,8 @@ import type { Booking, createLoggerWithEventDetails } from "../handleNewBooking"
 import lastAttendeeDeleteBooking from "./lib/lastAttendeeDeleteBooking";
 
 const handleRescheduledSeatedEvent = async (
-  seatedEventObject: NewSeatedBookingObject,
+  // If this function is being called then rescheduleUid is defined
+  seatedEventObject: NewSeatedBookingObject & { rescheduleUid: string },
   seatedBooking: SeatedBooking,
   resultBooking: HandleSeatsResultBooking | null,
   loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
