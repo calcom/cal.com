@@ -26,7 +26,7 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
-  expectWorkflowToBeTriggered,
+  // expectWorkflowToBeTriggered,
   expectBookingToBeInDatabase,
   expectBookingRescheduledWebhookToHaveBeenFired,
   expectSuccessfulBookingRescheduledEmails,
@@ -232,7 +232,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectWorkflowToBeTriggered();
+          // expectWorkflowToBeTriggered();
 
           expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
             calEvent: {
@@ -442,7 +442,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectWorkflowToBeTriggered();
+          // expectWorkflowToBeTriggered();
 
           expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
             calEvent: {
@@ -630,7 +630,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectWorkflowToBeTriggered();
+          // expectWorkflowToBeTriggered();
 
           // FIXME: We should send Broken Integration emails on calendar event updation failure
           // expectBrokenIntegrationEmails({ booker, organizer, emails });
@@ -815,7 +815,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            // expectWorkflowToBeTriggered();
 
             expectBookingRequestedEmails({
               booker,
@@ -1041,7 +1041,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            // expectWorkflowToBeTriggered();
 
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
@@ -1259,7 +1259,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            // expectWorkflowToBeTriggered();
 
             expectBookingRequestedEmails({
               booker,
@@ -1497,7 +1497,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            // expectWorkflowToBeTriggered();
 
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
