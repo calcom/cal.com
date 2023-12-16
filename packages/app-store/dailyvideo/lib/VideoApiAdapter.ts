@@ -148,7 +148,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createInstantMeeting(endTime: string) {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
-    const { scale_plan: scalePlan } = await getDailyAppKeys();
+
     const body = {
       privacy: "public",
       properties: {
@@ -157,11 +157,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
+        enable_recording: "cloud",
       },
     };
-    if (scalePlan === "true") {
-      body.properties = { ...body.properties, enable_recording: "cloud" };
-    }
 
     const dailyEvent = await postToDailyAPI("/rooms", body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
