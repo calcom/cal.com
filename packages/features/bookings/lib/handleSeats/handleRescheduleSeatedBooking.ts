@@ -1,4 +1,8 @@
-import type { NewSeatedBookingObject, SeatedBooking } from "bookings/lib/handleSeats/types";
+import type {
+  HandleSeatsResultBooking,
+  NewSeatedBookingObject,
+  SeatedBooking,
+} from "bookings/lib/handleSeats/types";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
@@ -17,17 +21,18 @@ import {
   findBookingQuery,
 } from "../handleNewBooking";
 import type { Booking, createLoggerWithEventDetails } from "../handleNewBooking";
+import lastAttendeeDeleteBooking from "./lib/lastAttendeeDeleteBooking";
 
 const handleRescheduledSeatedEvent = async (
   seatedEventObject: NewSeatedBookingObject,
   seatedBooking: SeatedBooking,
+  resultBooking: HandleSeatsResultBooking | null,
   loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
 ) => {
   const {
     eventType,
     allCredentials,
     organizerUser,
-    originalRescheduledBooking,
     bookerEmail,
     tAttendees,
     bookingSeat,
@@ -41,7 +46,7 @@ const handleRescheduledSeatedEvent = async (
     attendeeLanguage,
   } = seatedEventObject;
 
-  let { evt } = seatedEventObject;
+  let { evt, originalRescheduledBooking } = seatedEventObject;
 
   // See if the new date has a booking already
   const newTimeSlotBooking = await prisma.booking.findFirst({
@@ -412,6 +417,8 @@ const handleRescheduledSeatedEvent = async (
 
     resultBooking = { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
   }
+
+  return resultBooking;
 };
 
 export default handleRescheduledSeatedEvent;
