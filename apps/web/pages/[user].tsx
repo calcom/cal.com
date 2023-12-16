@@ -2,6 +2,7 @@ import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { stringify } from "querystring";
 import { Toaster } from "react-hot-toast";
 import type { z } from "zod";
 
@@ -391,10 +392,16 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   // if profile only has one public event-type, redirect to it
   if (eventTypes.length === 1 && context.query.redirect !== "false") {
+    const {
+      // So it doesn't display in the Link
+      user: _user,
+      ...query
+    } = context.query;
+
     return {
       redirect: {
         permanent: false,
-        destination: `/${user.username}/${eventTypes[0].slug}`,
+        destination: `/${user.username}/${eventTypes[0].slug}?${stringify(query)}`,
       },
     };
   }
