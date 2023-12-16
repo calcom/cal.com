@@ -1,6 +1,9 @@
 -- AlterTable
 ALTER TABLE "Team" ADD COLUMN     "isOrganization" BOOLEAN NOT NULL DEFAULT false;
 
+-- We can now add a unique constraint between slug and isOrganization
+CREATE UNIQUE INDEX "Team_slug_isOrganization_key" ON "Team"("slug", "isOrganization");
+
 -- CreateTable
 CREATE TABLE "OrganizationSettings" (
     "id" SERIAL NOT NULL,
