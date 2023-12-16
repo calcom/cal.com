@@ -75,4 +75,4 @@ export type NewTimeSlotBooking = Prisma.BookingGetPayload<{
       };
     };
   };
-}> | null;
+}>;
