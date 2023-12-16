@@ -168,6 +168,11 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
     },
   });
 
+  const buttonStyle = {
+    backgroundColor: "#ffffff", // Set your desired background color
+    color: "#ffffff", // Set your desired text color
+  };
+
   const displaySSOLogin = HOSTED_CAL_FEATURES
     ? true
     : isSAMLLoginEnabled && !isLoading && data?.connectionExists;
@@ -229,6 +234,11 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
+                style={{
+                  backgroundColor: "#ffffff", // White background
+                  color: "#000000", // Black text color
+                  position: "relative", // Required for the loading spinner
+                }}
                 className="w-full justify-center">
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
