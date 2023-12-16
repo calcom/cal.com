@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
@@ -9,6 +8,7 @@ import { test } from "./lib/fixtures";
 import {
   NotFoundPageText,
   bookTimeSlot,
+  doOnOrgDomain,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
@@ -459,16 +459,3 @@ test.describe("Teams - Org", () => {
     await page.waitForSelector("[data-testid=day]");
   });
 });
-
-async function doOnOrgDomain(
-  { orgSlug, page }: { orgSlug: string | null; page: Page },
-  callback: ({ page }: { page: Page }) => Promise<void>
-) {
-  if (!orgSlug) {
-    throw new Error("orgSlug is not available");
-  }
-  page.setExtraHTTPHeaders({
-    "x-cal-force-slug": orgSlug,
-  });
-  await callback({ page });
-}
