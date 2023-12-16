@@ -168,11 +168,6 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
     },
   });
 
-  const buttonStyle = {
-    backgroundColor: "#ffffff", // Set your desired background color
-    color: "#ffffff", // Set your desired text color
-  };
-
   const displaySSOLogin = HOSTED_CAL_FEATURES
     ? true
     : isSAMLLoginEnabled && !isLoading && data?.connectionExists;
