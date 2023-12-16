@@ -22,7 +22,31 @@ import handleRescheduledSeatedBooking from "./handleRescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
 
 const handleSeats = async (seatedEventObject: NewSeatedBookingObject) => {
-  const { eventType, reqBodyUser, rescheduleUid, reqBookingUid, evt, invitee } = seatedEventObject;
+  const {
+    eventType,
+    reqBodyUser,
+    rescheduleUid,
+    reqBookingUid,
+    invitee,
+    tAttendees,
+    attendeeLanguage,
+    additionalNotes,
+    noEmail,
+    allCredentials,
+    organizerUser,
+    paymentAppData,
+    fullName,
+    bookerEmail,
+    smsReminderNumber,
+    eventTypeInfo,
+    uid,
+    originalRescheduledBooking,
+    reqBodyMetadata,
+    eventTypeId,
+    subscriberOptions,
+    eventTrigger,
+  } = seatedEventObject;
+  let { evt } = seatedEventObject;
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;

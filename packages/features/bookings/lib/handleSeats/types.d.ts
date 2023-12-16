@@ -7,8 +7,8 @@ import type { Booking } from "../handleNewBooking";
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 
 export type NewSeatedBookingObject = {
-  rescheduleUid: string;
-  reqBookingUid: string;
+  rescheduleUid: string | undefined;
+  reqBookingUid: string | undefined;
   eventType: NewBookingEventType;
   evt: CalendarEvent;
   invitee: Invitee;
