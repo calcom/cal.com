@@ -19,8 +19,6 @@ export const Handler = async ({ ctx, input }: Options) => {
   const { user } = ctx;
   const isLoggedInUserPartOfOrg = !!user.organization.id;
 
-  throw new TRPCError({ code: "BAD_REQUEST", message: "token_invalid_expired" });
-
   if (!isLoggedInUserPartOfOrg) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Logged in user is not member of Organization" });
   }
@@ -54,22 +52,15 @@ export const Handler = async ({ ctx, input }: Options) => {
     },
   });
 
-  console.log("instantMeetingToken", instantMeetingToken);
-
   // Check if logged in user belong to current team
   if (!instantMeetingToken) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "token_not_found" });
   }
 
-  if (!instantMeetingToken?.booking?.id) {
+  if (!instantMeetingToken.booking?.id) {
     throw new TRPCError({ code: "FORBIDDEN", message: "token_invalid_expired" });
   }
-  console.log(
-    "instantMeetingToken.expires",
-    instantMeetingToken.expires,
-    new Date(),
-    instantMeetingToken.expires < new Date()
-  );
+
   // Check if token has not expired
   if (instantMeetingToken.expires < new Date()) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "token_invalid_expired" });

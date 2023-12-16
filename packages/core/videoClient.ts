@@ -223,7 +223,7 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
       invalid: false,
     },
   ]);
-  return videoAdapter?.createInstantCalVideoRoom(endTime);
+  return videoAdapter?.createInstantCalVideoRoom?.(endTime);
 };
 
 const getRecordingsOfCalVideoByRoomName = async (
