@@ -46,8 +46,8 @@ export async function addSubscription({
     });
 
     if (
-      triggerEvent === WebhookTriggerEvents.MEETING_ENDED
-      // || triggerEvent === WebhookTriggerEvents.MEETING_STARTED
+      triggerEvent === WebhookTriggerEvents.MEETING_ENDED ||
+      triggerEvent === WebhookTriggerEvents.MEETING_STARTED
     ) {
       //schedule job for already existing bookings
       const where: Prisma.BookingWhereInput = {};
