@@ -37,7 +37,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
-  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata, true);
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
 
   const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 

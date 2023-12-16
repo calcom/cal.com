@@ -37,7 +37,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
-  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata, true);
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
 
   const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
@@ -85,7 +85,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           <>
             <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
-                data-testid="price-input-stripe"
+                data-testid="stripe-price-input"
                 label={t("price")}
                 className="h-[38px]"
                 addOnLeading={

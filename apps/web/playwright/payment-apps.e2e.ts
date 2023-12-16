@@ -80,8 +80,8 @@ test.describe("Payment app", () => {
     await page.getByTestId("stripe-currency-select").click();
     await page.getByTestId("select-option-usd").click();
 
-    await page.getByTestId("price-input-stripe").click();
-    await page.getByTestId("price-input-stripe").fill("350");
+    await page.getByTestId("stripe-price-input").click();
+    await page.getByTestId("stripe-price-input").fill("350");
     await page.getByTestId("update-eventtype").click();
 
     await page.goto(`${user.username}/${paymentEvent.slug}`);
@@ -272,8 +272,8 @@ test.describe("Payment app", () => {
 
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
 
-    await page.locator("[data-testid='app-switch-paypal']").click();
-    await page.locator("[data-testid='app-switch-stripe']").isDisabled();
+    await page.locator("[data-testid='paypal-app-switch']").click();
+    await page.locator("[data-testid='stripe-app-switch']").isDisabled();
   });
 
   test("when more than one payment app is installed the price should be updated when changing settings", async ({
@@ -317,12 +317,12 @@ test.describe("Payment app", () => {
 
     await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
 
-    await page.locator("[data-testid='app-switch-paypal']").click();
-    await page.locator("[data-testid='price-input-paypal']").fill("100");
-    await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
+    await page.locator("[data-testid='paypal-app-switch']").click();
+    await page.locator("[data-testid='paypal-price-input']").fill("100");
+    await page.locator("[data-testid='paypal-currency-select']").first().click();
     await page.locator("#react-select-2-option-13").click();
-    await page.locator(".mb-1 > .bg-default > div > div:nth-child(2)").first().click();
-    await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
+    // await page.locator(".mb-1 > .bg-default > div > div:nth-child(2)").first().click();
+    // await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
     await page.locator("[data-testid='update-eventtype']").click();
 
     // Need to wait for the DB to be updated
@@ -339,9 +339,9 @@ test.describe("Payment app", () => {
 
     expect(paypalPrice?.price).toEqual(10000);
 
-    await page.locator("[data-testid='app-switch-paypal']").click();
-    await page.locator("[data-testid='app-switch-stripe']").click();
-    await page.locator("[data-testid='price-input-stripe']").fill("200");
+    await page.locator("[data-testid='paypal-app-switch']").click();
+    await page.locator("[data-testid='stripe-app-switch']").click();
+    await page.locator("[data-testid='stripe-price-input']").fill("200");
     await page.locator("[data-testid='update-eventtype']").click();
 
     // Need to wait for the DB to be updated

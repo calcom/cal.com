@@ -43,7 +43,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
-  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata, true);
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
 
   const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
@@ -87,7 +87,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                   required
                   className="block w-full rounded-sm pl-2 text-sm"
                   placeholder="Price"
-                  data-testid="price-input-paypal"
+                  data-testid="paypal-price-input"
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
                     if (selectedCurrency) {

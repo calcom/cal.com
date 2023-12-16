@@ -104,7 +104,7 @@ export default function AppCard({
                   }}
                   checked={switchChecked}
                   LockedIcon={LockedIcon}
-                  data-testId={`app-switch-${app.slug}`}
+                  data-testId={`${app.slug}-app-switch`}
                   tooltip={switchTooltip}
                 />
               </div>
