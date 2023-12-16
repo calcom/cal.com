@@ -95,7 +95,7 @@ export const validateAndGetCorrectedUsernameInTeam = async (
         metadata: true,
         isOrganization: true,
         parentId: true,
-        organzationSettings: true,
+        organizationSettings: true,
       },
     });
 
@@ -106,7 +106,7 @@ export const validateAndGetCorrectedUsernameInTeam = async (
         username,
         email,
         organizationId: orgId,
-        orgAutoAcceptEmail: team?.organzationSettings?.orgAutoAcceptEmail || "",
+        orgAutoAcceptEmail: team?.organizationSettings?.orgAutoAcceptEmail || "",
         isSignup,
       });
     } else {
