@@ -36,10 +36,6 @@ export function sendSendgridMail(
   addData: { sender?: string | null; includeCalendarEvent?: boolean }
 ) {
   assertSendgrid();
-  if (!sendgridAPIKey) {
-    console.info("No sendgrid API key provided, skipping email");
-    return Promise.resolve();
-  }
 
   const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE ? true : false;
   if (testMode) {
@@ -59,6 +55,11 @@ export function sendSendgridMail(
     );
 
     return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
+  }
+
+  if (!sendgridAPIKey) {
+    console.info("No sendgrid API key provided, skipping email");
+    return Promise.resolve();
   }
 
   return sgMail.send({
