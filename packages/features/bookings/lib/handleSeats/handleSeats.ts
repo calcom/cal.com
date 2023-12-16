@@ -18,10 +18,10 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { refreshCredentials, createLoggerWithEventDetails, findBookingQuery } from "../handleNewBooking";
 import type { IEventTypePaymentCredentialType } from "../handleNewBooking";
-import handleRescheduledSeatedBooking from "./handleRescheduleSeatedBooking";
+import handleRescheduledSeatedBooking from "./reschedule/handleRescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
 
-const handleSeats = async (seatedEventObject: NewSeatedBookingObject) => {
+const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const {
     eventType,
     reqBodyUser,
@@ -45,8 +45,8 @@ const handleSeats = async (seatedEventObject: NewSeatedBookingObject) => {
     eventTypeId,
     subscriberOptions,
     eventTrigger,
-  } = seatedEventObject;
-  let { evt } = seatedEventObject;
+  } = newSeatedBookingObject;
+  let { evt } = newSeatedBookingObject;
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;
@@ -94,7 +94,8 @@ const handleSeats = async (seatedEventObject: NewSeatedBookingObject) => {
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {
     resultBooking = await handleRescheduledSeatedBooking(
-      seatedEventObject,
+      // Assert that the rescheduleUid is defined
+      { ...newSeatedBookingObject, rescheduleUid },
       seatedBooking,
       resultBooking,
       loggerWithEventDetails

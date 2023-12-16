@@ -37,6 +37,8 @@ export type NewSeatedBookingObject = {
   eventTrigger: WebhookTriggerEvents;
 };
 
+export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };
+
 export type SeatedBooking = Prisma.BookingGetPayload<{
   select: {
     uid: true;
@@ -62,3 +64,15 @@ export type HandleSeatsResultBooking =
       paymentId?: number;
     })
   | null;
+
+export type NewTimeSlotBooking = Prisma.BookingGetPayload<{
+  select: {
+    id: true;
+    uid: true;
+    attendees: {
+      include: {
+        bookingSeat: true;
+      };
+    };
+  };
+}> | null;
