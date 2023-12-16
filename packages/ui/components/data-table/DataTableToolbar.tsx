@@ -42,7 +42,7 @@ export function DataTableToolbar<TData>({
           className="max-w-64 mb-0 mr-auto rounded-md"
           placeholder="Search"
           value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value)}
+          onChange={(event) => table.getColumn(searchKey)?.setFilterValue(event.target.value.trim())}
         />
       )}
       {isFiltered && (
