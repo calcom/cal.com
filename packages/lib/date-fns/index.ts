@@ -235,9 +235,5 @@ export const isInDST = (date: Dayjs) => {
 export function getUTCOffsetByTimezone(timeZone: string) {
   if (!timeZone) return null;
 
-  if (timeZoneWithDST(timeZone)) {
-    return getUTCOffsetInDST(timeZone);
-  }
-
   return dayjs().tz(timeZone).utcOffset();
 }
