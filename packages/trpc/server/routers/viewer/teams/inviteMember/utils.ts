@@ -53,7 +53,7 @@ export function checkInputEmailIsValid(email: string) {
     });
 }
 
-export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
+export async function getTeamOrThrow(teamId: number) {
   const team = await prisma.team.findFirst({
     where: {
       id: teamId,
@@ -69,7 +69,10 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   });
 
   if (!team)
-    throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: `Team not found`,
+    });
 
   return team;
 }
@@ -384,25 +387,23 @@ export async function sendVerificationEmail({
   }
 }
 
-type TeamAndOrganizationSettings =
-  | (Team & {
-      organzationSettings: OrganizationSettings | null;
-    })
-  | null;
+type TeamAndOrganizationSettings = Team & {
+  organizationSettings?: OrganizationSettings | null;
+};
 
 export function getIsOrgVerified(
   isOrg: boolean,
   team: TeamAndOrganizationSettings & {
-    parent: TeamAndOrganizationSettings;
+    parent: TeamAndOrganizationSettings | null;
   }
 ) {
-  const parentSettings = team.parent?.organzationSettings;
+  const parentSettings = team.parent?.organizationSettings;
 
-  if (isOrg && team.organzationSettings?.orgAutoAcceptEmail) {
+  if (isOrg && team.organizationSettings?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
-      orgVerified: team.organzationSettings.isOrganizationVerified,
-      autoAcceptEmailDomain: team.organzationSettings.orgAutoAcceptEmail,
+      orgVerified: team.organizationSettings.isOrganizationVerified,
+      autoAcceptEmailDomain: team.organizationSettings.orgAutoAcceptEmail,
     };
   } else if (parentSettings?.orgAutoAcceptEmail) {
     return {

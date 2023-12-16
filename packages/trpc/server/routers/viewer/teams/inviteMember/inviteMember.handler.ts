@@ -33,15 +33,17 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
   });
+  const team = await getTeamOrThrow(input.teamId);
+
+  const isOrg = team.isOrganization;
   await checkPermissions({
     userId: ctx.user.id,
     teamId:
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
-    isOrg: input.isOrg,
+    isOrg,
   });
 
-  const team = await getTeamOrThrow(input.teamId, input.isOrg);
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
+  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
@@ -51,13 +53,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         orgAutoAcceptDomain: autoAcceptEmailDomain,
         usersEmail: usernameOrEmail,
         team,
-        isOrg: input.isOrg,
+        isOrg: isOrg,
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
   const existingUsersWithMembersips = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
-    isInvitedToOrg: input.isOrg,
+    isInvitedToOrg: isOrg,
     team,
   });
   const existingUsersEmailsAndUsernames = existingUsersWithMembersips.reduce(
@@ -125,7 +127,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         currentUserTeamName: team?.name,
         existingUsersWithMembersips: regularUsers,
         language: translation,
-        isOrg: input.isOrg,
+        isOrg: isOrg,
         teamId: team.id,
       });
     }
