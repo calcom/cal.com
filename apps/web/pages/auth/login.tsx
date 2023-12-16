@@ -229,6 +229,11 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                 type="submit"
                 color="primary"
                 disabled={formState.isSubmitting}
+                style={{
+                  backgroundColor: "#ffffff", // White background
+                  color: "#000000", // Black text color
+                  position: "relative", // Required for the loading spinner
+                }}
                 className="w-full justify-center">
                 {twoFactorRequired ? t("submit") : t("sign_in")}
               </Button>
