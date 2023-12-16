@@ -173,7 +173,7 @@ export const BookEventFormChild = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
-  const [expiryTime, setExpiryTime] = useState<string | undefined>();
+  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
 
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
@@ -473,7 +473,7 @@ export const BookEventFormChild = ({
   );
 };
 
-const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: string }) => {
+const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) => {
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
