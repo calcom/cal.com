@@ -433,6 +433,8 @@ model Booking {
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
   isRecorded            Boolean              @default(false)
+  iCalUID               String?              @default("")
+  iCalSequence          Int                  @default(0)
 
   @@index([eventTypeId])
   @@index([userId])

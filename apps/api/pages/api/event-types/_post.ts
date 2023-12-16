@@ -3,8 +3,10 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { MembershipRole } from "@calcom/prisma/client";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
@@ -316,7 +318,13 @@ async function checkPermissions(req: NextApiRequest) {
       statusCode: 401,
       message: "ADMIN required for `userId`",
     });
-  if (!isAdmin && body.teamId)
+  if (
+    body.teamId &&
+    !isAdmin &&
+    !(await canUserAccessTeamWithRole(req.prisma, req.userId, isAdmin, body.teamId, {
+      in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    }))
+  )
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `teamId`",
