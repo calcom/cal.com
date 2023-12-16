@@ -76,3 +76,5 @@ export type NewTimeSlotBooking = Prisma.BookingGetPayload<{
     };
   };
 }>;
+
+export type SeatAttendee = Partial<Person>;

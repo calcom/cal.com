@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma";
 
 export async function maybeGetBookingUidFromSeat(prisma: PrismaClient, uid: string) {
+  console.log("🚀 ~ file: maybeGetBookingUidFromSeat.ts:4 ~ maybeGetBookingUidFromSeat ~ uid:", uid);
   // Look bookingUid in bookingSeat
   const bookingSeat = await prisma.bookingSeat.findUnique({
     where: {
@@ -15,6 +16,10 @@ export async function maybeGetBookingUidFromSeat(prisma: PrismaClient, uid: stri
       },
     },
   });
+  console.log(
+    "🚀 ~ file: maybeGetBookingUidFromSeat.ts:18 ~ maybeGetBookingUidFromSeat ~ bookingSeat:",
+    bookingSeat
+  );
   if (bookingSeat) return { uid: bookingSeat.booking.uid, seatReferenceUid: uid };
   return { uid };
 }

@@ -2,6 +2,7 @@ import type {
   HandleSeatsResultBooking,
   SeatedBooking,
   RescheduleSeatedBookingObject,
+  SeatAttendee,
 } from "bookings/lib/handleSeats/types";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -134,7 +135,7 @@ const handleRescheduledSeatedEvent = async (
   }
 
   // seatAttendee is null when the organizer is rescheduling.
-  const seatAttendee: Partial<Person> | null = bookingSeat?.attendee || null;
+  const seatAttendee: SeatAttendee | null = bookingSeat?.attendee || null;
   if (seatAttendee) {
     seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
 
