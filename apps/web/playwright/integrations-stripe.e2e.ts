@@ -264,7 +264,7 @@ test.describe("Stripe integration", () => {
       await page.locator("#event-type-form").getByRole("switch").click();
 
       // Set price
-      await page.getByTestId("price-input-stripe").fill("200");
+      await page.getByTestId("stripe-price-input").fill("200");
 
       // Select currency in dropdown
       await page.getByTestId("stripe-currency-select").click();
