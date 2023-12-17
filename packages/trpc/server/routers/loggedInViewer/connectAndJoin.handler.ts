@@ -1,7 +1,13 @@
+import { sendScheduledEmails } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -22,6 +28,8 @@ export const Handler = async ({ ctx, input }: Options) => {
   if (!isLoggedInUserPartOfOrg) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Logged in user is not member of Organization" });
   }
+
+  const tOrganizer = await getTranslation(user?.locale ?? "en", "common");
 
   const instantMeetingToken = await prisma.instantMeetingToken.findUnique({
     select: {
@@ -93,8 +101,41 @@ export const Handler = async ({ ctx, input }: Options) => {
           }),
     },
     select: {
-      location: true,
+      title: true,
+      description: true,
+      customInputs: true,
+      startTime: true,
+      references: true,
+      endTime: true,
+      attendees: true,
+      eventTypeId: true,
+      responses: true,
       metadata: true,
+      eventType: {
+        select: {
+          id: true,
+          owner: true,
+          teamId: true,
+          title: true,
+          slug: true,
+          requiresConfirmation: true,
+          currency: true,
+          length: true,
+          description: true,
+          price: true,
+          bookingFields: true,
+          disableGuests: true,
+          metadata: true,
+          customInputs: true,
+          parentId: true,
+        },
+      },
+      location: true,
+      userId: true,
+      id: true,
+      uid: true,
+      status: true,
+      scheduledJobs: true,
     },
   });
 
@@ -104,8 +145,74 @@ export const Handler = async ({ ctx, input }: Options) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "meeting_url_not_found" });
   }
 
-  // TODO:
-  // Send Email to all Attendees and Create Calendar Events
+  const videoCallReference = updatedBooking.references.find((reference) => reference.type.includes("_video"));
+  const videoCallData = {
+    type: videoCallReference?.type,
+    id: videoCallReference?.meetingId,
+    password: videoCallReference?.meetingPassword,
+    url: videoCallReference?.meetingUrl,
+  };
+
+  const { eventType } = updatedBooking;
+
+  // Send Scheduled Email to Organizer and Attendees
+
+  const translations = new Map();
+  const attendeesListPromises = updatedBooking.attendees.map(async (attendee) => {
+    const locale = attendee.locale ?? "en";
+    let translate = translations.get(locale);
+    if (!translate) {
+      translate = await getTranslation(locale, "common");
+      translations.set(locale, translate);
+    }
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate,
+        locale,
+      },
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
+
+  const evt: CalendarEvent = {
+    type: updatedBooking?.eventType?.slug as string,
+    title: updatedBooking.title,
+    description: updatedBooking.description,
+    ...getCalEventResponses({
+      bookingFields: eventType?.bookingFields ?? null,
+      booking: updatedBooking,
+    }),
+    customInputs: isPrismaObjOrUndefined(updatedBooking.customInputs),
+    startTime: updatedBooking.startTime.toISOString(),
+    endTime: updatedBooking.endTime.toISOString(),
+    organizer: {
+      email: user.email,
+      name: user.name || "Unnamed",
+      username: user.username || undefined,
+      timeZone: user.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
+      language: { translate: tOrganizer, locale: user.locale ?? "en" },
+    },
+    attendees: attendeesList,
+    location: updatedBooking.location ?? "",
+    uid: updatedBooking.uid,
+    requiresConfirmation: false,
+    eventTypeId: eventType?.id,
+    videoCallData,
+  };
+
+  await sendScheduledEmails(
+    {
+      ...evt,
+    },
+    undefined,
+    false,
+    false
+  );
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };
 };
