@@ -127,6 +127,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         language: translation,
         isOrg: input.isOrg,
         teamId: team.id,
+        currentUserParentTeamName: team?.parent?.name,
       });
     }
   }
