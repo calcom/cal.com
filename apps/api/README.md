@@ -88,6 +88,7 @@ Since this is an API only project, we don't want to have to type /api/ in all th
 Likewise, v1 is added as param query called version to final /api call so we don't duplicate endpoints in the future for versioning if needed.
 
 ### Transpiling locally shared monorepo modules
+ok
 
 We're calling several packages from monorepo, this need to be transpiled before building since are not available as regular npm packages. That's what withTM does.
 
