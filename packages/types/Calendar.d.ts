@@ -160,12 +160,14 @@ export interface CalendarEvent {
   team?: {
     name: string;
     members: TeamMember[];
+    id: number;
   };
   location?: string | null;
   conferenceCredentialId?: number;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  bookingId?: number;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
   requiresConfirmation?: boolean | null;
@@ -183,6 +185,7 @@ export interface CalendarEvent {
   seatsPerTimeSlot?: number | null;
   schedulingType?: SchedulingType | null;
   iCalUID?: string | null;
+  iCalSequence?: number | null;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;

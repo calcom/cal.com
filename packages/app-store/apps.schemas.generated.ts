@@ -11,9 +11,11 @@ import { appDataSchema as giphy_zod_ts } from "./giphy/zod";
 import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as make_zod_ts } from "./make/zod";
+import { appDataSchema as matomo_zod_ts } from "./matomo/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
@@ -23,6 +25,7 @@ import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
 import { appDataSchema as slack_zod_ts } from "./slack/zod";
+import { appDataSchema as shimmervideo_zod_ts } from "./shimmervideo/zod";
 import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
@@ -46,9 +49,11 @@ export const appDataSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  intercom: intercom_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   make: make_zod_ts,
+  matomo: matomo_zod_ts,
   metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
@@ -58,6 +63,7 @@ export const appDataSchemas = {
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
   slack: slack_zod_ts,
+  shimmervideo: shimmervideo_zod_ts,
   stripe: stripepayment_zod_ts,
   tandemvideo: tandemvideo_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,

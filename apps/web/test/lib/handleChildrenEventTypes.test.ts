@@ -10,7 +10,6 @@ import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/p
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
   const eventType = buildEventType(data as Partial<EventType>);
-  // @ts-expect-error Prisma v5 typings are not yet available
   prismaMock.eventType.findFirst.mockResolvedValue(eventType as EventType);
   return eventType;
 };
@@ -31,7 +30,7 @@ describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {
       mockFindFirstEventType();
-      // @ts-expect-error Prisma v5 typings are not yet available
+
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -40,7 +39,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual(undefined);
@@ -60,7 +58,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual(undefined);
@@ -86,7 +83,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual(undefined);
@@ -102,12 +98,19 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, requiresBookerEmailVerification, ...evType } =
-        mockFindFirstEventType({
-          id: 123,
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        ...evType
+      } = mockFindFirstEventType({
+        id: 123,
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -116,7 +119,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
@@ -150,6 +152,7 @@ describe("handleChildrenEventTypes", () => {
         userId,
         scheduleId,
         requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -163,7 +166,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: "somestring",
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
@@ -197,7 +199,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(result.newUserIds).toEqual([]);
@@ -222,7 +223,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       // Have been called
@@ -238,12 +238,19 @@ describe("handleChildrenEventTypes", () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, requiresBookerEmailVerification, ...evType } =
-        mockFindFirstEventType({
-          id: 123,
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        ...evType
+      } = mockFindFirstEventType({
+        id: 123,
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -253,7 +260,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
@@ -286,6 +292,7 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -300,7 +307,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
@@ -337,6 +343,7 @@ describe("handleChildrenEventTypes", () => {
         userId: _userId,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -359,7 +366,6 @@ describe("handleChildrenEventTypes", () => {
         currentUserId: 1,
         hashedLink: undefined,
         connectedLink: null,
-        // @ts-expect-error Prisma v5 typings are not yet available
         prisma: prismaMock,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({

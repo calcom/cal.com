@@ -13,7 +13,7 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
+> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox"; "data-testid"?: string };
 
 export const Select = <
   Option,
@@ -79,7 +79,7 @@ export const Select = <
           cx("text-emphasis placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
         multiValue: () =>
           cx(
-            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-none",
+            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-tight",
             innerClassNames?.multiValue
           ),
         menu: () =>

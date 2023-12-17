@@ -26,6 +26,7 @@ function Teams() {
       CTA={
         (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
+            data-testid="new-team-btn"
             variant="fab"
             StartIcon={Plus}
             type="button"

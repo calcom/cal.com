@@ -7,7 +7,7 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
+import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type {
@@ -21,7 +21,7 @@ import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
 
-const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
+const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials, true)
@@ -206,7 +206,7 @@ export const getBusyCalendarTimes = async (
   selectedCalendars: SelectedCalendar[]
 ) => {
   let results: EventBusyDate[][] = [];
-  const months = getMonths(dateFrom, dateTo);
+  // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
@@ -231,7 +231,7 @@ export const createEvent = async (
 
   log.debug(
     "Creating calendar event",
-    JSON.stringify({
+    safeStringify({
       calEvent: getPiiFreeCalendarEvent(calEvent),
     })
   );
@@ -256,7 +256,10 @@ export const createEvent = async (
           if (error?.calError) {
             calError = error.calError;
           }
-          log.error("createEvent failed", JSON.stringify(error), calEvent);
+          log.error(
+            "createEvent failed",
+            safeStringify({ error, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
           // @TODO: This code will be off till we can investigate an error with it
           //https://github.com/calcom/cal.com/issues/3949
           // await sendBrokenIntegrationEmail(calEvent, "calendar");
@@ -264,9 +267,24 @@ export const createEvent = async (
         })
     : undefined;
   if (!creationResult) {
-    logger.silly("createEvent failed", { success, uid, creationResult, originalEvent: calEvent, calError });
+    logger.error(
+      "createEvent failed",
+      safeStringify({
+        success,
+        uid,
+        creationResult,
+        originalEvent: getPiiFreeCalendarEvent(calEvent),
+        calError,
+      })
+    );
   }
-
+  log.debug(
+    "Created calendar event",
+    safeStringify({
+      calEvent: getPiiFreeCalendarEvent(calEvent),
+      creationResult,
+    })
+  );
   return {
     appName: credential.appId || "",
     type: credential.type,
@@ -330,6 +348,19 @@ export const updateEvent = async (
           })
       : undefined;
 
+  if (!updatedResult) {
+    logger.error(
+      "updateEvent failed",
+      safeStringify({
+        success,
+        bookingRefUid,
+        credential: getPiiFreeCredential(credential),
+        originalEvent: getPiiFreeCalendarEvent(calEvent),
+        calError,
+      })
+    );
+  }
+
   if (Array.isArray(updatedResult)) {
     calWarnings = updatedResult.flatMap((res) => res.additionalInfo?.calWarnings ?? []);
   } else {
@@ -348,14 +379,35 @@ export const updateEvent = async (
   };
 };
 
-export const deleteEvent = async (
-  credential: CredentialPayload,
-  uid: string,
-  event: CalendarEvent
-): Promise<unknown> => {
+export const deleteEvent = async ({
+  credential,
+  bookingRefUid,
+  event,
+  externalCalendarId,
+}: {
+  credential: CredentialPayload;
+  bookingRefUid: string;
+  event: CalendarEvent;
+  externalCalendarId?: string | null;
+}): Promise<unknown> => {
   const calendar = await getCalendar(credential);
+  log.debug(
+    "Deleting calendar event",
+    safeStringify({
+      bookingRefUid,
+      event: getPiiFreeCalendarEvent(event),
+    })
+  );
   if (calendar) {
-    return calendar.deleteEvent(uid, event);
+    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
+  } else {
+    log.error(
+      "Could not do deleteEvent - No calendar adapter found",
+      safeStringify({
+        credential: getPiiFreeCredential(credential),
+        event,
+      })
+    );
   }
 
   return Promise.resolve({});

@@ -35,7 +35,7 @@ test.describe("user can login & logout succesfully", async () => {
       const signOutBtn = await page.locator(`text=${signOutLabel}`);
       await signOutBtn.click();
 
-      await page.locator('a[href="/auth/login"]').click();
+      await page.locator("[data-testid=logout-btn]").click();
 
       // Reroute to the home page to check if the login form shows up
       await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();

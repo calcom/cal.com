@@ -44,7 +44,7 @@ export const useIntercom = () => {
       customAttributes: {
         //keys should be snake cased
         user_name: data?.username,
-        link: CAL_URL + "/" + data?.username,
+        link: `${CAL_URL}/${data?.username}`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,

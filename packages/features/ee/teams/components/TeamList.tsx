@@ -71,33 +71,17 @@ export default function TeamList(props: Props) {
                       title={t("invite_team_member")}
                       description={t("meetings_are_better_with_the_right")}
                       actionButton={{
-                        href: "/settings/teams/" + team.id + "/members",
+                        href: `/settings/teams/${team.id}/members`,
                         child: t("invite"),
                       }}
                     />
-                    {/* @TODO: uncomment once managed event types is live
-                    <Card
-                      icon={<Unlock className="h-5 w-5 text-blue-700" />}
-                      variant="basic"
-                      title={t("create_a_managed_event")}
-                      description={t("create_a_one_one_template")}
-                      actionButton={{
-                        href:
-                          "/event-types?dialog=new-eventtype&eventPage=team%2F" +
-                          team.slug +
-                          "&teamId=" +
-                          team.id +
-                          "&managed=true",
-                        child: t("create"),
-                      }}
-                    /> */}
                     <Card
                       icon={<Users className="h-5 w-5 text-orange-700" />}
                       variant="basic"
                       title={t("collective_or_roundrobin")}
                       description={t("book_your_team_members")}
                       actionButton={{
-                        href: "/event-types?dialog=new&eventPage=team%2F" + team.slug + "&teamId=" + team.id,
+                        href: `/event-types?dialog=new&eventPage=team%2F${team.slug}&teamId=${team.id}`,
                         child: t("create"),
                       }}
                     />
@@ -107,7 +91,7 @@ export default function TeamList(props: Props) {
                       title={t("appearance")}
                       description={t("appearance_description")}
                       actionButton={{
-                        href: "/settings/teams/" + team.id + "/appearance",
+                        href: `/settings/teams/${team.id}/appearance`,
                         child: t("edit"),
                       }}
                     />

@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 transition focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -64,7 +64,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelClassName,
     disabled,
     LockedIcon,
-    placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
+    placeholder = isLocaleReady && i18n.exists(`${name}_placeholder`) ? t(`${name}_placeholder`) : "",
     className,
     addOnLeading,
     addOnSuffix,
@@ -107,7 +107,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           dir="ltr"
           className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}

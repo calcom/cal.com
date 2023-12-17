@@ -45,6 +45,7 @@ function AppsSearch({
   onChange: ChangeEventHandler<HTMLInputElement>;
   className?: string;
 }) {
+  const { t } = useLocale();
   return (
     <TextField
       className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
@@ -54,6 +55,7 @@ function AppsSearch({
       type="search"
       autoComplete="false"
       onChange={onChange}
+      placeholder={t("search")}
     />
   );
 }

@@ -6,7 +6,7 @@ import createBookingIfAvailable from "../tools/createBooking";
 import deleteBooking from "../tools/deleteBooking";
 import getAvailability from "../tools/getAvailability";
 import getBookings from "../tools/getBookings";
-import sendBookingLink from "../tools/sendBookingLink";
+import sendBookingEmail from "../tools/sendBookingEmail";
 import updateBooking from "../tools/updateBooking";
 import type { EventType } from "../types/eventType";
 import type { User, UserList } from "../types/user";
@@ -35,7 +35,7 @@ const agent = async (
     createBookingIfAvailable(apiKey, userId, users),
     updateBooking(apiKey, userId),
     deleteBooking(apiKey),
-    sendBookingLink(apiKey, user, users, agentEmail),
+    sendBookingEmail(apiKey, user, users, agentEmail),
   ];
 
   const model = new ChatOpenAI({
@@ -53,6 +53,8 @@ const agent = async (
 Make sure your final answers are definitive, complete and well formatted.
 Sometimes, tools return errors. In this case, try to handle the error intelligently or ask the user for more information.
 Tools will always handle times in UTC, but times sent to users should be formatted per that user's timezone.
+In responses to users, always summarize necessary context and open the door to follow ups. For example "I have booked your chat with @username for 3pm on Wednesday, December 20th, 2023 EST. Please let me know if you need to reschedule."
+If you can't find a referenced user, ask the user for their email or @username. Make sure to specify that usernames require the @username format. Users don't know other users' userIds.
 
 The primary user's id is: ${userId}
 The primary user's username is: ${user.username}
@@ -74,18 +76,19 @@ ${
     ? `The email references the following @usernames and emails: ${users
         .map(
           (u) =>
-            (u.id ? `, id: ${u.id}` : "id: (non user)") +
-            (u.username
-              ? u.type === "fromUsername"
-                ? `, username: @${u.username}`
-                : ", username: REDACTED"
-              : ", (no username)") +
-            (u.email
-              ? u.type === "fromEmail"
-                ? `, email: ${u.email}`
-                : ", email: REDACTED"
-              : ", (no email)") +
-            ";"
+            `${
+              (u.id ? `, id: ${u.id}` : "id: (non user)") +
+              (u.username
+                ? u.type === "fromUsername"
+                  ? `, username: @${u.username}`
+                  : ", username: REDACTED"
+                : ", (no username)") +
+              (u.email
+                ? u.type === "fromEmail"
+                  ? `, email: ${u.email}`
+                  : ", email: REDACTED"
+                : ", (no email)")
+            };`
         )
         .join("\n")}`
     : ""

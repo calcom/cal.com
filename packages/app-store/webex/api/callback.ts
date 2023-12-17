@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
   const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
-  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
   const result = await fetch(
     `https://webexapis.com/v1/access_token?grant_type=authorization_code&client_id=${client_id}&client_secret=${client_secret}&code=${code}&redirect_uri=${redirectUri}`,
     {

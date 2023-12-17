@@ -24,7 +24,7 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
               <h2 className="mb-2 text-center font-medium">{props.booking.title}</h2>
               <p className="text-subtle text-center">
                 <Calendar className="-mt-1 mr-1 inline-block h-4 w-4" />
-                {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
+                {dayjs(props.booking.startTime).format(`${detectBrowserTimeFormat}, dddd DD MMMM YYYY`)}
               </p>
             </>
           }

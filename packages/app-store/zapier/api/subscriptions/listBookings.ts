@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       ? authorizedAccount.name
       : null;
 
-    const requested = teamInfo ? "team: " + teamInfo : "user: " + userInfo;
+    const requested = teamInfo ? `team: ${teamInfo}` : `user: ${userInfo}`;
     return res.status(404).json({
       message: `There are no bookings to retrieve, please create a booking first. Requested: \`${requested}\``,
     });

@@ -126,10 +126,9 @@ const WorkflowListItem = (props: ItemProps) => {
             )}>
             {workflow.name
               ? workflow.name
-              : "Untitled (" +
-                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.charAt(0).toUpperCase() +
-                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
-                ")"}
+              : `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                  .charAt(0)
+                  .toUpperCase()}${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)})`}
           </div>
           <>
             <div
@@ -236,7 +235,7 @@ function EventWorkflowsTab(props: Props) {
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      await router.replace("/workflows/" + workflow.id);
+      await router.replace(`/workflows/${workflow.id}`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
