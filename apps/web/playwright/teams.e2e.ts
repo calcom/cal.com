@@ -7,6 +7,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
+  NotFoundPageText,
   bookTimeSlot,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
@@ -21,7 +22,7 @@ test.describe("Teams - NonOrg", () => {
 
   test("Team Onboarding Invite Members", async ({ page, users }) => {
     const user = await users.create(undefined, { hasTeam: true });
-    const { team } = await user.getFirstTeam();
+    const { team } = await user.getFirstTeamMembership();
     const inviteeEmail = `${user.username}+invitee@example.com`;
 
     await user.apiLogin();
@@ -79,7 +80,7 @@ test.describe("Teams - NonOrg", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -117,7 +118,7 @@ test.describe("Teams - NonOrg", () => {
       }
     );
 
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -234,7 +235,7 @@ test.describe("Teams - NonOrg", () => {
     );
 
     await owner.apiLogin();
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
 
     // Mark team as private
     await page.goto(`/settings/teams/${team.id}/members`);
@@ -347,12 +348,12 @@ test.describe("Teams - Org", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator("text=This page could not be found")).toBeVisible();
+    await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,
@@ -396,7 +397,7 @@ test.describe("Teams - Org", () => {
       }
     );
 
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -417,6 +418,45 @@ test.describe("Teams - Org", () => {
     expect(chosenUser).not.toBeNull();
     expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(true);
     // TODO: Assert whether the user received an email
+  });
+
+  test("Can access booking page with event slug and team page in lowercase/uppercase/mixedcase", async ({
+    page,
+    orgs,
+    users,
+  }) => {
+    const org = await orgs.create({
+      name: "TestOrg",
+    });
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(
+      {
+        username: "pro-user",
+        name: "pro-user",
+        organizationId: org.id,
+        roleInOrganization: MembershipRole.MEMBER,
+      },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+    const { team } = await owner.getFirstTeamMembership();
+    const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
+
+    const teamSlugUpperCase = team.slug?.toUpperCase();
+    const teamEventSlugUpperCase = teamEventSlug.toUpperCase();
+
+    // This is the most closest to the actual user flow as org1.cal.com maps to /org/orgSlug
+    await page.goto(`/org/${org.slug}/${teamSlugUpperCase}/${teamEventSlugUpperCase}`);
+    await page.waitForSelector("[data-testid=day]");
   });
 });
 
