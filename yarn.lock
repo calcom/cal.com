@@ -3814,6 +3814,7 @@ __metadata:
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
+    "@golevelup/ts-jest": ^0.4.0
     "@nestjs/cli": ^10.0.0
     "@nestjs/common": ^10.0.0
     "@nestjs/config": ^3.1.1
@@ -3829,6 +3830,7 @@ __metadata:
     "@types/cookie-parser": ^1.4.6
     "@types/express": ^4.17.17
     "@types/jest": ^29.5.2
+    "@types/luxon": ^3.3.7
     "@types/node": ^20.3.1
     "@types/passport-jwt": ^3.0.13
     "@types/supertest": ^2.0.12
@@ -3838,6 +3840,7 @@ __metadata:
     dotenv: ^16.3.1
     helmet: ^7.1.0
     jest: ^29.5.0
+    luxon: ^3.4.4
     nest-winston: ^1.9.4
     next-auth: ^4.24.5
     passport: ^0.7.0
@@ -6587,6 +6590,13 @@ __metadata:
   version: 3.5.2
   resolution: "@glidejs/glide@npm:3.5.2"
   checksum: 07ac9e3998de48c7eca97670f2e0ce2e01ce9d33c96faec841c82a2ece54191bb3a96136513f532077e202b34dee5546dbde89febeebc6eeb89e480946547352
+  languageName: node
+  linkType: hard
+
+"@golevelup/ts-jest@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@golevelup/ts-jest@npm:0.4.0"
+  checksum: 1cb2c938771493445d478665594927304fd0890e964c8d38a11a3f8735fd83a01bed3e5d470c403d3f8f38e8b67571aab822c1bebbedc8562faf2936e74c8f66
   languageName: node
   linkType: hard
 
@@ -14050,6 +14060,13 @@ __metadata:
   version: 4.14.181
   resolution: "@types/lodash@npm:4.14.181"
   checksum: 0d1863d8383fd2f8bb42e9e3fc1d6255bb88ff034d6df848941063698944313dae944fc1270315613e3d303fae7c7a9a86085ad3235ed6204c56c4b0b3699aa9
+  languageName: node
+  linkType: hard
+
+"@types/luxon@npm:^3.3.7":
+  version: 3.3.7
+  resolution: "@types/luxon@npm:3.3.7"
+  checksum: 97026557e92bcba308a5592f981591cd200d493fc8997874d79acecf6a2ec41debeded3ac5cd80c371ef7f6f56cc0d1be0a5aca846e03d3e6b4a2be37256fe2f
   languageName: node
   linkType: hard
 
@@ -28291,6 +28308,13 @@ __metadata:
   version: 1.28.0
   resolution: "luxon@npm:1.28.0"
   checksum: 5250cb9f138b6048eeb0b3a9044a4ac994d0058f680c72a0da4b6aeaec8612460385639cba2b1052ef6d5564879e9ed144d686f26d9d97b38ab920d82e18281c
+  languageName: node
+  linkType: hard
+
+"luxon@npm:^3.4.4":
+  version: 3.4.4
+  resolution: "luxon@npm:3.4.4"
+  checksum: 36c1f99c4796ee4bfddf7dc94fa87815add43ebc44c8934c924946260a58512f0fd2743a629302885df7f35ccbd2d13f178c15df046d0e3b6eb71db178f1c60c
   languageName: node
   linkType: hard
 
