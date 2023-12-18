@@ -1,4 +1,5 @@
-import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
+import { AppModule } from "@/app.module";
+import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -16,15 +17,7 @@ describe("OAuthClientGuard", () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        OAuthClientGuard,
-        {
-          provide: OAuthClientRepository,
-          useValue: {
-            getOAuthClient: jest.fn(),
-          },
-        },
-      ],
+      imports: [AppModule, OAuthClientModule],
     }).compile();
 
     guard = module.get<OAuthClientGuard>(OAuthClientGuard);
