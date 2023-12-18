@@ -130,8 +130,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  console.log("queryIsInstantMeeting", queryIsInstantMeeting);
-
   return {
     props: {
       entity: eventData.entity,

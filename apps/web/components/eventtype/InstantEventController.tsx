@@ -54,6 +54,11 @@ export default function InstantEventController({
               <Alert severity="warning" title={t("warning_payment_instant_meeting_event")} />
             ) : (
               <>
+                <Alert
+                  className="mb-4"
+                  severity="warning"
+                  title={t("warning_instant_meeting_experimental")}
+                />
                 <SettingsToggle
                   labelClassName="text-sm"
                   toggleSwitchAtTheEnd={true}
@@ -79,7 +84,6 @@ export default function InstantEventController({
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                     {instantEventState && (
                       <div data-testid="instant-event-collapsible" className="flex flex-col gap-2 text-sm">
-                        <p>{t("warning_recurring_instant_meeting_event")}</p>
                         <p>{t("warning_payment_instant_meeting_event")}</p>
                       </div>
                     )}
