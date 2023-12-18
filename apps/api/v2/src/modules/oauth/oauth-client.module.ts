@@ -6,9 +6,10 @@ import { OAuthClientController } from "@/modules/oauth/oauth-client.controller";
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UserModule } from "@/modules/user/user.module";
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 
+@Global()
 @Module({
   imports: [
     PrismaModule,
