@@ -18,7 +18,6 @@
     "strict": true,
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "allowJs": true
+    "noFallthroughCasesInSwitch": false
   }
 }
