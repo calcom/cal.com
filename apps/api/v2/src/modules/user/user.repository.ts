@@ -9,10 +9,13 @@ import type { User } from "@prisma/client";
 export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async create(user: CreateUserInput) {
+  async create(user: CreateUserInput, oAuthClientId: string) {
     const newUser = await this.dbRead.prisma.user.create({
       data: {
         ...user,
+        platformOAuthClients: {
+          connect: { id: oAuthClientId },
+        },
       },
     });
 

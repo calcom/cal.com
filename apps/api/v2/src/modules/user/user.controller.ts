@@ -1,3 +1,4 @@
+import { GetOAuthClient } from "@/modules/oauth/decorator/get-oauth-client/get-oauth-client.decorator";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
@@ -34,11 +35,14 @@ export class UserController {
   @Post("/")
   @UseGuards(OAuthClientGuard)
   async createUser(
+    @GetOAuthClient("id") oAuthClientId: string,
     @Body() body: CreateUserInput
   ): Promise<ApiResponse<{ user: Partial<User>; accessToken: string; refreshToken: string }>> {
-    this.logger.log(`Creating user with data: ${JSON.stringify(body, null, 2)}`);
+    this.logger.log(
+      `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client ${oAuthClientId}`
+    );
 
-    const user = await this.userRepository.create(body);
+    const user = await this.userRepository.create(body, oAuthClientId);
     // TODO: User service for access and refresh tokens
     // const { accessToken, refreshToken } = await this.tokenService.generateTokens(user);
 
