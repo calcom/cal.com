@@ -1,3 +1,5 @@
+"use client";
+
 import { Meta } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";

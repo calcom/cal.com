@@ -4,6 +4,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZScheduleDuplicateSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
 import { ZGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
@@ -14,6 +15,7 @@ type ScheduleRouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
   duplicate?: typeof import("./duplicate.handler").duplicateHandler;
   getScheduleByUserId?: typeof import("./getScheduleByUserId.handler").getScheduleByUserIdHandler;
+  getScheduleByEventSlug?: typeof import("./getScheduleByEventTypeSlug.handler").getScheduleByEventSlugHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: ScheduleRouterHandlerCache = {};
@@ -114,6 +116,23 @@ export const scheduleRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.getScheduleByUserId({
+      ctx,
+      input,
+    });
+  }),
+  getScheduleByEventSlug: authedProcedure.input(ZGetByEventSlugInputSchema).query(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
+      UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug = await import(
+        "./getScheduleByEventTypeSlug.handler"
+      ).then((mod) => mod.getScheduleByEventSlugHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug({
       ctx,
       input,
     });

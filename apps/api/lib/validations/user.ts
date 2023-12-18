@@ -92,7 +92,7 @@ export const schemaUserBaseBodyParams = User.pick({
 // Here we can both require or not (adding optional or nullish) and also rewrite validations for any value
 // for example making weekStart only accept weekdays as input
 const schemaUserEditParams = z.object({
-  email: z.string().email(),
+  email: z.string().email().toLowerCase(),
   username: usernameSchema,
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
@@ -114,7 +114,7 @@ const schemaUserEditParams = z.object({
 // merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
 
 const schemaUserCreateParams = z.object({
-  email: z.string().email(),
+  email: z.string().email().toLowerCase(),
   username: usernameSchema,
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),

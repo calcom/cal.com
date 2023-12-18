@@ -1,13 +1,16 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import type { NextMiddleware } from "next/server";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "@lib/csp";
 
-const middleware: NextMiddleware = async (req) => {
+import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+
+const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
 
@@ -61,6 +64,29 @@ const middleware: NextMiddleware = async (req) => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
+  if (url.pathname.startsWith("/future/apps/installed")) {
+    const returnTo = req.cookies.get("return-to")?.value;
+    if (returnTo !== undefined) {
+      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+
+      let validPathname = returnTo;
+
+      try {
+        validPathname = new URL(returnTo).pathname;
+      } catch (e) {}
+
+      const nextUrl = url.clone();
+      nextUrl.pathname = validPathname;
+      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+    }
+  }
+
+  requestHeaders.set("x-pathname", url.pathname);
+
+  const locale = await getLocale(req);
+
+  requestHeaders.set("x-locale", locale);
+
   return NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -90,11 +116,25 @@ export const config = {
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+    "/event-types",
+    "/future/event-types/",
+    "/settings/admin/:path*",
+    "/future/settings/admin/:path*",
+    "/apps/installed/:category/",
+    "/future/apps/installed/:category/",
+    "/apps/:slug/",
+    "/future/apps/:slug/",
+    "/apps/:slug/setup/",
+    "/future/apps/:slug/setup/",
+    "/apps/categories/",
+    "/future/apps/categories/",
+    "/apps/categories/:category/",
+    "/future/apps/categories/:category/",
   ],
 };
 
 export default collectEvents({
-  middleware,
+  middleware: abTestMiddlewareFactory(middleware),
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,

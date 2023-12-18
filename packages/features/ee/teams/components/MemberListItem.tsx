@@ -67,6 +67,7 @@ export default function MemberListItem(props: Props) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
+      await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -145,14 +146,25 @@ export default function MemberListItem(props: Props) {
           <div className="flex">
             <UserAvatar size="sm" user={props.member} className="h-10 w-10 rounded-full" />
             <div className="ms-3 inline-block">
-              <div className="mb-1 flex">
-                <span className="text-default mr-2 text-sm font-bold leading-4">{name}</span>
-                {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
+              <div className="mb-1 flex" data-testid={`member-${props.member.username}`}>
+                <span data-testid="member-name" className="text-default mr-2 text-sm font-bold leading-4">
+                  {name}
+                </span>
+                {!props.member.accepted && (
+                  <TeamPill data-testid="member-pending" color="orange" text={t("pending")} />
+                )}
                 {isAdmin && props.member.accepted && appList}
-                {props.member.role && <TeamRole role={props.member.role} />}
+                {props.member.role && <TeamRole data-testid="member-role" role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
-                <span className=" block text-sm" data-testid="member-email" data-email={props.member.email}>
+                <span
+                  className=" block text-sm"
+                  data-testid={
+                    props.member.accepted
+                      ? "member-email"
+                      : `email-${props.member.email.replace("@", "")}-pending`
+                  }
+                  data-email={props.member.email}>
                   {props.member.email}
                 </span>
                 {bookingLink && (

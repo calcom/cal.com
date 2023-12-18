@@ -65,6 +65,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       scheduledJobs: true,
       workflowReminders: true,
       responses: true,
+      iCalUID: true,
     },
     where: {
       uid: bookingId,
@@ -80,7 +81,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
-  if (!bookingToReschedule.eventType) {
+  if (!bookingToReschedule.eventType && !bookingToReschedule.dynamicEventSlugRef) {
     throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
   }
 
@@ -177,7 +178,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   builder.init({
     title: bookingToReschedule.title,
     bookerUrl: await getBookerUrl(user),
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
     attendees: usersToPeopleType(
@@ -186,13 +187,14 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       tAttendees
     ),
     organizer: userAsPeopleType,
+    iCalUID: bookingToReschedule.iCalUID,
   });
 
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
-  if (event) {
+  if (Object.keys(event).length) {
     await director.buildForRescheduleEmail();
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
@@ -236,7 +238,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const evt: CalendarEvent = {
     title: bookingToReschedule?.title,
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     description: bookingToReschedule?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
     ...getCalEventResponses({
@@ -257,6 +259,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       ? [bookingToReschedule?.destinationCalendar]
       : [],
     cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+    iCalUID: bookingToReschedule?.iCalUID,
   };
 
   // Send webhook

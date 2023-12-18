@@ -1,3 +1,5 @@
+"use client";
+
 import NoSSR from "@calcom/core/components/NoSSR";
 import LicenseRequired from "@calcom/ee/common/components/LicenseRequired";
 import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";

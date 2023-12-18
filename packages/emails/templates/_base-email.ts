@@ -24,7 +24,7 @@ export default class BaseEmail {
     return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
   public async sendEmail() {
@@ -38,21 +38,20 @@ export default class BaseEmail {
     if (process.env.INTEGRATION_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
-      setTestEmail(this.getNodeMailerPayload());
+      setTestEmail(await this.getNodeMailerPayload());
       console.log(
         "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
       );
       return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
-    const payload = this.getNodeMailerPayload();
+    const payload = await this.getNodeMailerPayload();
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
       headers: this.getMailerOptions().headers,
       ...payload,
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
-
     await new Promise((resolve, reject) =>
       createTransport(this.getMailerOptions().transport).sendMail(
         payloadWithUnEscapedSubject,
@@ -69,7 +68,6 @@ export default class BaseEmail {
     ).catch((e) => console.error("sendEmail", e));
     return new Promise((resolve) => resolve("send mail async"));
   }
-
   protected getMailerOptions() {
     return {
       transport: serverConfig.transport,
@@ -77,7 +75,6 @@ export default class BaseEmail {
       headers: serverConfig.headers,
     };
   }
-
   protected printNodeMailerError(error: Error): void {
     /** Don't clog the logs with unsent emails in E2E */
     if (process.env.NEXT_PUBLIC_IS_E2E) return;
