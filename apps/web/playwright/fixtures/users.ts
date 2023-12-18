@@ -143,6 +143,17 @@ const createTeamAndAddUser = async (
 export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
   const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
   return {
+    buildForSignup: (opts?: Pick<CustomUserOpts, "email" | "username" | "useExactUsername" | "password">) => {
+      const uname =
+        opts?.useExactUsername && opts?.username
+          ? opts.username
+          : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+      return {
+        username: uname,
+        email: opts?.email ?? `${uname}@example.com`,
+        password: opts?.password ?? uname,
+      };
+    },
     create: async (
       opts?: CustomUserOpts | null,
       scenario: {
@@ -396,6 +407,24 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       await prisma.user.delete({ where: { id } });
       store.users = store.users.filter((b) => b.id !== id);
     },
+    deleteByEmail: async (email: string) => {
+      // Use deleteMany instead of delete to avoid the findUniqueOrThrow error that happens before the delete
+      await prisma.user.deleteMany({
+        where: {
+          email,
+        },
+      });
+      store.users = store.users.filter((b) => b.email !== email);
+    },
+    set: async (email: string) => {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email },
+        include: userIncludes,
+      });
+      const userFixture = createUserFixture(user, store.page);
+      store.users.push(userFixture);
+      return userFixture;
+    },
   };
 };
 
@@ -420,7 +449,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
-    apiLogin: async () => apiLogin({ ...(await self()), password: user.username }, store.page),
+    apiLogin: async (password?: string) =>
+      apiLogin({ ...(await self()), password: password || user.username }, store.page),
     /**
      * @deprecated use apiLogin instead
      */
@@ -428,7 +458,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
-    getFirstTeam: async () => {
+    getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
         include: { team: true },
@@ -450,7 +480,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       }
       return membership;
     },
-    getOrg: async () => {
+    getOrgMembership: async () => {
       return prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
@@ -461,7 +491,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: { team: { select: { children: true, metadata: true, name: true } } },
+        include: {
+          team: {
+            include: {
+              children: true,
+            },
+          },
+        },
       });
     },
     getFirstEventAsOwner: async () =>
@@ -637,8 +673,8 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
-  await page.waitForLoadState("networkidle");
+  // waiting for specific login request to resolve
+  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
 }
 
 export async function apiLogin(

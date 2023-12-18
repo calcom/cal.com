@@ -11,6 +11,7 @@ import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { Fixtures } from "./fixtures";
 import { test } from "./fixtures";
@@ -203,6 +204,12 @@ export async function installAppleCalendar(page: Page) {
   await page.click('[data-testid="install-app-button"]');
 }
 
+export async function getInviteLink(page: Page) {
+  const response = await page.waitForResponse("**/api/trpc/teams/createInvite?batch=1");
+  const json = await response.json();
+  return json[0].result.data.json.inviteLink as string;
+}
+
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
@@ -239,6 +246,38 @@ export async function expectEmailsToHaveSubject({
   expect(organizerFirstEmail.subject).toBe(emailSubject);
   expect(bookerFirstEmail.subject).toBe(emailSubject);
 }
+
+export const createUserWithLimits = ({
+  users,
+  slug,
+  title,
+  length,
+  bookingLimits,
+  durationLimits,
+}: {
+  users: Fixtures["users"];
+  slug: string;
+  title?: string;
+  length?: number;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+}) => {
+  if (!bookingLimits && !durationLimits) {
+    throw new Error("Need to supply at least one of bookingLimits or durationLimits");
+  }
+
+  return users.create({
+    eventTypes: [
+      {
+        slug,
+        title: title ?? slug,
+        length: length ?? 30,
+        bookingLimits,
+        durationLimits,
+      },
+    ],
+  });
+};
 
 // this method is not used anywhere else
 // but I'm keeping it here in case we need in the future
@@ -289,3 +328,15 @@ export function generateTotpCode(email: string) {
   totp.options = { step: 90 };
   return totp.generate(secret);
 }
+
+export async function fillStripeTestCheckout(page: Page) {
+  await page.fill("[name=cardNumber]", "4242424242424242");
+  await page.fill("[name=cardExpiry]", "12/30");
+  await page.fill("[name=cardCvc]", "111");
+  await page.fill("[name=billingName]", "Stripe Stripeson");
+  await page.click(".SubmitButton--complete-Shimmer");
+}
+
+// When App directory is there, this is the 404 page text. It is commented till it's disabled
+// export const NotFoundPageText = "This page could not be found";
+export const NotFoundPageText = "ERROR 404";

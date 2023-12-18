@@ -50,6 +50,24 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
       },
     },
   });
+
+  if (teamIdToExclude && teamQuery?.members) {
+    const excludedteamUsers = await prisma.team.findUnique({
+      where: {
+        id: teamIdToExclude,
+      },
+      select: {
+        members: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+    const excludedUserIds = excludedteamUsers?.members.map((item) => item.userId) ?? [];
+    teamQuery.members = teamQuery?.members.filter((member) => !excludedUserIds.includes(member.userId));
+  }
+
   return teamQuery?.members || [];
 };
 

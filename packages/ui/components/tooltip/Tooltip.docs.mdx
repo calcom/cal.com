@@ -1,0 +1,20 @@
+import { Canvas, Meta } from "@storybook/blocks";
+import { Title, CustomArgsTable } from "@calcom/storybook/components";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Tooltip } from "./Tooltip";
+
+import * as TooltipStories from "./Tooltip.stories";
+
+<Meta of={TooltipStories} />
+
+<Title title="Tooltip" suffix="Brief" subtitle="Version 2.0 — Last Update: 06 Jan 2023" />
+
+## Definition
+
+Tooltip components can be used to provide additional information about an element when the user hovers over or focuses on the element.
+
+<TooltipProvider>
+    <CustomArgsTable of={Tooltip} />
+</TooltipProvider>
+
+<Canvas of={TooltipStories.Default}/>

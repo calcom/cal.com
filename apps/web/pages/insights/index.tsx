@@ -69,17 +69,17 @@ export default function InsightsPage() {
             <FiltersProvider>
               <Filters />
 
-              <div className="mb-4 space-y-6">
+              <div className="mb-4 space-y-4">
                 <BookingKPICards />
 
                 <BookingStatusLineChart />
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <PopularEventsTable />
 
                   <AverageEventDurationChart />
                 </div>
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
