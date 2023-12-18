@@ -1,6 +1,6 @@
-import { getServerCaller } from "app/_trpc/serverClient";
-import { type Params } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { getServerCaller } from "_app/_trpc/serverClient";
+import { type Params } from "_app/_types";
+import { _generateMetadata } from "_app/_utils";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 

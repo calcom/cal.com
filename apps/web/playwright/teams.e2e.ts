@@ -7,6 +7,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
+  NotFoundPageText,
   bookTimeSlot,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
@@ -352,7 +353,7 @@ test.describe("Teams - Org", () => {
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator("text=This page could not be found")).toBeVisible();
+    await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,

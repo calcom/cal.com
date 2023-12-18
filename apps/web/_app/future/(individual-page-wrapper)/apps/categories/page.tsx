@@ -1,6 +1,6 @@
 import LegacyPage from "@pages/apps/categories/index";
-import { ssrInit } from "app/_trpc/ssrInit";
-import { _generateMetadata } from "app/_utils";
+import { ssrInit } from "_app/_trpc/ssrInit";
+import { _generateMetadata } from "_app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
