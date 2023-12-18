@@ -17,7 +17,7 @@ test.describe("Team", () => {
   test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
-    const { team } = await teamOwner.getFirstTeam();
+    const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("networkidle");
@@ -98,7 +98,7 @@ test.describe("Team", () => {
   test("Invitation (verified)", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
-    const { team } = await teamOwner.getFirstTeam();
+    const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("networkidle");
