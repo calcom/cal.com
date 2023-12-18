@@ -1,10 +1,21 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { CreateUserInput } from "@/modules/user/input/create-user";
 import { Injectable } from "@nestjs/common";
 import type { User } from "@prisma/client";
 
 @Injectable()
 export class UserRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
+
+  async create(user: CreateUserInput) {
+    const newUser = await this.dbRead.prisma.user.create({
+      data: {
+        ...user,
+      },
+    });
+
+    return this.sanitize(newUser);
+  }
 
   async findById(userId: number) {
     const user = await this.dbRead.prisma.user.findUniqueOrThrow({
