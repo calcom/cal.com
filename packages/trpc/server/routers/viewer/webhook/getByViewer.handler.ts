@@ -39,6 +39,15 @@ export type WebhooksByViewer = {
   }[];
 };
 
+const filterWebhooks = (webhook: Webhook) => {
+  const appIds = [
+    "zapier",
+    // Add more if needed
+  ];
+
+  return !appIds.some((appId: string) => webhook.appId == appId);
+};
+
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -80,7 +89,8 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const userWebhooks = user.webhooks;
+  let userWebhooks = user.webhooks;
+  userWebhooks = userWebhooks.filter(filterWebhooks);
   let webhookGroups: WebhookGroup[] = [];
   const bookerUrl = await getBookerUrl(user);
 
@@ -132,7 +142,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
                 : MembershipRole.MEMBER
               : MembershipRole.MEMBER),
         },
-        webhooks: membership.team.webhooks,
+        webhooks: membership.team.webhooks.filter(filterWebhooks),
       };
     });
 

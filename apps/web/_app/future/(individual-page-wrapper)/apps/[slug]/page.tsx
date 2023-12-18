@@ -1,6 +1,6 @@
 import AppPage from "@pages/apps/[slug]/index";
 import { Prisma } from "@prisma/client";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata } from "_app/_utils";
 import fs from "fs";
 import matter from "gray-matter";
 import { notFound } from "next/navigation";

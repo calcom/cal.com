@@ -1,5 +1,5 @@
 import SetupPage from "@pages/apps/[slug]/setup";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata } from "_app/_utils";
 import type { GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
