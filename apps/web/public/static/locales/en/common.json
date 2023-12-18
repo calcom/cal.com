@@ -2130,6 +2130,8 @@
   "overlay_my_calendar":"Overlay my calendar",
   "overlay_my_calendar_toc":"By connecting to your calendar, you accept our privacy policy and terms of use. You may revoke access at any time.",
   "view_overlay_calendar_events":"View your calendar events to prevent clashed booking.",
+  "join_event_location":"Join {{eventLocationType}}",
+  "join_meeting":"Join Meeting",
   "troubleshooting":"Troubleshooting",
   "calendars_were_checking_for_conflicts":"Calendars we’re checking for conflicts",
   "availabilty_schedules":"Availability schedules",
