@@ -18,6 +18,10 @@ export class OAuthClientGuard implements CanActivate {
   }
 
   private async validateOauthClient(oauthClientId: string, oauthClientSecret: string): Promise<boolean> {
+    if (!oauthClientId || !oauthClientSecret) {
+      return false;
+    }
+
     const oauthClient = await this.oauthRepository.getOAuthClient(oauthClientId);
 
     if (!oauthClient || oauthClient.secret !== oauthClientSecret) {
