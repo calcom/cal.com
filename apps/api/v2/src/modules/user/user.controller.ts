@@ -1,7 +1,21 @@
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { CreateUserInput } from "@/modules/user/input/create-user";
+import { UpdateUserInput } from "@/modules/user/input/update-user";
 import { UserRepository } from "@/modules/user/user.repository";
-import { Body, Controller, Post, Logger, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Post,
+  Logger,
+  UseGuards,
+  Get,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Put,
+} from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -36,5 +50,37 @@ export class UserController {
         refreshToken: "refreshToken",
       },
     };
+  }
+
+  @Get("/:userId")
+  @HttpCode(HttpStatus.OK)
+  async getUserById(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    return { status: SUCCESS_STATUS, data: user };
+  }
+
+  @Put("/:userId")
+  @HttpCode(HttpStatus.OK)
+  async updateUser(
+    @Param("userId") userId: number,
+    @Body() body: UpdateUserInput
+  ): Promise<ApiResponse<Partial<User>>> {
+    this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
+
+    const user = await this.userRepository.update(userId, body);
+    return { status: SUCCESS_STATUS, data: user };
+  }
+
+  @Delete("/:userId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteUser(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
+    this.logger.log(`Deleting user with ID: ${userId}`);
+
+    const user = await this.userRepository.delete(userId);
+    return { status: SUCCESS_STATUS, data: user };
   }
 }
