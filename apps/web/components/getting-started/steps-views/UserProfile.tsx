@@ -152,15 +152,10 @@ const UserProfile = () => {
           firstRender={firstRender}
           setFirstRender={setFirstRender}
         />
-        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
-          {t("few_sentences_about_yourself")}
-        </p>
+        <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
-      <Button
-        type="submit"
-        className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
+      <Button EndIcon={ArrowRight} type="submit" className="mt-8 w-full items-center justify-center">
         {t("finish")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

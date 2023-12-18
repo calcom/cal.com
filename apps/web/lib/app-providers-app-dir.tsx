@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { TrpcProvider } from "_app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
@@ -96,13 +97,9 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   const clientViewerI18n = useViewerI18n(locale);
   const i18n = clientViewerI18n.data?.i18n ?? props.i18n;
 
-  if (!i18n || !i18n._nextI18Next) {
-    return null;
-  }
-
   return (
     // @ts-expect-error AppWithTranslationHoc expects AppProps
-    <AppWithTranslationHoc pageProps={{ _nextI18Next: i18n._nextI18Next }}>
+    <AppWithTranslationHoc pageProps={{ _nextI18Next: i18n?._nextI18Next }}>
       {props.children}
     </AppWithTranslationHoc>
   );
@@ -255,26 +252,28 @@ const AppProviders = (props: PageWrapperProps) => {
   const isBookingPage = useIsBookingPage();
 
   const RemainingProviders = (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider>
-        <CustomI18nextProvider i18n={props.i18n}>
-          <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <CalcomThemeProvider
-              themeBasis={props.themeBasis}
-              nonce={props.nonce}
-              isThemeSupported={props.isThemeSupported}
-              isBookingPage={props.isBookingPage || isBookingPage}>
-              <FeatureFlagsProvider>
-                <OrgBrandProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
-                </OrgBrandProvider>
-              </FeatureFlagsProvider>
-            </CalcomThemeProvider>
-          </TooltipProvider>
-        </CustomI18nextProvider>
-      </SessionProvider>
-    </EventCollectionProvider>
+    <TrpcProvider dehydratedState={props.dehydratedState}>
+      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+        <SessionProvider>
+          <CustomI18nextProvider i18n={props.i18n}>
+            <TooltipProvider>
+              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+              <CalcomThemeProvider
+                themeBasis={props.themeBasis}
+                nonce={props.nonce}
+                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported ?? true}
+                isBookingPage={props.isBookingPage || isBookingPage}>
+                <FeatureFlagsProvider>
+                  <OrgBrandProvider>
+                    <MetaProvider>{props.children}</MetaProvider>
+                  </OrgBrandProvider>
+                </FeatureFlagsProvider>
+              </CalcomThemeProvider>
+            </TooltipProvider>
+          </CustomI18nextProvider>
+        </SessionProvider>
+      </EventCollectionProvider>
+    </TrpcProvider>
   );
 
   if (isBookingPage) {

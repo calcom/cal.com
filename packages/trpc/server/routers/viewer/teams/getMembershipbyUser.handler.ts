@@ -29,3 +29,5 @@ export const getMembershipbyUserHandler = async ({ ctx, input }: GetMembershipby
     },
   });
 };
+
+export default getMembershipbyUserHandler;

@@ -1,16 +1,24 @@
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
+import generateIcsString from "../lib/generateIcsString";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
       icalEvent: {
         filename: "event.ics",
-        content: this.getiCalEventAsString(),
+        content: generateIcsString({
+          event: this.calEvent,
+          title: this.t("event_type_has_been_rescheduled"),
+          subtitle: this.t("emailed_you_and_any_other_attendees"),
+          role: "organizer",
+          status: "CONFIRMED",
+        }),
+        method: "REQUEST",
       },
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
@@ -19,7 +27,7 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("OrganizerRescheduledEmail", {
+      html: await renderEmail("OrganizerRescheduledEmail", {
         calEvent: { ...this.calEvent, attendeeSeatId: undefined },
         attendee: this.calEvent.organizer,
       }),

@@ -84,7 +84,7 @@ test.describe("Stripe integration", () => {
       schedulingType: SchedulingType.COLLECTIVE,
     });
     await owner.apiLogin();
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     const teamEvent = await owner.getFirstTeamEvent(team.id);
@@ -267,7 +267,7 @@ test.describe("Stripe integration", () => {
       await page.getByTestId("price-input-stripe").fill("200");
 
       // Select currency in dropdown
-      await page.locator(".text-black > .bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("stripe-currency-select").click();
       await page.locator("#react-select-2-input").fill("mexi");
       await page.locator("#react-select-2-option-81").click();
 
