@@ -2,8 +2,12 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import {
@@ -39,6 +43,14 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
     isOrg: input.isOrg,
   });
+
+  // Only owners can award owner role in an organization.
+  if (
+    input.isOrg &&
+    input.role === MembershipRole.OWNER &&
+    !(await isOrganisationOwner(ctx.user.id, input.teamId))
+  )
+    throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const team = await getTeamOrThrow(input.teamId, input.isOrg);
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
