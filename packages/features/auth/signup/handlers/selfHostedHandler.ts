@@ -3,13 +3,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -86,32 +87,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      const membership = await prisma.$transaction(async (tx) => {
-        if (teamMetadata?.isOrganization) {
-          await tx.user.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              organizationId: team.id,
-            },
-          });
-        }
-        const membership = await tx.membership.upsert({
-          where: {
-            userId_teamId: { userId: user.id, teamId: team.id },
-          },
-          update: {
-            accepted: true,
-          },
-          create: {
-            userId: user.id,
-            teamId: team.id,
-            role: MembershipRole.MEMBER,
-            accepted: true,
-          },
-        });
-        return membership;
+      const { membership } = await createOrUpdateMemberships({
+        teamMetadata,
+        user,
+        team,
       });
 
       closeComUpsertTeamUser(team, user, membership.role);
