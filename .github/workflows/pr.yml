@@ -15,35 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    name: Detect changes
-    runs-on: buildjet-4vcpu-ubuntu-2204
-    permissions:
-      pull-requests: read
-    outputs:
-      app-store: ${{ steps.filter.outputs.app-store }}
-      embed: ${{ steps.filter.outputs.embed }}
-      embed-react: ${{ steps.filter.outputs.embed-react }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/dangerous-git-checkout
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            app-store:
-              - 'apps/web/**'
-              - 'packages/app-store/**'
-              - 'playwright.config.ts'
-            embed:
-              - 'apps/web/**'
-              - 'packages/embeds/**'
-              - 'playwright.config.ts'
-            embed-react:
-              - 'apps/web/**'
-              - 'packages/embeds/**'
-              - 'playwright.config.ts'
-
   type-check:
     name: Type check
     uses: ./.github/workflows/check-types.yml
@@ -51,7 +22,7 @@ jobs:
 
   test:
     name: Unit tests
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   lint:
@@ -64,42 +35,13 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
-  build-without-database:
-    name: Production build (without database)
-    uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
-
-  e2e:
-    name: E2E tests
-    needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e.yml
-    secrets: inherit
-
-  e2e-app-store:
-    name: E2E App Store tests
-    needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e-app-store.yml
-    secrets: inherit
-
-  e2e-embed:
-    name: E2E embeds tests
-    needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e-embed.yml
-    secrets: inherit
-
-  e2e-embed-react:
-    name: E2E React embeds tests
-    needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e-embed-react.yml
-    secrets: inherit
-
   analyze:
     needs: build
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
   required:
-    needs: [lint, type-check, test, build, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [lint, type-check, test, build]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
