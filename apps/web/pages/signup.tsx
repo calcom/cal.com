@@ -24,6 +24,7 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
@@ -230,7 +231,7 @@ export default function Signup({
   };
 
   return (
-    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:#FFFFFF] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:#000000] dark:[--cal-brand:white]">
+    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] [--cal-brand-subtle:#9CA3AF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]">
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
@@ -636,12 +637,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       prepopulateFormValues: !isOrgInviteByLink
         ? {
             email: verificationToken.identifier,
-            username: getOrgUsernameFromEmail(
-              verificationToken.identifier,
-              (isOrganization
-                ? tokenTeam.metadata?.orgAutoAcceptEmail
-                : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
-            ),
+            username: isOrganizationOrATeamInOrganization
+              ? getOrgUsernameFromEmail(
+                  verificationToken.identifier,
+                  (isOrganization
+                    ? tokenTeam.metadata?.orgAutoAcceptEmail
+                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                )
+              : slugify(username),
           }
         : null,
       orgSlug,
