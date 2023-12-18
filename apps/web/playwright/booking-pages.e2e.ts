@@ -365,7 +365,7 @@ test.describe("Booking round robin event", () => {
         teammates: teamMatesObj,
       }
     );
-    const team = await testUser.getFirstTeam();
+    const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
@@ -373,7 +373,7 @@ test.describe("Booking round robin event", () => {
     const [testUser] = users.get();
     testUser.apiLogin();
 
-    const team = await testUser.getFirstTeam();
+    const team = await testUser.getFirstTeamMembership();
 
     // Click first event type (round robin)
     await page.click('[data-testid="event-type-link"]');
