@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/node";
 import type { DehydratedState } from "@tanstack/react-query";
 import classNames from "classnames";
 import type { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -21,6 +20,7 @@ import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
@@ -229,7 +229,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
     const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
     if (!parsedMetadata.success) {
-      Sentry.captureException(parsedMetadata.error);
+      logger.error(parsedMetadata.error);
       return eventTypes;
     }
     eventTypes.push({
