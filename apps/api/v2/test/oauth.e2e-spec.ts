@@ -18,9 +18,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 import { bootstrap } from "../src/app";
-import { MembershipFixtures } from "./fixtures/membership.fixtures";
-import { TeamFixtures } from "./fixtures/team.fixtures";
-import { UsersFixtures } from "./fixtures/users.fixtures";
+import { MembershipRepositoryFixture } from "./fixtures/repository/membership.repository.fixture";
+import { TeamRepositoryFixture } from "./fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "./fixtures/repository/users.repository.fixture";
 import { NextAuthMockStrategy } from "./mocks/next-auth-mock.strategy";
 import { withNextAuth } from "./utils/withNextAuth";
 
@@ -60,9 +60,9 @@ describe("OAuth Client Endpoints", () => {
   });
 
   describe("User Is Authenticated", () => {
-    let usersFixtures: UsersFixtures;
-    let membershipFixtures: MembershipFixtures;
-    let teamFixtures: TeamFixtures;
+    let usersFixtures: UserRepositoryFixture;
+    let membershipFixtures: MembershipRepositoryFixture;
+    let teamFixtures: TeamRepositoryFixture;
     let user: User;
     let org: Team;
     let app: INestApplication;
@@ -78,9 +78,9 @@ describe("OAuth Client Endpoints", () => {
       ).compile();
       const strategy = moduleRef.get(NextAuthStrategy);
       expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
-      usersFixtures = new UsersFixtures(moduleRef);
-      membershipFixtures = new MembershipFixtures(moduleRef);
-      teamFixtures = new TeamFixtures(moduleRef);
+      usersFixtures = new UserRepositoryFixture(moduleRef);
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      teamFixtures = new TeamRepositoryFixture(moduleRef);
       user = await usersFixtures.create({
         email: userEmail,
       });

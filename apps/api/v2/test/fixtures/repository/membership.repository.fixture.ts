@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { Membership, MembershipRole, Prisma, Team, User } from "@prisma/client";
 
-export class MembershipFixtures {
+export class MembershipRepositoryFixture {
   private primaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
