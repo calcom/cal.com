@@ -1,6 +1,6 @@
 import CategoryPage from "@pages/apps/categories/[category]";
 import { Prisma } from "@prisma/client";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata } from "_app/_utils";
 import { notFound } from "next/navigation";
 import z from "zod";
 

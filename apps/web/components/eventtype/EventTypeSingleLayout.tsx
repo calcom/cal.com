@@ -322,6 +322,7 @@ function EventTypeSingleLayout({
                   StartIcon={Code}
                   color="secondary"
                   variant="icon"
+                  namespace={eventType.slug}
                   tooltip={t("embed")}
                   tooltipSide="bottom"
                   tooltipOffset={4}
