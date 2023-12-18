@@ -46,10 +46,10 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
-  e2e-main:
+  e2e:
     name: E2E tests
     needs: [changes, lint, build]
-    uses: ./.github/workflows/e2e-main.yml
+    uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
@@ -76,7 +76,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [e2e-main, e2e-app-store, e2e-embed, e2e-embed-react, build-without-database]
+    needs: [e2e, e2e-app-store, e2e-embed, e2e-embed-react, build-without-database]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
