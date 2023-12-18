@@ -166,10 +166,16 @@ export function UserListTable() {
             <div className="flex items-center gap-2">
               <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
               <div className="">
-                <div className="text-emphasis text-sm font-medium leading-none">
+                <div
+                  data-testid={`member-${username}-username`}
+                  className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
                 </div>
-                <div className="text-subtle mt-1 text-sm leading-none">{email}</div>
+                <div
+                  data-testid={`member-${username}-email`}
+                  className="text-subtle mt-1 text-sm leading-none">
+                  {email}
+                </div>
               </div>
             </div>
           );
@@ -185,9 +191,10 @@ export function UserListTable() {
         accessorFn: (data) => data.role,
         header: "Role",
         cell: ({ row, table }) => {
-          const { role } = row.original;
+          const { role, username } = row.original;
           return (
             <Badge
+              data-testid={`member-${username}-role`}
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
@@ -204,12 +211,13 @@ export function UserListTable() {
         id: "teams",
         header: "Teams",
         cell: ({ row }) => {
-          const { teams, accepted, email } = row.original;
+          const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {accepted ? null : (
                 <Badge
+                  data-testid2={`member-${username}-pending`}
                   variant="red"
                   className="text-xs"
                   data-testid={`email-${email.replace("@", "")}-pending`}>
