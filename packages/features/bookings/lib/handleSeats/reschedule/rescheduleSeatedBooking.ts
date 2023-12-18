@@ -20,7 +20,7 @@ import type { createLoggerWithEventDetails } from "../../handleNewBooking";
 import lastAttendeeDeleteBooking from "../lib/lastAttendeeDeleteBooking";
 import ownerRescheduleSeatedBooking from "./owner/ownerRescheduleSeatedBooking";
 
-const handleRescheduledSeatedEvent = async (
+const rescheduleSeatedBooking = async (
   // If this function is being called then rescheduleUid is defined
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
@@ -219,4 +219,4 @@ const handleRescheduledSeatedEvent = async (
   return resultBooking;
 };
 
-export default handleRescheduledSeatedEvent;
+export default rescheduleSeatedBooking;
