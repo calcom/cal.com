@@ -50,7 +50,7 @@ type InputWorkflow = {
 /**
  * Data to be mocked
  */
-type ScenarioData = {
+export type ScenarioData = {
   // hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
   /**
    * Prisma would return these eventTypes
@@ -886,10 +886,12 @@ export function getOrganizer({
   defaultScheduleId,
   weekStart = "Sunday",
   teams,
+  organizationId,
 }: {
   name: string;
   email: string;
   id: number;
+  organizationId?: number | null;
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
@@ -900,7 +902,6 @@ export function getOrganizer({
 }) {
   return {
     ...TestData.users.example,
-    organizationId: null as null | number,
     name,
     email,
     id,
@@ -911,6 +912,7 @@ export function getOrganizer({
     defaultScheduleId,
     weekStart,
     teams,
+    organizationId,
   };
 }
 
@@ -957,6 +959,7 @@ export function getScenarioData(
     eventTypes: eventTypes.map((eventType, index) => {
       return {
         ...eventType,
+        teamId: eventType.teamId || null,
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
       };
@@ -964,6 +967,7 @@ export function getScenarioData(
     users: users.map((user) => {
       const newUser = {
         ...user,
+        organizationId: user.organizationId ?? null,
       };
       if (user.destinationCalendar) {
         newUser.destinationCalendar = {
@@ -978,7 +982,7 @@ export function getScenarioData(
     webhooks,
     bookings: bookings || [],
     workflows,
-  };
+  } satisfies ScenarioData;
 }
 
 export function enableEmailFeature() {

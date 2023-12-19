@@ -136,7 +136,7 @@ expect.extend({
 
       return {
         pass: false,
-        message: () => `Email content ${isNot ? "is" : "is not"} matching`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching. ${JSON.stringify(emailsToLog)}`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
