@@ -30,7 +30,7 @@ export const OAuthClientForm: FC = () => {
 
   const { mutateAsync, isLoading } = useCreateOAuthClient({
     onSuccess: () => {
-      showToast("OAuth client successfully", "success");
+      showToast("OAuth client created successfully", "success");
       router.push("/settings/organizations/platform/oauth-clients");
     },
     onError: () => {

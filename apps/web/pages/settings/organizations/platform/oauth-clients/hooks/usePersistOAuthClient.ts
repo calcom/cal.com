@@ -30,15 +30,14 @@ export const useCreateOAuthClient = (
         body: JSON.stringify(data),
       }).then((res) => res.json());
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {
         onSuccess?.();
       } else {
-        // handle api errors
-        // error
+        onError?.();
       }
     },
-    onError: (error, variables, context) => {
+    onError: () => {
       onError?.();
     },
   });
@@ -46,36 +45,32 @@ export const useCreateOAuthClient = (
   return mutation;
 };
 
-export const useDeleteOAuthClient = ({ onSuccess, onError }: IPersistOAuthClient) => {
-  const mutation = useMutation<
-    ApiResponse<{ client_id: string; client_secret: string }>,
-    unknown,
-    DeleteOAuthClientInput
-  >({
+export const useDeleteOAuthClient = (
+  { onSuccess, onError }: IPersistOAuthClient = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
+) => {
+  const mutation = useMutation<ApiResponse<undefined>, unknown, DeleteOAuthClientInput>({
     mutationFn: (data) => {
       const { id } = data;
-      console.log("Data for delete oauth client input:", data, id);
-
       return fetch(`/api/v2/oauth-clients/${id}`, {
         method: "delete",
         headers: { "Content-type": "application/json" },
-      }).then((res) => {
-        console.log("This is the response", res.json());
-
-        return res.json();
-      });
+      }).then((res) => res.json());
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {
-        console.log("Deleted client successfully");
-
         onSuccess?.();
       } else {
-        // handle api errors
-        // error
+        onError?.();
       }
     },
-    onError: (error, variables, context) => {
+    onError: () => {
       onError?.();
     },
   });

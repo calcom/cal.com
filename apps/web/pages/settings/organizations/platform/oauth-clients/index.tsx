@@ -1,5 +1,6 @@
-import { OAuthClientList } from "@pages/settings/organizations/platform/oauth-clients/components/OAuthClientList";
+import { OAuthClientCard } from "@pages/settings/organizations/platform/oauth-clients/components/OAuthClientCard";
 import { useOAuthClients } from "@pages/settings/organizations/platform/oauth-clients/hooks/useOAuthClients";
+import { useDeleteOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/router";
@@ -8,14 +9,19 @@ import React from "react";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { EmptyScreen } from "@calcom/ui";
 import { Meta, Button } from "@calcom/ui";
+import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 import PageWrapper from "@components/PageWrapper";
 
-// Create a client
 const queryClient = new QueryClient();
 
 export const OAuthClients = () => {
-  const { data, error, isLoading } = useOAuthClients();
+  const { data, isLoading, refetch: refetchClients } = useOAuthClients();
+  const { mutateAsync, isLoading: isDeleting } = useDeleteOAuthClient({ onSuccess: () => refetchClients() });
+
+  const handleDelete = async (id: string) => {
+    await mutateAsync({ id: id });
+  };
 
   const NewOAuthClientButton = () => {
     const router = useRouter();
@@ -33,14 +39,8 @@ export const OAuthClients = () => {
     );
   };
 
-  // TODO: ideally if its loading we can just display a skeleton loader here
   if (isLoading) {
-    return <h1>Loading...</h1>;
-  }
-
-  // TODO: add better error message to display
-  if (error) {
-    return <h1>Sorry, an error occured</h1>;
+    return <Spinner className="mx-auto mt-12 h-10 w-10" />;
   }
 
   return (
@@ -58,7 +58,7 @@ export const OAuthClients = () => {
               <div className="border-subtle rounded-b-lg border border-t-0">
                 {data.map((client, index) => {
                   return (
-                    <OAuthClientList
+                    <OAuthClientCard
                       name={client.name}
                       redirect_uris={client.redirect_uris}
                       permissions={client.permissions}
@@ -66,6 +66,8 @@ export const OAuthClients = () => {
                       lastItem={data.length === index + 1}
                       id={client.id}
                       secret={client.secret}
+                      isLoading={isDeleting}
+                      onDelete={handleDelete}
                     />
                   );
                 })}

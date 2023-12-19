@@ -3,16 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
-// hook to fetch oauth clients data
-// react-query to fetch
-// {loading, fetching, data} = useQuery to fetch data with react-query
-
 export const useOAuthClients = () => {
-  const {
-    isLoading,
-    error,
-    data: response,
-  } = useQuery<ApiSuccessResponse<PlatformOAuthClient[]>>({
+  const query = useQuery<ApiSuccessResponse<PlatformOAuthClient[]>>({
     queryKey: ["oauth-clients"],
     queryFn: () => {
       return fetch("/api/v2/oauth-clients", {
@@ -22,7 +14,7 @@ export const useOAuthClients = () => {
     },
   });
 
-  return { isLoading, error, data: response?.data };
+  return { ...query, data: query.data?.data ?? [] };
 };
 
 export const useOAuthClient = (clientId: string) => {

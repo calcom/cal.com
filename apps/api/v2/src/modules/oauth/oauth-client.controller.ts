@@ -88,7 +88,7 @@ export class OAuthClientController {
   }
 
   @Delete("/:clientId")
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
