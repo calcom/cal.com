@@ -22,7 +22,7 @@ export function UserFieldsResponses(props: { calEvent: CalendarEvent; t: TFuncti
                 ? labelValueMap[key]
                   ? t("yes")
                   : t("no")
-                : labelValueMap[key]
+                : `${labelValueMap[key] ? labelValueMap[key] : ""}`
             }
             withSpacer
           />
