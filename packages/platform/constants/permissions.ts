@@ -22,3 +22,24 @@ export const PERMISSION_MAP = {
   SCHEDULE_READ,
   SCHEDULE_WRITE,
 } as const;
+
+export const PERMISSIONS_GROUPED_MAP = {
+  EVENT_TYPE: {
+    read: EVENT_TYPE_READ,
+    write: EVENT_TYPE_WRITE,
+    key: "eventType",
+    label: "Event Type",
+  },
+  BOOKING: {
+    read: BOOKING_READ,
+    write: BOOKING_WRITE,
+    key: "booking",
+    label: "Booking",
+  },
+  SCHEDULE: {
+    read: SCHEDULE_READ,
+    write: SCHEDULE_WRITE,
+    key: "schedule",
+    label: "Schedule",
+  },
+} as const;
