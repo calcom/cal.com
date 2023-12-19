@@ -384,7 +384,7 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 }
 
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
-  const createdWorkflows = await prismock.$transaction(
+  await prismock.$transaction(
     workflows.map((workflow) => {
       return prismock.workflow.create({
         data: {

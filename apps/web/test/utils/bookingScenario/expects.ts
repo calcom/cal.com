@@ -303,14 +303,6 @@ export function expectWebhookToHaveBeenCalledWith(
     expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
-type BookingRequest = {
-  organizer?: { email: string; name: string };
-  booker?: { email: string; name: string };
-  subscriberUrl?: string;
-  location?: string;
-  paidEvent?: boolean;
-  videoCallUrl?: string | null;
-};
 
 export function expectWorkflowToBeTriggered({
   emails,
