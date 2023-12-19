@@ -117,12 +117,18 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     // invited users can autojoin, create their memberships in org
     if (autoJoinUsers.length) {
       await prisma.membership.createMany({
-        data: autoJoinUsers.map((userToAutoJoin) => ({
-          userId: userToAutoJoin.id,
-          teamId: team.id,
-          accepted: true,
-          role: input.role,
-        })),
+        data: autoJoinUsers.map((userToAutoJoin) => {
+          const organizationRole = userToAutoJoin.teams?.[0]?.role;
+          return {
+            userId: userToAutoJoin.id,
+            teamId: team.id,
+            accepted: true,
+            role:
+              organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
+                ? organizationRole
+                : input.role,
+          };
+        }),
       });
     }
 

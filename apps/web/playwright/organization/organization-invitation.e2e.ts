@@ -45,7 +45,12 @@ test.describe.serial("Organization", () => {
         });
 
         assertInviteLink(inviteLink);
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -118,7 +123,12 @@ test.describe.serial("Organization", () => {
 
         assertInviteLink(inviteLink);
 
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -200,7 +210,12 @@ test.describe.serial("Organization", () => {
         });
 
         assertInviteLink(inviteLink);
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -276,7 +291,12 @@ test.describe.serial("Organization", () => {
 
         assertInviteLink(inviteLink);
 
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -356,14 +376,30 @@ async function signupFromInviteLink({
   return { email };
 }
 
-async function signupFromEmailInviteLink(browser: Browser, inviteLink: string) {
+async function signupFromEmailInviteLink({
+  browser,
+  inviteLink,
+  expectedUsername,
+  expectedEmail,
+}: {
+  browser: Browser;
+  inviteLink: string;
+  expectedUsername: string;
+  expectedEmail: string;
+}) {
   // Follow invite link in new window
   const context = await browser.newContext();
   const signupPage = await context.newPage();
 
   signupPage.goto(inviteLink);
+  await signupPage.waitForLoadState("networkidle");
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
+  expect(await signupPage.locator(`[data-testid="signup-usernamefield"]`).inputValue()).toBe(
+    expectedUsername
+  );
   await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
+  expect(await signupPage.locator(`[data-testid="signup-emailfield"]`).inputValue()).toBe(expectedEmail);
+
   await signupPage.waitForLoadState("networkidle");
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
