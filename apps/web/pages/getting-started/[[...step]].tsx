@@ -105,7 +105,7 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]"
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand-text:#FFFFFF] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:#000000] dark:[--cal-brand:white]"
       data-testid="onboarding"
       key={pathname}>
       <Head>
@@ -158,7 +158,7 @@ const OnboardingPage = () => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium dark:bg-white">
                   {headers[currentStepIndex]?.skipText}
                 </Button>
               </div>
