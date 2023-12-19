@@ -517,7 +517,8 @@ const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) =>
               <Button
                 className="mt-4"
                 onClick={() => {
-                  window.location.href = pathname;
+                  // Prevent null on app directory
+                  if (pathname) window.location.href = pathname;
                 }}
                 color="primary">
                 {t("go_back")}
