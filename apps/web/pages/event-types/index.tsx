@@ -407,7 +407,7 @@ export const EventTypeList = ({
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.team && !isManagedEventType && (
                         <UserAvatarGroup
-                          className="relative right-3 top-1"
+                          className="relative right-3"
                           size="sm"
                           truncateAfter={4}
                           users={type?.users ?? []}
@@ -415,7 +415,7 @@ export const EventTypeList = ({
                       )}
                       {isManagedEventType && type?.children && type.children?.length > 0 && (
                         <UserAvatarGroup
-                          className="relative right-3 top-1"
+                          className="relative right-3"
                           size="sm"
                           truncateAfter={4}
                           users={type?.children.flatMap((ch) => ch.users) ?? []}
@@ -505,6 +505,7 @@ export const EventTypeList = ({
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EventTypeEmbedButton
+                                    namespace={type.slug}
                                     as={DropdownItem}
                                     type="button"
                                     StartIcon={Code}

@@ -1,4 +1,5 @@
 import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
@@ -70,6 +71,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useContext();
+  const session = useSession();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
+  const isOrgOwner = currentOrg && currentOrg.user.role === MembershipRole.OWNER;
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
     props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
@@ -96,12 +102,19 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   };
 
   const options: MembershipRoleOption[] = useMemo(() => {
-    return [
+    const options: MembershipRoleOption[] = [
       { value: MembershipRole.MEMBER, label: t("member") },
       { value: MembershipRole.ADMIN, label: t("admin") },
       { value: MembershipRole.OWNER, label: t("owner") },
     ];
-  }, [t]);
+
+    // Adjust options for organizations where the user isn't the owner
+    if (isOrg && !isOrgOwner) {
+      return options.filter((option) => option.value !== MembershipRole.OWNER);
+    }
+
+    return options;
+  }, [t, isOrgOwner, isOrg]);
 
   const toggleGroupOptions = useMemo(() => {
     const array = [

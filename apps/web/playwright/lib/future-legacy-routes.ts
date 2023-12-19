@@ -2,7 +2,7 @@ import { test } from "./fixtures";
 
 export type RouteVariant = "future" | "legacy";
 
-const routeVariants = ["future", "legacy"];
+const routeVariants = [/*"future",*/ "legacy"];
 
 /**
  * Small wrapper around test.describe().

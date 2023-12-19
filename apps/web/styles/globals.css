@@ -7,90 +7,90 @@
 :root {
   /* background */
 
-  --cal-bg-emphasis: #e5e7eb;
-  --cal-bg: white;
-  --cal-bg-subtle: #f3f4f6;
-  --cal-bg-muted: #f9fafb;
-  --cal-bg-inverted: #111827;
+  --cal-bg-emphasis: hsla(220,13%,91%,1);
+  --cal-bg: hsla(0,0%,100%,1);
+  --cal-bg-subtle: hsla(220, 14%, 96%,1);
+  --cal-bg-muted: hsla(210,20%,98%,1);
+  --cal-bg-inverted: hsla(0,0%,6%,1);
 
   /* background -> components*/
-  --cal-bg-info: #dee9fc;
-  --cal-bg-success: #e2fbe8;
-  --cal-bg-attention: #fceed8;
-  --cal-bg-error: #f9e3e2;
-  --cal-bg-dark-error: #752522;
+  --cal-bg-info: hsla(218,83%,98%,1);
+  --cal-bg-success: hsla(134,76%,94%,1);
+  --cal-bg-attention: hsla(37, 86%, 92%, 1);
+  --cal-bg-error: hsla(3,66,93,1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
 
   /* Borders */
-  --cal-border-emphasis: #9ca3af;
-  --cal-border: #d1d5db;
-  --cal-border-subtle: #e5e7eb;
+  --cal-border-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-border: hsla(216, 12%, 84%, 1);
+  --cal-border-subtle: hsla(220, 13%, 91%, 1);
   --cal-border-booker: #e5e7eb;
-  --cal-border-muted: #f3f4f6;
-  --cal-border-error: #aa2e26;
+  --cal-border-muted: hsla(220, 14%, 96%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
 
   /* Content/Text */
-  --cal-text-emphasis: #111827;
-  --cal-text: #374151;
-  --cal-text-subtle: #6b7280;
-  --cal-text-muted: #9ca3af;
-  --cal-text-inverted: white;
+  --cal-text-emphasis: hsla(217, 19%, 27%, 1);
+  --cal-text: hsla(217, 19%, 27%, 1);
+  --cal-text-subtle: hsla(220, 9%, 46%, 1);
+  --cal-text-muted: hsla(218, 11%, 65%, 1);
+  --cal-text-inverted: hsla(0, 0%, 100%, 1);
 
   /* Content/Text -> components */
-  --cal-text-info: #253985;
-  --cal-text-success: #285231;
-  --cal-text-attention: #73321b;
-  --cal-text-error: #752522;
+  --cal-text-info: hsla(228, 56%, 33%, 1);
+  --cal-text-success: hsla(133, 34%, 24%, 1);
+  --cal-text-attention: hsla(16, 62%, 28%, 1);
+  --cal-text-error: hsla(2, 55%, 30%, 1);
 
   /* Brand shinanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: #111827;
-  --cal-brand-emphasis: #101010;
-  --cal-brand-text: white;
+  --cal-brand: hsla(221, 39%, 11%, 1);
+  --cal-brand-emphasis: hsla(0, 0%, 6%, 1);
+  --cal-brand-text: hsla(0, 0%, 100%, 1);
 }
 .dark {
   /* background */
 
-  --cal-bg-emphasis: #2b2b2b;
-  --cal-bg: #101010;
-  --cal-bg-subtle: #2b2b2b;
-  --cal-bg-muted: #1c1c1c;
-  --cal-bg-inverted: #f3f4f6;
+  --cal-bg-emphasis: hsla(0, 0%, 32%, 1);
+  --cal-bg: hsla(0, 0%, 10%, 1);
+  --cal-bg-subtle: hsla(0, 0%, 18%, 1);
+  --cal-bg-muted: hsla(0, 0%, 12%, 1);
+  --cal-bg-inverted: hsla(220, 14%, 96%, 1);
 
   /* background -> components*/
-  --cal-bg-info: #263fa9;
-  --cal-bg-success: #306339;
-  --cal-bg-attention: #8e3b1f;
-  --cal-bg-error: #8c2822;
-  --cal-bg-dark-error: #752522;
+  --cal-bg-info: hsla(228, 56%, 33%, 1);
+  --cal-bg-success: hsla(133, 34%, 24%, 1);
+  --cal-bg-attention: hsla(16, 62%, 28%, 1);
+  --cal-bg-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
 
   /* Borders */
-  --cal-border-emphasis: #575757;
-  --cal-border: #444444;
-  --cal-border-subtle: #2b2b2b;
-  --cal-border-booker: #2b2b2b;
-  --cal-border-muted: #1c1c1c;
-  --cal-border-error: #aa2e26;
+  --cal-border-emphasis: hsla(0, 0%, 46%, 1);
+  --cal-border: hsla(0, 0%, 34%, 1);
+  --cal-border-subtle: hsla(0, 0%, 22%, 1);
+  --cal-border-booker: hsla(0, 0%, 22%, 1);
+  --cal-border-muted: hsla(0, 0%, 18%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
 
   /* Content/Text */
-  --cal-text-emphasis: #f3f4f6;
-  --cal-text: #d6d6d6;
-  --cal-text-subtle: #a5a5a5;
-  --cal-text-muted: #575757;
-  --cal-text-inverted: #101010;
+  --cal-text-emphasis: hsla(240, 20%, 99%, 1);
+  --cal-text: hsla(0, 0%, 84%, 1);
+  --cal-text-subtle: hsla(0, 0%, 65%, 1);
+  --cal-text-muted: hsla(0, 0%, 34%, 1);
+  --cal-text-inverted: hsla(0, 0%, 10%, 1);
 
   /* Content/Text -> components */
-  --cal-text-info: #dee9fc;
-  --cal-text-success: #e2fbe8;
-  --cal-text-attention: #fceed8;
-  --cal-text-error: #f9e3e2;
+  --cal-text-info: hsla(218, 83%, 93%, 1);
+  --cal-text-success: hsla(134, 76%, 94%, 1);
+  --cal-text-attention: hsla(37, 86%, 92%, 1);
+  --cal-text-error: hsla(3, 66%, 93%, 1);
 
   /* Brand shenanigans
       -> These will be computed for the users theme at runtime.
     */
-  --cal-brand: white;
-  --cal-brand-emphasis: #e1e1e1;
-  --cal-brand-text: black;
+  --cal-brand: hsla(0, 0%, 100%, 1);
+  --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-brand-text: hsla(0, 0%, 0%,1);
 }
 
 @layer base {

@@ -4,19 +4,24 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { createWebUser as syncServicesCreateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
-import { validateUsername } from "@calcom/lib/validateUsername";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
-import { findTokenByToken, throwIfTokenExpired, validateUsernameForTeam } from "../utils/token";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "../utils/token";
 
 async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   const {
@@ -52,15 +57,33 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
-    await validateUsernameForTeam({ username, email, teamId: foundToken?.teamId ?? null });
+    username = await validateAndGetCorrectedUsernameForTeam({
+      username,
+      email,
+      teamId: foundToken?.teamId ?? null,
+      isSignup: true,
+    });
   } else {
-    const usernameAndEmailValidation = await validateUsername(username, email);
+    const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
+      username,
+      email,
+      isSignup: true,
+    });
     if (!usernameAndEmailValidation.isValid) {
       throw new HttpError({
         statusCode: 409,
         message: "Username or email is already taken",
       });
     }
+
+    if (!usernameAndEmailValidation.username) {
+      throw new HttpError({
+        statusCode: 422,
+        message: "Invalid username",
+      });
+    }
+
+    username = usernameAndEmailValidation.username;
   }
 
   // Create the customer in Stripe
@@ -125,32 +148,10 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       });
 
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
-      const membership = await prisma.$transaction(async (tx) => {
-        if (teamMetadata?.isOrganization) {
-          await tx.user.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              organizationId: team.id,
-            },
-          });
-        }
-        const membership = await tx.membership.upsert({
-          where: {
-            userId_teamId: { userId: user.id, teamId: team.id },
-          },
-          update: {
-            accepted: true,
-          },
-          create: {
-            userId: user.id,
-            teamId: team.id,
-            role: MembershipRole.MEMBER,
-            accepted: true,
-          },
-        });
-        return membership;
+      const { membership } = await createOrUpdateMemberships({
+        teamMetadata,
+        user,
+        team,
       });
 
       closeComUpsertTeamUser(team, user, membership.role);

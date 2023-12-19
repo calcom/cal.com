@@ -7,10 +7,12 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
+import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -27,7 +29,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, HeadSeo, PasswordField, TextField, Form, Alert } from "@calcom/ui";
+import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -66,21 +68,12 @@ const FEATURES = [
   },
 ];
 
-const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
-  const [emailUser, emailDomain = ""] = email.split("@");
-  const username =
-    emailDomain === autoAcceptEmailDomain
-      ? slugify(emailUser)
-      : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
-
-  return username;
-};
-
 function UsernameField({
   username,
   setPremium,
   premium,
   setUsernameTaken,
+  orgSlug,
   usernameTaken,
   ...props
 }: React.ComponentProps<typeof TextField> & {
@@ -88,6 +81,7 @@ function UsernameField({
   setPremium: (value: boolean) => void;
   premium: boolean;
   usernameTaken: boolean;
+  orgSlug?: string;
   setUsernameTaken: (value: boolean) => void;
 }) {
   const { t } = useLocale();
@@ -103,7 +97,7 @@ function UsernameField({
         setUsernameTaken(false);
         return;
       }
-      fetchUsername(debouncedUsername).then(({ data }) => {
+      fetchUsername(debouncedUsername, orgSlug ?? null).then(({ data }) => {
         setPremium(data.premium);
         setUsernameTaken(!data.available);
       });
@@ -237,7 +231,13 @@ export default function Signup({
   };
 
   return (
-    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] [--cal-brand-subtle:#9CA3AF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]">
+    <div
+      className={classNames(
+        "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
+      )}>
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
@@ -276,25 +276,30 @@ export default function Signup({
                 await signUp(updatedValues);
               }}>
               {/* Username */}
-              <UsernameField
-                label={t("username")}
-                username={watch("username")}
-                premium={premiumUsername}
-                usernameTaken={usernameTaken}
-                setUsernameTaken={(value) => setUsernameTaken(value)}
-                data-testid="signup-usernamefield"
-                setPremium={(value) => setPremiumUsername(value)}
-                addOnLeading={
-                  orgSlug
-                    ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
-                    : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
-                }
-              />
+              {!isOrgInviteByLink ? (
+                <UsernameField
+                  orgSlug={orgSlug}
+                  label={t("username")}
+                  username={watch("username") || ""}
+                  premium={premiumUsername}
+                  usernameTaken={usernameTaken}
+                  disabled={!!orgSlug}
+                  setUsernameTaken={(value) => setUsernameTaken(value)}
+                  data-testid="signup-usernamefield"
+                  setPremium={(value) => setPremiumUsername(value)}
+                  addOnLeading={
+                    orgSlug
+                      ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
+                      : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                  }
+                />
+              ) : null}
               {/* Email */}
               <TextField
                 {...register("email")}
                 label={t("email")}
                 type="email"
+                disabled={prepopulateFormValues?.email}
                 data-testid="signup-emailfield"
               />
 
@@ -322,7 +327,7 @@ export default function Signup({
                   : t("create_account")}
               </Button>
             </Form>
-            {/* Continue with Social Logins */}
+            {/* Continue with Social Logins - Only for non-invite links */}
             {token || (!isGoogleLoginEnabled && !isSAMLLoginEnabled) ? null : (
               <div className="mt-6">
                 <div className="relative flex items-center">
@@ -334,7 +339,7 @@ export default function Signup({
                 </div>
               </div>
             )}
-            {/* Social Logins */}
+            {/* Social Logins - Only for non-invite links*/}
             {!token && (
               <div className="mt-6 flex flex-col gap-2 md:flex-row">
                 {isGoogleLoginEnabled ? (
@@ -366,7 +371,7 @@ export default function Signup({
                       if (username) {
                         // If username is present we save it in query params to check for premium
                         const searchQueryParams = new URLSearchParams();
-                        searchQueryParams.set("username", formMethods.getValues("username"));
+                        searchQueryParams.set("username", username);
                         localStorage.setItem("username", username);
                         router.push(`${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`);
                         return;
@@ -402,10 +407,14 @@ export default function Signup({
                         return;
                       }
                       const username = formMethods.getValues("username");
+                      if (!username) {
+                        showToast("error", t("username_required"));
+                        return;
+                      }
                       localStorage.setItem("username", username);
                       const sp = new URLSearchParams();
                       // @NOTE: don't remove username query param as it's required right now for stripe payment page
-                      sp.set("username", formMethods.getValues("username"));
+                      sp.set("username", username);
                       sp.set("email", formMethods.getValues("email"));
                       router.push(
                         `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
@@ -491,6 +500,7 @@ export default function Signup({
           </div>
         </div>
       </div>
+      <Toaster position="bottom-right" />
     </div>
   );
 }
@@ -603,15 +613,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
   };
 
+  const isATeamInOrganization = tokenTeam?.parentId !== null;
+  const isOrganization = tokenTeam.metadata?.isOrganization;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
+  const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
-  const orgSlug = isOrganization
+  const orgSlug = isOrganizationOrATeamInOrganization
     ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
     : null;
 
   // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganization) {
+  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
@@ -619,7 +631,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = isOrganization && !isValidEmail;
+  const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
   const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
     ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
     : null;
@@ -631,7 +643,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       prepopulateFormValues: !isOrgInviteByLink
         ? {
             email: verificationToken.identifier,
-            username: slugify(username),
+            username: isOrganizationOrATeamInOrganization
+              ? getOrgUsernameFromEmail(
+                  verificationToken.identifier,
+                  (isOrganization
+                    ? tokenTeam.metadata?.orgAutoAcceptEmail
+                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                )
+              : slugify(username),
           }
         : null,
       orgSlug,
