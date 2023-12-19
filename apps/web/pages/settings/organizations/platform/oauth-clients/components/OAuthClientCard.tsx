@@ -2,8 +2,11 @@ import { Asterisk, Clipboard } from "lucide-react";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
+import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import { Button, showToast } from "@calcom/ui";
+
+import { hasPermission } from "../../../../../../../../packages/platform/utils/permissions";
 
 type OAuthClientCardProps = {
   name: string;
@@ -21,12 +24,36 @@ export const OAuthClientCard = ({
   name,
   logo,
   redirect_uris,
+  permissions,
   id,
   secret,
   lastItem,
   onDelete,
   isLoading,
 }: OAuthClientCardProps) => {
+  const clientPermissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value, index) => {
+    let permissionsMessage = "";
+    const hasReadPermission = hasPermission(permissions, value.read);
+    const hasWritePermission = hasPermission(permissions, value.write);
+
+    if (hasReadPermission || hasWritePermission) {
+      permissionsMessage = hasReadPermission ? "read" : "write";
+    }
+
+    if (hasReadPermission && hasWritePermission) {
+      permissionsMessage = "read/write";
+    }
+
+    return (
+      !!permissionsMessage && (
+        <div key={value.read} className="relative text-sm">
+          &nbsp;{permissionsMessage} {`${value.label}s`.toLocaleLowerCase()}
+          {Object.values(PERMISSIONS_GROUPED_MAP).length === index + 1 ? " " : ", "}
+        </div>
+      )
+    );
+  });
+
   return (
     <div
       className={classNames(
@@ -36,7 +63,7 @@ export const OAuthClientCard = ({
       <div className="flex flex-col gap-2">
         <div className="flex gap-1">
           <p className="font-semibold">
-            Name: <span className="font-normal">{name}</span>
+            Client name: <span className="font-normal">{name}</span>
           </p>
         </div>
         {!!logo && (
@@ -45,13 +72,14 @@ export const OAuthClientCard = ({
           </div>
         )}
         <div className="flex flex-col gap-2">
-          <div className="flex flex-row items-center justify-center gap-2">
-            <div className="font-semibold">Client Id:</div> <div>{id}</div>
+          <div className="flex flex-row items-center gap-2">
+            <div className="font-semibold">Client Id:</div>
+            <div>{id}</div>
             <Clipboard
               type="button"
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
-                navigator.clipboard.writeText(secret);
+                navigator.clipboard.writeText(id);
                 showToast("Client id copied to clipboard.", "success");
               }}
             />
@@ -73,8 +101,9 @@ export const OAuthClientCard = ({
             />
           </div>
         </div>
-        <div className="border-subtle text-sm">
-          <span className="font-semibold">Permissions: </span>Read bookings, write bookings
+        <div className="border-subtle flex text-sm">
+          <span className="font-semibold">Permissions: </span>
+          <div className="flex">{clientPermissions}</div>
         </div>
         <div className="flex gap-1 text-sm">
           <span className="font-semibold">Redirect uris: </span>
@@ -83,7 +112,7 @@ export const OAuthClientCard = ({
       </div>
       <div className="flex items-center">
         <Button
-          className="bg-red-500 text-white"
+          className="bg-red-500 text-white hover:bg-red-600"
           loading={isLoading}
           disabled={isLoading}
           onClick={() => onDelete(id)}>
