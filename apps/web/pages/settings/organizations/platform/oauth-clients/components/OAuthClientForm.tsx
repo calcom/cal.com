@@ -1,14 +1,12 @@
 import { useCreateOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
-import { Plus } from "lucide-react";
 import { useRouter } from "next/router";
 import type { FC } from "react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Controller } from "react-hook-form";
 
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
-import { Meta, Button, TextField, Avatar, Label, ImageUploader } from "@calcom/ui";
+import { Meta, Button, TextField } from "@calcom/ui";
 
 type FormValues = {
   name: string;
@@ -99,7 +97,7 @@ export const OAuthClientForm: FC = () => {
         <div className="mt-6">
           <TextField required={true} label="Client name" {...register("name")} />
         </div>
-        <div className="mt-6">
+        {/** <div className="mt-6">
           <Controller
             control={control}
             name="logo"
@@ -128,7 +126,7 @@ export const OAuthClientForm: FC = () => {
               </>
             )}
           />
-        </div>
+        </div> */}
         <div className="mt-6">
           <TextField label="Redirect uri" required={true} {...register("redirect_uri")} />
         </div>
