@@ -73,6 +73,7 @@ function UsernameField({
   setPremium,
   premium,
   setUsernameTaken,
+  orgSlug,
   usernameTaken,
   ...props
 }: React.ComponentProps<typeof TextField> & {
@@ -80,6 +81,7 @@ function UsernameField({
   setPremium: (value: boolean) => void;
   premium: boolean;
   usernameTaken: boolean;
+  orgSlug?: string;
   setUsernameTaken: (value: boolean) => void;
 }) {
   const { t } = useLocale();
@@ -95,7 +97,7 @@ function UsernameField({
         setUsernameTaken(false);
         return;
       }
-      fetchUsername(debouncedUsername).then(({ data }) => {
+      fetchUsername(debouncedUsername, orgSlug ?? null).then(({ data }) => {
         setPremium(data.premium);
         setUsernameTaken(!data.available);
       });
@@ -276,6 +278,7 @@ export default function Signup({
               {/* Username */}
               {!isOrgInviteByLink ? (
                 <UsernameField
+                  orgSlug={orgSlug}
                   label={t("username")}
                   username={watch("username") || ""}
                   premium={premiumUsername}
@@ -610,15 +613,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
   };
 
+  const isATeamInOrganization = tokenTeam?.parentId !== null;
+  const isOrganization = tokenTeam.metadata?.isOrganization;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
+  const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
-  const orgSlug = isOrganization
+  const orgSlug = isOrganizationOrATeamInOrganization
     ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
     : null;
 
   // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganization) {
+  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
@@ -626,7 +631,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = isOrganization && !isValidEmail;
+  const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
   const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
     ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
     : null;
@@ -638,7 +643,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       prepopulateFormValues: !isOrgInviteByLink
         ? {
             email: verificationToken.identifier,
-            username: slugify(username),
+            username: isOrganizationOrATeamInOrganization
+              ? getOrgUsernameFromEmail(
+                  verificationToken.identifier,
+                  (isOrganization
+                    ? tokenTeam.metadata?.orgAutoAcceptEmail
+                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                )
+              : slugify(username),
           }
         : null,
       orgSlug,
