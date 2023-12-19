@@ -25,33 +25,17 @@ export class OAuthClientGuard implements CanActivate {
     const oauthClientId = headers[X_CAL_CLIENT_ID];
     const oauthClientSecret = headers[X_CAL_SECRET_KEY];
 
-    const valid = await this.validateOauthClient(oauthClientId, oauthClientSecret);
-
-    if (!valid) {
+    if (!oauthClientId || !oauthClientSecret) {
       throw new UnauthorizedException();
     }
 
     const client = await this.oauthRepository.getOAuthClient(oauthClientId);
 
-    if (!client) {
-      throw new NotFoundException();
+    if (!client || client.secret !== oauthClientSecret) {
+      throw new UnauthorizedException();
     }
 
     request.oAuthClient = client;
-
-    return valid;
-  }
-
-  private async validateOauthClient(oauthClientId: string, oauthClientSecret: string): Promise<boolean> {
-    if (!oauthClientId || !oauthClientSecret) {
-      return false;
-    }
-
-    const oauthClient = await this.oauthRepository.getOAuthClient(oauthClientId);
-
-    if (!oauthClient || oauthClient.secret !== oauthClientSecret) {
-      return false;
-    }
 
     return true;
   }

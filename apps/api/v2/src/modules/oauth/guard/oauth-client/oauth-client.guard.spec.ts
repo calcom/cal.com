@@ -1,7 +1,7 @@
 import { AppModule } from "@/app.module";
 import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
 import { createMock } from "@golevelup/ts-jest";
-import { ExecutionContext, NotFoundException } from "@nestjs/common";
+import { ExecutionContext, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient } from "@prisma/client";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -55,7 +55,7 @@ describe("OAuthClientGuard", () => {
       [X_CAL_SECRET_KEY]: oauthClient.secret,
     });
 
-    await expect(guard.canActivate(mockContext)).rejects.toThrow(NotFoundException);
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
   });
 
   it("should return false if secret key is invalid", async () => {
@@ -64,7 +64,7 @@ describe("OAuthClientGuard", () => {
       [X_CAL_SECRET_KEY]: "invalid secret",
     });
 
-    await expect(guard.canActivate(mockContext)).resolves.toBe(false);
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
   });
 
   afterAll(async () => {
