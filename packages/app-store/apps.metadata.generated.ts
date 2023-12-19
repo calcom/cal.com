@@ -46,6 +46,7 @@ import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
+import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
@@ -123,6 +124,7 @@ export const appStoreMetadata = {
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,
+  roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   sendgrid: sendgrid_config_json,
