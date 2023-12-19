@@ -47,8 +47,9 @@ describe("User Endpoints", () => {
 
   describe("User Authenticated", () => {
     let createdUser: { id: number; email: string };
-    let accessToken: string;
+    let createdAccessToken: string;
     let oAuthClient: PlatformOAuthClient;
+
     const requestBody: CreateUserInput = {
       email: "user-e2e-spec@gmail.com",
     };
@@ -115,13 +116,17 @@ describe("User Endpoints", () => {
         email: responseBody.data.user.email,
       };
 
-      accessToken = responseBody.data.accessToken;
+      createdAccessToken = responseBody.data.accessToken;
+
+      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClient.id);
+      expect(oAuthUsers?.length).toEqual(1);
+      expect(oAuthUsers?.find((user) => user.email === createdUser.email)?.email).toEqual(createdUser.email);
     });
 
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/users/${createdUser.id}`)
-        .set("Authorization", `Bearer ${accessToken}`)
+        .set("Authorization", `Bearer ${createdAccessToken}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<Omit<User, "password">> = response.body;
@@ -137,7 +142,7 @@ describe("User Endpoints", () => {
 
       const response = await request(app.getHttpServer())
         .put(`/api/v2/users/${createdUser.id}`)
-        .set("Authorization", `Bearer ${accessToken}`)
+        .set("Authorization", `Bearer ${createdAccessToken}`)
         .send(body)
         .expect(200);
 
@@ -151,7 +156,7 @@ describe("User Endpoints", () => {
     it(`/DELETE/:id`, () => {
       return request(app.getHttpServer())
         .delete(`/api/v2/users/${createdUser.id}`)
-        .set("Authorization", `Bearer ${accessToken}`)
+        .set("Authorization", `Bearer ${createdAccessToken}`)
         .expect(204);
     });
 

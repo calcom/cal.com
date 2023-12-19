@@ -17,6 +17,17 @@ export class OAuthClientRepositoryFixture {
     return this.prismaReadClient.platformOAuthClient.findFirst({ where: { id: clientId } });
   }
 
+  async getUsers(clientId: PlatformOAuthClient["id"]) {
+    const response = await this.prismaReadClient.platformOAuthClient.findFirst({
+      where: { id: clientId },
+      include: {
+        users: true,
+      },
+    });
+
+    return response?.users;
+  }
+
   async create(organizationId: number, data: CreateOAuthClientInput, secret: string) {
     return this.prismaWriteClient.platformOAuthClient.create({
       data: {
