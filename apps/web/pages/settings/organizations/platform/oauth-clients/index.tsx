@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import React from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen, showToast } from "@calcom/ui";
 import { Meta, Button } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
@@ -17,7 +17,12 @@ const queryClient = new QueryClient();
 
 export const OAuthClients = () => {
   const { data, isLoading, refetch: refetchClients } = useOAuthClients();
-  const { mutateAsync, isLoading: isDeleting } = useDeleteOAuthClient({ onSuccess: () => refetchClients() });
+  const { mutateAsync, isLoading: isDeleting } = useDeleteOAuthClient({
+    onSuccess: () => {
+      showToast("OAuth client deleted successfully", "success");
+      refetchClients();
+    },
+  });
 
   const handleDelete = async (id: string) => {
     await mutateAsync({ id: id });
