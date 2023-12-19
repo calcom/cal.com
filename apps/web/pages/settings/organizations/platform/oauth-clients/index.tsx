@@ -47,8 +47,8 @@ export const OAuthClients = () => {
     <QueryClientProvider client={queryClient}>
       <div>
         <Meta
-          title="OAuth clients"
-          description="Info about oauth clients"
+          title="OAuth Clients"
+          description="Connect your platform to cal.com with oAuth"
           CTA={<NewOAuthClientButton />}
           borderInShellHeader={true}
         />
