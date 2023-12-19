@@ -75,6 +75,7 @@ function UsernameField({
   setUsernameTaken,
   orgSlug,
   usernameTaken,
+  disabled,
   ...props
 }: React.ComponentProps<typeof TextField> & {
   username: string;
@@ -92,6 +93,8 @@ function UsernameField({
     if (formState.isSubmitting || formState.isSubmitSuccessful) return;
 
     async function checkUsername() {
+      // If the username can't be changed, there is no point in doing the username availability check
+      if (disabled) return;
       if (!debouncedUsername) {
         setPremium(false);
         setUsernameTaken(false);
@@ -103,11 +106,20 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [debouncedUsername, setPremium, setUsernameTaken, formState.isSubmitting, formState.isSubmitSuccessful]);
+  }, [
+    debouncedUsername,
+    setPremium,
+    disabled,
+    orgSlug,
+    setUsernameTaken,
+    formState.isSubmitting,
+    formState.isSubmitSuccessful,
+  ]);
 
   return (
     <div>
       <TextField
+        disabled={disabled}
         {...props}
         {...register("username")}
         data-testid="signup-usernamefield"

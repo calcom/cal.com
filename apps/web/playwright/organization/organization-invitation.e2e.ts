@@ -392,7 +392,7 @@ async function signupFromEmailInviteLink({
   const signupPage = await context.newPage();
 
   signupPage.goto(inviteLink);
-  await signupPage.waitForLoadState("networkidle");
+  await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
   expect(await signupPage.locator(`[data-testid="signup-usernamefield"]`).inputValue()).toBe(
     expectedUsername
