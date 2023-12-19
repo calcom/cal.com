@@ -4,6 +4,7 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
+import { CreateUserResponse } from "@/modules/user/user.controller";
 import { UserModule } from "@/modules/user/user.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -17,45 +18,54 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("User Endpoints", () => {
-  let app: INestApplication;
+  describe("Not authenticated", () => {
+    let app: INestApplication;
 
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      providers: [PrismaExceptionFilter, HttpExceptionFilter],
-      imports: [AppModule, UserModule],
-    }).compile();
+    beforeAll(async () => {
+      const moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter],
+        imports: [AppModule, UserModule],
+      }).compile();
 
-    app = moduleRef.createNestApplication();
-    bootstrap(app as NestExpressApplication);
-    await app.init();
-  });
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+      await app.init();
+    });
 
-  describe("User Not Authenticated", () => {
-    it(`/POST`, () => {
-      return request(app.getHttpServer()).post("/api/v2/users").expect(401);
+    describe("x-cal headers not set", () => {
+      it(`/POST`, () => {
+        return request(app.getHttpServer())
+          .post("/api/v2/users")
+          .send({ email: "bob@gmail.com" })
+          .expect(401);
+      });
     });
-    it(`/GET/:id`, () => {
-      return request(app.getHttpServer()).get("/api/v2/users/1234").expect(401);
+
+    describe("Bearer access token not set", () => {
+      it(`/GET/:id`, () => {
+        return request(app.getHttpServer()).get("/api/v2/users/1234").expect(401);
+      });
+      it(`/PUT/:id`, () => {
+        return request(app.getHttpServer()).put("/api/v2/users/1234").expect(401);
+      });
+      it(`/DELETE/:id`, () => {
+        return request(app.getHttpServer()).delete("/api/v2/users/1234").expect(401);
+      });
     });
-    it(`/PUT/:id`, () => {
-      return request(app.getHttpServer()).put("/api/v2/users/1234").expect(401);
-    });
-    it(`/DELETE/:id`, () => {
-      return request(app.getHttpServer()).delete("/api/v2/users/1234").expect(401);
+
+    afterAll(async () => {
+      await app.close();
     });
   });
 
   describe("User Authenticated", () => {
-    let createdUser: { id: number; email: string };
-    let createdAccessToken: string;
+    let app: INestApplication;
+
     let oAuthClient: PlatformOAuthClient;
-
-    const requestBody: CreateUserInput = {
-      email: "user-e2e-spec@gmail.com",
-    };
-
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+
+    let postResponseData: CreateUserResponse;
 
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
@@ -66,6 +76,14 @@ describe("User Endpoints", () => {
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      oAuthClient = await createOAuthClient();
+
+      await app.init();
+    });
+
+    async function createOAuthClient() {
       const organizationId = 1;
       const data = {
         logo: "logo-url",
@@ -75,11 +93,9 @@ describe("User Endpoints", () => {
       };
       const secret = "secret";
 
-      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      oAuthClient = await oauthClientRepositoryFixture.create(organizationId, data, secret);
-      await app.init();
-    });
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
 
     it("should be defined", () => {
       expect(oauthClientRepositoryFixture).toBeDefined();
@@ -87,11 +103,11 @@ describe("User Endpoints", () => {
       expect(oAuthClient).toBeDefined();
     });
 
-    it(`/POST`, () => {
-      return request(app.getHttpServer()).post("/api/v2/users").send(requestBody).expect(401);
-    });
-
     it(`/POST`, async () => {
+      const requestBody: CreateUserInput = {
+        email: "user-e2e-spec@gmail.com",
+      };
+
       const response = await request(app.getHttpServer())
         .post("/api/v2/users")
         .set("x-cal-client-id", oAuthClient.id)
@@ -105,35 +121,36 @@ describe("User Endpoints", () => {
         refreshToken: string;
       }> = response.body;
 
+      postResponseData = responseBody.data;
+
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.user.email).toEqual(requestBody.email);
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
-      createdUser = {
-        id: responseBody.data.user.id,
-        email: responseBody.data.user.email,
-      };
-
-      createdAccessToken = responseBody.data.accessToken;
-
-      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClient.id);
-      expect(oAuthUsers?.length).toEqual(1);
-      expect(oAuthUsers?.find((user) => user.email === createdUser.email)?.email).toEqual(createdUser.email);
+      await userConnectedToOAuth(responseBody.data.user.email);
     });
+
+    async function userConnectedToOAuth(userEmail: string) {
+      const oAuthUsers = await oauthClientRepositoryFixture.getUsers(oAuthClient.id);
+      const newOAuthUser = oAuthUsers?.find((user) => user.email === userEmail);
+
+      expect(oAuthUsers?.length).toEqual(1);
+      expect(newOAuthUser?.email).toEqual(userEmail);
+    }
 
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/users/${createdUser.id}`)
-        .set("Authorization", `Bearer ${createdAccessToken}`)
+        .get(`/api/v2/users/${postResponseData.user.id}`)
+        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .expect(200);
 
       const responseBody: ApiSuccessResponse<Omit<User, "password">> = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
-      expect(responseBody.data.email).toEqual(requestBody.email);
+      expect(responseBody.data.email).toEqual(postResponseData.user.email);
     });
 
     it(`/PUT/:id`, async () => {
@@ -141,8 +158,8 @@ describe("User Endpoints", () => {
       const body: UpdateUserInput = { email: userUpdatedEmail };
 
       const response = await request(app.getHttpServer())
-        .put(`/api/v2/users/${createdUser.id}`)
-        .set("Authorization", `Bearer ${createdAccessToken}`)
+        .put(`/api/v2/users/${postResponseData.user.id}`)
+        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .send(body)
         .expect(200);
 
@@ -155,21 +172,22 @@ describe("User Endpoints", () => {
 
     it(`/DELETE/:id`, () => {
       return request(app.getHttpServer())
-        .delete(`/api/v2/users/${createdUser.id}`)
-        .set("Authorization", `Bearer ${createdAccessToken}`)
+        .delete(`/api/v2/users/${postResponseData.user.id}`)
+        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .expect(204);
     });
 
     afterAll(async () => {
-      const failedToDelete = createdUser.id ? await userRepositoryFixture.get(createdUser.id) : false;
+      if (!postResponseData.user.email) {
+        return;
+      }
+
+      const failedToDelete = await userRepositoryFixture.getByEmail(postResponseData.user.email);
 
       if (failedToDelete) {
-        await userRepositoryFixture.deleteByEmail(createdUser.email);
+        await userRepositoryFixture.deleteByEmail(postResponseData.user.email);
       }
+      await app.close();
     });
-  });
-
-  afterAll(async () => {
-    await app.close();
   });
 });
