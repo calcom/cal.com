@@ -1,4 +1,5 @@
 import { Permissions } from "@/modules/auth/decorator/permissions/permissions.decorator";
+import { AccessTokenGuard } from "@/modules/auth/guard/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guard/permissions/permissions.guard";
 import { GetOAuthClient } from "@/modules/oauth/decorator/get-oauth-client/get-oauth-client.decorator";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
@@ -37,6 +38,7 @@ export class UserController {
 
   @Post("/")
   @UseGuards(OAuthClientGuard)
+  // TODO: add Permissions
   async createUser(
     @GetOAuthClient("id") oAuthClientId: string,
     @Body() body: CreateUserInput
@@ -67,7 +69,8 @@ export class UserController {
 
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(PermissionsGuard)
+  @UseGuards(AccessTokenGuard, PermissionsGuard)
+  // TODO: add Permissions
   @Permissions()
   async getUserById(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
     const user = await this.userRepository.findById(userId);
@@ -80,7 +83,8 @@ export class UserController {
 
   @Put("/:userId")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(PermissionsGuard)
+  @UseGuards(AccessTokenGuard, PermissionsGuard)
+  // TODO: add Permissions
   @Permissions()
   async updateUser(
     @Param("userId") userId: number,
@@ -94,7 +98,8 @@ export class UserController {
 
   @Delete("/:userId")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(PermissionsGuard)
+  @UseGuards(AccessTokenGuard, PermissionsGuard)
+  // TODO: add Permissions
   @Permissions()
   async deleteUser(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
     this.logger.log(`Deleting user with ID: ${userId}`);

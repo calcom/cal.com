@@ -1,13 +1,13 @@
 import { Permissions } from "@/modules/auth/decorator/permissions/permissions.decorator";
-import { MembershipRepository } from "@/modules/membership/membership.repository";
-import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, Global } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
 import { hasPermissions } from "@calcom/platform-utils";
 
+@Global()
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector, private membershipRepository: MembershipRepository) {}
+  constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions = this.reflector.get(Permissions, context.getHandler());
@@ -15,8 +15,12 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
+    if (!Object.keys(requiredPermissions).length) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest();
-    const accessToken = request.get("Authorization");
+    const accessToken = request.get("Authorization")?.replace("Bearer ", "");
 
     if (!accessToken) {
       return false;

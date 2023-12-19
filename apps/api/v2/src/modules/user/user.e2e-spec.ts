@@ -2,18 +2,13 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { AuthModule } from "@/modules/auth/auth.module";
-import { NextAuthStrategy } from "@/modules/auth/strategy";
-import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
-import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
-import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { CreateUserInput } from "@/modules/user/input/create-user";
+import { UpdateUserInput } from "@/modules/user/input/update-user";
 import { UserModule } from "@/modules/user/user.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
+import { PlatformOAuthClient, User } from "@prisma/client";
 import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -39,21 +34,22 @@ describe("User Endpoints", () => {
     it(`/POST`, () => {
       return request(app.getHttpServer()).post("/api/v2/users").expect(401);
     });
-    // it(`/GET/:id`, () => {
-    //     return request(app.getHttpServer()).get("/api/v2/users/1234").expect(401);
-    // });
-    // it(`/PUT/:id`, () => {
-    //     return request(app.getHttpServer()).put("/api/v2/users/1234").expect(401);
-    // });
-    // it(`/DELETE/:id`, () => {
-    //     return request(app.getHttpServer()).delete("/api/v2/users/1234").expect(401);
-    // });
+    it(`/GET/:id`, () => {
+      return request(app.getHttpServer()).get("/api/v2/users/1234").expect(401);
+    });
+    it(`/PUT/:id`, () => {
+      return request(app.getHttpServer()).put("/api/v2/users/1234").expect(401);
+    });
+    it(`/DELETE/:id`, () => {
+      return request(app.getHttpServer()).delete("/api/v2/users/1234").expect(401);
+    });
   });
 
   describe("User Authenticated", () => {
-    let user: { id: number; email: string };
+    let createdUser: { id: number; email: string };
+    let accessToken: string;
     let oAuthClient: PlatformOAuthClient;
-    const requestBody = {
+    const requestBody: CreateUserInput = {
       email: "user-e2e-spec@gmail.com",
     };
 
@@ -114,25 +110,58 @@ describe("User Endpoints", () => {
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
-      user = {
+      createdUser = {
         id: responseBody.data.user.id,
         email: responseBody.data.user.email,
       };
+
+      accessToken = responseBody.data.accessToken;
+    });
+
+    it(`/GET/:id`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/users/${createdUser.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<Omit<User, "password">> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.email).toEqual(requestBody.email);
+    });
+
+    it(`/PUT/:id`, async () => {
+      const userUpdatedEmail = "pineapple-pizza@gmail.com";
+      const body: UpdateUserInput = { email: userUpdatedEmail };
+
+      const response = await request(app.getHttpServer())
+        .put(`/api/v2/users/${createdUser.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send(body)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<Omit<User, "password">> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.email).toEqual(userUpdatedEmail);
+    });
+
+    it(`/DELETE/:id`, () => {
+      return request(app.getHttpServer())
+        .delete(`/api/v2/users/${createdUser.id}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(204);
     });
 
     afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(user.email);
-    });
+      const failedToDelete = createdUser.id ? await userRepositoryFixture.get(createdUser.id) : false;
 
-    // it(`/GET/:id`, () => {
-    //     return request(app.getHttpServer()).get(`/api/v2/users/${user.id}`).expect(401);
-    // });
-    // it(`/PUT/:id`, () => {
-    //     return request(app.getHttpServer()).put(`/api/v2/users/${user.id}`).expect(401);
-    // });
-    // it(`/DELETE/:id`, () => {
-    //     return request(app.getHttpServer()).delete(`/api/v2/users/${user.id}`).expect(401);
-    // });
+      if (failedToDelete) {
+        await userRepositoryFixture.deleteByEmail(createdUser.email);
+      }
+    });
   });
 
   afterAll(async () => {
