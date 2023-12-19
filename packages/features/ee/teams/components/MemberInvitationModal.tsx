@@ -83,7 +83,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
     async onSuccess({ inviteLink }) {
-      await copyInviteLinkToClipboard(inviteLink);
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
     },
@@ -91,15 +90,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       showToast(error.message, "error");
     },
   });
-
-  const copyInviteLinkToClipboard = async (inviteLink: string) => {
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      showToast(t("invite_link_copied"), "success");
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const options: MembershipRoleOption[] = useMemo(() => {
     const options: MembershipRoleOption[] = [
@@ -389,8 +379,36 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   type="button"
                   color="minimal"
                   variant="icon"
-                  onClick={() => {
-                    createInviteMutation.mutate({ teamId: props.teamId, token: props.token });
+                  onClick={async function () {
+                    try {
+                      // Required for Safari but also works on Chrome
+                      // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
+                      if (typeof ClipboardItem) {
+                        const inviteLinkClipbardItem = new ClipboardItem({
+                          "text/plain": new Promise(async (resolve) => {
+                            // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
+                            const { inviteLink } = await createInviteMutation.mutateAsync({
+                              teamId: props.teamId,
+                              token: props.token,
+                            });
+                            showToast(t("invite_link_copied"), "success");
+                            resolve(new Blob([inviteLink], { type: "text/plain" }));
+                          }),
+                        });
+                        await navigator.clipboard.write([inviteLinkClipbardItem]);
+                      } else {
+                        // Fallback for browsers that don't support ClipboardItem e.g. Firefox
+                        const { inviteLink } = await createInviteMutation.mutateAsync({
+                          teamId: props.teamId,
+                          token: props.token,
+                        });
+                        await navigator.clipboard.writeText(inviteLink);
+                        showToast(t("invite_link_copied"), "success");
+                      }
+                    } catch (e) {
+                      showToast(t("something_went_wrong_on_our_end"), "error");
+                      console.error(e);
+                    }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
                   data-testid="copy-invite-link-button">
