@@ -60,6 +60,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -69,7 +70,6 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -274,6 +274,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
+          parentId: true,
         },
       },
       bookingFields: true,
@@ -1272,7 +1273,9 @@ async function handler(
   const iCalSequence = getICalSequence(originalRescheduledBooking);
 
   let evt: CalendarEvent = {
-    bookerUrl: await getBookerUrl(organizerUser),
+    bookerUrl: eventType.team
+      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
+      : await getBookerBaseUrl(organizerUser),
     type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -1413,6 +1416,12 @@ async function handler(
     teamId,
   };
 
+  const subscriberOptionsMeetingStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+    teamId,
+  };
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -2690,13 +2699,28 @@ async function handler(
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
       subscribersMeetingEnded.forEach((subscriber) => {
         if (rescheduleUid && originalRescheduledBooking) {
           cancelScheduledJobs(originalRescheduledBooking, undefined, true);
         }
         if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        }
+      });
+
+      subscribersMeetingStarted.forEach((subscriber) => {
+        if (rescheduleUid && originalRescheduledBooking) {
+          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+        }
+        if (booking && booking.status === BookingStatus.ACCEPTED) {
+          scheduleTrigger(
+            booking,
+            subscriber.subscriberUrl,
+            subscriber,
+            WebhookTriggerEvents.MEETING_STARTED
+          );
         }
       });
     } catch (error) {

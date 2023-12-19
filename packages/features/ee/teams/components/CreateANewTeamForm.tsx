@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +14,7 @@ import { Alert, Button, Form, TextField } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
+import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
@@ -129,7 +129,7 @@ export const CreateANewTeamForm = () => {
                 addOnLeading={`${
                   orgBranding
                     ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}/`
-                    : `${extractDomainFromWebsiteUrl}/team/`
+                    : `${subdomainSuffix()}/team/`
                 }`}
                 value={value}
                 defaultValue={value}
