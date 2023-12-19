@@ -5,9 +5,9 @@ import { totp } from "otplib";
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -32,30 +32,6 @@ const getIPAddress = async (url: string): Promise<string> => {
       resolve(address);
     });
   });
-};
-
-const vercelCreateDomain = async (domain: string) => {
-  const response = await fetch(
-    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
-    {
-      body: JSON.stringify({ name: `${domain}.${subdomainSuffix()}` }),
-      headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    }
-  );
-
-  const data = await response.json();
-
-  // Domain is already owned by another team but you can request delegation to access it
-  if (data.error?.code === "forbidden") return false;
-
-  // Domain is already being used by a different project
-  if (data.error?.code === "domain_taken") return false;
-
-  return true;
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
@@ -93,12 +69,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   let isOrganizationConfigured = false;
 
   if (check === false) {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
-    if (process.env.VERCEL) {
-      // We only want to proceed to register the subdomain for the org in Vercel
-      // within a Vercel context
-      isOrganizationConfigured = await vercelCreateDomain(slug);
-    } else {
+    isOrganizationConfigured = await createDomain(slug);
+
+    if (!isOrganizationConfigured) {
       // Otherwise, we proceed to send an administrative email to admins regarding
       // the need to configure DNS registry to support the newly created org
       const instanceAdmins = await prisma.user.findMany({
