@@ -1,4 +1,5 @@
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth/flow/input/exchange-code.input";
+import { OAuthFlowService } from "@/modules/oauth/flow/oauth-flow.service";
 import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
@@ -12,7 +13,8 @@ export class OAuthClientRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private readonly oauthService: OAuthFlowService
   ) {}
 
   async createOAuthClient(organizationId: number, data: CreateOAuthClientInput) {
@@ -110,6 +112,7 @@ export class OAuthClientRepository {
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.platformAuthorizationToken.delete({ where: { id: tokenId } }),
       this.dbWrite.prisma.accessToken.create({
@@ -130,7 +133,64 @@ export class OAuthClientRepository {
       }),
     ]);
 
-    // TODO: propagate access token to redis
+    void this.oauthService.propagateAccessToken(accessToken); // voided as we don't need to await
+
+    return {
+      access_token: accessToken.secret,
+      refresh_token: refreshToken.secret,
+    };
+  }
+
+  async refreshToken(clientId: string, clientSecret: string, tokenSecret: string) {
+    const oauthClient = await this.dbRead.prisma.platformOAuthClient.findFirst({
+      where: {
+        id: clientId,
+        secret: clientSecret,
+      },
+    });
+
+    if (!oauthClient) {
+      throw new BadRequestException("Invalid OAuthClient credentials.");
+    }
+
+    const expiring = await this.dbRead.prisma.refreshToken.findUnique({
+      where: {
+        secret: tokenSecret,
+      },
+    });
+
+    if (!expiring) {
+      throw new BadRequestException("Invalid refresh token");
+    }
+
+    const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
+    const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, _refresh, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
+      this.dbWrite.prisma.accessToken.deleteMany({
+        where: { client: { id: oauthClient.id }, expiresAt: { lte: new Date() } },
+      }),
+      this.dbWrite.prisma.refreshToken.delete({ where: { secret: tokenSecret } }),
+      this.dbWrite.prisma.accessToken.create({
+        data: {
+          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId: oauthClient.id })),
+          expiresAt: accessExpiry,
+          client: { connect: { id: clientId } },
+          owner: { connect: { id: expiring?.userId } },
+        },
+      }),
+      this.dbWrite.prisma.refreshToken.create({
+        data: {
+          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId: oauthClient.id })),
+          expiresAt: refreshExpiry,
+          client: { connect: { id: clientId } },
+          owner: { connect: { id: expiring?.userId } },
+        },
+      }),
+    ]);
+
+    void this.oauthService.propagateAccessToken(accessToken);
 
     return {
       access_token: accessToken.secret,

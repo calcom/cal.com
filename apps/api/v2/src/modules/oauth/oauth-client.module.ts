@@ -1,6 +1,7 @@
 import { getEnv } from "@/env";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { MembershipModule } from "@/modules/membership/membership.module";
+import { OAuthFlowModule } from "@/modules/oauth/flow/oauth-flow.module";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { OAuthClientController } from "@/modules/oauth/oauth-client.controller";
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
@@ -17,6 +18,7 @@ import { JwtModule } from "@nestjs/jwt";
     UserModule,
     MembershipModule,
     JwtModule.register({ secret: getEnv("JWT_SECRET") }),
+    OAuthFlowModule,
   ],
   providers: [OAuthClientRepository, OAuthClientGuard],
   controllers: [OAuthClientController],
