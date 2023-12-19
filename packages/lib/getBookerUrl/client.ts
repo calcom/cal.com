@@ -22,7 +22,7 @@ export const getTeamUrlSync = (
   }
 ) => {
   const bookerUrl = getBookerBaseUrlSync(orgSlug, options);
-  teamSlug = teamSlug ||  "";
+  teamSlug = teamSlug || "";
   if (orgSlug) {
     return `${bookerUrl}/${teamSlug}`;
   }
