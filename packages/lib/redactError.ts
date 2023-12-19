@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
+
+import { IS_PRODUCTION } from "./constants";
 
 const log = logger.getSubLogger({ prefix: [`[[redactError]`] });
 
@@ -19,8 +20,8 @@ export const redactError = <T extends Error | unknown>(error: T) => {
     return error;
   }
   log.debug("Type of Error: ", error.constructor);
-  if (shouldRedact(error)) {
-    log.error("Error: ", safeStringify(error));
+  if (shouldRedact(error) && IS_PRODUCTION) {
+    log.error("Error: ", JSON.stringify(error));
     return new Error("An error occured while querying the database.");
   }
   return error;
