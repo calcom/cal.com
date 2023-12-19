@@ -5,6 +5,7 @@ import { ExchangeAuthorizationCodeInput } from "@/modules/oauth/flow/input/excha
 import { RefreshTokenInput } from "@/modules/oauth/flow/input/refresh-token.input";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import {
   BadRequestException,
   Body,
@@ -26,7 +27,10 @@ import { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 export class OAuthFlowController {
-  constructor(private readonly oauthClientRepository: OAuthClientRepository) {}
+  constructor(
+    private readonly oauthClientRepository: OAuthClientRepository,
+    private readonly tokensRepository: TokensRepository
+  ) {}
 
   @Post("/authorize")
   @HttpCode(HttpStatus.OK)
@@ -45,7 +49,7 @@ export class OAuthFlowController {
       throw new BadRequestException("Invalid 'redirect_uri' value.");
     }
 
-    const { id } = await this.oauthClientRepository.createAuthorizationToken(body.client_id, userId);
+    const { id } = await this.tokensRepository.createAuthorizationToken(body.client_id, userId);
 
     return res.redirect(`${body.redirect_uri}?code=${id}`);
   }
@@ -61,7 +65,7 @@ export class OAuthFlowController {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { access_token, refresh_token } = await this.oauthClientRepository.exchangeAuthorizationToken(
+    const { access_token, refresh_token } = await this.tokensRepository.exchangeAuthorizationToken(
       bearerToken,
       body
     );
@@ -83,7 +87,7 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<ApiResponse<{ access_token: string; refresh_token: string }>> {
-    const { access_token, refresh_token } = await this.oauthClientRepository.refreshToken(
+    const { access_token, refresh_token } = await this.tokensRepository.refreshToken(
       clientId,
       secretKey,
       body.refresh_token
