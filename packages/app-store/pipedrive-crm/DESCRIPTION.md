@@ -1,6 +1,6 @@
 ---
 items:
-  - pipedrive-banner.jpeg
+- pipedrive-banner.jpeg
 ---
 
 {DESCRIPTION}
