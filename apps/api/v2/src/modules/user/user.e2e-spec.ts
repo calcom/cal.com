@@ -53,6 +53,9 @@ describe("User Endpoints", () => {
   describe("User Authenticated", () => {
     let user: { id: number; email: string };
     let oAuthClient: PlatformOAuthClient;
+    const requestBody = {
+      email: "user-e2e-spec@gmail.com",
+    };
 
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
@@ -88,42 +91,36 @@ describe("User Endpoints", () => {
     });
 
     it(`/POST`, () => {
-      return request(app.getHttpServer()).post("/api/v2/users").expect(401);
+      return request(app.getHttpServer()).post("/api/v2/users").send(requestBody).expect(401);
     });
 
-    it(`/POST`, () => {
-      const email = "user@gmail.com";
-      const body: CreateUserInput = {
-        email,
-      };
-
-      return request(app.getHttpServer())
+    it(`/POST`, async () => {
+      const response = await request(app.getHttpServer())
         .post("/api/v2/users")
         .set("x-cal-client-id", oAuthClient.id)
         .set("x-cal-secret-key", oAuthClient.secret)
-        .send(body)
-        .expect(201)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<{
-            user: Omit<User, "password">;
-            accessToken: string;
-            refreshToken: string;
-          }> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(responseBody.data.user.email).toEqual(email);
-          expect(responseBody.data.accessToken).toBeDefined();
-          expect(responseBody.data.refreshToken).toBeDefined();
+        .send(requestBody)
+        .expect(201);
 
-          user = {
-            id: responseBody.data.user.id,
-            email: responseBody.data.user.email,
-          };
-        });
+      const responseBody: ApiSuccessResponse<{
+        user: Omit<User, "password">;
+        accessToken: string;
+        refreshToken: string;
+      }> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.user.email).toEqual(requestBody.email);
+      expect(responseBody.data.accessToken).toBeDefined();
+      expect(responseBody.data.refreshToken).toBeDefined();
+
+      user = {
+        id: responseBody.data.user.id,
+        email: responseBody.data.user.email,
+      };
     });
 
     afterAll(async () => {
-      console.log("asap userRepositoryFixture", userRepositoryFixture);
       await userRepositoryFixture.deleteByEmail(user.email);
     });
 
