@@ -20,7 +20,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
       hasTeam: true,
     });
 
-    const { team: team1MemberOfOrg1 } = await user1NotMemberOfOrg1.getFirstTeam();
+    const { team: team1MemberOfOrg1 } = await user1NotMemberOfOrg1.getFirstTeamMembership();
     await moveTeamToOrg({ team: team1MemberOfOrg1, org });
 
     await user1NotMemberOfOrg1.apiLogin();
@@ -43,7 +43,7 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
       hasTeam: true,
     });
 
-    const { team: team1MemberOfOrg1 } = await user1NotMemberOfOrg1.getFirstTeam();
+    const { team: team1MemberOfOrg1 } = await user1NotMemberOfOrg1.getFirstTeamMembership();
     await moveTeamToOrg({ team: team1MemberOfOrg1, org });
 
     await user1NotMemberOfOrg1.apiLogin();
