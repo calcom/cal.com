@@ -27,6 +27,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   description: true,
   eventName: true,
   slug: true,
+  isInstantEvent: true,
   schedulingType: true,
   length: true,
   locations: true,
@@ -190,6 +191,7 @@ export const getPublicEvent = async (
         orgSlug: org,
         name: unPublishedOrgUser?.organization?.name ?? null,
       },
+      isInstantEvent: false,
     };
   }
 
@@ -251,6 +253,7 @@ export const getPublicEvent = async (
       name: (event.owner?.organization?.name || event.team?.parent?.name || event.team?.name) ?? null,
     },
     isDynamic: false,
+    isInstantEvent: event.isInstantEvent,
   };
 };
 

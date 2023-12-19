@@ -17,7 +17,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       <Skeleton
         title={name}
         as="p"
-        className="max-w-36 min-h-4 truncate text-xl font-semibold"
+        className="max-w-36 min-h-4 truncate font-semibold"
         loadingClassName="ms-3">
         {name}
       </Skeleton>
@@ -29,7 +29,7 @@ export const TroubleshooterSidebar = () => {
   const { t } = useLocale();
 
   return (
-    <div className="relative z-10 hidden w-full flex-col gap-6 py-6 pl-4 pr-6 sm:flex md:pl-0">
+    <div className="relative z-10 hidden h-screen w-full flex-col gap-6 overflow-y-scroll py-6 pl-4 pr-6 sm:flex md:pl-0">
       <BackButtonInSidebar name={t("troubleshooter")} />
       <EventTypeSelect />
       <EventScheduleItem />
