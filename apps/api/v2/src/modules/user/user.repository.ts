@@ -23,20 +23,30 @@ export class UserRepository {
   }
 
   async findById(userId: number) {
-    const user = await this.dbRead.prisma.user.findUniqueOrThrow({
+    const user = await this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
+
+    if (!user) {
+      return user;
+    }
+
     return this.sanitize(user);
   }
 
   async findByEmail(email: string) {
-    const user = await this.dbRead.prisma.user.findUniqueOrThrow({
+    const user = await this.dbRead.prisma.user.findUnique({
       where: {
         email,
       },
     });
+
+    if (!user) {
+      return user;
+    }
+
     return this.sanitize(user);
   }
 

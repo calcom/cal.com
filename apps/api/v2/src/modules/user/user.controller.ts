@@ -16,10 +16,11 @@ import {
   NotFoundException,
   Param,
   Put,
+  BadRequestException,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { DUPLICATE_RESOURCE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -41,6 +42,12 @@ export class UserController {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client ${oAuthClientId}`
     );
+
+    const exists = await this.userRepository.findByEmail(body.email);
+
+    if (exists) {
+      throw new BadRequestException(DUPLICATE_RESOURCE);
+    }
 
     const user = await this.userRepository.create(body, oAuthClientId);
     // TODO: User service for access and refresh tokens
@@ -83,6 +90,12 @@ export class UserController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
     this.logger.log(`Deleting user with ID: ${userId}`);
+
+    const exists = await this.userRepository.findById(userId);
+
+    if (!exists) {
+      throw new NotFoundException(`User with ${userId} does not exist`);
+    }
 
     const user = await this.userRepository.delete(userId);
     return { status: SUCCESS_STATUS, data: user };
