@@ -46,6 +46,7 @@ export const apiHandlers = {
   qr_code: import("./qr_code/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
+  roam: import("./roam/api"),
   "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
   sendgrid: import("./sendgrid/api"),
