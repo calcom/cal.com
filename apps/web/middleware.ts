@@ -138,6 +138,8 @@ export const config = {
     "/future/getting-started/:step/",
     "/apps",
     "/future/apps",
+    "/bookings/:status/",
+    "/future/bookings/:status/",
   ],
 };
 
