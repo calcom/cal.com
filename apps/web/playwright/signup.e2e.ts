@@ -242,7 +242,7 @@ test.describe("Signup Flow Test", async () => {
 
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
-    const { team } = await teamOwner.getFirstTeam();
+    const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("networkidle");

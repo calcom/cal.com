@@ -22,7 +22,7 @@ test.describe("Teams - NonOrg", () => {
 
   test("Team Onboarding Invite Members", async ({ page, users }) => {
     const user = await users.create(undefined, { hasTeam: true });
-    const { team } = await user.getFirstTeam();
+    const { team } = await user.getFirstTeamMembership();
     const inviteeEmail = `${user.username}+invitee@example.com`;
 
     await user.apiLogin();
@@ -80,7 +80,7 @@ test.describe("Teams - NonOrg", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -118,7 +118,7 @@ test.describe("Teams - NonOrg", () => {
       }
     );
 
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -235,7 +235,7 @@ test.describe("Teams - NonOrg", () => {
     );
 
     await owner.apiLogin();
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
 
     // Mark team as private
     await page.goto(`/settings/teams/${team.id}/members`);
@@ -348,7 +348,7 @@ test.describe("Teams - Org", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -397,7 +397,7 @@ test.describe("Teams - Org", () => {
       }
     );
 
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -448,7 +448,7 @@ test.describe("Teams - Org", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     const teamSlugUpperCase = team.slug?.toUpperCase();
