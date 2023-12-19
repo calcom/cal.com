@@ -58,18 +58,6 @@ export default function Authorize() {
     );
   });
 
-  // if (isLoading) return <></>;
-
-  // schema for oauth client
-  // logo: z.string().optional(),
-  // name: z.string(),
-  // redirect_uris: z.array(z.string()),
-  // permissions: z.number(),
-
-  //   if (!client) {
-  //     return <div>{t("unauthorized")}</div>;
-  //   }
-
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="mt-2 max-w-xl rounded-md bg-white px-9 pb-3 pt-2">
