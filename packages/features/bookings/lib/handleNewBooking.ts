@@ -1,4 +1,4 @@
-import type { App, Attendee, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
+import type { App, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -11,7 +11,6 @@ import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
@@ -24,7 +23,6 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -1387,57 +1385,6 @@ async function handler(
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
     evt.destinationCalendar?.push(...teamDestinationCalendars);
   }
-
-  /* Check if the original booking has no more attendees, if so delete the booking
-  and any calendar or video integrations */
-  const lastAttendeeDeleteBooking = async (
-    originalRescheduledBooking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>,
-    filteredAttendees: Partial<Attendee>[],
-    originalBookingEvt?: CalendarEvent
-  ) => {
-    let deletedReferences = false;
-    if (filteredAttendees && filteredAttendees.length === 0 && originalRescheduledBooking) {
-      const integrationsToDelete = [];
-
-      for (const reference of originalRescheduledBooking.references) {
-        if (reference.credentialId) {
-          const credential = await prisma.credential.findUnique({
-            where: {
-              id: reference.credentialId,
-            },
-            select: credentialForCalendarServiceSelect,
-          });
-
-          if (credential) {
-            if (reference.type.includes("_video")) {
-              integrationsToDelete.push(deleteMeeting(credential, reference.uid));
-            }
-            if (reference.type.includes("_calendar") && originalBookingEvt) {
-              const calendar = await getCalendar(credential);
-              if (calendar) {
-                integrationsToDelete.push(
-                  calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)
-                );
-              }
-            }
-          }
-        }
-      }
-
-      await Promise.all(integrationsToDelete).then(async () => {
-        await prisma.booking.update({
-          where: {
-            id: originalRescheduledBooking.id,
-          },
-          data: {
-            status: BookingStatus.CANCELLED,
-          },
-        });
-      });
-      deletedReferences = true;
-    }
-    return deletedReferences;
-  };
 
   // data needed for triggering webhooks
   const eventTypeInfo: EventTypeInfo = {
