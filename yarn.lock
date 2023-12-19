@@ -4540,6 +4540,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/roam@workspace:packages/app-store/roam":
+  version: 0.0.0-use.local
+  resolution: "@calcom/roam@workspace:packages/app-store/roam"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/routing-forms@workspace:packages/app-store/routing-forms":
   version: 0.0.0-use.local
   resolution: "@calcom/routing-forms@workspace:packages/app-store/routing-forms"
