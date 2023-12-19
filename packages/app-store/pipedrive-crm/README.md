@@ -14,7 +14,6 @@
 #### Obtaining Revert API keys
 
 * Create an account on Revert if you don't already have one. (https://app.revert.dev/sign-up)
-* Login to your revert dashboard (https://app.revert.dev/sign-in) and click on "Customize your apps" - "Pipedrive"
-* Enter the client\_id and client\_secret you copied in the previous step\*\*
-* *(Optional)* Copy the scopes (from the Pipedrive app) and add them to the revert dashboard to get granular control over the scope of your app
-  * You can skip this step and use the default revert scopes and permissions
+* Login to your revert dashboard (https://app.revert.dev/sign-in) and click on `Customize your apps` - `Pipedrive`
+* Enter the `client_id` and `client_secret` you copied in the previous step
+* Enter the `client_id` and `client_secret` previously copied to `Settings > Admin > Apps > CRM > Pipedrive` by clicking the  `Edit` button on the app settings.  
