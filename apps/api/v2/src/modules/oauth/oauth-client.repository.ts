@@ -90,24 +90,27 @@ export class OAuthClientRepository {
           },
         },
       },
+      include: {
+        authorizationTokens: {
+          where: {
+            id: tokenId,
+          },
+          include: {
+            owner: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!oauthClient) {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const authorizationToken = await this.dbRead.prisma.platformAuthorizationToken.findUnique({
-      where: {
-        id: tokenId,
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
+    const authorizationToken = oauthClient.authorizationTokens[0];
 
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
@@ -147,19 +150,22 @@ export class OAuthClientRepository {
         id: clientId,
         secret: clientSecret,
       },
+      include: {
+        refreshToken: {
+          where: {
+            secret: tokenSecret,
+          },
+        },
+      },
     });
 
     if (!oauthClient) {
       throw new BadRequestException("Invalid OAuthClient credentials.");
     }
 
-    const expiring = await this.dbRead.prisma.refreshToken.findUnique({
-      where: {
-        secret: tokenSecret,
-      },
-    });
+    const _refreshToken = oauthClient.refreshToken[0];
 
-    if (!expiring) {
+    if (!_refreshToken) {
       throw new BadRequestException("Invalid refresh token");
     }
 
@@ -177,7 +183,7 @@ export class OAuthClientRepository {
           secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId: oauthClient.id })),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
-          owner: { connect: { id: expiring?.userId } },
+          owner: { connect: { id: _refreshToken.userId } },
         },
       }),
       this.dbWrite.prisma.refreshToken.create({
@@ -185,7 +191,7 @@ export class OAuthClientRepository {
           secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId: oauthClient.id })),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
-          owner: { connect: { id: expiring?.userId } },
+          owner: { connect: { id: _refreshToken.userId } },
         },
       }),
     ]);
