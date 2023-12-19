@@ -9,7 +9,8 @@ export class OrganizationRolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.get(Roles, context.getHandler());
-    if (!requiredRoles) {
+
+    if (!requiredRoles.length || !Object.keys(requiredRoles).length) {
       return true;
     }
 
