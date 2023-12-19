@@ -50,7 +50,7 @@ export const OAuthClientForm: FC = () => {
     mutateAsync({
       name: data.name,
       permissions: userPermissions,
-      logo: data.logo,
+      // logo: data.logo,
       redirect_uris: [data.redirect_uri],
     });
   };
