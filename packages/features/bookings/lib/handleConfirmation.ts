@@ -330,6 +330,7 @@ export async function handleConfirmation(args: {
         eventTypeId: booking.eventType?.id,
         status: "ACCEPTED",
         smsReminderNumber: booking.smsReminderNumber || undefined,
+        metadata: evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined,
       }).catch((e) => {
         console.error(
           `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
