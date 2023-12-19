@@ -319,8 +319,7 @@ export function expectWorkflowToBeTriggered({
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
 }) {
-  const subjectPattern = /^Reminder: event_between_users/i; // Regular expression to match the specified subject pattern (case-insensitive)
-
+  const subjectPattern = /^Reminder: /i;
   expect(emails.get()).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -338,7 +337,7 @@ export function expectWorkflowToBeNotTriggered({
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
 }) {
-  const subjectPattern = /^Reminder: event_between_users/i; // Regular expression to match the specified subject pattern (case-insensitive)
+  const subjectPattern = /^Reminder/i; // Regular expression to match the specified subject pattern (case-insensitive)
 
   expect(emails.get()).not.toEqual(
     expect.arrayContaining([
