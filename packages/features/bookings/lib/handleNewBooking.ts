@@ -1,6 +1,7 @@
 import type { App, Attendee, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
+import type { IncomingMessage } from "http";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -372,21 +373,16 @@ type IsFixedAwareUser = User & {
   organization: { slug: string };
 };
 
-const loadUsers = async (
-  eventType: NewBookingEventType,
-  dynamicUserList: string[],
-  reqHeadersHost: string | undefined
-) => {
+const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
   try {
     if (!eventType.id) {
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
-
       const users = await prisma.user.findMany({
         where: {
           username: { in: dynamicUserList },
-          organization: userOrgQuery(reqHeadersHost ? reqHeadersHost.replace(/^https?:\/\//, "") : ""),
+          organization: userOrgQuery(req),
         },
         select: {
           ...userSelect.select,
@@ -969,7 +965,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req.headers.host);
+  })[] = await loadUsers(eventType, dynamicUserList, req);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {

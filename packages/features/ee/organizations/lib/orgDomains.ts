@@ -145,7 +145,7 @@ export function whereClauseForOrgWithSlugOrRequestedSlug(slug: string) {
   } satisfies Prisma.TeamWhereInput;
 }
 
-export function userOrgQuery(hostname: string, fallback?: string | string[]) {
-  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfigFromHostname({ hostname, fallback });
+export function userOrgQuery(req: IncomingMessage | undefined, fallback?: string | string[]) {
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, fallback);
   return isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null;
 }
