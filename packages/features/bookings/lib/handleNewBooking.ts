@@ -549,7 +549,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-async function getBookingData({
+export async function getBookingData({
   req,
   isNotAnApiCall,
   eventType,
@@ -791,7 +791,7 @@ async function createBooking({
   return prisma.booking.create(createBookingObj);
 }
 
-function getCustomInputsResponses(
+export function getCustomInputsResponses(
   reqBody: {
     responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];

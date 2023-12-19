@@ -23,6 +23,7 @@ const eventClasses = cva(
         PENDING: "bg-default text-emphasis border-[1px] border-dashed border-gray-900",
         REJECTED: "",
         CANCELLED: "",
+        AWAITING_HOST: "",
       },
       disabled: {
         true: "hover:cursor-default",
@@ -37,6 +38,7 @@ const eventClasses = cva(
         PENDING: "border-gray-900",
         REJECTED: "border-gray-900",
         CANCELLED: "border-gray-900",
+        AWAITING_HOST: "",
         custom: "",
       },
     },
