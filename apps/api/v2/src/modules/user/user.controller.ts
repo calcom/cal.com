@@ -42,7 +42,7 @@ export class UserController {
   async createUser(
     @GetOAuthClient("id") oAuthClientId: string,
     @Body() body: CreateUserInput
-  ): Promise<ApiResponse<{ user: Partial<User>; accessToken: string; refreshToken: string }>> {
+  ): Promise<ApiResponse<CreateUserResponse>> {
     this.logger.log(
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client ${oAuthClientId}`
     );
@@ -114,3 +114,5 @@ export class UserController {
     return { status: SUCCESS_STATUS, data: user };
   }
 }
+
+export type CreateUserResponse = { user: Partial<User>; accessToken: string; refreshToken: string };

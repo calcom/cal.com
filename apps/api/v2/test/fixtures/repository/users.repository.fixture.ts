@@ -16,6 +16,10 @@ export class UserRepositoryFixture {
     return this.primaReadClient.user.findFirst({ where: { id: userId } });
   }
 
+  async getByEmail(email: User["email"]) {
+    return this.primaReadClient.user.findFirst({ where: { email } });
+  }
+
   async create(data: Prisma.UserCreateInput) {
     try {
       // avoid uniq constraint in tests
