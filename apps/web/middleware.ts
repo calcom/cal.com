@@ -132,6 +132,8 @@ export const config = {
     "/future/apps/categories/:category/",
     "/bookings/:status/",
     "/future/bookings/:status/",
+    "/video/:path*",
+    "/future/video/:path*",
   ],
 };
 
