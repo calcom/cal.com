@@ -7,8 +7,9 @@ import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
-  | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata"> & {
+  | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
       metadata: z.infer<typeof teamMetadataSchema>;
+      isOrganization: boolean;
     })
   | null;
 
@@ -49,6 +50,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   teamSelect = {
     ...teamSelect,
     metadata: true,
+    isOrganization: true,
   };
   if (lookupBy.havingMemberWithId) where.members = { some: { userId: lookupBy.havingMemberWithId } };
 
@@ -63,10 +65,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
     // Note that an organization and a team that doesn't belong to an organization, both have parentId null
     // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
     // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
-    where.metadata = {
-      path: ["isOrganization"],
-      equals: true,
-    };
+    where.isOrganization = true;
     // We must fetch only the team here.
   } else {
     if (forOrgWithSlug) {
@@ -91,13 +90,16 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   const teamsWithParsedMetadata = teams
     .map((team) => ({
       ...team,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore It does exist
+      isOrganization: team.isOrganization as boolean,
       // Using Type assertion here because we know that the metadata is present and Prisma and TypeScript aren't playing well together
       metadata: teamMetadataSchema.parse((team as { metadata: z.infer<typeof teamMetadataSchema> }).metadata),
     }))
     // In cases where there are many teams with the same slug, we need to find out the one and only one that matches our criteria
     .filter((team) => {
       // We need an org if isOrgView otherwise we need a team
-      return isOrg ? team.metadata?.isOrganization : !team.metadata?.isOrganization;
+      return isOrg ? team.isOrganization : !team.isOrganization;
     });
 
   if (teamsWithParsedMetadata.length > 1) {
