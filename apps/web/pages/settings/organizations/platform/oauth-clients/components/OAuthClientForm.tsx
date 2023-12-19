@@ -1,28 +1,19 @@
-// this form is to create oauth client
-// update oauth client part can come later
-// contains properties oauth client id (optional)
-// if theres client id that means were updating the form
-// if no client id were creating the form
-//  one handle submit prop
-// create form state using react hook form (use react hook form hooks)
-// so in this component we manage the form and the values of the form
-// when the user clicks on save we just call handleSubmit from the props passing the form data
-import { usePersistOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
+import { useCreateOAuthClient } from "@pages/settings/organizations/platform/oauth-clients/hooks/usePersistOAuthClient";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/router";
 import type { FC } from "react";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
+import { showToast } from "@calcom/ui";
 import { Meta, Button, TextField, Avatar, Label, ImageUploader } from "@calcom/ui";
 
 type FormValues = {
   name: string;
   logo?: string;
-  redirect_uri_one: string;
-  redirect_uri_two?: string;
-  redirect_uri_three?: string;
+  redirect_uri: string;
   redirect_uris: string[];
   permissions: number;
   eventTypeRead: boolean;
@@ -35,7 +26,17 @@ type FormValues = {
 
 export const OAuthClientForm: FC = () => {
   const { register, handleSubmit, control, setValue } = useForm<FormValues>({});
-  const { mutateAsync, isLoading, error, data } = usePersistOAuthClient();
+  const router = useRouter();
+
+  const { mutateAsync, isLoading } = useCreateOAuthClient({
+    onSuccess: () => {
+      showToast("OAuth client successfully", "success");
+      router.push("/settings/organizations/platform/oauth-clients");
+    },
+    onError: () => {
+      showToast("Internal server error, please try again later", "error");
+    },
+  });
 
   const onSubmit = (data: FormValues) => {
     let userPermissions = 0;
@@ -47,12 +48,13 @@ export const OAuthClientForm: FC = () => {
       if (data[`${entityKey}Read`]) userPermissions |= read;
       if (data[`${entityKey}Write`]) userPermissions |= write;
     });
+
     mutateAsync({
       name: data.name,
       permissions: userPermissions,
       logo: data.logo,
-      redirect_uris: [data.redirect_uri_one],
-    }).then((response) => console.log(response));
+      redirect_uris: [data.redirect_uri],
+    });
   };
 
   const permissionsCheckboxes = Object.keys(PERMISSIONS_GROUPED_MAP).map((key) => {
@@ -128,20 +130,13 @@ export const OAuthClientForm: FC = () => {
           />
         </div>
         <div className="mt-6">
-          <TextField label="Redirect uris" required={true} {...register("redirect_uri_one")} />
+          <TextField label="Redirect uri" required={true} {...register("redirect_uri")} />
         </div>
-        <div className="mt-6">
-          <TextField label="" {...register("redirect_uri_two")} />
-        </div>
-        <div className="mt-6">
-          <TextField label="" {...register("redirect_uri_three")} />
-        </div>
-
         <div className="mt-6">
           <h1 className="text-base font-semibold underline">Permissions</h1>
           <div>{permissionsCheckboxes}</div>
         </div>
-        <Button className="mt-6" type="submit">
+        <Button className="mt-6" type="submit" loading={isLoading}>
           Submit
         </Button>
       </form>
