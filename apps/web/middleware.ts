@@ -140,6 +140,8 @@ export const config = {
     "/future/apps",
     "/bookings/:status/",
     "/future/bookings/:status/",
+    "/video/:path*",
+    "/future/video/:path*",
   ],
 };
 
