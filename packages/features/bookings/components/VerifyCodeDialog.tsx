@@ -25,6 +25,7 @@ export const VerifyCodeDialog = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
+  const [hasVerified, setHasVerified] = useState(false);
 
   const digits = useDigitInput({
     acceptedCharacters: /^[0-9]$/,
@@ -77,6 +78,7 @@ export const VerifyCodeDialog = ({
         email,
       });
     }
+    setHasVerified(true);
   }, [
     email,
     isUserSessionRequiredToVerify,
@@ -89,10 +91,10 @@ export const VerifyCodeDialog = ({
     // trim the input value because "react-digit-input" creates a string of the given length,
     // even when some digits are missing. And finally we use regex to check if the value consists
     // of 6 non-empty digits.
-    if (error || isLoading || !/^\d{6}$/.test(value.trim())) return;
+    if (hasVerified || error || isLoading || !/^\d{6}$/.test(value.trim())) return;
 
     verifyCode();
-  }, [error, isLoading, value, verifyCode]);
+  }, [error, isLoading, value, verifyCode, hasVerified]);
 
   useEffect(() => setValue(""), [isOpenDialog]);
 
