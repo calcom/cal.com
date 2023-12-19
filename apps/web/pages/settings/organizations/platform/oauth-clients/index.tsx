@@ -1,8 +1,3 @@
-// This is a Next.js Page (/settings/platform/oauth-clients)
-// first we call two hooks useOauthclients and useoauthperists client
-// for the time being we only allow the user to create and delete oauth clients
-// updating part can come later
-// here we will map over the oAuthClients returned by useOAuthClients and display a OAuthClientCard for each oauth client
 import { OAuthClientList } from "@pages/settings/organizations/platform/oauth-clients/components/OAuthClientList";
 import { useOAuthClients } from "@pages/settings/organizations/platform/oauth-clients/hooks/useOAuthClients";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
@@ -16,20 +11,10 @@ import { Meta, Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-// import OAuthCard from "./components/OAuthClientCard.tsx";
-
 // Create a client
 const queryClient = new QueryClient();
 
 export const OAuthClients = () => {
-  // here get the oAuth clients from useOauthClients
-  // const {loading, oAuthClients} = useOAuthClients()
-  // get logic to delete clients from usePersistOAuthClient
-  // then oAuthClients.map(client => <OAuthCard /> name onDelete onClick(redirect to create oAuthClient page) />)
-  // Link button to redirect to create oAuthClient page
-
-  // this custom hook should only be called once the oauth client endpoint is ready
-  // until then we mock the data
   const { data, error, isLoading } = useOAuthClients();
 
   const NewOAuthClientButton = () => {
@@ -79,17 +64,11 @@ export const OAuthClients = () => {
                       permissions={client.permissions}
                       key={index}
                       lastItem={data.length === index + 1}
+                      id={client.id}
+                      secret={client.secret}
                     />
                   );
                 })}
-                {/* <OAuthClientList
-                  name="Cal.com"
-                  redirect_uris={[
-                    "http://localhost:3000/settings/platform/oauth-clients",
-                    "http://localhost:3000/settings/platform/oauth-clients",
-                  ]}
-                  permissions="111001"
-                /> */}
               </div>
             </>
           ) : (
@@ -111,5 +90,3 @@ OAuthClients.getLayout = getLayout;
 OAuthClients.PageWrapper = PageWrapper;
 
 export default OAuthClients;
-
-// className="border-subtle flex flex-col rounded-b-lg border border-t-0 p-6" dumb component classname
