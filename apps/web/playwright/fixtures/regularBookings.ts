@@ -360,8 +360,6 @@ export function createBookingPageFixture(page: Page) {
     },
 
     checkBufferTime: async () => {
-      const defaultBufferText = (await localize("en"))("event_buffer_default");
-      const timeSlotText = (await localize("en"))("slot_interval");
       const minutes = (await localize("en"))("minutes");
       const fieldPlaceholder = page.getByPlaceholder("0");
 
@@ -421,7 +419,7 @@ export function createBookingPageFixture(page: Page) {
 
       await limitDurationSwitch.click();
       await page.getByRole("button", { name: addlimit }).click();
-      await expect(page.locator("div > .w-44")).toHaveCount(2);
+      await expect(page.getByTestId("add-limit")).toHaveCount(2);
       await limitDurationSwitch.click();
     },
 
