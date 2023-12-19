@@ -19,6 +19,10 @@ export type ApiErrorResponse = {
   error: ErrorType;
 };
 
+export type ApiRedirectResponseType = {
+  url: string;
+};
+
 export type Response<T = unknown> = BaseResponse<ApiResponse<T>>;
 
-export type ApiResponse<T> = ApiErrorResponse | ApiSuccessResponse<T>;
+export type ApiResponse<T = unknown> = ApiErrorResponse | ApiSuccessResponse<T>;
