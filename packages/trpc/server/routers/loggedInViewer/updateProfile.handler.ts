@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
@@ -6,6 +6,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
@@ -159,11 +160,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     data.avatar = null;
   }
 
-  const updatedUser = await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data,
+  const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
     select: {
       id: true,
       username: true,
@@ -182,6 +179,27 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     },
   });
+
+  let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
+
+  try {
+    updatedUser = await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data,
+      ...updatedUserSelect,
+    });
+  } catch (e) {
+    // Catch unique constraint failure on email field.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const meta = e.meta as { target: string[] };
+      if (meta.target.indexOf("email") !== -1) {
+        throw new HttpError({ statusCode: 409, message: "email_already_used" });
+      }
+    }
+    throw e; // make sure other errors are rethrown
+  }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
     // on timezone change update timezone of default schedule

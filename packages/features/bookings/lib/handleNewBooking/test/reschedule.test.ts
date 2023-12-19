@@ -37,7 +37,7 @@ import {
   expectBookingRequestedWebhookToHaveBeenFired,
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulVideoMeetingDeletionInCalendar,
-  expectSuccessfulRoudRobinReschedulingEmails,
+  expectSuccessfulRoundRobinReschedulingEmails,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -75,6 +75,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
           await createBookingScenario(
             getScenarioData({
               webhooks: [
@@ -128,6 +129,7 @@ describe("handleNewBooking", () => {
                       credentialId: undefined,
                     },
                   ],
+                  iCalUID,
                 },
               ],
               organizer,
@@ -145,7 +147,7 @@ describe("handleNewBooking", () => {
             },
             update: {
               uid: "UPDATED_MOCK_ID",
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              iCalUID,
             },
           });
 
@@ -259,7 +261,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
             appsStatus: [
               getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug }),
               getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
@@ -278,7 +280,7 @@ describe("handleNewBooking", () => {
       );
 
       test(
-        `should rechedule a booking successfully and update the event in the same externalCalendarId as was used in the booking earlier.
+        `should reschedule a booking successfully and update the event in the same externalCalendarId as was used in the booking earlier.
           1. Should cancel the existing booking
           2. Should create a new booking in the database
           3. Should send emails to the booker as well as organizer
@@ -302,6 +304,7 @@ describe("handleNewBooking", () => {
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
           const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
           await createBookingScenario(
             getScenarioData({
               webhooks: [
@@ -355,6 +358,7 @@ describe("handleNewBooking", () => {
                       credentialId: undefined,
                     },
                   ],
+                  iCalUID,
                 },
               ],
               organizer,
@@ -371,7 +375,7 @@ describe("handleNewBooking", () => {
               uid: "MOCK_ID",
             },
             update: {
-              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              iCalUID,
               uid: "UPDATED_MOCK_ID",
             },
           });
@@ -467,7 +471,7 @@ describe("handleNewBooking", () => {
             booker,
             organizer,
             emails,
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            iCalUID,
           });
           expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
@@ -1117,6 +1121,7 @@ describe("handleNewBooking", () => {
             });
             const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
             const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+            const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
 
             const scenarioData = getScenarioData({
               webhooks: [
@@ -1168,6 +1173,7 @@ describe("handleNewBooking", () => {
                       credentialId: 1,
                     }),
                   ],
+                  iCalUID,
                 },
               ],
               organizer,
@@ -1692,7 +1698,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoudRobinReschedulingEmails({
+          expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost2,
             emails,
@@ -1842,7 +1848,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoudRobinReschedulingEmails({
+          expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
             newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
             emails,
