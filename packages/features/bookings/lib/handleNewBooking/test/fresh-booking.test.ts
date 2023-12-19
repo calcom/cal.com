@@ -108,6 +108,15 @@ describe("handleNewBooking", () => {
                   appId: null,
                 },
               ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
+                },
+              ],
               eventTypes: [
                 {
                   id: 1,
@@ -198,7 +207,7 @@ describe("handleNewBooking", () => {
           iCalUID: createdBooking.iCalUID,
         });
 
-        // expectWorkflowToBeTriggered({organizer, emails});
+        expectWorkflowToBeTriggered({ organizer, emails });
         expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
           calendarId: "event-type-1@google-calendar.com",
           videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -262,6 +271,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -349,7 +367,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeTriggered({ organizer, emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
             // We won't be sending evt.destinationCalendar in this case.
@@ -416,6 +434,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -502,7 +529,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeTriggered({ organizer, emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -533,7 +560,7 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in creating a calendar event should not stop the booking creation - Current behaviour is wrong as the booking is created but no-one is notified of it`,
-        async ({}) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -562,6 +589,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -627,7 +663,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeTriggered({ organizer, emails });
 
           // FIXME: We should send Broken Integration emails on calendar event creation failure
           // expectCalendarEventCreationFailureEmails({ booker, organizer, emails });
@@ -674,6 +710,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -768,7 +813,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeTriggered({ organizer, emails });
 
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
@@ -830,6 +875,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -916,7 +970,7 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeTriggered({ organizer, emails });
           expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
             calendarId: "organizer@google-calendar.com",
             videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
@@ -1314,6 +1368,15 @@ describe("handleNewBooking", () => {
                 appId: null,
               },
             ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeEventTypeId: 1,
+              },
+            ],
             eventTypes: [
               {
                 id: 1,
@@ -1376,7 +1439,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeNotTriggered({ organizer, emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1429,6 +1492,15 @@ describe("handleNewBooking", () => {
                 active: true,
                 eventTypeId: 1,
                 appId: null,
+              },
+            ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeEventTypeId: 1,
               },
             ],
             eventTypes: [
@@ -1492,7 +1564,7 @@ describe("handleNewBooking", () => {
             }),
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeNotTriggered({ organizer, emails });
 
           expectBookingRequestedEmails({
             booker,
@@ -1544,6 +1616,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -1611,7 +1692,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeTriggered({ organizer, emails });
 
           const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
@@ -1667,6 +1748,15 @@ describe("handleNewBooking", () => {
                 active: true,
                 eventTypeId: 1,
                 appId: null,
+              },
+            ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeEventTypeId: 1,
               },
             ],
             eventTypes: [
@@ -1735,7 +1825,7 @@ describe("handleNewBooking", () => {
             iCalUID: createdBooking.iCalUID,
           });
 
-          // expectWorkflowToBeTriggered({organizer, emails});
+          expectWorkflowToBeNotTriggered({ organizer, emails });
 
           expectBookingRequestedEmails({ booker, organizer, emails });
 
@@ -1866,6 +1956,15 @@ describe("handleNewBooking", () => {
               appId: null,
             },
           ],
+          workflows: [
+            {
+              userId: organizer.id,
+              trigger: "NEW_EVENT",
+              action: "EMAIL_HOST",
+              template: "REMINDER",
+              activeEventTypeId: 1,
+            },
+          ],
           eventTypes: [
             {
               id: 1,
@@ -1904,7 +2003,7 @@ describe("handleNewBooking", () => {
           iCalUID: createdBooking.iCalUID,
         });
 
-        // expectWorkflowToBeTriggered({organizer, emails});
+        expectWorkflowToBeTriggered({ organizer, emails });
 
         const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
 
@@ -2122,6 +2221,15 @@ describe("handleNewBooking", () => {
                 appId: null,
               },
             ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeEventTypeId: 1,
+              },
+            ],
             eventTypes: [
               {
                 id: 1,
@@ -2193,7 +2301,7 @@ describe("handleNewBooking", () => {
             status: BookingStatus.PENDING,
           });
 
-          // expectWorkflowToBeTriggered({ organizer, emails });
+          expectWorkflowToBeNotTriggered({ organizer, emails });
 
           expectAwaitingPaymentEmails({ organizer, booker, emails });
           expectBookingPaymentIntiatedWebhookToHaveBeenFired({
