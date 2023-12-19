@@ -71,7 +71,9 @@ const WebhookForm = (props: {
       subscriberUrl: props.webhook?.subscriberUrl || "",
       active: props.webhook ? props.webhook.active : true,
       eventTriggers: !props.webhook
-        ? translatedTriggerOptions.map((option) => option.value)
+        ? translatedTriggerOptions
+            .filter((option) => option.value !== WebhookTriggerEvents.INSTANT_MEETING)
+            .map((option) => option.value)
         : props.webhook.eventTriggers,
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,

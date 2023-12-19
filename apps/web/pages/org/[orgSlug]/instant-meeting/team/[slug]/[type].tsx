@@ -67,7 +67,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   const team = await prisma.team.findFirst({
     where: {

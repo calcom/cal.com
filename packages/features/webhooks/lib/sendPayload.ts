@@ -32,15 +32,6 @@ export type WebhookDataType = CalendarEvent &
     paymentId?: number;
   };
 
-export type WebhookDataInstantMeeting = Pick<
-  CalendarEvent,
-  "responses" | "customInputs" | "additionalNotes" | "bookingId"
-> & {
-  title?: string | null;
-  description?: string | null;
-  length?: number | null;
-};
-
 function getZapierPayload(
   data: CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
 ): string {
