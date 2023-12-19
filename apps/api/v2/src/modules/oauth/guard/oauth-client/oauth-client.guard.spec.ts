@@ -1,7 +1,7 @@
 import { AppModule } from "@/app.module";
 import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
 import { createMock } from "@golevelup/ts-jest";
-import { ExecutionContext, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient } from "@prisma/client";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";

@@ -1,11 +1,5 @@
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { PlatformOAuthClient } from "@prisma/client";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
