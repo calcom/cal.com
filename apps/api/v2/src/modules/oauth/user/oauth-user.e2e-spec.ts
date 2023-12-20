@@ -2,9 +2,9 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { CreateUserResponse } from "@/modules/oauth/user/oauth-user.controller";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
-import { CreateUserResponse } from "@/modules/user/user.controller";
 import { UserModule } from "@/modules/user/user.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -32,10 +32,10 @@ describe("User Endpoints", () => {
       await app.init();
     });
 
-    describe("x-cal headers not set", () => {
+    describe("secret header not set", () => {
       it(`/POST`, () => {
         return request(app.getHttpServer())
-          .post("/api/v2/users")
+          .post("/api/v2/oauth-clients/100/users")
           .send({ email: "bob@gmail.com" })
           .expect(401);
       });
@@ -43,10 +43,10 @@ describe("User Endpoints", () => {
 
     describe("Bearer access token not set", () => {
       it(`/GET/:id`, () => {
-        return request(app.getHttpServer()).get("/api/v2/users/1234").expect(401);
+        return request(app.getHttpServer()).get("/api/v2/oauth-clients/100/users/200").expect(401);
       });
       it(`/PUT/:id`, () => {
-        return request(app.getHttpServer()).put("/api/v2/users/1234").expect(401);
+        return request(app.getHttpServer()).put("/api/v2/oauth-clients/100/users/200").expect(401);
       });
     });
 
@@ -106,7 +106,7 @@ describe("User Endpoints", () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post("/api/v2/users")
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
         .set("x-cal-client-id", oAuthClient.id)
         .set("x-cal-secret-key", oAuthClient.secret)
         .send(requestBody)
@@ -139,7 +139,7 @@ describe("User Endpoints", () => {
 
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/users/${postResponseData.user.id}`)
+        .get(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .expect(200);
 
@@ -155,7 +155,7 @@ describe("User Endpoints", () => {
       const body: UpdateUserInput = { email: userUpdatedEmail };
 
       const response = await request(app.getHttpServer())
-        .put(`/api/v2/users/${postResponseData.user.id}`)
+        .put(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .send(body)
         .expect(200);
@@ -171,6 +171,10 @@ describe("User Endpoints", () => {
       if (postResponseData?.user.id) {
         await userRepositoryFixture.delete(postResponseData.user.id);
       }
+      if (oAuthClient) {
+        await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      }
+
       await app.close();
     });
   });

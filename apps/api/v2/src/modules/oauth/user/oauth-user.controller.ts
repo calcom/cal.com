@@ -1,5 +1,4 @@
 import { AccessTokenGuard } from "@/modules/auth/guard/access-token/access-token.guard";
-import { GetOAuthClient } from "@/modules/oauth/decorator/get-oauth-client/get-oauth-client.decorator";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
@@ -24,10 +23,10 @@ import { DUPLICATE_RESOURCE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "users",
+  path: "oauth-clients/:clientId/users",
   version: "2",
 })
-export class UserController {
+export class OAuthUserController {
   private readonly logger = new Logger("UserController");
 
   // TODO: Inject service for access and refresh tokens
@@ -35,9 +34,8 @@ export class UserController {
 
   @Post("/")
   @UseGuards(OAuthClientGuard)
-  // TODO: add Permissions
   async createUser(
-    @GetOAuthClient("id") oAuthClientId: string,
+    @Param("clientId") oAuthClientId: string,
     @Body() body: CreateUserInput
   ): Promise<ApiResponse<CreateUserResponse>> {
     this.logger.log(
@@ -66,6 +64,7 @@ export class UserController {
 
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
+  // TODO: Use Erik's AccessTokenGuard
   @UseGuards(AccessTokenGuard)
   async getUserById(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
     const user = await this.userRepository.findById(userId);
@@ -78,6 +77,7 @@ export class UserController {
 
   @Put("/:userId")
   @HttpCode(HttpStatus.OK)
+  // TODO: Use Erik's AccessTokenGuard
   @UseGuards(AccessTokenGuard)
   async updateUser(
     @Param("userId") userId: number,

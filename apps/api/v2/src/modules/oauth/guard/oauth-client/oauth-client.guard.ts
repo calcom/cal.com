@@ -2,7 +2,7 @@ import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { PlatformOAuthClient } from "@prisma/client";
 
-import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 export type AuthenticatedRequest = Request & {
   oAuthClient: PlatformOAuthClient;
@@ -14,13 +14,17 @@ export class OAuthClientGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const { headers } = request;
+    const { headers, params } = request;
 
-    const oauthClientId = headers[X_CAL_CLIENT_ID];
+    const oauthClientId = params.clientId;
     const oauthClientSecret = headers[X_CAL_SECRET_KEY];
 
-    if (!oauthClientId || !oauthClientSecret) {
-      throw new UnauthorizedException();
+    if (!oauthClientId) {
+      throw new UnauthorizedException("Missing client ID");
+    }
+
+    if (!oauthClientSecret) {
+      throw new UnauthorizedException("Missing client secret");
     }
 
     const client = await this.oauthRepository.getOAuthClient(oauthClientId);

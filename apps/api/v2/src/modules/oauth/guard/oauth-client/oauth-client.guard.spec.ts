@@ -6,7 +6,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient } from "@prisma/client";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 
-import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import { OAuthClientGuard } from "./oauth-client.guard";
 
@@ -41,28 +41,28 @@ describe("OAuthClientGuard", () => {
   });
 
   it("should return true if client ID and secret are valid", async () => {
-    const mockContext = createMockExecutionContext({
-      [X_CAL_CLIENT_ID]: oauthClient.id,
-      [X_CAL_SECRET_KEY]: oauthClient.secret,
-    });
+    const mockContext = createMockExecutionContext(
+      { [X_CAL_SECRET_KEY]: oauthClient.secret },
+      { clientId: oauthClient.id }
+    );
 
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
   });
 
   it("should return false if client ID is invalid", async () => {
-    const mockContext = createMockExecutionContext({
-      [X_CAL_CLIENT_ID]: "invalid id",
-      [X_CAL_SECRET_KEY]: oauthClient.secret,
-    });
+    const mockContext = createMockExecutionContext(
+      { [X_CAL_SECRET_KEY]: oauthClient.secret },
+      { clientId: "invalid id" }
+    );
 
     await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
   });
 
   it("should return false if secret key is invalid", async () => {
-    const mockContext = createMockExecutionContext({
-      [X_CAL_CLIENT_ID]: oauthClient.id,
-      [X_CAL_SECRET_KEY]: "invalid secret",
-    });
+    const mockContext = createMockExecutionContext(
+      { [X_CAL_SECRET_KEY]: "invalid secret" },
+      { clientId: oauthClient.id }
+    );
 
     await expect(guard.canActivate(mockContext)).rejects.toThrow(UnauthorizedException);
   });
@@ -71,11 +71,15 @@ describe("OAuthClientGuard", () => {
     await oauthClientRepositoryFixture.delete(oauthClient.id);
   });
 
-  function createMockExecutionContext(headers: Record<string, string>): ExecutionContext {
+  function createMockExecutionContext(
+    headers: Record<string, string>,
+    params: Record<string, string>
+  ): ExecutionContext {
     return createMock<ExecutionContext>({
       switchToHttp: () => ({
         getRequest: () => ({
           headers,
+          params,
         }),
       }),
     });
