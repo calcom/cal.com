@@ -16,7 +16,6 @@ import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import handleSeats from "../handleSeats";
 import * as handleSeatsModule from "../handleSeats";
 
 describe("handleSeats", () => {
@@ -26,6 +25,7 @@ describe("handleSeats", () => {
     vi.mock("./handleSeats");
     test("On new booking handleSeats is not called", async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const spy = vi.spyOn(handleSeatsModule, "default");
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -84,7 +84,7 @@ describe("handleSeats", () => {
 
       await handleNewBooking(req);
 
-      expect(handleSeats).toHaveBeenCalledTimes(0);
+      expect(spy).toHaveBeenCalledTimes(0);
     });
 
     test("handleSeats is called when a new attendee is added", async () => {
@@ -226,147 +226,155 @@ describe("handleSeats", () => {
         }),
       ]);
     });
-  });
 
-  test("handleSeats is called on rescheduling a seated event", async () => {
-    const spy = vi.spyOn(handleSeatsModule, "default");
-    const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+    test("handleSeats is called on rescheduling a seated event", async () => {
+      const spy = vi.spyOn(handleSeatsModule, "default");
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
-    const booker = getBooker({
-      email: "booker@example.com",
-      name: "Booker",
-    });
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
 
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
-      schedules: [TestData.schedules.IstWorkHours],
-    });
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
 
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const bookingStartTime = `${plus1DateString}T04:00:00Z`;
-    const bookingUid = "abc123";
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+      const bookingUid = "abc123";
 
-    const bookingScenario = await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          {
-            id: 1,
-            slug: "seated-event",
-            slotInterval: 45,
-            length: 45,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-            seatsPerTimeSlot: 3,
-            seatsShowAttendees: false,
-          },
-        ],
-        bookings: [
-          {
-            uid: bookingUid,
-            eventTypeId: 1,
-            status: BookingStatus.ACCEPTED,
-            startTime: bookingStartTime,
-            endTime: `${plus1DateString}T05:15:00.000Z`,
-            metadata: {
-              videoCallUrl: "https://existing-daily-video-call-url.example.com",
+      const bookingScenario = await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slug: "seated-event",
+              slotInterval: 45,
+              length: 45,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+              seatsPerTimeSlot: 3,
+              seatsShowAttendees: false,
             },
-            references: [
-              {
-                type: appStoreMetadata.dailyvideo.type,
-                uid: "MOCK_ID",
-                meetingId: "MOCK_ID",
-                meetingPassword: "MOCK_PASS",
-                meetingUrl: "http://mock-dailyvideo.example.com",
-                credentialId: null,
+          ],
+          bookings: [
+            {
+              uid: bookingUid,
+              eventTypeId: 1,
+              status: BookingStatus.ACCEPTED,
+              startTime: bookingStartTime,
+              endTime: `${plus1DateString}T05:15:00.000Z`,
+              metadata: {
+                videoCallUrl: "https://existing-daily-video-call-url.example.com",
               },
-            ],
+              references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASS",
+                  meetingUrl: "http://mock-dailyvideo.example.com",
+                  credentialId: null,
+                },
+              ],
+            },
+          ],
+          organizer,
+        })
+      );
+
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+
+      const reqBookingUser = "seatedAttendee";
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          rescheduleUid: bookingUid,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: BookingLocations.CalVideo },
           },
-        ],
-        organizer,
-      })
-    );
+          bookingUid: bookingUid,
+          user: reqBookingUser,
+        },
+      });
 
-    mockSuccessfulVideoMeetingCreation({
-      metadataLookupKey: "dailyvideo",
-      videoMeetingData: {
-        id: "MOCK_ID",
-        password: "MOCK_PASS",
-        url: `http://mock-dailyvideo.example.com/meeting-1`,
-      },
-    });
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
 
-    const reqBookingUser = "seatedAttendee";
+      await handleNewBooking(req);
 
-    const mockBookingData = getMockRequestDataForBooking({
-      data: {
-        rescheduleUid: bookingUid,
-        eventTypeId: 1,
-        responses: {
+      const handleSeatsCall = spy.mock.calls[0][0];
+
+      expect(handleSeatsCall).toEqual(
+        expect.objectContaining({
+          rescheduleUid: bookingUid,
+          bookerEmail: booker.email,
+          reqBookingUid: bookingUid,
+          reqBodyUser: reqBookingUser,
+          tAttendees: expect.any(Function),
+          additionalNotes: expect.anything(),
+          noEmail: undefined,
+        })
+      );
+
+      const bookingScenarioEventType = bookingScenario.eventTypes[0];
+      expect(handleSeatsCall.eventTypeInfo).toEqual(
+        expect.objectContaining({
+          eventTitle: bookingScenarioEventType.title,
+          eventDescription: bookingScenarioEventType.description,
+          length: bookingScenarioEventType.length,
+        })
+      );
+
+      expect(handleSeatsCall.eventType).toEqual(
+        expect.objectContaining({
+          id: bookingScenarioEventType.id,
+          slug: bookingScenarioEventType.slug,
+          workflows: bookingScenarioEventType.workflows,
+          seatsPerTimeSlot: bookingScenarioEventType.seatsPerTimeSlot,
+          seatsShowAttendees: bookingScenarioEventType.seatsShowAttendees,
+        })
+      );
+
+      expect(handleSeatsCall.evt).toEqual(
+        expect.objectContaining({
+          startTime: bookingStartTime,
+        })
+      );
+
+      expect(handleSeatsCall.invitee).toEqual([
+        expect.objectContaining({
           email: booker.email,
           name: booker.name,
-          location: { optionValue: "", value: BookingLocations.CalVideo },
-        },
-        bookingUid: bookingUid,
-        user: reqBookingUser,
-      },
+        }),
+      ]);
     });
+  });
 
-    const { req } = createMockNextJsRequest({
-      method: "POST",
-      body: mockBookingData,
+  describe("As an attendee", () => {
+    describe("Creating a new booking", () => {
+      test("Attendee should be added to existing seated event", () => {
+        return;
+      });
     });
-
-    await handleNewBooking(req);
-
-    const handleSeatsCall = spy.mock.calls[0][0];
-
-    expect(handleSeatsCall).toEqual(
-      expect.objectContaining({
-        rescheduleUid: bookingUid,
-        bookerEmail: booker.email,
-        reqBookingUid: bookingUid,
-        reqBodyUser: reqBookingUser,
-        tAttendees: expect.any(Function),
-        additionalNotes: expect.anything(),
-        noEmail: undefined,
-      })
-    );
-
-    const bookingScenarioEventType = bookingScenario.eventTypes[0];
-    expect(handleSeatsCall.eventTypeInfo).toEqual(
-      expect.objectContaining({
-        eventTitle: bookingScenarioEventType.title,
-        eventDescription: bookingScenarioEventType.description,
-        length: bookingScenarioEventType.length,
-      })
-    );
-
-    expect(handleSeatsCall.eventType).toEqual(
-      expect.objectContaining({
-        id: bookingScenarioEventType.id,
-        slug: bookingScenarioEventType.slug,
-        workflows: bookingScenarioEventType.workflows,
-        seatsPerTimeSlot: bookingScenarioEventType.seatsPerTimeSlot,
-        seatsShowAttendees: bookingScenarioEventType.seatsShowAttendees,
-      })
-    );
-
-    expect(handleSeatsCall.evt).toEqual(
-      expect.objectContaining({
-        startTime: bookingStartTime,
-      })
-    );
-
-    expect(handleSeatsCall.invitee).toEqual([
-      expect.objectContaining({
-        email: booker.email,
-        name: booker.name,
-      }),
-    ]);
   });
 });
