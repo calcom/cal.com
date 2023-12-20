@@ -48,3 +48,5 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
     }
   }
 };
+
+export default acceptOrLeaveHandler;

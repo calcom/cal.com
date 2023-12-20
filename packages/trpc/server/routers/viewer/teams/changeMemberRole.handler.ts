@@ -71,3 +71,5 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   // Sync Services: Close.com
   closeComUpsertTeamUser(membership.team, membership.user, membership.role);
 };
+
+export default changeMemberRoleHandler;

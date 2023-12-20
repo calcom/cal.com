@@ -12,7 +12,7 @@ type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
 type MemberType = Pick<MembersType[number], "id" | "name" | "bio" | "username" | "organizationId"> & {
   safeBio: string | null;
-  orgOrigin: string;
+  bookerUrl: string;
 };
 
 const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
@@ -26,7 +26,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
   return (
     <Link
       key={member.id}
-      href={{ pathname: `${member.orgOrigin}/${member.username}`, query: queryParamsToForward }}>
+      href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
       <div className="sm:min-w-80 sm:max-w-80 bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 hover:cursor-pointer">
         <UserAvatar size="md" user={member} />
         <section className="mt-2 line-clamp-4 w-full space-y-1">

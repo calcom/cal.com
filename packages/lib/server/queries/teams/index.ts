@@ -1,12 +1,12 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
+import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
@@ -158,7 +158,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      orgOrigin: getOrgFullOrigin(m.user.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -214,16 +214,17 @@ export async function getTeamWithMembers(args: {
 
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
-  return (
-    (await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId,
-        accepted: true,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-      },
-    })) || false
-  );
+  const team = await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+    },
+    include: { team: true },
+  });
+  if (!team) return false;
+  return team;
 }
 
 export async function isTeamOwner(userId: number, teamId: number) {

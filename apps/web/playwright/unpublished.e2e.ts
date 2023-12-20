@@ -18,7 +18,7 @@ test.afterAll(async ({ users }) => {
 test.describe("Unpublished", () => {
   test("Regular team profile", async ({ page, users }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true });
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     await page.goto(`/team/${requestedSlug}`);
     expect(await page.locator('[data-testid="empty-screen"]').count()).toBe(1);
@@ -33,7 +33,7 @@ test.describe("Unpublished", () => {
       isUnpublished: true,
       schedulingType: SchedulingType.COLLECTIVE,
     });
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { requestedSlug } = team.metadata as { requestedSlug: string };
     const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
     await page.goto(`/team/${requestedSlug}/${teamEventSlug}`);
@@ -45,7 +45,7 @@ test.describe("Unpublished", () => {
 
   test("Organization profile", async ({ users, page }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
-    const { team: org } = await owner.getOrg();
+    const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     await page.goto(`/org/${requestedSlug}`);
     await page.waitForLoadState("networkidle");
@@ -62,7 +62,7 @@ test.describe("Unpublished", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    const { team: org } = await owner.getOrg();
+    const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug }] = org.children as { slug: string }[];
     await page.goto(`/org/${requestedSlug}/team/${subteamSlug}`);
@@ -80,7 +80,7 @@ test.describe("Unpublished", () => {
       isOrg: true,
       hasSubteam: true,
     });
-    const { team: org } = await owner.getOrg();
+    const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: subteamSlug, id: subteamId }] = org.children as { slug: string; id: number }[];
     const { slug: subteamEventSlug } = await owner.getFirstTeamEvent(subteamId);
@@ -95,7 +95,7 @@ test.describe("Unpublished", () => {
 
   test("Organization user", async ({ users, page }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
-    const { team: org } = await owner.getOrg();
+    const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     await page.goto(`/org/${requestedSlug}/${owner.username}`);
     await page.waitForLoadState("networkidle");
@@ -107,7 +107,7 @@ test.describe("Unpublished", () => {
 
   test("Organization user event-type", async ({ users, page }) => {
     const owner = await users.create(undefined, { hasTeam: true, isUnpublished: true, isOrg: true });
-    const { team: org } = await owner.getOrg();
+    const { team: org } = await owner.getOrgMembership();
     const { requestedSlug } = org.metadata as { requestedSlug: string };
     const [{ slug: ownerEventType }] = owner.eventTypes;
     await page.goto(`/org/${requestedSlug}/${owner.username}/${ownerEventType}`);

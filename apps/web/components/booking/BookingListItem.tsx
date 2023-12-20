@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
+import {
+  getEventLocationType,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -14,6 +18,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";
@@ -92,6 +97,16 @@ function BookingListItem(booking: BookingItemProps) {
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
   const paymentAppData = getPaymentAppData(booking.eventType);
+
+  const location = booking.location as ReturnType<typeof getEventLocationValue>;
+  const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
+
+  const locationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ? locationVideoCallUrl : location,
+    t,
+    booking.status
+  );
+  const provider = guessEventLocationType(location);
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
@@ -262,15 +277,21 @@ function BookingListItem(booking: BookingItemProps) {
 
   const title = booking.title;
 
-  const showRecordingsButtons = !!(booking.isRecorded && isPast && isConfirmed);
+  const showViewRecordingsButton = !!(booking.isRecorded && isPast && isConfirmed);
+  const showCheckRecordingButton =
+    isPast &&
+    isConfirmed &&
+    !booking.isRecorded &&
+    (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
 
   const showRecordingActions: ActionType[] = [
     {
       id: "view_recordings",
-      label: t("view_recordings"),
+      label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
       onClick: () => {
         setViewRecordingsDialogIsOpen(true);
       },
+      color: showCheckRecordingButton ? "secondary" : "primary",
       disabled: mutation.isLoading,
     },
   ];
@@ -298,7 +319,7 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {showRecordingsButtons && (
+      {(showViewRecordingsButton || showCheckRecordingButton) && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
@@ -353,6 +374,33 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                 />
               </div>
+              {!isPending && (
+                <div>
+                  {(provider?.label || locationToDisplay?.startsWith("https://")) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
@@ -478,7 +526,9 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
+          {(showViewRecordingsButton || showCheckRecordingButton) && (
+            <TableActions actions={showRecordingActions} />
+          )}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -517,8 +567,8 @@ const RecurringBookingsTooltip = ({
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toDateString())
-        .includes(recurringDate.toDateString())
+        .map((date) => date.toString())
+        .includes(recurringDate.toString())
     );
   }).length;
 
@@ -535,8 +585,8 @@ const RecurringBookingsTooltip = ({
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toDateString())
-                    .includes(aDate.toDateString());
+                    .map((date) => date.toString())
+                    .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
                     {formatTime(aDate, userTimeFormat, userTimeZone)}

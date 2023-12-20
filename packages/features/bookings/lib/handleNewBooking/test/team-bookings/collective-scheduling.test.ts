@@ -8,6 +8,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+import { createOrganization } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   createBookingScenario,
   getGoogleCalendarCredential,
@@ -1085,6 +1086,219 @@ describe("handleNewBooking", () => {
         },
         timeout
       );
+
+      describe("Team(T1) not part of any org but the organizer is part of an organization(O1)", () => {
+        test(
+          `succesfully creates a booking when all the hosts are free as per their schedules
+          - Destination calendars for event-type and non-first hosts are used to create calendar events
+          - Reschedule and Cancel link in email are not of the org domain because the team is not part of any org
+        `,
+          async ({ emails }) => {
+            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const org = await createOrganization({
+              name: "Test Org",
+              slug: "testorg",
+            });
+
+            const booker = getBooker({
+              email: "booker@example.com",
+              name: "Booker",
+            });
+
+            const otherTeamMembers = [
+              {
+                name: "Other Team Member 1",
+                username: "other-team-member-1",
+                timeZone: Timezones["+5:30"],
+                // So, that it picks the first schedule from the list
+                defaultScheduleId: null,
+                email: "other-team-member-1@example.com",
+                id: 102,
+                // Has Evening shift
+                schedules: [TestData.schedules.IstEveningShift],
+                credentials: [getGoogleCalendarCredential()],
+                selectedCalendars: [TestData.selectedCalendars.google],
+                destinationCalendar: {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "other-team-member-1@google-calendar.com",
+                },
+              },
+            ];
+
+            const organizer = getOrganizer({
+              name: "Organizer",
+              email: "organizer@example.com",
+              id: 101,
+              // So, that it picks the first schedule from the list
+              defaultScheduleId: null,
+              organizationId: org.id,
+              teams: [
+                {
+                  membership: {
+                    accepted: true,
+                  },
+                  team: {
+                    id: 1,
+                    name: "Team 1",
+                    slug: "team-1",
+                  },
+                },
+              ],
+              // Has morning shift with some overlap with morning shift
+              schedules: [TestData.schedules.IstMorningShift],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [TestData.selectedCalendars.google],
+              destinationCalendar: {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "organizer@google-calendar.com",
+              },
+            });
+
+            await createBookingScenario(
+              getScenarioData({
+                webhooks: [
+                  {
+                    userId: organizer.id,
+                    eventTriggers: ["BOOKING_CREATED"],
+                    subscriberUrl: "http://my-webhook.example.com",
+                    active: true,
+                    eventTypeId: 1,
+                    appId: null,
+                  },
+                ],
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 45,
+                    schedulingType: SchedulingType.COLLECTIVE,
+                    length: 45,
+                    users: [
+                      {
+                        id: 101,
+                      },
+                      {
+                        id: 102,
+                      },
+                    ],
+                    // It is a team event but that team isn't part of any org
+                    teamId: 1,
+                    destinationCalendar: {
+                      integration: TestData.apps["google-calendar"].type,
+                      externalId: "event-type-1@google-calendar.com",
+                    },
+                  },
+                ],
+                organizer,
+                usersApartFromOrganizer: otherTeamMembers,
+                apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              })
+            );
+
+            mockSuccessfulVideoMeetingCreation({
+              metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+              videoMeetingData: {
+                id: "MOCK_ID",
+                password: "MOCK_PASS",
+                url: `http://mock-dailyvideo.example.com/meeting-1`,
+              },
+            });
+
+            const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+              create: {
+                id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              },
+            });
+
+            const mockBookingData = getMockRequestDataForBooking({
+              data: {
+                // Try booking the first available free timeslot in both the users' schedules
+                start: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
+                end: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                  location: { optionValue: "", value: BookingLocations.CalVideo },
+                },
+              },
+            });
+
+            const { req } = createMockNextJsRequest({
+              method: "POST",
+              body: mockBookingData,
+            });
+
+            const createdBooking = await handleNewBooking(req);
+
+            await expectBookingToBeInDatabase({
+              description: "",
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.ACCEPTED,
+              references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASS",
+                  meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
+                },
+                {
+                  type: TestData.apps["google-calendar"].type,
+                  uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                  meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                  meetingPassword: "MOCK_PASSWORD",
+                  meetingUrl: "https://UNUSED_URL",
+                },
+              ],
+            });
+
+            expectWorkflowToBeTriggered();
+            expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+              destinationCalendars: [
+                {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "event-type-1@google-calendar.com",
+                },
+                {
+                  integration: TestData.apps["google-calendar"].type,
+                  externalId: "other-team-member-1@google-calendar.com",
+                },
+              ],
+              videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+            });
+
+            expectSuccessfulBookingCreationEmails({
+              booking: {
+                uid: createdBooking.uid!,
+                // All booking links are of WEBAPP_URL and not of the org because the team isn't part of the org
+                urlOrigin: WEBAPP_URL,
+              },
+              booker,
+              organizer,
+              otherTeamMembers,
+              emails,
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            });
+
+            expectBookingCreatedWebhookToHaveBeenFired({
+              booker,
+              organizer,
+              location: BookingLocations.CalVideo,
+              subscriberUrl: "http://my-webhook.example.com",
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+            });
+          },
+          timeout
+        );
+      });
     });
 
     test.todo("Round Robin booking");

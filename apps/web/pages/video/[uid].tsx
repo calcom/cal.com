@@ -1,10 +1,10 @@
-import type { DailyEventObjectRecordingStarted } from "@daily-co/daily-js";
+"use client";
+
 import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
-import z from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -21,19 +21,12 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const recordingStartedEventResponse = z
-  .object({
-    recordingId: z.string(),
-  })
-  .passthrough();
-
-export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
+export type JoinCallPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking } = props;
-  const recordingId = useRef<string | null>(null);
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -61,30 +54,11 @@ export default function JoinCall(props: JoinCallPageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
     callFrame.join();
-    callFrame.on("recording-started", onRecordingStarted).on("recording-stopped", onRecordingStopped);
     return () => {
       callFrame.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const onRecordingStopped = () => {
-    const data = { recordingId: recordingId.current, bookingUID: booking.uid };
-
-    fetch("/api/recorded-daily-video", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    recordingId.current = null;
-  };
-
-  const onRecordingStarted = (event?: DailyEventObjectRecordingStarted | undefined) => {
-    const response = recordingStartedEventResponse.parse(event);
-    recordingId.current = response.recordingId;
-  };
 
   const title = `${APP_NAME} Video`;
   return (
@@ -104,15 +78,27 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <img
-          className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-          src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-          alt="Cal.com Logo"
-          style={{
-            top: 46,
-            left: 24,
-          }}
-        />
+        {booking?.user?.organization?.calVideoLogo ? (
+          <img
+            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+            src={booking.user.organization.calVideoLogo}
+            alt="My Org Logo"
+            style={{
+              top: 32,
+              left: 32,
+            }}
+          />
+        ) : (
+          <img
+            className="fixed z-10 hidden sm:inline-block"
+            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+            alt="Logo"
+            style={{
+              top: 32,
+              left: 32,
+            }}
+          />
+        )}
       </div>
       <VideoMeetingInfo booking={booking} />
     </>
@@ -214,7 +200,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("invitee_timezone")}:</h3>
           <p>{booking.user?.timeZone}</p>
           <h3>{t("when")}:</h3>
-          <p>
+          <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
             {formatToLocalizedTime(startTime)}
           </p>
@@ -288,6 +274,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           timeZone: true,
           name: true,
           email: true,
+          organization: {
+            select: {
+              calVideoLogo: true,
+            },
+          },
         },
       },
       references: {

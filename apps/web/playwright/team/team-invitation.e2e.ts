@@ -3,22 +3,21 @@ import { expect } from "@playwright/test";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { test } from "../lib/fixtures";
-import { localize } from "../lib/testUtils";
+import { localize, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails, clipboard }) => {
-  clipboard.reset();
+test.afterEach(async ({ users, emails }) => {
   await users.deleteAll();
   emails?.deleteAll();
 });
 
 test.describe("Team", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
+  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
-    const { team } = await teamOwner.getFirstTeam();
+    const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("networkidle");
@@ -52,8 +51,10 @@ test.describe("Team", () => {
       await newPage.waitForLoadState("networkidle");
 
       // Check required fields
-      await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator('[data-testid="hint-error"]')).toHaveCount(3);
+      const button = newPage.locator("button[type=submit][disabled]");
+      await expect(button).toBeVisible(); // email + 3 password hints
+
+      // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
       await newPage.waitForURL("/getting-started?from=signup");
@@ -76,8 +77,7 @@ test.describe("Team", () => {
       });
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await clipboard.get();
-      await page.waitForLoadState("networkidle");
+      const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
@@ -98,7 +98,7 @@ test.describe("Team", () => {
   test("Invitation (verified)", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
-    const { team } = await teamOwner.getFirstTeam();
+    const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("networkidle");
