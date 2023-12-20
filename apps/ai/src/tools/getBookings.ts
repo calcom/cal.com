@@ -22,8 +22,8 @@ const fetchBookings = async ({
   const params = {
     apiKey,
     userId: userId.toString(),
-    dateFrom: new Date(from).getTime().toString(),
-    dateTo: new Date(to).getTime().toString(),
+    dateFrom: from,
+    dateTo: to,
   };
 
   const urlParams = new URLSearchParams(params);
