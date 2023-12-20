@@ -38,7 +38,7 @@ export function sendSendgridMail(
 ) {
   assertSendgrid();
 
-  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE ? true : false;
+  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
   if (testMode) {
     if (!mailData.sendAt) {
       setTestEmail({

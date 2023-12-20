@@ -236,7 +236,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         ? "DECLINED"
         : "ACCEPTED";
 
-    sendSendgridMail(
+    return sendSendgridMail(
       {
         to: data.to,
         subject: emailContent.emailSubject,
