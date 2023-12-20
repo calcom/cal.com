@@ -12,6 +12,7 @@ type TeamInvite = {
   joinLink: string;
   isCalcomMember: boolean;
   isOrg: boolean;
+  parentTeamName: string | undefined;
 };
 
 export const TeamInviteEmail = (
@@ -19,17 +20,22 @@ export const TeamInviteEmail = (
 ) => {
   return (
     <V2BaseEmailHtml
-      subject={props.language("user_invited_you", {
+      subject={props.language(`user_invited_you${props.parentTeamName ? "_to_subteam" : ""}`, {
         user: props.from,
         team: props.teamName,
         appName: APP_NAME,
+        parentTeamName: props.parentTeamName,
         entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
       })}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>
-          {props.language(`email_no_user_invite_heading_${props.isOrg ? "org" : "team"}`, {
-            appName: APP_NAME,
-          })}
+          {props.language(
+            `email_no_user_invite_heading_${props.isOrg ? "org" : props.parentTeamName ? "subteam" : "team"}`,
+            {
+              appName: APP_NAME,
+              parentTeamName: props.parentTeamName,
+            }
+          )}
         </>
       </p>
       <img
@@ -56,11 +62,15 @@ export const TeamInviteEmail = (
           lineHeightStep: "24px",
         }}>
         <>
-          {props.language(`email_user_invite_subheading_${props.isOrg ? "org" : "team"}`, {
-            invitedBy: props.from,
-            appName: APP_NAME,
-            teamName: props.teamName,
-          })}
+          {props.language(
+            `email_user_invite_subheading_${props.isOrg ? "org" : props.parentTeamName ? "subteam" : "team"}`,
+            {
+              invitedBy: props.from,
+              appName: APP_NAME,
+              teamName: props.teamName,
+              parentTeamName: props.parentTeamName,
+            }
+          )}
         </>
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>

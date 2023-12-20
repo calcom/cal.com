@@ -1,4 +1,4 @@
-name: E2E App-Store Apps
+name: E2E App-Store Apps Tests
 on:
   workflow_call:
 
