@@ -470,6 +470,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
       select: {
         id: true,
         email: true,
+        name: true,
       },
     });
 
@@ -477,6 +478,12 @@ test.describe("BOOKING_RESCHEDULED", async () => {
       bookingId: booking.id,
       attendeeId: attendee.id,
       referenceUid: uuidv4(),
+      data: {
+        responses: {
+          name: attendee.name,
+          email: attendee.email,
+        },
+      },
     }));
 
     await prisma.bookingSeat.createMany({

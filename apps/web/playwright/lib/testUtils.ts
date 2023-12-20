@@ -284,6 +284,7 @@ export const createUserWithLimits = ({
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
   const slug = "seats";
   const user = await users.create({
+    name: "Seated event user",
     eventTypes: [
       {
         title: "Seated event",
