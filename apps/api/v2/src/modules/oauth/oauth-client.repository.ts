@@ -30,6 +30,50 @@ export class OAuthClientRepository {
     });
   }
 
+  async getOAuthClientWithAuthTokens(tokenId: string, clientId: string, clientSecret: string) {
+    return this.dbRead.prisma.platformOAuthClient.findUnique({
+      where: {
+        id: clientId,
+        secret: clientSecret,
+        authorizationTokens: {
+          some: {
+            id: tokenId,
+          },
+        },
+      },
+      include: {
+        authorizationTokens: {
+          where: {
+            id: tokenId,
+          },
+          include: {
+            owner: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getOAuthClientWithRefreshSecret(clientId: string, clientSecret: string, refreshToken: string) {
+    return await this.dbRead.prisma.platformOAuthClient.findFirst({
+      where: {
+        id: clientId,
+        secret: clientSecret,
+      },
+      include: {
+        refreshToken: {
+          where: {
+            secret: refreshToken,
+          },
+        },
+      },
+    });
+  }
+
   async getOrganizationOAuthClients(organizationId: number): Promise<PlatformOAuthClient[]> {
     return this.dbRead.prisma.platformOAuthClient.findMany({
       where: {

@@ -1,8 +1,6 @@
-import { ExchangeAuthorizationCodeInput } from "@/modules/oauth/flow/input/exchange-code.input";
-import { OAuthFlowService } from "@/modules/oauth/flow/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
@@ -12,8 +10,7 @@ export class TokensRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
-    private readonly jwtService: JwtService,
-    private readonly oauthService: OAuthFlowService
+    private readonly jwtService: JwtService
   ) {}
 
   async createAuthorizationToken(clientId: string, userId: number): Promise<PlatformAuthorizationToken> {
@@ -33,75 +30,7 @@ export class TokensRepository {
     });
   }
 
-  async exchangeAuthorizationToken(
-    tokenId: string,
-    input: ExchangeAuthorizationCodeInput
-  ): Promise<{ access_token: string; refresh_token: string }> {
-    const oauthClient = await this.dbRead.prisma.platformOAuthClient.findFirst({
-      where: {
-        id: input.client_id,
-        secret: input.client_secret,
-        authorizationTokens: {
-          some: {
-            id: tokenId,
-          },
-        },
-      },
-      include: {
-        authorizationTokens: {
-          where: {
-            id: tokenId,
-          },
-          include: {
-            owner: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!oauthClient) {
-      throw new BadRequestException("Invalid Authorization Token.");
-    }
-
-    const authorizationToken = oauthClient.authorizationTokens[0];
-
-    const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
-    const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
-      this.dbWrite.prisma.platformAuthorizationToken.delete({ where: { id: tokenId } }),
-      this.dbWrite.prisma.accessToken.create({
-        data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId: oauthClient.id })),
-          expiresAt: accessExpiry,
-          client: { connect: { id: input.client_id } },
-          owner: { connect: { id: authorizationToken?.owner.id } },
-        },
-      }),
-      this.dbWrite.prisma.refreshToken.create({
-        data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId: oauthClient.id })),
-          expiresAt: refreshExpiry,
-          client: { connect: { id: input.client_id } },
-          owner: { connect: { id: authorizationToken?.owner.id } },
-        },
-      }),
-    ]);
-
-    void this.oauthService.propagateAccessToken(accessToken); // voided as we don't need to await
-
-    return {
-      access_token: accessToken.secret,
-      refresh_token: refreshToken.secret,
-    };
-  }
-
-  async createTokens(clientId: string, ownerId: number) {
+  async createOAuthTokens(clientId: string, ownerId: number) {
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
@@ -124,71 +53,50 @@ export class TokensRepository {
       }),
     ]);
 
-    void this.oauthService.propagateAccessToken(accessToken);
-
     return {
       access_token: accessToken.secret,
       refresh_token: refreshToken.secret,
     };
   }
 
-  async refreshToken(clientId: string, clientSecret: string, tokenSecret: string) {
-    const oauthClient = await this.dbRead.prisma.platformOAuthClient.findFirst({
+  async getAccessTokenBySecret(secret: string) {
+    return this.dbRead.prisma.accessToken.findFirst({
       where: {
-        id: clientId,
-        secret: clientSecret,
+        secret,
       },
-      include: {
-        refreshToken: {
-          where: {
-            secret: tokenSecret,
-          },
-        },
+      select: {
+        expiresAt: true,
       },
     });
+  }
 
-    if (!oauthClient) {
-      throw new BadRequestException("Invalid OAuthClient credentials.");
-    }
-
-    const _refreshToken = oauthClient.refreshToken[0];
-
-    if (!_refreshToken) {
-      throw new BadRequestException("Invalid refresh token");
-    }
-
+  async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, _refresh, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.deleteMany({
-        where: { client: { id: oauthClient.id }, expiresAt: { lte: new Date() } },
+        where: { client: { id: clientId }, expiresAt: { lte: new Date() } },
       }),
-      this.dbWrite.prisma.refreshToken.delete({ where: { secret: tokenSecret } }),
+      this.dbWrite.prisma.refreshToken.delete({ where: { secret: refreshTokenSecret } }),
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId: oauthClient.id })),
+          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId: clientId })),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
-          owner: { connect: { id: _refreshToken.userId } },
+          owner: { connect: { id: tokenUserId } },
         },
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId: oauthClient.id })),
+          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId: clientId })),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
-          owner: { connect: { id: _refreshToken.userId } },
+          owner: { connect: { id: tokenUserId } },
         },
       }),
     ]);
-
-    void this.oauthService.propagateAccessToken(accessToken);
-
-    return {
-      access_token: accessToken.secret,
-      refresh_token: refreshToken.secret,
-    };
+    return { accessToken, refreshToken };
   }
 }

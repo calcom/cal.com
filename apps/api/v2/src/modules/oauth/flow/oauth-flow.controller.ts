@@ -3,6 +3,7 @@ import { NextAuthGuard } from "@/modules/auth/guard";
 import { OAuthAuthorizeInput } from "@/modules/oauth/flow/input/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth/flow/input/exchange-code.input";
 import { RefreshTokenInput } from "@/modules/oauth/flow/input/refresh-token.input";
+import { OAuthFlowService } from "@/modules/oauth/flow/oauth-flow.service";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -29,7 +30,8 @@ import { ApiResponse } from "@calcom/platform-types";
 export class OAuthFlowController {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
-    private readonly tokensRepository: TokensRepository
+    private readonly tokensRepository: TokensRepository,
+    private readonly oAuthFlowService: OAuthFlowService
   ) {}
 
   @Post("/authorize")
@@ -65,7 +67,7 @@ export class OAuthFlowController {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { access_token, refresh_token } = await this.tokensRepository.exchangeAuthorizationToken(
+    const { access_token, refresh_token } = await this.oAuthFlowService.exchangeAuthorizationToken(
       bearerToken,
       body
     );
@@ -87,7 +89,7 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<ApiResponse<{ access_token: string; refresh_token: string }>> {
-    const { access_token, refresh_token } = await this.tokensRepository.refreshToken(
+    const { access_token, refresh_token } = await this.oAuthFlowService.refreshToken(
       clientId,
       secretKey,
       body.refresh_token
