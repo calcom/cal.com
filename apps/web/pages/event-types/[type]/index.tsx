@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
@@ -484,6 +485,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    // Prevent two payment apps to be enabled
+    // Ok to cast type here because this metadata will be updated as the event type metadata
+    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
+
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
@@ -584,6 +590,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+
+            // Prevent two payment apps to be enabled
+            // Ok to cast type here because this metadata will be updated as the event type metadata
+            if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+              throw new Error(t("event_setup_multiple_payment_apps_error"));
+
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
