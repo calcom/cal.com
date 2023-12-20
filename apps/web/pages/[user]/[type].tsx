@@ -186,7 +186,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const user = await prisma.user.findFirst({
     where: {
       username,
-      organization: userOrgQuery(context.req.headers.host ?? "", context.params?.orgSlug),
+      organization: userOrgQuery(context.req, context.params?.orgSlug),
     },
     select: {
       id: true,

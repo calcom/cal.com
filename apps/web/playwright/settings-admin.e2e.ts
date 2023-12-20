@@ -5,7 +5,7 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Settings/admin A/B tests", () => {
-  test.skip("should point to the /future/settings/admin page", async ({ page, users, context }) => {
+  test("should point to the /future/settings/admin page", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",
