@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
 export const useClientSchedule = (clientId: string, key: string) => {
   const { isLoading, error, data } = useQuery({
     queryKey: ["schedule"],
     queryFn: () => {
-      return axios.get(`/v2/schedules/${clientId}?apiKey=${key}`).then((res) => res.data);
+      return fetch(`/v2/schedules/${clientId}?apiKey=${key}`, {
+        method: "get",
+        headers: { "Content-type": "application/json" },
+      }).then((res) => res.json());
     },
   });
 
