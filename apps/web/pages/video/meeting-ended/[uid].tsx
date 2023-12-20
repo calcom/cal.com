@@ -1,3 +1,5 @@
+"use client";
+
 import type { NextPageContext } from "next";
 
 import dayjs from "@calcom/dayjs";
