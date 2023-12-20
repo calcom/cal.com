@@ -181,7 +181,7 @@ export const getPublicEvent = async (
       users: users.map((user) => ({
         ...user,
         metadata: undefined,
-        bookerUrl: getBookerBaseUrlSync(user.organization?.slug || ""),
+        bookerUrl: getBookerBaseUrlSync(user.organization?.slug ?? null),
       })),
       locations: privacyFilteredLocations(locations),
       profile: {
@@ -315,7 +315,7 @@ function getUsersFromEvent(event: Event) {
       name,
       weekStart,
       organizationId,
-      bookerUrl: getBookerBaseUrlSync(owner.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(owner.organization?.slug ?? null),
     },
   ];
 }
@@ -340,7 +340,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
     },
   });
   if (!users.length) return null;
-  return [{ ...users[0], bookerUrl: getBookerBaseUrlSync(users[0].organization?.slug || "") }];
+  return [{ ...users[0], bookerUrl: getBookerBaseUrlSync(users[0].organization?.slug ?? null) }];
 }
 
 function mapHostsToUsers(host: {
@@ -353,6 +353,6 @@ function mapHostsToUsers(host: {
     name: host.user.name,
     weekStart: host.user.weekStart,
     organizationId: host.user.organizationId,
-    bookerUrl: getBookerBaseUrlSync(host.user.organization?.slug || ""),
+    bookerUrl: getBookerBaseUrlSync(host.user.organization?.slug ?? null),
   };
 }
