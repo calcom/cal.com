@@ -1,3 +1,5 @@
+"use client";
+
 import { useReducer } from "react";
 import { z } from "zod";
 

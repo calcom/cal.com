@@ -458,7 +458,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
-    getFirstTeam: async () => {
+    getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
         include: { team: true },
@@ -491,13 +491,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: {
-          team: {
-            include: {
-              children: true,
-            },
-          },
-        },
+        include: { team: { include: { children: true } } },
       });
     },
     getFirstEventAsOwner: async () =>
@@ -673,8 +667,8 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
-  await page.waitForLoadState("networkidle");
+  // waiting for specific login request to resolve
+  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
 }
 
 export async function apiLogin(

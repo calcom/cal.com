@@ -154,11 +154,14 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["next-i18next"],
+  },
   i18n: {
     ...i18n,
     localeDetection: false,
   },
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -511,6 +514,11 @@ const nextConfig = {
       {
         source: "/apps/installed/video",
         destination: "/apps/installed/conferencing",
+        permanent: true,
+      },
+      {
+        source: "/apps/installed",
+        destination: "/apps/installed/calendar",
         permanent: true,
       },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL

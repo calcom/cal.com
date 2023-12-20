@@ -26,7 +26,10 @@ type PartialBooking =
     > & { eventType: Partial<EventType> | null } & { user: Partial<User> | null })
   | null;
 
-export type PartialWorkflowReminder = Pick<WorkflowReminder, "id" | "scheduledDate"> & {
+export type PartialWorkflowReminder = Pick<
+  WorkflowReminder,
+  "id" | "isMandatoryReminder" | "scheduledDate"
+> & {
   booking: PartialBooking | null;
 } & { workflowStep: PartialWorkflowStep };
 
@@ -113,6 +116,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   const select: Prisma.WorkflowReminderSelect = {
     id: true,
     scheduledDate: true,
+    isMandatoryReminder: true,
     workflowStep: {
       select: {
         action: true,
