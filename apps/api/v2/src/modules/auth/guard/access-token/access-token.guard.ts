@@ -1,3 +1,8 @@
+/*
+
+THIS IS ONLY FOR TESTING PURPOSES - WILL USE Erik's access token guard when its ready
+
+*/
 import { Injectable, CanActivate, ExecutionContext, Global, UnauthorizedException } from "@nestjs/common";
 
 @Global()
