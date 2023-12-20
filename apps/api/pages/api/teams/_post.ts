@@ -44,27 +44,27 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  *                slug:
  *                  type: string
  *                  description: A unique slug that works as path for the team public page
- *               hideBookATeamMember:
- *                 type: boolean
- *                 description: Flag to hide or show the book a team member option
- *               brandColor:
- *                 type: string
- *                 description: Primary brand color for the team
- *               darkBrandColor:
- *                 type: string
- *                 description: Dark variant of the primary brand color for the team
- *               timeZone:
- *                 type: string
- *                 description: Time zone of the team
- *               weekStart:
- *                 type: string
- *                 description: Starting day of the week for the team
- *               isPrivate:
- *                 type: boolean
- *                 description: Flag indicating if the team is private
- *               ownerId:
- *                 type: number
- *                 description: ID of the team owner - only admins can set this and it is a required field for admins.
+ *                hideBookATeamMember:
+ *                  type: boolean
+ *                  description: Flag to hide or show the book a team member option
+ *                brandColor:
+ *                  type: string
+ *                  description: Primary brand color for the team
+ *                darkBrandColor:
+ *                  type: string
+ *                  description: Dark variant of the primary brand color for the team
+ *                timeZone:
+ *                  type: string
+ *                  description: Time zone of the team
+ *                weekStart:
+ *                  type: string
+ *                  description: Starting day of the week for the team
+ *                isPrivate:
+ *                  type: boolean
+ *                  description: Flag indicating if the team is private
+ *                ownerId:
+ *                  type: number
+ *                  description: ID of the team owner - only admins can set this and it is a required field for admins.
  *     tags:
  *     - teams
  *     responses:
