@@ -101,6 +101,37 @@ export class TokensRepository {
     };
   }
 
+  async createTokens(clientId: string, ownerId: number) {
+    const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
+    const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
+
+    const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
+      this.dbWrite.prisma.accessToken.create({
+        data: {
+          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId })),
+          expiresAt: accessExpiry,
+          client: { connect: { id: clientId } },
+          owner: { connect: { id: ownerId } },
+        },
+      }),
+      this.dbWrite.prisma.refreshToken.create({
+        data: {
+          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId })),
+          expiresAt: refreshExpiry,
+          client: { connect: { id: clientId } },
+          owner: { connect: { id: ownerId } },
+        },
+      }),
+    ]);
+
+    void this.oauthService.propagateAccessToken(accessToken);
+
+    return {
+      access_token: accessToken.secret,
+      refresh_token: refreshToken.secret,
+    };
+  }
+
   async refreshToken(clientId: string, clientSecret: string, tokenSecret: string) {
     const oauthClient = await this.dbRead.prisma.platformOAuthClient.findFirst({
       where: {
