@@ -44,7 +44,7 @@ export class UserController {
     @Body() body: CreateUserInput
   ): Promise<ApiResponse<CreateUserResponse>> {
     this.logger.log(
-      `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client ${oAuthClientId}`
+      `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
 
     const exists = await this.userRepository.findByEmail(body.email);
