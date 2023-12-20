@@ -18,7 +18,7 @@ test.describe("Google Calendar", async () => {
     let qaGCalCredential: CredentialPayload;
     test.beforeAll(async () => {
       let runIntegrationTest = false;
-      let errorMessage = "Could not run test";
+      const errorMessage = "Could not run test";
 
       test.skip(!!APP_CREDENTIAL_SHARING_ENABLED, "Credential sharing enabled");
 
@@ -55,7 +55,6 @@ test.describe("Google Calendar", async () => {
             },
           },
         });
-        if (!qaGCalCredential) errorMessage = "QA credential not found";
         test.skip(!qaGCalCredential, "Google QA credential not found");
 
         const qaUserQuery = await prisma.user.findFirstOrThrow({
@@ -68,14 +67,12 @@ test.describe("Google Calendar", async () => {
           },
         });
 
-        if (!qaUserQuery) errorMessage = "QA user not found";
-        // test.skip(!qaUserQuery, "QA user not found");
+        test.skip(!qaUserQuery, "QA user not found");
 
         assertValueExists(qaUserQuery.username, "qaUsername");
         qaUsername = qaUserQuery.username;
 
-        if (!qaUsername) errorMessage = "QA username not found";
-        // test.skip(!qaUsername, "QA username not found");
+        test.skip(!qaUsername, "QA username not found");
 
         const googleCalendarService = new GoogleCalendarService(qaGCalCredential);
 
@@ -84,7 +81,7 @@ test.describe("Google Calendar", async () => {
         const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
         assertValueExists(primaryCalendarName, "primaryCalendarName");
 
-        const destinationCalendar = await prisma.destinationCalendar.upsert({
+        await prisma.destinationCalendar.upsert({
           where: {
             userId: qaUserQuery.id,
             externalId: primaryCalendarName,
@@ -98,61 +95,12 @@ test.describe("Google Calendar", async () => {
             credentialId: qaGCalCredential.id,
           },
         });
-        console.log(
-          "🚀 ~ file: google-calendar.e2e.ts:117 ~ test.beforeAll ~ destinationCalendar:",
-          destinationCalendar
-        );
-
-        // const selectedCalendar = await prisma.selectedCalendar.findMany({
-        //   where: {
-        //     userId: qaUserQuery.id,
-        //   },
-        // });
 
         if (qaGCalCredential && qaUsername) runIntegrationTest = true;
       }
 
       test.skip(!runIntegrationTest, errorMessage);
     });
-
-    // test.beforeEach(async ({ page, users }) => {
-    //   assertValueExists(process.env.E2E_TEST_CALCOM_QA_EMAIL, "qaEmail");
-
-    //   const qaUserStore = await users.set(process.env.E2E_TEST_CALCOM_QA_EMAIL);
-
-    //   await qaUserStore.apiLogin(process.env.E2E_TEST_CALCOM_QA_PASSWORD);
-
-    //   // Need to refresh keys from DB
-    //   const refreshedCredential = await prisma.credential.findFirst({
-    //     where: {
-    //       id: qaGCalCredential?.id,
-    //     },
-    //     include: {
-    //       user: {
-    //         select: {
-    //           email: true,
-    //         },
-    //       },
-    //     },
-    //   });
-    //   assertValueExists(refreshedCredential, "refreshedCredential");
-
-    //   const googleCalendarService = new GoogleCalendarService(refreshedCredential);
-
-    //   const calendars = await googleCalendarService.listCalendars();
-
-    //   const primaryCalendarName = calendars.find((calendar) => calendar.primary)?.name;
-    //   assertValueExists(primaryCalendarName, "primaryCalendarName");
-
-    //   await page.goto("/apps/installed/calendar");
-
-    //   await page.waitForSelector('[title*="Create events on"]');
-    //   await page.locator('[data-testid="default-calendar-selector"]').click();
-    //   await page.locator(`.react-select__option:text("${primaryCalendarName}")`).click();
-    //   // await page.locator('[title*="Create events on"]').locator("svg").click();
-    //   // await page.click(".react-select__option", { text: primaryCalendarName });
-    //   // await page.locator("#react-select-2-option-0-0").getByText(primaryCalendarName).click();
-    // });
 
     test("On new booking, event should be created on GCal", async ({ page }) => {
       const { gCalEvent, gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
