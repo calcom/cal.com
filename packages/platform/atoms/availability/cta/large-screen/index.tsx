@@ -63,6 +63,7 @@ export function LargeScreenCTA({
           variety="danger"
           title="Delete schedule"
           confirmBtnText="Delete"
+          cancelBtnText="Cancel"
           loadingText="Delete"
           onConfirm={onDeleteConfirmation}>
           Deleting a schedule will remove it from all event types. This action cannot be undone.
