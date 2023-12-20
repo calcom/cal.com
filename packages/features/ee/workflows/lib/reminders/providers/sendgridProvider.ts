@@ -14,8 +14,9 @@ function assertSendgrid() {
     senderEmail = process.env.SENDGRID_EMAIL as string;
     sgMail.setApiKey(sendgridAPIKey);
     client.setApiKey(sendgridAPIKey);
+  } else {
+    console.error("Sendgrid credentials are missing from the .env file");
   }
-  console.error("Sendgrid credentials are missing from the .env file");
 }
 
 export async function getBatchId() {
