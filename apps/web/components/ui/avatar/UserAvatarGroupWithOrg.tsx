@@ -28,6 +28,5 @@ export function UserAvatarGroupWithOrg(props: UserAvatarProps) {
       };
     })
   );
-  users.unshift();
   return <AvatarGroup {...rest} items={items} />;
 }
