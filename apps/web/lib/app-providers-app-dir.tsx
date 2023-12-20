@@ -1,5 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { TrpcProvider } from "_app/_trpc/trpc-provider";
+import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";

@@ -134,12 +134,16 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string }) => {
+export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
+  if (opts?.title) {
+    await page.fill('[name="title"]', opts.title);
+  }
   await page.press('[name="email"]', "Enter");
 };
+
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
@@ -335,6 +339,19 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=cardCvc]", "111");
   await page.fill("[name=billingName]", "Stripe Stripeson");
   await page.click(".SubmitButton--complete-Shimmer");
+}
+
+export async function doOnOrgDomain(
+  { orgSlug, page }: { orgSlug: string | null; page: Page },
+  callback: ({ page }: { page: Page }) => Promise<void>
+) {
+  if (!orgSlug) {
+    throw new Error("orgSlug is not available");
+  }
+  page.setExtraHTTPHeaders({
+    "x-cal-force-slug": orgSlug,
+  });
+  await callback({ page });
 }
 
 // When App directory is there, this is the 404 page text. It is commented till it's disabled
