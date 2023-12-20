@@ -44,7 +44,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   const debouncedApiCall = useMemo(
     () =>
       debounce(async (username) => {
-        const { data } = await fetchUsername(username);
+        // TODO: Support orgSlug
+        const { data } = await fetchUsername(username, null);
         setMarkAsError(!data.available);
         setUsernameIsAvailable(data.available);
       }, 150),

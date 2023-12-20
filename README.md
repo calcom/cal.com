@@ -147,7 +147,7 @@ Here is what you need to be able to run Cal.com.
 
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -221,7 +221,6 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set a 24 character random string in your `.env` file for the `CALENDSO_ENCRYPTION_KEY` (You can use a command like `openssl rand -base64 24` to generate one).
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:

@@ -11,6 +11,7 @@ import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { Fixtures } from "./fixtures";
 import { test } from "./fixtures";
@@ -133,12 +134,16 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string }) => {
+export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
+  if (opts?.title) {
+    await page.fill('[name="title"]', opts.title);
+  }
   await page.press('[name="email"]', "Enter");
 };
+
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
@@ -246,6 +251,38 @@ export async function expectEmailsToHaveSubject({
   expect(bookerFirstEmail.subject).toBe(emailSubject);
 }
 
+export const createUserWithLimits = ({
+  users,
+  slug,
+  title,
+  length,
+  bookingLimits,
+  durationLimits,
+}: {
+  users: Fixtures["users"];
+  slug: string;
+  title?: string;
+  length?: number;
+  bookingLimits?: IntervalLimit;
+  durationLimits?: IntervalLimit;
+}) => {
+  if (!bookingLimits && !durationLimits) {
+    throw new Error("Need to supply at least one of bookingLimits or durationLimits");
+  }
+
+  return users.create({
+    eventTypes: [
+      {
+        slug,
+        title: title ?? slug,
+        length: length ?? 30,
+        bookingLimits,
+        durationLimits,
+      },
+    ],
+  });
+};
+
 // this method is not used anywhere else
 // but I'm keeping it here in case we need in the future
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {
@@ -303,3 +340,20 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=billingName]", "Stripe Stripeson");
   await page.click(".SubmitButton--complete-Shimmer");
 }
+
+export async function doOnOrgDomain(
+  { orgSlug, page }: { orgSlug: string | null; page: Page },
+  callback: ({ page }: { page: Page }) => Promise<void>
+) {
+  if (!orgSlug) {
+    throw new Error("orgSlug is not available");
+  }
+  page.setExtraHTTPHeaders({
+    "x-cal-force-slug": orgSlug,
+  });
+  await callback({ page });
+}
+
+// When App directory is there, this is the 404 page text. It is commented till it's disabled
+// export const NotFoundPageText = "This page could not be found";
+export const NotFoundPageText = "ERROR 404";

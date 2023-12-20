@@ -458,7 +458,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
-    getFirstTeam: async () => {
+    getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
         include: { team: true },
@@ -491,13 +491,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: {
-          team: {
-            include: {
-              children: true,
-            },
-          },
-        },
+        include: { team: { include: { children: true } } },
       });
     },
     getFirstEventAsOwner: async () =>
@@ -514,8 +508,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       });
     },
     getPaymentCredential: async () => getPaymentCredential(store.page),
-    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
-      setupEventWithPrice(eventType, store.page),
+    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">, slug: string) =>
+      setupEventWithPrice(eventType, slug, store.page),
     bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
       bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
@@ -673,8 +667,8 @@ export async function login(
   await passwordLocator.fill(user.password ?? user.username!);
   await signInLocator.click();
 
-  // Moving away from waiting 2 seconds, as it is not a reliable way to expect session to be started
-  await page.waitForLoadState("networkidle");
+  // waiting for specific login request to resolve
+  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
 }
 
 export async function apiLogin(
@@ -699,9 +693,9 @@ export async function apiLogin(
   });
 }
 
-export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, page: Page) {
+export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
-  await page.locator("[data-testid='app-switch']").first().click();
+  await page.locator(`[data-testid='${slug}-app-switch']`).first().click();
   await page.getByPlaceholder("Price").fill("100");
   await page.getByTestId("update-eventtype").click();
 }
