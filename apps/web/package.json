@@ -116,6 +116,7 @@
     "react-multi-email": "^0.5.3",
     "react-phone-input-2": "^2.15.1",
     "react-phone-number-input": "^3.2.7",
+    "react-query": "^3.39.3",
     "react-schemaorg": "^2.0.0",
     "react-select": "^5.7.0",
     "react-timezone-select": "^1.4.0",

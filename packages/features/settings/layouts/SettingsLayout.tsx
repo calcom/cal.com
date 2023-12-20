@@ -99,6 +99,7 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
+      { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
     ],
   },
   {
@@ -139,7 +140,6 @@ const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
   const orgBranding = useOrgBranding();
-
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {

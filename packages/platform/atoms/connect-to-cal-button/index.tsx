@@ -6,7 +6,7 @@ import { ConnectButton } from "../connect-to-cal-button/Button";
 // they will have to login/signup and then will be redirected to the permission page where they can see required permissions for the oAuth clients and can choose to deny or accept
 
 export function ConnectToCal() {
-  const key = useApiKey();
+  const { key } = useApiKey();
 
   const handleClick = () => {
     // TODO: the url to redirect should include a client_id and redirect_uri

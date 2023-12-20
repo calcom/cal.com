@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "dev": "yarn workspace @calcom/platform-constants build:watch & yarn workspace @calcom/platform-utils build:watch & nest start --watch",
+    "dev": "yarn workspace @calcom/platform-constants build:watch & yarn workspace @calcom/platform-utils build:watch & yarn workspace @calcom/platform-types build:watch & nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "test": "jest",

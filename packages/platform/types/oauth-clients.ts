@@ -15,3 +15,8 @@ export class CreateOAuthClientInput {
   @IsNumber()
   permissions!: number;
 }
+
+export class DeleteOAuthClientInput {
+  @IsString()
+  id!: string;
+}
