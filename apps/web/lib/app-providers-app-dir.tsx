@@ -1,5 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { TrpcProvider } from "app/_trpc/trpc-provider";
+import { TrpcProvider } from "_app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
@@ -97,13 +97,9 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   const clientViewerI18n = useViewerI18n(locale);
   const i18n = clientViewerI18n.data?.i18n ?? props.i18n;
 
-  if (!i18n || !i18n._nextI18Next) {
-    return null;
-  }
-
   return (
     // @ts-expect-error AppWithTranslationHoc expects AppProps
-    <AppWithTranslationHoc pageProps={{ _nextI18Next: i18n._nextI18Next }}>
+    <AppWithTranslationHoc pageProps={{ _nextI18Next: i18n?._nextI18Next }}>
       {props.children}
     </AppWithTranslationHoc>
   );

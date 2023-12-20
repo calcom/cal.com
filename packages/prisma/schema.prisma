@@ -284,6 +284,7 @@ model Team {
   slug                String?
   logo                String?
   logoUrl             String?
+  calVideoLogo        String?
   appLogo             String?
   appIconLogo         String?
   bio                 String?
@@ -434,6 +435,8 @@ model Booking {
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
   isRecorded            Boolean              @default(false)
+  iCalUID               String?              @default("")
+  iCalSequence          Int                  @default(0)
 
   @@index([eventTypeId])
   @@index([userId])
@@ -824,17 +827,18 @@ enum TimeUnit {
 }
 
 model WorkflowReminder {
-  id              Int             @id @default(autoincrement())
-  bookingUid      String?
-  booking         Booking?        @relation(fields: [bookingUid], references: [uid])
-  method          WorkflowMethods
-  scheduledDate   DateTime
-  referenceId     String?         @unique
-  scheduled       Boolean
-  workflowStepId  Int?
-  workflowStep    WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
-  cancelled       Boolean?
-  seatReferenceId String?
+  id                  Int             @id @default(autoincrement())
+  bookingUid          String?
+  booking             Booking?        @relation(fields: [bookingUid], references: [uid])
+  method              WorkflowMethods
+  scheduledDate       DateTime
+  referenceId         String?         @unique
+  scheduled           Boolean
+  workflowStepId      Int?
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  cancelled           Boolean?
+  seatReferenceId     String?
+  isMandatoryReminder Boolean?        @default(false)
 
   @@index([bookingUid])
   @@index([workflowStepId])
