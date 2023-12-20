@@ -26,6 +26,8 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
   )?.credentialId;
 
+  const primaryEmail = allCals.find((cal) => cal.primary)?.email ?? null;
+
   if (!credentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
   }
@@ -56,12 +58,14 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
       integration,
       externalId,
       credentialId,
+      primaryEmail,
     },
     create: {
       ...where,
       integration,
       externalId,
       credentialId,
+      primaryEmail,
     },
   });
 };

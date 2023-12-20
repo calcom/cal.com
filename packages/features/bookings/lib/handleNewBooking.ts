@@ -1470,7 +1470,11 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email: destinationCalendar[0]?.externalId || organizerUser.email || "Email-less",
+      email:
+        destinationCalendar?.[0]?.primaryEmail ||
+        destinationCalendar?.[0]?.externalId ||
+        organizerUser.email ||
+        "Email-less",
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },

@@ -171,6 +171,8 @@ model DestinationCalendar {
   id           Int         @id @default(autoincrement())
   integration  String
   externalId   String
+  /// @zod.email()
+  primaryEmail String?
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
   booking      Booking[]
