@@ -107,7 +107,6 @@ describe("User Endpoints", () => {
 
       const response = await request(app.getHttpServer())
         .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
-        .set("x-cal-client-id", oAuthClient.id)
         .set("x-cal-secret-key", oAuthClient.secret)
         .send(requestBody)
         .expect(201);
