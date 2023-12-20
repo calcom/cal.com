@@ -168,14 +168,8 @@ describe("User Endpoints", () => {
     });
 
     afterAll(async () => {
-      if (!postResponseData.user.email) {
-        return;
-      }
-
-      const failedToDelete = await userRepositoryFixture.getByEmail(postResponseData.user.email);
-
-      if (failedToDelete) {
-        await userRepositoryFixture.deleteByEmail(postResponseData.user.email);
+      if (postResponseData?.user.id) {
+        await userRepositoryFixture.delete(postResponseData.user.id);
       }
       await app.close();
     });
