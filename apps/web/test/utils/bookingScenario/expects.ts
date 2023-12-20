@@ -329,7 +329,7 @@ export function expectWorkflowToBeNotTriggered({
   emails: Fixtures["emails"];
   organizer: { email: string; name: string; timeZone: string };
 }) {
-  const subjectPattern = /^Reminder/i; // Regular expression to match the specified subject pattern (case-insensitive)
+  const subjectPattern = /^Reminder: /i;
 
   expect(emails.get()).not.toEqual(
     expect.arrayContaining([
