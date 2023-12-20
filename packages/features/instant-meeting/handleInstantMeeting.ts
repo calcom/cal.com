@@ -31,15 +31,11 @@ const handleInstantMeetingWebhookTrigger = async (args: {
     const subscribers = await prisma.webhook.findMany({
       where: {
         AND: {
-          eventTypeId: {
-            equals: args.eventTypeId,
-          },
+          eventTypeId: args.eventTypeId,
           eventTriggers: {
             has: eventTrigger,
           },
-          active: {
-            equals: true,
-          },
+          active: true,
         },
       },
       select: {
