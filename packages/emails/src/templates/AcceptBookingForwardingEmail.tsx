@@ -1,5 +1,5 @@
 import type { IBookingForwarding } from "../../templates/accept-booking-forwarding";
-import { BaseEmailHtml } from "../components";
+import { BaseEmailHtml, CallToAction, CallToActionTable, Separator } from "../components";
 
 export const AcceptBookingForwardingEmail = (
   props: IBookingForwarding & Partial<React.ComponentProps<typeof BaseEmailHtml>>
@@ -26,29 +26,20 @@ export const AcceptBookingForwardingEmail = (
             justifyContent: "center",
             marginTop: "16px",
           }}>
-          <a href={props.acceptLink} target="_blank">
-            <button
-              style={{
-                backgroundColor: "black",
-                color: "white",
-                borderRadius: "4px",
-                padding: "8px 16px",
-                marginRight: "16px",
-              }}>
-              {props.language("accept")}
-            </button>
-          </a>
-          <a href={props.rejectLink} target="blank">
-            <button
-              style={{
-                backgroundColor: "white",
-                color: "black",
-                borderRadius: "4px",
-                padding: "8px 16px",
-              }}>
-              {props.language("reject")}
-            </button>
-          </a>
+          <CallToActionTable>
+            <CallToAction
+              label={props.language("confirm")}
+              href={props.acceptLink}
+              startIconName="confirmIcon"
+            />
+            <Separator />
+            <CallToAction
+              label={props.language("reject")}
+              href={props.rejectLink}
+              startIconName="rejectIcon"
+              secondary
+            />
+          </CallToActionTable>
         </div>
       </p>
     </BaseEmailHtml>

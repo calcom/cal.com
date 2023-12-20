@@ -22,14 +22,16 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
   if (!input.startDate || !input.endDate) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
   }
+  const inputStartTime = dayjs(input.startDate).startOf("day");
+  const inputEndTime = dayjs(input.endDate).endOf("day");
 
-  // Validate start date is before end date
-  if (dayjs(input.startDate).isAfter(dayjs(input.endDate))) {
+  // If start date is after end date throw error
+  if (inputStartTime.isAfter(inputEndTime)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
   }
 
-  // Validate start and end date are in the future
-  if (dayjs(input.startDate).isBefore(dayjs().subtract(1, "d").startOf("day"))) {
+  // If start and end date are in the future throw error
+  if (inputStartTime.isAfter(dayjs().endOf("day"))) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 
@@ -53,8 +55,8 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
   // Validate if already exists
   const bookingForwarding = await prisma.bookingForwarding.findFirst({
     where: {
-      start: dayjs(input.startDate).startOf("day").toISOString(),
-      end: dayjs(input.endDate).endOf("day").toISOString(),
+      start: inputStartTime.toISOString(),
+      end: inputEndTime.toISOString(),
       userId: ctx.user.id,
       toUserId: toUserId,
     },
@@ -64,7 +66,7 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
     throw new TRPCError({ code: "CONFLICT", message: "booking_forwarding_already_exists" });
   }
 
-  // Prevent infinite redirects
+  // Prevent infinite redirects but consider time ranges
   const existingBookingForwarding = await prisma.bookingForwarding.findFirst({
     select: {
       userId: true,
@@ -74,6 +76,24 @@ export const bookingForwardingCreate = async ({ ctx, input }: BookingForwardingT
     where: {
       userId: toUserId,
       toUserId: ctx.user.id,
+      // any status since it can be accepted in the future
+      // Check for time overlap or collision
+      OR: [
+        // Outside of range
+        {
+          AND: [
+            { start: { lte: inputEndTime.toISOString() } },
+            { end: { gte: inputStartTime.toISOString() } },
+          ],
+        },
+        // Inside of range
+        {
+          AND: [
+            { start: { gte: inputStartTime.toISOString() } },
+            { end: { lte: inputEndTime.toISOString() } },
+          ],
+        },
+      ],
     },
   });
 

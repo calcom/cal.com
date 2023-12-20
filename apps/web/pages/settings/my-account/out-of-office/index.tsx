@@ -1,4 +1,3 @@
-import { DateRangePicker } from "@tremor/react";
 import React, { useState } from "react";
 import { useForm, useFormState } from "react-hook-form";
 
@@ -16,10 +15,9 @@ import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from
 import { FastForward, Link, Moon, Send, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
+import { OutOfOfficeDateRangePicker } from "@components/out-of-office/DateRangePicker";
 
-import "./DateSelect.css";
-
-type BookingForwardingForm = {
+export type BookingForwardingForm = {
   startDate: string;
   endDate: string;
   toTeamUserId: number | null;
@@ -29,7 +27,7 @@ const BookingForwardingSection = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null, string | null]>([
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null, null | null]>([
     dayjs().startOf("d").toDate(),
     dayjs().add(1, "d").endOf("d").toDate(),
     null,
@@ -84,26 +82,10 @@ const BookingForwardingSection = () => {
               {t("select_date_range_availability")}
             </p>
             <div className=" w-[250px]">
-              <DateRangePicker
-                value={dateRange}
-                defaultValue={dateRange}
-                onValueChange={(datesArray) => {
-                  const [start, end] = datesArray;
-
-                  if (start) {
-                    setDateRange([start, end as Date | null, null]);
-                  }
-                  if (start && end) {
-                    setValue("startDate", start.toISOString());
-                    setValue("endDate", end.toISOString());
-                  }
-                }}
-                options={undefined}
-                enableDropdown={false}
-                placeholder={t("select_date_range")}
-                enableYearPagination={true}
-                minDate={dayjs().startOf("d").toDate()}
-                maxDate={dayjs().add(2, "y").endOf("d").toDate()}
+              <OutOfOfficeDateRangePicker
+                dateRange={dateRange}
+                setValue={setValue}
+                setDateRange={setDateRange}
               />
             </div>
           </div>
