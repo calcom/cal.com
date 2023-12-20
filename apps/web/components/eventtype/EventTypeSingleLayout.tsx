@@ -240,6 +240,7 @@ function EventTypeSingleLayout({
     isManagedEventType,
     isChildrenManagedEventType,
     team,
+    formMethods,
   ]);
 
   const permalink = `${bookerUrl}/${
