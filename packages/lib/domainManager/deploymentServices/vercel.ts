@@ -93,7 +93,7 @@ function handleDomainCreationError(error: { code?: string | null; domain?: strin
     return true;
   }
 
-  const errorMessage = `Failed to take action for domain: ${error.domain}`;
+  const errorMessage = `Failed to create domain on Vercel: ${error.domain}`;
   logger.error(safeStringify({ errorMessage, vercelError: error }));
   throw new HttpError({
     message: errorMessage,
