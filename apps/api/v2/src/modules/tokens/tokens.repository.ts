@@ -59,8 +59,8 @@ export class TokensRepository {
     };
   }
 
-  async getAccessTokenBySecret(secret: string) {
-    return this.dbRead.prisma.accessToken.findFirst({
+  async getAccessTokenExpiryDate(secret: string) {
+    const accessToken = await this.dbRead.prisma.accessToken.findFirst({
       where: {
         secret,
       },
@@ -68,6 +68,7 @@ export class TokensRepository {
         expiresAt: true,
       },
     });
+    return accessToken?.expiresAt;
   }
 
   async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {

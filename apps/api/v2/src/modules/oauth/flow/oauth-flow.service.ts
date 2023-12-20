@@ -27,13 +27,13 @@ export class OAuthFlowService {
       return true;
     }
 
-    const token = await this.tokensRepository.getAccessTokenBySecret(secret);
+    const tokenExpiresAt = await this.tokensRepository.getAccessTokenExpiryDate(secret);
 
-    if (!token) {
+    if (!tokenExpiresAt) {
       throw new UnauthorizedException();
     }
 
-    if (new Date() > token?.expiresAt) {
+    if (new Date() > tokenExpiresAt) {
       throw new BadRequestException("Token is expired");
     }
 
