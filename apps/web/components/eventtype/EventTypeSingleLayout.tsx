@@ -205,7 +205,11 @@ function EventTypeSingleLayout({
         name: "assignment",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Users,
-        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}`,
+        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
+          isManagedEventType
+            ? ` - ${t("number_member", { count: formMethods.watch("children").length || 0 })}`
+            : ""
+        }`,
       });
     }
     const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
