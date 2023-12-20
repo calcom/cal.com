@@ -208,18 +208,13 @@ async function handler(req: NextApiRequest) {
     args.where = buildWhereClause(userId, attendeeEmails, [], []);
   }
 
-  if (dateFrom && dateTo) {
-    args.where = {
-      ...args.where,
-      startTime: { gte: dateFrom },
-      endTime: { lte: dateTo },
-    };
-  } else if (dateFrom) {
+  if (dateFrom) {
     args.where = {
       ...args.where,
       startTime: { gte: dateFrom },
     };
-  } else if (dateTo) {
+  }
+  if (dateTo) {
     args.where = {
       ...args.where,
       endTime: { lte: dateTo },
