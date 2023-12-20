@@ -207,7 +207,7 @@ function EventTypeSingleLayout({
         icon: Users,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
           isManagedEventType
-            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
+            ? ` - ${t("number_member", { count: formMethods.watch("children").length || 0 })}`
             : ""
         }`,
       });
