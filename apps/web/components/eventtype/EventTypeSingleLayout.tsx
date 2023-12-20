@@ -205,11 +205,7 @@ function EventTypeSingleLayout({
         name: "assignment",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Users,
-        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType
-            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
-            : ""
-        }`,
+        info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}`,
       });
     }
     const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
@@ -240,7 +236,6 @@ function EventTypeSingleLayout({
     isManagedEventType,
     isChildrenManagedEventType,
     team,
-    formMethods,
   ]);
 
   const permalink = `${bookerUrl}/${
