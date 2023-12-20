@@ -8,6 +8,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -82,6 +83,11 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           darkBrandColor: true,
           theme: true,
           organizationId: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
           metadata: true,
         },
       },
@@ -172,7 +178,11 @@ export const getPublicEvent = async (
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
-      users: users.map((user) => ({ ...user, metadata: undefined })),
+      users: users.map((user) => ({
+        ...user,
+        metadata: undefined,
+        bookerUrl: getBookerBaseUrlSync(user.organization?.slug ?? null),
+      })),
       locations: privacyFilteredLocations(locations),
       profile: {
         username: users[0].username,
@@ -299,23 +309,50 @@ function getUsersFromEvent(event: Event) {
     return null;
   }
   const { username, name, weekStart, organizationId } = owner;
-  return [{ username, name, weekStart, organizationId }];
+  return [
+    {
+      username,
+      name,
+      weekStart,
+      organizationId,
+      bookerUrl: getBookerBaseUrlSync(owner.organization?.slug ?? null),
+    },
+  ];
 }
 
 async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
   const { users } = await prisma.eventType.findUniqueOrThrow({
     where: { id: eventTypeId },
-    select: { users: { select: { username: true, name: true, weekStart: true, organizationId: true } } },
+    select: {
+      users: {
+        select: {
+          username: true,
+          name: true,
+          weekStart: true,
+          organizationId: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
+    },
   });
   if (!users.length) return null;
-  return [users[0]];
+  return [{ ...users[0], bookerUrl: getBookerBaseUrlSync(users[0].organization?.slug ?? null) }];
 }
 
-function mapHostsToUsers(host: { user: Pick<User, "username" | "name" | "weekStart" | "organizationId"> }) {
+function mapHostsToUsers(host: {
+  user: Pick<User, "username" | "name" | "weekStart" | "organizationId"> & {
+    organization: { slug: string | null } | null;
+  };
+}) {
   return {
     username: host.user.username,
     name: host.user.name,
     weekStart: host.user.weekStart,
     organizationId: host.user.organizationId,
+    bookerUrl: getBookerBaseUrlSync(host.user.organization?.slug ?? null),
   };
 }
