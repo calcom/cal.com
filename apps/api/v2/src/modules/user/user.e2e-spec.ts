@@ -48,9 +48,6 @@ describe("User Endpoints", () => {
       it(`/PUT/:id`, () => {
         return request(app.getHttpServer()).put("/api/v2/users/1234").expect(401);
       });
-      it(`/DELETE/:id`, () => {
-        return request(app.getHttpServer()).delete("/api/v2/users/1234").expect(401);
-      });
     });
 
     afterAll(async () => {
@@ -168,13 +165,6 @@ describe("User Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.email).toEqual(userUpdatedEmail);
-    });
-
-    it(`/DELETE/:id`, () => {
-      return request(app.getHttpServer())
-        .delete(`/api/v2/users/${postResponseData.user.id}`)
-        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
-        .expect(204);
     });
 
     afterAll(async () => {

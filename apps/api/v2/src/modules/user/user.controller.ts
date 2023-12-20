@@ -11,7 +11,6 @@ import {
   Logger,
   UseGuards,
   Get,
-  Delete,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -87,22 +86,6 @@ export class UserController {
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.userRepository.update(userId, body);
-    return { status: SUCCESS_STATUS, data: user };
-  }
-
-  @Delete("/:userId")
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(AccessTokenGuard)
-  async deleteUser(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
-    this.logger.log(`Deleting user with ID: ${userId}`);
-
-    const exists = await this.userRepository.findById(userId);
-
-    if (!exists) {
-      throw new NotFoundException(`User with ${userId} does not exist`);
-    }
-
-    const user = await this.userRepository.delete(userId);
     return { status: SUCCESS_STATUS, data: user };
   }
 }
