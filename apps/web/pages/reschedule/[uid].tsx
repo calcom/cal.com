@@ -84,12 +84,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // if booking event type is for a seated event and no seat reference uid is provided, throw not found
   if (booking?.eventType?.seatsPerTimeSlot && !maybeSeatReferenceUid) {
-    console.log(
-      "🚀 ~ file: [uid].tsx:87 ~ getServerSideProps ~ maybeSeatReferenceUid:",
-      maybeSeatReferenceUid
-    );
     const userId = session?.user?.id;
-    console.log("🚀 ~ file: [uid].tsx:89 ~ getServerSideProps ~ userId:", userId);
 
     if (!userId && !seatReferenceUid) {
       return {
