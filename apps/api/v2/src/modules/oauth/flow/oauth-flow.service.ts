@@ -47,7 +47,7 @@ export class OAuthFlowService {
   async exchangeAuthorizationToken(
     tokenId: string,
     input: ExchangeAuthorizationCodeInput
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
       tokenId,
       input.client_id,
@@ -64,15 +64,15 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const { access_token, refresh_token } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
       input.client_id,
       authorizationToken.owner.id
     );
-    void this.propagateAccessToken(access_token); // voided as we don't need to await
+    void this.propagateAccessToken(accessToken); // voided as we don't need to await
 
     return {
-      access_token,
-      refresh_token,
+      accessToken,
+      refreshToken,
     };
   }
 
@@ -100,8 +100,8 @@ export class OAuthFlowService {
     );
 
     return {
-      access_token: accessToken.secret,
-      refresh_token: refreshToken.secret,
+      accessToken: accessToken.secret,
+      refreshToken: refreshToken.secret,
     };
   }
 }

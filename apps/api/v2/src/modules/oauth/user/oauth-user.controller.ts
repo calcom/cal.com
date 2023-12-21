@@ -52,7 +52,7 @@ export class OAuthUserController {
     }
 
     const user = await this.userRepository.create(body, oAuthClientId);
-    const { access_token, refresh_token } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       user.id!
     );
@@ -61,8 +61,8 @@ export class OAuthUserController {
       status: SUCCESS_STATUS,
       data: {
         user,
-        accessToken: access_token,
-        refreshToken: refresh_token,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       },
     };
   }

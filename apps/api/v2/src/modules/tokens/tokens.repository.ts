@@ -54,8 +54,8 @@ export class TokensRepository {
     ]);
 
     return {
-      access_token: accessToken.secret,
-      refresh_token: refreshToken.secret,
+      accessToken: accessToken.secret,
+      refreshToken: refreshToken.secret,
     };
   }
 

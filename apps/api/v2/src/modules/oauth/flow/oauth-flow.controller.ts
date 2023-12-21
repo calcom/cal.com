@@ -61,22 +61,20 @@ export class OAuthFlowController {
   async exchange(
     @Headers("Authorization") authorization: string,
     @Body() body: ExchangeAuthorizationCodeInput
-  ): Promise<ApiResponse<{ access_token: string; refresh_token: string }>> {
+  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
     const bearerToken = authorization.replace("Bearer ", "").trim();
     if (!bearerToken) {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { access_token, refresh_token } = await this.oAuthFlowService.exchangeAuthorizationToken(
-      bearerToken,
-      body
-    );
+    const { accessToken: accessToken, refreshToken: refreshToken } =
+      await this.oAuthFlowService.exchangeAuthorizationToken(bearerToken, body);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        access_token,
-        refresh_token,
+        accessToken,
+        refreshToken,
       },
     };
   }
@@ -88,18 +86,18 @@ export class OAuthFlowController {
     @Headers(X_CAL_CLIENT_ID) clientId: string,
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
-  ): Promise<ApiResponse<{ access_token: string; refresh_token: string }>> {
-    const { access_token, refresh_token } = await this.oAuthFlowService.refreshToken(
+  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
+    const { accessToken, refreshToken } = await this.oAuthFlowService.refreshToken(
       clientId,
       secretKey,
-      body.refresh_token
+      body.refreshToken
     );
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        access_token,
-        refresh_token,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       },
     };
   }
