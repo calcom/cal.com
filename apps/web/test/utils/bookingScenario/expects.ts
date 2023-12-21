@@ -304,8 +304,41 @@ export function expectWebhookToHaveBeenCalledWith(
   }
 }
 
-export function expectWorkflowToBeTriggered() {
-  // TODO: Implement this.
+export function expectWorkflowToBeTriggered({
+  emails,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string; timeZone: string };
+}) {
+  const subjectPattern = /^Reminder: /i;
+  expect(emails.get()).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        subject: expect.stringMatching(subjectPattern),
+        to: organizer.email,
+      }),
+    ])
+  );
+}
+
+export function expectWorkflowToBeNotTriggered({
+  emails,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string; timeZone: string };
+}) {
+  const subjectPattern = /^Reminder: /i;
+
+  expect(emails.get()).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        subject: expect.stringMatching(subjectPattern),
+        to: organizer.email,
+      }),
+    ])
+  );
 }
 
 export async function expectBookingToBeInDatabase(
