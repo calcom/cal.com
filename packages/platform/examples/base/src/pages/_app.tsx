@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 
 import { CalProvider } from "@calcom/platform-atoms";
-import "@calcom/platform-atoms/dist/globals.css";
+import "@calcom/platform-atoms/dist/globals.min.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

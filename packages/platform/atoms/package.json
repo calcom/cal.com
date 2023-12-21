@@ -8,7 +8,8 @@
   "version": "0.0.0",
   "scripts": {
     "build": "node build.mjs",
-    "vite-build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./dist/globals.css --postcss --minify"
+    "vite-dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
+    "vite-build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -30,7 +31,7 @@
       "import": "./dist/cal-atoms.js",
       "require": "./dist/cal-atoms.umd.cjs"
     },
-    "./dist/globals.css": "./dist/globals.css"
+    "./dist/globals.min.css": "./globals.min.css"
   },
   "dependencies": {
     "@calcom/ui": "*",
