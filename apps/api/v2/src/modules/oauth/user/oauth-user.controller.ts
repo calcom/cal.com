@@ -1,4 +1,4 @@
-import { AccessTokenGuard } from "@/modules/auth/guard/access-token/access-token.guard";
+import { AccessTokenGuard } from "@/modules/auth/guard/oauth/access-token.guard";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
@@ -64,7 +64,6 @@ export class OAuthUserController {
 
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
-  // TODO: Use Erik's AccessTokenGuard
   @UseGuards(AccessTokenGuard)
   async getUserById(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
     const user = await this.userRepository.findById(userId);
@@ -77,7 +76,6 @@ export class OAuthUserController {
 
   @Put("/:userId")
   @HttpCode(HttpStatus.OK)
-  // TODO: Use Erik's AccessTokenGuard
   @UseGuards(AccessTokenGuard)
   async updateUser(
     @Param("userId") userId: number,
