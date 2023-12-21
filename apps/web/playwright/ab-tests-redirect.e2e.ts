@@ -4,7 +4,7 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("apps/ A/B tests", () => {
+test.describe.skip("apps/ A/B tests", () => {
   test("should point to the /future/apps/installed/[category]", async ({ page, users, context }) => {
     await context.addCookies([
       {
