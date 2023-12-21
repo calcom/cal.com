@@ -213,7 +213,7 @@ describe("OAuth Client Endpoints", () => {
           });
       });
       it(`/DELETE/:id`, () => {
-        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(204);
+        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(200);
       });
 
       afterAll(async () => {
@@ -295,7 +295,7 @@ describe("OAuth Client Endpoints", () => {
           });
       });
       it(`/DELETE/:id`, () => {
-        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(204);
+        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(200);
       });
 
       afterAll(async () => {
