@@ -1,6 +1,4 @@
-import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
-import sgMail from "@sendgrid/mail";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
 import type { DateArray } from "ics";
@@ -9,7 +7,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
@@ -21,33 +18,13 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
-let sendgridAPIKey, senderEmail: string;
-
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
-if (process.env.SENDGRID_API_KEY) {
-  sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-  senderEmail = process.env.SENDGRID_EMAIL as string;
-
-  sgMail.setApiKey(sendgridAPIKey);
-  client.setApiKey(sendgridAPIKey);
-}
-
-async function getBatchId() {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
-    return "DUMMY_BATCH_ID";
-  }
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
-  return batchIdResponse[1].batch_id as string;
-}
 
 function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   const uid = uuidv4();
@@ -148,12 +125,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
-
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    console.error("Sendgrid credentials are missing from the .env file");
-  }
-
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   let attendeeEmailToBeUsedInMail: string | null = null;
   let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
@@ -258,11 +229,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const batchId = await getBatchId();
 
   function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.info("No sendgrid API key provided, skipping email");
-      return Promise.resolve();
-    }
-
     const status: ParticipationStatus =
       triggerEvent === WorkflowTriggerEvents.AFTER_EVENT
         ? "COMPLETED"
@@ -270,34 +236,28 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
         ? "DECLINED"
         : "ACCEPTED";
 
-    return sgMail.send({
-      to: data.to,
-      from: {
-        email: senderEmail,
-        name: sender || SENDER_NAME,
+    return sendSendgridMail(
+      {
+        to: data.to,
+        subject: emailContent.emailSubject,
+        html: emailContent.emailBody,
+        batchId,
+        replyTo: evt.organizer.email,
+        attachments: includeCalendarEvent
+          ? [
+              {
+                content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
+                filename: "event.ics",
+                type: "text/calendar; method=REQUEST",
+                disposition: "attachment",
+                contentId: uuidv4(),
+              },
+            ]
+          : undefined,
+        sendAt: data.sendAt,
       },
-      subject: emailContent.emailSubject,
-      html: emailContent.emailBody,
-      batchId,
-      replyTo: evt.organizer.email,
-      mailSettings: {
-        sandboxMode: {
-          enable: sandboxMode,
-        },
-      },
-      attachments: includeCalendarEvent
-        ? [
-            {
-              content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
-              filename: "event.ics",
-              type: "text/calendar; method=REQUEST",
-              disposition: "attachment",
-              contentId: uuidv4(),
-            },
-          ]
-        : undefined,
-      sendAt: data.sendAt,
-    });
+      { sender }
+    );
   }
 
   if (
