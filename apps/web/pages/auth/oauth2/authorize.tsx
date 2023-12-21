@@ -18,7 +18,7 @@ export default function Authorize() {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
 
-  const client_id = searchParams?.get("client_id") as string;
+  const client_id = (searchParams?.get("client_id") as string) || "";
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
 
