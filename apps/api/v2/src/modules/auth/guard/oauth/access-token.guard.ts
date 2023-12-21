@@ -9,7 +9,7 @@ export class AccessTokenGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
-    const bearer = authHeader.replace("Bearer ", "").trim();
+    const bearer = authHeader?.replace("Bearer ", "").trim();
     if (!bearer) {
       throw new UnauthorizedException();
     }

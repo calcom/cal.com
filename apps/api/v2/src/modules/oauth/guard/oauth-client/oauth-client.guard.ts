@@ -1,27 +1,31 @@
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 
-import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {
   constructor(private readonly oauthRepository: OAuthClientRepository) {}
 
-  canActivate(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const { headers } = request;
+    const { headers, params } = request;
 
-    const oauthClientId = headers[X_CAL_CLIENT_ID];
+    const oauthClientId = params.clientId;
     const oauthClientSecret = headers[X_CAL_SECRET_KEY];
 
-    return this.validateOauthClient(oauthClientId, oauthClientSecret);
-  }
+    if (!oauthClientId) {
+      throw new UnauthorizedException("Missing client ID");
+    }
 
-  private async validateOauthClient(oauthClientId: string, oauthClientSecret: string): Promise<boolean> {
-    const oauthClient = await this.oauthRepository.getOAuthClient(oauthClientId);
+    if (!oauthClientSecret) {
+      throw new UnauthorizedException("Missing client secret");
+    }
 
-    if (!oauthClient || oauthClient.secret !== oauthClientSecret) {
-      return false;
+    const client = await this.oauthRepository.getOAuthClient(oauthClientId);
+
+    if (!client || client.secret !== oauthClientSecret) {
+      throw new UnauthorizedException();
     }
 
     return true;

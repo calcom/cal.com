@@ -1,6 +1,6 @@
 import { ApiKeyService } from "@/modules/api-key/api-key.service";
 import { UserRepository } from "@/modules/user/user.repository";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 
@@ -31,6 +31,10 @@ export class ApiKeyAuthStrategy extends PassportStrategy(BaseStrategy, "api-key"
       }
 
       const user = await this.userRepository.findById(apiKey.userId);
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+
       this.success(user);
     } catch (error) {
       if (error instanceof Error) return this.error(error);
