@@ -548,6 +548,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  isInstantEvent: true,
   currency: true,
   periodDays: true,
   position: true,

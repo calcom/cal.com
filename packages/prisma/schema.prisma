@@ -118,6 +118,7 @@ model EventType {
   bookingLimits                   Json?
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                  Json?
+  isInstantEvent                  Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -314,6 +315,7 @@ model Team {
   accessCodes          AccessCode[]
   isOrganization       Boolean                 @default(false)
   organizationSettings OrganizationSettings?
+  instantMeetingTokens InstantMeetingToken[]
 
   @@unique([slug, parentId])
   @@unique([slug, isOrganization])
@@ -365,6 +367,21 @@ model VerificationToken {
   @@index([teamId])
 }
 
+model InstantMeetingToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expires   DateTime
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id])
+  bookingId Int?     @unique
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+}
+
 model BookingReference {
   id                 Int      @id @default(autoincrement())
   /// @zod.min(1)
@@ -401,10 +418,11 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED     @map("cancelled")
+  ACCEPTED      @map("accepted")
+  REJECTED      @map("rejected")
+  PENDING       @map("pending")
+  AWAITING_HOST @map("awaiting_host")
 }
 
 model Booking {
@@ -445,6 +463,9 @@ model Booking {
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
   isRecorded            Boolean              @default(false)
+  iCalUID               String?              @default("")
+  iCalSequence          Int                  @default(0)
+  instantMeetingToken   InstantMeetingToken?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -580,7 +601,9 @@ enum WebhookTriggerEvents {
   BOOKING_REJECTED
   FORM_SUBMITTED
   MEETING_ENDED
+  MEETING_STARTED
   RECORDING_READY
+  INSTANT_MEETING
 }
 
 model Webhook {

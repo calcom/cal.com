@@ -44,7 +44,6 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
     data: {
       isOrganizationVerified: true,
-      orgAutoAcceptEmail: acceptedEmailDomain,
     },
   });
 

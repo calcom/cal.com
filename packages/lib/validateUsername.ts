@@ -96,10 +96,20 @@ export const validateAndGetCorrectedUsernameInTeam = async (
         isOrganization: true,
         parentId: true,
         organizationSettings: true,
+        parent: {
+          select: {
+            organizationSettings: true,
+          },
+        },
       },
     });
 
-    if (team?.isOrganization || team?.parentId) {
+    console.log("validateAndGetCorrectedUsernameInTeam", {
+      teamId,
+      team,
+    });
+    const organization = team?.isOrganization ? team : team?.parent;
+    if (organization) {
       // Organization context -> org-context username check
       const orgId = team?.parentId || teamId;
       return validateAndGetCorrectedUsernameAndEmail({

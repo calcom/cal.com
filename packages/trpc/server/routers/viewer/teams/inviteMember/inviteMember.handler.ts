@@ -2,8 +2,12 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import {
@@ -36,6 +40,10 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   const team = await getTeamOrThrow(input.teamId);
 
   const isOrg = team.isOrganization;
+
+  if (isOrg && input.role === MembershipRole.OWNER && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+
   await checkPermissions({
     userId: ctx.user.id,
     teamId:
@@ -44,6 +52,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   });
 
   const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
+  // Only owners can award owner role in an organization.
+
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
@@ -107,12 +117,18 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     // invited users can autojoin, create their memberships in org
     if (autoJoinUsers.length) {
       await prisma.membership.createMany({
-        data: autoJoinUsers.map((userToAutoJoin) => ({
-          userId: userToAutoJoin.id,
-          teamId: team.id,
-          accepted: true,
-          role: input.role,
-        })),
+        data: autoJoinUsers.map((userToAutoJoin) => {
+          const organizationRole = userToAutoJoin.teams?.[0]?.role;
+          return {
+            userId: userToAutoJoin.id,
+            teamId: team.id,
+            accepted: true,
+            role:
+              organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
+                ? organizationRole
+                : input.role,
+          };
+        }),
       });
     }
 
@@ -129,6 +145,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         language: translation,
         isOrg: isOrg,
         teamId: team.id,
+        currentUserParentTeamName: team?.parent?.name,
       });
     }
   }

@@ -11,10 +11,11 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { orgDomainConfig, getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -364,7 +365,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           accepted: member.accepted,
           organizationId: member.organizationId,
           safeBio: markdownToSafeHTML(member.bio || ""),
-          orgOrigin: getOrgFullOrigin(member.organization?.slug || ""),
+          bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
         };
       })
     : [];
