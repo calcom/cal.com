@@ -1,4 +1,4 @@
-import { OAuthFlowService } from "@/modules/oauth/flow/oauth-flow.service";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 
 @Injectable()

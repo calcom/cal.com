@@ -1,5 +1,5 @@
 import { AppModule } from "@/app.module";
-import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";

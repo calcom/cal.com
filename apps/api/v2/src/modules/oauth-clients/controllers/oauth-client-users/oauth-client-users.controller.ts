@@ -1,5 +1,5 @@
 import { AccessTokenGuard } from "@/modules/auth/guard/oauth/access-token.guard";
-import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client/oauth-client.guard";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
@@ -27,7 +27,7 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "oauth-clients/:clientId/users",
   version: "2",
 })
-export class OAuthUserController {
+export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
   constructor(

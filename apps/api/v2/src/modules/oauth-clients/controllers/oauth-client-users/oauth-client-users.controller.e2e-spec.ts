@@ -2,7 +2,7 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { CreateUserResponse } from "@/modules/oauth/user/oauth-user.controller";
+import { CreateUserResponse } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
 import { UserModule } from "@/modules/user/user.module";
@@ -18,7 +18,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
-describe("User Endpoints", () => {
+describe("OAuth Client Users Endpoints", () => {
   describe("Not authenticated", () => {
     let app: INestApplication;
 

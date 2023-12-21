@@ -1,11 +1,11 @@
 import { GetUser } from "@/modules/auth/decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
-import { OAuthAuthorizeInput } from "@/modules/oauth/flow/input/authorize.input";
-import { ExchangeAuthorizationCodeInput } from "@/modules/oauth/flow/input/exchange-code.input";
-import { RefreshTokenInput } from "@/modules/oauth/flow/input/refresh-token.input";
-import { OAuthFlowService } from "@/modules/oauth/flow/oauth-flow.service";
-import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
-import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client/oauth-client.guard";
+import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
+import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
+import { RefreshTokenInput } from "@/modules/oauth-clients/inputs/refresh-token.input";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import {
   BadRequestException,

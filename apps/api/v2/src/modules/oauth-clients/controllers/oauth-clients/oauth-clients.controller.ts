@@ -2,8 +2,8 @@ import { GetUser } from "@/modules/auth/decorator";
 import { Roles } from "@/modules/auth/decorator/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guard/organization-roles/organization-roles.guard";
-import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
-import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
+import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import {
   Body,
   Controller,
@@ -24,12 +24,17 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
 import type { ApiResponse } from "@calcom/platform-types";
 
+/*
+1. Name endpoint /modules same as the controller path
+2. inputs plural, but individual files and classes in singular
+3. 
+*/
 @Controller({
   path: "oauth-clients",
   version: "2",
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-export class OAuthClientController {
+export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
   constructor(private readonly oauthClientRepository: OAuthClientRepository) {}

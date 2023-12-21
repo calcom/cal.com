@@ -1,5 +1,5 @@
-import { ExchangeAuthorizationCodeInput } from "@/modules/oauth/flow/input/exchange-code.input";
-import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
+import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 

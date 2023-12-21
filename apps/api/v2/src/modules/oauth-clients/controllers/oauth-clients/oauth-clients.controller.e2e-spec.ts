@@ -4,8 +4,8 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { NextAuthStrategy } from "@/modules/auth/strategy";
-import { UpdateOAuthClientInput } from "@/modules/oauth/input/update-oauth-client";
-import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
+import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UserModule } from "@/modules/user/user.module";
 import { INestApplication } from "@nestjs/common";
@@ -23,7 +23,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
-describe("OAuth Client Endpoints", () => {
+describe("OAuth Clients Endpoints", () => {
   describe("User Not Authenticated", () => {
     let appWithoutAuth: INestApplication;
 

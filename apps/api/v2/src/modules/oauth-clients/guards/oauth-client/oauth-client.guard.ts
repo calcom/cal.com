@@ -1,4 +1,4 @@
-import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
