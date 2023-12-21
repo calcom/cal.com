@@ -45,9 +45,9 @@ export class OAuthUserController {
       `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
     );
 
-    const exists = await this.userRepository.findByEmail(body.email);
+    const existingUser = await this.userRepository.findByEmail(body.email);
 
-    if (exists) {
+    if (existingUser) {
       throw new BadRequestException(DUPLICATE_RESOURCE);
     }
 
