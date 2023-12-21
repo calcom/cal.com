@@ -46,7 +46,7 @@ test.describe("Stripe integration", () => {
     await user.getPaymentCredential();
 
     const eventType = user.eventTypes.find((e) => e.slug === "paid") as Prisma.EventType;
-    await user.setupEventWithPrice(eventType);
+    await user.setupEventWithPrice(eventType, "stripe");
 
     // Need to wait for the DB to be updated with the metadata
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
@@ -104,7 +104,7 @@ test.describe("Stripe integration", () => {
       page.click('[id="skip-account-app"]'),
     ]);
 
-    await owner.setupEventWithPrice(teamEvent);
+    await owner.setupEventWithPrice(teamEvent, "stripe");
 
     // Need to wait for the DB to be updated with the metadata
     await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
@@ -134,7 +134,7 @@ test.describe("Stripe integration", () => {
     await page.goto("/apps/installed");
 
     await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
+    await user.setupEventWithPrice(eventType, "stripe");
     await user.bookAndPayEvent(eventType);
     // success
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -147,7 +147,7 @@ test.describe("Stripe integration", () => {
     await page.goto("/apps/installed");
 
     await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
+    await user.setupEventWithPrice(eventType, "stripe");
 
     // booking process without payment
     await page.goto(`${user.username}/${eventType?.slug}`);
@@ -171,7 +171,7 @@ test.describe("Stripe integration", () => {
     await page.goto("/apps/installed");
 
     await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
+    await user.setupEventWithPrice(eventType, "stripe");
     await user.bookAndPayEvent(eventType);
 
     // Rescheduling the event
@@ -194,7 +194,7 @@ test.describe("Stripe integration", () => {
     await page.goto("/apps/installed");
 
     await user.getPaymentCredential();
-    await user.setupEventWithPrice(eventType);
+    await user.setupEventWithPrice(eventType, "stripe");
     await user.bookAndPayEvent(eventType);
 
     await page.click('[data-testid="cancel"]');
@@ -214,7 +214,7 @@ test.describe("Stripe integration", () => {
       await page.goto("/apps/installed");
 
       await user.getPaymentCredential();
-      await user.setupEventWithPrice(eventType);
+      await user.setupEventWithPrice(eventType, "stripe");
       await user.bookAndPayEvent(eventType);
       await user.confirmPendingPayment();
     });
@@ -264,7 +264,7 @@ test.describe("Stripe integration", () => {
       await page.locator("#event-type-form").getByRole("switch").click();
 
       // Set price
-      await page.getByTestId("price-input-stripe").fill("200");
+      await page.getByTestId("stripe-price-input").fill("200");
 
       // Select currency in dropdown
       await page.getByTestId("stripe-currency-select").click();

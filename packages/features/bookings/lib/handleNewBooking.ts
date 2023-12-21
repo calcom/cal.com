@@ -415,7 +415,7 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
   }
 };
 
-async function ensureAvailableUsers(
+export async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
