@@ -105,7 +105,7 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]" 
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]"
       data-testid="onboarding"
       key={pathname}>
       <Head>
