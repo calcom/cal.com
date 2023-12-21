@@ -32,7 +32,7 @@ export function Header({
 }) {
   const { t, i18n } = useLocale();
   const session = useSession();
-
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
@@ -68,7 +68,7 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="flex gap-2">
-        {isMyLink ? (
+        {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button
               color="primary"
