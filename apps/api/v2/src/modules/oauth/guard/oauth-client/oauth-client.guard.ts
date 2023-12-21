@@ -1,12 +1,7 @@
 import { OAuthClientRepository } from "@/modules/oauth/oauth-client.repository";
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
-import { PlatformOAuthClient } from "@prisma/client";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-
-export type AuthenticatedRequest = Request & {
-  oAuthClient: PlatformOAuthClient;
-};
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {
@@ -32,8 +27,6 @@ export class OAuthClientGuard implements CanActivate {
     if (!client || client.secret !== oauthClientSecret) {
       throw new UnauthorizedException();
     }
-
-    request.oAuthClient = client;
 
     return true;
   }
