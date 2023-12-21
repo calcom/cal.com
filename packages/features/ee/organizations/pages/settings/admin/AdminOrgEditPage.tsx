@@ -81,6 +81,10 @@ const OrgForm = ({
     mutation.mutate({
       id: org.id,
       ...values,
+      organizationSettings: {
+        ...org.organizationSettings,
+        orgAutoAcceptEmail: values.organizationSettings?.orgAutoAcceptEmail,
+      },
     });
   };
 
