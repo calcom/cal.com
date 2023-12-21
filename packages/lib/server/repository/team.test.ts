@@ -30,9 +30,7 @@ describe("getOrg", () => {
         id: 101,
         name: "Test Team",
         slug: "test-slug",
-        metadata: {
-          isOrganization: true,
-        },
+        isOrganization: true,
       },
     ]);
 
@@ -52,18 +50,16 @@ describe("getOrg", () => {
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
         slug: "test-slug",
-        metadata: {
-          path: ["isOrganization"],
-          equals: true,
-        },
+        isOrganizaiton: true,
       },
       select: {
         id: true,
         slug: true,
         metadata: true,
+        isOrganizaiton: true,
       },
     });
-    expect(org?.metadata?.isOrganization).toBe(true);
+    expect(org?.isOrganization).toBe(true);
   });
 
   it("should not return an org result if metadata.isOrganization isn't true", async () => {
@@ -93,15 +89,13 @@ describe("getOrg", () => {
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
         slug: "test-slug",
-        metadata: {
-          path: ["isOrganization"],
-          equals: true,
-        },
+        isOrganization: true,
       },
       select: {
         id: true,
         slug: true,
         metadata: true,
+        isOrganization: true,
       },
     });
     expect(org).toBe(null);
@@ -171,6 +165,7 @@ describe("getTeam", () => {
         slug: true,
         name: true,
         metadata: true,
+        isOrganization: true,
       },
     });
     expect(team).not.toBeNull();
@@ -185,9 +180,7 @@ describe("getTeam", () => {
         id: 101,
         name: "Test Team",
         slug: "test-slug",
-        metadata: {
-          isOrganization: true,
-        },
+        isOrganization: true,
       },
     ]);
 
@@ -260,10 +253,7 @@ describe("getTeam", () => {
               },
             },
           ],
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
+          isOrganization: true,
         },
       },
       select: {
@@ -271,6 +261,7 @@ describe("getTeam", () => {
         name: true,
         slug: true,
         metadata: true,
+        isOrganization: true,
       },
     });
   });
@@ -294,10 +285,7 @@ describe("getTeam", () => {
       where: {
         slug: "test-team",
         parent: {
-          metadata: {
-            path: ["isOrganization"],
-            equals: true,
-          },
+          isOrganization: true,
           OR: [
             {
               slug: "test-org",
@@ -316,6 +304,7 @@ describe("getTeam", () => {
         slug: true,
         name: true,
         metadata: true,
+        isOrganization: true,
       },
     });
   });
