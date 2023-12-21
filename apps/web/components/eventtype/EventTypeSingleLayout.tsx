@@ -207,13 +207,21 @@ function EventTypeSingleLayout({
         icon: Users,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
           isManagedEventType
-            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
+            ? ` - ${t("number_member", { count: formMethods.watch("children").length || 0 })}`
             : ""
         }`,
       });
     }
     const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
     if (showWebhooks) {
+      if (team) {
+        navigation.push({
+          name: "instant_tab_title",
+          href: `/event-types/${eventType.id}?tabName=instant`,
+          icon: Zap,
+          info: `instant_event_tab_description`,
+        });
+      }
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
