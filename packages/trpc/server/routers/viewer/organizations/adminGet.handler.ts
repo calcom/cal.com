@@ -38,6 +38,13 @@ export const adminGetHandler = async ({ input }: AdminGetOptions) => {
           },
         },
       },
+      organizationSettings: {
+        select: {
+          isOrganizationConfigured: true,
+          isOrganizationVerified: true,
+          orgAutoAcceptEmail: true,
+        },
+      },
     },
   });
 

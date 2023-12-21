@@ -323,6 +323,14 @@ export const userMetadata = z
   })
   .nullable();
 
+export const orgSettingsSchema = z
+  .object({
+    isOrganizationVerified: z.boolean().nullable(),
+    isOrganizationConfigured: z.boolean().nullable(),
+    orgAutoAcceptEmail: z.string().nullable(),
+  })
+  .nullable();
+
 export const teamMetadataSchema = z
   .object({
     requestedSlug: z.string(),
