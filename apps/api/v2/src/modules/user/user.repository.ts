@@ -29,11 +29,11 @@ export class UserRepository {
       },
     });
 
-    if (!user) {
-      return user;
+    if (user) {
+      return this.sanitize(user);
     }
 
-    return this.sanitize(user);
+    return null;
   }
 
   async findByEmail(email: string) {
@@ -43,11 +43,11 @@ export class UserRepository {
       },
     });
 
-    if (!user) {
-      return user;
+    if (user) {
+      return this.sanitize(user);
     }
 
-    return this.sanitize(user);
+    return null;
   }
 
   async update(userId: number, updateData: UpdateUserInput) {
