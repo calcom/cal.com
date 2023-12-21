@@ -21,6 +21,9 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       team: {
         select: {
           id: true,
+          name: true,
+          slug: true,
+          logo: true,
           isOrganization: true,
           inviteTokens: true,
           parent: true,
@@ -32,7 +35,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   return memberships
     .filter((mmship) => {
-      return mmship.team.isOrganization;
+      return !mmship.team.isOrganization;
     })
     .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
       role: membership.role,
