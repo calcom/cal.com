@@ -17,6 +17,7 @@ import {
   Param,
   Put,
   BadRequestException,
+  Delete,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 
@@ -89,6 +90,31 @@ export class OAuthUserController {
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.userRepository.update(userId, body);
+    return { status: SUCCESS_STATUS, data: user };
+  }
+
+  @Delete("/:userId")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AccessTokenGuard)
+  async deleteUser(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
+    this.logger.log(`Deleting user with ID: ${userId}`);
+
+    const existingUser = await this.userRepository.findById(userId);
+
+    if (!existingUser) {
+      throw new NotFoundException(`User with ${userId} does not exist`);
+    }
+
+    if (existingUser.username) {
+      throw new BadRequestException("Cannot delete a user with a username");
+    }
+
+    if (existingUser.password) {
+      throw new BadRequestException("Cannot delete a user with a password");
+    }
+
+    const user = await this.userRepository.delete(userId);
+
     return { status: SUCCESS_STATUS, data: user };
   }
 }

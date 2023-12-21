@@ -49,6 +49,9 @@ describe("User Endpoints", () => {
       it(`/PUT/:id`, () => {
         return request(app.getHttpServer()).put("/api/v2/oauth-clients/100/users/200").expect(401);
       });
+      it(`/DELETE/:id`, () => {
+        return request(app.getHttpServer()).delete("/api/v2/oauth-clients/100/users/200").expect(401);
+      });
     });
 
     afterAll(async () => {
@@ -170,16 +173,16 @@ describe("User Endpoints", () => {
       expect(responseBody.data.email).toEqual(userUpdatedEmail);
     });
 
+    it(`/DELETE/:id`, () => {
+      return request(app.getHttpServer())
+        .delete(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
+        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .expect(200);
+    });
+
     afterAll(async () => {
-      if (postResponseData?.user.id) {
-        await userRepositoryFixture.delete(postResponseData.user.id);
-      }
-      if (oAuthClient) {
-        await oauthClientRepositoryFixture.delete(oAuthClient.id);
-      }
-      if (organization) {
-        await teamRepositoryFixture.delete(organization.id);
-      }
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
 
       await app.close();
     });
