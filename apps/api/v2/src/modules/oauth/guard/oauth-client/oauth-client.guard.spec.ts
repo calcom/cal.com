@@ -3,8 +3,9 @@ import { OAuthClientModule } from "@/modules/oauth/oauth-client.module";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
-import { PlatformOAuthClient } from "@prisma/client";
+import { PlatformOAuthClient, Team } from "@prisma/client";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
@@ -13,7 +14,9 @@ import { OAuthClientGuard } from "./oauth-client.guard";
 describe("OAuthClientGuard", () => {
   let guard: OAuthClientGuard;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+  let teamRepositoryFixture: TeamRepositoryFixture;
   let oauthClient: PlatformOAuthClient;
+  let organization: Team;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,9 +24,11 @@ describe("OAuthClientGuard", () => {
     }).compile();
 
     guard = module.get<OAuthClientGuard>(OAuthClientGuard);
+    teamRepositoryFixture = new TeamRepositoryFixture(module);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
 
-    const organizationId = 1;
+    organization = await teamRepositoryFixture.create({ name: "organization" });
+
     const data = {
       logo: "logo-url",
       name: "name",
@@ -32,7 +37,7 @@ describe("OAuthClientGuard", () => {
     };
     const secret = "secret";
 
-    oauthClient = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+    oauthClient = await oauthClientRepositoryFixture.create(organization.id, data, secret);
   });
 
   it("should be defined", () => {
@@ -69,6 +74,7 @@ describe("OAuthClientGuard", () => {
 
   afterAll(async () => {
     await oauthClientRepositoryFixture.delete(oauthClient.id);
+    await teamRepositoryFixture.delete(organization.id);
   });
 
   function createMockExecutionContext(
