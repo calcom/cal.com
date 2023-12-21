@@ -117,7 +117,7 @@ test.describe.serial("Organization", () => {
           page,
           emails,
           invitedUserEmail,
-          `${team.name}'s admin invited you to join the team ${org.name} on Cal.com`,
+          `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
           "signup?token"
         );
 
