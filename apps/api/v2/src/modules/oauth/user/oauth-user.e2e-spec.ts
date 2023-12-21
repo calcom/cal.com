@@ -9,9 +9,10 @@ import { UserModule } from "@/modules/user/user.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, User } from "@prisma/client";
+import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -59,8 +60,10 @@ describe("User Endpoints", () => {
     let app: INestApplication;
 
     let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
 
     let postResponseData: CreateUserResponse;
 
@@ -75,13 +78,14 @@ describe("User Endpoints", () => {
 
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      oAuthClient = await createOAuthClient();
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organization = await teamRepositoryFixture.create({ name: "organization" });
+      oAuthClient = await createOAuthClient(organization.id);
 
       await app.init();
     });
 
-    async function createOAuthClient() {
-      const organizationId = 1;
+    async function createOAuthClient(organizationId: number) {
       const data = {
         logo: "logo-url",
         name: "name",
@@ -172,6 +176,9 @@ describe("User Endpoints", () => {
       }
       if (oAuthClient) {
         await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      }
+      if (organization) {
+        await teamRepositoryFixture.delete(organization.id);
       }
 
       await app.close();

@@ -1,5 +1,6 @@
 import { AccessTokenGuard } from "@/modules/auth/guard/oauth/access-token.guard";
 import { OAuthClientGuard } from "@/modules/oauth/guard/oauth-client/oauth-client.guard";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateUserInput } from "@/modules/user/input/create-user";
 import { UpdateUserInput } from "@/modules/user/input/update-user";
 import { UserRepository } from "@/modules/user/user.repository";
@@ -29,8 +30,10 @@ import { ApiResponse } from "@calcom/platform-types";
 export class OAuthUserController {
   private readonly logger = new Logger("UserController");
 
-  // TODO: Inject service for access and refresh tokens
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly tokensRepository: TokensRepository
+  ) {}
 
   @Post("/")
   @UseGuards(OAuthClientGuard)
@@ -49,15 +52,17 @@ export class OAuthUserController {
     }
 
     const user = await this.userRepository.create(body, oAuthClientId);
-    // TODO: User service for access and refresh tokens
-    // const { accessToken, refreshToken } = await this.tokenService.generateTokens(user);
+    const { access_token, refresh_token } = await this.tokensRepository.createOAuthTokens(
+      oAuthClientId,
+      user.id!
+    );
 
     return {
       status: SUCCESS_STATUS,
       data: {
         user,
-        accessToken: "accessToken",
-        refreshToken: "refreshToken",
+        accessToken: access_token,
+        refreshToken: refresh_token,
       },
     };
   }
