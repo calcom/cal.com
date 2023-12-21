@@ -17,7 +17,7 @@ type LargeScreenCTAProps = {
   onSwitchCheckedChange: (e: any) => void;
   isButtonDisabled: boolean;
   isConfirmationDialogLoading: boolean;
-  onDeleteConfirmation: () => void;
+  onDeleteConfirmation: (event: any) => void;
 };
 
 export function LargeScreenCTA({
