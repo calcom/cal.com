@@ -1,9 +1,10 @@
-import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import type { PlatformOAuthClient } from "@prisma/client";
+
+import type { CreateOAuthClientInput } from "@calcom/platform-types";
 
 @Injectable()
 export class OAuthClientRepository {
@@ -26,6 +27,50 @@ export class OAuthClientRepository {
   async getOAuthClient(clientId: string): Promise<PlatformOAuthClient | null> {
     return this.dbRead.prisma.platformOAuthClient.findUnique({
       where: { id: clientId },
+    });
+  }
+
+  async getOAuthClientWithAuthTokens(tokenId: string, clientId: string, clientSecret: string) {
+    return this.dbRead.prisma.platformOAuthClient.findUnique({
+      where: {
+        id: clientId,
+        secret: clientSecret,
+        authorizationTokens: {
+          some: {
+            id: tokenId,
+          },
+        },
+      },
+      include: {
+        authorizationTokens: {
+          where: {
+            id: tokenId,
+          },
+          include: {
+            owner: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getOAuthClientWithRefreshSecret(clientId: string, clientSecret: string, refreshToken: string) {
+    return await this.dbRead.prisma.platformOAuthClient.findFirst({
+      where: {
+        id: clientId,
+        secret: clientSecret,
+      },
+      include: {
+        refreshToken: {
+          where: {
+            secret: refreshToken,
+          },
+        },
+      },
     });
   }
 

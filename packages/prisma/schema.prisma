@@ -268,8 +268,11 @@ model User {
   //linkedUsers          User[]                  @relation("linked_account")*/
 
   // Used to lock the user account
-  locked               Boolean               @default(false)
-  platformOAuthClients PlatformOAuthClient[]
+  locked                     Boolean                      @default(false)
+  platformOAuthClients       PlatformOAuthClient[]
+  AccessToken                AccessToken[]
+  RefreshToken               RefreshToken[]
+  PlatformAuthorizationToken PlatformAuthorizationToken[]
 
   @@unique([email])
   @@unique([email, username])
@@ -1044,12 +1047,60 @@ model Avatar {
 model PlatformOAuthClient {
   id             String   @id @default(cuid())
   name           String
-  secret         String
+  secret         String // auth secret?
   permissions    Int
   users          User[]
   logo           String?
   redirect_uris  String[]
   organizationId Int
   organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  // add connection to Access Codes
+
+  accessTokens        AccessToken[]
+  refreshToken        RefreshToken[]
+  authorizationTokens PlatformAuthorizationToken[]
+}
+
+model PlatformAuthorizationToken {
+  id String @id @default(cuid())
+
+  owner  User                @relation(fields: [userId], references: [id])
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id])
+
+  platformOAuthClientId String
+  userId                Int
+
+  @@unique([userId, platformOAuthClientId])
+  @@map("platform_authorization_token")
+}
+
+model AccessToken {
+  id Int @id @default(autoincrement())
+
+  secret    String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String
+  userId                Int
+
+  @@map("platform_access_tokens")
+}
+
+model RefreshToken {
+  id Int @id @default(autoincrement())
+
+  secret    String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String
+  userId                Int
+
+  @@map("platform_refresh_token")
 }
