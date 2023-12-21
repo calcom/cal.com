@@ -34,4 +34,5 @@ export const API_ERROR_CODES = [
 ] as const;
 
 // Request headers
+export const X_CAL_CLIENT_ID = "x-cal-client-id";
 export const X_CAL_SECRET_KEY = "x-cal-secret-key";
