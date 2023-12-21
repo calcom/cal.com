@@ -13,6 +13,7 @@ export type TeamInvite = {
   joinLink: string;
   isCalcomMember: boolean;
   isOrg: boolean;
+  parentTeamName: string | undefined;
 };
 
 export default class TeamInviteEmail extends BaseEmail {
@@ -28,14 +29,18 @@ export default class TeamInviteEmail extends BaseEmail {
     return {
       to: this.teamInviteEvent.to,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.teamInviteEvent.language("user_invited_you", {
-        user: this.teamInviteEvent.from,
-        team: this.teamInviteEvent.teamName,
-        appName: APP_NAME,
-        entity: this.teamInviteEvent
-          .language(this.teamInviteEvent.isOrg ? "organization" : "team")
-          .toLowerCase(),
-      }),
+      subject: this.teamInviteEvent.language(
+        `user_invited_you${this.teamInviteEvent.parentTeamName ? "_to_subteam" : ""}`,
+        {
+          user: this.teamInviteEvent.from,
+          team: this.teamInviteEvent.teamName,
+          appName: APP_NAME,
+          parentTeamName: this.teamInviteEvent.parentTeamName,
+          entity: this.teamInviteEvent
+            .language(this.teamInviteEvent.isOrg ? "organization" : "team")
+            .toLowerCase(),
+        }
+      ),
       html: await renderEmail("TeamInviteEmail", this.teamInviteEvent),
       text: "",
     };

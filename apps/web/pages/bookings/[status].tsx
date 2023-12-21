@@ -1,3 +1,5 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { Fragment, useState } from "react";

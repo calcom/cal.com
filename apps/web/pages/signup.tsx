@@ -73,13 +73,16 @@ function UsernameField({
   setPremium,
   premium,
   setUsernameTaken,
+  orgSlug,
   usernameTaken,
+  disabled,
   ...props
 }: React.ComponentProps<typeof TextField> & {
   username: string;
   setPremium: (value: boolean) => void;
   premium: boolean;
   usernameTaken: boolean;
+  orgSlug?: string;
   setUsernameTaken: (value: boolean) => void;
 }) {
   const { t } = useLocale();
@@ -90,22 +93,33 @@ function UsernameField({
     if (formState.isSubmitting || formState.isSubmitSuccessful) return;
 
     async function checkUsername() {
+      // If the username can't be changed, there is no point in doing the username availability check
+      if (disabled) return;
       if (!debouncedUsername) {
         setPremium(false);
         setUsernameTaken(false);
         return;
       }
-      fetchUsername(debouncedUsername).then(({ data }) => {
+      fetchUsername(debouncedUsername, orgSlug ?? null).then(({ data }) => {
         setPremium(data.premium);
         setUsernameTaken(!data.available);
       });
     }
     checkUsername();
-  }, [debouncedUsername, setPremium, setUsernameTaken, formState.isSubmitting, formState.isSubmitSuccessful]);
+  }, [
+    debouncedUsername,
+    setPremium,
+    disabled,
+    orgSlug,
+    setUsernameTaken,
+    formState.isSubmitting,
+    formState.isSubmitSuccessful,
+  ]);
 
   return (
     <div>
       <TextField
+        disabled={disabled}
         {...props}
         {...register("username")}
         data-testid="signup-usernamefield"
@@ -229,7 +243,13 @@ export default function Signup({
   };
 
   return (
-    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] [--cal-brand-subtle:#9CA3AF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]">
+    <div
+      className={classNames(
+        "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
+      )}>
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
@@ -270,6 +290,7 @@ export default function Signup({
               {/* Username */}
               {!isOrgInviteByLink ? (
                 <UsernameField
+                  orgSlug={orgSlug}
                   label={t("username")}
                   username={watch("username") || ""}
                   premium={premiumUsername}
@@ -604,15 +625,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
   };
 
+  const isATeamInOrganization = tokenTeam?.parentId !== null;
+  const isOrganization = tokenTeam.metadata?.isOrganization;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
+  const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
-  const orgSlug = isOrganization
+  const orgSlug = isOrganizationOrATeamInOrganization
     ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
     : null;
 
   // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganization) {
+  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
@@ -620,7 +643,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = isOrganization && !isValidEmail;
+  const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
   const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
     ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
     : null;
@@ -632,7 +655,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       prepopulateFormValues: !isOrgInviteByLink
         ? {
             email: verificationToken.identifier,
-            username: slugify(username),
+            username: isOrganizationOrATeamInOrganization
+              ? getOrgUsernameFromEmail(
+                  verificationToken.identifier,
+                  (isOrganization
+                    ? tokenTeam.metadata?.orgAutoAcceptEmail
+                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                )
+              : slugify(username),
           }
         : null,
       orgSlug,

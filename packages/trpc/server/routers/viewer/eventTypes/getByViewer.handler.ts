@@ -4,9 +4,10 @@ import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { CAL_URL } from "@calcom/lib/constants";
+import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -116,6 +117,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
               slug: true,
               parentId: true,
               metadata: true,
+              parent: true,
               members: {
                 select: {
                   userId: true,
@@ -160,6 +162,14 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
+  const memberships = user.teams.map((membership) => ({
+    ...membership,
+    team: {
+      ...membership.team,
+      metadata: teamMetadataSchema.parse(membership.team.metadata),
+    },
+  }));
+
   type UserEventTypes = (typeof user.eventTypes)[number];
   type TeamEventTypeChildren = (typeof user.teams)[number]["team"]["eventTypes"][number];
 
@@ -176,11 +186,12 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   type EventTypeGroup = {
     teamId?: number | null;
     parentId?: number | null;
+    bookerUrl: string;
     membershipRole?: MembershipRole | null;
     profile: {
       slug: (typeof user)["username"];
       name: (typeof user)["name"];
-      image?: string;
+      image: string;
     };
     metadata: {
       membershipCount: number;
@@ -195,16 +206,16 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     (evType) => evType.schedulingType !== SchedulingType.MANAGED
   );
 
-  const image = user?.username ? `${CAL_URL}/${user.username}/avatar.png` : undefined;
-
   if (!input?.filters || !hasFilter(input?.filters) || input?.filters?.userIds?.includes(user.id)) {
+    const bookerUrl = await getBookerBaseUrl(user);
     eventTypeGroups.push({
       teamId: null,
+      bookerUrl,
       membershipRole: null,
       profile: {
         slug: user.username,
         name: user.name,
-        image,
+        image: getUserAvatarUrl({ username: user.username, organizationId: user.organizationId }),
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
@@ -227,9 +238,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   };
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
-    user.teams
+    memberships
       .filter((mmship) => {
-        const metadata = teamMetadataSchema.parse(mmship.team.metadata);
+        const metadata = mmship.team.metadata;
         if (metadata?.isOrganization) {
           return false;
         } else {
@@ -243,33 +254,50 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         const orgMembership = teamMemberships.find(
           (teamM) => teamM.teamId === membership.team.parentId
         )?.membershipRole;
+
+        const team = {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        };
+
+        let slug;
+
+        if (input?.forRoutingForms) {
+          // For Routing form we want to ensure that after migration of team to an org, the URL remains same for the team
+          // Once we solve this https://github.com/calcom/cal.com/issues/12399, we can remove this conditional change in slug
+          slug = `team/${team.slug}`;
+        } else {
+          // In an Org, a team can be accessed without /team prefix as well as with /team prefix
+          slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
+        }
         return {
-          teamId: membership.team.id,
-          parentId: membership.team.parentId,
+          teamId: team.id,
+          parentId: team.parentId,
+          bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? null),
           membershipRole:
             orgMembership && compareMembership(orgMembership, membership.role)
               ? orgMembership
               : membership.role,
           profile: {
-            name: membership.team.name,
-            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
-            slug: membership.team.slug
-              ? !membership.team.parentId
-                ? `team/${membership.team.slug}`
-                : `${membership.team.slug}`
-              : null,
+            image: getTeamAvatarUrl({
+              slug: team.slug,
+              requestedSlug: team.metadata?.requestedSlug ?? null,
+              organizationId: team.parentId,
+            }),
+            name: team.name,
+            slug,
           },
           metadata: {
-            membershipCount: membership.team.members.length,
+            membershipCount: team.members.length,
             readOnly:
               membership.role ===
-              (membership.team.parentId
+              (team.parentId
                 ? orgMembership && compareMembership(orgMembership, membership.role)
                   ? orgMembership
                   : MembershipRole.MEMBER
                 : MembershipRole.MEMBER),
           },
-          eventTypes: membership.team.eventTypes
+          eventTypes: team.eventTypes
             .map(mapEventType)
             .filter(filterTeamsEventTypesBasedOnInput)
             .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
@@ -282,7 +310,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       })
   );
 
-  const bookerUrl = await getBookerUrl(user);
   return {
     eventTypeGroups,
     // so we can show a dropdown when the user has teams
@@ -291,7 +318,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       ...group.metadata,
       teamId: group.teamId,
       membershipRole: group.membershipRole,
-      image: `${bookerUrl}/${group.profile.slug}/avatar.png`,
     })),
   };
 };
