@@ -17,12 +17,12 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
-import { bootstrap } from "../src/app";
-import { MembershipRepositoryFixture } from "./fixtures/repository/membership.repository.fixture";
-import { TeamRepositoryFixture } from "./fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "./fixtures/repository/users.repository.fixture";
-import { NextAuthMockStrategy } from "./mocks/next-auth-mock.strategy";
-import { withNextAuth } from "./utils/withNextAuth";
+import { MembershipRepositoryFixture } from "../../../test/fixtures/repository/membership.repository.fixture";
+import { TeamRepositoryFixture } from "../../../test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "../../../test/fixtures/repository/users.repository.fixture";
+import { NextAuthMockStrategy } from "../../../test/mocks/next-auth-mock.strategy";
+import { withNextAuth } from "../../../test/utils/withNextAuth";
+import { bootstrap } from "../../app";
 
 describe("OAuth Client Endpoints", () => {
   describe("User Not Authenticated", () => {
