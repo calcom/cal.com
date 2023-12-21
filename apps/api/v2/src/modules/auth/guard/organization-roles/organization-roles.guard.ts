@@ -16,7 +16,7 @@ export class OrganizationRolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    const partOfOrganization = !!user?.organizationId;
+    const partOfOrganization = Boolean(user?.organizationId);
 
     if (!user || !partOfOrganization) {
       return false;
