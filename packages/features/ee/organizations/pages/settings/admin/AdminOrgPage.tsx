@@ -158,7 +158,7 @@ function AdminOrgTable() {
                               onClick: () => {
                                 updateMutation.mutate({
                                   id: org.id,
-                                  metadata: {
+                                  organizationSettings: {
                                     isOrganizationConfigured: true,
                                   },
                                 });
