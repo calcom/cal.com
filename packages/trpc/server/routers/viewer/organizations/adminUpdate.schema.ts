@@ -6,7 +6,7 @@ export const ZAdminUpdate = z.object({
   id: z.number(),
   name: z.string().optional(),
   slug: z.string().nullish(),
-  organizationSettings: orgSettingsSchema.optional(),
+  organizationSettings: orgSettingsSchema.unwarp().optional(),
 });
 
 export type TAdminUpdate = z.infer<typeof ZAdminUpdate>;

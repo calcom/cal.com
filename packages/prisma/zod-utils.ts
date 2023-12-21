@@ -325,9 +325,9 @@ export const userMetadata = z
 
 export const orgSettingsSchema = z
   .object({
-    isOrganizationVerified: z.boolean().nullable(),
-    isOrganizationConfigured: z.boolean().nullable(),
-    orgAutoAcceptEmail: z.string().nullable(),
+    isOrganizationVerified: z.boolean().optional(),
+    isOrganizationConfigured: z.boolean().optional(),
+    orgAutoAcceptEmail: z.string().optional(),
   })
   .nullable();
 
