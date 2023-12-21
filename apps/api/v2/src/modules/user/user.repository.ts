@@ -19,7 +19,7 @@ export class UserRepository {
       },
     });
 
-    return this.sanitize(newUser);
+    return this.sanitize(newUser, ["password"]);
   }
 
   async findById(userId: number) {
@@ -30,7 +30,7 @@ export class UserRepository {
     });
 
     if (user) {
-      return this.sanitize(user);
+      return this.sanitize(user, ["password"]);
     }
 
     return null;
@@ -44,7 +44,7 @@ export class UserRepository {
     });
 
     if (user) {
-      return this.sanitize(user);
+      return this.sanitize(user, ["password"]);
     }
 
     return null;
@@ -55,7 +55,7 @@ export class UserRepository {
       where: { id: userId },
       data: updateData,
     });
-    return this.sanitize(updatedUser);
+    return this.sanitize(updatedUser, ["password"]);
   }
 
   async delete(userId: number): Promise<User> {
@@ -64,8 +64,13 @@ export class UserRepository {
     });
   }
 
-  sanitize(user: User): Partial<User> {
-    const keys: (keyof User)[] = ["password"];
-    return Object.fromEntries(Object.entries(user).filter(([key]) => !keys.includes(key as keyof User)));
+  sanitize<T extends keyof User>(user: User, keys: T[]): Omit<User, T> {
+    const sanitizedUser = { ...user };
+
+    keys.forEach((key) => {
+      delete sanitizedUser[key];
+    });
+
+    return sanitizedUser;
   }
 }

@@ -54,7 +54,7 @@ export class OAuthUserController {
     const user = await this.userRepository.create(body, oAuthClientId);
     const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
-      user.id!
+      user.id
     );
 
     return {
