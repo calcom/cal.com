@@ -7,7 +7,8 @@
   "authors": "Cal.com, Inc.",
   "version": "0.0.0",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "vite-build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./dist/globals.css --postcss --minify"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -17,10 +18,20 @@
     "@vitejs/plugin-react": "^2.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "typescript": "^4.9.4",
-    "vite": "^4.1.2"
+    "vite": "^5.0.10"
   },
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/cal-atoms.umd.cjs",
+  "module": "./dist/cal-atoms.js",
+  "exports": {
+    ".": {
+      "import": "./dist/cal-atoms.js",
+      "require": "./dist/cal-atoms.umd.cjs"
+    },
+    "./dist/globals.css": "./dist/globals.css"
+  },
   "dependencies": {
     "@calcom/ui": "*",
     "@radix-ui/react-slot": "^1.0.2",
@@ -28,6 +39,7 @@
     "clsx": "^2.0.0",
     "lucide-react": "^0.293.0",
     "tailwind-merge": "^2.0.0",
+    "tailwindcss": "^3.4.0",
     "tailwindcss-animate": "^1.0.7"
   }
 }

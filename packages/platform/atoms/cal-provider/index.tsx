@@ -1,16 +1,13 @@
 import type { ReactNode } from "react";
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 
+import { ApiKeyContext } from "../hooks/useApiKeys";
 import { NO_KEY_VALUE, INVALID_API_KEY } from "./errors";
 
 type CalProviderProps = {
   apiKey: string;
   children: ReactNode;
 };
-
-const ApiKeyContext = createContext({ key: "", error: "" });
-
-export const useApiKey = () => useContext(ApiKeyContext);
 
 export function CalProvider({ apiKey, children }: CalProviderProps) {
   const [key, setKey] = useState("");
