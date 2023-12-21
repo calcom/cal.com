@@ -1,3 +1,4 @@
+import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -12,17 +13,15 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
+import { withNextAuth } from "test/utils/withNextAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
-
-import { MembershipRepositoryFixture } from "../../../test/fixtures/repository/membership.repository.fixture";
-import { TeamRepositoryFixture } from "../../../test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "../../../test/fixtures/repository/users.repository.fixture";
-import { NextAuthMockStrategy } from "../../../test/mocks/next-auth-mock.strategy";
-import { withNextAuth } from "../../../test/utils/withNextAuth";
-import { bootstrap } from "../../app";
 
 describe("OAuth Client Endpoints", () => {
   describe("User Not Authenticated", () => {
