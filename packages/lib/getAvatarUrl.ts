@@ -19,8 +19,22 @@ export const getUserAvatarUrl = (
   }`;
 };
 
+export function getTeamAvatarUrl(
+  team: Pick<Team, "slug"> & {
+    organizationId?: number | null;
+    logoUrl?: string | null;
+    requestedSlug: string | null;
+  }
+) {
+  if (team.logoUrl) {
+    return team.logoUrl;
+  }
+  const slug = team.slug ?? team.requestedSlug;
+  return `${WEBAPP_URL}/team/${slug}/avatar.png${team.organizationId ? `?orgId=${team.organizationId}` : ""}`;
+}
+
 export const getOrgAvatarUrl = (
-  org: Pick<Team, "id" | "slug"> & {
+  org: Pick<Team, "slug"> & {
     logoUrl?: string | null;
     requestedSlug: string | null;
   }
