@@ -27,6 +27,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
           isOrganization: true,
           inviteTokens: true,
           parent: true,
+          parentId: true,
         },
       },
     },
