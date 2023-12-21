@@ -57,7 +57,7 @@ export const EventMeta = () => {
     : "text-bookinghighlight";
 
   return (
-    <div className="relative z-10 p-6">
+    <div className="relative z-10 p-6" data-testid="event-meta">
       {isLoading && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />

@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
@@ -7,7 +6,9 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
+  NotFoundPageText,
   bookTimeSlot,
+  doOnOrgDomain,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
@@ -21,7 +22,7 @@ test.describe("Teams - NonOrg", () => {
 
   test("Team Onboarding Invite Members", async ({ page, users }) => {
     const user = await users.create(undefined, { hasTeam: true });
-    const { team } = await user.getFirstTeam();
+    const { team } = await user.getFirstTeamMembership();
     const inviteeEmail = `${user.username}+invitee@example.com`;
 
     await user.apiLogin();
@@ -79,7 +80,7 @@ test.describe("Teams - NonOrg", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -117,7 +118,7 @@ test.describe("Teams - NonOrg", () => {
       }
     );
 
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -234,7 +235,7 @@ test.describe("Teams - NonOrg", () => {
     );
 
     await owner.apiLogin();
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
 
     // Mark team as private
     await page.goto(`/settings/teams/${team.id}/members`);
@@ -347,12 +348,12 @@ test.describe("Teams - Org", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator("text=This page could not be found")).toBeVisible();
+    await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,
@@ -396,7 +397,7 @@ test.describe("Teams - Org", () => {
       }
     );
 
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
@@ -447,7 +448,7 @@ test.describe("Teams - Org", () => {
         schedulingType: SchedulingType.COLLECTIVE,
       }
     );
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     const teamSlugUpperCase = team.slug?.toUpperCase();
@@ -458,16 +459,3 @@ test.describe("Teams - Org", () => {
     await page.waitForSelector("[data-testid=day]");
   });
 });
-
-async function doOnOrgDomain(
-  { orgSlug, page }: { orgSlug: string | null; page: Page },
-  callback: ({ page }: { page: Page }) => Promise<void>
-) {
-  if (!orgSlug) {
-    throw new Error("orgSlug is not available");
-  }
-  page.setExtraHTTPHeaders({
-    "x-cal-force-slug": orgSlug,
-  });
-  await callback({ page });
-}

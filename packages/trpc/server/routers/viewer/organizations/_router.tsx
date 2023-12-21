@@ -6,6 +6,9 @@ import authedProcedure, {
 } from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZAddBulkTeams } from "./addBulkTeams.schema";
+import { ZAdminDeleteInput } from "./adminDelete.schema";
+import { ZAdminGet } from "./adminGet.schema";
+import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
@@ -64,14 +67,6 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("getMembers"), () => import("./getMembers.handler"));
     return handler(opts);
   }),
-  adminGetAll: authedAdminProcedure.query(async (opts) => {
-    const handler = await importHandler(namespaced("adminGetAll"), () => import("./adminGetAll.handler"));
-    return handler(opts);
-  }),
-  adminVerify: authedAdminProcedure.input(ZAdminVerifyInput).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("adminVerify"), () => import("./adminVerify.handler"));
-    return handler(opts);
-  }),
   listMembers: authedProcedure.input(ZListMembersSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
@@ -114,7 +109,7 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("getOtherTeam"), () => import("./getOtherTeam.handler"));
     return handler(opts);
   }),
-  listOtherTeams: authedOrgAdminProcedure.query(async (opts) => {
+  listOtherTeams: authedProcedure.query(async (opts) => {
     const handler = await importHandler(
       namespaced("listOtherTeams"),
       () => import("./listOtherTeams.handler")
@@ -123,6 +118,27 @@ export const viewerOrganizationsRouter = router({
   }),
   deleteTeam: authedOrgAdminProcedure.input(ZDeleteTeamInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("deleteTeam"), () => import("./deleteTeam.handler"));
+    return handler(opts);
+  }),
+
+  adminGetAll: authedAdminProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("adminGetAll"), () => import("./adminGetAll.handler"));
+    return handler(opts);
+  }),
+  adminGet: authedAdminProcedure.input(ZAdminGet).query(async (opts) => {
+    const handler = await importHandler(namespaced("adminGet"), () => import("./adminGet.handler"));
+    return handler(opts);
+  }),
+  adminUpdate: authedAdminProcedure.input(ZAdminUpdate).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("adminUpdate"), () => import("./adminUpdate.handler"));
+    return handler(opts);
+  }),
+  adminVerify: authedAdminProcedure.input(ZAdminVerifyInput).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("adminVerify"), () => import("./adminVerify.handler"));
+    return handler(opts);
+  }),
+  adminDelete: authedAdminProcedure.input(ZAdminDeleteInput).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("adminDelete"), () => import("./adminDelete.handler"));
     return handler(opts);
   }),
 });

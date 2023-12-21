@@ -44,6 +44,7 @@ export const mapMemberToChildrenOption = (
       username: member.username ?? "",
       membership: member.membership,
       eventTypeSlugs: member.eventTypes ?? [],
+      avatar: member.avatar,
     },
     value: `${member.id ?? ""}`,
     label: `${member.name || member.email || ""}${!member.username ? ` (${pendingString})` : ""}`,

@@ -1,15 +1,18 @@
+import { motion } from "framer-motion";
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
 
+import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
-import { AlertTriangle, Check, MailOpen } from "@calcom/ui/components/icon";
+import { AlertTriangle, ExternalLink, MailOpen } from "@calcom/ui/components/icon";
 
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
@@ -54,7 +57,62 @@ const querySchema = z.object({
   t: z.string().optional(),
 });
 
-export default function Verify() {
+const PaymentFailedIcon = () => (
+  <div className="rounded-full bg-orange-900 p-3">
+    <AlertTriangle className="h-6 w-6 flex-shrink-0 p-0.5 font-extralight text-orange-100" />
+  </div>
+);
+
+const PaymentSuccess = () => (
+  <div
+    className="rounded-full"
+    style={{
+      padding: "6px",
+      border: "0.6px solid rgba(0, 0, 0, 0.02)",
+      background: "rgba(123, 203, 197, 0.10)",
+    }}>
+    <motion.div
+      className="rounded-full"
+      style={{
+        padding: "6px",
+        border: "0.6px solid rgba(0, 0, 0, 0.04)",
+        background: "rgba(123, 203, 197, 0.16)",
+      }}
+      animate={{ scale: [1, 1.1, 1] }} // Define the pulsing animation for the second ring
+      transition={{
+        duration: 1.5,
+        repeat: Infinity,
+        repeatType: "reverse",
+        delay: 0.2, // Delay the start of animation for the second ring
+      }}>
+      <motion.div
+        className="rounded-full p-3"
+        style={{
+          border: "1px solid rgba(255, 255, 255, 0.40)",
+          background: "linear-gradient(180deg, #66C9CF 0%, #9CCCB2 100%)",
+        }}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M2.69185 10.6919L2.9297 10.9297L2.69185 10.6919C1.96938 11.4143 1.96938 12.5857 2.69185 13.3081L7.69185 18.3081C8.41432 19.0306 9.58568 19.0306 10.3081 18.3081L21.3081 7.30815C22.0306 6.58568 22.0306 5.41432 21.3081 4.69185C20.5857 3.96938 19.4143 3.96938 18.6919 4.69185L9 14.3837L5.30815 10.6919C4.58568 9.96938 3.41432 9.96938 2.69185 10.6919Z"
+            fill="white"
+            stroke="#48BAAE"
+            strokeWidth="0.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </motion.div>
+    </motion.div>
+  </div>
+);
+
+const MailOpenIcon = () => (
+  <div className="bg-default rounded-full p-3">
+    <MailOpen className="text-emphasis h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+  </div>
+);
+
+export default function Verify(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -112,7 +170,7 @@ export default function Verify() {
   }
 
   return (
-    <div className="text-inverted bg-black bg-opacity-90 backdrop-blur-md backdrop-grayscale backdrop-filter">
+    <div className="text-default bg-muted bg-opacity-90 backdrop-blur-md backdrop-grayscale backdrop-filter">
       <Head>
         <title>
           {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
@@ -125,17 +183,9 @@ export default function Verify() {
         </title>
       </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
-        <div className="m-10 flex max-w-2xl flex-col items-start border border-white p-12 text-left">
-          <div className="rounded-full border border-white p-3">
-            {hasPaymentFailed ? (
-              <AlertTriangle className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
-            ) : sessionId ? (
-              <Check className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight dark:text-white" />
-            ) : (
-              <MailOpen className="text-inverted h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
-            )}
-          </div>
-          <h3 className="font-cal text-inverted my-6 text-3xl font-normal dark:text-white">
+        <div className="border-subtle bg-default m-10 flex max-w-2xl flex-col items-center rounded-xl border px-8 py-14 text-left">
+          {hasPaymentFailed ? <PaymentFailedIcon /> : sessionId ? <PaymentSuccess /> : <MailOpenIcon />}
+          <h3 className="font-cal text-emphasis my-6 text-2xl font-normal leading-none">
             {hasPaymentFailed
               ? "Your payment failed"
               : sessionId
@@ -145,41 +195,60 @@ export default function Verify() {
           {hasPaymentFailed && (
             <p className="my-6">Your account has been created, but your premium has not been reserved.</p>
           )}
-          <p className="text-inverted dark:text-white">
+          <p className="text-muted dark:text-subtle text-base font-normal">
             We have sent an email to <b>{customer?.email} </b>with a link to activate your account.{" "}
             {hasPaymentFailed &&
               "Once you activate your account you will be able to try purchase your premium username again or select a different one."}
           </p>
-          <p className="text-muted mt-6">
-            Don&apos;t see an email? Click the button below to send another email.
-          </p>
-
-          <div className="mt-6 flex space-x-5 text-center">
+          <div className="mt-7">
             <Button
               color="secondary"
-              disabled={secondsLeft > 0}
-              onClick={async (e) => {
-                if (!customer) {
-                  return;
-                }
-                e.preventDefault();
-                setSecondsLeft(30);
-                // Update query params with t:timestamp, shallow: true doesn't re-render the page
-                const _searchParams = new URLSearchParams(searchParams?.toString());
-                _searchParams.set("t", `${Date.now()}`);
-                router.replace(`${pathname}?${_searchParams.toString()}`);
-                return await sendVerificationLogin(customer.email, customer.username);
-              }}>
-              {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Send another mail"}
-            </Button>
-            <Button color="primary" href={`${WEBAPP_URL || "https://app.cal.com"}/auth/login`}>
-              Login using another method
+              href={
+                props.EMAIL_FROM
+                  ? encodeURIComponent(`https://mail.google.com/mail/u/0/#search/from:${props.EMAIL_FROM}`)
+                  : "https://mail.google.com/mail/u/0/"
+              }
+              target="_blank"
+              EndIcon={ExternalLink}>
+              Open in Gmail
             </Button>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="text-subtle text-base font-normal ">Don’t seen an email?</p>
+          <button
+            className={classNames(
+              "font-light",
+              secondsLeft > 0 ? "text-muted" : "underline underline-offset-2 hover:font-normal"
+            )}
+            disabled={secondsLeft > 0}
+            onClick={async (e) => {
+              if (!customer) {
+                return;
+              }
+              e.preventDefault();
+              setSecondsLeft(30);
+              // Update query params with t:timestamp, shallow: true doesn't re-render the page
+              const _searchParams = new URLSearchParams(searchParams?.toString());
+              _searchParams.set("t", `${Date.now()}`);
+              router.replace(`${pathname}?${_searchParams.toString()}`);
+              return await sendVerificationLogin(customer.email, customer.username);
+            }}>
+            {secondsLeft > 0 ? `Resend in ${secondsLeft} seconds` : "Resend"}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const EMAIL_FROM = process.env.EMAIL_FROM;
+
+  return {
+    props: {
+      EMAIL_FROM,
+    },
+  };
+};
 Verify.PageWrapper = PageWrapper;

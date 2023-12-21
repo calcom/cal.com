@@ -3,7 +3,6 @@ import { SendIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -120,7 +119,7 @@ export default function MemberListItem(props: Props) {
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
   const resendInvitation = editMode && !props.member.accepted;
 
-  const bookerUrl = useBookerUrl();
+  const bookerUrl = props.member.bookerUrl;
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
   const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
@@ -146,11 +145,15 @@ export default function MemberListItem(props: Props) {
           <div className="flex">
             <UserAvatar size="sm" user={props.member} className="h-10 w-10 rounded-full" />
             <div className="ms-3 inline-block">
-              <div className="mb-1 flex">
-                <span className="text-default mr-2 text-sm font-bold leading-4">{name}</span>
-                {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
+              <div className="mb-1 flex" data-testid={`member-${props.member.username}`}>
+                <span data-testid="member-name" className="text-default mr-2 text-sm font-bold leading-4">
+                  {name}
+                </span>
+                {!props.member.accepted && (
+                  <TeamPill data-testid="member-pending" color="orange" text={t("pending")} />
+                )}
                 {isAdmin && props.member.accepted && appList}
-                {props.member.role && <TeamRole role={props.member.role} />}
+                {props.member.role && <TeamRole data-testid="member-role" role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
                 <span
