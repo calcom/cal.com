@@ -62,7 +62,10 @@ export class OAuthClientUsersController {
     return {
       status: SUCCESS_STATUS,
       data: {
-        user,
+        user: {
+          id: user.id,
+          email: user.email,
+        },
         accessToken: accessToken,
         refreshToken: refreshToken,
       },
@@ -75,7 +78,7 @@ export class OAuthClientUsersController {
   async getUserById(
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
-  ): Promise<ApiResponse<Partial<User>>> {
+  ): Promise<ApiResponse<UserReturned>> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
     }
@@ -85,7 +88,13 @@ export class OAuthClientUsersController {
       throw new NotFoundException(`User with ID ${userId} not found.`);
     }
 
-    return { status: SUCCESS_STATUS, data: user };
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        id: user.id,
+        email: user.email,
+      },
+    };
   }
 
   @Put("/:userId")
@@ -95,7 +104,7 @@ export class OAuthClientUsersController {
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
     @Body() body: UpdateUserInput
-  ): Promise<ApiResponse<Partial<User>>> {
+  ): Promise<ApiResponse<UserReturned>> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
     }
@@ -103,7 +112,14 @@ export class OAuthClientUsersController {
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.userRepository.update(userId, body);
-    return { status: SUCCESS_STATUS, data: user };
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        id: user.id,
+        email: user.email,
+      },
+    };
   }
 
   @Delete("/:userId")
@@ -112,7 +128,7 @@ export class OAuthClientUsersController {
   async deleteUser(
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
-  ): Promise<ApiResponse<Partial<User>>> {
+  ): Promise<ApiResponse<UserReturned>> {
     if (accessTokenUserId !== userId) {
       throw new BadRequestException("userId parameter does not match access token");
     }
@@ -131,8 +147,16 @@ export class OAuthClientUsersController {
 
     const user = await this.userRepository.delete(userId);
 
-    return { status: SUCCESS_STATUS, data: user };
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        id: user.id,
+        email: user.email,
+      },
+    };
   }
 }
 
-export type CreateUserResponse = { user: Partial<User>; accessToken: string; refreshToken: string };
+export type UserReturned = Pick<User, "id" | "email">;
+
+export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };
