@@ -2230,6 +2230,7 @@ async function handler(
         data: {
           rescheduled: true,
           status: BookingStatus.CANCELLED,
+          rescheduledTo: booking.uid,
         },
       });
     }
