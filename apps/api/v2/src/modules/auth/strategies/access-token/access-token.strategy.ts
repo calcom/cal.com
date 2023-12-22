@@ -1,6 +1,6 @@
-import { OAuthFlowService } from "@/modules/endpoints/oauth-clients/services/oauth-flow.service";
-import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
-import { UsersRepository } from "@/modules/repositories/users/users.repository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";

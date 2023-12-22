@@ -1,8 +1,8 @@
 import { AppLoggerMiddleware } from "@/app.logger.middleware";
 import appConfig from "@/config/app";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { EndpointsModule } from "@/modules/endpoints/endpoints.module";
-import { PrismaModule } from "@/modules/services/prisma/prisma.module";
+import { EndpointsModule } from "@/modules/endpoints.module";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 

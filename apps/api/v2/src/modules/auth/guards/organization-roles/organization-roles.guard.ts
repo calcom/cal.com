@@ -1,5 +1,5 @@
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { MembershipsRepository } from "@/modules/repositories/memberships/memberships.repository";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
