@@ -1,6 +1,7 @@
-import withEmbedSsr from "@lib/withEmbedSsr";
+"use client";
 
-import { getServerSideProps as _getServerSideProps } from "../[type]";
+import { getServerSideProps as _getServerSideProps } from "@lib/[user]/[type]/getServerSideProps";
+import withEmbedSsr from "@lib/withEmbedSsr";
 
 export { default } from "../[type]";
 
