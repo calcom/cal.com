@@ -5,7 +5,7 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Settings/admin A/B tests", () => {
-  test.skip("should point to the /future/settings/admin page", async ({ page, users, context }) => {
+  test("should point to the /future/settings/admin page", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",
@@ -13,7 +13,9 @@ test.describe("Settings/admin A/B tests", () => {
         url: "http://localhost:3000",
       },
     ]);
-    const user = await users.create();
+    const user = await users.create({
+      role: "ADMIN",
+    });
     await user.apiLogin();
 
     await page.goto("/settings/admin");

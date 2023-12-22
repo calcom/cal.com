@@ -4,7 +4,7 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe.skip("apps/ A/B tests", () => {
+test.describe("apps/ A/B tests", () => {
   test("should point to the /future/apps/installed/[category]", async ({ page, users, context }) => {
     await context.addCookies([
       {
@@ -138,5 +138,32 @@ test.describe.skip("apps/ A/B tests", () => {
     const locator = page.getByText(/messaging apps/i);
 
     await expect(locator).toBeVisible();
+  });
+
+  test("should point to the /future/bookings/[status]", async ({ page, users, context }) => {
+    await context.addCookies([
+      {
+        name: "x-calcom-future-routes-override",
+        value: "1",
+        url: "http://localhost:3000",
+      },
+    ]);
+    const user = await users.create();
+
+    await user.apiLogin();
+
+    await page.goto("/bookings/upcoming/");
+
+    await page.waitForLoadState();
+
+    const dataNextJsRouter = await page.evaluate(() =>
+      window.document.documentElement.getAttribute("data-nextjs-router")
+    );
+
+    expect(dataNextJsRouter).toEqual("app");
+
+    const locator = page.getByTestId("horizontal-tab-upcoming");
+
+    await expect(locator).toHaveClass(/bg-emphasis/);
   });
 });
