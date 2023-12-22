@@ -535,7 +535,8 @@ type CustomUserOptsKeys =
   | "locale"
   | "name"
   | "email"
-  | "organizationId";
+  | "organizationId"
+  | "role";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -565,6 +566,7 @@ const createUser = (
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
+    role: opts?.role ?? "USER",
     ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true
