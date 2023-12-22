@@ -1,7 +1,7 @@
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 
@@ -37,7 +37,7 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
       const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
       if (!ownerId) {
-        throw new UnauthorizedException("Invalid access token");
+        throw new InternalServerErrorException("Access token not found in the database");
       }
 
       const user = await this.userRepository.findById(ownerId);
