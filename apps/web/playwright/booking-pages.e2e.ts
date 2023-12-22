@@ -126,6 +126,34 @@ test.describe("pro user", () => {
     await bookFirstEvent(page);
   });
 
+  test("Can cancel the recently created booking and shouldn't be allowed to reschedule it", async ({
+    page,
+    users,
+  }, testInfo) => {
+    // Because it tests the entire booking flow + the cancellation + rebooking
+    test.setTimeout(testInfo.timeout * 3);
+    await bookFirstEvent(page);
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+
+    const [pro] = users.get();
+    await pro.apiLogin();
+
+    await page.goto("/bookings/upcoming");
+    await page.locator('[data-testid="cancel"]').click();
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking/");
+    });
+    await page.locator('[data-testid="confirm_cancel"]').click();
+
+    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    await expect(cancelledHeadline).toBeVisible();
+    const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+    await page.goto(`/reschedule/${bookingCancelledId}`);
+    // Should be redirected to the booking details page which shows the cancelled headline
+    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+  });
+
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
     page,
     users,

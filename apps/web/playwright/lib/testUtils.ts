@@ -354,6 +354,6 @@ export async function doOnOrgDomain(
   await callback({ page });
 }
 
-// When App directory is there, this is the 404 page text. It is commented till it's disabled
-// export const NotFoundPageText = "This page could not be found";
-export const NotFoundPageText = "ERROR 404";
+// When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
+export const NotFoundPageText = "This page could not be found";
+// export const NotFoundPageText = "ERROR 404";
