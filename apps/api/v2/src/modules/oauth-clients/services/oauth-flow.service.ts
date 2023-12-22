@@ -34,7 +34,7 @@ export class OAuthFlowService {
     }
 
     if (new Date() > tokenExpiresAt) {
-      throw new TokenExpiredException("Token is expired");
+      throw new TokenExpiredException();
     }
 
     return true;
