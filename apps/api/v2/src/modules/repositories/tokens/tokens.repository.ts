@@ -59,16 +59,29 @@ export class TokensRepository {
     };
   }
 
-  async getAccessTokenExpiryDate(secret: string) {
+  async getAccessTokenExpiryDate(accessTokenSecret: string) {
     const accessToken = await this.dbRead.prisma.accessToken.findFirst({
       where: {
-        secret,
+        secret: accessTokenSecret,
       },
       select: {
         expiresAt: true,
       },
     });
     return accessToken?.expiresAt;
+  }
+
+  async getAccessTokenOwnerId(accessTokenSecret: string) {
+    const accessToken = await this.dbRead.prisma.accessToken.findFirst({
+      where: {
+        secret: accessTokenSecret,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return accessToken?.userId;
   }
 
   async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {

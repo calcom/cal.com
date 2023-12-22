@@ -1,3 +1,4 @@
+import { GetUser } from "@/modules/auth/decorators";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientCredentialsGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
@@ -70,7 +71,14 @@ export class OAuthClientUsersController {
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
-  async getUserById(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
+  async getUserById(
+    @GetUser("id") accessTokenUserId: number,
+    @Param("userId") userId: number
+  ): Promise<ApiResponse<Partial<User>>> {
+    if (accessTokenUserId !== userId) {
+      throw new BadRequestException("You can only access your own user data.");
+    }
+
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found.`);
@@ -83,9 +91,14 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
   async updateUser(
+    @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
     @Body() body: UpdateUserInput
   ): Promise<ApiResponse<Partial<User>>> {
+    if (accessTokenUserId !== userId) {
+      throw new BadRequestException("You can only update your own user data.");
+    }
+
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.userRepository.update(userId, body);
