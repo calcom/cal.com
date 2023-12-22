@@ -92,6 +92,7 @@ const querySchema = z.object({
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  alreadyRescheduled: stringToBoolean,
 });
 
 export default function Success(props: SuccessProps) {
@@ -107,6 +108,7 @@ export default function Success(props: SuccessProps) {
     formerTime,
     email,
     seatReferenceUid,
+    alreadyRescheduled,
   } = querySchema.parse(routerQuery);
 
   const attendeeTimeZone = props?.bookingInfo?.attendees.find(
@@ -283,6 +285,9 @@ export default function Success(props: SuccessProps) {
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
+    if (alreadyRescheduled) {
+      return t("below_are_the_details_of_your_rescheduled_meeting");
+    }
     return t(`emailed_you_and_attendees${titleSuffix}`);
   }
 
@@ -396,6 +401,8 @@ export default function Success(props: SuccessProps) {
                         : t("event_cancelled")
                       : props.recurringBookings
                       ? t("meeting_is_scheduled_recurring")
+                      : alreadyRescheduled
+                      ? t("meeting_is_already_rescheduled")
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">

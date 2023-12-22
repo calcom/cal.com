@@ -167,7 +167,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (bookingAlreadyRescheduled) {
     return {
       redirect: {
-        destination: `/booking/${booking.uid}`,
+        destination: `/booking/${booking.uid}?alreadyRescheduled=true`,
         permanent: false,
       },
     };

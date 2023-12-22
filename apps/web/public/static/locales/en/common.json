@@ -2192,5 +2192,7 @@
   "uprade_to_create_instant_bookings": "Upgrade to Enterprise and let guests join an instant call that attendees can jump straight into. This is only for team event types",
   "dont_want_to_wait": "Don't want to wait?",
   "meeting_started": "Meeting Started",
+  "meeting_is_already_rescheduled": "The meeting has already been rescheduled",
+  "below_are_the_details_of_your_rescheduled_meeting": "Below is the most current information for your booking",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
