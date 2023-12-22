@@ -31,7 +31,7 @@
       "import": "./index.ts",
       "require": "./index.ts"
     },
-    "./components.ts": {
+    "./components": {
       "import": "./dist/cal-atoms.js",
       "require": "./dist/cal-atoms.umd.cjs"
     },

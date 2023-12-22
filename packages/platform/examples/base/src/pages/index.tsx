@@ -1,6 +1,6 @@
 import { Inter } from "next/font/google";
 
-import { ConnectToCal } from "@calcom/platform-atoms";
+import { ConnectToCal } from "@calcom/platform-atoms/components";
 
 const inter = Inter({ subsets: ["latin"] });
 
