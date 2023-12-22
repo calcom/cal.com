@@ -25,13 +25,13 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
       const accessToken = request.get("Authorization")?.replace("Bearer ", "");
 
       if (!accessToken) {
-        throw new UnauthorizedException("Access token is missing or invalid.");
+        throw new UnauthorizedException("Access token is missing");
       }
 
       const valid = this.oauthFlowService.validateAccessToken(accessToken);
 
       if (!valid) {
-        throw new UnauthorizedException("Access token is missing or invalid.");
+        throw new UnauthorizedException("Access token is invalid.");
       }
 
       const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
