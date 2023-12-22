@@ -24,6 +24,7 @@
   "dependencies": {
     "@calcom/ui": "*",
     "@radix-ui/react-slot": "^1.0.2",
+    "axios": "^1.6.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "lucide-react": "^0.293.0",
