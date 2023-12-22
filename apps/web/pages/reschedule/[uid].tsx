@@ -1,3 +1,4 @@
+'use client';
 import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";
