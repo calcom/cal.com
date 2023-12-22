@@ -24,14 +24,19 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/cal-atoms.umd.cjs",
-  "module": "./dist/cal-atoms.js",
+  "main": "index.ts",
+  "module": "index.ts",
   "exports": {
     ".": {
+      "import": "./index.ts",
+      "require": "./index.ts"
+    },
+    "./components.ts": {
       "import": "./dist/cal-atoms.js",
       "require": "./dist/cal-atoms.umd.cjs"
     },
-    "./dist/globals.min.css": "./globals.min.css"
+    "./dist/globals.min.css": "./globals.min.css",
+    "./dist/index.ts": "./index.ts"
   },
   "dependencies": {
     "@calcom/ui": "*",
