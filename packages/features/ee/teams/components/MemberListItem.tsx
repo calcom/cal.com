@@ -199,17 +199,19 @@ export default function MemberListItem(props: Props) {
                   StartIcon={Clock}
                 />
               </Tooltip> */}
-              <Tooltip content={t("view_public_page")}>
-                <Button
-                  target="_blank"
-                  href={`${bookerUrl}/${props.member.username}`}
-                  color="secondary"
-                  className={classNames(!editMode ? "rounded-r-md" : "")}
-                  variant="icon"
-                  StartIcon={ExternalLink}
-                  disabled={!props.member.accepted}
-                />
-              </Tooltip>
+              {!!props.member.accepted && (
+                <Tooltip content={t("view_public_page")}>
+                  <Button
+                    target="_blank"
+                    href={`${bookerUrl}/${props.member.username}`}
+                    color="secondary"
+                    className={classNames(!editMode ? "rounded-r-md" : "")}
+                    variant="icon"
+                    StartIcon={ExternalLink}
+                    disabled={!props.member.accepted}
+                  />
+                </Tooltip>
+              )}
               {editMode && (
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
