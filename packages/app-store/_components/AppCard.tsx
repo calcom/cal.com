@@ -19,6 +19,8 @@ export default function AppCard({
   children,
   returnTo,
   teamId,
+  disableSwitch,
+  switchTooltip,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -28,10 +30,12 @@ export default function AppCard({
   returnTo?: string;
   teamId?: number;
   LockedIcon?: React.ReactNode;
+  disableSwitch?: boolean;
+  switchTooltip?: string;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const { setAppData, LockedIcon, disabled } = useAppContextWithSchema();
+  const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
 
   return (
     <div
@@ -91,7 +95,7 @@ export default function AppCard({
               <div className="ml-auto flex items-center">
                 <Switch
                   data-testid="app-switch"
-                  disabled={!app.enabled || disabled}
+                  disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
                       switchOnClick(enabled);
@@ -100,6 +104,8 @@ export default function AppCard({
                   }}
                   checked={switchChecked}
                   LockedIcon={LockedIcon}
+                  data-testId={`${app.slug}-app-switch`}
+                  tooltip={switchTooltip}
                 />
               </div>
             ) : (

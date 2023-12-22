@@ -20,6 +20,7 @@ import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
@@ -188,46 +189,55 @@ UserPage.isBookingPage = true;
 UserPage.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
-  return (
-    await prisma.eventType.findMany({
-      where: {
-        AND: [
-          {
-            teamId: null,
-          },
-          {
-            OR: [
-              {
-                userId,
-              },
-              {
-                users: {
-                  some: {
-                    id: userId,
-                  },
+  const eventTypes = await prisma.eventType.findMany({
+    where: {
+      AND: [
+        {
+          teamId: null,
+        },
+        {
+          OR: [
+            {
+              userId,
+            },
+            {
+              users: {
+                some: {
+                  id: userId,
                 },
               },
-            ],
-          },
-        ],
-      },
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
+            },
+          ],
         },
       ],
-      select: {
-        ...baseEventTypeSelect,
-        metadata: true,
+    },
+    orderBy: [
+      {
+        position: "desc",
       },
-    })
-  ).map((eventType) => ({
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-  }));
+      {
+        id: "asc",
+      },
+    ],
+    select: {
+      ...baseEventTypeSelect,
+      metadata: true,
+    },
+  });
+  // map and filter metadata, exclude eventType entirely when faulty metadata is found.
+  // report error to exception so we don't lose the error.
+  return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
+    const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
+    if (!parsedMetadata.success) {
+      logger.error(parsedMetadata.error);
+      return eventTypes;
+    }
+    eventTypes.push({
+      ...eventType,
+      metadata: parsedMetadata.data,
+    });
+    return eventTypes;
+  }, []);
 };
 
 export type UserPageProps = {

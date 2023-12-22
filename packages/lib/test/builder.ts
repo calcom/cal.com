@@ -74,6 +74,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slug: faker.lorem.slug(),
     description: faker.lorem.paragraph(),
     position: 1,
+    isInstantEvent: false,
     locations: null,
     length: 15,
     offsetStart: 0,

@@ -27,6 +27,7 @@ type StoreInitializeType = {
   seatReferenceUid?: string;
   durationConfig?: number[] | null;
   org?: string | null;
+  isInstantMeeting?: boolean;
 };
 
 type SeatedEventData = {
@@ -131,6 +132,8 @@ export type BookerStore = {
   org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
+
+  isInstantMeeting?: boolean;
 };
 
 /**
@@ -225,6 +228,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     isTeamEvent,
     durationConfig,
     org,
+    isInstantMeeting,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -270,6 +274,21 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     // force clear this.
     if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
     if (month) set({ month });
+
+    if (isInstantMeeting) {
+      const month = dayjs().format("YYYY-MM");
+      const selectedDate = dayjs().format("YYYY-MM-DD");
+      const selectedTimeslot = new Date().toISOString();
+      set({
+        month,
+        selectedDate,
+        selectedTimeslot,
+        isInstantMeeting,
+      });
+      updateQueryParam("month", month);
+      updateQueryParam("date", selectedDate ?? "");
+      updateQueryParam("slot", selectedTimeslot ?? "");
+    }
     //removeQueryParam("layout");
   },
   durationConfig: null,
@@ -308,6 +327,7 @@ export const useInitializeBookerStore = ({
   isTeamEvent,
   durationConfig,
   org,
+  isInstantMeeting,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -323,6 +343,7 @@ export const useInitializeBookerStore = ({
       org,
       verifiedEmail,
       durationConfig,
+      isInstantMeeting,
     });
   }, [
     initializeStore,
@@ -337,5 +358,6 @@ export const useInitializeBookerStore = ({
     isTeamEvent,
     verifiedEmail,
     durationConfig,
+    isInstantMeeting,
   ]);
 };
