@@ -1,5 +1,5 @@
-import { GetUser } from "@/modules/auth/decorators";
-import { NextAuthGuard } from "@/modules/auth/guards";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";

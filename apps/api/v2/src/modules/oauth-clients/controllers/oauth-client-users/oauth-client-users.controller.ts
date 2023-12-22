@@ -1,4 +1,4 @@
-import { GetUser } from "@/modules/auth/decorators";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";

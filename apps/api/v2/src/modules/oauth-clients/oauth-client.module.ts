@@ -23,7 +23,7 @@ import { JwtModule } from "@nestjs/jwt";
     JwtModule.register({ secret: getEnv("JWT_SECRET") }),
   ],
   providers: [OAuthClientRepository, OAuthClientCredentialsGuard, TokensRepository, OAuthFlowService],
-  controllers: [OAuthClientsController, OAuthClientUsersController, OAuthFlowController],
+  controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
   exports: [OAuthClientRepository, OAuthClientCredentialsGuard],
 })
 export class OAuthClientModule {}
