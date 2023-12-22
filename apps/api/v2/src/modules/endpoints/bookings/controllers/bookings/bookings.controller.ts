@@ -1,4 +1,4 @@
-import { GetUser } from "@/modules/auth/decorator";
+import { GetUser } from "@/modules/auth/decorators";
 import { BookingRepository } from "@/modules/endpoints/bookings/booking.repository";
 import { CreateBookingInput } from "@/modules/endpoints/bookings/inputs/create-booking";
 import { PrismaReadService } from "@/modules/services/prisma/prisma-read.service";

@@ -3,7 +3,7 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { NextAuthStrategy } from "@/modules/auth/strategy";
+import { NextAuthStrategy } from "@/modules/auth/strategies";
 import { UpdateOAuthClientInput } from "@/modules/endpoints/oauth-clients/inputs/update-oauth-client";
 import { OAuthClientModule } from "@/modules/endpoints/oauth-clients/oauth-client.module";
 import { UserModule } from "@/modules/repositories/user/user.module";

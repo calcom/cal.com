@@ -1,4 +1,4 @@
-import { NextAuthStrategy } from "@/modules/auth/strategy";
+import { NextAuthStrategy } from "@/modules/auth/strategies";
 import { UserRepository } from "@/modules/repositories/user/user.repository";
 import { TestingModuleBuilder } from "@nestjs/testing";
 import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";

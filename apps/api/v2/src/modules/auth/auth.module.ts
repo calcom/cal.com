@@ -1,6 +1,6 @@
-import { NextAuthGuard } from "@/modules/auth/guard";
-import { NextAuthStrategy } from "@/modules/auth/strategy";
-import { ApiKeyAuthStrategy } from "@/modules/auth/strategy/api-key-auth/api-key-auth.strategy";
+import { NextAuthGuard } from "@/modules/auth/guards";
+import { NextAuthStrategy } from "@/modules/auth/strategies";
+import { ApiKeyAuthStrategy } from "@/modules/auth/strategies/api-key-auth/api-key-auth.strategy";
 import { MembershipModule } from "@/modules/repositories/membership/membership.module";
 import { UserModule } from "@/modules/repositories/user/user.module";
 import { ApiKeyModule } from "@/modules/services/api-key/api-key.module";

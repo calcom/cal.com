@@ -1,4 +1,4 @@
-import { AccessTokenGuard } from "@/modules/auth/guard/oauth/access-token.guard";
+import { AccessTokenGuard } from "@/modules/auth/guards/oauth/access-token.guard";
 import { OAuthClientGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client/oauth-client.guard";
 import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
 import { CreateUserInput } from "@/modules/repositories/user/input/create-user";
