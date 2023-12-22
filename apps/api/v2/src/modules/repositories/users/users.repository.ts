@@ -1,12 +1,12 @@
-import { CreateUserInput } from "@/modules/repositories/user/input/create-user";
-import { UpdateUserInput } from "@/modules/repositories/user/input/update-user";
+import { CreateUserInput } from "@/modules/repositories/users/inputs/create-user.input";
+import { UpdateUserInput } from "@/modules/repositories/users/inputs/update-user.input";
 import { PrismaReadService } from "@/modules/services/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/services/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import type { User } from "@prisma/client";
 
 @Injectable()
-export class UserRepository {
+export class UsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async create(user: CreateUserInput, oAuthClientId: string) {

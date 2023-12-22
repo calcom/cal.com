@@ -1,4 +1,4 @@
-import { UserRepository } from "@/modules/repositories/user/user.repository";
+import { UsersRepository } from "@/modules/repositories/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 
@@ -9,7 +9,7 @@ class BaseStrategy {
 
 @Injectable()
 export class NextAuthMockStrategy extends PassportStrategy(BaseStrategy, "next-auth") {
-  constructor(private readonly email: string, private readonly userRepository: UserRepository) {
+  constructor(private readonly email: string, private readonly userRepository: UsersRepository) {
     super();
   }
   async authenticate() {

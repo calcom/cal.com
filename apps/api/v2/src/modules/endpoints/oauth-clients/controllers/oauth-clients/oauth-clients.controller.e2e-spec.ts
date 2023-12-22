@@ -6,7 +6,7 @@ import { AuthModule } from "@/modules/auth/auth.module";
 import { NextAuthStrategy } from "@/modules/auth/strategies";
 import { UpdateOAuthClientInput } from "@/modules/endpoints/oauth-clients/inputs/update-oauth-client";
 import { OAuthClientModule } from "@/modules/endpoints/oauth-clients/oauth-client.module";
-import { UserModule } from "@/modules/repositories/user/user.module";
+import { UsersModule } from "@/modules/repositories/users/users.module";
 import { PrismaModule } from "@/modules/services/prisma/prisma.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -30,7 +30,7 @@ describe("OAuth Clients Endpoints", () => {
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
-        imports: [AppModule, OAuthClientModule, UserModule, AuthModule, PrismaModule],
+        imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
       }).compile();
       appWithoutAuth = moduleRef.createNestApplication();
       bootstrap(appWithoutAuth as NestExpressApplication);
@@ -72,7 +72,7 @@ describe("OAuth Clients Endpoints", () => {
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
-          imports: [AppModule, OAuthClientModule, UserModule, AuthModule, PrismaModule],
+          imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
         })
       ).compile();
       const strategy = moduleRef.get(NextAuthStrategy);

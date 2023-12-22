@@ -1,4 +1,4 @@
-import { UserRepository } from "@/modules/repositories/user/user.repository";
+import { UsersRepository } from "@/modules/repositories/users/users.repository";
 import { ApiKeyService } from "@/modules/services/api-key/api-key.service";
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
@@ -13,7 +13,7 @@ class BaseStrategy {
 export class ApiKeyAuthStrategy extends PassportStrategy(BaseStrategy, "api-key") {
   constructor(
     private readonly apiKeyService: ApiKeyService,
-    private readonly userRepository: UserRepository
+    private readonly userRepository: UsersRepository
   ) {
     super();
   }

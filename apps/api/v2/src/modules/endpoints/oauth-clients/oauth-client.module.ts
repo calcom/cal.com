@@ -6,9 +6,9 @@ import { OAuthFlowController } from "@/modules/endpoints/oauth-clients/controlle
 import { OAuthClientGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client/oauth-client.guard";
 import { OAuthClientRepository } from "@/modules/endpoints/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/endpoints/oauth-clients/services/oauth-flow.service";
-import { MembershipModule } from "@/modules/repositories/membership/membership.module";
+import { MembershipsModule } from "@/modules/repositories/memberships/memberships.module";
 import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
-import { UserModule } from "@/modules/repositories/user/user.module";
+import { UsersModule } from "@/modules/repositories/users/users.module";
 import { PrismaModule } from "@/modules/services/prisma/prisma.module";
 import { Global, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
@@ -18,8 +18,8 @@ import { JwtModule } from "@nestjs/jwt";
   imports: [
     PrismaModule,
     AuthModule,
-    UserModule,
-    MembershipModule,
+    UsersModule,
+    MembershipsModule,
     JwtModule.register({ secret: getEnv("JWT_SECRET") }),
   ],
   providers: [OAuthClientRepository, OAuthClientGuard, TokensRepository, OAuthFlowService],

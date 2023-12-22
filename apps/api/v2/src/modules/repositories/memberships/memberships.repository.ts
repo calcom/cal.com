@@ -2,7 +2,7 @@ import { PrismaReadService } from "@/modules/services/prisma/prisma-read.service
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class MembershipRepository {
+export class MembershipsRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
   async findOrgUserMembership(organizationId: number, userId: number) {

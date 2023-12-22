@@ -1,11 +1,11 @@
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { MembershipRepository } from "@/modules/repositories/membership/membership.repository";
+import { MembershipsRepository } from "@/modules/repositories/memberships/memberships.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
 @Injectable()
 export class OrganizationRolesGuard implements CanActivate {
-  constructor(private reflector: Reflector, private membershipRepository: MembershipRepository) {}
+  constructor(private reflector: Reflector, private membershipRepository: MembershipsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.get(Roles, context.getHandler());

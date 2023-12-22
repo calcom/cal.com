@@ -3,9 +3,9 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { CreateUserResponse } from "@/modules/endpoints/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
-import { CreateUserInput } from "@/modules/repositories/user/input/create-user";
-import { UpdateUserInput } from "@/modules/repositories/user/input/update-user";
-import { UserModule } from "@/modules/repositories/user/user.module";
+import { CreateUserInput } from "@/modules/repositories/users/inputs/create-user.input";
+import { UpdateUserInput } from "@/modules/repositories/users/inputs/update-user.input";
+import { UsersModule } from "@/modules/repositories/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -25,7 +25,7 @@ describe("OAuth Client Users Endpoints", () => {
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
-        imports: [AppModule, UserModule],
+        imports: [AppModule, UsersModule],
       }).compile();
 
       app = moduleRef.createNestApplication();
@@ -70,7 +70,7 @@ describe("OAuth Client Users Endpoints", () => {
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
-        imports: [AppModule, UserModule],
+        imports: [AppModule, UsersModule],
       }).compile();
 
       app = moduleRef.createNestApplication();

@@ -1,9 +1,9 @@
-import { AccessTokenGuard } from "@/modules/auth/guards/oauth/access-token.guard";
+import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client/oauth-client.guard";
 import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
-import { CreateUserInput } from "@/modules/repositories/user/input/create-user";
-import { UpdateUserInput } from "@/modules/repositories/user/input/update-user";
-import { UserRepository } from "@/modules/repositories/user/user.repository";
+import { CreateUserInput } from "@/modules/repositories/users/inputs/create-user.input";
+import { UpdateUserInput } from "@/modules/repositories/users/inputs/update-user.input";
+import { UsersRepository } from "@/modules/repositories/users/users.repository";
 import {
   Body,
   Controller,
@@ -31,7 +31,7 @@ export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
 
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository
   ) {}
 
