@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { FaGoogle } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
@@ -244,7 +244,11 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                     className="w-full justify-center"
                     disabled={formState.isSubmitting}
                     data-testid="google"
-                    StartIcon={FaGoogle}
+                    StartIcon={() => (
+                      <div className="mr-4">
+                        <FcGoogle size={25} />
+                      </div>
+                    )}
                     onClick={async (e) => {
                       e.preventDefault();
                       await signIn("google");
