@@ -112,6 +112,7 @@ export const EventMetaBlock = ({
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const isInstantMeeting = useBookerStore((store) => store.isInstantMeeting);
 
   return (
     <>
@@ -129,7 +130,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.LOCATION:
-            if (!event?.locations?.length) return null;
+            if (!event?.locations?.length || isInstantMeeting) return null;
             return (
               <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />

@@ -31,6 +31,7 @@ export default function Type({
   isBrandingHidden,
   entity,
   duration,
+  isInstantMeeting,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -48,6 +49,7 @@ export default function Type({
         eventSlug={slug}
         bookingData={booking}
         isAway={away}
+        isInstantMeeting={isInstantMeeting}
         hideBranding={isBrandingHidden}
         isTeamEvent
         entity={entity}
@@ -71,7 +73,7 @@ const paramsSchema = z.object({
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const session = await getServerSession(context);
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
-  const { rescheduleUid, duration: queryDuration } = context.query;
+  const { rescheduleUid, duration: queryDuration, isInstantMeeting: queryIsInstantMeeting } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
@@ -143,6 +145,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
+      isInstantMeeting: eventData.isInstantEvent && queryIsInstantMeeting ? true : false,
       themeBasis: null,
     },
   };

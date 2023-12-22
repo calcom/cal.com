@@ -1,6 +1,7 @@
 import type { App, Attendee, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
+import type { IncomingMessage } from "http";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -372,21 +373,16 @@ type IsFixedAwareUser = User & {
   organization: { slug: string };
 };
 
-const loadUsers = async (
-  eventType: NewBookingEventType,
-  dynamicUserList: string[],
-  reqHeadersHost: string | undefined
-) => {
+const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
   try {
     if (!eventType.id) {
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
-
       const users = await prisma.user.findMany({
         where: {
           username: { in: dynamicUserList },
-          organization: userOrgQuery(reqHeadersHost ? reqHeadersHost.replace(/^https?:\/\//, "") : ""),
+          organization: userOrgQuery(req),
         },
         select: {
           ...userSelect.select,
@@ -419,7 +415,7 @@ const loadUsers = async (
   }
 };
 
-async function ensureAvailableUsers(
+export async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
@@ -553,7 +549,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-async function getBookingData({
+export async function getBookingData({
   req,
   isNotAnApiCall,
   eventType,
@@ -795,7 +791,7 @@ async function createBooking({
   return prisma.booking.create(createBookingObj);
 }
 
-function getCustomInputsResponses(
+export function getCustomInputsResponses(
   reqBody: {
     responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
@@ -969,7 +965,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req.headers.host);
+  })[] = await loadUsers(eventType, dynamicUserList, req);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
@@ -1416,6 +1412,12 @@ async function handler(
     teamId,
   };
 
+  const subscriberOptionsMeetingStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+    teamId,
+  };
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -2693,13 +2695,28 @@ async function handler(
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
       subscribersMeetingEnded.forEach((subscriber) => {
         if (rescheduleUid && originalRescheduledBooking) {
           cancelScheduledJobs(originalRescheduledBooking, undefined, true);
         }
         if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        }
+      });
+
+      subscribersMeetingStarted.forEach((subscriber) => {
+        if (rescheduleUid && originalRescheduledBooking) {
+          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+        }
+        if (booking && booking.status === BookingStatus.ACCEPTED) {
+          scheduleTrigger(
+            booking,
+            subscriber.subscriberUrl,
+            subscriber,
+            WebhookTriggerEvents.MEETING_STARTED
+          );
         }
       });
     } catch (error) {

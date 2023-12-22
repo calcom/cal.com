@@ -17,10 +17,15 @@ runs:
         cache-name: cache-db
         key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
         key-2: ${{ github.event.pull_request.number || github.ref }}
+        DATABASE_URL: ${{ inputs.DATABASE_URL }}
+        E2E_TEST_CALCOM_QA_EMAIL: ${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}
+        E2E_TEST_CALCOM_QA_PASSWORD: ${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}
+        E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
       with:
         path: ${{ inputs.path }}
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}
-    - run: yarn db-seed
+        DATABASE_URL: ${{ inputs.DATABASE_URL }}
+    - run: echo ${{ env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }} && yarn db-seed
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
     - name: Postgres Dump Backup

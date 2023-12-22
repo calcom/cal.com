@@ -370,7 +370,7 @@ async function getBookings({
           }
           return prev;
         },
-        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
+        { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [], AWAITING_HOST: [] } as {
           [key in BookingStatus]: Date[];
         }
       );
