@@ -7,12 +7,7 @@ type ConnectGoogleCalendarProps = { redirect_uri: string };
 type OAuthApiResponse = { url: string };
 
 export function ConnectGoogleCalendar({ redirect_uri }: ConnectGoogleCalendarProps) {
-  // v2 endpoint http://localhost:5555/api/v2
   const { key, error } = useApiKey();
-
-  // const handleClick = () => {
-  //   window.location.href = `http://localhost:5555/api/v2/oauth?apiKey=%${key}`;
-  // };
 
   const handleClick = async () => {
     try {
