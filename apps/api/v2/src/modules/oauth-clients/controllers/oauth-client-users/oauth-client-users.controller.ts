@@ -18,6 +18,7 @@ import {
   Param,
   Put,
   BadRequestException,
+  Delete,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 
@@ -61,7 +62,10 @@ export class OAuthClientUsersController {
     return {
       status: SUCCESS_STATUS,
       data: {
-        user,
+        user: {
+          id: user.id,
+          email: user.email,
+        },
         accessToken: accessToken,
         refreshToken: refreshToken,
       },
@@ -74,9 +78,9 @@ export class OAuthClientUsersController {
   async getUserById(
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number
-  ): Promise<ApiResponse<Partial<User>>> {
+  ): Promise<ApiResponse<UserReturned>> {
     if (accessTokenUserId !== userId) {
-      throw new BadRequestException("You can only access your own user data.");
+      throw new BadRequestException("userId parameter does not match access token");
     }
 
     const user = await this.userRepository.findById(userId);
@@ -84,7 +88,13 @@ export class OAuthClientUsersController {
       throw new NotFoundException(`User with ID ${userId} not found.`);
     }
 
-    return { status: SUCCESS_STATUS, data: user };
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        id: user.id,
+        email: user.email,
+      },
+    };
   }
 
   @Put("/:userId")
@@ -94,16 +104,59 @@ export class OAuthClientUsersController {
     @GetUser("id") accessTokenUserId: number,
     @Param("userId") userId: number,
     @Body() body: UpdateUserInput
-  ): Promise<ApiResponse<Partial<User>>> {
+  ): Promise<ApiResponse<UserReturned>> {
     if (accessTokenUserId !== userId) {
-      throw new BadRequestException("You can only update your own user data.");
+      throw new BadRequestException("userId parameter does not match access token");
     }
 
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.userRepository.update(userId, body);
-    return { status: SUCCESS_STATUS, data: user };
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        id: user.id,
+        email: user.email,
+      },
+    };
+  }
+
+  @Delete("/:userId")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AccessTokenGuard)
+  async deleteUser(
+    @GetUser("id") accessTokenUserId: number,
+    @Param("userId") userId: number
+  ): Promise<ApiResponse<UserReturned>> {
+    if (accessTokenUserId !== userId) {
+      throw new BadRequestException("userId parameter does not match access token");
+    }
+
+    this.logger.log(`Deleting user with ID: ${userId}`);
+
+    const existingUser = await this.userRepository.findById(userId);
+
+    if (!existingUser) {
+      throw new NotFoundException(`User with ${userId} does not exist`);
+    }
+
+    if (existingUser.username) {
+      throw new BadRequestException("Cannot delete a non manually-managed user");
+    }
+
+    const user = await this.userRepository.delete(userId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        id: user.id,
+        email: user.email,
+      },
+    };
   }
 }
 
-export type CreateUserResponse = { user: Partial<User>; accessToken: string; refreshToken: string };
+export type UserReturned = Pick<User, "id" | "email">;
+
+export type CreateUserResponse = { user: UserReturned; accessToken: string; refreshToken: string };

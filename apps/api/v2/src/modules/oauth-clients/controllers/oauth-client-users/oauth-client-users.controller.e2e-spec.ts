@@ -2,7 +2,10 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { CreateUserResponse } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
+import {
+  CreateUserResponse,
+  UserReturned,
+} from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UsersModule } from "@/modules/users/users.module";
@@ -48,6 +51,9 @@ describe("OAuth Client Users Endpoints", () => {
       });
       it(`/PUT/:id`, () => {
         return request(app.getHttpServer()).put("/api/v2/oauth-clients/100/users/200").expect(401);
+      });
+      it(`/DELETE/:id`, () => {
+        return request(app.getHttpServer()).delete("/api/v2/oauth-clients/100/users/200").expect(401);
       });
     });
 
@@ -146,7 +152,7 @@ describe("OAuth Client Users Endpoints", () => {
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .expect(200);
 
-      const responseBody: ApiSuccessResponse<Omit<User, "password">> = response.body;
+      const responseBody: ApiSuccessResponse<UserReturned> = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
@@ -170,16 +176,16 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.email).toEqual(userUpdatedEmail);
     });
 
+    it(`/DELETE/:id`, () => {
+      return request(app.getHttpServer())
+        .delete(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
+        .set("Authorization", `Bearer ${postResponseData.accessToken}`)
+        .expect(200);
+    });
+
     afterAll(async () => {
-      if (postResponseData?.user.id) {
-        await userRepositoryFixture.delete(postResponseData.user.id);
-      }
-      if (oAuthClient) {
-        await oauthClientRepositoryFixture.delete(oAuthClient.id);
-      }
-      if (organization) {
-        await teamRepositoryFixture.delete(organization.id);
-      }
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
 
       await app.close();
     });
