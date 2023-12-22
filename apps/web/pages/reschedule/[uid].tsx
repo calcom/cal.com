@@ -23,12 +23,100 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     prisma,
     bookingUid
   );
+
+  // A booking might have been rescheduled multiple times. We need to find the last booking
+  let firstQuery = true;
+  let allBookingsQueried = false;
+  let queryUid = uid;
+  let bookingAlreadyRescheduled = false;
+
+  let bookingInRescheduleChain: {
+    uid: string;
+    fromReschedule: string | null;
+    rescheduledTo: string | null;
+  } = {
+    uid,
+    fromReschedule: null,
+    rescheduledTo: null,
+  };
+  while (!allBookingsQueried) {
+    if (firstQuery) {
+      const bookingQuery = await prisma.booking.findMany({
+        where: {
+          OR: [
+            {
+              uid: queryUid,
+            },
+            {
+              fromReschedule: queryUid,
+            },
+          ],
+        },
+
+        select: {
+          uid: true,
+          fromReschedule: true,
+          rescheduledTo: true,
+        },
+      });
+
+      bookingInRescheduleChain =
+        bookingQuery.find((booking) => {
+          if (booking.fromReschedule === uid) {
+            bookingAlreadyRescheduled = true;
+            return true;
+          } else {
+            return false;
+          }
+        }) || bookingQuery[0];
+
+      // There is not the last booking in the rescheduleChain
+      if (bookingInRescheduleChain.rescheduledTo) {
+        queryUid = bookingInRescheduleChain.rescheduledTo;
+        firstQuery = false;
+      } else {
+        allBookingsQueried = true;
+      }
+    } else {
+      const bookingQuery = await prisma.booking.findFirst({
+        where: {
+          OR: [
+            {
+              uid: queryUid,
+            },
+            {
+              fromReschedule: queryUid,
+            },
+          ],
+        },
+        select: {
+          uid: true,
+          fromReschedule: true,
+          rescheduledTo: true,
+        },
+      });
+
+      // If somewhere along the chain was broken. Return the last found booking
+      if (!bookingQuery) {
+        allBookingsQueried = true;
+      }
+
+      // See if this booking was the last in the chain
+      if (bookingQuery?.rescheduledTo) {
+        queryUid = bookingQuery.rescheduledTo;
+      } else {
+        allBookingsQueried = true;
+      }
+    }
+  }
+
   const booking = await prisma.booking.findUnique({
     where: {
-      uid,
+      uid: bookingInRescheduleChain?.uid,
     },
     select: {
       ...bookingMinimalSelect,
+      uid: true,
       eventType: {
         select: {
           users: {
@@ -65,12 +153,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       user: true,
     },
   });
+
   const dynamicEventSlugRef = booking?.dynamicEventSlugRef || "";
 
   if (!booking) {
     return {
       notFound: true,
     } as const;
+  }
+
+  // If booking with uid was already rescheduled. Show the booking that was rescheduled
+
+  if (bookingAlreadyRescheduled) {
+    return {
+      redirect: {
+        destination: `/booking/${booking.uid}`,
+        permanent: false,
+      },
+    };
   }
 
   if (!booking?.eventType && !booking?.dynamicEventSlugRef) {
