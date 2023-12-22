@@ -14,17 +14,18 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Response,
   UseGuards,
 } from "@nestjs/common";
 import { Response as ExpressResponse } from "express";
 
-import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "oauth",
+  path: "oauth/:clientId",
   version: "2",
 })
 export class OAuthFlowController {
@@ -38,28 +39,30 @@ export class OAuthFlowController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(NextAuthGuard)
   async authorize(
+    @Param("clientId") clientId: string,
     @Body() body: OAuthAuthorizeInput,
     @GetUser("id") userId: number,
     @Response() res: ExpressResponse
   ): Promise<void> {
-    const oauthClient = await this.oauthClientRepository.getOAuthClient(body.client_id);
+    const oauthClient = await this.oauthClientRepository.getOAuthClient(clientId);
     if (!oauthClient) {
-      throw new BadRequestException(`OAuth client with ID '${body.client_id}' not found`);
+      throw new BadRequestException(`OAuth client with ID '${clientId}' not found`);
     }
 
-    if (!oauthClient?.redirect_uris.includes(body.redirect_uri)) {
+    if (!oauthClient?.redirectUris.includes(body.redirectUri)) {
       throw new BadRequestException("Invalid 'redirect_uri' value.");
     }
 
-    const { id } = await this.tokensRepository.createAuthorizationToken(body.client_id, userId);
+    const { id } = await this.tokensRepository.createAuthorizationToken(clientId, userId);
 
-    return res.redirect(`${body.redirect_uri}?code=${id}`);
+    return res.redirect(`${body.redirectUri}?code=${id}`);
   }
 
   @Post("/exchange")
   @HttpCode(HttpStatus.OK)
   async exchange(
     @Headers("Authorization") authorization: string,
+    @Param("clientId") clientId: string,
     @Body() body: ExchangeAuthorizationCodeInput
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
     const bearerToken = authorization.replace("Bearer ", "").trim();
@@ -68,7 +71,7 @@ export class OAuthFlowController {
     }
 
     const { accessToken: accessToken, refreshToken: refreshToken } =
-      await this.oAuthFlowService.exchangeAuthorizationToken(bearerToken, body);
+      await this.oAuthFlowService.exchangeAuthorizationToken(bearerToken, clientId, body.clientSecret);
 
     return {
       status: SUCCESS_STATUS,
@@ -83,7 +86,7 @@ export class OAuthFlowController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(OAuthClientCredentialsGuard)
   async refreshAccessToken(
-    @Headers(X_CAL_CLIENT_ID) clientId: string,
+    @Param("clientId") clientId: string,
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {

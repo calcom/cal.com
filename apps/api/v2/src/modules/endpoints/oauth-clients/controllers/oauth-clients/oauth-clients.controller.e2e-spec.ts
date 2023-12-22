@@ -154,7 +154,7 @@ describe("OAuth Clients Endpoints", () => {
       it(`/POST`, () => {
         const body: CreateOAuthClientInput = {
           name: oAuthClientName,
-          redirect_uris: ["http://test-oauth-client.com"],
+          redirectUris: ["http://test-oauth-client.com"],
           permissions: 32,
         };
         return request(app.getHttpServer())
@@ -233,7 +233,7 @@ describe("OAuth Clients Endpoints", () => {
       it(`/POST`, () => {
         const body: CreateOAuthClientInput = {
           name: oAuthClientName,
-          redirect_uris: ["http://test-oauth-client.com"],
+          redirectUris: ["http://test-oauth-client.com"],
           permissions: 32,
         };
         return request(app.getHttpServer())

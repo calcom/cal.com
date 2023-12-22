@@ -12,5 +12,5 @@ export class UpdateOAuthClientInput {
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
-  redirect_uris?: string[] = [];
+  redirectUris?: string[] = [];
 }

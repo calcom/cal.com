@@ -1,4 +1,3 @@
-import { ExchangeAuthorizationCodeInput } from "@/modules/endpoints/oauth-clients/inputs/exchange-code.input";
 import { OAuthClientRepository } from "@/modules/endpoints/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
@@ -46,12 +45,13 @@ export class OAuthFlowService {
 
   async exchangeAuthorizationToken(
     tokenId: string,
-    input: ExchangeAuthorizationCodeInput
+    clientId: string,
+    clientSecret: string
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
       tokenId,
-      input.client_id,
-      input.client_secret
+      clientId,
+      clientSecret
     );
 
     if (!oauthClient) {
@@ -65,7 +65,7 @@ export class OAuthFlowService {
     }
 
     const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
-      input.client_id,
+      clientId,
       authorizationToken.owner.id
     );
     void this.propagateAccessToken(accessToken); // voided as we don't need to await

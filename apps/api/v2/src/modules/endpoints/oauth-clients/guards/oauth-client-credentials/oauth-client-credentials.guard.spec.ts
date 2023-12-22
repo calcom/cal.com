@@ -32,7 +32,7 @@ describe("OAuthClientCredentialsGuard", () => {
     const data = {
       logo: "logo-url",
       name: "name",
-      redirect_uris: ["redirect-uri"],
+      redirectUris: ["redirect-uri"],
       permissions: 32,
     };
     const secret = "secret";
