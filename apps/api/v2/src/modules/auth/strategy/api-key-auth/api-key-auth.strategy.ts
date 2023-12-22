@@ -1,5 +1,5 @@
-import { ApiKeyService } from "@/modules/api-key/api-key.service";
-import { UserRepository } from "@/modules/user/user.repository";
+import { UserRepository } from "@/modules/repositories/user/user.repository";
+import { ApiKeyService } from "@/modules/services/api-key/api-key.service";
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";

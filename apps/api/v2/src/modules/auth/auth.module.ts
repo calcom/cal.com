@@ -1,9 +1,9 @@
-import { ApiKeyModule } from "@/modules/api-key/api-key.module";
 import { NextAuthGuard } from "@/modules/auth/guard";
 import { NextAuthStrategy } from "@/modules/auth/strategy";
 import { ApiKeyAuthStrategy } from "@/modules/auth/strategy/api-key-auth/api-key-auth.strategy";
-import { MembershipModule } from "@/modules/membership/membership.module";
-import { UserModule } from "@/modules/user/user.module";
+import { MembershipModule } from "@/modules/repositories/membership/membership.module";
+import { UserModule } from "@/modules/repositories/user/user.module";
+import { ApiKeyModule } from "@/modules/services/api-key/api-key.module";
 import { Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
