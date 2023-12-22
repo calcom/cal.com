@@ -1,6 +1,6 @@
 import { GetUser } from "@/modules/auth/decorator";
-import { BookingRepository } from "@/modules/booking/booking.repository";
-import { CreateBookingInput } from "@/modules/booking/input/create-booking";
+import { BookingRepository } from "@/modules/bookings/booking.repository";
+import { CreateBookingInput } from "@/modules/bookings/inputs/create-booking";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import {
@@ -21,7 +21,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller("booking")
-export class BookingController {
+export class BookingsController {
   private readonly logger = new Logger("BookingController");
 
   constructor(

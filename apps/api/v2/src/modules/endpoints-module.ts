@@ -1,4 +1,4 @@
-import { BookingModule } from "@/modules/booking/booking.module";
+import { BookingModule } from "@/modules/bookings/booking.module";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
