@@ -144,7 +144,7 @@ describe("OAuth Clients Endpoints", () => {
 
     describe("User is part of an organization as Admin", () => {
       let membership: Membership;
-      let client: { client_id: string; client_secret: string };
+      let client: { clientId: string; clientSecret: string };
       const oAuthClientName = "test-oauth-client-admin";
 
       beforeAll(async () => {
@@ -162,15 +162,15 @@ describe("OAuth Clients Endpoints", () => {
           .send(body)
           .expect(201)
           .then((response) => {
-            const responseBody: ApiSuccessResponse<{ client_id: string; client_secret: string }> =
+            const responseBody: ApiSuccessResponse<{ clientId: string; clientSecret: string }> =
               response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            expect(responseBody.data.client_id).toBeDefined();
-            expect(responseBody.data.client_secret).toBeDefined();
+            expect(responseBody.data.clientId).toBeDefined();
+            expect(responseBody.data.clientSecret).toBeDefined();
             client = {
-              client_id: responseBody.data.client_id,
-              client_secret: responseBody.data.client_secret,
+              clientId: responseBody.data.clientId,
+              clientSecret: responseBody.data.clientSecret,
             };
           });
       });
@@ -188,7 +188,7 @@ describe("OAuth Clients Endpoints", () => {
       });
       it(`/GET/:id`, () => {
         return request(app.getHttpServer())
-          .get(`/api/v2/oauth-clients/${client.client_id}`)
+          .get(`/api/v2/oauth-clients/${client.clientId}`)
           .expect(200)
           .then((response) => {
             const responseBody: ApiSuccessResponse<PlatformOAuthClient> = response.body;
@@ -201,7 +201,7 @@ describe("OAuth Clients Endpoints", () => {
         const clientUpdatedName = "test-oauth-client-updated";
         const body: UpdateOAuthClientInput = { name: clientUpdatedName };
         return request(app.getHttpServer())
-          .put(`/api/v2/oauth-clients/${client.client_id}`)
+          .put(`/api/v2/oauth-clients/${client.clientId}`)
           .send(body)
           .expect(200)
           .then((response) => {
@@ -212,7 +212,7 @@ describe("OAuth Clients Endpoints", () => {
           });
       });
       it(`/DELETE/:id`, () => {
-        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(200);
+        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.clientId}`).expect(200);
       });
 
       afterAll(async () => {
@@ -222,7 +222,7 @@ describe("OAuth Clients Endpoints", () => {
 
     describe("User is part of an organization as Owner", () => {
       let membership: Membership;
-      let client: { client_id: string; client_secret: string };
+      let client: { clientId: string; clientSecret: string };
       const oAuthClientName = "test-oauth-client-owner";
       const oAuthClientPermissions = 32;
 
@@ -241,15 +241,15 @@ describe("OAuth Clients Endpoints", () => {
           .send(body)
           .expect(201)
           .then((response) => {
-            const responseBody: ApiSuccessResponse<{ client_id: string; client_secret: string }> =
+            const responseBody: ApiSuccessResponse<{ clientId: string; clientSecret: string }> =
               response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
-            expect(responseBody.data.client_id).toBeDefined();
-            expect(responseBody.data.client_secret).toBeDefined();
+            expect(responseBody.data.clientId).toBeDefined();
+            expect(responseBody.data.clientSecret).toBeDefined();
             client = {
-              client_id: responseBody.data.client_id,
-              client_secret: responseBody.data.client_secret,
+              clientId: responseBody.data.clientId,
+              clientSecret: responseBody.data.clientSecret,
             };
           });
       });
@@ -269,7 +269,7 @@ describe("OAuth Clients Endpoints", () => {
       });
       it(`/GET/:id`, () => {
         return request(app.getHttpServer())
-          .get(`/api/v2/oauth-clients/${client.client_id}`)
+          .get(`/api/v2/oauth-clients/${client.clientId}`)
           .expect(200)
           .then((response) => {
             const responseBody: ApiSuccessResponse<PlatformOAuthClient> = response.body;
@@ -283,7 +283,7 @@ describe("OAuth Clients Endpoints", () => {
         const clientUpdatedName = "test-oauth-client-updated";
         const body: UpdateOAuthClientInput = { name: clientUpdatedName };
         return request(app.getHttpServer())
-          .put(`/api/v2/oauth-clients/${client.client_id}`)
+          .put(`/api/v2/oauth-clients/${client.clientId}`)
           .send(body)
           .expect(200)
           .then((response) => {
@@ -294,7 +294,7 @@ describe("OAuth Clients Endpoints", () => {
           });
       });
       it(`/DELETE/:id`, () => {
-        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.client_id}`).expect(200);
+        return request(app.getHttpServer()).delete(`/api/v2/oauth-clients/${client.clientId}`).expect(200);
       });
 
       afterAll(async () => {

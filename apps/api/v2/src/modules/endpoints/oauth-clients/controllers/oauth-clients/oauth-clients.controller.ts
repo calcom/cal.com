@@ -40,7 +40,7 @@ export class OAuthClientsController {
   async createOAuthClient(
     @GetUser("organizationId") organizationId: number,
     @Body() body: CreateOAuthClientInput
-  ): Promise<ApiResponse<{ client_id: string; client_secret: string }>> {
+  ): Promise<ApiResponse<{ clientId: string; clientSecret: string }>> {
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
@@ -48,8 +48,8 @@ export class OAuthClientsController {
     return {
       status: SUCCESS_STATUS,
       data: {
-        client_id: id,
-        client_secret: secret,
+        clientId: id,
+        clientSecret: secret,
       },
     };
   }
