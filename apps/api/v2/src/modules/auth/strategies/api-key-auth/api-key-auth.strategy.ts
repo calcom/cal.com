@@ -23,7 +23,7 @@ export class ApiKeyAuthStrategy extends PassportStrategy(BaseStrategy, "api-key"
       const apiKey = await this.apiKeyService.retrieveApiKey(req);
 
       if (!apiKey) {
-        throw new UnauthorizedException("API key is missing.");
+        throw new UnauthorizedException("Authorization token is missing.");
       }
 
       if (apiKey.expiresAt && new Date() > apiKey.expiresAt) {
