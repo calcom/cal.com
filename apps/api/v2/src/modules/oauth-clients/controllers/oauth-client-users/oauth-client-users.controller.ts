@@ -77,7 +77,7 @@ export class OAuthClientUsersController {
     @Param("userId") userId: number
   ): Promise<ApiResponse<Partial<User>>> {
     if (accessTokenUserId !== userId) {
-      throw new BadRequestException("You can only access your own user data.");
+      throw new BadRequestException("userId parameter does not match access token");
     }
 
     const user = await this.userRepository.findById(userId);
@@ -97,7 +97,7 @@ export class OAuthClientUsersController {
     @Body() body: UpdateUserInput
   ): Promise<ApiResponse<Partial<User>>> {
     if (accessTokenUserId !== userId) {
-      throw new BadRequestException("You can only update your own user data.");
+      throw new BadRequestException("userId parameter does not match access token");
     }
 
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
@@ -109,7 +109,14 @@ export class OAuthClientUsersController {
   @Delete("/:userId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
-  async deleteUser(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
+  async deleteUser(
+    @GetUser("id") accessTokenUserId: number,
+    @Param("userId") userId: number
+  ): Promise<ApiResponse<Partial<User>>> {
+    if (accessTokenUserId !== userId) {
+      throw new BadRequestException("userId parameter does not match access token");
+    }
+
     this.logger.log(`Deleting user with ID: ${userId}`);
 
     const existingUser = await this.userRepository.findById(userId);
@@ -119,11 +126,7 @@ export class OAuthClientUsersController {
     }
 
     if (existingUser.username) {
-      throw new BadRequestException("Cannot delete a user with a username");
-    }
-
-    if (existingUser.password) {
-      throw new BadRequestException("Cannot delete a user with a password");
+      throw new BadRequestException("Cannot delete a non manually-managed user");
     }
 
     const user = await this.userRepository.delete(userId);
