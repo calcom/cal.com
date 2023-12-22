@@ -21,13 +21,17 @@ export class NextAuthStrategy extends PassportStrategy(BaseStrategy, "next-auth"
       const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
       const payload = await getToken({ req, secret: nextAuthSecret });
 
-      if (!payload || !payload.email) {
-        throw new UnauthorizedException();
+      if (!payload) {
+        throw new UnauthorizedException("Authentication token is missing or invalid.");
+      }
+
+      if (!payload.email) {
+        throw new UnauthorizedException("Email not found in the authentication token.");
       }
 
       const user = await this.userRepository.findByEmail(payload.email);
       if (!user) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException("User associated with the authentication token email not found.");
       }
 
       return this.success(user);

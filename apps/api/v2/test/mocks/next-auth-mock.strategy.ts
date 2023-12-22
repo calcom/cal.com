@@ -16,7 +16,7 @@ export class NextAuthMockStrategy extends PassportStrategy(BaseStrategy, "next-a
     try {
       const user = await this.userRepository.findByEmail(this.email);
       if (!user) {
-        throw new Error("User not found");
+        throw new Error("User with the provided email not found");
       }
 
       return this.success(user);

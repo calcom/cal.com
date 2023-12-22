@@ -70,7 +70,7 @@ export class OAuthClientsController {
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<ApiResponse<PlatformOAuthClient>> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
     if (!client) {
-      throw new NotFoundException();
+      throw new NotFoundException(`OAuth client with ID ${clientId} not found`);
     }
     return { status: SUCCESS_STATUS, data: client };
   }

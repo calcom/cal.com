@@ -25,7 +25,7 @@ export class OAuthClientCredentialsGuard implements CanActivate {
     const client = await this.oauthRepository.getOAuthClient(oauthClientId);
 
     if (!client || client.secret !== oauthClientSecret) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Invalid client credentials");
     }
 
     return true;

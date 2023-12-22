@@ -44,7 +44,7 @@ export class OAuthFlowController {
   ): Promise<void> {
     const oauthClient = await this.oauthClientRepository.getOAuthClient(body.client_id);
     if (!oauthClient) {
-      throw new BadRequestException();
+      throw new BadRequestException(`OAuth client with ID '${body.client_id}' not found`);
     }
 
     if (!oauthClient?.redirect_uris.includes(body.redirect_uri)) {

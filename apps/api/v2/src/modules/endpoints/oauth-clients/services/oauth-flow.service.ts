@@ -30,7 +30,7 @@ export class OAuthFlowService {
     const tokenExpiresAt = await this.tokensRepository.getAccessTokenExpiryDate(secret);
 
     if (!tokenExpiresAt) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Access token is invalid or not found");
     }
 
     if (new Date() > tokenExpiresAt) {

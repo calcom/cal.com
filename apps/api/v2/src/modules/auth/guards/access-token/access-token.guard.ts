@@ -11,7 +11,7 @@ export class AccessTokenGuard implements CanActivate {
 
     const bearer = authHeader?.replace("Bearer ", "").trim();
     if (!bearer) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Access token is missing or invalid.");
     }
 
     return this.oauthFlowService.validateAccessToken(bearer);

@@ -20,7 +20,7 @@ import {
 } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { DUPLICATE_RESOURCE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -48,7 +48,7 @@ export class OAuthClientUsersController {
     const existingUser = await this.userRepository.findByEmail(body.email);
 
     if (existingUser) {
-      throw new BadRequestException(DUPLICATE_RESOURCE);
+      throw new BadRequestException("A user with the provided email already exists.");
     }
 
     const user = await this.userRepository.create(body, oAuthClientId);
@@ -73,7 +73,7 @@ export class OAuthClientUsersController {
   async getUserById(@Param("userId") userId: number): Promise<ApiResponse<Partial<User>>> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException(`User with ID ${userId} not found.`);
     }
 
     return { status: SUCCESS_STATUS, data: user };
