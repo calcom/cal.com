@@ -73,21 +73,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       // There is not the last booking in the rescheduleChain
       if (bookingInRescheduleChain.rescheduledTo) {
         queryUid = bookingInRescheduleChain.rescheduledTo;
-        firstQuery = false;
       } else {
         allBookingsQueried = true;
       }
+
+      firstQuery = false;
     } else {
       const bookingQuery = await prisma.booking.findFirst({
         where: {
-          OR: [
-            {
-              uid: queryUid,
-            },
-            {
-              fromReschedule: queryUid,
-            },
-          ],
+          uid: queryUid,
         },
         select: {
           uid: true,
@@ -99,6 +93,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       // If somewhere along the chain was broken. Return the last found booking
       if (!bookingQuery) {
         allBookingsQueried = true;
+      } else {
+        bookingInRescheduleChain = bookingQuery;
       }
 
       // See if this booking was the last in the chain
