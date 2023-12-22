@@ -245,7 +245,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                     disabled={formState.isSubmitting}
                     data-testid="google"
                     StartIcon={() => (
-                      <div className="mr-4">
+                      <div className="mr-3">
                         <FcGoogle size={25} />
                       </div>
                     )}
