@@ -9,12 +9,12 @@ import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails }) => {
+test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
-  emails?.deleteAll();
+  await orgs.deleteAll();
 });
 
-test.describe.serial("Organization", () => {
+test.describe("Organization", () => {
   test.describe("Email not matching orgAutoAcceptEmail", () => {
     test("Org Invitation", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
@@ -24,9 +24,10 @@ test.describe.serial("Organization", () => {
       await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
-        const invitedUserEmail = `rick-${Date.now()}@domain.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
+
         await inviteAnEmail(page, invitedUserEmail);
         const inviteLink = await expectInvitationEmailToBeReceived(
           page,
@@ -66,7 +67,7 @@ test.describe.serial("Organization", () => {
 
       await test.step("By invite link", async () => {
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@domain.com`;
+        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
         await signupFromInviteLink({ browser, inviteLink, email });
@@ -91,7 +92,7 @@ test.describe.serial("Organization", () => {
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         await page.waitForLoadState("networkidle");
-        const invitedUserEmail = `rick-${Date.now()}@domain.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
         await inviteAnEmail(page, invitedUserEmail);
@@ -154,7 +155,7 @@ test.describe.serial("Organization", () => {
       await test.step("By invite link", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@domain.com`;
+        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
         await signupFromInviteLink({ browser, inviteLink, email });
@@ -190,7 +191,7 @@ test.describe.serial("Organization", () => {
       await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
-        const invitedUserEmail = `rick-${Date.now()}@example.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail);
         const inviteLink = await expectInvitationEmailToBeReceived(
@@ -231,7 +232,7 @@ test.describe.serial("Organization", () => {
 
       await test.step("By invite link", async () => {
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@example.com`;
+        const email = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = email.split("@")[0];
         await signupFromInviteLink({ browser, inviteLink, email });
 
@@ -262,7 +263,7 @@ test.describe.serial("Organization", () => {
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         await page.waitForLoadState("networkidle");
-        const invitedUserEmail = `rick-${Date.now()}@example.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail);
         await expectUserToBeAMemberOfTeam({
@@ -323,7 +324,7 @@ test.describe.serial("Organization", () => {
         await page.goto(`/settings/teams/${team.id}/members`);
 
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@example.com`;
+        const email = users.trackEmail({ username: "rick", domain: "example.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}`;
 
@@ -460,6 +461,7 @@ async function expectUserToBeAMemberOfTeam({
 }) {
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
+  await page.reload();
   expect(
     (
       await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()
