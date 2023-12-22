@@ -4,7 +4,7 @@ import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { NextAuthStrategy } from "@/modules/auth/strategies";
-import { UpdateOAuthClientInput } from "@/modules/endpoints/oauth-clients/inputs/update-oauth-client";
+import { UpdateOAuthClientInput } from "@/modules/endpoints/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientModule } from "@/modules/endpoints/oauth-clients/oauth-client.module";
 import { UsersModule } from "@/modules/repositories/users/users.module";
 import { PrismaModule } from "@/modules/services/prisma/prisma.module";

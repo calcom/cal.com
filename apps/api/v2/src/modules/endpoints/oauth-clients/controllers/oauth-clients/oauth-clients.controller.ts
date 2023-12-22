@@ -2,7 +2,7 @@ import { GetUser } from "@/modules/auth/decorators";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
-import { UpdateOAuthClientInput } from "@/modules/endpoints/oauth-clients/inputs/update-oauth-client";
+import { UpdateOAuthClientInput } from "@/modules/endpoints/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/endpoints/oauth-clients/oauth-client.repository";
 import {
   Body,
@@ -24,11 +24,6 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
 import type { ApiResponse } from "@calcom/platform-types";
 
-/*
-1. Name endpoint /modules same as the controller path
-2. inputs plural, but individual files and classes in singular
-3. 
-*/
 @Controller({
   path: "oauth-clients",
   version: "2",
