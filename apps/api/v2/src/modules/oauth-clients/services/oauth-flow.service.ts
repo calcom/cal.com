@@ -1,3 +1,4 @@
+import { TokenExpiredException } from "@/modules/auth/guards/access-token/token-expired.exception";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
@@ -33,7 +34,7 @@ export class OAuthFlowService {
     }
 
     if (new Date() > tokenExpiresAt) {
-      throw new BadRequestException("Token is expired");
+      throw new TokenExpiredException("Token is expired");
     }
 
     return true;
