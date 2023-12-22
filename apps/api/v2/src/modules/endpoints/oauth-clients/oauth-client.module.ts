@@ -3,7 +3,7 @@ import { AuthModule } from "@/modules/auth/auth.module";
 import { OAuthClientUsersController } from "@/modules/endpoints/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
 import { OAuthClientsController } from "@/modules/endpoints/oauth-clients/controllers/oauth-clients/oauth-clients.controller";
 import { OAuthFlowController } from "@/modules/endpoints/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
-import { OAuthClientGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client/oauth-client.guard";
+import { OAuthClientCredentialsGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthClientRepository } from "@/modules/endpoints/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/endpoints/oauth-clients/services/oauth-flow.service";
 import { MembershipsModule } from "@/modules/repositories/memberships/memberships.module";
@@ -22,8 +22,8 @@ import { JwtModule } from "@nestjs/jwt";
     MembershipsModule,
     JwtModule.register({ secret: getEnv("JWT_SECRET") }),
   ],
-  providers: [OAuthClientRepository, OAuthClientGuard, TokensRepository, OAuthFlowService],
+  providers: [OAuthClientRepository, OAuthClientCredentialsGuard, TokensRepository, OAuthFlowService],
   controllers: [OAuthClientsController, OAuthClientUsersController, OAuthFlowController],
-  exports: [OAuthClientRepository, OAuthClientGuard],
+  exports: [OAuthClientRepository, OAuthClientCredentialsGuard],
 })
 export class OAuthClientModule {}

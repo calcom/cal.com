@@ -1,5 +1,5 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { OAuthClientGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client/oauth-client.guard";
+import { OAuthClientCredentialsGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { TokensRepository } from "@/modules/repositories/tokens/tokens.repository";
 import { CreateUserInput } from "@/modules/repositories/users/inputs/create-user.input";
 import { UpdateUserInput } from "@/modules/repositories/users/inputs/update-user.input";
@@ -36,7 +36,7 @@ export class OAuthClientUsersController {
   ) {}
 
   @Post("/")
-  @UseGuards(OAuthClientGuard)
+  @UseGuards(OAuthClientCredentialsGuard)
   async createUser(
     @Param("clientId") oAuthClientId: string,
     @Body() body: CreateUserInput

@@ -1,6 +1,6 @@
 import { GetUser } from "@/modules/auth/decorators";
 import { NextAuthGuard } from "@/modules/auth/guards";
-import { OAuthClientGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client/oauth-client.guard";
+import { OAuthClientCredentialsGuard } from "@/modules/endpoints/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthAuthorizeInput } from "@/modules/endpoints/oauth-clients/inputs/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/endpoints/oauth-clients/inputs/exchange-code.input";
 import { RefreshTokenInput } from "@/modules/endpoints/oauth-clients/inputs/refresh-token.input";
@@ -81,7 +81,7 @@ export class OAuthFlowController {
 
   @Post("/refresh")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(OAuthClientGuard)
+  @UseGuards(OAuthClientCredentialsGuard)
   async refreshAccessToken(
     @Headers(X_CAL_CLIENT_ID) clientId: string,
     @Headers(X_CAL_SECRET_KEY) secretKey: string,

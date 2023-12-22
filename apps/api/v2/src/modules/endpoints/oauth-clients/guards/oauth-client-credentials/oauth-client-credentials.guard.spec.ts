@@ -9,10 +9,10 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
-import { OAuthClientGuard } from "./oauth-client.guard";
+import { OAuthClientCredentialsGuard } from "./oauth-client-credentials.guard";
 
-describe("OAuthClientGuard", () => {
-  let guard: OAuthClientGuard;
+describe("OAuthClientCredentialsGuard", () => {
+  let guard: OAuthClientCredentialsGuard;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let oauthClient: PlatformOAuthClient;
@@ -23,7 +23,7 @@ describe("OAuthClientGuard", () => {
       imports: [AppModule, OAuthClientModule],
     }).compile();
 
-    guard = module.get<OAuthClientGuard>(OAuthClientGuard);
+    guard = module.get<OAuthClientCredentialsGuard>(OAuthClientCredentialsGuard);
     teamRepositoryFixture = new TeamRepositoryFixture(module);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
 

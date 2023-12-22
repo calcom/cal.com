@@ -4,7 +4,7 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Injectable()
-export class OAuthClientGuard implements CanActivate {
+export class OAuthClientCredentialsGuard implements CanActivate {
   constructor(private readonly oauthRepository: OAuthClientRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
