@@ -10,7 +10,7 @@ export class CreateOAuthClientInput {
 
   @IsArray()
   @IsString({ each: true })
-  redirect_uris!: string[];
+  redirectUris!: string[];
 
   @IsNumber()
   permissions!: number;

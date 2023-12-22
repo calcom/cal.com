@@ -11,8 +11,8 @@ import { Meta, Button, TextField } from "@calcom/ui";
 type FormValues = {
   name: string;
   logo?: string;
-  redirect_uri: string;
-  redirect_uris: string[];
+  redirectUri: string;
+  redirectUris: string[];
   permissions: number;
   eventTypeRead: boolean;
   eventTypeWrite: boolean;
@@ -51,7 +51,7 @@ export const OAuthClientForm: FC = () => {
       name: data.name,
       permissions: userPermissions,
       // logo: data.logo,
-      redirect_uris: [data.redirect_uri],
+      redirectUris: [data.redirectUri],
     });
   };
 
@@ -128,7 +128,7 @@ export const OAuthClientForm: FC = () => {
           />
         </div> */}
         <div className="mt-6">
-          <TextField label="Redirect uri" required={true} {...register("redirect_uri")} />
+          <TextField label="Redirect uri" required={true} {...register("redirectUri")} />
         </div>
         <div className="mt-6">
           <h1 className="text-base font-semibold underline">Permissions</h1>
