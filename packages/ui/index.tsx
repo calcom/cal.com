@@ -10,7 +10,6 @@ export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
 export {
   Checkbox,
-  CheckboxField,
   EmailField,
   EmailInput,
   FieldsetLegend,
@@ -130,7 +129,6 @@ export {
   RadioField,
 } from "./form/radio-area";
 
-export type { Option } from "./components/form/select/Select";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton, CreateButtonWithTeamsList } from "./components/createButton";

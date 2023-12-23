@@ -61,13 +61,18 @@ export const OptionComponent = <
   );
 };
 
+interface ExtendedSelectProps<Option, IsMulti extends boolean, Group extends GroupBase<Option>>
+  extends SelectProps<Option, IsMulti, Group> {
+  "data-testid"?: string;
+}
+
 export const ControlComponent = <
   Option,
   IsMulti extends boolean,
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
   controlProps: ControlProps<Option, IsMulti, Group> & {
-    selectProps: SelectProps<Option, IsMulti, Group>;
+    selectProps: ExtendedSelectProps<Option, IsMulti, Group>;
   }
 ) => {
   const dataTestId = controlProps.selectProps["data-testid"] ?? "select-control";
