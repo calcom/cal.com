@@ -19,7 +19,7 @@ export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environme
     if (typeof fallback !== "undefined") {
       return fallback;
     }
-    throw new Error(`Missing environment variable: ${key}`);
+    throw new Error(`Missing environment variable: ${key}.`);
   }
 
   return value;

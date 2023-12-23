@@ -11,7 +11,7 @@ import { hasPermission } from "../../../../../../../../packages/platform/utils/p
 type OAuthClientCardProps = {
   name: string;
   logo?: Avatar;
-  redirect_uris: string[];
+  redirectUris: string[];
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -23,7 +23,7 @@ type OAuthClientCardProps = {
 export const OAuthClientCard = ({
   name,
   logo,
-  redirect_uris,
+  redirectUris,
   permissions,
   id,
   secret,
@@ -107,7 +107,7 @@ export const OAuthClientCard = ({
         </div>
         <div className="flex gap-1 text-sm">
           <span className="font-semibold">Redirect uris: </span>
-          {redirect_uris.map((item, index) => (redirect_uris.length === index + 1 ? `${item}` : `${item}, `))}
+          {redirectUris.map((item, index) => (redirectUris.length === index + 1 ? `${item}` : `${item}, `))}
         </div>
       </div>
       <div className="flex items-center">

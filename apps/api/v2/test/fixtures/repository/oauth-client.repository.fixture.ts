@@ -1,8 +1,9 @@
-import { CreateOAuthClientInput } from "@/modules/oauth/input/create-oauth-client";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient } from "@prisma/client";
+
+import { CreateOAuthClientInput } from "@calcom/platform-types";
 
 export class OAuthClientRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -15,6 +16,17 @@ export class OAuthClientRepositoryFixture {
 
   async get(clientId: PlatformOAuthClient["id"]) {
     return this.prismaReadClient.platformOAuthClient.findFirst({ where: { id: clientId } });
+  }
+
+  async getUsers(clientId: PlatformOAuthClient["id"]) {
+    const response = await this.prismaReadClient.platformOAuthClient.findFirst({
+      where: { id: clientId },
+      include: {
+        users: true,
+      },
+    });
+
+    return response?.users;
   }
 
   async create(organizationId: number, data: CreateOAuthClientInput, secret: string) {
