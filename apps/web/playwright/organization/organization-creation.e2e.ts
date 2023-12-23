@@ -18,12 +18,14 @@ function capitalize(text: string) {
 }
 
 test.describe("Organization", () => {
-  test("should be able to create an organization and complete onboarding", async ({
+  test("Admin should be able to create an organization and complete onboarding", async ({
     page,
     users,
     emails,
   }) => {
-    const orgOwner = await users.create();
+    const orgOwner = await users.create({
+      role: "ADMIN",
+    });
     const orgDomain = `${orgOwner.username}-org`;
     const orgName = capitalize(`${orgOwner.username}-org`);
     await orgOwner.apiLogin();
