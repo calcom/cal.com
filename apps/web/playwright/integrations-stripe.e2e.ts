@@ -84,7 +84,7 @@ test.describe("Stripe integration", () => {
       schedulingType: SchedulingType.COLLECTIVE,
     });
     await owner.apiLogin();
-    const { team } = await owner.getFirstTeam();
+    const { team } = await owner.getFirstTeamMembership();
     const { title: teamEventTitle, slug: teamEventSlug } = await owner.getFirstTeamEvent(team.id);
 
     const teamEvent = await owner.getFirstTeamEvent(team.id);

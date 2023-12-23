@@ -10,7 +10,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
 import { Prisma, type User } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +25,7 @@ export type Invitee = Pick<
 >;
 
 export type UserWithMembership = Invitee & {
-  teams?: Pick<Membership, "userId" | "teamId" | "accepted">[];
+  teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
 };
 
 export async function checkPermissions({
@@ -168,7 +168,7 @@ export async function getUsersToInvite({
       completedOnboarding: true,
       identityProvider: true,
       teams: {
-        select: { teamId: true, userId: true, accepted: true },
+        select: { teamId: true, userId: true, accepted: true, role: true },
         where: {
           OR: memberships,
         },
@@ -286,12 +286,16 @@ export async function createProvisionalMemberships({
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
+        const organizationRole = invitee?.teams?.[0]?.role;
         const data = [];
         // membership for the team
         data.push({
           teamId: input.teamId,
           userId: invitee.id,
-          role: input.role as MembershipRole,
+          role:
+            organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
+              ? organizationRole
+              : input.role,
         });
 
         // membership for the org

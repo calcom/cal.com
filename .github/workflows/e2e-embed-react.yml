@@ -1,4 +1,4 @@
-name: E2E Embed React tests and booking flow(for non-embed as well)
+name: E2E Embed React tests and booking flow (for non-embed as well)
 on:
   workflow_call:
 
