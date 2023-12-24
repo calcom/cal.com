@@ -216,7 +216,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
    If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
 
-   - [Setup postgres DB with railway.app](https://arctype.com/postgres/setup/railway-postgres)
+   - [Setup postgres DB with railway.app](https://docs.railway.app/guides/postgresql)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.

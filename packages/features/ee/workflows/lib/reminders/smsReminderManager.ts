@@ -11,7 +11,7 @@ import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
-import * as twilio from "./smsProviders/twilioProvider";
+import * as twilio from "./providers/twilioProvider";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";

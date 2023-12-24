@@ -33,6 +33,12 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
+        env: 
+          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          E2E_TEST_CALCOM_QA_EMAIL: ${{ secrets.E2E_TEST_CALCOM_QA_EMAIL }}
+          E2E_TEST_CALCOM_QA_PASSWORD: ${{ secrets.E2E_TEST_CALCOM_QA_PASSWORD }}
+          E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ secrets.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
+          E2E_TEST_CALCOM_GCAL_KEYS: ${{ secrets.E2E_TEST_CALCOM_GCAL_KEYS }}
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: yarn e2e:app-store --shard=${{ matrix.shard }}/${{ strategy.job-total }}
@@ -43,6 +49,10 @@ jobs:
           DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
           E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
           E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}
+          E2E_TEST_CALCOM_QA_EMAIL: ${{ secrets.E2E_TEST_CALCOM_QA_EMAIL }}
+          E2E_TEST_CALCOM_QA_PASSWORD: ${{ secrets.E2E_TEST_CALCOM_QA_PASSWORD }}
+          E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ secrets.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
+          E2E_TEST_CALCOM_GCAL_KEYS: ${{ secrets.E2E_TEST_CALCOM_GCAL_KEYS }}
           E2E_TEST_MAILHOG_ENABLED: ${{ vars.E2E_TEST_MAILHOG_ENABLED }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
           GOOGLE_LOGIN_ENABLED: ${{ vars.CI_GOOGLE_LOGIN_ENABLED }}
