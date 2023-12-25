@@ -1,13 +1,14 @@
 import { expect } from "@playwright/test";
 import path from "path";
+import { uuid } from "short-uuid";
 
 import { test } from "../lib/fixtures";
 import { generateTotpCode } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
-test.afterAll(({ users, emails }) => {
+test.afterAll(({ users, orgs }) => {
   users.deleteAll();
-  emails?.deleteAll();
+  orgs.deleteAll();
 });
 
 function capitalize(text: string) {
@@ -26,6 +27,11 @@ test.describe("Organization", () => {
     const orgOwner = await users.create({
       role: "ADMIN",
     });
+    const instanceAdmin = await users.create({
+      username: `admin-${uuid()}`,
+      email: users.trackEmail({ username: "admin", domain: "example.com" }),
+      role: "ADMIN",
+    });
     const orgDomain = `${orgOwner.username}-org`;
     const orgName = capitalize(`${orgOwner.username}-org`);
     await orgOwner.apiLogin();
@@ -38,7 +44,8 @@ test.describe("Organization", () => {
       await expect(page.locator(".text-red-700")).toHaveCount(3);
 
       // Happy path
-      await page.locator("input[name=adminEmail]").fill(`john@${orgDomain}.com`);
+      const adminEmail = users.trackEmail({ username: "john", domain: `${orgDomain}.com` });
+      await page.locator("input[name=adminEmail]").fill(adminEmail);
       expect(await page.locator("input[name=name]").inputValue()).toEqual(orgName);
       expect(await page.locator("input[name=slug]").inputValue()).toEqual(orgDomain);
       await page.locator("button[type=submit]").click();
@@ -48,7 +55,7 @@ test.describe("Organization", () => {
       await expectInvitationEmailToBeReceived(
         page,
         emails,
-        `john@${orgOwner.username}-org.com`,
+        adminEmail,
         "Verify your email to create an organization"
       );
 
@@ -56,12 +63,11 @@ test.describe("Organization", () => {
         // Code verification
         await expect(page.locator("#modal-title")).toBeVisible();
         await page.locator("input[name='2fa1']").fill(generateTotpCode(`john@${orgDomain}.com`));
-
         // Check admin email about DNS pending action
         await expectInvitationEmailToBeReceived(
           page,
           emails,
-          "admin@example.com",
+          instanceAdmin.email,
           "New organization created: pending action"
         );
 
@@ -105,14 +111,15 @@ test.describe("Organization", () => {
       await page.locator("button[type=submit]").click();
 
       // Happy path
-      await page.locator('textarea[name="emails"]').fill(`rick@${orgDomain}.com`);
+      const adminEmail = users.trackEmail({ username: "rick", domain: `${orgDomain}.com` });
+      await page.locator('textarea[name="emails"]').fill(adminEmail);
       await page.locator("button[type=submit]").click();
 
       // Check if invited admin received the invitation email
       await expectInvitationEmailToBeReceived(
         page,
         emails,
-        `rick@${orgDomain}.com`,
+        adminEmail,
         `${orgName}'s admin invited you to join the organization ${orgName} on Cal.com`
       );
 
