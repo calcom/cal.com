@@ -153,34 +153,6 @@ export default function Custom404() {
                 <h2 className="text-subtle text-sm font-semibold uppercase tracking-wide">
                   {t("next_steps")}
                 </h2>
-                <ul role="list" className="mt-4">
-                  <li className="border-2 border-green-500 px-4 py-2">
-                    <a
-                      href="https://console.cal.com"
-                      className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                      <div className="flex-shrink-0">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                          <Check className="h-6 w-6 text-green-500" aria-hidden="true" />
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-emphasis text-base font-medium">
-                          <span className="focus-within:ring-empthasis rounded-sm focus-within:ring-2 focus-within:ring-offset-2">
-                            <span className="focus:outline-none">
-                              <span className="absolute inset-0" aria-hidden="true" />
-                              {t("acquire_commercial_license")}
-                            </span>
-                          </span>
-                        </h3>
-                        <p className="text-subtle text-base">{t("the_infrastructure_plan")}</p>
-                      </div>
-                      <div className="flex-shrink-0 self-center">
-                        <ChevronRight className="text-muted h-5 w-5" aria-hidden="true" />
-                      </div>
-                    </a>
-                  </li>
-                </ul>
-
                 <ul role="list" className="border-subtle divide-subtle divide-y">
                   <li className="px-4 py-2">
                     <Link
