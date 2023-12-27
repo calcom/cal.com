@@ -65,7 +65,7 @@ export const TeamInviteEmail = (
           {props.language(
             `email_user_invite_subheading_${props.isOrg ? "org" : props.parentTeamName ? "subteam" : "team"}`,
             {
-              invitedBy: props.from,
+              invitedBy: props.from.toString(),
               appName: APP_NAME,
               teamName: props.teamName,
               parentTeamName: props.parentTeamName,
