@@ -1,9 +1,10 @@
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { GetUserInput } from "@/modules/user/inputs/get-user.input";
 import { UserRepository } from "@/modules/user/user.repository";
-import { Controller, Logger, Get, HttpStatus, HttpCode, UseGuards } from "@nestjs/common";
+import { Controller, Logger, Get, HttpStatus, HttpCode, UseGuards, Param } from "@nestjs/common";
+import { BadRequestException, Body } from "@nestjs/common";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
@@ -13,16 +14,29 @@ import { ApiResponse } from "@calcom/platform-types";
 export class UserController {
   private readonly logger = new Logger("UserController");
 
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private readonly bookingRepository: UserRepository
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
-  async getUser(): Promise<ApiResponse> {
-    return "hiii";
+  async getUser(
+    @Param("clientId") clientId: string,
+    @Body() body: GetUserInput
+  ): Promise<ApiResponse<UserReturned>> {
+    const { clientSecret } = body;
+    const user = await this.userRepository.getUserInfo(clientId, clientSecret);
+
+    if (!user) {
+      throw new BadRequestException("This user does not exist.");
+    }
+
+    this.logger.log(`Here's the user that the client has requested:`, user);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: { user },
+    };
   }
 }
+
+export type UserReturned = any;
