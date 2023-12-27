@@ -9,6 +9,10 @@ const loadConfig = (): AppConfig => {
     },
     api: {
       port: Number(getEnv("API_PORT", "5555")),
+      path: getEnv("API_URL", "http://localhost"),
+      url: `${getEnv("API_URL", "http://localhost")}${
+        process.env.API_PORT ? `:${Number(getEnv("API_PORT", "5555"))}` : ""
+      }/api/v2`,
     },
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),

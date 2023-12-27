@@ -3,6 +3,7 @@ import { logLevels } from "@/lib/logger";
 export type Environment = {
   NODE_ENV: "development" | "production";
   API_PORT: string;
+  API_URL: string;
   DATABASE_READ_URL: string;
   DATABASE_WRITE_URL: string;
   NEXTAUTH_SECRET: string;
