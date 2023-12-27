@@ -132,7 +132,7 @@
   "meeting_url": "Meeting URL",
   "meeting_url_not_found":"Meeting URL not found",
   "token_not_found":"Token not found",
-  "some_other_host_already_accepted_the_meeting":"Some other host already accepted the meeting. Do you still want to join? <1>Continue to Meeting Url</1>",
+  "some_other_host_already_accepted_the_meeting":"Some other host already accepted the meeting. Do you still want to join? <1>Continue to Meeting</1>",
   "meeting_request_rejected": "Your meeting request has been rejected",
   "rejected_event_type_with_organizer": "Rejected: {{eventType}} with {{organizer}} on {{date}}",
   "hi": "Hi",
