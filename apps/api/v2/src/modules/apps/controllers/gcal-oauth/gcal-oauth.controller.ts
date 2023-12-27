@@ -65,7 +65,6 @@ export class GoogleCalendarOAuthController {
       prompt: "consent",
       state: `accessToken=${accessToken}&origin=${origin}`,
     });
-    console.log(authUrl);
     return { url: authUrl };
   }
 
