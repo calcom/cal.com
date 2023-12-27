@@ -46,6 +46,7 @@ import {
   ExternalLink,
   Code,
   Trash,
+  PhoneCall,
   MoreHorizontal,
   Loader,
 } from "@calcom/ui/components/icon";
@@ -115,7 +116,7 @@ function getNavigation(props: {
     {
       name: "workflows",
       href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: Zap,
+      icon: PhoneCall,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
