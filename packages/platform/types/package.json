@@ -1,10 +1,15 @@
 {
   "name": "@calcom/platform-types",
   "version": "0.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.js",
+  "scripts": {
+    "build": "tsc --build --force tsconfig.json",
+    "build:watch": "tsc --build --force ./tsconfig.json --watch"
+  },
   "dependencies": {
     "@calcom/platform-constants": "*",
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "class-validator": "^0.14.0"
   }
 }

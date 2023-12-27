@@ -268,8 +268,11 @@ model User {
   //linkedUsers          User[]                  @relation("linked_account")*/
 
   // Used to lock the user account
-  locked               Boolean               @default(false)
-  platformOAuthClients PlatformOAuthClient[]
+  locked                     Boolean                      @default(false)
+  platformOAuthClients       PlatformOAuthClient[]
+  AccessToken                AccessToken[]
+  RefreshToken               RefreshToken[]
+  PlatformAuthorizationToken PlatformAuthorizationToken[]
 
   @@unique([email])
   @@unique([email, username])
@@ -1044,12 +1047,66 @@ model Avatar {
 model PlatformOAuthClient {
   id             String   @id @default(cuid())
   name           String
-  secret         String
+  secret         String // auth secret?
   permissions    Int
   users          User[]
   logo           String?
-  redirect_uris  String[]
-  organizationId Int
+  redirectUris   String[] @map("redirect_uris")
+  organizationId Int      @map("organization_id")
   organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  // add connection to Access Codes
+
+  accessTokens        AccessToken[]
+  refreshToken        RefreshToken[]
+  authorizationTokens PlatformAuthorizationToken[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map(name: "platform_oauth_clients")
+}
+
+model PlatformAuthorizationToken {
+  id String @id @default(cuid())
+
+  owner  User                @relation(fields: [userId], references: [id])
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id])
+
+  platformOAuthClientId String @map("platform_oauth_client_id")
+  userId                Int    @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, platformOAuthClientId])
+  @@map("platform_authorization_token")
+}
+
+model AccessToken {
+  id Int @id @default(autoincrement())
+
+  secret    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String @map("platform_oauth_client_id")
+  userId                Int    @map("user_id")
+
+  @@map("platform_access_tokens")
+}
+
+model RefreshToken {
+  id Int @id @default(autoincrement())
+
+  secret    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+
+  platformOAuthClientId String @map("platform_oauth_client_id")
+  userId                Int    @map("user_id")
+
+  @@map("platform_refresh_token")
 }

@@ -4,7 +4,9 @@
     "target": "ES5",
     "resolveJsonModule": true,
     "types": ["jest"],
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
   },
   "include": [".", "./tests"],
   "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]

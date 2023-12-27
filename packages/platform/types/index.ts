@@ -1,2 +1,3 @@
-export type * from "./permissions";
-export type * from "./api";
+export * from "./permissions";
+export * from "./api";
+export * from "./oauth-clients";
