@@ -1,3 +1,4 @@
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { GetUserInput } from "@/modules/user/inputs/get-user.input";
 import { UserRepository } from "@/modules/user/user.repository";
@@ -21,11 +22,9 @@ export class UserController {
   @UseGuards(AccessTokenGuard)
   async getUser(
     @Param("clientId") clientId: string,
-    @Body() body: GetUserInput
+    @Body() body: GetUserInput,
+    @GetUser() user: any
   ): Promise<ApiResponse<UserReturned>> {
-    const { clientSecret } = body;
-    const user = await this.userRepository.getUserInfo(clientId, clientSecret);
-
     if (!user) {
       throw new BadRequestException("This user does not exist.");
     }
