@@ -13,24 +13,38 @@ type CalProviderProps = {
 
 const ApiKeyContext = createContext({ key: "", error: "", accessToken: "" });
 
-const instance = axios.create({
-  baseURL: "http://localhost:5555/api/v2/",
-  timeout: 1000,
-  headers: { "X-Custom-Header": "foobar" },
-});
-
 export const useApiKey = () => useContext(ApiKeyContext);
 
 export function CalProvider({ apiKey, children, accessToken, refreshTokenEndpoint }: CalProviderProps) {
   const [key, setKey] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [clientAccessToken, setClientAccessToken] = useState(accessToken);
+  const [clientAccessToken, setClientAccessToken] = useState("");
+
+  const customClient = axios.create({
+    baseURL: "http://localhost:5555/api/v2/",
+    timeout: 1000,
+  });
+
+  customClient.interceptors.response.use(undefined, async (error) => {
+    if (error.response.status === 404) {
+      console.log(
+        "the initial request has failed and thats why interceptor has been triggered".toLocaleUpperCase()
+      );
+    }
+
+    const response = await fetch(refreshTokenEndpoint);
+
+    if (response.ok) {
+      const data = await response.json();
+      setClientAccessToken(data.accessToken);
+    }
+  });
 
   const verifyApiKey = useCallback(
     async (key: string) => {
       try {
         // here we'll call the /me endpoint in v2 to get user profile
-        const response = await fetch(`/v2/me?apiKey=${key}`);
+        const response = await fetch(`/api/v2/atoms/verifyClientKey/?${key}`);
 
         if (response.ok) {
           setKey(apiKey);
@@ -43,6 +57,19 @@ export function CalProvider({ apiKey, children, accessToken, refreshTokenEndpoin
     [apiKey]
   );
 
+  const verifyAccessToken = useCallback(
+    async (accessToken: string) => {
+      console.log("hello world", accessToken);
+
+      try {
+        const data = await customClient.get(`/api/v2/atoms/verifyAccessToken/${accessToken}`);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [accessToken]
+  );
+
   useEffect(() => {
     if (apiKey.length === 0) {
       setErrorMessage(NO_KEY_VALUE);
@@ -50,6 +77,13 @@ export function CalProvider({ apiKey, children, accessToken, refreshTokenEndpoin
       verifyApiKey(apiKey);
     }
   }, [verifyApiKey, apiKey]);
+
+  useEffect(() => {
+    if (accessToken.length === 0) {
+    } else {
+      verifyAccessToken(accessToken);
+    }
+  }, [accessToken, verifyAccessToken]);
 
   return (
     <ApiKeyContext.Provider value={{ key: key, error: errorMessage, accessToken: clientAccessToken }}>
