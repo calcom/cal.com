@@ -149,6 +149,10 @@ export class GoogleCalendarOAuthController {
       throw new BadRequestException();
     }
 
+    if (gcalCredentials.invalid) {
+      throw new BadRequestException("Invalid google oauth credentials.");
+    }
+
     return { status: SUCCESS_STATUS, data: undefined };
   }
 }
