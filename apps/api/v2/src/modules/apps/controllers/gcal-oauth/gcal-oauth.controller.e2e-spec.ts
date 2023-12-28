@@ -6,8 +6,9 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
 import * as request from "supertest";
+import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
@@ -22,8 +23,9 @@ describe("OAuth Gcal App Endpoints", () => {
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let tokensRepositoryFixture: TokensRepositoryFixture;
-
+  let credentialsRepositoryFixture: CredentialsRepositoryFixture;
   let user: User;
+  let gcalCredentials: Credential;
   let accessTokenSecret: string;
   let refreshTokenSecret: string;
   beforeAll(async () => {
@@ -39,6 +41,7 @@ describe("OAuth Gcal App Endpoints", () => {
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
+    credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     organization = await teamRepositoryFixture.create({ name: "organization" });
     oAuthClient = await createOAuthClient(organization.id);
     user = await userRepositoryFixture.createOAuthManagedUser("managed-user-e2e@gmail.com", oAuthClient.id);
@@ -123,9 +126,30 @@ describe("OAuth Gcal App Endpoints", () => {
     await request(app.getHttpServer()).get(`/api/v2/apps/gcal/oauth/check`).expect(401);
   });
 
+  it(`/GET/apps/gcal/oauth/check with access token but no credentials`, async () => {
+    await request(app.getHttpServer())
+      .get(`/api/v2/apps/gcal/oauth/check`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .expect(400);
+  });
+
+  it(`/GET/apps/gcal/oauth/check with access token and gcal credentials`, async () => {
+    gcalCredentials = await credentialsRepositoryFixture.create(
+      "google_calendar",
+      {},
+      user.id,
+      "google-calendar"
+    );
+    await request(app.getHttpServer())
+      .get(`/api/v2/apps/gcal/oauth/check`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .expect(200);
+  });
+
   afterAll(async () => {
     await oauthClientRepositoryFixture.delete(oAuthClient.id);
     await teamRepositoryFixture.delete(organization.id);
+    await credentialsRepositoryFixture.delete(gcalCredentials.id);
     await userRepositoryFixture.deleteByEmail(user.email);
     await app.close();
   });
