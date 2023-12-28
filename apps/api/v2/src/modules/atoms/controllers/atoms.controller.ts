@@ -20,12 +20,10 @@ export class UserController {
     private readonly userRepository: UsersRepository
   ) {}
 
-  @Get("/verifyClientKey/:clientKey")
+  @Get("/verifyClientId/:clientId")
   @HttpCode(HttpStatus.OK)
-  async verifyClientId(
-    @Param("clientId") userClientKey: string
-  ): Promise<ApiResponse<ClientKeyUserReturned>> {
-    const user = await this.userRepository.findById(userClientKey);
+  async verifyClientId(@Param("clientId") userClientId: number): Promise<ApiResponse<ClientKeyUserReturned>> {
+    const user = await this.userRepository.findById(userClientId);
     const isKeyValid = !!user;
 
     this.logger.log(`Here's the user that the client has requested:`, user);
