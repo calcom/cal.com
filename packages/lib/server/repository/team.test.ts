@@ -50,13 +50,13 @@ describe("getOrg", () => {
     expect(firstFindManyCallArguments[0]).toEqual({
       where: {
         slug: "test-slug",
-        isOrganizaiton: true,
+        isOrganization: true,
       },
       select: {
         id: true,
         slug: true,
         metadata: true,
-        isOrganizaiton: true,
+        isOrganization: true,
       },
     });
     expect(org?.isOrganization).toBe(true);
@@ -207,6 +207,7 @@ describe("getTeam", () => {
         slug: true,
         name: true,
         metadata: true,
+        isOrganization: true,
       },
     });
     expect(team).toBe(null);
