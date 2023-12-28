@@ -724,7 +724,7 @@ const NavigationItem: React.FC<{
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-            isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
+            isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : ""
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
