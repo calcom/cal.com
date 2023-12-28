@@ -16,6 +16,7 @@ import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { AppMeta } from "@calcom/types/App";
@@ -36,10 +37,20 @@ type InputWebhook = {
   eventTriggers: WebhookTriggerEvents[];
   subscriberUrl: string;
 };
+
+type InputWorkflow = {
+  userId?: number | null;
+  teamId?: number | null;
+  name?: string;
+  activeEventTypeId?: number;
+  trigger: WorkflowTriggerEvents;
+  action: WorkflowActions;
+  template: WorkflowTemplates;
+};
 /**
  * Data to be mocked
  */
-type ScenarioData = {
+export type ScenarioData = {
   // hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
   /**
    * Prisma would return these eventTypes
@@ -55,6 +66,7 @@ type ScenarioData = {
   apps?: Partial<AppMeta>[];
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
+  workflows?: InputWorkflow[];
 };
 
 type InputCredential = typeof TestData.credentials.google & {
@@ -371,6 +383,43 @@ async function addWebhooks(webhooks: InputWebhook[]) {
   await addWebhooksToDb(webhooks);
 }
 
+async function addWorkflowsToDb(workflows: InputWorkflow[]) {
+  await prismock.$transaction(
+    workflows.map((workflow) => {
+      return prismock.workflow.create({
+        data: {
+          userId: workflow.userId,
+          teamId: workflow.teamId,
+          trigger: workflow.trigger,
+          name: workflow.name ? workflow.name : "Test Workflow",
+          steps: {
+            create: {
+              stepNumber: 1,
+              action: workflow.action,
+              template: workflow.template,
+              numberVerificationPending: false,
+              includeCalendarEvent: false,
+            },
+          },
+          activeOn: {
+            create: workflow.activeEventTypeId ? { eventTypeId: workflow.activeEventTypeId } : undefined,
+          },
+        },
+        include: {
+          activeOn: true,
+          steps: true,
+        },
+      });
+    })
+  );
+}
+
+async function addWorkflows(workflows: InputWorkflow[]) {
+  log.silly("TestData: Creating Workflows", safeStringify(workflows));
+
+  await addWorkflowsToDb(workflows);
+}
+
 async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
@@ -510,6 +559,8 @@ export async function createBookingScenario(data: ScenarioData) {
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
+  await addWorkflows(data.workflows || []);
+
   return {
     eventTypes,
   };
@@ -835,10 +886,12 @@ export function getOrganizer({
   defaultScheduleId,
   weekStart = "Sunday",
   teams,
+  organizationId,
 }: {
   name: string;
   email: string;
   id: number;
+  organizationId?: number | null;
   schedules: InputUser["schedules"];
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
@@ -849,7 +902,6 @@ export function getOrganizer({
 }) {
   return {
     ...TestData.users.example,
-    organizationId: null as null | number,
     name,
     email,
     id,
@@ -860,6 +912,7 @@ export function getOrganizer({
     defaultScheduleId,
     weekStart,
     teams,
+    organizationId,
   };
 }
 
@@ -870,6 +923,7 @@ export function getScenarioData(
     usersApartFromOrganizer = [],
     apps = [],
     webhooks,
+    workflows,
     bookings,
   }: // hosts = [],
   {
@@ -878,6 +932,7 @@ export function getScenarioData(
     apps?: ScenarioData["apps"];
     usersApartFromOrganizer?: ScenarioData["users"];
     webhooks?: ScenarioData["webhooks"];
+    workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
     // hosts?: ScenarioData["hosts"];
   },
@@ -904,6 +959,7 @@ export function getScenarioData(
     eventTypes: eventTypes.map((eventType, index) => {
       return {
         ...eventType,
+        teamId: eventType.teamId || null,
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
       };
@@ -911,6 +967,7 @@ export function getScenarioData(
     users: users.map((user) => {
       const newUser = {
         ...user,
+        organizationId: user.organizationId ?? null,
       };
       if (user.destinationCalendar) {
         newUser.destinationCalendar = {
@@ -924,7 +981,8 @@ export function getScenarioData(
     apps: [...apps],
     webhooks,
     bookings: bookings || [],
-  };
+    workflows,
+  } satisfies ScenarioData;
 }
 
 export function enableEmailFeature() {

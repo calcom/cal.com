@@ -22,6 +22,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       team: {
         include: {
           inviteTokens: true,
+          parent: true,
         },
       },
     },
