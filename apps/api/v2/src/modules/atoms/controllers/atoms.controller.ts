@@ -30,7 +30,9 @@ export class UserController {
 
     return {
       status: SUCCESS_STATUS,
-      isKeyValid,
+      data: {
+        isKeyValid,
+      },
     };
   }
 
@@ -44,11 +46,13 @@ export class UserController {
 
     return {
       status: SUCCESS_STATUS,
-      isAccessTokenValid,
+      data: {
+        isAccessTokenValid,
+      },
     };
   }
 }
 
-export type ClientKeyUserReturned = { status: string; isKeyValid: boolean };
-export type AccessTokenUserReturned = { status: string; isAccessTokenValid: boolean };
+export type ClientKeyUserReturned = { isKeyValid: boolean };
+export type AccessTokenUserReturned = { isAccessTokenValid: boolean };
 export type UserReturned = Pick<User, "id" | "email">;
