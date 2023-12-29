@@ -130,21 +130,4 @@ export class GoogleCalendarOAuthController {
 
     return { url: origin };
   }
-
-  @Get("/oauth/check")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard)
-  async check(@GetUser("id") userId: number): Promise<ApiResponse> {
-    const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
-
-    if (!gcalCredentials) {
-      throw new BadRequestException("Credentials for google_calendar not found.");
-    }
-
-    if (gcalCredentials.invalid) {
-      throw new BadRequestException("Invalid google oauth credentials.");
-    }
-
-    return { status: SUCCESS_STATUS };
-  }
 }

@@ -13,7 +13,7 @@ export const GcalConnect: FC = () => {
   const httpClient = getClient();
 
   useEffect(() => {
-    if (!error) httpClient?.get("/apps/gcal/oauth/check").catch(console.error);
+    if (!error) httpClient?.get("/atoms/gcal-connect/check").catch(console.error);
   }, [error]);
 
   if (!clientId || !apiUrl) return <></>;
