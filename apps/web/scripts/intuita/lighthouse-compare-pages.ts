@@ -1,20 +1,23 @@
 import { chromium } from "@playwright/test";
 import fs from "fs";
-// @ts-expect-error type-definition
+// @ts-expect-error type-definitions
 import lighthouse from "lighthouse";
-import { type playwrightLighthouseConfig } from "playwright-lighthouse";
+// @ts-expect-error type-definitions
+import constants from "lighthouse/lighthouse-core/config/constants";
+import yargs from "yargs";
 
-type LighthouseABTestOptions = Readonly<
-  Partial<playwrightLighthouseConfig> & {
-    sessionToken?: string;
-    repeatTimes?: number;
-    includeAudits?: string[];
-  }
->;
+type Preset = "desktop" | "mobile";
+
+type Options = {
+  sessionToken?: string;
+  repeatTimes?: number;
+  preset?: Preset;
+  pages: string[];
+};
 
 const DEFAULT_TEST_COUNT = 3;
 
-const DEFAULT_INCLUDED_AUDITS = [
+const DEFAULT_ONLY_AUDITS = [
   "first-contentful-paint",
   "largest-contentful-paint",
   "first-meaningful-paint",
@@ -22,20 +25,24 @@ const DEFAULT_INCLUDED_AUDITS = [
   "total-blocking-time",
 ];
 
+const PRESET_DESKTOP = {
+  formFactor: "desktop",
+  throttling: constants.throttling.desktopDense4G,
+  screenEmulation: constants.screenEmulationMetrics.desktop,
+  emulatedUserAgent: constants.userAgents.desktop,
+};
+
 const DEFAULT_OPTIONS = {
   port: 9222,
-  opts: {
-    onlyCategories: ["performance"],
-  },
-  thresholds: {
-    performance: 0,
-  },
-  reports: {
-    formats: {
-      json: true,
-    },
-  },
 };
+
+const getConfig = (preset: Preset) => ({
+  extends: "lighthouse:default",
+  settings: {
+    onlyAudits: DEFAULT_ONLY_AUDITS,
+    ...(preset === "desktop" && PRESET_DESKTOP),
+  },
+});
 
 // utils
 const times = async (n: number, cb: (...args: any) => any): Promise<any[]> => {
@@ -62,24 +69,18 @@ const median = (values: number[]): number => {
 
 // test runner
 type Audits = Record<string, number>;
-type TestRunner = (pageUrl: string, options: LighthouseABTestOptions) => Promise<Audits>;
+type TestRunner = (pageUrl: string, options: Options) => Promise<Audits>;
 
-const reportToJSON = (report: any, options: LighthouseABTestOptions) => {
-  const includeAudits = options.includeAudits ?? DEFAULT_INCLUDED_AUDITS;
+const reportToJSON = (report: any) => {
   const parsedReport = JSON.parse(report.report) as { audits: Record<string, { numericValue: number }> };
 
   return Object.entries(parsedReport.audits).reduce<Record<string, number>>((acc, [auditName, audit]) => {
-    if (!includeAudits.includes(auditName)) {
-      return acc;
-    }
-
     acc[auditName] = audit.numericValue;
-
     return acc;
   }, {});
 };
 
-const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: LighthouseABTestOptions) => {
+const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: Options) => {
   const browser = await chromium.launch({
     args: ["--remote-debugging-port=9222"],
     headless: false,
@@ -96,16 +97,13 @@ const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: Lighth
 
   await context.newPage();
 
-  const report = await lighthouse(pageUrl, { ...options, ...DEFAULT_OPTIONS });
-
-  console.log(report, "???");
-
+  const report = await lighthouse(pageUrl, DEFAULT_OPTIONS, getConfig(options.preset ?? "desktop"));
   await browser.close();
 
-  return reportToJSON(report, options);
+  return reportToJSON(report);
 };
 
-const getSeries = async (page: string, options: LighthouseABTestOptions) => {
+const getSeries = async (page: string, options: Options) => {
   const repeatTimes = options.repeatTimes ?? DEFAULT_TEST_COUNT;
 
   const audits = await times(repeatTimes, () => lighthouseTestRunner(page, options));
@@ -146,7 +144,7 @@ const compare = (aggregate1: Record<string, number>, aggregate2: Record<string, 
   return [deltaObj, percentageObj];
 };
 
-const runTests = async (pageUrlPairs: [string, string][], options: LighthouseABTestOptions) => {
+const runTests = async (pageUrlPairs: [string, string][], options: Options) => {
   for (const [pageA, pageB] of pageUrlPairs) {
     const sA = await getSeries(pageA, options);
 
@@ -171,35 +169,31 @@ const BASE_URL = "http://localhost:3000";
 const buildABTestPairs = (pages: string[]) =>
   pages.map((p) => [`${BASE_URL}${p}`, `${BASE_URL}/future${p}`] as [string, string]);
 
-const parseArgs = (args: string[]): { repeatTimes: number; pages: string[]; sessionToken: string } => {
-  let repeatTimes = 5;
-  let pages: string[] = [];
-  let sessionToken = "";
+const run = async () => {
+  const rawArgs = process.argv.slice(2);
 
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--sessionToken" || args[i] === "-s") {
-      sessionToken = args[i + 1];
-      i++;
-    }
-
-    if (args[i] === "--repeatTimes" || args[i] === "-r") {
-      repeatTimes = parseInt(args[i + 1], 10);
-      i++;
-    }
-
-    if (args[i] === "--pages" || args[i] === "-p") {
-      const pagesArgs = args[i + 1].split(",");
-      pages = pages.concat(pagesArgs);
-      i++;
-    }
-  }
-
-  return { repeatTimes, pages, sessionToken };
-};
-
-const run = () => {
-  const args = process.argv.slice(2);
-  const options = parseArgs(args);
+  const options = (await yargs(rawArgs)
+    .option("repeatTimes", {
+      describe: "Number of runs for each page",
+      type: "number",
+      default: 3,
+    })
+    .option("pages", {
+      describe: "Array of page urls",
+      demandOption: true,
+      array: true,
+      type: "string",
+    })
+    .option("sessionToken", {
+      describe: "Session token",
+      type: "string",
+    })
+    .option("preset", {
+      description: "Preset type (desktop or mobile)",
+      type: "string",
+      choices: ["desktop", "mobile"],
+      default: "desktop",
+    }).argv) as Options;
 
   runTests(buildABTestPairs(options.pages), options);
 };
