@@ -24,7 +24,7 @@ export class UserController {
 
     return {
       status: SUCCESS_STATUS,
-      data: { user },
+      data: { id: user.id, email: user.email },
     };
   }
 }
