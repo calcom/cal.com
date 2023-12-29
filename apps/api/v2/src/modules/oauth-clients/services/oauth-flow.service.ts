@@ -1,6 +1,9 @@
+import { TokenExpiredException } from "@/modules/auth/guards/access-token/token-expired.exception";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+
+import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
 
 @Injectable()
 export class OAuthFlowService {
@@ -29,11 +32,11 @@ export class OAuthFlowService {
     const tokenExpiresAt = await this.tokensRepository.getAccessTokenExpiryDate(secret);
 
     if (!tokenExpiresAt) {
-      throw new UnauthorizedException("Access token is invalid or not found");
+      throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
     }
 
     if (new Date() > tokenExpiresAt) {
-      throw new BadRequestException("Token is expired");
+      throw new TokenExpiredException();
     }
 
     return true;

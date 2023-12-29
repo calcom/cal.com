@@ -5,6 +5,8 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 
+import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
+
 class BaseStrategy {
   success!: (user: unknown) => void;
   error!: (error: Error) => void;
@@ -25,25 +27,21 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
       const accessToken = request.get("Authorization")?.replace("Bearer ", "");
 
       if (!accessToken) {
-        throw new UnauthorizedException("Access token is missing or invalid.");
+        throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
-      const valid = this.oauthFlowService.validateAccessToken(accessToken);
-
-      if (!valid) {
-        throw new UnauthorizedException("Access token is missing or invalid.");
-      }
+      this.oauthFlowService.validateAccessToken(accessToken);
 
       const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
       if (!ownerId) {
-        throw new UnauthorizedException("Invalid access token");
+        throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
       const user = await this.userRepository.findById(ownerId);
 
       if (!user) {
-        throw new UnauthorizedException("User associated with the access token not found.");
+        throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
       return this.success(user);
