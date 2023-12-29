@@ -75,7 +75,9 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
    **/
 
   const session = useSession();
-  const locale = session?.data?.user.locale ?? props.pageProps.newLocale;
+
+  const locale =
+    session?.data?.user.locale ?? typeof window !== "undefined" ? window.document.documentElement.lang : "en";
 
   useEffect(() => {
     try {
