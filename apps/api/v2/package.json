@@ -12,11 +12,11 @@
     "dev": "yarn workspace @calcom/platform-constants build:watch & yarn workspace @calcom/platform-utils build:watch & yarn workspace @calcom/platform-types build:watch & nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "test": "jest",
+    "test": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./jest-e2e.json",
+    "test:e2e": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && jest --config ./jest-e2e.json",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format"
   },
