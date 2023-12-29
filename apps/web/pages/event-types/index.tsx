@@ -30,7 +30,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Alert,
-  Avatar,
   Badge,
   Button,
   ButtonGroup,
@@ -72,6 +71,8 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
+import { TeamAvatar } from "@components/ui/avatar/TeamAvatar";
+import { UserAvatar } from "@components/ui/avatar/UserAvatar";
 import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
@@ -83,6 +84,7 @@ interface EventTypeListHeadingProps {
   membershipCount: number;
   teamId?: number | null;
   bookerUrl: string;
+  organizationId: number | null;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -693,6 +695,7 @@ export const EventTypeList = ({
 
 const EventTypeListHeading = ({
   profile,
+  organizationId,
   membershipCount,
   teamId,
   bookerUrl,
@@ -711,13 +714,32 @@ const EventTypeListHeading = ({
 
   return (
     <div className="mb-4 flex items-center space-x-2">
-      <Avatar
-        alt={profile?.name || ""}
-        href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${bookerUrl}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`}
-        size="md"
-        className="mt-1 inline-flex justify-center"
-      />
+      {!teamId ? (
+        <UserAvatar
+          href="/settings/my-account/profile"
+          user={{
+            name: profile.name,
+            username: profile.slug,
+            organizationId,
+          }}
+          size="md"
+          className="mt-1 inline-flex justify-center"
+        />
+      ) : (
+        <TeamAvatar
+          href={`/settings/teams/${teamId}/profile`}
+          team={{
+            name: profile.name || "",
+            // I think profile.slug shouldn't contain team/ prefix for a team because that's a path and not a slug
+            // But we need to handle it for now instead of changing at the source to avoid side effects at other places.
+            slug: profile.slug?.replace(/^team\//, "") || null,
+            organizationId,
+            requestedSlug: profile.requestedSlug || null,
+          }}
+          size="md"
+          className="mt-1 inline-flex justify-center"
+        />
+      )}
       <div>
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
@@ -861,6 +883,7 @@ const Main = ({
                 data-testid={`slug-${group.profile.slug}`}
                 key={group.profile.slug}>
                 <EventTypeListHeading
+                  organizationId={group.organizationId}
                   profile={group.profile}
                   membershipCount={group.metadata.membershipCount}
                   teamId={group.teamId}

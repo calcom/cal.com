@@ -186,10 +186,12 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   type EventTypeGroup = {
     teamId?: number | null;
     parentId?: number | null;
+    organizationId: number | null;
     bookerUrl: string;
     membershipRole?: MembershipRole | null;
     profile: {
       slug: (typeof user)["username"];
+      requestedSlug?: string | null;
       name: (typeof user)["name"];
       image: string;
     };
@@ -212,6 +214,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       teamId: null,
       bookerUrl,
       membershipRole: null,
+      organizationId: user.organizationId,
       profile: {
         slug: user.username,
         name: user.name,
@@ -272,6 +275,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         }
         return {
           teamId: team.id,
+          organizationId: team.parentId,
           parentId: team.parentId,
           bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? null),
           membershipRole:
@@ -285,6 +289,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
               organizationId: team.parentId,
             }),
             name: team.name,
+            requestedSlug: team.metadata?.requestedSlug ?? null,
             slug,
           },
           metadata: {

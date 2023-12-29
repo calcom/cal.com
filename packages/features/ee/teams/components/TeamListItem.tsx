@@ -5,7 +5,6 @@ import { useState } from "react";
 import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSettingsModal";
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,7 +12,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Avatar,
   Badge,
   Button,
   ButtonGroup,
@@ -41,6 +39,8 @@ import {
   Trash,
   X,
 } from "@calcom/ui/components/icon";
+
+import { TeamAvatar } from "@components/ui/avatar/TeamAvatar";
 
 import { useOrgBranding } from "../../organizations/context/provider";
 import { TeamRole } from "./TeamPill";
@@ -97,10 +97,14 @@ export default function TeamListItem(props: Props) {
 
   const teamInfo = (
     <div className="item-center flex px-5 py-5">
-      <Avatar
+      <TeamAvatar
         size="md"
-        imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
-        alt="Team Logo"
+        team={{
+          name: team.name,
+          slug: team.slug,
+          organizationId: team.parentId,
+          requestedSlug: team.requestedSlug || null,
+        }}
         className="inline-flex justify-center"
       />
       <div className="ms-3 inline-block truncate">

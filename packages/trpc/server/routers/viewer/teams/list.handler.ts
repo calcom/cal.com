@@ -30,14 +30,25 @@ export const listHandler = async ({ ctx }: ListOptions) => {
   });
 
   return memberships
-    .filter((mmship) => {
+    .map((mmship) => {
       const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-      return !metadata?.isOrganization;
+      mmship.team.metadata = metadata;
+      return {
+        ...mmship,
+        team: {
+          ...mmship.team,
+          metadata,
+        },
+      };
+    })
+    .filter((mmship) => {
+      return !mmship.team.metadata?.isOrganization;
     })
     .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
       ..._team,
+      requestedSlug: _team.metadata?.requestedSlug,
       /** To prevent breaking we only return non-email attached token here, if we have one */
       inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
     }));

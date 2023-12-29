@@ -100,6 +100,22 @@ async function getIdentityData(req: NextApiRequest) {
       avatar: getPlaceholderAvatar(org?.logo, org?.name),
     };
   }
+
+  // If just orgId is specified, we return the org avatar
+  if (orgId) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id: orgId,
+      },
+    });
+
+    return {
+      org: org?.slug,
+      name: org?.name,
+      email: null,
+      avatar: getPlaceholderAvatar(org?.logo, org?.name),
+    };
+  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

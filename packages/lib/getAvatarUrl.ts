@@ -29,6 +29,11 @@ export function getTeamAvatarUrl(
   if (team.logoUrl) {
     return team.logoUrl;
   }
+
+  if (team.organizationId) {
+    // For an organization, all it's teams have the same logo as the organization
+    return `${WEBAPP_URL}/api/user/avatar?orgId=${team.organizationId}`;
+  }
   const slug = team.slug ?? team.requestedSlug;
   return `${WEBAPP_URL}/team/${slug}/avatar.png${team.organizationId ? `?orgId=${team.organizationId}` : ""}`;
 }
