@@ -18,7 +18,7 @@
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "lighthouse-compare-pages": "ts-node scripts/lighthouse-compare-pages.ts"
+    "intuita:perf": "ts-node scripts/intuita/lighthouse-compare-pages.ts"
   },
   "engines": {
     "node": "18",

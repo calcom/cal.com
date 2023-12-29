@@ -1,6 +1,8 @@
 import { chromium } from "@playwright/test";
 import fs from "fs";
-import { playAudit, type playwrightLighthouseConfig } from "playwright-lighthouse";
+// @ts-expect-error type-definition
+import lighthouse from "lighthouse";
+import { type playwrightLighthouseConfig } from "playwright-lighthouse";
 
 type LighthouseABTestOptions = Readonly<
   Partial<playwrightLighthouseConfig> & {
@@ -92,15 +94,11 @@ const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: Lighth
     },
   ]);
 
-  const page = await context.newPage();
+  await context.newPage();
 
-  await page.goto(pageUrl);
+  const report = await lighthouse(pageUrl, { ...options, ...DEFAULT_OPTIONS });
 
-  const report = await playAudit({
-    page,
-    ...options,
-    ...DEFAULT_OPTIONS,
-  });
+  console.log(report, "???");
 
   await browser.close();
 
@@ -168,7 +166,7 @@ const runTests = async (pageUrlPairs: [string, string][], options: LighthouseABT
   }
 };
 
-const BASE_URL = "localhost:3000";
+const BASE_URL = "http://localhost:3000";
 
 const buildABTestPairs = (pages: string[]) =>
   pages.map((p) => [`${BASE_URL}${p}`, `${BASE_URL}/future${p}`] as [string, string]);
