@@ -7,7 +7,10 @@ import "@calcom/platform-atoms/dist/globals.min.css";
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <div>
-      <CalProvider apiKey="1234">
+      <CalProvider
+        accessToken="12qwsedweqdf"
+        clientId="clqqg5iww0001336q05lhocns"
+        options={{ apiUrl: "http://localhost:5555/api/v2" }}>
         <Component {...pageProps} />
       </CalProvider>{" "}
     </div>
