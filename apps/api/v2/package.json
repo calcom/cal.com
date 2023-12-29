@@ -12,11 +12,11 @@
     "dev": "yarn workspace @calcom/platform-constants build:watch & yarn workspace @calcom/platform-utils build:watch & yarn workspace @calcom/platform-types build:watch & nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "test": "jest",
+    "test": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./jest-e2e.json",
+    "test:e2e": "yarn workspace @calcom/platform-constants build && yarn workspace @calcom/platform-utils build && yarn workspace @calcom/platform-types build && jest --config ./jest-e2e.json",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format"
   },
@@ -39,6 +39,7 @@
     "class-validator": "^0.14.0",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.3.1",
+    "googleapis": "^129.0.0",
     "helmet": "^7.1.0",
     "luxon": "^3.4.4",
     "nest-winston": "^1.9.4",
@@ -48,7 +49,8 @@
     "prisma": "^5.6.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
