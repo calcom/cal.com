@@ -2,6 +2,7 @@ import { getEnv } from "@/env";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { SentryFilter } from "@/filters/sentry-exception.filter";
+import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, RequestMethod, ValidationPipe, VersioningType } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
@@ -51,6 +52,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new SentryFilter(httpAdapter));
   app.useGlobalFilters(new PrismaExceptionFilter());
+  app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.setGlobalPrefix("api", {

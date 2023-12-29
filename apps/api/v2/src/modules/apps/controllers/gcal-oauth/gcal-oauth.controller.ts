@@ -21,9 +21,15 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { google } from "googleapis";
+import { z } from "zod";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiRedirectResponseType, ApiResponse } from "@calcom/platform-types";
+
+const CALENDAR_SCOPES = [
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/calendar.events",
+];
 
 @Controller({
   path: "apps/gcal",
@@ -44,24 +50,22 @@ export class GoogleCalendarOAuthController {
   @Redirect(undefined, 301)
   @UseGuards(AccessTokenGuard)
   async redirect(@Req() req: Request): Promise<ApiRedirectResponseType> {
-    const scopes = [
-      "https://www.googleapis.com/auth/calendar.readonly",
-      "https://www.googleapis.com/auth/calendar.events",
-    ];
     const app = await this.appRepository.getAppBySlug("google-calendar");
+
     if (!app) {
       throw new NotFoundException();
     }
-    const keys = app.keys as { client_id?: string; client_secret?: string };
-    if (!keys.client_id) throw new BadRequestException("Missing google calendar client_id.");
-    if (!keys.client_secret) throw new BadRequestException("Missing google calendar secret.");
+
+    const { client_id, client_secret } = z
+      .object({ client_id: z.string(), client_secret: z.string() })
+      .parse(app.keys);
     const redirect_uri = `${this.config.get("api.url")}/apps/gcal/oauth/save`;
-    const oAuth2Client = new google.auth.OAuth2(keys.client_id, keys.client_secret, redirect_uri);
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
     const accessToken = req.get("Authorization")?.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
-      scope: scopes,
+      scope: CALENDAR_SCOPES,
       prompt: "consent",
       state: `accessToken=${accessToken}&origin=${origin}`,
     });
@@ -73,25 +77,15 @@ export class GoogleCalendarOAuthController {
   @HttpCode(HttpStatus.OK)
   async save(@Query("state") state: string, @Query("code") code: string): Promise<ApiRedirectResponseType> {
     const stateParams = new URLSearchParams(state);
-    const accessToken = stateParams.get("accessToken");
-    const origin = stateParams.get("origin");
-
-    if (!code || typeof code !== "string") {
-      throw new BadRequestException("Code must be a valid string");
-    }
-
-    if (!accessToken) {
-      throw new UnauthorizedException("Access token missing.");
-    }
+    const { accessToken, origin } = z
+      .object({ accessToken: z.string(), origin: z.string() })
+      .parse(stateParams);
+    const parsedCode = z.string().parse(code);
 
     const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
     if (!ownerId) {
-      throw new UnauthorizedException("Access token invalid.");
-    }
-
-    if (!origin) {
-      throw new BadRequestException("Missing request origin.");
+      throw new UnauthorizedException("Invalid Access token.");
     }
 
     const app = await this.appRepository.getAppBySlug("google-calendar");
@@ -100,14 +94,12 @@ export class GoogleCalendarOAuthController {
       throw new NotFoundException();
     }
 
-    const keys = app.keys as { client_id?: string; client_secret?: string };
-
-    if (!keys.client_id) throw new BadRequestException("Missing google calendar client_id.");
-    if (!keys.client_secret) throw new BadRequestException("Missing google calendar secret.");
-
+    const { client_id, client_secret } = z
+      .object({ client_id: z.string(), client_secret: z.string() })
+      .parse(app.keys);
     const redirect_uri = `${this.config.get("api.url")}/apps/gcal/oauth/save`;
-    const oAuth2Client = new google.auth.OAuth2(keys.client_id, keys.client_secret, redirect_uri);
-    const token = await oAuth2Client.getToken(code);
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+    const token = await oAuth2Client.getToken(parsedCode);
     const key = token.res?.data;
     const credential = await this.credentialRepository.createAppCredential(
       "google_calendar",
@@ -146,13 +138,13 @@ export class GoogleCalendarOAuthController {
     const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
 
     if (!gcalCredentials) {
-      throw new BadRequestException();
+      throw new BadRequestException("Credentials for google_calendar not found.");
     }
 
     if (gcalCredentials.invalid) {
       throw new BadRequestException("Invalid google oauth credentials.");
     }
 
-    return { status: SUCCESS_STATUS, data: undefined };
+    return { status: SUCCESS_STATUS };
   }
 }

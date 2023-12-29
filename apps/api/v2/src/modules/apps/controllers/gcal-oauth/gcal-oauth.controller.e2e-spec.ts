@@ -104,7 +104,7 @@ describe("OAuth Gcal App Endpoints", () => {
       .get(
         `/api/v2/apps/gcal/oauth/save?state=origin%3Dhttp://localhost:5555&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
-      .expect(401);
+      .expect(400);
   });
 
   it(`/GET/apps/gcal/oauth/save: without origin`, async () => {
