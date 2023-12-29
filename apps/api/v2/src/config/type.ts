@@ -4,6 +4,8 @@ export type AppConfig = {
   };
   api: {
     port: number;
+    path: string;
+    url: string;
   };
   db: {
     readUrl: string;
