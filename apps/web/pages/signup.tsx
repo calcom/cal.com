@@ -469,32 +469,30 @@ export default function Signup({
           </div>
         </div>
         <div className="border-muted mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl bg-[radial-gradient(162.05%_170%_at_109.58%_35%,_rgba(102,_117,_147,_0.7)_0%,_rgba(212,_212,_213,_0.4)_100%)] pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
-          {!IS_CALCOM && (
-            <div className="mb-12 mr-12 grid w-full grid-cols-3 gap-3 lg:grid-cols-4">
-              <div>
-                <img
-                  src="/product-cards/trustpilot.svg"
-                  className="block h-[54px] w-full dark:hidden"
-                  alt="Trustpilot Rating of 4.7 Stars"
-                />
-                <img
-                  src="/product-cards/trustpilot-dark.svg"
-                  className="hidden h-[54px] w-full dark:block"
-                  alt="Trustpilot Rating of 4.7 Stars"
-                />
-              </div>
-              <div>
-                <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="G2 Rating of 4.7 Stars" />
-              </div>
-              <div>
-                <img
-                  src="/product-cards/producthunt.svg"
-                  className="h-[54px] w-full"
-                  alt="G2 Rating of 4.7 Stars"
-                />
-              </div>
+          <div className="mb-12 mr-12 grid w-full grid-cols-3 gap-3 lg:grid-cols-4">
+            <div>
+              <img
+                src="/product-cards/trustpilot.svg"
+                className="block h-[54px] w-full dark:hidden"
+                alt="Trustpilot Rating of 4.7 Stars"
+              />
+              <img
+                src="/product-cards/trustpilot-dark.svg"
+                className="hidden h-[54px] w-full dark:block"
+                alt="Trustpilot Rating of 4.7 Stars"
+              />
             </div>
-          )}
+            <div>
+              <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="G2 Rating of 4.7 Stars" />
+            </div>
+            <div>
+              <img
+                src="/product-cards/producthunt.svg"
+                className="h-[54px] w-full"
+                alt="G2 Rating of 4.7 Stars"
+              />
+            </div>
+          </div>
           <div
             className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border-dashed lg:block lg:py-[6px] lg:pl-[6px]"
             style={{
@@ -505,7 +503,7 @@ export default function Signup({
           <div className="mr-12 mt-8 h-full w-full grid-cols-3 gap-4 overflow-hidden sm:grid">
             {FEATURES.map((feature) => (
               <>
-                <div className="max-w-52 mb-8 flex flex-col leading-none">
+                <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
                   <div className="text-emphasis items-center">
                     <feature.icon className="mb-1 h-4 w-4" />
                     <span className="text-sm font-medium">{t(feature.title)}</span>
