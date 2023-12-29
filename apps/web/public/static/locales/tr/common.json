@@ -941,8 +941,6 @@
   "enterprise_license_description": "Bu özelliği etkinleştirmek için {{consoleUrl}} konsolundan bir dağıtım anahtarı alın ve bunu .env dosyanıza CALCOM_LICENSE_KEY olarak ekleyin. Ekibinizin zaten bir lisansı varsa yardım için lütfen {{supportMail}} adresinden iletişime geçin.",
   "enterprise_license_development": "Bu özelliği, geliştirme modunda deneyebilirsiniz. Üretim kullanımı için lütfen bir yöneticinin lisans anahtarını girmesi için <2>/auth/setup</2> adımlarını izlemesini sağlayın.",
   "missing_license": "Eksik Lisans",
-  "signup_requires": "Ticari lisans gerekli",
-  "signup_requires_description": "{{companyName}} şu anda kayıt sayfasının ücretsiz, açık kaynaklı bir sürümünü sunmamaktadır. Kayıt bileşenlerine tam erişim elde etmek için ticari bir lisans almanız gerekiyor. Kişisel kullanım için hesap oluşturmak üzere Prisma Data veya başka bir Postgres arayüzü öneriyoruz.",
   "next_steps": "Sonraki Adımlar",
   "acquire_commercial_license": "Ticari bir lisans edinin",
   "the_infrastructure_plan": "Altyapı planı kullanıma dayalıdır ve yeni başlayanlar için uygun indirimlere sahiptir.",
