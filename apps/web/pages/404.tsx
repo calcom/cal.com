@@ -256,7 +256,7 @@ export default function Custom404() {
               </li>
             </ul>
             <div className="mt-8">
-              <Link href="/" className="hover:text-subtle text-emphasis text-base font-medium">
+              <Link href={WEBSITE_URL} className="hover:text-subtle text-emphasis text-base font-medium">
                 {t("or_go_back_home")}
                 <span aria-hidden="true"> &rarr;</span>
               </Link>
