@@ -112,7 +112,7 @@ export default function Custom404() {
             </div>
             <div className="mt-12">
               <div className="mt-8">
-                <Link href="/" className="text-base font-medium text-black hover:text-gray-500">
+                <Link href={WEBSITE_URL} className="text-base font-medium text-black hover:text-gray-500">
                   {t("or_go_back_home")}
                   <span aria-hidden="true"> &rarr;</span>
                 </Link>
