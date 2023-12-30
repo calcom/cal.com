@@ -668,7 +668,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.isOrganization || tokenTeam?.parentId !== null;
+  const isOrganization = tokenTeam.isOrganization;
   const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganizationOrATeamInOrganization
@@ -684,7 +684,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = isOrganization && !isValidEmail;
+  const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
   const parentMetaDataForSubteam = tokenTeam?.parent?.organizationSettings ?? null;
 
   return {
