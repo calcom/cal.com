@@ -23,8 +23,8 @@ function VerifyEmailPage() {
     if (data?.isVerified) {
       router.replace("/getting-started");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.isVerified]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data?.isVerified, router]);
 
   useEffect(() => {
     const checkContent = async () => {
