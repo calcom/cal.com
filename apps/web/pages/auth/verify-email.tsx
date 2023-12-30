@@ -24,7 +24,7 @@ function VerifyEmailPage() {
       router.replace("/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data?.isVerified, router]);
+  }, [data?.isVerified, router]);
 
   useEffect(() => {
     const checkContent = async () => {
@@ -49,7 +49,6 @@ function VerifyEmailPage() {
       </div>
     );
   }
-
 
   return (
     <div className="h-[100vh] w-full ">
