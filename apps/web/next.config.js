@@ -572,6 +572,8 @@ if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   nextConfig["sentry"] = {
     autoInstrumentServerFunctions: true,
     hideSourceMaps: true,
+    // disable source map generation for the server code
+    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
   };
 
   plugins.push(withSentryConfig);
