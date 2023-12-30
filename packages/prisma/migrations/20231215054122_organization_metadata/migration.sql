@@ -19,7 +19,7 @@ CREATE TABLE "OrganizationSettings" (
 CREATE UNIQUE INDEX "OrganizationSettings_teamId_key" ON "OrganizationSettings"("teamId");
 
 -- AddForeignKey
-ALTER TABLE "OrganizationSettings" ADD CONSTRAINT "OrganizationSettings_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrganizationSettings" ADD CONSTRAINT "OrganizationSettings_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Set team field to notify if it is an organization -> Easier than metadata.parse(X).isOrganization
 UPDATE "Team"

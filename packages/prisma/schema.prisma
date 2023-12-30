@@ -323,7 +323,7 @@ model Team {
 
 model OrganizationSettings {
   id                       Int     @id @default(autoincrement())
-  team                     Team    @relation(fields: [teamId], references: [id])
+  team                     Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                   Int     @unique
   isOrganizationConfigured Boolean @default(false)
   isOrganizationVerified   Boolean @default(false)
