@@ -1,7 +1,7 @@
 import { MailOpenIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,13 +17,38 @@ function VerifyEmailPage() {
   const router = useRouter();
   const { t } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const [isContentLoaded, setIsContentLoaded] = useState(false);
 
   useEffect(() => {
     if (data?.isVerified) {
       router.replace("/getting-started");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.isVerified]);
+  }, [data?.isVerified, router]);
+
+  useEffect(() => {
+    const checkContent = async () => {
+      // making sure their value is not the default
+      const verifyEmailPageBody = await t("verify_email_page_body", {
+        email: session?.user?.email,
+        appName: APP_NAME,
+      });
+
+      if (verifyEmailPageBody !== "verify_email_page_body") {
+        setIsContentLoaded(true);
+      }
+    };
+
+    checkContent();
+  }, [t, session?.user?.email]);
+
+  if (!isContentLoaded) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        {/* You can render a loading indicator here */}
+      </div>
+    );
+  }
+
 
   return (
     <div className="h-[100vh] w-full ">
