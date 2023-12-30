@@ -19,7 +19,14 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  URL_PROTOCOL_REGEX,
+  IS_CALCOM,
+  IS_SELF_HOSTED,
+  WEBAPP_URL,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -253,7 +260,7 @@ export default function Signup({
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
-        <div className="flex w-full flex-col px-4 pt-6 sm:px-16 md:px-20 2xl:px-28">
+        <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
@@ -273,7 +280,7 @@ export default function Signup({
             )}
           </div>
           {/* Form Container */}
-          <div className="mt-10">
+          <div className="mt-12">
             <Form
               className="flex flex-col gap-4"
               form={formMethods}
@@ -301,8 +308,8 @@ export default function Signup({
                   setPremium={(value) => setPremiumUsername(value)}
                   addOnLeading={
                     orgSlug
-                      ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
-                      : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                      ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(URL_PROTOCOL_REGEX, "")}/`
+                      : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
                   }
                 />
               ) : null}
@@ -461,54 +468,86 @@ export default function Signup({
             </div>
           </div>
         </div>
-        <div
-          className="border-subtle hidden w-full flex-col justify-between rounded-l-2xl border py-12 pl-12 lg:flex"
-          style={{
-            background:
-              "radial-gradient(162.05% 170% at 109.58% 35%, rgba(102, 117, 147, 0.7) 0%, rgba(212, 212, 213, 0.4) 100%) ",
-          }}>
+        <div className="border-muted mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl bg-[radial-gradient(162.05%_170%_at_109.58%_35%,_rgba(102,_117,_147,_0.7)_0%,_rgba(212,_212,_213,_0.4)_100%)] pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
           {IS_CALCOM && (
-            <div className="mb-12 mr-12 grid h-full w-full grid-cols-4 gap-4 ">
-              <div className="">
-                <img src="/product-cards/trustpilot.svg" className="h-[54px] w-full" alt="#" />
+            <>
+              <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-3 lg:grid-cols-4">
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-day.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Day at ProductHunt"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-week.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Week at ProductHunt"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-month.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Month at ProductHunt"
+                  />
+                </div>
               </div>
-              <div>
-                <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="#" />
+              <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-3 lg:grid-cols-4">
+                <div>
+                  <img
+                    src="/product-cards/producthunt.svg"
+                    className="h-[54px] w-full"
+                    alt="ProductHunt Rating of 5 Stars"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/trustpilot.svg"
+                    className="block h-[54px] w-full dark:hidden"
+                    alt="Trustpilot Rating of 4.7 Stars"
+                  />
+                  <img
+                    src="/product-cards/trustpilot-dark.svg"
+                    className="hidden h-[54px] w-full dark:block"
+                    alt="Trustpilot Rating of 4.7 Stars"
+                  />
+                </div>
+                <div>
+                  <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="G2 Rating of 4.7 Stars" />
+                </div>
               </div>
-              <div>
-                <img src="/product-cards/producthunt.svg" className="h-[54px] w-full" alt="#" />
-              </div>
-            </div>
+            </>
           )}
           <div
-            className="border-default rounded-bl-2xl rounded-br-none rounded-tl-2xl border-dashed py-[6px] pl-[6px]"
+            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border-dashed lg:block lg:py-[6px] lg:pl-[6px]"
             style={{
               backgroundColor: "rgba(236,237,239,0.9)",
             }}>
-            <img src="/mock-event-type-list.svg" alt="#" className="" />
+            <img src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
           </div>
-          <div className="mr-12 mt-8 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
-            {!IS_CALCOM &&
-              FEATURES.map((feature) => (
-                <>
-                  <div className="flex flex-col leading-none">
-                    <div className="text-emphasis items-center">
-                      <feature.icon className="mb-1 h-4 w-4" />
-                      <span className="text-sm font-medium">{t(feature.title)}</span>
-                    </div>
-                    <div className="text-subtle text-sm">
-                      <p>
-                        {t(
-                          feature.description,
-                          feature.i18nOptions && {
-                            ...feature.i18nOptions,
-                          }
-                        )}
-                      </p>
-                    </div>
+          <div className="mr-12 mt-8 h-full w-full grid-cols-3 gap-4 overflow-hidden sm:grid">
+            {FEATURES.map((feature) => (
+              <>
+                <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="text-emphasis items-center">
+                    <feature.icon className="mb-1 h-4 w-4" />
+                    <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
-                </>
-              ))}
+                  <div className="text-subtle text-sm">
+                    <p>
+                      {t(
+                        feature.description,
+                        feature.i18nOptions && {
+                          ...feature.i18nOptions,
+                        }
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ))}
           </div>
         </div>
       </div>
