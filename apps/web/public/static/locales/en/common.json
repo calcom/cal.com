@@ -972,8 +972,6 @@
   "enterprise_license_description": "To enable this feature, have an administrator go to <2>/auth/setup</2> to enter a license key. If a license key is already in place, please contact <5>{{SUPPORT_MAIL_ADDRESS}}</5> for help.",
   "enterprise_license_development": "You can test this feature on development mode. For production usage please have an administrator go to <2>/auth/setup</2> to enter a license key.",
   "missing_license": "Missing License",
-  "signup_requires": "Commercial license required",
-  "signup_requires_description": "{{companyName}} currently does not offer a free open source version of the sign up page. To receive full access to the signup components you need to acquire a commercial license. For personal use we recommend the Prisma Data Platform or any other Postgres interface to create accounts.",
   "next_steps": "Next Steps",
   "acquire_commercial_license": "Acquire a commercial license",
   "the_infrastructure_plan": "The infrastructure plan is usage-based and has startup-friendly discounts.",

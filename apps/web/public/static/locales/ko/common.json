@@ -941,8 +941,6 @@
   "enterprise_license_description": "이 기능을 활성화하려면 {{consoleUrl}} 콘솔에서 배포 키를 가져와 .env에 CALCOM_LICENSE_KEY로 추가하세요. 팀에 이미 라이선스가 있는 경우 {{supportMail}}에 문의하여 도움을 받으세요.",
   "enterprise_license_development": "개발 모드에서 이 기능을 테스트할 수 있습니다. 프로덕션 용도의 경우 관리자가 <2>/auth/setup</2>으로 이동하여 라이선스 키를 입력하도록 하십시오.",
   "missing_license": "라이선스 없음",
-  "signup_requires": "상용 라이선스 필요",
-  "signup_requires_description": "지금은 {{companyName}}에서 가입 페이지의 무료 오픈 소스 버전을 제공하지 않습니다. 가입 구성 요소에 대한 정식 액세스 권한을 받으려면 상용 라이선스를 취득해야 합니다. 개인 용도의 경우 Prisma Data Platform 또는 기타 Postgres 인터페이스를 사용하여 계정을 생성하는 것이 좋습니다.",
   "next_steps": "다음 단계",
   "acquire_commercial_license": "상용 라이선스 취득하기",
   "the_infrastructure_plan": "인프라 플랜은 사용량 기반이고 스타트업 위주의 할인을 제공합니다.",
