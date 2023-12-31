@@ -24,7 +24,7 @@ function VerifyEmailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.isVerified]);
-if (!isLocaleReady) {return null;}
+  if (!isLocaleReady) {return null;}
   return (
     <div className="h-[100vh] w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
