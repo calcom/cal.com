@@ -15,7 +15,7 @@ function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
   const { data: session } = useSession();
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady  } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
   const [isContentLoaded, setIsContentLoaded] = useState(false);
 
@@ -24,6 +24,7 @@ function VerifyEmailPage() {
       router.replace("/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+<<<<<<< HEAD
   }, [data?.isVerified, router]);
 
   useEffect(() => {
@@ -50,6 +51,13 @@ function VerifyEmailPage() {
     );
   }
 
+=======
+  }, [data?.isVerified]);
+  //unless Locale is loaded render nuffin
+  if (!isLocaleReady) {
+    return null; 
+  }
+>>>>>>> 4a0b9ddba (civilized-code-of-same-previous-approach)
   return (
     <div className="h-[100vh] w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
