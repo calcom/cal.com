@@ -53,11 +53,15 @@ function VerifyEmailPage() {
 
 =======
   }, [data?.isVerified]);
+<<<<<<< HEAD
   //unless Locale is loaded render nuffin
   if (!isLocaleReady) {
     return null; 
   }
 >>>>>>> 4a0b9ddba (civilized-code-of-same-previous-approach)
+=======
+
+>>>>>>> 62f7c99ba (civilized-changes-of-same-approach)
   return (
     <div className="h-[100vh] w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
