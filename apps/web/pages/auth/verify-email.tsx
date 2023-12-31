@@ -24,9 +24,9 @@ function VerifyEmailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.isVerified]);
-// unless isLocaleReady is ready render nuffin
-  if (!isLocaleReady) {
-    return null; 
+    // unless isLocaleReady is ready render nuffin
+    if (!isLocaleReady) {
+      return null; 
   }
   return (
     <div className="h-[100vh] w-full ">
