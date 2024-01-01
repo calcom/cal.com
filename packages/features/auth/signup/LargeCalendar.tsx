@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -8,34 +8,44 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 export const LargeCalendar = ({
   extraDays,
   showFakeEvents,
+  allRoundedCorners,
+  startDate,
+  endDate,
+  availableTimeslots = {},
 }: {
   extraDays: number;
   showFakeEvents: boolean;
+  allRoundedCorners?: boolean;
+  startDate: Date;
+  endDate: Date;
+  availableTimeslots: CalendarAvailableTimeslots;
 }) => {
   const eventDuration = 30;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const availableSlots = useMemo(() => {
-    const availableTimeslots: CalendarAvailableTimeslots = {};
+    console.log(availableTimeslots);
+    return availableTimeslots || {};
+  }, [availableTimeslots]);
 
-    // if (showFakeEvents) {
-    //   availableTimeslots = {
-    //     "2024-01-01": [
-    //       {
-    //         start: dayjs("2024-01-01T14:00:00.000Z").toDate(),
-    //         end: dayjs("2024-01-15:00:00.000Z").add(eventDuration, "minutes").toDate(),
-    //       },
-    //     ],
-    //   };
-    // }
+  // const availableSlots = useMemo(() => {
+  //   let availableTimeslots: CalendarAvailableTimeslots = {};
 
-    return availableTimeslots;
-  }, [eventDuration, showFakeEvents]);
+  //   availableTimeslots = {
+  //     "2024-01-01": [
+  //       {
+  //         start: dayjs("2024-01-01T04:00:00.000Z").toDate(),
+  //         end: dayjs("2024-01-01T04:00:00.000Z").add(eventDuration, "minutes").toDate(),
+  //       },
+  //       {
+  //         start: dayjs("2024-01-01T05:00:00.000Z").toDate(),
+  //         end: dayjs("2024-01-01T05:00:00.000Z").add(eventDuration, "minutes").toDate(),
+  //       },
+  //     ],
+  //   };
 
-  const startDate = dayjs().toDate();
-  const endDate = dayjs(startDate)
-    .add(extraDays - 1, "day")
-    .toDate();
+  //   return availableTimeslots;
+  // }, [eventDuration, showFakeEvents]);
 
   // const overlayEventsForDate = useMemo(() => {
   //   if (!overlayEvents || !displayOverlay) return [];
@@ -70,9 +80,9 @@ export const LargeCalendar = ({
 
   return (
     <div
-      className="w-full overflow-auto rounded-l-2xl"
+      className={`w-full overflow-auto ${allRoundedCorners ? "rounded-2xl" : "rounded-l-2xl"}`}
       style={{
-        maxHeight: "calc(100vh - 6rem)",
+        maxHeight: `calc(100vh - ${allRoundedCorners ? "26rem" : "6rem"})`,
       }}>
       <Calendar
         isLoading={false}

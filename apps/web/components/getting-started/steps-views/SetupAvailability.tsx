@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { Schedule } from "@calcom/features/schedules";
@@ -12,6 +13,7 @@ import { ArrowRight } from "@calcom/ui/components/icon";
 interface ISetupAvailabilityProps {
   nextStep: () => void;
   defaultScheduleId?: number | null;
+  onAvailabilityChanged: () => void;
 }
 
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
@@ -44,6 +46,41 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   };
   const createSchedule = trpc.viewer.availability.schedule.create.useMutation(mutationOptions);
   const updateSchedule = trpc.viewer.availability.schedule.update.useMutation(mutationOptions);
+
+  const { watch } = availabilityForm;
+  const mondayWatchedValue = watch("schedule.1");
+  const tuesdayWatchedValue = watch("schedule.2");
+  const wednesdayWatchedValue = watch("schedule.3");
+  const thursdayWatchedValue = watch("schedule.4");
+  const fridayWatchedValue = watch("schedule.5");
+  const saturdayWatchedValue = watch("schedule.6");
+  const sundayWatchedValue = watch("schedule.0");
+  // TODO: watch all fields
+  // const watchAllFeilds = watch();
+
+  useEffect(() => {
+    const { onAvailabilityChanged } = props;
+    onAvailabilityChanged(
+      mondayWatchedValue,
+      tuesdayWatchedValue,
+      wednesdayWatchedValue,
+      thursdayWatchedValue,
+      fridayWatchedValue,
+      saturdayWatchedValue,
+      sundayWatchedValue
+    );
+
+    console.log(sundayWatchedValue);
+  }, [
+    mondayWatchedValue,
+    tuesdayWatchedValue,
+    wednesdayWatchedValue,
+    thursdayWatchedValue,
+    fridayWatchedValue,
+    saturdayWatchedValue,
+    sundayWatchedValue,
+  ]);
+
   return (
     <Form
       className="bg-default dark:text-inverted text-emphasis w-full [--cal-brand-accent:#fafafa] dark:bg-opacity-5"

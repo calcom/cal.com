@@ -12,15 +12,7 @@ export const defaultDayRange: TimeRange = {
   end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
 };
 
-export const DEFAULT_SCHEDULE: Schedule = [
-  [],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [defaultDayRange],
-  [],
-];
+export const DEFAULT_SCHEDULE: Schedule = [[], [], [], [], [], [], []];
 
 export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] {
   return schedule.reduce((availability: Availability[], times: TimeRange[], day: number) => {
