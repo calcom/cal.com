@@ -25,7 +25,7 @@ import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
-import { Loader } from "@calcom/ui/components/icon";
+import { Loader, Timer, User } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
@@ -553,20 +553,55 @@ const OnboardingPage = (props) => {
               <div
                 className="flex min-h-full items-end justify-end rounded-l-2xl ps-8 pt-8"
                 style={{ backgroundColor: "grey" }}>
-                <div className="min-h-screen min-w-full rounded-l-xl bg-white p-3">
-                  <OrganizationMemberAvatar size="lg" user={user} previewSrc={imageSrc} organization={null} />
+                <div className="bg-subtle min-h-screen min-w-full rounded-l-xl">
+                  <div className="item-center mb-16 mt-24 flex flex-col items-center justify-center">
+                    <OrganizationMemberAvatar
+                      size="lg"
+                      user={user}
+                      previewSrc={imageSrc}
+                      organization={null}
+                      className="mb-4"
+                    />
+                    <div className="min-h-8 text-default text-3xl font-bold">{fullName}</div>
+                    <div className="min-h-4 text-subtle text-xl">{bio}</div>
+                  </div>
 
-                  <div className="text-slate-800">{bio}</div>
+                  <div className="ml-24">
+                    {fakeMeetings.map((meet, index) => {
+                      return (
+                        <div key={index} className="border-subtle bg-default border p-6 dark:bg-black">
+                          <div className="text-default display-inline">
+                            <span className="font-bold">{meet.title}</span> {meet.slug}
+                          </div>
 
-                  {fakeMeetings.map((meet, index) => {
-                    return (
-                      <div key={index}>
-                        <div className="text-slate-600">{meet.title}</div>;
-                        <div className="text-slate-600">{meet.slug}</div>;
-                        <div className="text-slate-600">{meet.description}</div>;
-                      </div>
-                    );
-                  })}
+                          <div className="text-default">{meet.description}</div>
+
+                          <div className="mt-2 flex">
+                            <Button
+                              color="secondary"
+                              variant="icon"
+                              className="mr-2"
+                              StartIcon={Timer}
+                              onClick={() => {
+                                // showToast(t("link_copied"), "success");
+                              }}>
+                              60 m
+                            </Button>
+
+                            <Button
+                              color="secondary"
+                              variant="icon"
+                              StartIcon={User}
+                              onClick={() => {
+                                // showToast(t("link_copied"), "success");
+                              }}>
+                              1-on-1
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </>
