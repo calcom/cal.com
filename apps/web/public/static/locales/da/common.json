@@ -801,8 +801,6 @@
   "enterprise_license": "Dette er en virksomhedsfunktion",
   "enterprise_license_description": "For at aktivere denne funktion, skal du gå til {{setupUrl}} for at indtaste en licensnøgle. Hvis en licensnøgle allerede er på plads, bedes du kontakte {{supportMail}} for hjælp.",
   "missing_license": "Manglende Licens",
-  "signup_requires": "Erhvervsmæssig licens kræves",
-  "signup_requires_description": "{{companyName}} tilbyder i øjeblikket ikke en gratis open source version af tilmeldingssiden. For at modtage fuld adgang til tilmeldingskomponenterne skal du erhverve en kommerciel licens. Til personligt brug anbefaler vi Prisma Dataplatformen eller enhver anden Postgres-grænseflade for at oprette konti.",
   "next_steps": "Næste Trin",
   "acquire_commercial_license": "Erhverv en kommerciel licens",
   "the_infrastructure_plan": "Infrastrukturplanen er brugerbaseret og har startup-venlige rabatter.",
