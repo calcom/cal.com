@@ -554,7 +554,7 @@ const OnboardingPage = (props) => {
                 className="flex min-h-full items-end justify-end rounded-l-2xl ps-8 pt-8"
                 style={{ backgroundColor: "grey" }}>
                 <div className="bg-subtle min-h-screen min-w-full rounded-l-xl">
-                  <div className="item-center mb-16 mt-24 flex flex-col items-center justify-center">
+                  <div className="item-center mb-16 ms-44 mt-24 flex flex-col items-center justify-center">
                     <OrganizationMemberAvatar
                       size="lg"
                       user={user}
