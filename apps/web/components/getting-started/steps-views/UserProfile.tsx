@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
@@ -17,16 +17,20 @@ type FormData = {
   bio: string;
 };
 
-const UserProfile = () => {
+const UserProfile = ({ imageSrc, setImageSrc, onBioChange }) => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
-  const { setValue, handleSubmit, getValues } = useForm<FormData>({
+  const { setValue, handleSubmit, getValues, watch } = useForm<FormData>({
     defaultValues: { bio: user?.bio || "" },
   });
 
+  const bio = watch("bio");
+  useEffect(() => {
+    onBioChange(bio);
+  }, [bio, onBioChange]);
+
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.viewer.eventTypes.create.useMutation();

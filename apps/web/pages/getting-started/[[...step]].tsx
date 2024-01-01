@@ -12,9 +12,11 @@ import { parseSync } from "svgson";
 import type { SVGSON } from "svgson/dist/types";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { LargeCalendar } from "@calcom/features/auth/signup/LargeCalendar";
+import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,6 +46,30 @@ const steps = [
   "user-profile",
 ] as const;
 
+const fakeMeetings = [
+  {
+    title: "A very important meeting",
+    slug: "/alex/veryimportantmeeting",
+    description: "A longer chat to run through designs",
+    duration: 30,
+    type: "1-on-1",
+  },
+  {
+    title: "An even more important meeting",
+    slug: "/alex/evenmoreimportantmeeting",
+    description: "A quick chat",
+    duration: 30,
+    type: "1-on-1",
+  },
+  {
+    title: "Never gonna give you up",
+    slug: "/alex/rickastley",
+    description: "A longer chat",
+    duration: 30,
+    type: "1-on-1",
+  },
+];
+
 const stepTransform = (step: (typeof steps)[number]) => {
   const stepIndex = steps.indexOf(step);
   if (stepIndex > -1) {
@@ -70,6 +96,12 @@ const OnboardingPage = (props) => {
   const svgRef = useRef<any>(null);
   const [fullName, setFullName] = useState<string>(null);
   const [timeZone, setTimeZone] = useState<string>(null);
+  const extraDays = 7;
+  const startDate = dayjs();
+  const endDate = dayjs(startDate).add(extraDays - 1, "day");
+  const [availableTimeslots, setAvailableTimeslots] = useState<any>({});
+  const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
+  const [bio, setBio] = useState<string>(user?.bio || "");
 
   const headers = [
     {
@@ -227,7 +259,7 @@ const OnboardingPage = (props) => {
         svgRef.current.appendChild(svgElement);
       }
     }
-  }, [timeZone]);
+  }, [timeZone, createSVGElement]);
 
   function createSVGElement(
     svgsonObject: SVGSON,
@@ -268,6 +300,97 @@ const OnboardingPage = (props) => {
   const onNameOrTimezoneChange = (Name?: string, TimeZone?: string) => {
     setFullName(Name || "");
     setTimeZone(TimeZone || "");
+  };
+
+  const generateRange = (startDate, endDate, duration) => {
+    const range = [];
+    let currentDate = dayjs(startDate);
+    console.log(currentDate);
+    const stopDate = dayjs(endDate);
+    while (currentDate <= stopDate) {
+      range.push({
+        start: currentDate.toDate().toISOString(),
+        end: dayjs(currentDate).add(duration, "minutes").toDate().toISOString(),
+      });
+      currentDate = currentDate.add(duration, "minutes");
+    }
+    return range;
+  };
+
+  const onAvailabilityChanged = (
+    mondayWatchedValue,
+    tuesdayWatchedValue,
+    wednesdayWatchedValue,
+    thursdayWatchedValue,
+    fridayWatchedValue,
+    saturdayWatchedValue,
+    sundayWatchedValue
+  ) => {
+    console.log(startDate);
+    console.log("mondayWatchedValue", mondayWatchedValue);
+    console.log("tuesdayWatchedValue", tuesdayWatchedValue);
+    console.log("wednesdayWatchedValue", wednesdayWatchedValue);
+    console.log("thursdayWatchedValue", thursdayWatchedValue);
+    console.log("fridayWatchedValue", fridayWatchedValue);
+    console.log("saturdayWatchedValue", saturdayWatchedValue);
+    console.log("sundayWatchedValue", sundayWatchedValue);
+    // alert("onAvailabilityChanged");
+
+    let tempStartDate = dayjs();
+
+    while (tempStartDate <= endDate) {
+      const dddd = tempStartDate.format("dddd");
+
+      switch (dddd) {
+        case "Monday":
+          console.log("mondayWatchedValue", mondayWatchedValue);
+
+          const dateRange = [];
+
+          mondayWatchedValue.map((m) => {
+            dateRange.push(
+              ...generateRange(
+                dayjs(m?.start).add(new Date().getTimezoneOffset(), "minutes"),
+                dayjs(m?.end).add(new Date().getTimezoneOffset(), "minutes"),
+                30
+              )
+            );
+          });
+
+          const key = tempStartDate.format("YYYY-MM-DD");
+          const value = dateRange;
+
+          const obj: { [key: string]: any } = {};
+          obj[key] = value;
+          console.log("----------------");
+          console.log(obj);
+          setAvailableTimeslots({
+            ...availableTimeslots,
+            ...obj,
+          });
+          break;
+        case "Tuesday":
+          console.log("tuesdayWatchedValue", tuesdayWatchedValue);
+          break;
+        case "Wednesday":
+          console.log("wednesdayWatchedValue", wednesdayWatchedValue);
+          break;
+        case "Thursday":
+          console.log("thursdayWatchedValue", thursdayWatchedValue);
+          break;
+        case "Friday":
+          console.log("fridayWatchedValue", fridayWatchedValue);
+          break;
+        case "Saturday":
+          console.log("saturdayWatchedValue", saturdayWatchedValue);
+          break;
+        case "Sunday":
+          console.log("sundayWatchedValue", sundayWatchedValue);
+          break;
+      }
+
+      tempStartDate = tempStartDate.add(1, "day");
+    }
   };
 
   return (
@@ -328,11 +451,20 @@ const OnboardingPage = (props) => {
 
                     {currentStep === "setup-availability" && (
                       <SetupAvailability
-                        nextStep={() => goToIndex(4)}
+                        nextStep={() => goToIndex(3)}
                         defaultScheduleId={user.defaultScheduleId}
+                        onAvailabilityChanged={onAvailabilityChanged}
                       />
                     )}
-                    {currentStep === "user-profile" && <UserProfile />}
+                    {currentStep === "user-profile" && (
+                      <UserProfile
+                        imageSrc={imageSrc}
+                        setImageSrc={setImageSrc}
+                        onBioChange={(val) => {
+                          setBio(val);
+                        }}
+                      />
+                    )}
                   </Suspense>
                 </StepCard>
 
@@ -387,11 +519,55 @@ const OnboardingPage = (props) => {
           )}
 
           {currentStep === "connected-calendar" && (
+            <div
+              className="flex min-h-full items-center justify-center rounded-l-2xl pb-8 ps-8 pt-8 align-middle"
+              style={{ backgroundColor: "grey" }}>
+              <LargeCalendar
+                extraDays={7}
+                showFakeEvents={props.connectedCalendarsCount !== 0}
+                allRoundedCorners={false}
+                startDate={startDate.toDate()}
+                endDate={endDate.toDate()}
+                availableTimeslots={availableTimeslots}
+              />
+            </div>
+          )}
+
+          {currentStep === "setup-availability" && (
+            <div
+              className="flex min-h-full items-center justify-center rounded-l-2xl p-10 align-middle"
+              style={{ backgroundColor: "grey" }}>
+              <LargeCalendar
+                extraDays={7}
+                showFakeEvents={props.connectedCalendarsCount !== 0}
+                allRoundedCorners={true}
+                startDate={startDate.toDate()}
+                endDate={endDate.toDate()}
+                availableTimeslots={availableTimeslots}
+              />
+            </div>
+          )}
+
+          {currentStep === "user-profile" && (
             <>
               <div
-                className="flex min-h-full items-center justify-center rounded-l-2xl pb-8 ps-8 pt-8 align-middle"
+                className="flex min-h-full items-end justify-end rounded-l-2xl ps-8 pt-8"
                 style={{ backgroundColor: "grey" }}>
-                <LargeCalendar extraDays={7} showFakeEvents={props.connectedCalendarsCount !== 0} />
+                <div className="min-h-screen min-w-full rounded-l-xl bg-white p-3">
+                  <OrganizationMemberAvatar size="lg" user={user} previewSrc={imageSrc} organization={null} />
+
+                  <div className="text-slate-800">{bio}</div>
+
+                  {fakeMeetings.map((meet, index) => {
+                    return (
+                      <div key={index}>
+                        <div className="text-slate-600">{meet.title}</div>;
+                        <div className="text-slate-600">{meet.slug}</div>;
+                        <div className="text-slate-600">{meet.description}</div>;
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </>
           )}
