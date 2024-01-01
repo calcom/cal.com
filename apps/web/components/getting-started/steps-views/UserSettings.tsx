@@ -16,6 +16,7 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 interface IUserSettingsProps {
   nextStep: () => void;
+  onNameOrTimezoneChange: (Name?: string, TimeZone?: string) => void;
   hideUsername?: boolean;
 }
 
@@ -37,6 +38,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<z.infer<typeof userSettingsSchema>>({
     defaultValues: {
       name: user?.name || "",
@@ -64,6 +66,13 @@ const UserSettings = (props: IUserSettingsProps) => {
       timeZone: selectedTimeZone,
     });
   });
+
+  const watchName = watch("name");
+  useEffect(() => {
+    if (watchName || selectedTimeZone) {
+      props.onNameOrTimezoneChange(watchName, selectedTimeZone);
+    }
+  }, [watchName, selectedTimeZone]);
 
   return (
     <form onSubmit={onSubmit}>
