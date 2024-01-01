@@ -61,11 +61,11 @@ export function WhenInfo(props: {
           !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
         }
         description={
-          <>
+          <span data-testid="when">
             {recurringEvent?.count ? `${t("starting")} ` : ""}
             {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}{" "}
             <span style={{ color: "#4B5563" }}>({timeZone})</span>
-          </>
+          </span>
         }
         withSpacer
       />

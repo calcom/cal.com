@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const conn = new jsforce.Connection({
     clientId: consumer_key,
     clientSecret: consumer_secret,
-    redirectUri: WEBAPP_URL + "/api/integrations/salesforce/callback",
+    redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
   });
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);

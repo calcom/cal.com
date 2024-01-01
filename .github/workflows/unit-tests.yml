@@ -1,0 +1,19 @@
+name: Unit tests
+on:
+  workflow_call:
+  workflow_run:
+    workflows: [Crowdin Action]
+    types: [completed]
+jobs:
+  test:
+    timeout-minutes: 20
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - run: echo 'NODE_OPTIONS="--max_old_space_size=6144"' >> $GITHUB_ENV
+      - uses: ./.github/actions/yarn-install
+      # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+      - run: yarn test
+      # We could add different timezones here that we need to run our tests in
+      - run: TZ=America/Los_Angeles yarn test -- --timeZoneDependentTestsOnly

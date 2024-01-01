@@ -125,7 +125,7 @@ const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =
       const result = await fetch(`${base_url}/api/v1/meetings`, {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: _translateEvent(event, "meeting"),
@@ -141,7 +141,7 @@ const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =
       await fetch(`${base_url}/api/v1/meetings/${uid}`, {
         method: "DELETE",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
         },
       }).then(handleErrorsRaw);
 
@@ -154,7 +154,7 @@ const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =
       const result = await fetch(`${base_url}/api/v1/meetings/${bookingRef.meetingId}`, {
         method: "PUT",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: _translateEvent(event, "updates"),

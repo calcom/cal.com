@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { getAppKeys } from "../common";
 import { sendPostMsg } from "../lib/BotService";
 
-const log = logger.getChildLogger({ prefix: [`[lark/api/events]`] });
+const log = logger.getSubLogger({ prefix: [`[lark/api/events]`] });
 
 const larkKeysSchema = z.object({
   open_verification_token: z.string(),

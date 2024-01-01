@@ -64,7 +64,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}${teamId ? `&teamId=${teamId}` : ""}`;
 
-    const res = await fetch(`/api/integrations/${type}/add` + searchParams);
+    const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
     if (!res.ok) {
       const errorBody = await res.json();

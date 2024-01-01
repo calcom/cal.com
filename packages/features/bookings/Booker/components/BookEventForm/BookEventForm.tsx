@@ -3,7 +3,7 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import { z } from "zod";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
+import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import {
   createBooking,
@@ -19,17 +20,20 @@ import {
   mapBookingToMutationInput,
   mapRecurringBookingToMutationInput,
   useTimePreferences,
+  createInstantBooking,
 } from "@calcom/features/bookings/lib";
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { HttpError } from "@calcom/lib/http-error";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
+import { Dialog, DialogContent } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, Form, showToast } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
@@ -41,11 +45,12 @@ import { FormSkeleton } from "./Skeleton";
 
 type BookEventFormProps = {
   onCancel?: () => void;
+  hashedLink?: string | null;
 };
 
 type DefaultValues = Record<string, unknown>;
 
-export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
+export const BookEventForm = ({ onCancel, hashedLink }: BookEventFormProps) => {
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
@@ -65,6 +70,7 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
   const bookingData = useBookerStore((state) => state.bookingData);
   const duration = useBookerStore((state) => state.selectedDuration);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isRescheduling = !!rescheduleUid && !!bookingData;
   const eventQuery = useEvent();
   const eventType = eventQuery.data;
@@ -114,6 +120,8 @@ export const BookEventForm = ({ onCancel }: BookEventFormProps) => {
       isRescheduling={isRescheduling}
       eventQuery={eventQuery}
       rescheduleUid={rescheduleUid}
+      hashedLink={hashedLink}
+      isInstantMeeting={isInstantMeeting}
     />
   );
 };
@@ -124,11 +132,15 @@ export const BookEventFormChild = ({
   isRescheduling,
   eventQuery,
   rescheduleUid,
+  hashedLink,
+  isInstantMeeting,
 }: BookEventFormProps & {
   initialValues: DefaultValues;
   isRescheduling: boolean;
   eventQuery: ReturnType<typeof useEvent>;
   rescheduleUid: string | null;
+  hashedLink?: string | null;
+  isInstantMeeting?: boolean;
 }) => {
   const eventType = eventQuery.data;
   const bookingFormSchema = z
@@ -149,6 +161,7 @@ export const BookEventFormChild = ({
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const [responseVercelIdHeader, setResponseVercelIdHeader] = useState<string | null>(null);
 
   const router = useRouter();
   const { t, i18n } = useLocale();
@@ -160,6 +173,8 @@ export const BookEventFormChild = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
+  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
+
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
     responses: z.infer<typeof bookingFormSchema>["responses"] | null;
@@ -216,7 +231,24 @@ export const BookEventFormChild = ({
         booking: responseData,
       });
     },
-    onError: () => {
+    onError: (err, _, ctx) => {
+      // TODO:
+      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
+      // if (vercelId) {
+      //   setResponseVercelIdHeader(vercelId);
+      // }
+      errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
+    },
+  });
+
+  const createInstantBookingMutation = useMutation(createInstantBooking, {
+    onSuccess: (responseData) => {
+      updateQueryParam("bookingId", responseData.bookingId);
+      setExpiryTime(responseData.expires);
+    },
+    onError: (err, _, ctx) => {
+      console.error("Error creating instant booking", err);
+
       errorRef && errorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
@@ -332,9 +364,12 @@ export const BookEventFormChild = ({
           }),
           {}
         ),
+      hashedLink,
     };
 
-    if (eventQuery.data?.recurringEvent?.freq && recurringEventCount) {
+    if (isInstantMeeting) {
+      createInstantBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
+    } else if (eventQuery.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
       createRecurringBookingMutation.mutate(
         mapRecurringBookingToMutationInput(bookingInput, recurringEventCount)
       );
@@ -370,9 +405,11 @@ export const BookEventFormChild = ({
           fields={eventType.bookingFields}
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
+          bookingData={bookingData}
         />
         {(createBookingMutation.isError ||
           createRecurringBookingMutation.isError ||
+          createInstantBookingMutation.isError ||
           bookingForm.formState.errors["globalError"]) && (
           <div data-testid="booking-fail">
             <Alert
@@ -384,28 +421,40 @@ export const BookEventFormChild = ({
                 bookingForm.formState.errors["globalError"],
                 createBookingMutation,
                 createRecurringBookingMutation,
-                t
+                createInstantBookingMutation,
+                t,
+                responseVercelIdHeader
               )}
             />
           </div>
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
-          {!!onCancel && (
-            <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
-              {t("back")}
+          {isInstantMeeting ? (
+            <Button type="submit" color="primary" loading={createInstantBookingMutation.isLoading}>
+              {t("confirm")}
             </Button>
+          ) : (
+            <>
+              {!!onCancel && (
+                <Button color="minimal" type="button" onClick={onCancel} data-testid="back">
+                  {t("back")}
+                </Button>
+              )}
+              <Button
+                type="submit"
+                color="primary"
+                loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+                data-testid={
+                  rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
+                }>
+                {rescheduleUid && bookingData
+                  ? t("reschedule")
+                  : renderConfirmNotVerifyEmailButtonCond
+                  ? t("confirm")
+                  : t("verify_email_email_button")}
+              </Button>
+            </>
           )}
-          <Button
-            type="submit"
-            color="primary"
-            loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
-            data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}>
-            {rescheduleUid
-              ? t("reschedule")
-              : renderConfirmNotVerifyEmailButtonCond
-              ? t("confirm")
-              : t("verify_email_email_button")}
-          </Button>
         </div>
       </Form>
       <VerifyCodeDialog
@@ -415,10 +464,76 @@ export const BookEventFormChild = ({
         onSuccess={() => {
           setVerifiedEmail(email);
           setEmailVerificationModalVisible(false);
+          bookEvent(bookingForm.getValues());
         }}
         isUserSessionRequiredToVerify={false}
       />
+      <RedirectToInstantMeetingModal expiryTime={expiryTime} />
     </div>
+  );
+};
+
+const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const bookingId = parseInt(getQueryParam("bookingId") || "0");
+  const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
+
+  const instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
+    {
+      bookingId: bookingId,
+    },
+    {
+      enabled: !!bookingId && !hasInstantMeetingTokenExpired,
+      refetchInterval: 2000,
+      onSuccess: (data) => {
+        try {
+          showToast(t("something_went_wrong_on_our_end"), "error");
+
+          const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+            data.booking?.metadata || {}
+          )?.videoCallUrl;
+
+          if (locationVideoCallUrl) {
+            router.push(locationVideoCallUrl);
+          } else {
+            showToast(t("something_went_wrong_on_our_end"), "error");
+          }
+        } catch (err) {
+          showToast(t("something_went_wrong_on_our_end"), "error");
+        }
+      },
+    }
+  );
+
+  return (
+    <Dialog open={!!bookingId}>
+      <DialogContent enableOverflow className="py-8">
+        <div>
+          {hasInstantMeetingTokenExpired ? (
+            <div>
+              <p className="font-medium">{t("please_book_a_time_sometime_later")}</p>
+              <Button
+                className="mt-4"
+                onClick={() => {
+                  // Prevent null on app directory
+                  if (pathname) window.location.href = pathname;
+                }}
+                color="primary">
+                {t("go_back")}
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <p className="font-medium">{t("connecting_you_to_someone")}</p>
+              <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
+              <Spinner className="relative mt-8" />
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -431,16 +546,20 @@ const getError = (
   bookingMutation: UseMutationResult<any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recurringBookingMutation: UseMutationResult<any, any, any, any>,
-  t: TFunction
+  createInstantBookingMutation: UseMutationResult<any, any, any, any>,
+  t: TFunction,
+  responseVercelIdHeader: string | null
 ) => {
   if (globalError) return globalError.message;
 
-  const error = bookingMutation.error || recurringBookingMutation.error;
+  const error = bookingMutation.error || recurringBookingMutation.error || createInstantBookingMutation.error;
 
-  return error instanceof HttpError || error instanceof Error ? (
-    <>{t("can_you_try_again")}</>
+  return error.message ? (
+    <>
+      {responseVercelIdHeader ?? ""} {t(error.message)}
+    </>
   ) : (
-    "Unknown error"
+    <>{t("can_you_try_again")}</>
   );
 };
 
@@ -461,7 +580,10 @@ function useInitialFormValues({
   const session = useSession();
   useEffect(() => {
     (async function () {
-      if (Object.keys(formValues).length) return formValues;
+      if (Object.keys(formValues).length) {
+        setDefaultValues(formValues);
+        return;
+      }
 
       if (!eventType?.bookingFields) {
         return {};
@@ -489,12 +611,18 @@ function useInitialFormValues({
       });
 
       const defaultUserValues = {
-        email: rescheduleUid
-          ? bookingData?.attendees[0].email
-          : parsedQuery["email"] || session.data?.user?.email || "",
-        name: rescheduleUid
-          ? bookingData?.attendees[0].name
-          : parsedQuery["name"] || session.data?.user?.name || "",
+        email:
+          rescheduleUid && bookingData && bookingData.attendees.length > 0
+            ? bookingData?.attendees[0].email
+            : !!parsedQuery["email"]
+            ? parsedQuery["email"]
+            : session.data?.user?.email ?? "",
+        name:
+          rescheduleUid && bookingData && bookingData.attendees.length > 0
+            ? bookingData?.attendees[0].name
+            : !!parsedQuery["name"]
+            ? parsedQuery["name"]
+            : session.data?.user?.name ?? session.data?.user?.username ?? "",
       };
 
       if (!isRescheduling) {
@@ -518,13 +646,11 @@ function useInitialFormValues({
         setDefaultValues(defaults);
       }
 
-      if ((!rescheduleUid && !bookingData) || !bookingData?.attendees.length) {
+      if (!rescheduleUid && !bookingData) {
         return {};
       }
-      const primaryAttendee = bookingData.attendees[0];
-      if (!primaryAttendee) {
-        return {};
-      }
+
+      // We should allow current session user as default values for booking form
 
       const defaults = {
         responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
@@ -533,7 +659,7 @@ function useInitialFormValues({
       const responses = eventType.bookingFields.reduce((responses, field) => {
         return {
           ...responses,
-          [field.name]: bookingData.responses[field.name],
+          [field.name]: bookingData?.responses[field.name],
         };
       }, {});
       defaults.responses = {

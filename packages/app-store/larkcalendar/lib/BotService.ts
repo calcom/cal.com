@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "./AppAccessToken";
 
-const log = logger.getChildLogger({ prefix: [`[[LarkTenantCredential]`] });
+const log = logger.getSubLogger({ prefix: [`[[LarkTenantCredential]`] });
 
 const msg = {
   en_us: {
@@ -114,7 +114,7 @@ export async function sendPostMsg(
   const response = await fetch(`https://${LARK_HOST}/open-apis/im/v1/messages?receive_id_type=open_id`, {
     method: "POST",
     headers: {
-      Authorization: "Bearer " + tenantAccessToken,
+      Authorization: `Bearer ${tenantAccessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

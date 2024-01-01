@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import type { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
+import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -61,6 +64,10 @@ const EventAdvancedTab = dynamic(() =>
   import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
 );
 
+const EventInstantTab = dynamic(() =>
+  import("@components/eventtype/EventInstantTab").then((mod) => mod.EventInstantTab)
+);
+
 const EventRecurringTab = dynamic(() =>
   import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
 );
@@ -82,10 +89,12 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  isInstantEvent: boolean;
   length: number;
   offsetStart: number;
   description: string;
   disableGuests: boolean;
+  lockTimeZoneToggleOnBookingPage: boolean;
   requiresConfirmation: boolean;
   requiresBookerEmailVerification: boolean;
   recurringEvent: RecurringEvent | null;
@@ -128,6 +137,7 @@ export type FormValues = {
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
+  onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
@@ -145,6 +155,7 @@ const querySchema = z.object({
       "availability",
       "apps",
       "limits",
+      "instant",
       "recurring",
       "team",
       "advanced",
@@ -184,7 +195,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           created: true,
         }))
       );
-      showToast(t("event_type_updated_successfully"), "success");
+      showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
@@ -244,9 +255,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       title: eventType.title,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
+      isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
+      onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
@@ -299,6 +312,69 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
+          locations: z
+            .array(
+              z
+                .object({
+                  type: z.string(),
+                  address: z.string().optional(),
+                  link: z.string().url().optional(),
+                  phone: z
+                    .string()
+                    .refine((val) => isValidPhoneNumber(val))
+                    .optional(),
+                  hostPhoneNumber: z
+                    .string()
+                    .refine((val) => isValidPhoneNumber(val))
+                    .optional(),
+                  displayLocationPublicly: z.boolean().optional(),
+                  credentialId: z.number().optional(),
+                  teamName: z.string().optional(),
+                })
+                .passthrough()
+                .superRefine((val, ctx) => {
+                  if (val?.link) {
+                    const link = val.link;
+                    const eventLocationType = getEventLocationType(val.type);
+                    if (
+                      eventLocationType &&
+                      !eventLocationType.default &&
+                      eventLocationType.linkType === "static" &&
+                      eventLocationType.urlRegExp
+                    ) {
+                      const valid = z
+                        .string()
+                        .regex(new RegExp(eventLocationType.urlRegExp))
+                        .safeParse(link).success;
+
+                      if (!valid) {
+                        const sampleUrl = eventLocationType.organizerInputPlaceholder;
+                        ctx.addIssue({
+                          code: z.ZodIssueCode.custom,
+                          path: [eventLocationType?.defaultValueVariable ?? "link"],
+                          message: t("invalid_url_error_message", {
+                            label: eventLocationType.label,
+                            sampleUrl: sampleUrl ?? "https://cal.com",
+                          }),
+                        });
+                      }
+                      return;
+                    }
+
+                    const valid = z.string().url().optional().safeParse(link).success;
+
+                    if (!valid) {
+                      ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: [eventLocationType?.defaultValueVariable ?? "link"],
+                        message: `Invalid URL`,
+                      });
+                    }
+                  }
+                  return;
+                })
+            )
+            .optional(),
         })
         // TODO: Add schema for other fields later.
         .passthrough()
@@ -342,6 +418,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (
@@ -363,6 +440,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsShowAttendees,
       seatsShowAvailabilityCount,
       bookingLimits,
+      onlyShowFirstAvailableSlot,
       durationLimits,
       recurringEvent,
       locations,
@@ -407,6 +485,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    // Prevent two payment apps to be enabled
+    // Ok to cast type here because this metadata will be updated as the event type metadata
+    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
+
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
@@ -425,6 +508,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       beforeEventBuffer: beforeBufferTime,
       afterEventBuffer: afterBufferTime,
       bookingLimits,
+      onlyShowFirstAvailableSlot,
       durationLimits,
       seatsPerTimeSlot,
       seatsShowAttendees,
@@ -449,8 +533,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         availability={availability}
         isUpdateMutationLoading={updateMutation.isLoading}
         formMethods={formMethods}
-        disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
+        disableBorder={true}
         currentUserMembership={currentUserMembership}
+        bookerUrl={eventType.bookerUrl}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}
@@ -465,6 +551,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAttendees,
               seatsShowAvailabilityCount,
               bookingLimits,
+              onlyShowFirstAvailableSlot,
               durationLimits,
               recurringEvent,
               locations,
@@ -503,6 +590,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+
+            // Prevent two payment apps to be enabled
+            // Ok to cast type here because this metadata will be updated as the event type metadata
+            if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+              throw new Error(t("event_setup_multiple_payment_apps_error"));
+
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
@@ -517,6 +610,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               beforeEventBuffer: beforeBufferTime,
               afterEventBuffer: afterBufferTime,
               bookingLimits,
+              onlyShowFirstAvailableSlot,
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,

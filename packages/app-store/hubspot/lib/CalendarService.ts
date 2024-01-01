@@ -45,7 +45,7 @@ export default class HubspotCalendarService implements Calendar {
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private hubspotContactCreate = async (attendees: Person[]) => {
@@ -179,7 +179,7 @@ export default class HubspotCalendarService implements Calendar {
             await hubspotClient.oauth.tokensApi.createToken(
               "refresh_token",
               undefined,
-              WEBAPP_URL + "/api/integrations/hubspot/callback",
+              `${WEBAPP_URL}/api/integrations/hubspot/callback`,
               this.client_id,
               this.client_secret,
               refreshToken

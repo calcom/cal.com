@@ -8,7 +8,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { getOrgFullDomain, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -34,7 +34,7 @@ const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && G
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
-const usernameSlug = (username: string) => slugify(username) + "-" + randomString(6).toLowerCase();
+const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 
 const loginWithTotp = async (user: { email: string }) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email: user.email })}`;
@@ -105,6 +105,7 @@ const providers: Provider[] = [
           email: credentials.email.toLowerCase(),
         },
         select: {
+          locked: true,
           role: true,
           id: true,
           username: true,
@@ -134,6 +135,11 @@ const providers: Provider[] = [
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
+
+      // Locked users cannot login
+      if (user.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
       }
 
       await checkRateLimitAndThrowError({
@@ -226,6 +232,12 @@ const providers: Provider[] = [
         if (role !== "ADMIN") return role;
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
+
+        if (process.env.NEXT_PUBLIC_IS_E2E) {
+          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+          return role;
+        }
+
         // User's password is valid and two-factor authentication is enabled
         if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
         // Code is running in a development environment
@@ -471,7 +483,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 id: organization.id,
                 name: organization.name,
                 slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                fullDomain: getOrgFullOrigin(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
               }
             : undefined,

@@ -1,0 +1,13 @@
+import { Canvas, Meta } from "@storybook/blocks";
+
+import { Title } from "@calcom/storybook/components";
+
+import * as EventMetaStories from "./EventMeta.stories";
+
+<Meta of={EventMetaStories} />
+
+<Title title="Event Meta" suffix="Brief" subtitle="Version 2.0 — Last Update: 12 Dec 2022" />
+
+<Canvas of={EventMetaStories.ExampleStory} />
+
+<Canvas of={EventMetaStories.AllVariants} />

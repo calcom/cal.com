@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 
@@ -13,7 +15,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function Apps({ categories }: inferSSRProps<typeof getServerSideProps>) {
+export default function Apps({ categories }: Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">) {
   const { t, isLocaleReady } = useLocale();
 
   return (
@@ -31,7 +33,7 @@ export default function Apps({ categories }: inferSSRProps<typeof getServerSideP
           {categories.map((category) => (
             <Link
               key={category.name}
-              href={"/apps/categories/" + category.name}
+              href={`/apps/categories/${category.name}`}
               data-testid={`app-store-category-${category.name}`}
               className="bg-subtle relative flex rounded-sm px-6 py-4 sm:block">
               <div className="self-center">

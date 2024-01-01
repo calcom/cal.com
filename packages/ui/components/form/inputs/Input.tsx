@@ -31,35 +31,33 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
 
   return (
-    <div className="[&_.group:hover_.addon-wrapper]:border-emphasis relative [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
-      <InputField
-        type={isPasswordVisible ? "text" : "password"}
-        placeholder={props.placeholder || "•••••••••••••"}
-        ref={ref}
-        {...props}
-        className={classNames(
-          "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
-          props.className
-        )}
-        addOnFilled={false}
-        addOnSuffix={
-          <Tooltip content={textLabel}>
-            <button
-              className="text-emphasis h-9"
-              tabIndex={-1}
-              type="button"
-              onClick={() => toggleIsPasswordVisible()}>
-              {isPasswordVisible ? (
-                <EyeOff className="h-4 stroke-[2.5px]" />
-              ) : (
-                <Eye className="h-4 stroke-[2.5px]" />
-              )}
-              <span className="sr-only">{textLabel}</span>
-            </button>
-          </Tooltip>
-        }
-      />
-    </div>
+    <InputField
+      type={isPasswordVisible ? "text" : "password"}
+      placeholder={props.placeholder || "•••••••••••••"}
+      ref={ref}
+      {...props}
+      className={classNames(
+        "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
+        props.className
+      )}
+      addOnFilled={false}
+      addOnSuffix={
+        <Tooltip content={textLabel}>
+          <button
+            className="text-emphasis h-9"
+            tabIndex={-1}
+            type="button"
+            onClick={() => toggleIsPasswordVisible()}>
+            {isPasswordVisible ? (
+              <EyeOff className="h-4 stroke-[2.5px]" />
+            ) : (
+              <Eye className="h-4 stroke-[2.5px]" />
+            )}
+            <span className="sr-only">{textLabel}</span>
+          </button>
+        </Tooltip>
+      }
+    />
   );
 });
 
@@ -99,7 +97,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block w-full rounded-md border px-3 py-2 text-sm focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
+        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block w-full rounded-md border px-3 py-2 text-sm transition focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
         props.className
       )}
     />
@@ -126,8 +124,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     label = t(props.name as string),
     labelProps,
     /** Prevents displaying untranslated placeholder keys */
-    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
-      ? t(props.name + "_placeholder")
+    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+      ? `${props.name}_placeholder`
       : "",
     ...passThrough
   } = props;

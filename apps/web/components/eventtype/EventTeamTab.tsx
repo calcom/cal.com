@@ -44,6 +44,7 @@ export const mapMemberToChildrenOption = (
       username: member.username ?? "",
       membership: member.membership,
       eventTypeSlugs: member.eventTypes ?? [],
+      avatar: member.avatar,
     },
     value: `${member.id ?? ""}`,
     label: `${member.name || member.email || ""}${!member.username ? ` (${pendingString})` : ""}`,
@@ -76,6 +77,8 @@ const ChildrenEventTypesList = ({
       <div>
         <Label>{t("assign_to")}</Label>
         <ChildrenEventTypeSelect
+          aria-label="assignment-dropdown"
+          data-testid="assignment-dropdown"
           onChange={(options) => {
             onChange &&
               onChange(

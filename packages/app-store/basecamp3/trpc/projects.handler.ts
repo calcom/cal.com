@@ -27,6 +27,10 @@ export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "No credential found for user" });
   }
   let credentialKey = credential.key as BasecampToken;
+  if (!credentialKey.account) {
+    return;
+  }
+
   if (credentialKey.expires_at < Date.now()) {
     credentialKey = (await refreshAccessToken(credential)) as BasecampToken;
   }

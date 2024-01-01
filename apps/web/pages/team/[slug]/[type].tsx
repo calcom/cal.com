@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
@@ -10,11 +11,14 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/client";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
+
+import { getTemporaryOrgRedirect } from "../../../lib/getTemporaryOrgRedirect";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -27,6 +31,7 @@ export default function Type({
   isBrandingHidden,
   entity,
   duration,
+  isInstantMeeting,
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
@@ -37,12 +42,14 @@ export default function Type({
         hideBranding={isBrandingHidden}
         isTeamEvent
         entity={entity}
+        bookingData={booking}
       />
       <Booker
         username={user}
         eventSlug={slug}
         bookingData={booking}
         isAway={away}
+        isInstantMeeting={isInstantMeeting}
         hideBranding={isBrandingHidden}
         isTeamEvent
         entity={entity}
@@ -64,14 +71,26 @@ const paramsSchema = z.object({
 // 1. Check if team exists, to show 404
 // 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const session = await getServerSession(context);
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
-  const { rescheduleUid, duration: queryDuration } = context.query;
+  const { rescheduleUid, duration: queryDuration, isInstantMeeting: queryIsInstantMeeting } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
-    context.req.headers.host ?? "",
-    context.params?.orgSlug
-  );
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const isOrgContext = currentOrgDomain && isValidOrgDomain;
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slug: teamSlug,
+      redirectType: RedirectType.Team,
+      eventTypeSlug: meetingSlug,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
 
   const team = await prisma.team.findFirst({
     where: {
@@ -92,7 +111,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`);
+    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
@@ -126,6 +145,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slug: meetingSlug,
       trpcState: ssr.dehydrate(),
       isBrandingHidden: team?.hideBranding,
+      isInstantMeeting: eventData.isInstantEvent && queryIsInstantMeeting ? true : false,
       themeBasis: null,
     },
   };

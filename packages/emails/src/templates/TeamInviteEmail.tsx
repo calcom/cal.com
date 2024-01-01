@@ -12,6 +12,7 @@ type TeamInvite = {
   joinLink: string;
   isCalcomMember: boolean;
   isOrg: boolean;
+  parentTeamName: string | undefined;
 };
 
 export const TeamInviteEmail = (
@@ -19,17 +20,22 @@ export const TeamInviteEmail = (
 ) => {
   return (
     <V2BaseEmailHtml
-      subject={props.language("user_invited_you", {
+      subject={props.language(`user_invited_you${props.parentTeamName ? "_to_subteam" : ""}`, {
         user: props.from,
         team: props.teamName,
         appName: APP_NAME,
+        parentTeamName: props.parentTeamName,
         entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
       })}>
       <p style={{ fontSize: "24px", marginBottom: "16px", textAlign: "center" }}>
         <>
-          {props.language(`email_no_user_invite_heading_${props.isOrg ? "org" : "team"}`, {
-            appName: APP_NAME,
-          })}
+          {props.language(
+            `email_no_user_invite_heading_${props.isOrg ? "org" : props.parentTeamName ? "subteam" : "team"}`,
+            {
+              appName: APP_NAME,
+              parentTeamName: props.parentTeamName,
+            }
+          )}
         </>
       </p>
       <img
@@ -42,7 +48,7 @@ export const TeamInviteEmail = (
         }}
         src={
           IS_PRODUCTION
-            ? WEBAPP_URL + "/emails/calendar-email-hero.png"
+            ? `${WEBAPP_URL}/emails/calendar-email-hero.png`
             : "http://localhost:3000/emails/calendar-email-hero.png"
         }
         alt=""
@@ -56,11 +62,15 @@ export const TeamInviteEmail = (
           lineHeightStep: "24px",
         }}>
         <>
-          {props.language(`email_user_invite_subheading_${props.isOrg ? "org" : "team"}`, {
-            invitedBy: props.from,
-            appName: APP_NAME,
-            teamName: props.teamName,
-          })}
+          {props.language(
+            `email_user_invite_subheading_${props.isOrg ? "org" : props.parentTeamName ? "subteam" : "team"}`,
+            {
+              invitedBy: props.from.toString(),
+              appName: APP_NAME,
+              teamName: props.teamName,
+              parentTeamName: props.parentTeamName,
+            }
+          )}
         </>
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
@@ -78,20 +88,20 @@ export const TeamInviteEmail = (
           marginTop: "48px",
           lineHeightStep: "24px",
         }}>
-        <>
+        {/* <>
           {props.language("email_no_user_invite_steps_intro", {
             entity: props.language(props.isOrg ? "organization" : "team").toLowerCase(),
           })}
-        </>
+        </> */}
       </p>
-
+      {/* 
       {!props.isCalcomMember && (
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
           <EmailStep
             translationString={props.language("email_no_user_step_one")}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/choose-username@2x.png"
+                ? `${WEBAPP_URL}/emails/choose-username@2x.png`
                 : "http://localhost:3000/emails/choose-username@2x.png"
             }
           />
@@ -99,7 +109,7 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_two")}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/calendar@2x.png"
+                ? `${WEBAPP_URL}/emails/calendar@2x.png`
                 : "http://localhost:3000/emails/calendar@2x.png"
             }
           />
@@ -107,7 +117,7 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_three")}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/clock@2x.png"
+                ? `${WEBAPP_URL}/emails/clock@2x.png`
                 : "http://localhost:3000/emails/clock@2x.png"
             }
           />
@@ -115,12 +125,12 @@ export const TeamInviteEmail = (
             translationString={props.language("email_no_user_step_four", { teamName: props.teamName })}
             iconsrc={
               IS_PRODUCTION
-                ? WEBAPP_URL + "/emails/user-check@2x.png"
+                ? `${WEBAPP_URL}/emails/user-check@2x.png`
                 : "http://localhost:3000/emails/user-check@2x.png"
             }
           />
         </div>
-      )}
+      )} */}
 
       <div className="">
         <p
@@ -161,8 +171,8 @@ const EmailStep = (props: { translationString: string; iconsrc: string }) => {
         style={{
           backgroundColor: "#E5E7EB",
           borderRadius: "48px",
-          height: "48px",
-          width: "48px",
+          minHeight: "48px",
+          minWidth: "48px",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",

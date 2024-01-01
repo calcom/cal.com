@@ -42,6 +42,7 @@ module.exports = {
         patterns: ["lodash"],
       },
     ],
+    "prefer-template": "error",
   },
   overrides: [
     {

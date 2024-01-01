@@ -141,7 +141,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       rangeGradients.textGradient = `linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(2,0,36,1) 100%, rgba(9,108,121,1) 100%)`;
 
                       rangeGradients.darkTextGradient = `linear-gradient(90deg, var(--cal-text-emphasis, #111827) ${
-                        gradientValue === 50 ? "50%" : Math.round(gradientValue / 100) * 100 + "%"
+                        gradientValue === 50 ? "50%" : `${Math.round(gradientValue / 100) * 100}%`
                       }, var(--cal-text-inverted, white) 0%, var(--cal-text-inverted, white) 0%)`;
                     } else {
                       rangeGradients.backgroundGradient = `linear-gradient(90deg, var(--cal-bg-success) ${rangeOverlap}%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%)`;
@@ -149,7 +149,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       rangeGradients.textGradient = `linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(2,0,36,1) 50%, rgba(9,108,121,1) 100%)`;
 
                       rangeGradients.darkTextGradient = `linear-gradient(90deg, var(--cal-text-inverted, white) ${
-                        rangeOverlap === 50 ? "50%" : Math.round(rangeOverlap / 100) * 100 + "%"
+                        rangeOverlap === 50 ? "50%" : `${Math.round(rangeOverlap / 100) * 100}%`
                       }, var(--cal-text-emphasis, #111827) 0%, var(--cal-text-emphasis, #111827) 0%)`;
                     }
                   }

@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import dayjs from "@calcom/dayjs";
+import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -84,14 +85,15 @@ export const BaseScheduledEmail = (
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
-      <UserFieldsResponses calEvent={props.calEvent} />
+      <UserFieldsResponses t={t} calEvent={props.calEvent} />
       {props.calEvent.paymentInfo?.amount && (
         <Info
-          label={props.calEvent.paymentInfo?.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
-          description={new Intl.NumberFormat(props.attendee.language.locale, {
-            style: "currency",
-            currency: props.calEvent.paymentInfo?.currency || "USD",
-          }).format(props.calEvent.paymentInfo?.amount / 100.0)}
+          label={props.calEvent.paymentInfo.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
+          description={formatPrice(
+            props.calEvent.paymentInfo.amount,
+            props.calEvent.paymentInfo.currency,
+            props.attendee.language.locale
+          )}
           withSpacer
         />
       )}

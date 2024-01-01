@@ -72,7 +72,12 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               hideBranding: true,
             },
           },
-          teamId: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -102,6 +107,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
         },
       },
       uid: true,
+      id: true,
       eventTypeId: true,
       destinationCalendar: true,
       smsReminderNumber: true,
@@ -109,6 +115,8 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       scheduledJobs: true,
       seatsReferences: true,
       responses: true,
+      iCalUID: true,
+      iCalSequence: true,
     },
   });
 }
@@ -128,12 +136,21 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
   }
 
-  if (userId !== bookingToDelete.user?.id && bookingToDelete.startTime < new Date()) {
-    throw new HttpError({ statusCode: 400, message: "Cannot cancel past events" });
-  }
-
   if (!bookingToDelete.userId) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
+  if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
+    const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
+      if (host.user.id === userId) return true;
+    });
+
+    const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
+
+    if (!userIsHost && !userIsOwnerOfEventType) {
+      throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
+    }
   }
 
   // get webhooks
@@ -141,11 +158,10 @@ async function handler(req: CustomRequest) {
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: bookingToDelete.eventType?.teamId ?? null },
+      team: { id: bookingToDelete.eventType?.team?.id ?? null },
       parentId: bookingToDelete?.eventType?.parentId ?? null,
     },
   });
-
   const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
 
   const subscriberOptions = {
@@ -214,9 +230,10 @@ async function handler(req: CustomRequest) {
 
   const evt: CalendarEvent = {
     title: bookingToDelete?.title,
-    type: (bookingToDelete?.eventType?.title as string) || bookingToDelete?.title,
+    type: bookingToDelete?.eventType?.slug as string,
     description: bookingToDelete?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
+    eventTypeId: bookingToDelete.eventTypeId as number,
     ...getCalEventResponses({
       bookingFields: bookingToDelete.eventType?.bookingFields ?? null,
       booking: bookingToDelete,
@@ -232,6 +249,7 @@ async function handler(req: CustomRequest) {
     },
     attendees: attendeesList,
     uid: bookingToDelete?.uid,
+    bookingId: bookingToDelete?.id,
     /* Include recurringEvent information only when cancelling all bookings */
     recurringEvent: allRemainingBookings
       ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
@@ -243,9 +261,13 @@ async function handler(req: CustomRequest) {
       ? [bookingToDelete?.user.destinationCalendar]
       : [],
     cancellationReason: cancellationReason,
-    ...(teamMembers && { team: { name: "", members: teamMembers } }),
+    ...(teamMembers && {
+      team: { name: bookingToDelete?.eventType?.team?.name || "Nameless", members: teamMembers, id: teamId! },
+    }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
+    iCalUID: bookingToDelete.iCalUID,
+    iCalSequence: bookingToDelete.iCalSequence + 1,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -372,6 +394,8 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        // Assume that canceling the booking is the last action
+        iCalSequence: evt.iCalSequence || 100,
       },
       select: {
         startTime: true,
@@ -396,7 +420,7 @@ async function handler(req: CustomRequest) {
   if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push({
       ...FAKE_DAILY_CREDENTIAL,
-      teamId: bookingToDelete.eventType?.teamId || null,
+      teamId: bookingToDelete.eventType?.team?.id || null,
     });
   }
 
@@ -493,7 +517,7 @@ async function handler(req: CustomRequest) {
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
     const evt: CalendarEvent = {
-      type: bookingToDelete?.eventType?.title as string,
+      type: bookingToDelete?.eventType?.slug as string,
       title: bookingToDelete.title,
       description: bookingToDelete.description ?? "",
       customInputs: isPrismaObjOrUndefined(bookingToDelete.customInputs),
@@ -528,10 +552,10 @@ async function handler(req: CustomRequest) {
     let eventTypeOwnerId;
     if (bookingToDelete.eventType?.owner) {
       eventTypeOwnerId = bookingToDelete.eventType.owner.id;
-    } else if (bookingToDelete.eventType?.teamId) {
+    } else if (bookingToDelete.eventType?.team?.id) {
       const teamOwner = await prisma.membership.findFirst({
         where: {
-          teamId: bookingToDelete.eventType.teamId,
+          teamId: bookingToDelete.eventType?.team.id,
           role: MembershipRole.OWNER,
         },
         select: {

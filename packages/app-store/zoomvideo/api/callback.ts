@@ -11,10 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const { client_id, client_secret } = await getZoomAppKeys();
 
-  const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/zoomvideo/callback");
-  const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+  const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/zoomvideo/callback`);
+  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
   const result = await fetch(
-    "https://zoom.us/oauth/token?grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri,
+    `https://zoom.us/oauth/token?grant_type=authorization_code&code=${code}&redirect_uri=${redirectUri}`,
     {
       method: "POST",
       headers: {

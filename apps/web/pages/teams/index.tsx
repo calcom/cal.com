@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 
 import { getLayout } from "@calcom/features/MainLayout";
@@ -26,6 +28,7 @@ function Teams() {
       CTA={
         (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
+            data-testid="new-team-btn"
             variant="fab"
             StartIcon={Plus}
             type="button"

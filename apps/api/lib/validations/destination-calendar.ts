@@ -14,9 +14,9 @@ const schemaDestinationCalendarCreateParams = z
   .object({
     integration: z.string(),
     externalId: z.string(),
-    eventTypeId: z.number(),
-    bookingId: z.number(),
-    userId: z.number(),
+    eventTypeId: z.number().optional(),
+    bookingId: z.number().optional(),
+    userId: z.number().optional(),
   })
   .strict();
 

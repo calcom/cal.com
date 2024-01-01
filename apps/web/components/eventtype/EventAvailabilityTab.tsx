@@ -1,5 +1,5 @@
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -98,42 +98,43 @@ const EventTypeScheduleDetails = memo(
       schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
 
     return (
-      <div className="border-default space-y-4 rounded border px-6 pb-4">
-        <ol className="table border-collapse text-sm">
-          {weekdayNames(i18n.language, 1, "long").map((day, index) => {
-            const isAvailable = !!filterDays(index).length;
-            return (
-              <li key={day} className="my-6 flex border-transparent last:mb-2">
-                <span
-                  className={classNames(
-                    "w-20 font-medium sm:w-32 ",
-                    !isAvailable ? "text-subtle line-through" : "text-default"
-                  )}>
-                  {day}
-                </span>
-                {isLoading ? (
-                  <SkeletonText className="block h-5 w-60" />
-                ) : isAvailable ? (
-                  <div className="space-y-3 text-right">
-                    {filterDays(index).map((dayRange, i) => (
-                      <div key={i} className="text-default flex items-center leading-4">
-                        <span className="w-16 sm:w-28 sm:text-left">
-                          {format(dayRange.startTime, timeFormat === 12)}
-                        </span>
-                        <span className="ms-4">-</span>
-                        <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-        <hr className="border-subtle" />
-        <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
+      <div>
+        <div className="border-subtle space-y-4 border-x p-6">
+          <ol className="table border-collapse text-sm">
+            {weekdayNames(i18n.language, 1, "long").map((day, index) => {
+              const isAvailable = !!filterDays(index).length;
+              return (
+                <li key={day} className="my-6 flex border-transparent last:mb-2">
+                  <span
+                    className={classNames(
+                      "w-20 font-medium sm:w-32 ",
+                      !isAvailable ? "text-subtle line-through" : "text-default"
+                    )}>
+                    {day}
+                  </span>
+                  {isLoading ? (
+                    <SkeletonText className="block h-5 w-60" />
+                  ) : isAvailable ? (
+                    <div className="space-y-3 text-right">
+                      {filterDays(index).map((dayRange, i) => (
+                        <div key={i} className="text-default flex items-center leading-4">
+                          <span className="w-16 sm:w-28 sm:text-left">
+                            {format(dayRange.startTime, timeFormat === 12)}
+                          </span>
+                          <span className="ms-4">-</span>
+                          <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <span className="text-default flex items-center justify-center text-sm sm:justify-start">
             <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
@@ -164,9 +165,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     t("locked_fields_admin_description"),
     t("locked_fields_member_description")
   );
-  const { watch } = useFormContext<FormValues>();
+  const { watch, setValue, getValues } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
-  const formMethods = useFormContext<FormValues>();
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
   const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
@@ -214,7 +214,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
       setOptions(options);
 
-      const scheduleId = formMethods.getValues("schedule");
+      const scheduleId = getValues("schedule");
       const value = options.find((option) =>
         scheduleId
           ? option.value === scheduleId
@@ -223,15 +223,20 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           : option.value === schedules.find((schedule) => schedule.isDefault)?.id
       );
 
-      formMethods.setValue("availability", value);
+      setValue("availability", value);
     },
   });
 
-  const availabilityValue = formMethods.watch("availability");
+  const availabilityValue = watch("availability");
+
+  useEffect(() => {
+    if (!availabilityValue?.value) return;
+    setValue("schedule", availabilityValue.value);
+  }, [availabilityValue, setValue]);
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div>
+      <div className="border-subtle rounded-t-md border p-6">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {t("availability")}
           {shouldLockIndicator("availability")}
@@ -248,7 +253,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                   isSearchable={false}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
-                    if (selected?.value) formMethods.setValue("availability", selected);
+                    if (selected?.value) setValue("availability", selected);
                   }}
                   className="block w-full min-w-0 flex-1 rounded-sm text-sm"
                   value={availabilityValue}
@@ -276,7 +281,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
 const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { resetField, setValue } = useFormContext<FormValues>();
+  const { setValue } = useFormContext<FormValues>();
   return (
     <Controller
       name="metadata.config.useHostSchedulesForTeamEvent"
@@ -285,9 +290,7 @@ const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSe
           checked={!value}
           onCheckedChange={(checked) => {
             onChange(!checked);
-            if (checked) {
-              resetField("schedule");
-            } else {
+            if (!checked) {
               setValue("schedule", null);
             }
           }}

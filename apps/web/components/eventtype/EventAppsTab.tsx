@@ -47,16 +47,25 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const getAppDataSetter = (appId: EventTypeAppsList): SetAppData => {
+  const eventTypeFormMetadata = methods.getValues("metadata");
+
+  const getAppDataSetter = (
+    appId: EventTypeAppsList,
+    appCategories: string[],
+    credentialId?: number
+  ): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
       const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+
       const appData = allAppsDataFromForm[appId];
       setAllAppsData({
         ...allAppsDataFromForm,
         [appId]: {
           ...appData,
           [key]: value,
+          credentialId,
+          appCategories,
         },
       });
     };
@@ -76,10 +85,15 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       appCards.push(
         <EventTypeAppCard
           getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-          setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+          setAppData={getAppDataSetter(
+            app.slug as EventTypeAppsList,
+            app.categories,
+            app.userCredentialIds[0]
+          )}
           key={app.slug}
           app={app}
           eventType={eventType}
+          eventTypeFormMetadata={eventTypeFormMetadata}
           {...shouldLockDisableProps("apps")}
         />
       );
@@ -90,7 +104,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         appCards.push(
           <EventTypeAppCard
             getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-            setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+            setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.categories, team.credentialId)}
             key={app.slug + team?.credentialId}
             app={{
               ...app,
@@ -103,6 +117,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               },
             }}
             eventType={eventType}
+            eventTypeFormMetadata={eventTypeFormMetadata}
             {...shouldLockDisableProps("apps")}
           />
         );
@@ -147,10 +162,15 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               return (
                 <EventTypeAppCard
                   getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-                  setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                  setAppData={getAppDataSetter(
+                    app.slug as EventTypeAppsList,
+                    app.categories,
+                    app.userCredentialIds[0]
+                  )}
                   key={app.slug}
                   app={app}
                   eventType={eventType}
+                  eventTypeFormMetadata={eventTypeFormMetadata}
                   {...shouldLockDisableProps("apps")}
                 />
               );
@@ -158,7 +178,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       </div>
       {!shouldLockDisableProps("apps").disabled && (
-        <div className="bg-muted rounded-md p-8">
+        <div className="bg-muted mt-6 rounded-md p-8">
           {!isLoading && notInstalledApps?.length ? (
             <>
               <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
@@ -166,7 +186,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               </h2>
               <p className="text-default mb-6 text-sm font-normal">
                 <Trans i18nKey="available_apps_desc">
-                  You have no apps installed. View popular apps below and explore more in our &nbsp;
+                  View popular apps below and explore more in our &nbsp;
                   <Link className="cursor-pointer underline" href="/apps">
                     App Store
                   </Link>
@@ -178,10 +198,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.categories)}
                 key={app.slug}
                 app={app}
                 eventType={eventType}
+                eventTypeFormMetadata={eventTypeFormMetadata}
               />
             ))}
           </div>

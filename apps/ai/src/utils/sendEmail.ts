@@ -27,7 +27,7 @@ const send = async ({
     cc,
     from: {
       email: from,
-      name: "Cal AI",
+      name: "Cal.ai",
     },
     text,
     html,

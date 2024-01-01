@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
@@ -39,7 +41,9 @@ async function getTeamMembers({
       user: {
         select: {
           id: true,
+          organizationId: true,
           username: true,
+          name: true,
           email: true,
           timeZone: true,
           defaultScheduleId: true,
@@ -61,6 +65,8 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
   if (!member.user.defaultScheduleId) {
     return {
       id: member.user.id,
+      organizationId: member.user.organizationId,
+      name: member.user.name,
       username: member.user.username,
       email: member.user.email,
       timeZone: member.user.timeZone,
@@ -87,6 +93,8 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     id: member.user.id,
     username: member.user.username,
     email: member.user.email,
+    organizationId: member.user.organizationId,
+    name: member.user.name,
     timeZone,
     role: member.role,
     defaultScheduleId: member.user.defaultScheduleId ?? -1,
@@ -120,9 +128,17 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     limit,
   });
 
+  // Get total team count across all teams the user is in (for pagination)
+
+  const totalTeamMembers = await prisma.$queryRaw<
+    {
+      count: number;
+    }[]
+  >`SELECT COUNT(DISTINCT "userId")::integer from "Membership" WHERE "teamId" IN (${Prisma.join(teamIds)})`;
+
   return {
     teamMembers,
-    totalTeamMembers: teamMembers.length,
+    totalTeamMembers: totalTeamMembers[0].count,
   };
 }
 

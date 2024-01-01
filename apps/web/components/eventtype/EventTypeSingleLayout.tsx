@@ -7,11 +7,9 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -48,6 +46,7 @@ import {
   ExternalLink,
   Code,
   Trash,
+  PhoneCall,
   MoreHorizontal,
   Loader,
 } from "@calcom/ui/components/icon";
@@ -67,6 +66,7 @@ type Props = {
   isUpdateMutationLoading?: boolean;
   availability?: AvailabilityOption;
   isUserOrganizationAdmin: boolean;
+  bookerUrl: string;
 };
 
 function getNavigation(props: {
@@ -116,7 +116,7 @@ function getNavigation(props: {
     {
       name: "workflows",
       href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: Zap,
+      icon: PhoneCall,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
@@ -135,6 +135,7 @@ function EventTypeSingleLayout({
   formMethods,
   availability,
   isUserOrganizationAdmin,
+  bookerUrl,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -207,13 +208,21 @@ function EventTypeSingleLayout({
         icon: Users,
         info: `${t(eventType.schedulingType?.toLowerCase() ?? "")}${
           isManagedEventType
-            ? ` - ${t("count_members", { count: formMethods.watch("children").length || 0 })}`
+            ? ` - ${t("number_member", { count: formMethods.watch("children").length || 0 })}`
             : ""
         }`,
       });
     }
     const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
     if (showWebhooks) {
+      if (team) {
+        navigation.push({
+          name: "instant_tab_title",
+          href: `/event-types/${eventType.id}?tabName=instant`,
+          icon: Zap,
+          info: `instant_event_tab_description`,
+        });
+      }
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
@@ -235,10 +244,8 @@ function EventTypeSingleLayout({
     formMethods,
   ]);
 
-  const orgBranding = useOrgBranding();
-  const isOrgEvent = orgBranding?.fullDomain;
-  const permalink = `${orgBranding?.fullDomain ?? CAL_URL}/${
-    team ? `${!isOrgEvent ? "team/" : ""}${team.slug}` : eventType.users[0].username
+  const permalink = `${bookerUrl}/${
+    team ? `${!team.parentId ? "team/" : ""}${team.slug}` : eventType.users[0].username
   }/${eventType.slug}`;
 
   const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
@@ -247,7 +254,7 @@ function EventTypeSingleLayout({
   return (
     <Shell
       backPath="/event-types"
-      title={eventType.title + " | " + t("event_type")}
+      title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
       CTA={
         <div className="flex items-center justify-end">
@@ -268,9 +275,11 @@ function EventTypeSingleLayout({
                   </Skeleton>
                 )}
                 <Tooltip
+                  sideOffset={4}
                   content={
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                  }>
+                  }
+                  side="bottom">
                   <div className="self-center rounded-md p-2">
                     <Switch
                       id="hiddenSwitch"
@@ -291,7 +300,7 @@ function EventTypeSingleLayout({
             {!isManagedEventType && (
               <>
                 {/* We have to warp this in tooltip as it has a href which disabels the tooltip on buttons */}
-                <Tooltip content={t("preview")}>
+                <Tooltip content={t("preview")} side="bottom" sideOffset={4}>
                   <Button
                     color="secondary"
                     data-testid="preview-button"
@@ -308,6 +317,8 @@ function EventTypeSingleLayout({
                   variant="icon"
                   StartIcon={LinkIcon}
                   tooltip={t("copy_link")}
+                  tooltipSide="bottom"
+                  tooltipOffset={4}
                   onClick={() => {
                     navigator.clipboard.writeText(permalink);
                     showToast("Link copied!", "success");
@@ -318,7 +329,10 @@ function EventTypeSingleLayout({
                   StartIcon={Code}
                   color="secondary"
                   variant="icon"
+                  namespace={eventType.slug}
                   tooltip={t("embed")}
+                  tooltipSide="bottom"
+                  tooltipOffset={4}
                   eventId={eventType.id}
                 />
               </>
@@ -329,6 +343,8 @@ function EventTypeSingleLayout({
                 variant="icon"
                 StartIcon={Trash}
                 tooltip={t("delete")}
+                tooltipSide="bottom"
+                tooltipOffset={4}
                 disabled={!hasPermsToDelete}
                 onClick={() => setDeleteDialogOpen(true)}
               />

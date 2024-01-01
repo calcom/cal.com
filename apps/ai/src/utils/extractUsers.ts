@@ -1,11 +1,17 @@
+import prisma from "@calcom/prisma";
+
+import type { UserList } from "../types/user";
+
 /*
  * Extracts usernames (@Example) and emails (hi@example.com) from a string
  */
-import type { UserList } from "../types/user";
-
 export const extractUsers = async (text: string) => {
-  const usernames = text.match(/(?<![a-zA-Z0-9_.])@[a-zA-Z0-9_]+/g)?.map((username) => username.slice(1));
-  const emails = text.match(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g);
+  const usernames = text
+    .match(/(?<![a-zA-Z0-9_.])@[a-zA-Z0-9_]+/g)
+    ?.map((username) => username.slice(1).toLowerCase());
+  const emails = text
+    .match(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g)
+    ?.map((email) => email.toLowerCase());
 
   const dbUsersFromUsernames = usernames
     ? await prisma.user.findMany({

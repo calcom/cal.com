@@ -11,37 +11,13 @@ import { createTRPCNext } from "../next";
 import type { TRPCClientErrorLike } from "../react";
 import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
 import type { AppRouter } from "../server/routers/_app";
+import { ENDPOINTS } from "./shared";
 
 /**
  * We deploy our tRPC router on multiple lambdas to keep number of imports as small as possible
  * TODO: Make this dynamic based on folders in trpc server?
  */
-const ENDPOINTS = [
-  "admin",
-  "apiKeys",
-  "appRoutingForms",
-  "apps",
-  "auth",
-  "availability",
-  "appBasecamp3",
-  "bookings",
-  "deploymentSetup",
-  "eventTypes",
-  "features",
-  "insights",
-  "payments",
-  "public",
-  "saml",
-  "slots",
-  "teams",
-  "organizations",
-  "users",
-  "viewer",
-  "webhook",
-  "workflows",
-  "appsRouter",
-  "googleWorkspace",
-] as const;
+
 export type Endpoint = (typeof ENDPOINTS)[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,14 +76,14 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext, "ExperimentalSusp
           // when condition is true, use normal request
           true: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: url + "/" + endpoint })(runtime)])
+              ENDPOINTS.map((endpoint) => [endpoint, httpLink({ url: `${url}/${endpoint}` })(runtime)])
             );
             return resolveEndpoint(links);
           },
           // when condition is false, use batch request
           false: (runtime) => {
             const links = Object.fromEntries(
-              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: url + "/" + endpoint })(runtime)])
+              ENDPOINTS.map((endpoint) => [endpoint, httpBatchLink({ url: `${url}/${endpoint}` })(runtime)])
             );
             return resolveEndpoint(links);
           },

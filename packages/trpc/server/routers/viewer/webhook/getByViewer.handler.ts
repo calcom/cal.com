@@ -1,4 +1,4 @@
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -37,6 +37,15 @@ export type WebhooksByViewer = {
     image?: string | undefined;
     teamId: number | null | undefined;
   }[];
+};
+
+const filterWebhooks = (webhook: Webhook) => {
+  const appIds = [
+    "zapier",
+    // Add more if needed
+  ];
+
+  return !appIds.some((appId: string) => webhook.appId == appId);
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
@@ -80,9 +89,10 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const userWebhooks = user.webhooks;
+  let userWebhooks = user.webhooks;
+  userWebhooks = userWebhooks.filter(filterWebhooks);
   let webhookGroups: WebhookGroup[] = [];
-  const bookerUrl = await getBookerUrl(user);
+  const bookerUrl = await getBookerBaseUrl(user);
 
   const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
   webhookGroups.push({
@@ -119,7 +129,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
           slug: membership.team.slug
             ? !membership.team.parentId
               ? `/team`
-              : "" + membership.team.slug
+              : `${membership.team.slug}`
             : null,
           image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
         },
@@ -132,7 +142,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
                 : MembershipRole.MEMBER
               : MembershipRole.MEMBER),
         },
-        webhooks: membership.team.webhooks,
+        webhooks: membership.team.webhooks.filter(filterWebhooks),
       };
     });
 

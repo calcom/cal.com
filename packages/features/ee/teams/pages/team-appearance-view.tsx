@@ -1,72 +1,187 @@
 import { useRouter } from "next/navigation";
-import { Controller, useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
+import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
+import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { APP_NAME } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  ColorPicker,
-  Form,
-  Meta,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  Switch,
-} from "@calcom/ui";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return (
-    <SkeletonContainer>
-      <Meta title={title} description={description} />
-      <div className="mb-8 mt-6 space-y-6">
-        <div className="flex items-center">
-          <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-          <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-          <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
-        </div>
-        <div className="flex justify-between">
-          <SkeletonText className="h-8 w-1/3" />
-          <SkeletonText className="h-8 w-1/3" />
-        </div>
-
-        <SkeletonText className="h-8 w-full" />
-
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-      </div>
-    </SkeletonContainer>
-  );
-};
-
-interface TeamAppearanceValues {
-  hideBranding: boolean;
-  hideBookATeamMember: boolean;
+type BrandColorsFormValues = {
   brandColor: string;
   darkBrandColor: string;
-  theme: string | null | undefined;
-}
+};
 
-const ProfileView = () => {
-  const params = useParamsWithFallback();
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
+
+const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
-  const router = useRouter();
   const utils = trpc.useContext();
+
+  const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
+  const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
+
+  const themeForm = useForm<{ theme: string | null | undefined }>({
+    defaultValues: {
+      theme: team?.theme,
+    },
+  });
+
+  const {
+    formState: { isSubmitting: isThemeSubmitting, isDirty: isThemeDirty },
+    reset: resetTheme,
+  } = themeForm;
+
+  const brandColorsFormMethods = useForm<BrandColorsFormValues>({
+    defaultValues: {
+      brandColor: team?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
+      darkBrandColor: team?.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
+    },
+  });
+
+  const { reset: resetBrandColors } = brandColorsFormMethods;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
-    async onSuccess() {
+    async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
+      if (res) {
+        resetTheme({ theme: res.theme });
+        resetBrandColors({ brandColor: res.brandColor, darkBrandColor: res.darkBrandColor });
+      }
+
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
+
+  const onBrandColorsFormSubmit = (values: BrandColorsFormValues) => {
+    mutation.mutate({ ...values, id: team.id });
+  };
+
+  const isAdmin =
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+
+  return (
+    <>
+      <Meta
+        title={t("booking_appearance")}
+        description={t("appearance_team_description")}
+        borderInShellHeader={false}
+      />
+      {isAdmin ? (
+        <>
+          <Form
+            form={themeForm}
+            handleSubmit={(values) => {
+              mutation.mutate({
+                id: team.id,
+                theme: values.theme || null,
+              });
+            }}>
+            <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+              <div>
+                <p className="font-semibold">{t("theme")}</p>
+                <p className="text-default">{t("theme_applies_note")}</p>
+              </div>
+            </div>
+            <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
+              <ThemeLabel
+                variant="system"
+                value={null}
+                label={t("theme_system")}
+                defaultChecked={team.theme === null}
+                register={themeForm.register}
+              />
+              <ThemeLabel
+                variant="light"
+                value="light"
+                label={t("light")}
+                defaultChecked={team.theme === "light"}
+                register={themeForm.register}
+              />
+              <ThemeLabel
+                variant="dark"
+                value="dark"
+                label={t("dark")}
+                defaultChecked={team.theme === "dark"}
+                register={themeForm.register}
+              />
+            </div>
+            <SectionBottomActions className="mb-6" align="end">
+              <Button
+                disabled={isThemeSubmitting || !isThemeDirty}
+                type="submit"
+                data-testid="update-org-theme-btn"
+                color="primary">
+                {t("update")}
+              </Button>
+            </SectionBottomActions>
+          </Form>
+
+          <Form
+            form={brandColorsFormMethods}
+            handleSubmit={(values) => {
+              onBrandColorsFormSubmit(values);
+            }}>
+            <BrandColorsForm
+              onSubmit={onBrandColorsFormSubmit}
+              brandColor={team?.brandColor}
+              darkBrandColor={team?.darkBrandColor}
+            />
+          </Form>
+
+          <div className="mt-6 flex flex-col gap-6">
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("disable_cal_branding", { appName: APP_NAME })}
+              disabled={mutation?.isLoading}
+              description={t("removes_cal_branding", { appName: APP_NAME })}
+              checked={hideBrandingValue}
+              onCheckedChange={(checked) => {
+                setHideBrandingValue(checked);
+                mutation.mutate({ id: team.id, hideBranding: checked });
+              }}
+            />
+
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("hide_book_a_team_member")}
+              disabled={mutation?.isLoading}
+              description={t("hide_book_a_team_member_description", { appName: APP_NAME })}
+              checked={hideBookATeamMember ?? false}
+              onCheckedChange={(checked) => {
+                setHideBookATeamMember(checked);
+                mutation.mutate({ id: team.id, hideBookATeamMember: checked });
+              }}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="border-subtle rounded-md border p-5">
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
+        </div>
+      )}
+    </>
+  );
+};
+
+const ProfileViewWrapper = () => {
+  const router = useRouter();
+  const params = useParamsWithFallback();
+
+  const { t } = useLocale();
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(params.id) },
@@ -77,170 +192,16 @@ const ProfileView = () => {
     }
   );
 
-  const form = useForm<TeamAppearanceValues>({
-    defaultValues: {
-      theme: team?.theme,
-      brandColor: team?.brandColor,
-      darkBrandColor: team?.darkBrandColor,
-      hideBranding: team?.hideBranding,
-    },
-  });
+  if (isLoading)
+    return (
+      <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />
+    );
 
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  if (!team) return null;
 
-  if (isLoading) {
-    return <SkeletonLoader title={t("booking_appearance")} description={t("appearance_team_description")} />;
-  }
-  return (
-    <>
-      <Meta title={t("booking_appearance")} description={t("appearance_team_description")} />
-      {isAdmin ? (
-        <Form
-          form={form}
-          handleSubmit={(values) => {
-            mutation.mutate({
-              id: team.id,
-              ...values,
-              theme: values.theme || null,
-            });
-          }}>
-          <div className="mb-6 flex items-center text-sm">
-            <div>
-              <p className="font-semibold">{t("theme")}</p>
-              <p className="text-default">{t("theme_applies_note")}</p>
-            </div>
-          </div>
-          <div className="flex flex-col justify-between sm:flex-row">
-            <ThemeLabel
-              variant="system"
-              value={null}
-              label={t("theme_system")}
-              defaultChecked={team.theme === null}
-              register={form.register}
-            />
-            <ThemeLabel
-              variant="light"
-              value="light"
-              label={t("light")}
-              defaultChecked={team.theme === "light"}
-              register={form.register}
-            />
-            <ThemeLabel
-              variant="dark"
-              value="dark"
-              label={t("dark")}
-              defaultChecked={team.theme === "dark"}
-              register={form.register}
-            />
-          </div>
-
-          <hr className="border-subtle my-8" />
-          <div className="text-default mb-6 flex items-center text-sm">
-            <div>
-              <p className="font-semibold">{t("custom_brand_colors")}</p>
-              <p className="mt-0.5 leading-5">{t("customize_your_brand_colors")}</p>
-            </div>
-          </div>
-
-          <div className="block justify-between sm:flex">
-            <Controller
-              name="brandColor"
-              control={form.control}
-              defaultValue={team.brandColor}
-              render={() => (
-                <div>
-                  <p className="text-emphasis mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
-                  <ColorPicker
-                    defaultValue={team.brandColor}
-                    resetDefaultValue="#292929"
-                    onChange={(value) => form.setValue("brandColor", value, { shouldDirty: true })}
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="darkBrandColor"
-              control={form.control}
-              defaultValue={team.darkBrandColor}
-              render={() => (
-                <div className="mt-6 sm:mt-0">
-                  <p className="text-emphasis mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
-                  <ColorPicker
-                    defaultValue={team.darkBrandColor}
-                    resetDefaultValue="#fafafa"
-                    onChange={(value) => form.setValue("darkBrandColor", value, { shouldDirty: true })}
-                  />
-                </div>
-              )}
-            />
-          </div>
-          <hr className="border-subtle my-8" />
-
-          <div className="flex flex-col gap-8">
-            <div className="relative flex items-start">
-              <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="text-default font-medium">
-                  {t("disable_cal_branding", { appName: APP_NAME })}
-                </label>
-                <p className="text-subtle">
-                  {t("team_disable_cal_branding_description", { appName: APP_NAME })}
-                </p>
-              </div>
-
-              <div className="flex-none">
-                <Controller
-                  control={form.control}
-                  defaultValue={team?.hideBranding ?? false}
-                  name="hideBranding"
-                  render={({ field }) => (
-                    <Switch
-                      defaultChecked={field.value}
-                      onCheckedChange={(isChecked) => {
-                        form.setValue("hideBranding", isChecked);
-                      }}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-            <div className="relative flex items-start">
-              <div className="flex-grow text-sm">
-                <label htmlFor="hide-branding" className="text-default font-medium">
-                  {t("hide_book_a_team_member")}
-                </label>
-                <p className="text-subtle">{t("hide_book_a_team_member_description")}</p>
-              </div>
-              <div className="flex-none">
-                <Controller
-                  control={form.control}
-                  defaultValue={team?.hideBookATeamMember ?? false}
-                  name="hideBookATeamMember"
-                  render={({ field }) => (
-                    <Switch
-                      defaultChecked={field.value}
-                      onCheckedChange={(isChecked) => {
-                        form.setValue("hideBookATeamMember", isChecked);
-                      }}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-          <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
-            {t("update")}
-          </Button>
-        </Form>
-      ) : (
-        <div className="border-subtle rounded-md border p-5">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
-        </div>
-      )}
-    </>
-  );
+  return <ProfileView team={team} />;
 };
 
-ProfileView.getLayout = getLayout;
+ProfileViewWrapper.getLayout = getLayout;
 
-export default ProfileView;
+export default ProfileViewWrapper;

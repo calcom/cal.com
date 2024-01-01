@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, expect, it } from "vitest";
 

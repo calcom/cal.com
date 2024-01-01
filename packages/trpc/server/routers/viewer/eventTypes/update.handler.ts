@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
-import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
@@ -241,43 +241,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (input.metadata?.apps?.stripe?.price) {
-    data.price = input.metadata?.apps?.stripe?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
-      where: {
-        userId: ctx.user.id,
-        appId: {
-          equals: "stripe",
-        },
-      },
-      select: {
-        appId: true,
-        key: true,
-      },
-    });
-
-    if (paymentCredential?.appId === "stripe") {
-      const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-      data.currency = default_currency;
-    }
-  }
-
-  if (input.metadata?.apps?.paypal?.price) {
-    data.price = input.metadata?.apps?.paypal?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
-      where: {
-        userId: ctx.user.id,
-        appId: {
-          equals: "paypal",
-        },
-      },
-      select: {
-        appId: true,
-        key: true,
-      },
-    });
-    if (paymentCredential?.appId === "paypal" && input.metadata?.apps?.paypal?.currency) {
-      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
+  for (const appKey in input.metadata?.apps) {
+    const app = input.metadata?.apps[appKey as keyof typeof appDataSchemas];
+    // There should only be one enabled payment app in the metadata
+    if (app.enabled && app.price && app.currency) {
+      data.price = app.price;
+      data.currency = app.currency;
+      break;
     }
   }
 

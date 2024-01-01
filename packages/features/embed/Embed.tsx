@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { RefObject } from "react";
 import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -21,6 +21,7 @@ import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -57,11 +58,11 @@ const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl", "eventId"
 
 function useRouterHelpers() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(searchParams ?? undefined);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
     });
@@ -70,7 +71,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams ?? undefined);
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -81,12 +82,6 @@ function useRouterHelpers() {
 
   return { goto, removeQueryParams };
 }
-
-const getQueryParam = (queryParam: string) => {
-  const params = new URLSearchParams(window.location.search);
-
-  return params.get(queryParam);
-};
 
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
@@ -248,7 +243,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
           {selectedDate ? (
-            <div className="flex h-full w-full flex-row gap-4">
+            <div className="flex h-full w-full flex-col gap-4">
               <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
@@ -503,17 +498,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
   tabs,
+  namespace,
   eventTypeHideOptionDisabled,
   types,
 }: {
   embedType: EmbedType;
   embedUrl: string;
   tabs: EmbedTabs;
+  namespace: string;
   eventTypeHideOptionDisabled: boolean;
   types: EmbedTypes;
 }) => {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -526,18 +523,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
-  const eventId = getQueryParam("eventId");
+  const eventId = searchParams?.get("eventId");
+  const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
-    { id: parseInt(eventId as string) },
-    { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
+    { id: parsedEventId },
+    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
 
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
-    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
+    return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -1013,6 +1011,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div className="flex h-[55vh] flex-grow flex-col">
                     {tab.type === "code" ? (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1020,6 +1019,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     ) : (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1100,8 +1100,9 @@ export const EmbedDialog = ({
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
 }) => {
-  const searchParams = useSearchParams();
-  const embedUrl = searchParams?.get("embedUrl") as string;
+  const searchParams = useCompatSearchParams();
+  const embedUrl = (searchParams?.get("embedUrl") || "") as string;
+  const namespace = (searchParams?.get("namespace") || "") as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!searchParams?.get("embedType") ? (
@@ -1110,6 +1111,7 @@ export const EmbedDialog = ({
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
+          namespace={namespace}
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
@@ -1121,6 +1123,7 @@ export const EmbedDialog = ({
 
 type EmbedButtonProps<T> = {
   embedUrl: string;
+  namespace: string;
   children?: React.ReactNode;
   className?: string;
   as?: T;
@@ -1133,6 +1136,7 @@ export const EmbedButton = <T extends React.ElementType>({
   className = "",
   as,
   eventId,
+  namespace,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const { goto } = useRouterHelpers();
@@ -1141,6 +1145,7 @@ export const EmbedButton = <T extends React.ElementType>({
     goto({
       dialog: "embed",
       eventId: eventId ? eventId.toString() : "",
+      namespace,
       embedUrl,
     });
   };

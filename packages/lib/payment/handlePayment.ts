@@ -2,13 +2,13 @@ import type { AppCategories, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { EventTypeModel } from "@calcom/prisma/zod";
+import type { CompleteEventType } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
 const handlePayment = async (
   evt: CalendarEvent,
-  selectedEventType: Pick<Zod.infer<typeof EventTypeModel>, "metadata" | "title">,
+  selectedEventType: Pick<CompleteEventType, "metadata" | "title">,
   paymentAppCredentials: {
     key: Prisma.JsonValue;
     appId: EventTypeAppsList;

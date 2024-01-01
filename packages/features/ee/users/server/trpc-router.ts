@@ -33,6 +33,9 @@ const userBodySchema = User.pick({
   avatar: true,
 });
 
+/**
+ * @deprecated in favour of @calcom/lib/getAvatarUrl
+ */
 /** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */
 export function getAvatarUrlFromUser(user: {
   avatar: string | null;

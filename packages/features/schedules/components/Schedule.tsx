@@ -117,7 +117,7 @@ const CopyButton = ({
       <DropdownMenuContent align="end">
         <CopyTimes
           weekStart={weekStart}
-          disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
+          disabled={parseInt(getValuesFromDayRange.replace(`${fieldArrayName}.`, ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
             setOpen(false);
@@ -326,7 +326,7 @@ interface IOption {
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 /** Begin Time Increments For Select */
-const INCREMENT = 15;
+const INCREMENT = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
 const useOptions = () => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();

@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code } = req.query;
   const { client_id, client_secret, user_agent } = await getAppKeysFromSlug("basecamp3");
 
-  const redirectUri = WEBAPP_URL + "/api/integrations/basecamp3/callback";
+  const redirectUri = `${WEBAPP_URL}/api/integrations/basecamp3/callback`;
 
   const params = new URLSearchParams({
     type: "web_server",

@@ -15,7 +15,7 @@ import {
   Switch,
   Tooltip,
 } from "@calcom/ui";
-import { AlertCircle, Edit, MoreHorizontal, Trash } from "@calcom/ui/components/icon";
+import { Edit, MoreHorizontal, Trash, Zap } from "@calcom/ui/components/icon";
 
 type WebhookProps = {
   id: string;
@@ -73,7 +73,11 @@ export default function WebhookListItem(props: {
       )}>
       <div className="w-full truncate">
         <div className="flex">
-          <p className="text-emphasis truncate text-sm font-medium">{webhook.subscriberUrl}</p>
+          <Tooltip content={webhook.subscriberUrl}>
+            <p className="text-emphasis max-w-[600px] truncate text-sm font-medium">
+              {webhook.subscriberUrl}
+            </p>
+          </Tooltip>
           {!!props.readOnly && (
             <Badge variant="gray" className="ml-2 ">
               {t("readonly")}
@@ -87,7 +91,7 @@ export default function WebhookListItem(props: {
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
                 variant="gray"
-                startIcon={AlertCircle}>
+                startIcon={Zap}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
