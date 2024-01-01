@@ -340,8 +340,9 @@ export const BookEventFormChild = ({
     // default eventQuery duration.
     const validDuration = eventQuery.data.isDynamic
       ? duration || eventQuery.data.length
-      : (duration && eventQuery.data.metadata?.multipleDuration?.includes(duration)) ||
-        eventQuery.data.length;
+      : duration && eventQuery.data.metadata?.multipleDuration?.includes(duration)
+      ? duration
+      : eventQuery.data.length;
 
     const bookingInput = {
       values,
