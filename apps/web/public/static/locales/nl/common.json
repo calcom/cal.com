@@ -941,8 +941,6 @@
   "enterprise_license_description": "Om deze functie in te schakelen, krijgt u een implementatiesleutel op de {{consoleUrl}}-console en voegt u deze toe aan uw .env als CALCOM_LICENSE_KEY. Als uw team al een licentie heeft, neem dan contact op met {{supportMail}} voor hulp.",
   "enterprise_license_development": "U kunt deze functie testen in de in ontwikkelingsmodus. Voor productiegebruik moet een beheerder naar <2>/auth/setup</2> gaan om een licentiecode in te voeren.",
   "missing_license": "Ontbrekende licentie",
-  "signup_requires": "Commerciële licentie vereist",
-  "signup_requires_description": "{{companyName}} biedt momenteel geen gratis opensourceversie van de registratiepagina aan. Om volledige toegang te krijgen tot de registratieonderdelen moet u een commerciële licentie verkrijgen. Voor persoonlijk gebruik raden we aan om accounts aan te maken op het Prisma Data Platform of een andere Postgres-interface.",
   "next_steps": "Volgende stappen",
   "acquire_commercial_license": "Verkrijg een commerciële licentie",
   "the_infrastructure_plan": "Het infrastructuurabonnement is gebaseerd op gebruik en heeft speciale kortingen voor start-ups.",
