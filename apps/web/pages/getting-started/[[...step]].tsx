@@ -14,18 +14,19 @@ import { z } from "zod";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { LargeCalendar } from "@calcom/features/auth/signup/LargeCalendar";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
-import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
@@ -38,7 +39,7 @@ const INITIAL_STEP = "user-settings";
 const steps = [
   "user-settings",
   "connected-calendar",
-  "connected-video",
+  // "connected-video",
   "setup-availability",
   "user-profile",
 ] as const;
@@ -57,7 +58,7 @@ const stepRouteSchema = z.object({
 });
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
-const OnboardingPage = () => {
+const OnboardingPage = (props) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
   const router = useRouter();
@@ -321,9 +322,9 @@ const OnboardingPage = () => {
                       <ConnectedCalendars nextStep={() => goToIndex(2)} />
                     )}
 
-                    {currentStep === "connected-video" && (
+                    {/* {currentStep === "connected-video" && (
                       <ConnectedVideoStep nextStep={() => goToIndex(3)} />
-                    )}
+                    )} */}
 
                     {currentStep === "setup-availability" && (
                       <SetupAvailability
@@ -355,7 +356,7 @@ const OnboardingPage = () => {
         </div>
 
         {/* Right Column */}
-        <div className="min-h-full p-4">
+        <div className="scrollbar-thin max-h-screen min-h-screen overflow-y-auto pb-4 ps-4 pt-4">
           {currentStep === "user-settings" && (
             <>
               <div
@@ -382,6 +383,16 @@ const OnboardingPage = () => {
                   </div>
                 </div>
               )}
+            </>
+          )}
+
+          {currentStep === "connected-calendar" && (
+            <>
+              <div
+                className="flex min-h-full items-center justify-center rounded-l-2xl pb-8 ps-8 pt-8 align-middle"
+                style={{ backgroundColor: "grey" }}>
+                <LargeCalendar extraDays={7} showFakeEvents={props.connectedCalendarsCount !== 0} />
+              </div>
             </>
           )}
         </div>
@@ -433,11 +444,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   const locale = await getLocale(context.req);
 
+  const connectedCalendarsCount = await prisma.credential.count({
+    where: {
+      userId: session.user.id,
+      app: {
+        categories: { has: AppCategories.calendar },
+        enabled: true,
+      },
+    },
+  });
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
       trpcState: ssr.dehydrate(),
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
+      connectedCalendarsCount,
     },
   };
 };
