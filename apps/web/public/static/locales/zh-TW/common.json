@@ -941,8 +941,6 @@
   "enterprise_license_description": "若要啟用此功能，請在 {{consoleUrl}} 主控台取得部署金鑰，並在您的 .env 中新增為 CALCOM_LICENSE_KEY。如果您的團隊已經取得授權，請聯絡 {{supportMail}} 取得協助。",
   "enterprise_license_development": "您可以在開發模式下測試此功能。若要用於生產環境，請由管理員前往 <2>/auth/setup</2> 輸入授權金鑰。",
   "missing_license": "遺失授權",
-  "signup_requires": "必須有商業授權",
-  "signup_requires_description": "{{companyName}} 目前不提供註冊頁面的免費開源版本。如果要完整獲得註冊元件，就得要取得商業授權。個人使用的情況，我們推薦 Prisma Data Platform 或其它 Postgres 介面來建立帳號。",
   "next_steps": "下一步",
   "acquire_commercial_license": "取得商業授權",
   "the_infrastructure_plan": "基礎架構方案是根據使用量，並提供新創公司友善折扣。",
