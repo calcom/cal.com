@@ -16,4 +16,4 @@ export default function MainLayout({
   );
 }
 
-export const getLayout = (page: React.ReactNode) => <MainLayout>{page}</MainLayout>;
+export const getLayout = (page: React.ReactElement) => <MainLayout>{page}</MainLayout>;

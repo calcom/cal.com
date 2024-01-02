@@ -682,7 +682,7 @@ type SidebarContainerElementProps = {
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const getLayout = (page: React.ReactNode) => <SettingsLayout>{page}</SettingsLayout>;
+export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
 
 export function ShellHeader() {
   const { meta } = useMeta();
