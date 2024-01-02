@@ -13,7 +13,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import { AvatarGroup, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
@@ -392,7 +392,7 @@ export const InstantBooking = () => {
       <div className="flex items-center gap-3 ps-1">
         {/* TODO: max. show 4 people here */}
         <div className="relative">
-          <AvatarGroup
+          {/* <AvatarGroup
             size="sm"
             className="relative"
             items={[
@@ -412,7 +412,7 @@ export const InstantBooking = () => {
                 title: "Alex Van Andel",
               },
             ]}
-          />
+          /> */}
           <div className="border-muted absolute -bottom-0.5 -right-1 h-2 w-2 rounded-full border bg-green-500" />
         </div>
         <div>{t("dont_want_to_wait")}</div>
