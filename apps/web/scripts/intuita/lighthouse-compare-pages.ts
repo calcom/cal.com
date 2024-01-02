@@ -1,4 +1,5 @@
 import { chromium } from "@playwright/test";
+import chalk from "chalk";
 import fs from "fs";
 // @ts-expect-error type-definitions
 import lighthouse from "lighthouse";
@@ -40,6 +41,20 @@ const getConfig = (preset: Preset) => ({
   extends: "lighthouse:default",
   settings: {
     onlyAudits: DEFAULT_ONLY_AUDITS,
+    categories: {
+      performance: {
+        title: "Performance",
+        supportedModes: ["navigation", "timespan", "snapshot"],
+        auditRefs: [
+          { id: "first-contentful-paint", weight: 10, group: "metrics", acronym: "FCP" },
+          { id: "interactive", weight: 10, group: "metrics", acronym: "TTI" },
+          { id: "speed-index", weight: 10, group: "metrics", acronym: "SI" },
+          { id: "total-blocking-time", weight: 30, group: "metrics", acronym: "TBT" },
+          { id: "largest-contentful-paint", weight: 25, group: "metrics", acronym: "LCP" },
+          { id: "cumulative-layout-shift", weight: 15, group: "metrics", acronym: "CLS" },
+        ],
+      },
+    },
     ...(preset === "desktop" && PRESET_DESKTOP),
   },
 });
@@ -49,7 +64,7 @@ const times = async (n: number, cb: (...args: any) => any): Promise<any[]> => {
   const result = new Array(n);
 
   for (let i = 0; i < n; i++) {
-    result[i] = await cb();
+    result[i] = await cb(i);
   }
 
   return result;
@@ -71,13 +86,17 @@ const median = (values: number[]): number => {
 type Audits = Record<string, number>;
 type TestRunner = (pageUrl: string, options: Options) => Promise<Audits>;
 
-const reportToJSON = (report: any) => {
+const getAudits = (report: any) => {
   const parsedReport = JSON.parse(report.report) as { audits: Record<string, { numericValue: number }> };
 
   return Object.entries(parsedReport.audits).reduce<Record<string, number>>((acc, [auditName, audit]) => {
     acc[auditName] = audit.numericValue;
     return acc;
   }, {});
+};
+
+const getCategoryScore = (report: any, category: string) => {
+  return report.lhr.categories[category].score;
 };
 
 const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: Options) => {
@@ -87,6 +106,12 @@ const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: Option
   });
 
   const context = await browser.newContext();
+  // removes the sidebar tips
+  // in some cases side bar tip image is selected as LCP element.
+  context.addInitScript(() => {
+    localStorage.setItem("removedTipsIds", "1,2,3,4,5,6,7,8,9,10,11,12");
+  });
+
   await context.addCookies([
     {
       name: "next-auth.session-token",
@@ -100,13 +125,21 @@ const lighthouseTestRunner: TestRunner = async (pageUrl: string, options: Option
   const report = await lighthouse(pageUrl, DEFAULT_OPTIONS, getConfig(options.preset ?? "desktop"));
   await browser.close();
 
-  return reportToJSON(report);
+  const audits = getAudits(report);
+  audits["performance_score"] = getCategoryScore(report, "performance");
+  return audits;
 };
 
 const getSeries = async (page: string, options: Options) => {
   const repeatTimes = options.repeatTimes ?? DEFAULT_TEST_COUNT;
 
-  const audits = await times(repeatTimes, () => lighthouseTestRunner(page, options));
+  const audits = await times(repeatTimes, async (i) => {
+    console.log("\n");
+    console.log(chalk.blue(`-------- Running test #${i + 1} for ${page}  --------`));
+    console.log("\n");
+
+    return lighthouseTestRunner(page, options);
+  });
 
   return audits.reduce((acc, audit) => {
     Object.entries(audit).forEach(([key, value]) => {
