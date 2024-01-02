@@ -2,8 +2,8 @@ name: Assign PR team labels
 on:
   workflow_call:
   pull_request_target:
-    branches:
-      - main
+    types:
+      - opened
 
 jobs:
   team-labels:
