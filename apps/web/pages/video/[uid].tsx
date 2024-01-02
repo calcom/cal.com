@@ -305,11 +305,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
-  const now = new Date();
-  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
+  const exitDate = dayjs.utc().subtract(1, "hour");
+  const endTime = dayjs.utc(booking?.endTime);
 
   //find out if the meeting is in the past
-  const isPast = booking?.endTime <= exitDate;
+  const isPast = exitDate.isAfter(endTime);
+
   if (isPast) {
     return {
       redirect: {
