@@ -65,9 +65,14 @@ export interface BookerProps {
    */
   duration?: number | null;
   /**
+   * Configures the selectable options for a multiDuration event type.
+   */
+  durationConfig?: number[];
+  /**
    * Refers to the private link from event types page.
    */
   hashedLink?: string | null;
+  isInstantMeeting?: boolean;
 }
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

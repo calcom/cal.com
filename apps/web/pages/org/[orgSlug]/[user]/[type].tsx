@@ -1,6 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
+import z from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import PageWrapper from "@components/PageWrapper";
@@ -10,21 +12,29 @@ import UserTypePage, { getServerSideProps as GSSUserTypePage } from "../../../[u
 import type { PageProps as TeamTypePageProps } from "../../../team/[slug]/[type]";
 import TeamTypePage, { getServerSideProps as GSSTeamTypePage } from "../../../team/[slug]/[type]";
 
+const paramsSchema = z.object({
+  orgSlug: z.string().transform((s) => slugify(s)),
+  user: z.string(),
+  type: z.string().transform((s) => slugify(s)),
+});
+
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
   const team = await prisma.team.findFirst({
     where: {
-      slug: ctx.query.user as string,
+      slug: slugify(teamOrUserSlugOrDynamicGroup),
       parentId: {
         not: null,
       },
-      parent: getSlugOrRequestedSlug(ctx.query.orgSlug as string),
+      parent: getSlugOrRequestedSlug(orgSlug),
     },
     select: {
       id: true,
     },
   });
+
   if (team) {
-    const params = { slug: ctx.query.user, type: ctx.query.type };
+    const params = { slug: teamOrUserSlugOrDynamicGroup, type };
     return GSSTeamTypePage({
       ...ctx,
       params: {
@@ -37,7 +47,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     });
   }
-  const params = { user: ctx.query.user, type: ctx.query.type };
+  const params = { user: teamOrUserSlugOrDynamicGroup, type };
   return GSSUserTypePage({
     ...ctx,
     params: {

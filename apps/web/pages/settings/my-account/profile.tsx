@@ -106,8 +106,17 @@ const ProfileView = () => {
       setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },
-    onError: () => {
-      showToast(t("error_updating_settings"), "error");
+    onError: (e) => {
+      switch (e.message) {
+        // TODO: Add error codes.
+        case "email_already_used":
+          {
+            showToast(t(e.message), "error");
+          }
+          return;
+        default:
+          showToast(t("error_updating_settings"), "error");
+      }
     },
   });
 
