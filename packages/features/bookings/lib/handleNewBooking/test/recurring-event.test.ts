@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect } from "vitest";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -209,7 +209,7 @@ describe("handleNewBooking", () => {
           booking: {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBookings[0].uid!,
-            urlOrigin: WEBAPP_URL,
+            urlOrigin: CAL_URL,
           },
           organizer,
           emails,
@@ -555,7 +555,7 @@ describe("handleNewBooking", () => {
           booking: {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBookings[0].uid!,
-            urlOrigin: WEBAPP_URL,
+            urlOrigin: CAL_URL,
           },
           organizer,
           emails,
@@ -769,7 +769,7 @@ describe("handleNewBooking", () => {
           booking: {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: createdBookings[0].uid!,
-            urlOrigin: WEBAPP_URL,
+            urlOrigin: CAL_URL,
           },
           booker,
           organizer,
