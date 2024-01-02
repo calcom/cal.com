@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - chore/fix-team-labels-secrets
 
 jobs:
   team-labels:
