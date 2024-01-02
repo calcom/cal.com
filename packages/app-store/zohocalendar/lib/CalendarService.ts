@@ -223,7 +223,16 @@ export default class ZohoCalendarService implements Calendar {
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
 
-      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
+      const query = stringify({
+        eventdata: JSON.stringify({
+          uid,
+          recurrence_edittype: "following",
+          notify_attendee: 0,
+          etag: existingEventData.events[0].etag,
+        }),
+      });
+
+      const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
         method: "DELETE",
         headers: {
           etag: existingEventData.events[0].etag,
@@ -405,6 +414,7 @@ export default class ZohoCalendarService implements Calendar {
         },
       ],
       location: event.location ? getLocation(event) : undefined,
+      notify_attendee: 0,
     };
 
     return zohoEvent;

@@ -1,0 +1,50 @@
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+
+name: Deploy to Amazon ECR in the dev environment
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: build
+      shell: bash
+      run: |
+        docker build --build-arg NEXT_PUBLIC_WEBAPP_URL='http://localhost:3000' --build-arg NEXT_PUBLIC_LICENSE_CONSENT='agree' --build-arg NEXT_PUBLIC_TELEMETRY_KEY=1234567 --build-arg CALCOM_TELEMETRY_DISABLED=1 --build-arg DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres  -t "${{ github.ref_name }}" -f Dockerfile .
+
+    - name: push ecr
+      uses: Deep-Consulting-Solutions/ecr-deploy-action@main
+      with:
+        service-key: 'cal' 
+        account: ${{ secrets.DCS_AWS_ACCOUNT }}
+        source-image: ${{ github.ref_name }}
+        tag: ${{ github.ref_name }}

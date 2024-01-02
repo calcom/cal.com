@@ -17,20 +17,20 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     CALENDSO_ENCRYPTION_KEY=${CALENDSO_ENCRYPTION_KEY} \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
 
-COPY calcom/package.json calcom/yarn.lock calcom/.yarnrc.yml calcom/playwright.config.ts calcom/turbo.json calcom/git-init.sh calcom/git-setup.sh ./
-COPY calcom/.yarn ./.yarn
-COPY calcom/apps/web ./apps/web
-COPY calcom/packages ./packages
-COPY calcom/tests ./tests
+COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json git-init.sh git-setup.sh ./
+COPY .yarn ./.yarn
+COPY apps/web ./apps/web
+COPY packages ./packages
+COPY tests ./tests
 
-RUN yarn config set httpTimeout 1200000 && \ 
-    npx turbo prune --scope=@calcom/web --docker && \
-    yarn install && \
-    yarn db-deploy && \
-    yarn --cwd packages/prisma seed-app-store
+RUN yarn config set httpTimeout 12000000 &&\
+    yarn install
+RUN yarn db-deploy
+RUN yarn --cwd packages/prisma seed-app-store
 
 RUN yarn turbo run build --filter=@calcom/web
 
+# RUN npx turbo prune --scope=@calcom/web --docker
 # RUN yarn plugin import workspace-tools && \
 #     yarn workspaces focus --all --production
 RUN rm -rf node_modules/.cache .yarn/cache apps/web/.next/cache
@@ -42,8 +42,8 @@ ARG NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
 
 ENV NODE_ENV production
 
-COPY calcom/package.json calcom/.yarnrc.yml calcom/yarn.lock calcom/turbo.json ./
-COPY calcom/.yarn ./.yarn
+COPY package.json .yarnrc.yml yarn.lock turbo.json ./
+COPY .yarn ./.yarn
 COPY --from=builder /calcom/node_modules ./node_modules
 COPY --from=builder /calcom/packages ./packages
 COPY --from=builder /calcom/apps/web ./apps/web
@@ -55,6 +55,7 @@ COPY scripts scripts
 ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
 
+RUN chmod +x scripts/replace-placeholder.sh
 RUN scripts/replace-placeholder.sh http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER ${NEXT_PUBLIC_WEBAPP_URL}
 
 FROM node:18 as runner
@@ -67,9 +68,18 @@ ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     BUILT_NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL
 
 ENV NODE_ENV production
+ENV CALCOM_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_LICENSE_CONSENT="agree"
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD wget --spider http://localhost:3000 || exit 1
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+RUN chmod +x /calcom/scripts/start.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 CMD ["/calcom/scripts/start.sh"]
