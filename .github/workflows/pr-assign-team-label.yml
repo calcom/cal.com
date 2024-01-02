@@ -1,5 +1,6 @@
 name: Assign PR team labels
 on:
+  workflow_call:
   pull_request:
     branches:
       - main
@@ -7,10 +8,10 @@ on:
 jobs:
   team-labels:
     runs-on: ubuntu-latest
-    secrets: inherit
     steps:
       - uses: actions/checkout@v2
       - uses: equitybee/team-label-action@main
+        secrets: inherit
         with:
           repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
           organization-name: calcom
