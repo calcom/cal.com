@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -22,11 +22,6 @@ export const LargeCalendar = ({
 }) => {
   const eventDuration = 30;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-
-  const availableSlots = useMemo(() => {
-    console.log("availableTimeslots in LargeCalendar", availableTimeslots);
-    return availableTimeslots || {};
-  }, [availableTimeslots]);
 
   useEffect(() => {
     if (showFakeEvents) {
@@ -168,7 +163,7 @@ export const LargeCalendar = ({
       }}>
       <Calendar
         isLoading={false}
-        availableTimeslots={availableSlots}
+        availableTimeslots={availableTimeslots}
         startHour={0}
         endHour={23}
         events={events}

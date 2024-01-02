@@ -306,7 +306,6 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
     return svgElement;
   }
 
-  // TODO: UI flickers when changing steps. This is because we are using suspense to load the step component. We should use a loading state instead
   const onNameOrTimezoneChange = (Name?: string, TimeZone?: string) => {
     setFullName(Name || "");
     setTimeZone(TimeZone || "");
@@ -315,7 +314,6 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
   const generateRange = (startDate: Dayjs, endDate: Dayjs, duration: number): TimeRange[] => {
     const range: TimeRange[] = [];
     let currentDate = dayjs(startDate);
-    console.log(currentDate);
     const stopDate = dayjs(endDate);
     while (currentDate <= stopDate) {
       range.push({
@@ -345,8 +343,6 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
 
     const obj: { [key: string]: any } = {};
     obj[key] = value;
-    console.log("----------------");
-    console.log(obj);
     return value;
   };
 
@@ -359,16 +355,6 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
     saturdayWatchedValue: TimeRange[],
     sundayWatchedValue: TimeRange[]
   ) => {
-    console.log(startDate);
-    console.log("mondayWatchedValue", mondayWatchedValue);
-    console.log("tuesdayWatchedValue", tuesdayWatchedValue);
-    console.log("wednesdayWatchedValue", wednesdayWatchedValue);
-    console.log("thursdayWatchedValue", thursdayWatchedValue);
-    console.log("fridayWatchedValue", fridayWatchedValue);
-    console.log("saturdayWatchedValue", saturdayWatchedValue);
-    console.log("sundayWatchedValue", sundayWatchedValue);
-    // alert("onAvailabilityChanged");
-
     let tempStartDate = dayjs();
     const newAvailableTimeslots: {
       [key: string]: TimeRange[];
@@ -378,49 +364,42 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
 
       switch (dddd) {
         case "Monday":
-          console.log("mondayWatchedValue", mondayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             mondayWatchedValue,
             tempStartDate
           );
           break;
         case "Tuesday":
-          console.log("tuesdayWatchedValue", tuesdayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             tuesdayWatchedValue,
             tempStartDate
           );
           break;
         case "Wednesday":
-          console.log("wednesdayWatchedValue", wednesdayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             wednesdayWatchedValue,
             tempStartDate
           );
           break;
         case "Thursday":
-          console.log("thursdayWatchedValue", thursdayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             thursdayWatchedValue,
             tempStartDate
           );
           break;
         case "Friday":
-          console.log("fridayWatchedValue", fridayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             fridayWatchedValue,
             tempStartDate
           );
           break;
         case "Saturday":
-          console.log("saturdayWatchedValue", saturdayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             saturdayWatchedValue,
             tempStartDate
           );
           break;
         case "Sunday":
-          console.log("sundayWatchedValue", sundayWatchedValue);
           newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
             sundayWatchedValue,
             tempStartDate
@@ -618,24 +597,11 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
                           <div className="text-default">{meet.description}</div>
 
                           <div className="mt-2 flex">
-                            <Button
-                              color="secondary"
-                              variant="icon"
-                              className="mr-2"
-                              StartIcon={Timer}
-                              onClick={() => {
-                                // showToast(t("link_copied"), "success");
-                              }}>
+                            <Button color="secondary" variant="icon" className="mr-2" StartIcon={Timer}>
                               60 m
                             </Button>
 
-                            <Button
-                              color="secondary"
-                              variant="icon"
-                              StartIcon={User}
-                              onClick={() => {
-                                // showToast(t("link_copied"), "success");
-                              }}>
+                            <Button color="secondary" variant="icon" StartIcon={User}>
                               1-on-1
                             </Button>
                           </div>
