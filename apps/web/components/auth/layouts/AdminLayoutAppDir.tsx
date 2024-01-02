@@ -37,4 +37,4 @@ export default function AdminLayout({
   );
 }
 
-export const getLayout = (page: React.ReactElement) => <AdminLayout>{page}</AdminLayout>;
+export const getLayout = (page: React.ReactNode) => <AdminLayout>{page}</AdminLayout>;

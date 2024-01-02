@@ -17,4 +17,4 @@ export const getData = async () => {
   };
 };
 
-export default WithLayout({ getData, Page: LegacyPage });
+export default WithLayout({ getData, Page: LegacyPage, getLayout: null });
