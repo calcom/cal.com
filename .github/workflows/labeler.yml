@@ -1,6 +1,11 @@
 name: "Pull Request Labeler"
 on:
+<<<<<<< Updated upstream
   - pull_request_target
+=======
+  pull_request_target:
+  workflow_dispatch:
+>>>>>>> Stashed changes
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
