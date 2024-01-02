@@ -2,6 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
+import type { SVGComponent } from "@calcom/types/SVGComponent";
 import { Tooltip } from "@calcom/ui";
 
 import { ChevronDown } from "../icon";
@@ -14,6 +15,7 @@ export const AnimatedPopover = ({
   Trigger,
   defaultOpen,
   prefix,
+  StartIcon,
 }: {
   text: string;
   count?: number;
@@ -22,6 +24,7 @@ export const AnimatedPopover = ({
   Trigger?: React.ReactNode;
   defaultOpen?: boolean;
   prefix?: string;
+  StartIcon?: SVGComponent | React.ElementType;
 }) => {
   const [open, setOpen] = React.useState(defaultOpen ?? false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -59,10 +62,15 @@ export const AnimatedPopover = ({
           {Trigger ? (
             Trigger
           ) : (
-            <div className="max-w-36 flex items-center">
+            <div className="max-w-40 flex items-center">
               <Tooltip content={`${prefix}${text}`}>
-                <div className="flex select-none truncate font-medium">
+                <div className="flex select-none items-center truncate font-medium">
                   {prefix && <span className="text-subtle">{prefix}&nbsp;</span>}
+                  {StartIcon && (
+                    <div className="text-default flex h-4 w-4 items-center justify-center ltr:mr-2 rtl:ml-2">
+                      <StartIcon className="h-4 w-4" />
+                    </div>
+                  )}
                   {text}
                   {count && count > 0 && (
                     <div className="text-emphasis flex items-center justify-center rounded-full font-semibold">

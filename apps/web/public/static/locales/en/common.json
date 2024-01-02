@@ -923,6 +923,7 @@
   "popular_categories": "Popular Categories",
   "number_apps_one": "{{count}} App",
   "number_apps_other": "{{count}} Apps",
+  "number_slots_selected":"{{count}} slots selected",
   "trending_apps": "Trending Apps",
   "most_popular": "Most Popular",
   "installed_apps": "Installed Apps",
