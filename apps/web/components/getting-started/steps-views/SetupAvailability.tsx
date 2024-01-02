@@ -49,14 +49,19 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
 
   const { watch } = availabilityForm;
   const mondayWatchedValue = watch("schedule.1");
+  const mondayWatchedValueNestedFields = watch(["schedule.1.0", "schedule.1.1"]);
   const tuesdayWatchedValue = watch("schedule.2");
+  const tuesdayWatchedValueNestedFields = watch(["schedule.2.0", "schedule.2.1"]);
   const wednesdayWatchedValue = watch("schedule.3");
+  const wednesdayWatchedValueNestedFields = watch(["schedule.3.0", "schedule.3.1"]);
   const thursdayWatchedValue = watch("schedule.4");
+  const thursdayWatchedValueNestedFields = watch(["schedule.4.0", "schedule.4.1"]);
   const fridayWatchedValue = watch("schedule.5");
+  const fridayWatchedValueNestedFields = watch(["schedule.5.0", "schedule.5.1"]);
   const saturdayWatchedValue = watch("schedule.6");
+  const saturdayWatchedValueNestedFields = watch(["schedule.6.0", "schedule.6.1"]);
   const sundayWatchedValue = watch("schedule.0");
-  // TODO: watch all fields
-  // const watchAllFeilds = watch();
+  const sundayWatchedValueNestedFields = watch(["schedule.0.0", "schedule.0.1"]);
 
   useEffect(() => {
     const { onAvailabilityChanged } = props;
@@ -72,13 +77,13 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
 
     console.log(sundayWatchedValue);
   }, [
-    mondayWatchedValue,
-    tuesdayWatchedValue,
-    wednesdayWatchedValue,
-    thursdayWatchedValue,
-    fridayWatchedValue,
-    saturdayWatchedValue,
-    sundayWatchedValue,
+    mondayWatchedValueNestedFields,
+    tuesdayWatchedValueNestedFields,
+    wednesdayWatchedValueNestedFields,
+    thursdayWatchedValueNestedFields,
+    fridayWatchedValueNestedFields,
+    saturdayWatchedValueNestedFields,
+    sundayWatchedValueNestedFields,
   ]);
 
   return (

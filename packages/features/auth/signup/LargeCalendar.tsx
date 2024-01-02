@@ -24,7 +24,7 @@ export const LargeCalendar = ({
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   const availableSlots = useMemo(() => {
-    console.log(availableTimeslots);
+    console.log("availableTimeslots in LargeCalendar", availableTimeslots);
     return availableTimeslots || {};
   }, [availableTimeslots]);
 

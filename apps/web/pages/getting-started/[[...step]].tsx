@@ -317,6 +317,29 @@ const OnboardingPage = (props) => {
     return range;
   };
 
+  const calculateAvailableTimeslots = (ranges, tempStartDate) => {
+    const dateRange = [];
+
+    ranges.map((m) => {
+      dateRange.push(
+        ...generateRange(
+          dayjs(m?.start).add(new Date().getTimezoneOffset(), "minutes"),
+          dayjs(m?.end).add(new Date().getTimezoneOffset(), "minutes"),
+          30
+        )
+      );
+    });
+
+    const key = tempStartDate.format("YYYY-MM-DD");
+    const value = dateRange;
+
+    const obj: { [key: string]: any } = {};
+    obj[key] = value;
+    console.log("----------------");
+    console.log(obj);
+    return value;
+  };
+
   const onAvailabilityChanged = (
     mondayWatchedValue,
     tuesdayWatchedValue,
@@ -337,60 +360,66 @@ const OnboardingPage = (props) => {
     // alert("onAvailabilityChanged");
 
     let tempStartDate = dayjs();
-
-    while (tempStartDate <= endDate) {
+    const newAvailableTimeslots = {};
+    while (tempStartDate <= endDate.add(1, "day")) {
       const dddd = tempStartDate.format("dddd");
 
       switch (dddd) {
         case "Monday":
           console.log("mondayWatchedValue", mondayWatchedValue);
-
-          const dateRange = [];
-
-          mondayWatchedValue.map((m) => {
-            dateRange.push(
-              ...generateRange(
-                dayjs(m?.start).add(new Date().getTimezoneOffset(), "minutes"),
-                dayjs(m?.end).add(new Date().getTimezoneOffset(), "minutes"),
-                30
-              )
-            );
-          });
-
-          const key = tempStartDate.format("YYYY-MM-DD");
-          const value = dateRange;
-
-          const obj: { [key: string]: any } = {};
-          obj[key] = value;
-          console.log("----------------");
-          console.log(obj);
-          setAvailableTimeslots({
-            ...availableTimeslots,
-            ...obj,
-          });
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            mondayWatchedValue,
+            tempStartDate
+          );
           break;
         case "Tuesday":
           console.log("tuesdayWatchedValue", tuesdayWatchedValue);
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            tuesdayWatchedValue,
+            tempStartDate
+          );
           break;
         case "Wednesday":
           console.log("wednesdayWatchedValue", wednesdayWatchedValue);
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            wednesdayWatchedValue,
+            tempStartDate
+          );
           break;
         case "Thursday":
           console.log("thursdayWatchedValue", thursdayWatchedValue);
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            thursdayWatchedValue,
+            tempStartDate
+          );
           break;
         case "Friday":
           console.log("fridayWatchedValue", fridayWatchedValue);
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            fridayWatchedValue,
+            tempStartDate
+          );
           break;
         case "Saturday":
           console.log("saturdayWatchedValue", saturdayWatchedValue);
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            saturdayWatchedValue,
+            tempStartDate
+          );
           break;
         case "Sunday":
           console.log("sundayWatchedValue", sundayWatchedValue);
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
+            sundayWatchedValue,
+            tempStartDate
+          );
           break;
       }
 
       tempStartDate = tempStartDate.add(1, "day");
     }
+
+    setAvailableTimeslots(newAvailableTimeslots);
   };
 
   return (
