@@ -15,7 +15,7 @@ function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
   const { data: session } = useSession();
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   useEffect(() => {
@@ -24,7 +24,9 @@ function VerifyEmailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.isVerified]);
-
+  if (!isLocaleReady) {
+    return null;
+  }
   return (
     <div className="h-[100vh] w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">

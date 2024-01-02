@@ -421,7 +421,7 @@ function UserDropdown({ small }: UserDropdownProps) {
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
           className={classNames(
-            "hover:bg-emphasis group mx-0 flex cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+            "hover:bg-emphasis group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
           )}>
           <span
@@ -724,7 +724,7 @@ const NavigationItem: React.FC<{
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-            isLocaleReady ? "hover:bg-emphasis hover:text-emphasis" : ""
+            isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : ""
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
@@ -913,7 +913,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex space-x-0.5 rtl:space-x-reverse">
+            <div className="flex justify-end space-x-0.5 rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -934,8 +934,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               <KBarTrigger />
             </div>
           </header>
-
-          <hr className="desktop-only border-subtle absolute -left-3 -right-3 mt-4 block w-full" />
 
           {/* logo icon for tablet */}
           <Link href="/event-types" className="text-center md:inline lg:hidden">
