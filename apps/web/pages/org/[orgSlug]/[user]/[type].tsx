@@ -14,15 +14,15 @@ import TeamTypePage, { getServerSideProps as GSSTeamTypePage } from "../../../te
 
 const paramsSchema = z.object({
   orgSlug: z.string().transform((s) => slugify(s)),
-  user: z.string().transform((s) => slugify(s)),
+  user: z.string(),
   type: z.string().transform((s) => slugify(s)),
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const { user: teamOrUserSlug, orgSlug, type } = paramsSchema.parse(ctx.params);
+  const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
   const team = await prisma.team.findFirst({
     where: {
-      slug: teamOrUserSlug,
+      slug: slugify(teamOrUserSlugOrDynamicGroup),
       parentId: {
         not: null,
       },
@@ -34,7 +34,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   });
 
   if (team) {
-    const params = { slug: teamOrUserSlug, type };
+    const params = { slug: teamOrUserSlugOrDynamicGroup, type };
     return GSSTeamTypePage({
       ...ctx,
       params: {
@@ -47,7 +47,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     });
   }
-  const params = { user: teamOrUserSlug, type };
+  const params = { user: teamOrUserSlugOrDynamicGroup, type };
   return GSSUserTypePage({
     ...ctx,
     params: {

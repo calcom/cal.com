@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -56,6 +57,10 @@ const EventAdvancedTab = dynamic(() =>
   import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
 );
 
+const EventInstantTab = dynamic(() =>
+  import("@components/eventtype/EventInstantTab").then((mod) => mod.EventInstantTab)
+);
+
 const EventRecurringTab = dynamic(() =>
   import("@components/eventtype/EventRecurringTab").then((mod) => mod.EventRecurringTab)
 );
@@ -72,6 +77,7 @@ const EventWebhooksTab = dynamic(() =>
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
+
 export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
@@ -81,6 +87,7 @@ const querySchema = z.object({
       "availability",
       "apps",
       "limits",
+      "instant",
       "recurring",
       "team",
       "advanced",
@@ -180,6 +187,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       title: eventType.title,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
+      isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
@@ -342,6 +350,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (
@@ -408,6 +417,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    // Prevent two payment apps to be enabled
+    // Ok to cast type here because this metadata will be updated as the event type metadata
+    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
+
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
@@ -454,6 +468,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
         disableBorder={true}
         currentUserMembership={currentUserMembership}
+        bookerUrl={eventType.bookerUrl}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}
@@ -507,6 +522,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+
+            // Prevent two payment apps to be enabled
+            // Ok to cast type here because this metadata will be updated as the event type metadata
+            if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+              throw new Error(t("event_setup_multiple_payment_apps_error"));
+
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({

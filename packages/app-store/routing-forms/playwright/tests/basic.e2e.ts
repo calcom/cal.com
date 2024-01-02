@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
-import { gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import { NotFoundPageText, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -36,7 +36,7 @@ test.describe("Routing Forms", () => {
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.locator("text=This page could not be found")).toBeVisible();
+      await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
     });
 
     test("should be able to edit the form", async ({ page }) => {
