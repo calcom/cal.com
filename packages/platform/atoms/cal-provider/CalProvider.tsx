@@ -18,6 +18,7 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
   const prevClientId = usePrevious(clientId);
   const prevAccessToken = usePrevious(accessToken);
   const [isInit, setIsInit] = useState<boolean>(false);
+  const [clientAccessToken, setClientAccessToken] = useState<string>("");
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -53,13 +54,47 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
           if (err.response?.status === 498) {
             setError("Expired Access Token.");
           }
+
+          if (!err) {
+            setClientAccessToken(accessToken);
+          }
         });
       } catch (err) {}
     }
-  }, [accessToken, clientId, prevAccessToken]);
+    http.responseInterceptor.use(undefined, async () => {
+      if (options.refreshUrl) {
+        // query the refresh url to get a new access token
+        // then try again with the new access token
+        const response = await fetch(options.refreshUrl);
+        const data = await response.json();
+
+        http.setAuthorizationHeader(data.accessToken);
+        // if above response is ok call api again with this new access token
+        // TODO: rate limit error calls to 2 or 3
+
+        if (response.ok) {
+          try {
+            http.get<ApiResponse>(`/atoms/cal-provider/${clientId}/access-token`).catch((err: AxiosError) => {
+              if (err.response?.status === 401) {
+                setError("Invalid Access Token.");
+              }
+              if (err.response?.status === 498) {
+                setError("Expired Access Token.");
+              }
+
+              if (!err) {
+                setClientAccessToken(data.accessToken);
+              }
+            });
+          } catch (err) {}
+        }
+      }
+    });
+  }, [accessToken, clientId, prevAccessToken, options.refreshUrl]);
 
   return isInit ? (
-    <AtomsContext.Provider value={{ clientId, accessToken, options, error, getClient: () => http }}>
+    <AtomsContext.Provider
+      value={{ clientId, accessToken: clientAccessToken, options, error, getClient: () => http }}>
       {children}
     </AtomsContext.Provider>
   ) : (
