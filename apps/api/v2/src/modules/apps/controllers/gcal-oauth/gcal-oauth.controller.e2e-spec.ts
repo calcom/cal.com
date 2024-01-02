@@ -6,9 +6,8 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
+import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
-import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
@@ -70,22 +69,21 @@ describe("OAuth Gcal App Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`/GET/apps/gcal/oauth/redirect: it should respond 401 with invalid access token`, async () => {
+  it(`/GET/apps/gcal/oauth/auth-url: it should respond 401 with invalid access token`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/apps/gcal/oauth/redirect`)
+      .get(`/api/v2/apps/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer invalid_access_token`)
       .expect(401);
   });
 
-  it(`/GET/apps/gcal/oauth/redirect: it should redirect to google oauth with valid access token `, async () => {
+  it(`/GET/apps/gcal/oauth/auth-url: it should auth-url to google oauth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
-      .get(`/api/v2/apps/gcal/oauth/redirect`)
+      .get(`/api/v2/apps/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("origin", "http://localhost:5555")
-      .expect(301);
-    const redirectUrl = response.get("location");
-    expect(redirectUrl).toBeDefined();
-    expect(redirectUrl).toContain("https://accounts.google.com/o/oauth2/v2/auth");
+      .expect(200);
+    const data = response.body.data;
+    expect(data.authUrl).toBeDefined();
   });
 
   it(`/GET/apps/gcal/oauth/save: without oauth code`, async () => {

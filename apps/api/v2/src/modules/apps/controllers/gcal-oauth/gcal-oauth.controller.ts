@@ -1,11 +1,9 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import {
-  BadRequestException,
   Controller,
   Get,
   HttpCode,
@@ -46,10 +44,10 @@ export class GoogleCalendarOAuthController {
     private readonly config: ConfigService
   ) {}
 
-  @Get("/oauth/redirect")
-  @Redirect(undefined, 301)
+  @Get("/oauth/auth-url")
+  @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
-  async redirect(@Req() req: Request): Promise<ApiRedirectResponseType> {
+  async redirect(@Req() req: Request): Promise<ApiResponse<{ authUrl: string }>> {
     const app = await this.appRepository.getAppBySlug("google-calendar");
 
     if (!app) {
@@ -69,7 +67,7 @@ export class GoogleCalendarOAuthController {
       prompt: "consent",
       state: `accessToken=${accessToken}&origin=${origin}`,
     });
-    return { url: authUrl };
+    return { status: SUCCESS_STATUS, data: { authUrl } };
   }
 
   @Get("/oauth/save")
@@ -79,7 +77,13 @@ export class GoogleCalendarOAuthController {
     const stateParams = new URLSearchParams(state);
     const { accessToken, origin } = z
       .object({ accessToken: z.string(), origin: z.string() })
-      .parse(stateParams);
+      .parse({ accessToken: stateParams.get("accessToken"), origin: stateParams.get("origin") });
+
+    // User chose not to authorize your app or didn't authorize your app
+    if (!code) {
+      return { url: origin };
+    }
+
     const parsedCode = z.string().parse(code);
 
     const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);

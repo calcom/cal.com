@@ -31,26 +31,33 @@ export default function App({ Component, pageProps }: AppProps) {
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
         {email ? (
-          <p className="m-12 text-lg">{email}</p>
+          <>
+            <p className="m-12 text-lg">{email}</p>
+            <Component {...pageProps} />
+          </>
         ) : (
-          <button
-            className="m-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-            onClick={() => {
-              const randomEmail = generateRandomEmail();
-              fetch("/api/managed-user", {
-                method: "POST",
+          <>
+            <button
+              className="m-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+              onClick={() => {
+                const randomEmail = generateRandomEmail();
+                fetch("/api/managed-user", {
+                  method: "POST",
 
-                body: JSON.stringify({ email: randomEmail }),
-              }).then(async (res) => {
-                const data = await res.json();
-                setAccessToken(data.accessToken);
-                setUserEmail(data.email);
-              });
-            }}>
-            Create User
-          </button>
+                  body: JSON.stringify({ email: randomEmail }),
+                }).then(async (res) => {
+                  const data = await res.json();
+                  setAccessToken(data.accessToken);
+                  setUserEmail(data.email);
+                });
+              }}>
+              Create User
+            </button>
+            <main className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
+              <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex" />
+            </main>
+          </>
         )}
-        <Component {...pageProps} />
       </CalProvider>{" "}
     </div>
   );
