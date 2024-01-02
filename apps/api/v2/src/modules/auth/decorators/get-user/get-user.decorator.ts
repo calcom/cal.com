@@ -6,6 +6,10 @@ export const GetUser = createParamDecorator<keyof User | (keyof User)[], Executi
   const request = ctx.switchToHttp().getRequest();
   const user = request.user as User;
 
+  if (!user) {
+    throw new Error("GetUser decorator : User not found");
+  }
+
   if (Array.isArray(data)) {
     return data.reduce((prev, curr) => {
       return {
