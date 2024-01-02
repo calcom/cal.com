@@ -7,7 +7,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -83,9 +83,10 @@ export async function getBusyTimes(params: {
   const endTimeDate =
     rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
 
+  // startTime is less than endTimeDate and endTime grater than startTimeDate
   const sharedQuery = {
-    startTime: { gte: startTimeDate },
-    endTime: { lte: endTimeDate },
+    startTime: { lte: endTimeDate },
+    endTime: { gte: startTimeDate },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
@@ -264,8 +265,9 @@ export async function getBusyTimesForLimitChecks(params: {
   eventTypeId: number;
   startDate: Date;
   endDate: Date;
+  rescheduleUid?: string | null;
 }) {
-  const { userId, eventTypeId, startDate, endDate } = params;
+  const { userId, eventTypeId, startDate, endDate, rescheduleUid } = params;
   logger.silly(
     `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
       userId,
@@ -275,19 +277,27 @@ export async function getBusyTimesForLimitChecks(params: {
   );
   performance.mark("getBusyTimesForLimitChecksStart");
 
-  const bookings = await prisma.booking.findMany({
-    where: {
-      userId,
-      eventTypeId,
-      status: BookingStatus.ACCEPTED,
-      // FIXME: bookings that overlap on one side will never be counted
-      startTime: {
-        gte: startDate,
-      },
-      endTime: {
-        lte: endDate,
-      },
+  const where: Prisma.BookingWhereInput = {
+    userId,
+    eventTypeId,
+    status: BookingStatus.ACCEPTED,
+    // FIXME: bookings that overlap on one side will never be counted
+    startTime: {
+      gte: startDate,
     },
+    endTime: {
+      lte: endDate,
+    },
+  };
+
+  if (rescheduleUid) {
+    where.NOT = {
+      uid: rescheduleUid,
+    };
+  }
+
+  const bookings = await prisma.booking.findMany({
+    where,
     select: {
       id: true,
       startTime: true,

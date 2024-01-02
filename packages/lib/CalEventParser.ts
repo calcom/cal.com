@@ -176,7 +176,11 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
   return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
-export const getRichDescription = (calEvent: CalendarEvent, t_?: TFunction /*, attendee?: Person*/) => {
+export const getRichDescription = (
+  calEvent: CalendarEvent,
+  t_?: TFunction /*, attendee?: Person*/,
+  includeAppStatus = false
+) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
   return `
@@ -189,7 +193,7 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent, t)}
 ${getAdditionalNotes(calEvent, t)}
 ${getUserFieldsResponses(calEvent)}
-${getAppsStatus(calEvent, t)}
+${includeAppStatus ? getAppsStatus(calEvent, t) : ""}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot

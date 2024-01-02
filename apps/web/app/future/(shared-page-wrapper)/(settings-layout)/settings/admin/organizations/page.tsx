@@ -1,5 +1,6 @@
-import Page from "@pages/settings/admin/organizations/index";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -7,7 +8,4 @@ export const generateMetadata = async () =>
     (t) => t("orgs_page_description")
   );
 
-export default function AppPage() {
-  // @ts-expect-error FIXME Property 'Component' is incompatible with index signature
-  return <Page />;
-}
+export default Page;
