@@ -14,6 +14,7 @@ const http = (function () {
     post: instance.post,
     put: instance.put,
     delete: instance.delete,
+    responseInterceptor: instance.interceptors.response,
     setRefreshUrl: (url: string) => {
       refreshUrl = url;
     },
