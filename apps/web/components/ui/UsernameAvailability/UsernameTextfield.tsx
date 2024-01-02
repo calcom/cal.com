@@ -142,7 +142,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             </div>
           )}
         </div>
-        <div className="mt-7 hidden md:inline">
+        <div className="mt-6 hidden md:inline">
           <ActionButtons />
         </div>
       </div>
