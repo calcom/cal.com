@@ -37,7 +37,7 @@ Browsers do not allow camera/mic access on any non-HTTPS hosts except for localh
 
 For eg:- Use  `http://localhost:3000/video/nAjnkjejuzis99NhN72rGt` instead of  `http://app.cal.local:3000/video/nAjnkjejuzis99NhN72rGt`.
 
-To get a HTTPs URL for localhost, you can use a tunneling tool such as `ngrok` or [Tunnelmole](https://github.com/robbie-cahill/tunnelmole-client) . Alternatively, you can generate an SSL certificate for your local domain using `mkcert` and turning off any SSL certificate validation in your HTTPS client (be sure to do this for local only, otherwise its a security risk).
+To get an HTTPS URL for localhost, you can use a tunneling tool such as `ngrok` or [Tunnelmole](https://github.com/robbie-cahill/tunnelmole-client) . Alternatively, you can generate an SSL certificate for your local domain using `mkcert`. Turn off any SSL certificate validation in your HTTPS client (be sure to do this for local only, otherwise its a security risk).
 
 #### Tunnelmole - Open Source Tunnelling Tool:
 
@@ -53,7 +53,7 @@ After a successful installation, you can run Tunnelmole using the following comm
 tmole 8000
 ```
 
-In the output, you'll see two URLs, one HTTP and a HTTPS URL. For privacy and security reasons, it is recommended to use the HTTPS URL.
+In the output, you'll see two URLs, one HTTP and an HTTPS URL. For privacy and security reasons, it is recommended to use the HTTPS URL.
 
 View the Tunnelmole [README](https://github.com/robbie-cahill/tunnelmole-client) for additional information and other installation methods such as `npm` or building your own binaries from source.
 
