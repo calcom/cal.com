@@ -525,7 +525,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                   <DropdownItem StartIcon={Download} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
@@ -917,13 +917,13 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
+                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <ArrowLeft className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
+                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               {!!orgBranding && (

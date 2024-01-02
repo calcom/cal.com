@@ -150,17 +150,6 @@ html.todesktop .logo {
   display: none;
 }
 
-.desktop-only {
-  display: none;
-}
-
-html.todesktop .desktop-only {
-  display: block;
-}
-
-html.todesktop .desktop-hidden {
-  display: none;
-}
 
 html.todesktop header nav {
   margin-top: 8px;
