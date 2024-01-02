@@ -51,7 +51,7 @@
 .dark {
   /* background */
 
-  --cal-bg-emphasis: hsla(0, 0%, 32%, 1);
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
   --cal-bg: hsla(0, 0%, 10%, 1);
   --cal-bg-subtle: hsla(0, 0%, 18%, 1);
   --cal-bg-muted: hsla(0, 0%, 12%, 1);
@@ -107,10 +107,6 @@
 ::selection {
   color: var(--cal-brand-text);
   background: var(--cal-brand);
-}
-
-html {
-  scrollbar-gutter: stable;
 }
 
 body  {
