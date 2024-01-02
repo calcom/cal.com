@@ -1,7 +1,7 @@
 name: Assign PR team labels
 on:
   workflow_call:
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: equitybee/team-label-action@main
+        if: ${{ secrets.GH_ACCESS_TOKEN != '' }}
         with:
           repo-token: ${{ secrets.GH_ACCESS_TOKEN }}
           organization-name: calcom
