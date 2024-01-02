@@ -10,7 +10,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
 import { Prisma, type User } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -25,7 +25,7 @@ export type Invitee = Pick<
 >;
 
 export type UserWithMembership = Invitee & {
-  teams?: Pick<Membership, "userId" | "teamId" | "accepted">[];
+  teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
 };
 
 export async function checkPermissions({
@@ -46,6 +46,14 @@ export async function checkPermissions({
   }
 }
 
+export function checkInputEmailIsValid(email: string) {
+  if (!isEmail(email))
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Invite failed because ${email} is not a valid email address`,
+    });
+}
+
 export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   const team = await prisma.team.findFirst({
     where: {
@@ -62,7 +70,7 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   return team;
 }
 
-export async function getEmailsToInvite(usernameOrEmail: string | string[]) {
+export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | string[]) {
   const emailsToInvite = Array.isArray(usernameOrEmail)
     ? Array.from(new Set(usernameOrEmail))
     : [usernameOrEmail];
@@ -128,11 +136,11 @@ export function validateInviteeEligibility(
 }
 
 export async function getUsersToInvite({
-  usernameOrEmail,
+  usernamesOrEmails,
   isInvitedToOrg,
   team,
 }: {
-  usernameOrEmail: string[];
+  usernamesOrEmails: string[];
   isInvitedToOrg: boolean;
   team: TeamWithParent;
 }): Promise<UserWithMembership[]> {
@@ -149,7 +157,7 @@ export async function getUsersToInvite({
 
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
-      OR: [{ username: { in: usernameOrEmail }, ...orgWhere }, { email: { in: usernameOrEmail } }],
+      OR: [{ username: { in: usernamesOrEmails }, ...orgWhere }, { email: { in: usernamesOrEmails } }],
     },
     select: {
       id: true,
@@ -160,7 +168,7 @@ export async function getUsersToInvite({
       completedOnboarding: true,
       identityProvider: true,
       teams: {
-        select: { teamId: true, userId: true, accepted: true },
+        select: { teamId: true, userId: true, accepted: true, role: true },
         where: {
           OR: memberships,
         },
@@ -217,6 +225,10 @@ export async function createNewUsersConnectToOrgIfExists({
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
+  // fail if we have invalid emails
+  usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
+
+  // from this point we know usernamesOrEmails contains only emails
   await prisma.$transaction(
     async (tx) => {
       for (let index = 0; index < usernamesOrEmails.length; index++) {
@@ -274,12 +286,16 @@ export async function createProvisionalMemberships({
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
+        const organizationRole = invitee?.teams?.[0]?.role;
         const data = [];
         // membership for the team
         data.push({
           teamId: input.teamId,
           userId: invitee.id,
-          role: input.role as MembershipRole,
+          role:
+            organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
+              ? organizationRole
+              : input.role,
         });
 
         // membership for the org
@@ -352,10 +368,11 @@ export async function sendVerificationEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
       to: usernameOrEmail,
-      teamName: team?.parent?.name || team.name,
+      teamName: team.name,
       joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
       isCalcomMember: false,
       isOrg: input.isOrg,
+      parentTeamName: team?.parent?.name,
     });
   } else {
     await sendOrganizationAutoJoinEmail({
@@ -462,12 +479,14 @@ export const sendTeamInviteEmails = async ({
   language,
   currentUserTeamName,
   currentUserName,
+  currentUserParentTeamName,
   isOrg,
   teamId,
 }: {
   language: TFunction;
   existingUsersWithMembersips: UserWithMembership[];
   currentUserTeamName?: string;
+  currentUserParentTeamName: string | undefined;
   currentUserName?: string | null;
   isOrg: boolean;
   teamId: number;
@@ -513,6 +532,7 @@ export const sendTeamInviteEmails = async ({
         teamName: currentUserTeamName,
         ...inviteTeamOptions,
         isOrg: isOrg,
+        parentTeamName: currentUserParentTeamName,
       });
     }
   });

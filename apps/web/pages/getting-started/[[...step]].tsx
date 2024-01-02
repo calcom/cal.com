@@ -2,12 +2,12 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { z } from "zod";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -106,16 +106,13 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
+      className={classNames(
+        "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
+      )}
       data-testid="onboarding"
-      style={
-        {
-          "--cal-brand": "#111827",
-          "--cal-brand-emphasis": "#101010",
-          "--cal-brand-text": "white",
-          "--cal-brand-subtle": "#9CA3AF",
-        } as CSSProperties
-      }
       key={pathname}>
       <Head>
         <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
@@ -231,7 +228,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 };
 
-OnboardingPage.isThemeSupported = false;
 OnboardingPage.PageWrapper = PageWrapper;
 
 export default OnboardingPage;

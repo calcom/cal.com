@@ -6,6 +6,7 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -13,6 +14,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
+  Badge,
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
@@ -104,11 +106,13 @@ export default function TeamListItem(props: Props) {
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug
-            ? orgBranding
-              ? `${orgBranding.fullDomain}/${team.slug}`
-              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`
-            : "Unpublished team"}
+          {team.slug ? (
+            `${getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug })}/${
+              team.slug
+            }`
+          ) : (
+            <Badge>{t("upgrade")}</Badge>
+          )}
         </span>
       </div>
     </div>
@@ -180,13 +184,17 @@ export default function TeamListItem(props: Props) {
       )}
       <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
         {!isInvitee ? (
-          <Link
-            data-testid="team-list-item-link"
-            href={`/settings/teams/${team.id}/profile`}
-            className="flex-grow cursor-pointer truncate text-sm"
-            title={`${team.name}`}>
-            {teamInfo}
-          </Link>
+          team.slug ? (
+            <Link
+              data-testid="team-list-item-link"
+              href={`/settings/teams/${team.id}/profile`}
+              className="flex-grow cursor-pointer truncate text-sm"
+              title={`${team.name}`}>
+              {teamInfo}
+            </Link>
+          ) : (
+            <TeamPublishSection teamId={team.id}>{teamInfo}</TeamPublishSection>
+          )
         ) : (
           teamInfo
         )}
@@ -386,5 +394,28 @@ const TeamPublishButton = ({ teamId }: { teamId: number }) => {
         {t("team_publish")}
       </DropdownItem>
     </DropdownMenuItem>
+  );
+};
+
+const TeamPublishSection = ({ children, teamId }: { children: React.ReactNode; teamId: number }) => {
+  const router = useRouter();
+  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  return (
+    <button
+      className="block flex-grow cursor-pointer truncate text-left text-sm"
+      type="button"
+      onClick={() => {
+        publishTeamMutation.mutate({ teamId });
+      }}>
+      {children}
+    </button>
   );
 };

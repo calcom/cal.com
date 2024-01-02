@@ -154,11 +154,14 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["next-i18next"],
+  },
   i18n: {
     ...i18n,
     localeDetection: false,
   },
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -231,6 +234,9 @@ const nextConfig = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
+      // ignore module resolve errors caused by the server component bundler
+      "pg-native": false,
+      "superagent-proxy": false,
     };
 
     /**
@@ -510,6 +516,11 @@ const nextConfig = {
         destination: "/apps/installed/conferencing",
         permanent: true,
       },
+      {
+        source: "/apps/installed",
+        destination: "/apps/installed/calendar",
+        permanent: true,
+      },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
       ...(process.env.NODE_ENV === "development" &&
       // Safer to enable the redirect only when the user is opting to test out organizations
@@ -561,6 +572,8 @@ if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   nextConfig["sentry"] = {
     autoInstrumentServerFunctions: true,
     hideSourceMaps: true,
+    // disable source map generation for the server code
+    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
   };
 
   plugins.push(withSentryConfig);

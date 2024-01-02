@@ -13,6 +13,9 @@ import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-u
 
 import { TRPCError } from "@trpc/server";
 
+import { WEBAPP_URL } from "./constants";
+import { getBookerBaseUrl } from "./getBookerUrl/server";
+
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
@@ -75,6 +78,7 @@ export default async function getEventTypeById({
       slug: true,
       description: true,
       length: true,
+      isInstantEvent: true,
       offsetStart: true,
       hidden: true,
       locations: true,
@@ -99,10 +103,16 @@ export default async function getEventTypeById({
       slotInterval: true,
       hashedLink: true,
       bookingLimits: true,
+      onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      owner: {
+        select: {
+          organizationId: true,
+        },
+      },
       parent: {
         select: {
           teamId: true,
@@ -164,6 +174,7 @@ export default async function getEventTypeById({
               username: true,
               email: true,
               id: true,
+              organizationId: true,
             },
           },
           hidden: true,
@@ -254,12 +265,18 @@ export default async function getEventTypeById({
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
+    bookerUrl: restEventType.team
+      ? await getBookerBaseUrl({ organizationId: restEventType.team.parentId })
+      : restEventType.owner
+      ? await getBookerBaseUrl(restEventType.owner)
+      : WEBAPP_URL,
     children: restEventType.children.flatMap((ch) =>
       ch.owner !== null
         ? {
             ...ch,
             owner: {
               ...ch.owner,
+              avatar: getUserAvatarUrl(ch.owner),
               email: ch.owner.email,
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
