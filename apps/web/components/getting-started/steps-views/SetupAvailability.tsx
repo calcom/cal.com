@@ -1,3 +1,4 @@
+import debounce from "lodash.debounce";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
@@ -48,22 +49,16 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const updateSchedule = trpc.viewer.availability.schedule.update.useMutation(mutationOptions);
 
   const { watch } = availabilityForm;
+  const allFieldsWatch = watch();
   const mondayWatchedValue = watch("schedule.1");
-  const mondayWatchedValueNestedFields = watch(["schedule.1.0", "schedule.1.1"]);
   const tuesdayWatchedValue = watch("schedule.2");
-  const tuesdayWatchedValueNestedFields = watch(["schedule.2.0", "schedule.2.1"]);
   const wednesdayWatchedValue = watch("schedule.3");
-  const wednesdayWatchedValueNestedFields = watch(["schedule.3.0", "schedule.3.1"]);
   const thursdayWatchedValue = watch("schedule.4");
-  const thursdayWatchedValueNestedFields = watch(["schedule.4.0", "schedule.4.1"]);
   const fridayWatchedValue = watch("schedule.5");
-  const fridayWatchedValueNestedFields = watch(["schedule.5.0", "schedule.5.1"]);
   const saturdayWatchedValue = watch("schedule.6");
-  const saturdayWatchedValueNestedFields = watch(["schedule.6.0", "schedule.6.1"]);
   const sundayWatchedValue = watch("schedule.0");
-  const sundayWatchedValueNestedFields = watch(["schedule.0.0", "schedule.0.1"]);
 
-  useEffect(() => {
+  const debouncedonAvailabilityChanged = debounce(() => {
     const { onAvailabilityChanged } = props;
     onAvailabilityChanged(
       mondayWatchedValue,
@@ -74,17 +69,15 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       saturdayWatchedValue,
       sundayWatchedValue
     );
+  }, 500);
 
-    console.log(sundayWatchedValue);
-  }, [
-    mondayWatchedValueNestedFields,
-    tuesdayWatchedValueNestedFields,
-    wednesdayWatchedValueNestedFields,
-    thursdayWatchedValueNestedFields,
-    fridayWatchedValueNestedFields,
-    saturdayWatchedValueNestedFields,
-    sundayWatchedValueNestedFields,
-  ]);
+  useEffect(() => {
+    debouncedonAvailabilityChanged();
+    return () => {
+      // Cleanup the debounced function on component unmount
+      debouncedonAvailabilityChanged.cancel();
+    };
+  }, [allFieldsWatch]);
 
   return (
     <Form
