@@ -31,7 +31,7 @@ const http = (function () {
       instance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
     },
     getAuthorizationHeader: () => {
-      return instance.defaults.headers.common["Authorization"];
+      return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
     },
   };
 })();

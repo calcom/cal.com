@@ -20,5 +20,7 @@ export const GcalConnect: FC = () => {
 
   if (error) return <>{error}</>;
 
-  return <></>;
+  return (
+    <button onClick={() => httpClient?.get("/atoms/gcal-connect/check").catch(console.error)}>Check </button>
+  );
 };

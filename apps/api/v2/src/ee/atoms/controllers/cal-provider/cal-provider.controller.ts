@@ -37,7 +37,6 @@ export class CalProviderController {
     if (!clientId) {
       throw new NotFoundException();
     }
-
     const oAuthClient = await this.oauthClientRepository.getOAuthClient(clientId);
 
     if (!oAuthClient) throw new UnauthorizedException();

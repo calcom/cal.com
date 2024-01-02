@@ -27,7 +27,7 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
       setIsInit(true);
     }
     if (options.refreshUrl && http.getRefreshUrl() !== options.refreshUrl) {
-      http.setUrl(options.refreshUrl);
+      http.setRefreshUrl(options.refreshUrl);
     }
   }, [options.apiUrl, options.refreshUrl]);
 
@@ -47,54 +47,60 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
     if (accessToken && http.getUrl() && prevAccessToken !== accessToken) {
       http.setAuthorizationHeader(accessToken);
       try {
-        http.get<ApiResponse>(`/atoms/cal-provider/${clientId}/access-token`).catch((err: AxiosError) => {
-          if (err.response?.status === 401) {
-            setError("Invalid Access Token.");
-          }
-          if (err.response?.status === 498) {
-            setError("Expired Access Token.");
-          }
-
-          if (!err) {
+        http
+          .get<ApiResponse>(`/atoms/cal-provider/${clientId}/access-token`)
+          .then(() => {
             setClientAccessToken(accessToken);
-          }
-        });
+          })
+          .catch((err: AxiosError) => {
+            if (err.response?.status === 401) {
+              setError("Invalid Access Token.");
+            }
+          });
       } catch (err) {}
     }
-    http.responseInterceptor.use(undefined, async () => {
-      if (options.refreshUrl) {
-        // query the refresh url to get a new access token
-        // then try again with the new access token
-        const response = await fetch(options.refreshUrl);
-        const data = await response.json();
+  }, [accessToken, clientId, prevAccessToken]);
 
-        http.setAuthorizationHeader(data.accessToken);
-        // if above response is ok call api again with this new access token
-        // TODO: rate limit error calls to 2 or 3
+  useEffect(() => {
+    let isRefreshing = false;
+    const interceptorId =
+      clientAccessToken && http.getAuthorizationHeader()
+        ? http.responseInterceptor.use(undefined, async (err) => {
+            if (options.refreshUrl && err.response?.status === 498 && !isRefreshing) {
+              isRefreshing = true;
+              const response = await fetch(`${options.refreshUrl}`, {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: http.getAuthorizationHeader(),
+                },
+              });
+              const res = await response.json();
+              if (res.accessToken) {
+                http.setAuthorizationHeader(res.accessToken);
+                setClientAccessToken(res.accessToken);
+              }
+            }
+            isRefreshing = false;
+          })
+        : "";
 
-        if (response.ok) {
-          try {
-            http.get<ApiResponse>(`/atoms/cal-provider/${clientId}/access-token`).catch((err: AxiosError) => {
-              if (err.response?.status === 401) {
-                setError("Invalid Access Token.");
-              }
-              if (err.response?.status === 498) {
-                setError("Expired Access Token.");
-              }
-
-              if (!err) {
-                setClientAccessToken(data.accessToken);
-              }
-            });
-          } catch (err) {}
-        }
+    return () => {
+      if (interceptorId) {
+        http.responseInterceptor.eject(interceptorId);
       }
-    });
-  }, [accessToken, clientId, prevAccessToken, options.refreshUrl]);
+    };
+  }, [options.refreshUrl, clientAccessToken]);
 
   return isInit ? (
     <AtomsContext.Provider
-      value={{ clientId, accessToken: clientAccessToken, options, error, getClient: () => http }}>
+      value={{
+        clientId,
+        accessToken: clientAccessToken,
+        options,
+        error,
+        getClient: () => http,
+      }}>
       {children}
     </AtomsContext.Provider>
   ) : (

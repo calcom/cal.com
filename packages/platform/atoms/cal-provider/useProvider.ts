@@ -13,6 +13,7 @@ export interface IAtomsContext {
   options: IAtomsContextOptions;
   error?: string;
   getClient: () => typeof http | void;
+  refreshToken?: string;
 }
 
 export const AtomsContext = createContext({

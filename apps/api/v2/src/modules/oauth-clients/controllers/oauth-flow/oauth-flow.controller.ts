@@ -90,6 +90,7 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
+    console.log("Body", body);
     const { accessToken, refreshToken } = await this.oAuthFlowService.refreshToken(
       clientId,
       secretKey,
