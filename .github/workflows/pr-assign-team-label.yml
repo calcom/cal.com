@@ -7,6 +7,7 @@ on:
 jobs:
   team-labels:
     runs-on: ubuntu-latest
+    secrets: inherit
     steps:
       - uses: actions/checkout@v2
       - uses: equitybee/team-label-action@main
