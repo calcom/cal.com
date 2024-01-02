@@ -17,7 +17,15 @@ type FormData = {
   bio: string;
 };
 
-const UserProfile = ({ imageSrc, setImageSrc, onBioChange }) => {
+const UserProfile = ({
+  imageSrc,
+  setImageSrc,
+  onBioChange,
+}: {
+  imageSrc: string;
+  setImageSrc: (imageSrc: string) => void;
+  onBioChange: (bio: string) => void;
+}) => {
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);

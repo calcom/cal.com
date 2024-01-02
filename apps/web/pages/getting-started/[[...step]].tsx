@@ -9,9 +9,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import { parseSync } from "svgson";
-import type { SVGSON } from "svgson/dist/types";
 import { z } from "zod";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -24,6 +24,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
+import type { TimeRange } from "@calcom/types/schedule";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader, Timer, User } from "@calcom/ui/components/icon";
 
@@ -70,6 +71,12 @@ const fakeMeetings = [
   },
 ];
 
+type SVGSON = {
+  name: string;
+  attributes: { [key: string]: string | number | boolean };
+  children?: SVGSON[];
+};
+
 const stepTransform = (step: (typeof steps)[number]) => {
   const stepIndex = steps.indexOf(step);
   if (stepIndex > -1) {
@@ -84,7 +91,7 @@ const stepRouteSchema = z.object({
 });
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
-const OnboardingPage = (props) => {
+const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsCount: number }) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
   const router = useRouter();
@@ -93,9 +100,9 @@ const OnboardingPage = (props) => {
   const result = stepRouteSchema.safeParse(params);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-  const svgRef = useRef<any>(null);
-  const [fullName, setFullName] = useState<string>(null);
-  const [timeZone, setTimeZone] = useState<string>(null);
+  const svgRef = useRef<HTMLDivElement>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
+  const [timeZone, setTimeZone] = useState<string | null>(null);
   const extraDays = 7;
   const startDate = dayjs();
   const endDate = dayjs(startDate).add(extraDays - 1, "day");
@@ -155,10 +162,12 @@ const OnboardingPage = (props) => {
 
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      const xi = polygon[i][0];
-      const yi = polygon[i][1];
-      const xj = polygon[j][0];
-      const yj = polygon[j][1];
+      const xi = polygon[i]?.[0];
+      const yi = polygon[i]?.[1];
+      const xj = polygon[j]?.[0];
+      const yj = polygon[j]?.[1];
+
+      if (xi == undefined || yi == undefined || xj == undefined || yj == undefined) continue;
 
       const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
 
@@ -235,7 +244,7 @@ const OnboardingPage = (props) => {
                 .split(" ")
                 .map((c) => {
                   return parseFloat(c.replace("M", ""));
-                });
+                }) as [number, number];
             }
 
             child.attributes.fill = "#374151";
@@ -259,7 +268,8 @@ const OnboardingPage = (props) => {
         svgRef.current.appendChild(svgElement);
       }
     }
-  }, [timeZone, createSVGElement]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeZone]);
 
   function createSVGElement(
     svgsonObject: SVGSON,
@@ -302,23 +312,23 @@ const OnboardingPage = (props) => {
     setTimeZone(TimeZone || "");
   };
 
-  const generateRange = (startDate, endDate, duration) => {
-    const range = [];
+  const generateRange = (startDate: Dayjs, endDate: Dayjs, duration: number): TimeRange[] => {
+    const range: TimeRange[] = [];
     let currentDate = dayjs(startDate);
     console.log(currentDate);
     const stopDate = dayjs(endDate);
     while (currentDate <= stopDate) {
       range.push({
-        start: currentDate.toDate().toISOString(),
-        end: dayjs(currentDate).add(duration, "minutes").toDate().toISOString(),
+        start: currentDate.toDate(),
+        end: dayjs(currentDate).add(duration, "minutes").toDate(),
       });
       currentDate = currentDate.add(duration, "minutes");
     }
     return range;
   };
 
-  const calculateAvailableTimeslots = (ranges, tempStartDate) => {
-    const dateRange = [];
+  const calculateAvailableTimeslots = (ranges: TimeRange[], tempStartDate: Dayjs) => {
+    const dateRange: TimeRange[] = [];
 
     ranges.map((m) => {
       dateRange.push(
@@ -341,13 +351,13 @@ const OnboardingPage = (props) => {
   };
 
   const onAvailabilityChanged = (
-    mondayWatchedValue,
-    tuesdayWatchedValue,
-    wednesdayWatchedValue,
-    thursdayWatchedValue,
-    fridayWatchedValue,
-    saturdayWatchedValue,
-    sundayWatchedValue
+    mondayWatchedValue: TimeRange[],
+    tuesdayWatchedValue: TimeRange[],
+    wednesdayWatchedValue: TimeRange[],
+    thursdayWatchedValue: TimeRange[],
+    fridayWatchedValue: TimeRange[],
+    saturdayWatchedValue: TimeRange[],
+    sundayWatchedValue: TimeRange[]
   ) => {
     console.log(startDate);
     console.log("mondayWatchedValue", mondayWatchedValue);
@@ -360,7 +370,9 @@ const OnboardingPage = (props) => {
     // alert("onAvailabilityChanged");
 
     let tempStartDate = dayjs();
-    const newAvailableTimeslots = {};
+    const newAvailableTimeslots: {
+      [key: string]: TimeRange[];
+    } = {};
     while (tempStartDate <= endDate.add(1, "day")) {
       const dddd = tempStartDate.format("dddd");
 
@@ -489,8 +501,8 @@ const OnboardingPage = (props) => {
                       <UserProfile
                         imageSrc={imageSrc}
                         setImageSrc={setImageSrc}
-                        onBioChange={(val) => {
-                          setBio(val);
+                        onBioChange={(val: string | null) => {
+                          if (val) setBio(val);
                         }}
                       />
                     )}

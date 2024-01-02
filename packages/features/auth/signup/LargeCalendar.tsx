@@ -2,8 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
+import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
-import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export const LargeCalendar = ({
   extraDays,
@@ -30,8 +30,7 @@ export const LargeCalendar = ({
 
   useEffect(() => {
     if (showFakeEvents) {
-      const fakeEvents = [];
-      const extraDays = 7;
+      const fakeEvents: CalendarEvent[] = [];
       let startDate = dayjs();
       const endDate = dayjs(startDate).add(extraDays - 1, "day");
 
@@ -42,6 +41,7 @@ export const LargeCalendar = ({
           case "Monday":
             fakeEvents.push(
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 9).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 10).set("minute", 0).toDate(),
                 title: "Morning calibration",
@@ -50,6 +50,7 @@ export const LargeCalendar = ({
                 },
               },
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 13).set("minute", 0).toDate(),
                 title: "Into between Zomars",
@@ -58,6 +59,7 @@ export const LargeCalendar = ({
                 },
               },
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 16).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 17).set("minute", 0).toDate(),
                 title: "When a twitter DM is not enough",
@@ -72,6 +74,7 @@ export const LargeCalendar = ({
           case "Wednesday":
             fakeEvents.push(
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 14).set("minute", 0).toDate(),
                 title: "New feature discussion",
@@ -80,6 +83,7 @@ export const LargeCalendar = ({
                 },
               },
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 16).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 18).set("minute", 0).toDate(),
                 title: "Warp up meeting",
@@ -92,6 +96,7 @@ export const LargeCalendar = ({
           case "Thursday":
             fakeEvents.push(
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 9).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 11).set("minute", 0).toDate(),
                 title: "New feature discussion",
@@ -100,6 +105,7 @@ export const LargeCalendar = ({
                 },
               },
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 13).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 15).set("minute", 0).toDate(),
                 title: "YC mock interview",
@@ -108,6 +114,7 @@ export const LargeCalendar = ({
                 },
               },
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 16).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 17).set("minute", 0).toDate(),
                 title: "When a twitter DM is not enough",
@@ -120,6 +127,7 @@ export const LargeCalendar = ({
           case "Friday":
             fakeEvents.push(
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 13).set("minute", 0).add(30, "minute").toDate(),
                 title: "Mock interview",
@@ -128,6 +136,7 @@ export const LargeCalendar = ({
                 },
               },
               {
+                id: 0,
                 start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
                 end: dayjs(startDate).set("hour", 13).set("minute", 0).toDate(),
                 title: "Rountable",
@@ -149,7 +158,7 @@ export const LargeCalendar = ({
       setEvents(fakeEvents);
     } else {
     }
-  }, [showFakeEvents]);
+  }, [showFakeEvents, extraDays]);
 
   return (
     <div

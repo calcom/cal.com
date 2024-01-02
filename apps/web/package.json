@@ -63,6 +63,7 @@
     "@tanstack/react-query": "^4.3.9",
     "@tremor/react": "^2.0.0",
     "@types/d3": "^7.4.3",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/turndown": "^5.0.1",
     "@upstash/ratelimit": "^0.4.3",
     "@upstash/redis": "^1.21.0",

@@ -8,13 +8,22 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import type { TimeRange } from "@calcom/types/schedule";
 import { Button, Form } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;
   defaultScheduleId?: number | null;
-  onAvailabilityChanged: () => void;
+  onAvailabilityChanged: (
+    mondayWatchedValue: TimeRange[],
+    tuesdayWatchedValue: TimeRange[],
+    wednesdayWatchedValue: TimeRange[],
+    thursdayWatchedValue: TimeRange[],
+    fridayWatchedValue: TimeRange[],
+    saturdayWatchedValue: TimeRange[],
+    sundayWatchedValue: TimeRange[]
+  ) => void;
 }
 
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
