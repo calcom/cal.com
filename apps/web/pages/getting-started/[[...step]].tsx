@@ -190,7 +190,7 @@ const OnboardingPage = (props) => {
         return feature.properties.name_en === targetCountry.name;
       });
       const areaCoordinates: ([number, number] | null)[] = [];
-      country?.geometry.coordinates.slice(0, 1).map((g) => {
+      country?.geometry.coordinates.map((g) => {
         areaCoordinates.push(...(g as [number, number][]));
       });
 
