@@ -11,7 +11,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter } from "@calcom/ui";
-import { Check, Edit2 } from "@calcom/ui/components/icon";
+import { Star, Edit2 } from "@calcom/ui/components/icon";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -134,13 +134,16 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             data-testid="username-input"
             {...rest}
           />
-          {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex flex-row">
-              <span className={classNames("mx-2 py-3.5")}>
-                {usernameIsAvailable ? <Check className="h-4 w-4" /> : <></>}
-              </span>
-            </div>
-          )}
+
+          <div className="absolute right-[2px] top-6 flex flex-row">
+            <span className={classNames("mx-2 py-2.5")}>
+              {usernameIsAvailable ? (
+                <Star className="h-4 w-4" />
+              ) : (
+                <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
+              )}
+            </span>
+          </div>
         </div>
         <div className="mt-6 hidden md:inline">
           <ActionButtons />
