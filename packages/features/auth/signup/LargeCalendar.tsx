@@ -28,52 +28,125 @@ export const LargeCalendar = ({
     return availableTimeslots || {};
   }, [availableTimeslots]);
 
-  // const availableSlots = useMemo(() => {
-  //   let availableTimeslots: CalendarAvailableTimeslots = {};
-
-  //   availableTimeslots = {
-  //     "2024-01-01": [
-  //       {
-  //         start: dayjs("2024-01-01T04:00:00.000Z").toDate(),
-  //         end: dayjs("2024-01-01T04:00:00.000Z").add(eventDuration, "minutes").toDate(),
-  //       },
-  //       {
-  //         start: dayjs("2024-01-01T05:00:00.000Z").toDate(),
-  //         end: dayjs("2024-01-01T05:00:00.000Z").add(eventDuration, "minutes").toDate(),
-  //       },
-  //     ],
-  //   };
-
-  //   return availableTimeslots;
-  // }, [eventDuration, showFakeEvents]);
-
-  // const overlayEventsForDate = useMemo(() => {
-  //   if (!overlayEvents || !displayOverlay) return [];
-  //   return overlayEvents.map((event, id) => {
-  //     return {
-  //       id,
-  //       start: dayjs(event.start).toDate(),
-  //       end: dayjs(event.end).toDate(),
-  //       title: "Busy",
-  //       options: {
-  //         status: "ACCEPTED",
-  //       },
-  //     } as CalendarEvent;
-  //   });
-  // }, [overlayEvents, displayOverlay]);
-
   useEffect(() => {
     if (showFakeEvents) {
-      setEvents([
-        {
-          start: dayjs("2024-01-01T14:00:00.000Z").toDate(),
-          end: dayjs("2024-01-01T17:00:00.000Z").toDate(),
-          title: "Busy",
-          options: {
-            status: "ACCEPTED",
-          },
-        },
-      ]);
+      const fakeEvents = [];
+      const extraDays = 7;
+      let startDate = dayjs();
+      const endDate = dayjs(startDate).add(extraDays - 1, "day");
+
+      while (startDate <= endDate.add(1, "day")) {
+        const dddd = startDate.format("dddd");
+
+        switch (dddd) {
+          case "Monday":
+            fakeEvents.push(
+              {
+                start: dayjs(startDate).set("hour", 9).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 10).set("minute", 0).toDate(),
+                title: "Morning calibration",
+                options: {
+                  status: "ACCEPTED",
+                },
+              },
+              {
+                start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 13).set("minute", 0).toDate(),
+                title: "Into between Zomars",
+                options: {
+                  status: "ACCEPTED",
+                },
+              },
+              {
+                start: dayjs(startDate).set("hour", 16).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 17).set("minute", 0).toDate(),
+                title: "When a twitter DM is not enough",
+                options: {
+                  status: "ACCEPTED",
+                },
+              }
+            );
+            break;
+          case "Tuesday":
+            break;
+          case "Wednesday":
+            fakeEvents.push(
+              {
+                start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 14).set("minute", 0).toDate(),
+                title: "New feature discussion",
+                options: {
+                  status: "ACCEPTED",
+                },
+              },
+              {
+                start: dayjs(startDate).set("hour", 16).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 18).set("minute", 0).toDate(),
+                title: "Warp up meeting",
+                options: {
+                  status: "ACCEPTED",
+                },
+              }
+            );
+            break;
+          case "Thursday":
+            fakeEvents.push(
+              {
+                start: dayjs(startDate).set("hour", 9).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 11).set("minute", 0).toDate(),
+                title: "New feature discussion",
+                options: {
+                  status: "ACCEPTED",
+                },
+              },
+              {
+                start: dayjs(startDate).set("hour", 13).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 15).set("minute", 0).toDate(),
+                title: "YC mock interview",
+                options: {
+                  status: "ACCEPTED",
+                },
+              },
+              {
+                start: dayjs(startDate).set("hour", 16).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 17).set("minute", 0).toDate(),
+                title: "When a twitter DM is not enough",
+                options: {
+                  status: "PENDING",
+                },
+              }
+            );
+            break;
+          case "Friday":
+            fakeEvents.push(
+              {
+                start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 13).set("minute", 0).add(30, "minute").toDate(),
+                title: "Mock interview",
+                options: {
+                  status: "ACCEPTED",
+                },
+              },
+              {
+                start: dayjs(startDate).set("hour", 12).set("minute", 0).toDate(),
+                end: dayjs(startDate).set("hour", 13).set("minute", 0).toDate(),
+                title: "Rountable",
+                options: {
+                  status: "ACCEPTED",
+                },
+              }
+            );
+            break;
+          case "Saturday":
+            break;
+          case "Sunday":
+            break;
+        }
+
+        startDate = startDate.add(1, "day");
+      }
+
+      setEvents(fakeEvents);
     } else {
     }
   }, [showFakeEvents]);
