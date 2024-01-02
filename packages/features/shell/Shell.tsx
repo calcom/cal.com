@@ -379,6 +379,21 @@ function UserDropdown({ small }: UserDropdownProps) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
+
+  const [preloadedImg, setPreloadedImg] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      // Preload the avatar image
+      const img = new Image();
+      img.src = `${bookerUrl}/${user.username}/avatar.png`;
+      img.onload = () => {
+        // When the image is loaded, set it in state
+        setPreloadedImg(img.src);
+      };
+    }
+  }, [bookerUrl, user]);
+
   const mutation = trpc.viewer.away.useMutation({
     onMutate: async ({ away }) => {
       await utils.viewer.me.cancel();
@@ -431,8 +446,8 @@ function UserDropdown({ small }: UserDropdownProps) {
             )}>
             <Avatar
               size={small ? "xs" : "xsm"}
-              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
-              alt={user.username || "Nameless User"}
+              imageSrc={preloadedImg || `${bookerUrl}/${user?.username}/avatar.png`}
+              alt={user?.username || "Nameless User"}
               className="overflow-hidden"
             />
             <span

@@ -1,6 +1,7 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
+import { useEffect } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
@@ -18,7 +19,7 @@ export type AvatarProps = {
   href?: string;
   fallback?: React.ReactNode;
   accepted?: boolean;
-  asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
+  asChild?: boolean;
   indicator?: React.ReactNode;
   "data-testid"?: string;
 };
@@ -33,10 +34,18 @@ const sizesPropsBySize = {
   lg: "w-16 h-16 min-w-16 min-h-16", // 64px
   xl: "w-24 h-24 min-w-24 min-h-24", // 96px
 } as const;
-
 export function Avatar(props: AvatarProps) {
   const { imageSrc, size = "md", alt, title, href, indicator } = props;
+
+  useEffect(() => {
+    if (imageSrc) {
+      const img = new Image();
+      img.src = imageSrc;
+    }
+  }, [imageSrc]);
+
   const rootClass = classNames("aspect-square rounded-full", sizesPropsBySize[size]);
+
   let avatar = (
     <AvatarPrimitive.Root
       data-testid={props?.["data-testid"]}
@@ -51,6 +60,7 @@ export function Avatar(props: AvatarProps) {
           src={imageSrc ?? undefined}
           alt={alt}
           className={classNames("aspect-square rounded-full", sizesPropsBySize[size])}
+          loading="lazy" // Lazy load the image
         />
         <AvatarPrimitive.Fallback
           delayMs={600}
