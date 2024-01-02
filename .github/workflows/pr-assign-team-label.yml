@@ -8,8 +8,10 @@ on:
 
 jobs:
   team-labels:
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
-    secrets: inherit
     steps:
       - uses: actions/checkout@v2
       - uses: equitybee/team-label-action@main
