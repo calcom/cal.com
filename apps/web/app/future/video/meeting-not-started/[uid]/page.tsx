@@ -1,15 +1,11 @@
 import OldPage from "@pages/video/meeting-not-started/[uid]";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
-import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 type PageProps = Readonly<{
   params: Params;
@@ -51,19 +47,5 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
   };
 }
 
-const Page = async ({ params }: PageProps) => {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
-  // @ts-expect-error `req` of type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to `req` in `GetServerSidePropsContext`
-  const props = await getData(legacyCtx);
-
-  return (
-    <PageWrapper getLayout={null} requiresLicense={false} nonce={nonce} themeBasis={null}>
-      <OldPage {...props} />
-    </PageWrapper>
-  );
-};
-
-export default Page;
+// @ts-expect-error getData arg
+export default WithLayout({ getData, Page: OldPage });

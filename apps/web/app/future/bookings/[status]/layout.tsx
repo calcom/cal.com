@@ -1,14 +1,13 @@
 import { ssgInit } from "app/_trpc/ssgInit";
 import type { Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
@@ -43,14 +42,6 @@ const getData = async ({ params }: { params: Params }) => {
   };
 };
 
-export default async function BookingPageLayout({ params, children }: Props) {
-  const props = await getData({ params });
-
-  return (
-    <PageWrapper requiresLicense={false} getLayout={getLayout} nonce={undefined} themeBasis={null} {...props}>
-      {children}
-    </PageWrapper>
-  );
-}
+export default WithLayout({ getLayout, getData });
 
 export const dynamic = "force-static";

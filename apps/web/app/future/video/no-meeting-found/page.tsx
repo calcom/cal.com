@@ -1,9 +1,7 @@
 import LegacyPage from "@pages/video/no-meeting-found";
 import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
-import { headers } from "next/headers";
-
-import PageWrapper from "@components/PageWrapperAppDir";
+import { WithLayout } from "app/layoutHOC";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -19,14 +17,4 @@ export const getData = async () => {
   };
 };
 
-export default async function Page() {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  const props = await getData();
-  return (
-    <PageWrapper getLayout={null} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
-      <LegacyPage />
-    </PageWrapper>
-  );
-}
+export default WithLayout({ getData, Page: LegacyPage });

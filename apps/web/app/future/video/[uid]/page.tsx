@@ -1,29 +1,20 @@
 import OldPage from "@pages/video/[uid]";
 import { ssrInit } from "app/_trpc/ssrInit";
-import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import MarkdownIt from "markdown-it";
 import { type GetServerSidePropsContext } from "next";
-import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import PageWrapper from "@components/PageWrapperAppDir";
-
 export const generateMetadata = async () =>
   await _generateMetadata(
     () => `${APP_NAME} Video`,
     (t) => t("quick_video_meeting")
   );
-
-type PageProps = Readonly<{
-  params: Params;
-}>;
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
@@ -107,24 +98,5 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
   };
 }
 
-const Page = async ({ params }: PageProps) => {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
-  // @ts-expect-error `req` of type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to `req` in `GetServerSidePropsContext`
-  const { dehydratedState, ...restProps } = await getData(legacyCtx);
-
-  return (
-    <PageWrapper
-      getLayout={null}
-      requiresLicense={false}
-      nonce={nonce}
-      themeBasis={null}
-      dehydratedState={dehydratedState}>
-      <OldPage {...restProps} />
-    </PageWrapper>
-  );
-};
-
-export default Page;
+// @ts-expect-error getData arg
+export default WithLayout({ getData, Page: OldPage });

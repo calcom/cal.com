@@ -1,27 +1,18 @@
 import OldPage from "@pages/teams/index";
 import { ssrInit } from "app/_trpc/ssrInit";
-import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
-import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("teams"),
     (t) => t("create_manage_teams_collaborative")
   );
-
-type PageProps = {
-  params: Params;
-};
 
 async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolvedUrl">) {
   const ssr = await ssrInit();
@@ -41,24 +32,5 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
   return { dehydratedState: await ssr.dehydrate() };
 }
 
-const Page = async ({ params }: PageProps) => {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  const legacyCtx = buildLegacyCtx(h, cookies(), params);
-  // @ts-expect-error `req` of type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to `req` in `GetServerSidePropsContext`
-  const props = await getData(legacyCtx);
-
-  return (
-    <PageWrapper
-      getLayout={getLayout}
-      requiresLicense={false}
-      nonce={nonce}
-      themeBasis={null}
-      dehydratedState={props.dehydratedState}>
-      <OldPage />
-    </PageWrapper>
-  );
-};
-
-export default Page;
+// @ts-expect-error getData arg
+export default WithLayout({ getData, getLayout, Page: OldPage });

@@ -1,6 +1,7 @@
 import CategoryPage from "@pages/apps/categories/[category]";
 import { Prisma } from "@prisma/client";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 import z from "zod";
 
@@ -8,8 +9,6 @@ import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -67,13 +66,6 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
   };
 };
 
-export default async function Page({ params }: { params: Record<string, string | string[]> }) {
-  const { apps } = await getPageProps({ params });
-  return (
-    <PageWrapper getLayout={null} requiresLicense={false} nonce={undefined} themeBasis={null}>
-      <CategoryPage apps={apps} />
-    </PageWrapper>
-  );
-}
-
+// @ts-expect-error getData arg
+export default WithLayout({ getData: getPageProps, Page: CategoryPage });
 export const dynamic = "force-static";
