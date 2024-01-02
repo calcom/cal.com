@@ -108,7 +108,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
+  const { shouldLockDisableProps, useLockedLabel, useLockedSwitch } = useLockedFieldsManager(
+    eventType,
+    formMethods,
+    t
+  );
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -116,9 +120,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
+  const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
+  // For the field 'eventName'
+  // const EventNameLabel = useLockedLabel("eventName");
+  // const EventNameSwitch = useLockedSwitch("eventName")();
   const setEventName = (value: string) => formMethods.setValue("eventName", value);
   return (
     <div className="flex flex-col space-y-4">
@@ -162,6 +170,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <TextField
             label={t("event_name_in_calendar")}
             type="text"
+            // {...EventNameLabel}
             {...shouldLockDisableProps("eventName")}
             placeholder={eventNamePlaceholder}
             defaultValue={eventType.eventName || ""}
@@ -179,9 +188,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         </div>
       </div>
-
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
-
       <div className="border-subtle space-y-6 rounded-lg border p-6">
         <FormBuilder
           title={t("booking_questions_title")}
@@ -196,7 +203,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }}
         />
       </div>
-
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}
@@ -204,7 +210,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         requiresConfirmation={requiresConfirmation}
         onRequiresConfirmation={setRequiresConfirmation}
       />
-
       <Controller
         name="requiresBookerEmailVerification"
         control={formMethods.control}
@@ -215,14 +220,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("requires_booker_email_verification")}
-            {...shouldLockDisableProps("requiresBookerEmailVerification")}
+            {...requiresBookerEmailVerificationProps}
             description={t("description_requires_booker_email_verification")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
         )}
       />
-
       <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
@@ -240,7 +244,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -286,7 +289,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-
       <SettingsToggle
         labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
@@ -347,7 +349,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           )}
         </div>
       </SettingsToggle>
-
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}
