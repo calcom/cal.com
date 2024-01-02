@@ -103,7 +103,7 @@ const tabs: VerticalTabItemProps[] = [
   },
   {
     name: "teams",
-    href: "/settings/teams",
+    href: "/teams",
     icon: Users,
     children: [],
   },
@@ -213,7 +213,9 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org,
   });
 
-  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
 
   useEffect(() => {
     if (teams) {

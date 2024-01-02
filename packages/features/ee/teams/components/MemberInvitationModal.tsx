@@ -1,4 +1,5 @@
 import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import { useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
@@ -6,11 +7,12 @@ import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
+import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
 import {
   Button,
   Dialog,
@@ -25,7 +27,6 @@ import {
   TextAreaField,
 } from "@calcom/ui";
 import { Link } from "@calcom/ui/components/icon";
-import type { Window as WindowWithClipboardValue } from "@calcom/web/playwright/fixtures/clipboard";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -70,14 +71,18 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useContext();
+  const session = useSession();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
+  const isOrgOwner = currentOrg && currentOrg.user.role === MembershipRole.OWNER;
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
     props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
-    onSuccess(token) {
-      copyInviteLinkToClipboard(token);
+    async onSuccess({ inviteLink }) {
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
     },
@@ -86,31 +91,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     },
   });
 
-  const copyInviteLinkToClipboard = async (token: string) => {
-    const isOrgInvite = isOrg;
-    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
-    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-
-    const inviteLink =
-      isOrgInvite || (props?.orgMembers && props.orgMembers?.length > 0) ? orgInviteLink : teamInviteLink;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      showToast(t("invite_link_copied"), "success");
-    } catch (e) {
-      if (process.env.NEXT_PUBLIC_IS_E2E) {
-        (window as WindowWithClipboardValue).E2E_CLIPBOARD_VALUE = inviteLink;
-      }
-      console.error(e);
-    }
-  };
-
   const options: MembershipRoleOption[] = useMemo(() => {
-    return [
+    const options: MembershipRoleOption[] = [
       { value: MembershipRole.MEMBER, label: t("member") },
       { value: MembershipRole.ADMIN, label: t("admin") },
       { value: MembershipRole.OWNER, label: t("owner") },
     ];
-  }, [t]);
+
+    // Adjust options for organizations where the user isn't the owner
+    if (isOrg && !isOrgOwner) {
+      return options.filter((option) => option.value !== MembershipRole.OWNER);
+    }
+
+    return options;
+  }, [t, isOrgOwner, isOrg]);
 
   const toggleGroupOptions = useMemo(() => {
     const array = [
@@ -209,7 +203,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           </Label>
           <ToggleGroup
             isFullWidth={true}
-            onValueChange={(val) => setModalInputMode(val as ModalMode)}
+            onValueChange={(val) => {
+              setModalInputMode(val as ModalMode);
+              newMemberFormMethods.clearErrors();
+            }}
             defaultValue={modalImportMode}
             options={toggleGroupOptions}
           />
@@ -223,8 +220,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 name="emailOrUsername"
                 control={newMemberFormMethods.control}
                 rules={{
-                  required: t("enter_email_or_username"),
+                  required: isOrg ? t("enter_email") : t("enter_email_or_username"),
                   validate: (value) => {
+                    // orgs can only invite members by email
+                    if (typeof value === "string" && isOrg && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string")
                       return validateUniqueInvite(value) || t("member_already_invited");
                   },
@@ -251,7 +250,14 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}
                   rules={{
-                    required: t("enter_email_or_username"),
+                    required: t("enter_email"),
+                    validate: (value) => {
+                      if (Array.isArray(value) && value.some((email) => !isEmail(email)))
+                        return t("enter_emails");
+                      if (Array.isArray(value) && value.length > MAX_NB_INVITES)
+                        return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
+                      if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                    },
                   }}
                   render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <>
@@ -373,11 +379,37 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   type="button"
                   color="minimal"
                   variant="icon"
-                  onClick={() =>
-                    props.token
-                      ? copyInviteLinkToClipboard(props.token)
-                      : createInviteMutation.mutate({ teamId: props.teamId })
-                  }
+                  onClick={async function () {
+                    try {
+                      // Required for Safari but also works on Chrome
+                      // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
+                      if (typeof ClipboardItem !== "undefined") {
+                        const inviteLinkClipbardItem = new ClipboardItem({
+                          "text/plain": new Promise(async (resolve) => {
+                            // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
+                            const { inviteLink } = await createInviteMutation.mutateAsync({
+                              teamId: props.teamId,
+                              token: props.token,
+                            });
+                            showToast(t("invite_link_copied"), "success");
+                            resolve(new Blob([inviteLink], { type: "text/plain" }));
+                          }),
+                        });
+                        await navigator.clipboard.write([inviteLinkClipbardItem]);
+                      } else {
+                        // Fallback for browsers that don't support ClipboardItem e.g. Firefox
+                        const { inviteLink } = await createInviteMutation.mutateAsync({
+                          teamId: props.teamId,
+                          token: props.token,
+                        });
+                        await navigator.clipboard.writeText(inviteLink);
+                        showToast(t("invite_link_copied"), "success");
+                      }
+                    } catch (e) {
+                      showToast(t("something_went_wrong_on_our_end"), "error");
+                      console.error(e);
+                    }
+                  }}
                   className={classNames("gap-2", props.token && "opacity-50")}
                   data-testid="copy-invite-link-button">
                   <Link className="text-default h-4 w-4" aria-hidden="true" />

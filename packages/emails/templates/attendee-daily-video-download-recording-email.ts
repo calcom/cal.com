@@ -21,7 +21,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
     this.downloadLink = downloadLink;
     this.t = attendee.language.translate;
   }
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
@@ -30,7 +30,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("DailyVideoDownloadRecordingEmail", {
+      html: await renderEmail("DailyVideoDownloadRecordingEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
         downloadLink: this.downloadLink,

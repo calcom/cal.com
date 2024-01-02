@@ -98,6 +98,7 @@ model EventType {
   beforeEventBuffer               Int                     @default(0)
   afterEventBuffer                Int                     @default(0)
   seatsPerTimeSlot                Int?
+  onlyShowFirstAvailableSlot      Boolean                 @default(false)
   seatsShowAttendees              Boolean?                @default(false)
   seatsShowAvailabilityCount      Boolean?                @default(true)
   schedulingType                  SchedulingType?
@@ -117,6 +118,7 @@ model EventType {
   bookingLimits                   Json?
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                  Json?
+  isInstantEvent                  Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -274,42 +276,44 @@ model User {
 }
 
 model Team {
-  id                  Int                     @id @default(autoincrement())
+  id                   Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  name                String
+  name                 String
   /// @zod.min(1)
-  slug                String?
-  logo                String?
-  logoUrl             String?
-  appLogo             String?
-  appIconLogo         String?
-  bio                 String?
-  hideBranding        Boolean                 @default(false)
-  isPrivate           Boolean                 @default(false)
-  hideBookATeamMember Boolean                 @default(false)
-  members             Membership[]
-  eventTypes          EventType[]
-  workflows           Workflow[]
-  createdAt           DateTime                @default(now())
+  slug                 String?
+  logo                 String?
+  logoUrl              String?
+  calVideoLogo         String?
+  appLogo              String?
+  appIconLogo          String?
+  bio                  String?
+  hideBranding         Boolean                 @default(false)
+  isPrivate            Boolean                 @default(false)
+  hideBookATeamMember  Boolean                 @default(false)
+  members              Membership[]
+  eventTypes           EventType[]
+  workflows            Workflow[]
+  createdAt            DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata            Json?
-  theme               String?
-  brandColor          String                  @default("#292929")
-  darkBrandColor      String                  @default("#fafafa")
-  verifiedNumbers     VerifiedNumber[]
-  parentId            Int?
-  parent              Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children            Team[]                  @relation("organization")
-  orgUsers            User[]                  @relation("scope")
-  inviteTokens        VerificationToken[]
-  webhooks            Webhook[]
-  timeFormat          Int?
-  timeZone            String                  @default("Europe/London")
-  weekStart           String                  @default("Sunday")
-  routingForms        App_RoutingForms_Form[]
-  apiKeys             ApiKey[]
-  credentials         Credential[]
-  accessCodes         AccessCode[]
+  metadata             Json?
+  theme                String?
+  brandColor           String                  @default("#292929")
+  darkBrandColor       String                  @default("#fafafa")
+  verifiedNumbers      VerifiedNumber[]
+  parentId             Int?
+  parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children             Team[]                  @relation("organization")
+  orgUsers             User[]                  @relation("scope")
+  inviteTokens         VerificationToken[]
+  webhooks             Webhook[]
+  timeFormat           Int?
+  timeZone             String                  @default("Europe/London")
+  weekStart            String                  @default("Sunday")
+  routingForms         App_RoutingForms_Form[]
+  apiKeys              ApiKey[]
+  credentials          Credential[]
+  accessCodes          AccessCode[]
+  instantMeetingTokens InstantMeetingToken[]
 
   @@unique([slug, parentId])
 }
@@ -351,6 +355,21 @@ model VerificationToken {
   @@index([teamId])
 }
 
+model InstantMeetingToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expires   DateTime
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id])
+  bookingId Int?     @unique
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+}
+
 model BookingReference {
   id                 Int      @id @default(autoincrement())
   /// @zod.min(1)
@@ -387,10 +406,11 @@ model Attendee {
 }
 
 enum BookingStatus {
-  CANCELLED @map("cancelled")
-  ACCEPTED  @map("accepted")
-  REJECTED  @map("rejected")
-  PENDING   @map("pending")
+  CANCELLED     @map("cancelled")
+  ACCEPTED      @map("accepted")
+  REJECTED      @map("rejected")
+  PENDING       @map("pending")
+  AWAITING_HOST @map("awaiting_host")
 }
 
 model Booking {
@@ -431,6 +451,9 @@ model Booking {
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
   isRecorded            Boolean              @default(false)
+  iCalUID               String?              @default("")
+  iCalSequence          Int                  @default(0)
+  instantMeetingToken   InstantMeetingToken?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -566,7 +589,9 @@ enum WebhookTriggerEvents {
   BOOKING_REJECTED
   FORM_SUBMITTED
   MEETING_ENDED
+  MEETING_STARTED
   RECORDING_READY
+  INSTANT_MEETING
 }
 
 model Webhook {
@@ -821,17 +846,18 @@ enum TimeUnit {
 }
 
 model WorkflowReminder {
-  id              Int             @id @default(autoincrement())
-  bookingUid      String?
-  booking         Booking?        @relation(fields: [bookingUid], references: [uid])
-  method          WorkflowMethods
-  scheduledDate   DateTime
-  referenceId     String?         @unique
-  scheduled       Boolean
-  workflowStepId  Int?
-  workflowStep    WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
-  cancelled       Boolean?
-  seatReferenceId String?
+  id                  Int             @id @default(autoincrement())
+  bookingUid          String?
+  booking             Booking?        @relation(fields: [bookingUid], references: [uid])
+  method              WorkflowMethods
+  scheduledDate       DateTime
+  referenceId         String?         @unique
+  scheduled           Boolean
+  workflowStepId      Int?
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  cancelled           Boolean?
+  seatReferenceId     String?
+  isMandatoryReminder Boolean?        @default(false)
 
   @@index([bookingUid])
   @@index([workflowStepId])

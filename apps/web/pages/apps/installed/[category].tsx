@@ -1,3 +1,5 @@
+"use client";
+
 import { useReducer } from "react";
 import { z } from "zod";
 
@@ -54,8 +56,8 @@ const IntegrationsContainer = ({
     automation: Share2,
     analytics: BarChart,
     payment: CreditCard,
-    web3: BarChart, // deprecated
     other: Grid,
+    web3: CreditCard, // deprecated
     video: Video, // deprecated
     messaging: Mail,
     crm: Contact,
