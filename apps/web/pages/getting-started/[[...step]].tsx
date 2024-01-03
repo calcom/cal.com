@@ -514,7 +514,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
               <div
                 ref={svgRef}
                 className="flex max-h-full min-h-full items-center justify-center overflow-x-clip overflow-y-clip rounded-l-2xl align-middle"
-                style={{ backgroundColor: "grey", scale: 5 }}
+                style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}
               />
 
               {/* Fixed div at center */}
@@ -541,7 +541,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
           {currentStep === "connected-calendar" && (
             <div
               className="flex min-h-full items-center justify-center rounded-l-2xl pb-8 ps-8 pt-8 align-middle"
-              style={{ backgroundColor: "grey" }}>
+              style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
               <LargeCalendar
                 extraDays={7}
                 showFakeEvents={props.connectedCalendarsCount !== 0}
@@ -556,7 +556,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
           {currentStep === "setup-availability" && (
             <div
               className="flex min-h-full items-center justify-center rounded-l-2xl p-10 align-middle"
-              style={{ backgroundColor: "grey" }}>
+              style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
               <LargeCalendar
                 extraDays={7}
                 showFakeEvents={props.connectedCalendarsCount !== 0}
@@ -572,7 +572,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
             <>
               <div
                 className="flex min-h-full items-end justify-end rounded-l-2xl ps-8 pt-8"
-                style={{ backgroundColor: "grey" }}>
+                style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
                 <div className="bg-subtle min-h-screen min-w-full rounded-l-xl">
                   <div className="item-center mb-16 ms-44 mt-24 flex flex-col items-center justify-center">
                     <OrganizationMemberAvatar

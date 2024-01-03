@@ -26,8 +26,10 @@ function VerifyEmailPage() {
   }, [data?.isVerified]);
 
   return (
-    <div className="h-[100vh] w-full ">
-      <div className="flex h-full w-full flex-col items-center justify-center">
+    <div className="h-[100vh] w-full p-4">
+      <div
+        className="flex h-full w-full flex-col items-center justify-center rounded-2xl"
+        style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
         <div className="max-w-3xl">
           <EmptyScreen
             border
