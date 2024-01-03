@@ -409,7 +409,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="md: grid grid-cols-1 gap-4 p-3 md:grid-cols-2 md:p-0">
+      <div className="grid grid-cols-1 gap-4 p-3 md:grid-cols-2 md:p-0">
         {/* Left Column */}
         <div className="scrollbar-thin max-h-screen min-h-screen overflow-y-auto">
           <div className="mx-auto py-6 sm:px-4 md:py-24">
