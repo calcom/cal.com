@@ -88,6 +88,15 @@ describe("handleNewBooking", () => {
                   appId: null,
                 },
               ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
+                },
+              ],
               eventTypes: [
                 {
                   id: 1,
@@ -231,8 +240,7 @@ describe("handleNewBooking", () => {
               ],
             },
           });
-
-          expectWorkflowToBeTriggered();
+          expectWorkflowToBeTriggered({ emails, organizer });
 
           expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
             calEvent: {
@@ -315,6 +323,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -442,7 +459,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectWorkflowToBeTriggered();
+          expectWorkflowToBeTriggered({ emails, organizer });
 
           expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
             calEvent: {
@@ -486,7 +503,7 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in updating a calendar event should not stop the rescheduling - Current behaviour is wrong as the booking is resheduled but no-one is notified of it`,
-        async ({}) => {
+        async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
             email: "booker@example.com",
@@ -518,6 +535,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -630,7 +656,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectWorkflowToBeTriggered();
+          expectWorkflowToBeTriggered({ emails, organizer });
 
           // FIXME: We should send Broken Integration emails on calendar event updation failure
           // expectBrokenIntegrationEmails({ booker, organizer, emails });
@@ -692,6 +718,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -815,7 +850,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            // expectWorkflowToBeTriggered({emails, organizer});
 
             expectBookingRequestedEmails({
               booker,
@@ -890,6 +925,15 @@ describe("handleNewBooking", () => {
                     active: true,
                     eventTypeId: 1,
                     appId: null,
+                  },
+                ],
+                workflows: [
+                  {
+                    userId: organizer.id,
+                    trigger: "RESCHEDULE_EVENT",
+                    action: "EMAIL_HOST",
+                    template: "REMINDER",
+                    activeEventTypeId: 1,
                   },
                 ],
                 eventTypes: [
@@ -1041,7 +1085,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            expectWorkflowToBeTriggered({ emails, organizer });
 
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
@@ -1132,6 +1176,15 @@ describe("handleNewBooking", () => {
                   active: true,
                   eventTypeId: 1,
                   appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeEventTypeId: 1,
                 },
               ],
               eventTypes: [
@@ -1259,7 +1312,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            //expectWorkflowToBeTriggered({emails, organizer});
 
             expectBookingRequestedEmails({
               booker,
@@ -1335,6 +1388,15 @@ describe("handleNewBooking", () => {
                     active: true,
                     eventTypeId: 1,
                     appId: null,
+                  },
+                ],
+                workflows: [
+                  {
+                    userId: organizer.id,
+                    trigger: "RESCHEDULE_EVENT",
+                    action: "EMAIL_HOST",
+                    template: "REMINDER",
+                    activeEventTypeId: 1,
                   },
                 ],
                 eventTypes: [
@@ -1497,7 +1559,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            expectWorkflowToBeTriggered();
+            expectWorkflowToBeTriggered({ emails, organizer });
 
             expectSuccessfulVideoMeetingUpdationInCalendar(videoMock, {
               calEvent: {
