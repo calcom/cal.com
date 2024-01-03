@@ -28,9 +28,9 @@ jobs:
           filters: |
             has-files-requiring-all-checks:
               - "!**.md"
-              - "!.github/CODEOWNERS"
-              - "!.github/workflows/*"
-              - "!.github/workflows/**/*"
+              - "!./.github/CODEOWNERS"
+              - "!./.github/workflows/*"
+              - "!./.github/workflows/**/*"
   type-check:
     name: Type check
     needs: [changes]
@@ -61,7 +61,7 @@ jobs:
 
   analyze:
     name: Analyze Build
-    needs: [build, changes]
+    needs: [changes, build]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
