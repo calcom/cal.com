@@ -86,7 +86,7 @@ export const EventTypeDescription = ({
             </Badge>
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
-            <li className="hidden xl:block">
+            <li className="hidden xl:block" data-testid="repeat-eventtype">
               <Badge variant="gray" startIcon={RefreshCw}>
                 {t("repeats_up_to", {
                   count: recurringEvent.count,
