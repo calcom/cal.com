@@ -27,10 +27,10 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!**.md"
-              - "!./.github/CODEOWNERS"
-              - "!./.github/workflows/*"
-              - "!./.github/workflows/**/*"
+              - "!(**.md)"
+              - "!(.github/CODEOWNERS)"
+              - "!(.github/workflows/*)"
+              - "!(.github/workflows/**/*)"
   type-check:
     name: Type check
     needs: [changes]
