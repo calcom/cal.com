@@ -1203,9 +1203,13 @@ async function handler(
     return guestArray;
   }, [] as typeof invitee);
 
-  const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
+  // The following seeds in a way where duplicate bookings become impossible.
+  //
+  // 1. eventTypeId=0 for dynamic events (which is falsy), event type slug stays unique.
+  // 2. Start of ignores duration, clashes with the same start time.
+  // 3. Round robin events are supported through the organizerUser.id
+  const seed = `${organizerUser.id}/${eventTypeId || eventTypeSlug}:${new Date(reqBody.start).valueOf()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-
   // For static link based video apps, it would have the static URL value instead of it's type(e.g. integrations:campfire_video)
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
@@ -1431,15 +1435,7 @@ async function handler(
 
     const booking = await prisma.booking.findFirst({
       where: {
-        OR: [
-          {
-            uid: rescheduleUid || reqBody.bookingUid,
-          },
-          {
-            eventTypeId: eventType.id,
-            startTime: evt.startTime,
-          },
-        ],
+        uid: rescheduleUid || reqBody.bookingUid || uid,
         status: BookingStatus.ACCEPTED,
       },
       select: {
