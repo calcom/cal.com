@@ -4,9 +4,6 @@ on:
   pull_request_target:
     branches:
       - main
-    paths-ignore:
-      - "**.md"
-      - ".github/CODEOWNERS"
   merge_group:
   workflow_dispatch:
 
@@ -15,34 +12,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    permissions:
+      pull-requests: read
+    outputs:
+      source-files: ${{ steps.filter.outputs.source-files }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            source-files:
+              - "**.md"
+              - ".github/CODEOWNERS"
   type-check:
     name: Type check
+    if: steps.changes.outputs.source-files == "true"
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   test:
     name: Unit tests
+    if: steps.changes.outputs.source-files == "true"
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   lint:
     name: Linters
+    if: steps.changes.outputs.source-files == "true"
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   build:
     name: Production build
+    if: steps.changes.outputs.source-files == "true"
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   analyze:
     needs: build
+    if: steps.changes.outputs.source-files == "true"
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
   required:
     needs: [lint, type-check, test, build]
-    if: always()
+    if: steps.changes.outputs.source-files == "true"
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
