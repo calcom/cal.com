@@ -421,7 +421,7 @@ function UserDropdown({ small }: UserDropdownProps) {
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
           className={classNames(
-            "hover:bg-emphasis group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+            "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
           )}>
           <span
@@ -525,7 +525,7 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="desktop-hidden hidden lg:flex">
+                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
                   <DropdownItem StartIcon={Download} target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
                     {t("download_desktop_app")}
                   </DropdownItem>
@@ -717,19 +717,21 @@ const NavigationItem: React.FC<{
           href={item.href}
           aria-label={t(item.name)}
           className={classNames(
-            "text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-            item.child ? `[&[aria-current='page']]:bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
+            "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+            item.child ? `[&[aria-current='page']]:!bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
             isChild
               ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
                   props.index === 0 ? "mt-0" : "mt-px"
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-            isLocaleReady ? "hover:bg-subtle hover:text-emphasis" : ""
+            isLocaleReady
+              ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+              : ""
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
             <item.icon
-              className="mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
+              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -887,9 +889,9 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     <div className="relative">
       <aside
         style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
-        className="desktop-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
+        className="todesktop:!bg-transparent bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
-          <header className="items-center justify-between md:hidden lg:flex">
+          <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
               <Link href="/settings/organizations/profile" className="px-1.5">
                 <div className="flex items-center gap-2 font-medium">
@@ -904,7 +906,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </div>
               </Link>
             ) : (
-              <div data-testid="user-dropdown-trigger">
+              <div data-testid="user-dropdown-trigger" className="todesktop:mt-4 w-full">
                 <span className="hidden lg:inline">
                   <UserDropdown />
                 </span>
@@ -913,17 +915,17 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex justify-end space-x-0.5 rtl:space-x-reverse">
+            <div className="flex w-full justify-end space-x-2 rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
+                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <ArrowLeft className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="desktop-only hover:text-emphasis text-subtle group flex text-sm font-medium">
+                className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <ArrowRight className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0" />
               </button>
               {!!orgBranding && (
@@ -1041,7 +1043,7 @@ export function ShellMain(props: LayoutProps) {
                     props.backPath
                       ? "relative"
                       : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 md:relative md:bottom-auto md:right-auto"
+                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}
                 </div>
