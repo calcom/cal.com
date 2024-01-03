@@ -2,6 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
 
+import { localize } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -220,6 +221,23 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
+    updateRecurringTab: async (repeatWeek: string, maxEvents: string) => {
+      const repeatText = (await localize("en"))("repeats_every");
+      const maximumOf = (await localize("en"))("for_a_maximum_of");
+      await page.getByTestId("recurring-event-check").click();
+      await page
+        .getByTestId("recurring-event-collapsible")
+        .locator("div")
+        .filter({ hasText: repeatText })
+        .getByRole("spinbutton")
+        .fill(repeatWeek);
+      await page
+        .getByTestId("recurring-event-collapsible")
+        .locator("div")
+        .filter({ hasText: maximumOf })
+        .getByRole("spinbutton")
+        .fill(maxEvents);
+    },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
     },
@@ -244,6 +262,14 @@ export function createBookingPageFixture(page: Page) {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await page.getByTestId("confirm-reschedule-button").click();
+    },
+
+    fillRecurringFieldAndConfirm: async (eventTypePage: Page) => {
+      await eventTypePage.getByTestId("occurrence-input").click();
+      await eventTypePage.getByTestId("occurrence-input").fill("2");
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
+      await eventTypePage.getByTestId("time").first().click();
+      await expect(eventTypePage.getByTestId("recurring-dates")).toBeVisible();
     },
 
     cancelBookingWithReason: async (page: Page) => {
@@ -277,6 +303,10 @@ export function createBookingPageFixture(page: Page) {
 
     assertBookingRescheduled: async (page: Page) => {
       await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+
+    assertRepeatEventType: async () => {
+      await expect(page.getByTestId("repeat-eventtype")).toBeVisible();
     },
 
     cancelBooking: async (eventTypePage: Page) => {

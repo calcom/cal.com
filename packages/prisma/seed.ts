@@ -455,21 +455,32 @@ async function main() {
     },
   });
 
-  await createUserAndEventType({
-    user: {
-      email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
-      password: process.env.E2E_TEST_CALCOM_QA_PASSWORD || "qa",
-      username: "qa",
-      name: "QA Example",
-    },
-    eventTypes: [
-      {
-        title: "15min",
-        slug: "15min",
-        length: 15,
+  if (!!(process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD)) {
+    await createUserAndEventType({
+      user: {
+        email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
+        password: process.env.E2E_TEST_CALCOM_QA_PASSWORD || "qa",
+        username: "qa",
+        name: "QA Example",
       },
-    ],
-  });
+      eventTypes: [
+        {
+          title: "15min",
+          slug: "15min",
+          length: 15,
+        },
+      ],
+      credentials: [
+        !!process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+          ? {
+              type: "google_calendar",
+              key: JSON.parse(process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS) as Prisma.JsonObject,
+              appId: "google-calendar",
+            }
+          : null,
+      ],
+    });
+  }
 
   await createTeamAndAddUsers(
     {

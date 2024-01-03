@@ -941,8 +941,6 @@
   "enterprise_license_description": "この機能を有効にするには、{{consoleUrl}} コンソールでデプロイメントキーを入手して .env に CALCOM_LICENSE_KEY として追加してください。既にチームがライセンスを持っている場合は {{supportMail}} にお問い合わせください。",
   "enterprise_license_development": "この機能は開発モードでテストできます。本番環境で使用するには、管理者に <2>/auth/setup</2> にアクセスするよう依頼し、ライセンスキーを入力してもらってください。",
   "missing_license": "ライセンスが見つかりません",
-  "signup_requires": "商用ライセンスが必要です",
-  "signup_requires_description": "{{companyName}} は、現時点ではサインアップページの無料のオープンソース版を提供しておりません。サインアップコンポーネントへのフルアクセスをご利用いただくためには、商用ライセンスを取得する必要があります。個人での利用につきましては、Prisma Data Platform またはその他の Postgres インターフェースを使用してアカウントの作成を行うことをお勧めしております。",
   "next_steps": "次のステップ",
   "acquire_commercial_license": "商用ライセンスを取得する",
   "the_infrastructure_plan": "インフラストラクチャプランは使用量に応じて課金され、スタートアップに優しい割引制度もあります。",
