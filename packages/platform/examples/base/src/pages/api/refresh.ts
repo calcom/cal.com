@@ -50,7 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
         return res.status(200).json({ accessToken: newAccessToken });
       }
-      console.log(await response.json());
       return res.status(400).json({ accessToken: "" });
     }
   }

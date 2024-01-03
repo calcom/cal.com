@@ -9,9 +9,8 @@ export class OAuthClientCredentialsGuard implements CanActivate {
   constructor(private readonly oauthRepository: OAuthClientRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    console.log("HERE");
     const request = context.switchToHttp().getRequest<Request>();
-    const { headers, params } = request;
+    const { params } = request;
 
     const oauthClientId = params.clientId;
     const oauthClientSecret = request.get(X_CAL_SECRET_KEY);
@@ -19,7 +18,6 @@ export class OAuthClientCredentialsGuard implements CanActivate {
     if (!oauthClientId) {
       throw new UnauthorizedException("Missing client ID");
     }
-    console.log("oauthClientSecret", X_CAL_SECRET_KEY, oauthClientSecret, headers);
     if (!oauthClientSecret) {
       throw new UnauthorizedException("Missing client secret");
     }
