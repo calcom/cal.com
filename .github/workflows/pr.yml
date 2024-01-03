@@ -27,8 +27,8 @@ jobs:
         with:
           filters: |
             source-files:
-              - "**.md"
-              - ".github/CODEOWNERS"
+              - "!**.md"
+              - "!.github/CODEOWNERS"
   type-check:
     name: Type check
     if: steps.changes.outputs.source-files == "true"
