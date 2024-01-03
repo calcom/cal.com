@@ -16,6 +16,7 @@ import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
+import { getOrganizations } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -470,20 +471,27 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
+        const { organizations } = await getOrganizations({ userId: existingUser.id });
         const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
 
         const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
-
+        // FIXME: Send the switched organization here
+        const chosenOrganization = organizations[0];
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
-          org: organization
+          // All organizations in the token would be too big to store. It breaks the sessions request.
+          // Ideally we send the currently switched organization only here.
+          // orgs: organizations,
+          org: chosenOrganization
             ? {
-                id: organization.id,
-                name: organization.name,
-                slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullOrigin(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                id: chosenOrganization.id,
+                name: chosenOrganization.name,
+                slug: chosenOrganization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
+                fullDomain: getOrgFullOrigin(
+                  chosenOrganization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""
+                ),
                 domainSuffix: subdomainSuffix(),
               }
             : undefined,

@@ -2,14 +2,16 @@ import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import type { TGetListSchema } from "./list.schema";
 
 type ListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: TGetListSchema;
 };
 
-export const listHandler = async ({ ctx }: ListOptions) => {
+export const listHandler = async ({ ctx, input }: ListOptions) => {
   const memberships = await prisma.membership.findMany({
     where: {
       // Show all the teams this user belongs to regardless of the team being part of the user's org or not
@@ -31,6 +33,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   return memberships
     .filter((mmship) => {
+      if (input?.includeOrgs) return true;
       const metadata = teamMetadataSchema.parse(mmship.team.metadata);
       return !metadata?.isOrganization;
     })

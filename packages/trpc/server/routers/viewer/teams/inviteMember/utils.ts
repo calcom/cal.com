@@ -113,26 +113,26 @@ export function validateInviteeEligibility(
   }
 
   // user is invited to join a team which is not in his organization
-  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} is already a member of another organization.`,
-    });
-  }
+  // if (invitee.organizationId && invitee.organizationId !== team.parentId) {
+  //   throw new TRPCError({
+  //     code: "FORBIDDEN",
+  //     message: `User ${invitee.username} is already a member of another organization.`,
+  //   });
+  // }
 
-  if (invitee && isOrg) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
-    });
-  }
+  // if (invitee && isOrg) {
+  //   throw new TRPCError({
+  //     code: "FORBIDDEN",
+  //     message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
+  //   });
+  // }
 
-  if (team.parentId && invitee) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `You cannot add a user that already exists in Cal.com to an organization's team. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
-    });
-  }
+  // if (team.parentId && invitee) {
+  //   throw new TRPCError({
+  //     code: "FORBIDDEN",
+  //     message: `You cannot add a user that already exists in Cal.com to an organization's team. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
+  //   });
+  // }
 }
 
 export async function getUsersToInvite({

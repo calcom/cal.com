@@ -1,4 +1,5 @@
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getOrganizations } from "@calcom/lib/server/repository/user";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type MeOptions = {
@@ -9,7 +10,10 @@ type MeOptions = {
 
 export const meHandler = async ({ ctx }: MeOptions) => {
   const crypto = await import("crypto");
+
   const { user } = ctx;
+
+  const { organizations } = await getOrganizations({ userId: user.id });
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -45,7 +49,8 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
-    organizationId: user.organizationId,
-    organization: user.organization,
+    organizationId: organizations[0]?.id ?? null,
+    organization: organizations[0] ?? null,
+    organizations,
   };
 };
