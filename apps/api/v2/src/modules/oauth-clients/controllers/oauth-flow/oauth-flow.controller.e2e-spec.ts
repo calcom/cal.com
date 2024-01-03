@@ -120,6 +120,7 @@ describe("OAuthFlow Endpoints", () => {
         const baseUrl = "http://www.localhost/";
         const redirectUri = new URL(response.header.location, baseUrl);
         authorizationCode = redirectUri.searchParams.get("code");
+
         expect(authorizationCode).toBeDefined();
       });
     });
@@ -137,9 +138,9 @@ describe("OAuthFlow Endpoints", () => {
           .send(body)
           .expect(200);
 
-        expect(response.body).toHaveProperty("data");
-        expect(response.body.data).toHaveProperty("accessToken");
-        expect(response.body.data).toHaveProperty("refreshToken");
+        expect(response.body?.data?.accessToken).toBeDefined();
+        expect(response.body?.data?.refreshToken).toBeDefined();
+
         refreshToken = response.body.data.refreshToken;
       });
     });
@@ -157,9 +158,8 @@ describe("OAuthFlow Endpoints", () => {
           .send(body)
           .expect(200)
           .then((response) => {
-            expect(response.body).toHaveProperty("data");
-            expect(response.body.data).toHaveProperty("accessToken");
-            expect(response.body.data).toHaveProperty("refreshToken");
+            expect(response.body?.data?.accessToken).toBeDefined();
+            expect(response.body?.data?.refreshToken).toBeDefined();
           });
       });
     });
