@@ -17,6 +17,7 @@ type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageS
    */
   previewSrc?: string | null;
   organization?: Organization | null;
+  alt?: string | null;
 };
 
 function OrganizationIndicator({
