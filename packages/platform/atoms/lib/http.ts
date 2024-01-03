@@ -10,6 +10,7 @@ const http = (function () {
   let refreshUrl = "";
 
   return {
+    instance: instance,
     get: instance.get,
     post: instance.post,
     put: instance.put,
@@ -32,6 +33,21 @@ const http = (function () {
     },
     getAuthorizationHeader: () => {
       return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
+    },
+    refreshTokens: async (refreshUrl: string) => {
+      const response = await fetch(`${refreshUrl}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: http.getAuthorizationHeader(),
+        },
+      });
+      const res = await response.json();
+      if (res.accessToken) {
+        http.setAuthorizationHeader(res.accessToken);
+        return res.accessToken;
+      }
+      return "";
     },
   };
 })();

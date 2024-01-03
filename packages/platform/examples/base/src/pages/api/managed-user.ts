@@ -7,13 +7,22 @@ import prisma from "../../lib/prismaClient";
 
 type Data = {
   email: string;
-  id: string;
+  id: number;
   accessToken: string;
 };
 
 // endpoint to create a manated user cal.com user
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const { email } = JSON.parse(req.body);
+
+  const existingUser = await prisma.user.findFirst({ orderBy: { createdAt: "desc" } });
+  if (existingUser && existingUser.calcomUserId) {
+    return res.status(200).json({
+      id: existingUser.calcomUserId,
+      email: existingUser.email,
+      accessToken: existingUser.accessToken ?? "",
+    });
+  }
   const localUser = await prisma.user.create({
     data: {
       email,
@@ -44,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     where: { id: localUser.id },
   });
   return res.status(200).json({
-    id: (body?.data?.user?.id as string) ?? "",
+    id: body?.data?.user?.id,
     email: (body.data.user.email as string) ?? "",
     accessToken: (body.data.accessToken as string) ?? "",
   });

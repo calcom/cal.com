@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import type http from "../../lib/http";
+import type http from "../lib/http";
 
 export interface IAtomsContextOptions {
   refreshUrl?: string;
@@ -14,6 +14,9 @@ export interface IAtomsContext {
   error?: string;
   getClient: () => typeof http | void;
   refreshToken?: string;
+  isRefreshing?: boolean;
+  isAuth: boolean;
+  isValidClient: boolean;
 }
 
 export const AtomsContext = createContext({

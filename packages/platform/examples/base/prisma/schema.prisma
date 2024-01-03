@@ -19,5 +19,7 @@ model User {
   calcomUserId Int? @unique
   refreshToken String? @unique
   accessToken String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
 }
