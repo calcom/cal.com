@@ -142,37 +142,9 @@ html.todesktop div {
 html.todesktop header {
   -webkit-app-region: drag;
 }
+
 html.todesktop header button {
   -webkit-app-region: no-drag;
-}
-
-html.todesktop .logo {
-  display: none;
-}
-
-.desktop-only {
-  display: none;
-}
-
-html.todesktop .desktop-only {
-  display: block;
-}
-
-html.todesktop .desktop-hidden {
-  display: none;
-}
-
-html.todesktop header nav {
-  margin-top: 8px;
-}
-
-html.todesktop aside {
-  margin: 0px -6px;
-}
-
-html.todesktop-platform-darwin .desktop-transparent {
-  background: transparent !important;
-  border: none !important;
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {
@@ -180,38 +152,16 @@ html.todesktop-platform-darwin.dark main.bg-default {
 }
 
 html.todesktop-platform-darwin.light main.bg-default {
-  background: rgba(255, 255, 255, 0.6) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
 }
 
-html.todesktop.light nav a[aria-current="page"]{
-  background: #CFD0D0 !important;
+html.todesktop.light {
+  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
 }
 
-
-html.todesktop.dark nav a[aria-current="page"]{
-  background: #3D3D3D !important;
+html.todesktop.dark {
+  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
 }
-
-html.todesktop aside header {
-  margin-top: -12px;
-  flex-direction: column-reverse;
-}
-
-html.todesktop aside header > div {
-  width: 100%;
-}
-
-html.todesktop.dark nav a:hover{
-    background: inherit;
-}
-
-html.todesktop.light nav a:hover{
-    background: none;
-}
-
-html.todesktop nav a svg{
-  color: #229CFF !important
-} 
 
 /*
   Adds Utility to hide scrollbar to tailwind
