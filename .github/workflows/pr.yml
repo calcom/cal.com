@@ -33,35 +33,35 @@ jobs:
   type-check:
     name: Type check
     needs: [changes]
-    if: ${{ needs.changes.outputs.source-files == true }}
+    if: ${{ needs.changes.outputs.source-files == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   test:
     name: Unit tests
     needs: [changes]
-    if: ${{ needs.changes.outputs.source-files == true }}
+    if: ${{ needs.changes.outputs.source-files == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   lint:
     name: Linters
     needs: [changes]
-    if: ${{ needs.changes.outputs.source-files == true }}
+    if: ${{ needs.changes.outputs.source-files == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   build:
     name: Production build
     needs: [changes]
-    if: ${{ needs.changes.outputs.source-files == true }}
+    if: ${{ needs.changes.outputs.source-files == 'true' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   analyze:
     name: Analyze Build
     needs: [build, changes]
-    if: ${{ needs.changes.outputs.source-files == true }}
+    if: ${{ needs.changes.outputs.source-files == 'true' }}
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
@@ -78,5 +78,5 @@ jobs:
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.source-files == true && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: needs.changes.outputs.source-files == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
