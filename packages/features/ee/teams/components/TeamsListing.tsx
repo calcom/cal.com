@@ -22,12 +22,17 @@ export function TeamsListing() {
   const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
-    enabled: inviteTokenChecked,
-    onError: (e) => {
-      setErrorMessage(e.message);
+  const { data, isLoading } = trpc.viewer.teams.list.useQuery(
+    {
+      includeOrgs: true,
     },
-  });
+    {
+      enabled: inviteTokenChecked,
+      onError: (e) => {
+        setErrorMessage(e.message);
+      },
+    }
+  );
 
   const { data: user } = trpc.viewer.me.useQuery();
 
@@ -44,7 +49,7 @@ export function TeamsListing() {
     },
   });
 
-  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
+  const teams = useMemo(() => data?.filter((m) => m.accepted && !m.metadata?.isOrganization) || [], [data]);
   const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
 
   const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.organization?.isOrgAdmin);

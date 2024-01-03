@@ -6,6 +6,9 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { ENABLE_PROFILE_SWITCHER } from "../../constants";
+import { getParsedTeam } from "./teamUtils";
+
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata"> & {
       metadata: z.infer<typeof teamMetadataSchema>;
@@ -145,4 +148,30 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
     isOrg: true,
     teamSelect,
   });
+}
+
+export const _getPrismaWhereClauseForUserTeams = ({ organizationId }: { organizationId: number | null }) => {
+  if (ENABLE_PROFILE_SWITCHER) {
+    return {
+      parentId: organizationId,
+    };
+  } else {
+    // We intentionally consider all the teams of the user, even if the team isn't a part of the organization
+    // This is important till the profile switcher is implemented, after which user can switch the profile to see the event types of the non-org team
+    return {};
+  }
+};
+
+export class Team {
+  static async findById({ id }: { id: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
 }

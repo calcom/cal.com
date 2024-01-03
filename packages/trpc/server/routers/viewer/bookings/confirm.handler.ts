@@ -219,7 +219,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user.id);
+    const credentials = await getUsersCredentials(user);
     const userWithCredentials = {
       ...user,
       credentials,

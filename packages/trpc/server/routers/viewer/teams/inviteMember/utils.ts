@@ -4,12 +4,16 @@ import type { TFunction } from "next-i18next";
 import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
-import { Prisma, type User } from "@calcom/prisma/client";
+import { Prisma, type User as UserType } from "@calcom/prisma/client";
+import type { Profile as ProfileType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -19,13 +23,15 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
+const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
 export type Invitee = Pick<
-  User,
-  "id" | "email" | "organizationId" | "username" | "password" | "identityProvider" | "completedOnboarding"
+  UserType,
+  "id" | "email" | "username" | "password" | "identityProvider" | "completedOnboarding"
 >;
 
 export type UserWithMembership = Invitee & {
   teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
+  profiles: ProfileType[];
 };
 
 export async function checkPermissions({
@@ -67,7 +73,7 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   if (!team)
     throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
 
-  return team;
+  return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
 
 export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | string[]) {
@@ -85,11 +91,7 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
   return emailsToInvite;
 }
 
-export function validateInviteeEligibility(
-  invitee: UserWithMembership,
-  team: TeamWithParent,
-  isOrg: boolean
-) {
+export function validateInviteeEligibility(invitee: UserWithMembership, team: TeamWithParent) {
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
     throw new TRPCError({
@@ -100,7 +102,7 @@ export function validateInviteeEligibility(
 
   const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
   // invitee is invited to the org's team and is already part of the organization
-  if (invitee.organizationId && team.parentId && invitee.organizationId === team.parentId) {
+  if (team.parentId && User.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return;
   }
 
@@ -112,25 +114,11 @@ export function validateInviteeEligibility(
     });
   }
 
-  // user is invited to join a team which is not in his organization
-  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
+  // user is invited to join a team in an organization where he isn't a member
+  if (invitee.profiles.find((profile) => profile.organizationId != team.parentId)) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: `User ${invitee.username} is already a member of another organization.`,
-    });
-  }
-
-  if (invitee && isOrg) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
-    });
-  }
-
-  if (team.parentId && invitee) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `You cannot add a user that already exists in Cal.com to an organization's team. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
     });
   }
 }
@@ -144,9 +132,6 @@ export async function getUsersToInvite({
   isInvitedToOrg: boolean;
   team: TeamWithParent;
 }): Promise<UserWithMembership[]> {
-  const orgWhere = isInvitedToOrg && {
-    organizationId: team.id,
-  };
   const memberships = [];
   if (isInvitedToOrg) {
     memberships.push({ teamId: team.id });
@@ -157,16 +142,28 @@ export async function getUsersToInvite({
 
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
-      OR: [{ username: { in: usernamesOrEmails }, ...orgWhere }, { email: { in: usernamesOrEmails } }],
+      OR: [
+        // Either it's a username in that organization
+        {
+          profiles: {
+            some: {
+              organizationId: team.id,
+              username: { in: usernamesOrEmails },
+            },
+          },
+        },
+        // Or it's an email
+        { email: { in: usernamesOrEmails } },
+      ],
     },
     select: {
       id: true,
       email: true,
-      organizationId: true,
       username: true,
       password: true,
       completedOnboarding: true,
       identityProvider: true,
+      profiles: true,
       teams: {
         select: { teamId: true, userId: true, accepted: true, role: true },
         where: {
@@ -178,7 +175,7 @@ export async function getUsersToInvite({
 
   // Check if the users found in the database can be invited to join the team/org
   invitees.forEach((invitee) => {
-    validateInviteeEligibility(invitee, team, isInvitedToOrg);
+    validateInviteeEligibility(invitee, team);
   });
   return invitees;
 }
@@ -247,6 +244,21 @@ export async function createNewUsersConnectToOrgIfExists({
             verified: true,
             invitedTo: input.teamId,
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+            ...(orgId
+              ? {
+                  profiles: {
+                    createMany: {
+                      data: [
+                        {
+                          uid: Profile.generateProfileUid(),
+                          username,
+                          organizationId: orgId,
+                        },
+                      ],
+                    },
+                  },
+                }
+              : null),
             teams: {
               create: {
                 teamId: input.teamId,
@@ -421,12 +433,13 @@ export function shouldAutoJoinIfInOrg({
   team: TeamWithParent;
   invitee: UserWithMembership;
 }) {
-  // Not a member of the org
-  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
-    return false;
-  }
   // team is an Org
   if (!team.parentId) {
+    return false;
+  }
+
+  // Not a member of the org
+  if (!User.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return false;
   }
 
@@ -493,9 +506,13 @@ export const sendTeamInviteEmails = async ({
 }) => {
   const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
     let sendTo = user.email;
+
     if (!isEmail(user.email)) {
       sendTo = user.email;
     }
+
+    log.debug("Sending team invite email to", safeStringify({ user, currentUserName, currentUserTeamName }));
+
     // inform user of membership by email
     if (currentUserName && currentUserTeamName) {
       const inviteTeamOptions = {
@@ -539,3 +556,22 @@ export const sendTeamInviteEmails = async ({
 
   await sendEmails(sendEmailsPromises);
 };
+
+export function createOrganizationProfile({
+  userId,
+  organizationId,
+  username,
+  email,
+}: {
+  userId: number;
+  organizationId: number;
+  username: string;
+  email: string;
+}) {
+  return Profile.createProfile({
+    userId: userId,
+    organizationId,
+    username,
+    email,
+  });
+}

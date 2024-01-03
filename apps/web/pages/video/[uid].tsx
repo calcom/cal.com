@@ -8,11 +8,13 @@ import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
@@ -270,15 +272,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       isRecorded: true,
       user: {
         select: {
+          username: true,
           id: true,
           timeZone: true,
           name: true,
           email: true,
-          organization: {
-            select: {
-              calVideoLogo: true,
-            },
-          },
         },
       },
       references: {
@@ -303,6 +301,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
+
+  const profile = booking.user
+    ? (
+        await User.enrichUserWithOrganizationProfile({
+          user: booking.user,
+          organizationId: ORGANIZATION_ID_UNKNOWN,
+        })
+      ).profile
+    : null;
 
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
@@ -332,19 +339,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookRef.meetingPassword = null;
     });
   }
-
-  const videoReferences = bookingObj.references.filter((reference) => reference.type.includes("_video"));
-  const latestVideoReference = videoReferences[videoReferences.length - 1];
+  const videoReference = getCalVideoReference(bookingObj.references);
 
   return {
     props: {
-      meetingUrl: latestVideoReference.meetingUrl ?? "",
-      ...(typeof latestVideoReference.meetingPassword === "string" && {
-        meetingPassword: latestVideoReference.meetingPassword,
+      meetingUrl: videoReference.meetingUrl ?? "",
+      ...(typeof videoReference.meetingPassword === "string" && {
+        meetingPassword: videoReference.meetingPassword,
       }),
       booking: {
         ...bookingObj,
         ...(bookingObj.description && { description: md.render(bookingObj.description) }),
+        user: bookingObj.user
+          ? {
+              ...bookingObj.user,
+              organization: profile?.organization,
+            }
+          : bookingObj.user,
       },
       trpcState: ssr.dehydrate(),
     },

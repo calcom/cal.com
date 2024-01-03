@@ -25,11 +25,13 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { User } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
+import { RedirectType, type EventType, type User as UserType } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
@@ -42,6 +44,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 import { getTemporaryOrgRedirect } from "../lib/getTemporaryOrgRedirect";
 
+const log = logger.getSubLogger({ prefix: ["[[user.tsx]]"] });
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
   const searchParams = useSearchParams();
@@ -49,7 +52,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
-
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
   const isEmbed = useIsEmbed(props.isEmbed);
@@ -131,19 +133,11 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             <UserAvatar
               size="xl"
               user={{
-                organizationId: profile.organization?.id,
+                avatarUrl: user.avatarUrl,
+                profile: user.profile,
                 name: profile.name,
                 username: profile.username,
               }}
-              organization={
-                profile.organization?.id
-                  ? {
-                      id: profile.organization.id,
-                      slug: profile.organization.slug,
-                      requestedSlug: null,
-                    }
-                  : null
-              }
             />
             <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
@@ -256,7 +250,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
     const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
     if (!parsedMetadata.success) {
-      logger.error(parsedMetadata.error);
+      log.error(parsedMetadata.error);
       return eventTypes;
     }
     eventTypes.push({
@@ -279,11 +273,13 @@ export type UserPageProps = {
       requestedSlug: string | null;
       slug: string | null;
       id: number | null;
-    };
+    } | null;
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
+  users: (Pick<UserType, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
+    profile: UserProfile;
+  })[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -318,7 +314,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
   let outOfOffice = false;
-
+  const isDynamicGroup = usernameList.length > 1;
   if (usernameList.length === 1) {
     const result = await handleUserRedirection({ username: usernameList[0] });
     if (result && result.outOfOffice) {
@@ -326,6 +322,19 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
     if (result && result.redirect?.destination) {
       return result;
+    }
+  }
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
     }
   }
 
@@ -362,12 +371,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     },
   });
 
-  const isDynamicGroup = usersWithoutAvatar.length > 1;
+  const users = usersWithoutAvatar.map((user) => ({
+    ...user,
+    avatar: `/${user.username}/avatar.png`,
+  }));
+
   if (isDynamicGroup) {
+    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    logger.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
       redirect: {
         permanent: false,
-        destination: `/${usernameList.join("+")}/dynamic`,
+        destination: destinationUrl,
       },
     } as {
       redirect: {
@@ -377,29 +392,13 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     };
   }
 
-  const users = usersWithoutAvatar.map((user) => ({
-    ...user,
-    organization: {
-      ...user.organization,
-      metadata: user.organization?.metadata ? teamMetadataSchema.parse(user.organization.metadata) : null,
-    },
-    avatar: `/${user.username}/avatar.png`,
-  }));
+  const isNonOrgUser = (user: { profile: UserProfile }) => {
+    return !user.profile?.organization;
+  };
 
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slug: usernameList[0],
-      redirectType: RedirectType.User,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
+  const isThereAnyNonOrgUser = users.some(isNonOrgUser);
 
-    if (redirect) {
-      return redirect;
-    }
-  }
-
-  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
+  if (!users.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {
       notFound: true,
     } as {
@@ -418,11 +417,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     darkBrandColor: user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
-    organization: {
-      id: user.organizationId,
-      slug: user.organization?.slug ?? null,
-      requestedSlug: user.organization?.metadata?.requestedSlug ?? null,
-    },
+    organization: user.profile.organization,
   };
 
   const eventTypesWithHidden = await getEventTypesWithHiddenFromDB(user.id);
@@ -456,7 +451,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
-  const org = usersWithoutAvatar[0].organization;
+  const org = usersWithoutAvatar[0].profile.organization;
 
   return {
     props: {
@@ -467,6 +462,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         avatarUrl: user.avatarUrl,
         away: usernameList.length === 1 ? outOfOffice : user.away,
         verified: user.verified,
+        profile: user.profile,
       })),
       entity: {
         isUnpublished: org?.slug === null,

@@ -157,6 +157,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -1931,6 +1932,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            user: organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,

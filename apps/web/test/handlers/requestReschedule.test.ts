@@ -269,6 +269,11 @@ function getTrpcHandlerData({
         ...getSampleUserInSession(),
         ...user,
         avatarUrl: user.avatarUrl || null,
+        profile: {
+          username: user.username,
+          organizationId: null,
+          organization: null,
+        },
       } satisfies TrpcSessionUser,
     },
     input: input,

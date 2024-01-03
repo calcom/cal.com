@@ -5,6 +5,7 @@ import { getToken } from "next-auth/jwt";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { CAL_URL } from "@calcom/lib/constants";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 
 /**
@@ -59,7 +60,7 @@ export async function getServerSession(options: {
   }
 
   const hasValidLicense = await checkLicense(prisma);
-
+  const profile = await Profile.getProfile(token.profileId ?? null);
   const session: Session = {
     hasValidLicense,
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
@@ -76,7 +77,9 @@ export async function getServerSession(options: {
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,
+      profile,
     },
+    profileId: token.profileId,
   };
 
   CACHE.set(JSON.stringify(token), session);

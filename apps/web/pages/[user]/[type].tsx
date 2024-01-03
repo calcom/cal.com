@@ -9,10 +9,10 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig, userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -90,29 +90,30 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  if (!org) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernames,
+      redirectType: RedirectType.User,
+      eventTypeSlug: slug,
+      currentQuery: context.query,
+    });
 
-  const users = await prisma.user.findMany({
-    where: {
-      username: {
-        in: usernames,
-      },
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
-    },
-    select: {
-      allowDynamicBooking: true,
-    },
+    if (redirect) {
+      return redirect;
+    }
+  }
+  const usersInOrgContext = await User.getUsersFromUsernameInOrgContext({
+    usernameList: usernames,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
+
+  const users = usersInOrgContext;
 
   if (!users.length) {
     return {
       notFound: true,
     } as const;
   }
-  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -167,10 +168,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   let outOfOffice = false;
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
-
   if (!isOrgContext) {
     const redirect = await getTemporaryOrgRedirect({
-      slug: usernames[0],
+      slugs: usernames,
       redirectType: RedirectType.User,
       eventTypeSlug: slug,
       currentQuery: context.query,
@@ -194,6 +194,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       allowSEOIndexing: true,
     },
   });
+
+  console.log("[type] - getUsersFromUsernameInOrgContext", user);
 
   if (!user) {
     return {

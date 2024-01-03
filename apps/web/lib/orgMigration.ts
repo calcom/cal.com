@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-nocheck - Temporary
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { HttpError } from "@calcom/lib/http-error";
@@ -232,9 +234,13 @@ export async function moveTeamToOrg({
  */
 export async function removeTeamFromOrg({ targetOrgId, teamId }: { targetOrgId: number; teamId: number }) {
   const removedTeam = await dbRemoveTeamFromOrg({ teamId });
-
   await removeTeamRedirect(removedTeam.slug);
-
+  for (const membership of removedTeam.members) {
+    await removeUserFromOrg({
+      userId: membership.userId,
+      targetOrgId,
+    });
+  }
   log.debug(`Successfully removed team ${teamId} from org ${targetOrgId}`);
 }
 
@@ -344,7 +350,7 @@ async function setOrgSlugIfNotSet(
 
 function assertUserPartOfOrgAndRemigrationAllowed(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   },
   targetOrgId: number,
   targetOrgUsername: string,
@@ -380,7 +386,7 @@ async function getTeamOrThrowError(targetOrgId: number) {
 
 function assertUserPartOfOtherOrg(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   } | null,
   userName: string | undefined,
   userId: number | undefined,
@@ -745,8 +751,8 @@ async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
           },
         },
       },
-      select: {
-        slug: true,
+      include: {
+        members: true,
       },
     });
   } catch (e) {
@@ -823,6 +829,7 @@ async function dbRemoveUserFromOrg({
       id: userToRemoveFromOrg.id,
     },
     data: {
+      //@ts-expect-error - Temporary
       organizationId: null,
       username: nonOrgUserName,
       metadata: {

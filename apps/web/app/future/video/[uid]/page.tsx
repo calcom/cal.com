@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
+import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -34,14 +35,10 @@ async function getData(context: GetServerSidePropsContext) {
       user: {
         select: {
           id: true,
+          username: true,
           timeZone: true,
           name: true,
           email: true,
-          organization: {
-            select: {
-              calVideoLogo: true,
-            },
-          },
         },
       },
       references: {
@@ -61,6 +58,15 @@ async function getData(context: GetServerSidePropsContext) {
   if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
     return redirect("/video/no-meeting-found");
   }
+
+  const profile = booking.user
+    ? (
+        await User.enrichUserWithOrganizationProfile({
+          user: booking.user,
+          organizationId: ORGANIZATION_ID_UNKNOWN,
+        })
+      ).profile
+    : null;
 
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
@@ -94,6 +100,12 @@ async function getData(context: GetServerSidePropsContext) {
     booking: {
       ...bookingObj,
       ...(bookingObj.description && { description: md.render(bookingObj.description) }),
+      user: bookingObj.user
+        ? {
+            ...bookingObj.user,
+            organization: profile?.organization,
+          }
+        : bookingObj.user,
     },
     dehydratedState: ssr.dehydrate(),
   };

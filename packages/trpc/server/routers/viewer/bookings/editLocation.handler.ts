@@ -93,7 +93,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
-    const credentials = await getUsersCredentials(ctx.user.id);
+    const credentials = await getUsersCredentials(ctx.user);
 
     const eventManager = new EventManager({
       ...ctx.user,

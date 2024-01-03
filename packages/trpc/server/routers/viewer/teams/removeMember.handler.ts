@@ -2,6 +2,7 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -26,8 +27,8 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   });
 
   const isAdmin = await isTeamAdmin(ctx.user.id, input.teamId);
-  const isOrgAdmin = ctx.user.organizationId
-    ? await isTeamAdmin(ctx.user.id, ctx.user.organizationId)
+  const isOrgAdmin = ctx.user.profile?.organizationId
+    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
     : false;
   if (!(isAdmin || isOrgAdmin) && ctx.user.id !== input.memberId)
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -75,6 +76,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     const orgInfo = await ctx.prisma.team.findUnique({
       where: { id: input.teamId },
       select: {
+        id: true,
         metadata: true,
       },
     });
@@ -112,10 +114,16 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
       },
     });
 
-    await ctx.prisma.user.update({
-      where: { id: membership.userId },
-      data: { organizationId: null },
-    });
+    await ctx.prisma.$transaction([
+      ctx.prisma.user.update({
+        where: { id: membership.userId },
+        data: { organizationId: null },
+      }),
+      Profile.delete({
+        userId: membership.userId,
+        organizationId: orgInfo.id,
+      }),
+    ]);
   }
 
   // Deleted managed event types from this team from this member

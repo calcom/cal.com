@@ -43,7 +43,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(ctx.user.id);
+    const credentials = await getUsersCredentials(ctx.user);
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
@@ -84,10 +84,25 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data.schedulingType = schedulingType;
   }
 
+  const profile = ctx.user.profile;
   try {
-    const eventType = await ctx.prisma.eventType.create({ data });
+    const eventType = await ctx.prisma.eventType.create({
+      data: {
+        ...data,
+        ...(profile.organizationId
+          ? {
+              ownedByOrganization: {
+                connect: {
+                  id: profile.organizationId,
+                },
+              },
+            }
+          : null),
+      },
+    });
     return { eventType };
   } catch (e) {
+    console.warn(e);
     if (e instanceof PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });

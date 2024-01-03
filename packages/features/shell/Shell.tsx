@@ -33,7 +33,7 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
+import { TOP_BANNER_HEIGHT, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -59,6 +59,7 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
+  SelectField,
   showToast,
   SkeletonText,
   Tooltip,
@@ -111,7 +112,9 @@ export const ONBOARDING_NEXT_REDIRECT = {
 } as const;
 
 export const shouldShowOnboarding = (
-  user: Pick<User, "createdDate" | "completedOnboarding" | "organizationId">
+  user: Pick<User, "createdDate" | "completedOnboarding"> & {
+    organizationId: number | null;
+  }
 ) => {
   return (
     !user.completedOnboarding &&
@@ -892,7 +895,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="mt-3 w-full px-1.5">
+              <Link href="/settings/organizations/profile" className="w-full px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
@@ -1030,7 +1033,7 @@ export function ShellMain(props: LayoutProps) {
                   </h3>
                 )}
                 {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block">
+                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
                     {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                   </p>
                 )}
@@ -1121,3 +1124,30 @@ export const MobileNavigationMoreItems = () => (
     ))}
   </ul>
 );
+
+function ProfileDropdown() {
+  const { update, data: sessionData } = useSession();
+  const { data } = trpc.viewer.me.useQuery();
+  if (!data || !ENABLE_PROFILE_SWITCHER) {
+    return null;
+  }
+  const options = data.profiles.map((profile) => ({
+    label: profile.name,
+    value: profile.id,
+  }));
+  return (
+    <SelectField
+      containerClassName="w-full"
+      options={options}
+      value={options.find((option) => option.value === (sessionData?.profileId ?? null))}
+      onChange={(option) => {
+        if (!option) {
+          return;
+        }
+        update({ profileId: option.value }).then(() => {
+          window.location.reload();
+        });
+      }}
+    />
+  );
+}

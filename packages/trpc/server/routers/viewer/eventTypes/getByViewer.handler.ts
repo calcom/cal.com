@@ -4,10 +4,13 @@ import { orderBy } from "lodash";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { _getPrismaWhereClauseForUserTeams } from "@calcom/lib/server/repository/team";
+import { ORGANIZATION_ID_UNKNOWN, User } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -27,56 +30,6 @@ type GetByViewerOptions = {
   input: TEventTypeInputSchema;
 };
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
-  id: true,
-  username: true,
-  name: true,
-  organizationId: true,
-});
-
-const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
-  position: true,
-  hashedLink: true,
-  destinationCalendar: true,
-  userId: true,
-  team: {
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      // logo: true, // Skipping to avoid 4mb limit
-      bio: true,
-      hideBranding: true,
-    },
-  },
-  metadata: true,
-  users: {
-    select: userSelect,
-  },
-  parentId: true,
-  hosts: {
-    select: {
-      user: {
-        select: userSelect,
-      },
-    },
-  },
-  seatsPerTimeSlot: true,
-  ...baseEventTypeSelect,
-});
-
-const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  ...userEventTypeSelect,
-  children: {
-    include: {
-      users: {
-        select: userSelect,
-      },
-    },
-  },
-});
-
 export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole) => {
   const mshipToNumber = (mship: MembershipRole) =>
     Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
@@ -85,10 +38,70 @@ export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole
 
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
   const { prisma } = ctx;
-
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getByViewer:${ctx.user.id}`,
     rateLimitingType: "common",
+  });
+  const profile = ctx.user.profile;
+  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    id: true,
+    username: true,
+    name: true,
+    avatarUrl: true,
+    profiles: {
+      ...(profile?.organization?.id ? { where: { organizationId: profile?.organization?.id } } : {}),
+      include: {
+        organization: {
+          select: {
+            id: true,
+            slug: true,
+          },
+        },
+      },
+    },
+  });
+
+  const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
+    position: true,
+    hashedLink: true,
+    destinationCalendar: true,
+    userId: true,
+    team: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        // logo: true, // Skipping to avoid 4mb limit
+        bio: true,
+        hideBranding: true,
+      },
+    },
+    metadata: true,
+    users: {
+      select: userSelect,
+    },
+    parentId: true,
+    hosts: {
+      select: {
+        user: {
+          select: userSelect,
+        },
+      },
+    },
+    seatsPerTimeSlot: true,
+    ...baseEventTypeSelect,
+  });
+
+  const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    ...userEventTypeSelect,
+    children: {
+      include: {
+        users: {
+          select: userSelect,
+        },
+      },
+    },
   });
 
   const user = await prisma.user.findUnique({
@@ -97,16 +110,17 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     },
     select: {
       id: true,
+      avatarUrl: true,
       username: true,
       name: true,
       startTime: true,
       endTime: true,
       bufferTime: true,
       avatar: true,
-      organizationId: true,
       teams: {
         where: {
           accepted: true,
+          team: _getPrismaWhereClauseForUserTeams({ organizationId: profile?.organizationId ?? null }),
         },
         select: {
           role: true,
@@ -172,16 +186,33 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   type UserEventTypes = (typeof user.eventTypes)[number];
   type TeamEventTypeChildren = (typeof user.teams)[number]["team"]["eventTypes"][number];
-
-  const mapEventType = (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
+  const mapEventType = async (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
     ...eventType,
     safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-    users: !!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users,
+    users: await Promise.all(
+      (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        async (u) =>
+          await User.enrichUserWithOrganizationProfile({ user: u, organizationId: ORGANIZATION_ID_UNKNOWN })
+      )
+    ),
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
-    children: eventType.children,
+    children: await Promise.all(
+      (eventType.children || []).map(async (c) => ({
+        ...c,
+        users: await Promise.all(
+          c.users.map(
+            async (u) =>
+              await User.enrichUserWithOrganizationProfile({
+                user: u,
+                organizationId: ORGANIZATION_ID_UNKNOWN,
+              })
+          )
+        ),
+      }))
+    ),
   });
 
-  const userEventTypes = user.eventTypes.map(mapEventType);
+  const userEventTypes = await Promise.all(user.eventTypes.map(mapEventType));
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -207,15 +238,18 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   );
 
   if (!input?.filters || !hasFilter(input?.filters) || input?.filters?.userIds?.includes(user.id)) {
-    const bookerUrl = await getBookerBaseUrl(user);
+    const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);
     eventTypeGroups.push({
       teamId: null,
       bookerUrl,
       membershipRole: null,
       profile: {
-        slug: user.username,
+        slug: profile.username || user.username,
         name: user.name,
-        image: getUserAvatarUrl({ username: user.username, organizationId: user.organizationId }),
+        image: getUserAvatarUrl({
+          ...user,
+          profile: profile,
+        }),
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),
       metadata: {
@@ -230,7 +264,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     membershipRole: membership.role,
   }));
 
-  const filterTeamsEventTypesBasedOnInput = (eventType: ReturnType<typeof mapEventType>) => {
+  const filterTeamsEventTypesBasedOnInput = async (eventType: Awaited<ReturnType<typeof mapEventType>>) => {
     if (!input?.filters || !hasFilter(input?.filters)) {
       return true;
     }
@@ -238,76 +272,83 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   };
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
-    memberships
-      .filter((mmship) => {
-        const metadata = mmship.team.metadata;
-        if (metadata?.isOrganization) {
-          return false;
-        } else {
-          if (!input?.filters || !hasFilter(input?.filters)) {
-            return true;
+    await Promise.all(
+      memberships
+        .filter((mmship) => {
+          if (isOrganization({ team: mmship.team })) {
+            return false;
+          } else {
+            if (!input?.filters || !hasFilter(input?.filters)) {
+              return true;
+            }
+            return input?.filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
           }
-          return input?.filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
-        }
-      })
-      .map((membership) => {
-        const orgMembership = teamMemberships.find(
-          (teamM) => teamM.teamId === membership.team.parentId
-        )?.membershipRole;
+        })
+        .map(async (membership) => {
+          const orgMembership = teamMemberships.find(
+            (teamM) => teamM.teamId === membership.team.parentId
+          )?.membershipRole;
 
-        const team = {
-          ...membership.team,
-          metadata: teamMetadataSchema.parse(membership.team.metadata),
-        };
+          const team = {
+            ...membership.team,
+            metadata: teamMetadataSchema.parse(membership.team.metadata),
+          };
 
-        let slug;
+          let slug;
 
-        if (input?.forRoutingForms) {
-          // For Routing form we want to ensure that after migration of team to an org, the URL remains same for the team
-          // Once we solve this https://github.com/calcom/cal.com/issues/12399, we can remove this conditional change in slug
-          slug = `team/${team.slug}`;
-        } else {
-          // In an Org, a team can be accessed without /team prefix as well as with /team prefix
-          slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
-        }
-        return {
-          teamId: team.id,
-          parentId: team.parentId,
-          bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? null),
-          membershipRole:
-            orgMembership && compareMembership(orgMembership, membership.role)
-              ? orgMembership
-              : membership.role,
-          profile: {
-            image: getTeamAvatarUrl({
-              slug: team.slug,
-              requestedSlug: team.metadata?.requestedSlug ?? null,
-              organizationId: team.parentId,
-            }),
-            name: team.name,
-            slug,
-          },
-          metadata: {
-            membershipCount: team.members.length,
-            readOnly:
-              membership.role ===
-              (team.parentId
-                ? orgMembership && compareMembership(orgMembership, membership.role)
-                  ? orgMembership
-                  : MembershipRole.MEMBER
-                : MembershipRole.MEMBER),
-          },
-          eventTypes: team.eventTypes
-            .map(mapEventType)
-            .filter(filterTeamsEventTypesBasedOnInput)
-            .filter((evType) => evType.userId === null || evType.userId === ctx.user.id)
-            .filter((evType) =>
-              membership.role === MembershipRole.MEMBER
-                ? evType.schedulingType !== SchedulingType.MANAGED
-                : true
-            ),
-        };
-      })
+          if (input?.forRoutingForms) {
+            // For Routing form we want to ensure that after migration of team to an org, the URL remains same for the team
+            // Once we solve this https://github.com/calcom/cal.com/issues/12399, we can remove this conditional change in slug
+            slug = `team/${team.slug}`;
+          } else {
+            // In an Org, a team can be accessed without /team prefix as well as with /team prefix
+            slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
+          }
+
+          const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
+          console.log("getByViewerHandler:EventTypes", eventTypes);
+          return {
+            teamId: team.id,
+            parentId: team.parentId,
+            bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? null),
+            membershipRole:
+              orgMembership && compareMembership(orgMembership, membership.role)
+                ? orgMembership
+                : membership.role,
+            profile: {
+              image: getTeamAvatarUrl({
+                slug: team.slug,
+                requestedSlug: team.metadata?.requestedSlug ?? null,
+                organizationId: team.parentId,
+              }),
+              name: team.name,
+              slug,
+            },
+            metadata: {
+              membershipCount: team.members.length,
+              readOnly:
+                membership.role ===
+                (team.parentId
+                  ? orgMembership && compareMembership(orgMembership, membership.role)
+                    ? orgMembership
+                    : MembershipRole.MEMBER
+                  : MembershipRole.MEMBER),
+            },
+            eventTypes: eventTypes
+              .filter(filterTeamsEventTypesBasedOnInput)
+              .filter((evType) => {
+                const res = evType.userId === null || evType.userId === ctx.user.id;
+                console.log("getByViewerHandler:filterTeamsEventTypesBasedOnInput", res, evType, ctx.user.id);
+                return res;
+              })
+              .filter((evType) =>
+                membership.role === MembershipRole.MEMBER
+                  ? evType.schedulingType !== SchedulingType.MANAGED
+                  : true
+              ),
+          };
+        })
+    )
   );
 
   return {

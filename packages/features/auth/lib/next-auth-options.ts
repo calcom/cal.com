@@ -1,5 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -11,11 +12,13 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
+import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -100,38 +103,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await prisma.user.findUnique({
-        where: {
-          email: credentials.email.toLowerCase(),
-        },
-        select: {
-          locked: true,
-          role: true,
-          id: true,
-          username: true,
-          name: true,
-          email: true,
-          metadata: true,
-          identityProvider: true,
-          password: true,
-          organizationId: true,
-          twoFactorEnabled: true,
-          twoFactorSecret: true,
-          backupCodes: true,
-          locale: true,
-          organization: {
-            select: {
-              id: true,
-            },
-          },
-          teams: {
-            include: {
-              team: true,
-            },
-          },
-        },
-      });
-
+      const user = await User.getUserByEmail({ email: credentials.email });
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
@@ -253,8 +225,11 @@ const providers: Provider[] = [
         name: user.name,
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
-        organizationId: user.organizationId,
         locale: user.locale,
+
+        // Use the first organization profile for now
+        // TODO: OrgNewSchema - later
+        profile: user.orgProfiles[0] ?? null,
       };
     },
   }),
@@ -300,6 +275,8 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
+        // FIXME: OrgNewSchema - How do we set profile here.
+        profile: null,
       };
     },
     options: {
@@ -359,6 +336,8 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
+          // FIXME: OrgNewSchema - How do we set profile here.
+          profile: null,
         };
       },
     })
@@ -431,11 +410,12 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (trigger === "update") {
         return {
           ...token,
+          profileId: session?.profileId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
-        };
+        } as JWT;
       }
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
@@ -446,14 +426,6 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: true,
             name: true,
             email: true,
-            organization: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                metadata: true,
-              },
-            },
             role: true,
             locale: true,
             teams: {
@@ -470,24 +442,46 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
+        const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
+        const allOrgProfiles = await Profile.getOrgProfilesForUser(existingUser);
+        const profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : token.profileId;
 
-        const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
+        let parsedOrgMetadata;
+        // FIXME: Send the switched organization here
+        const organizationProfile = await User.getOrganizationProfile({
+          userId: existingUser.id,
+          profileId: profileId ?? null,
+        });
+        let chosenOrganization;
+
+        if (organizationProfile) {
+          chosenOrganization = await User.getOrganizationForUser({
+            userId: existingUser.id,
+            organizationId: organizationProfile.organizationId,
+          });
+          parsedOrgMetadata = teamMetadataSchema.parse(chosenOrganization?.metadata ?? {});
+        }
 
         return {
           ...existingUserWithoutTeamsField,
           ...token,
+          profileId,
           belongsToActiveTeam,
-          org: organization
+          // All organizations in the token would be too big to store. It breaks the sessions request.
+          // Ideally we send the currently switched organization only here.
+          // orgs: organizations,
+          org: chosenOrganization
             ? {
-                id: organization.id,
-                name: organization.name,
-                slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullOrigin(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                id: chosenOrganization.id,
+                name: chosenOrganization.name,
+                slug: chosenOrganization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
+                fullDomain: getOrgFullOrigin(
+                  chosenOrganization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""
+                ),
                 domainSuffix: subdomainSuffix(),
               }
-            : undefined,
-        };
+            : null,
+        } as JWT;
       };
       if (!user) {
         return await autoMergeIdentities();
@@ -496,6 +490,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         return token;
       }
       if (account.type === "credentials") {
+        console.log('account.type === "credentials"');
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
           return token;
@@ -512,7 +507,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
-        };
+        } as JWT;
       }
 
       // The arguments above are from the provider so we need to look up the
@@ -551,15 +546,28 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
-        };
+        } as JWT;
       }
 
       return token;
     },
     async session({ session, token }) {
+      console.log("Session callback", session, token);
       const hasValidLicense = await checkLicense(prisma);
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: token?.email as string,
+        },
+      });
+      let profileId = token.profileId;
+      if (existingUser) {
+        const allOrgProfiles = await Profile.getOrgProfilesForUser(existingUser);
+        profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : profileId;
+      }
+
       const calendsoSession: Session = {
         ...session,
+        profileId,
         hasValidLicense,
         user: {
           ...session.user,

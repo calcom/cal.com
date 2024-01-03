@@ -48,6 +48,7 @@ const getEnabledAppsFromCredentials = async (
     ...(filterOnIds.credentials.some.OR.length && filterOnIds),
   };
 
+  console.log("getEnabledAppsFromCredentials", JSON.stringify(where));
   const enabledApps = await prisma.app.findMany({
     where,
     select: { slug: true, enabled: true },

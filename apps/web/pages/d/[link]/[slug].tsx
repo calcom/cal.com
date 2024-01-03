@@ -10,6 +10,7 @@ import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -100,19 +101,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      username,
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
-    },
-    select: {
-      away: true,
-      hideBranding: true,
-    },
+  const [user] = await User.getUsersFromUsernameInOrgContext({
+    usernameList: [username],
+    orgSlug: org,
   });
 
   if (!user) {
