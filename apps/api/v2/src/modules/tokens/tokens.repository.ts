@@ -30,6 +30,15 @@ export class TokensRepository {
     });
   }
 
+  async getAuthorizationTokenByClientUserIds(clientId: string, userId: number) {
+    return this.dbRead.prisma.platformAuthorizationToken.findFirst({
+      where: {
+        platformOAuthClientId: clientId,
+        userId: userId,
+      },
+    });
+  }
+
   async createOAuthTokens(clientId: string, ownerId: number) {
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
