@@ -36,7 +36,6 @@ describe("orgMigration", () => {
         });
 
         const dbOrg = await createOrg({
-          id: data.targetOrg.id,
           name: data.targetOrg.name,
           slug: data.targetOrg.slug,
         });
@@ -1027,19 +1026,17 @@ describe("orgMigration", () => {
     it(`should remove a team from an organization`, async () => {
       const data = {
         teamToUnmigrate: {
-          id: 1,
           name: "Team 1",
           slug: "team1",
         },
         targetOrg: {
-          id: 2,
           name: "Org 1",
           slug: "org1",
         },
       };
-      await prismock.team.create({
+
+      const targetOrg = await prismock.team.create({
         data: {
-          id: data.targetOrg.id,
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
           metadata: {
@@ -1048,14 +1045,13 @@ describe("orgMigration", () => {
         },
       });
 
-      await prismock.team.create({
+      const { id: teamToUnMigrateId } = await prismock.team.create({
         data: {
-          id: data.teamToUnmigrate.id,
           slug: data.teamToUnmigrate.slug,
           name: data.teamToUnmigrate.name,
           parent: {
             connect: {
-              id: data.targetOrg.id,
+              id: targetOrg.id,
             },
           },
         },
@@ -1063,7 +1059,7 @@ describe("orgMigration", () => {
 
       const teamToUnmigrate = await prismock.team.findUnique({
         where: {
-          id: data.teamToUnmigrate.id,
+          id: teamToUnMigrateId,
         },
         include: {
           parent: true,
@@ -1071,16 +1067,16 @@ describe("orgMigration", () => {
       });
 
       if (!teamToUnmigrate?.parent || !teamToUnmigrate.parentId) {
-        throw new Error(`Couldn't setup team to unmigrate properly ID:${data.teamToUnmigrate.id}`);
+        throw new Error(`Couldn't setup team to unmigrate properly ID:${teamToUnMigrateId}`);
       }
 
       await removeTeamFromOrg({
-        teamId: data.teamToUnmigrate.id,
-        targetOrgId: data.targetOrg.id,
+        teamId: teamToUnMigrateId,
+        targetOrgId: targetOrg.id,
       });
 
       await expectTeamToBeNotPartOfAnyOrganization({
-        teamId: data.teamToUnmigrate.id,
+        teamId: teamToUnMigrateId,
       });
 
       expectTeamRedirectToBeNotEnabled({

@@ -1,7 +1,7 @@
 import { getFormSchema } from "@pages/settings/admin/orgMigrations/moveTeamToOrg";
-import { getSession } from "next-auth/react";
 import type { NextApiRequest, NextApiResponse } from "next/types";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -27,10 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const parsedBody = moveTeamToOrgSchema.safeParse(rawBody);
 
-  // Don't know why but if I let it go to getSession, it doesn't return the session.  🤯
-  req.body = null;
-
-  const session = await getSession({ req });
+  const session = await getServerSession({ req, res });
 
   if (!session) {
     return res.status(403).json({ message: "No session found" });
@@ -63,7 +60,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(error.statusCode).json({ message: error.message });
     }
     log.error("moveTeamToOrg failed:", safeStringify(error));
-    return res.status(500).json({ message: (error as any)?.message });
+    const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+
+    return res.status(500).json({ message: errorMessage });
   }
 
   return res.status(200).json({

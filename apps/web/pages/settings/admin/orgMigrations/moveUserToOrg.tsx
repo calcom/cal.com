@@ -2,17 +2,20 @@
  * It could be an admin feature to move a user to an organization but because it's a temporary thing before mono-user orgs are implemented, it's not right to spend time on it.
  * Plus, we need to do it only for cal.com and not provide as a feature to our self hosters.
  */
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/client";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { getStringAsNumberRequiredSchema } from "@calcom/prisma/zod-utils";
-import { Button, Meta, SelectField, TextField, showToast } from "@calcom/ui";
+import { Button, Form, Meta, SelectField, TextField, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -36,10 +39,7 @@ export const getFormSchema = (t: TFunction) =>
     userName: z.string().optional(),
     targetOrgId: z.union([getStringAsNumberRequiredSchema(t), z.number()]),
     targetOrgUsername: z.string().min(1, t("error_required_field")),
-    shouldMoveTeams: z
-      .string()
-      .transform((v) => v === "true")
-      .pipe(z.boolean()),
+    shouldMoveTeams: z.boolean(),
     targetOrgRole: z.union([
       z.literal(MembershipRole.ADMIN),
       z.literal(MembershipRole.MEMBER),
@@ -61,39 +61,49 @@ export default function MoveUserToOrg() {
     value: role,
   }));
 
-  const [shouldMoveTeams, setShouldMoveTeams] = useState(false);
   const moveTeamsOptions = [
     {
       label: "Yes",
-      value: true,
+      value: "true",
     },
     {
       label: "No",
-      value: false,
+      value: "false",
     },
   ];
+  const { t } = useLocale();
+  const formSchema = getFormSchema(t);
+  const form = useForm({
+    mode: "onSubmit",
+    resolver: zodResolver(formSchema),
+  });
+
+  const shouldMoveTeams = form.watch("shouldMoveTeams");
+  const register = form.register;
   return (
     <Wrapper>
       {/*  Due to some reason auth from website doesn't work if /api endpoint is used. Spent a lot of time and in the end went with submitting data to the same page, because you can't do POST request to a page in Next.js, doing a GET request  */}
-      <form
+      <Form
+        form={form}
         className="space-y-6"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.currentTarget);
-          const data = Object.fromEntries(formData.entries());
+        handleSubmit={async (values) => {
           setState(State.LOADING);
           const res = await fetch(`/api/orgMigration/moveUserToOrg`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(values),
           });
           let response = null;
           try {
             response = await res.json();
           } catch (e) {
-            showToast(e.message, "error", 10000);
+            if (e instanceof Error) {
+              showToast(e.message, "error", 10000);
+            } else {
+              showToast(t("something_went_wrong"), "error", 10000);
+            }
             setState(State.ERROR);
             return;
           }
@@ -108,53 +118,66 @@ export default function MoveUserToOrg() {
         <div className="space-y-6">
           <TextField
             type="text"
+            {...register("userName")}
             label="User Name"
-            name="userName"
             required
             defaultValue=""
             placeholder="Enter username to move to Org"
           />
-          <SelectField
-            label="Role"
-            options={roles}
+          <Controller
             name="targetOrgRole"
-            defaultValue={roles.find((role) => role.value === MembershipRole.MEMBER)}
-            required
-            placeholder="Enter userId"
+            render={({ field: { value, onChange } }) => (
+              <SelectField
+                label="Role"
+                options={roles}
+                onChange={(option) => {
+                  if (!option) return;
+                  onChange(option.value);
+                }}
+                value={roles.find((role) => role.value === value)}
+                required
+                placeholder="Enter userId"
+              />
+            )}
           />
           <TextField
             label="Username in Target Org"
             type="text"
             required
-            name="targetOrgUsername"
+            {...register("targetOrgUsername")}
             placeholder="Enter New username for the Org"
           />
           <TextField
             label="Target Organization ID"
             type="number"
             required
-            name="targetOrgId"
+            {...register("targetOrgId")}
             placeholder="Enter Target organization ID"
           />
-          <SelectField
-            label="Move Teams"
-            className="mb-0"
+          <Controller
             name="shouldMoveTeams"
-            onChange={(e) => {
-              if (!e) return;
-              setShouldMoveTeams(e.value === true);
-            }}
-            required
-            options={moveTeamsOptions}
+            render={({ field: { value, onChange } }) => (
+              <SelectField
+                label="Move Teams"
+                className="mb-0"
+                onChange={(option) => {
+                  if (!option) return;
+                  onChange(option.value === "true");
+                }}
+                value={moveTeamsOptions.find((opt) => opt.value === value)}
+                required
+                options={moveTeamsOptions}
+              />
+            )}
           />
         </div>
 
         <Button type="submit" loading={state === State.LOADING}>
           {shouldMoveTeams
-            ? "Move User to Org along with it's teams(except the teams' users"
+            ? "Move User to Org along with its teams(except the teams' users)"
             : "Move User to Org"}
         </Button>
-      </form>
+      </Form>
     </Wrapper>
   );
 }
@@ -181,7 +204,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   }
   return {
     props: {
-      ...(await serverSideTranslations(ctx.locale || "en", ["website"])),
+      ...(await serverSideTranslations(ctx.locale || "en", ["common"])),
     },
   };
 }

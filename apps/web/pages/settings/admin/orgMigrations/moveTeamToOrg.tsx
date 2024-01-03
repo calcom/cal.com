@@ -80,7 +80,11 @@ export default function MoveTeamToOrg() {
           try {
             response = await res.json();
           } catch (e) {
-            showToast(e.message, "error", 10000);
+            if (e instanceof Error) {
+              showToast(e.message, "error", 10000);
+            } else {
+              showToast(t("something_went_wrong"), "error", 10000);
+            }
             setState(State.ERROR);
             return;
           }
@@ -125,9 +129,7 @@ export default function MoveTeamToOrg() {
               <div className="mt-2">Members of the team will also be moved to the organization</div>
             ) : moveMembers === false ? (
               <div className="mt-2">Members of the team will not be moved to the organization</div>
-            ) : (
-              ""
-            )}
+            ) : null}
           </div>
         </div>
         <Button type="submit" loading={state === State.LOADING}>
@@ -163,7 +165,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
       error: null,
       migrated: null,
       userId: session.user.id,
-      ...(await serverSideTranslations(ctx.locale || "en", ["website"])),
+      ...(await serverSideTranslations(ctx.locale || "en", ["common"])),
       username: session.user.username,
     },
   };
