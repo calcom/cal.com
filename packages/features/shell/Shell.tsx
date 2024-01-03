@@ -59,6 +59,7 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
+  SelectField,
   showToast,
   SkeletonText,
   Tooltip,
@@ -1121,3 +1122,28 @@ export const MobileNavigationMoreItems = () => (
     ))}
   </ul>
 );
+
+function ProfileDropdown() {
+  const { update, data: sessionData } = useSession();
+  const { data } = trpc.viewer.me.useQuery();
+  if (!data) {
+    return null;
+  }
+  const options = data.profiles.map((profile) => ({
+    label: profile.name,
+    value: profile.id,
+  }));
+  return (
+    <SelectField
+      containerClassName="w-fuldl"
+      options={options}
+      value={options.find((option) => option.value === (sessionData?.profileId ?? null))}
+      onChange={(option) => {
+        if (!option) {
+          return;
+        }
+        update({ profileId: option.value });
+      }}
+    />
+  );
+}

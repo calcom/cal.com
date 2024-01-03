@@ -67,7 +67,7 @@ export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   if (!team)
     throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
 
-  return team;
+  return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
 
 export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | string[]) {
@@ -539,3 +539,30 @@ export const sendTeamInviteEmails = async ({
 
   await sendEmails(sendEmailsPromises);
 };
+
+export function createOrganizationProfile({
+  userId,
+  organizationId,
+  username,
+}: {
+  userId: number;
+  organizationId: number;
+  username: string;
+}) {
+  return prisma.profile.create({
+    data: {
+      uid: uuidv4(),
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      organization: {
+        connect: {
+          id: organizationId,
+        },
+      },
+      username,
+    },
+  });
+}

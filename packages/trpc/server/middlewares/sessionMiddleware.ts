@@ -134,7 +134,20 @@ const getUserSession = async (ctx: TRPCContextInner) => {
    */
   const session = ctx.session || (await getSession(ctx));
   const user = session ? await getUserFromSession(ctx, session) : null;
-
+  let foundProfile = null;
+  if (session?.profileId) {
+    foundProfile = await ctx.prisma.profile.findUnique({
+      where: {
+        id: session.profileId,
+        userId: user?.id,
+      },
+    });
+    if (!foundProfile) {
+      logger.error("Profile not found", { profileId: session.profileId, userId: user?.id });
+      // TODO: Test that logout should happen automatically
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+  }
   return { user, session };
 };
 

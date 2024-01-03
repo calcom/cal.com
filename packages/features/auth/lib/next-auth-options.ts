@@ -432,6 +432,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (trigger === "update") {
         return {
           ...token,
+          profileId: session?.profileId,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
@@ -566,7 +567,9 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async session({ session, token }) {
       const hasValidLicense = await checkLicense(prisma);
+      console.log("session", { session, token });
       const calendsoSession: Session = {
+        profileId: token.profileId,
         ...session,
         hasValidLicense,
         user: {

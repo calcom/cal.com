@@ -1,8 +1,10 @@
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { createProfile } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -107,20 +109,72 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     sendEmails(sendVerifEmailsPromises);
   }
 
+  console.log({
+    existingUsersWithMembersips,
+    newUsersEmailsOrUsernames,
+    orgConnectInfoByUsernameOrEmail,
+    autoAcceptEmailDomain,
+    orgVerified,
+  });
   // deal with existing users invited to join the team/org
   if (existingUsersWithMembersips.length) {
-    const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
-      existingUsersWithMembersips,
-      team,
-    });
+    if (!team.metadata?.isOrganization) {
+      const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
+        existingUsersWithMembersips,
+        team,
+      });
 
-    // invited users can autojoin, create their memberships in org
-    if (autoJoinUsers.length) {
-      await prisma.membership.createMany({
-        data: autoJoinUsers.map((userToAutoJoin) => {
-          const organizationRole = userToAutoJoin.teams?.[0]?.role;
-          return {
-            userId: userToAutoJoin.id,
+      console.log({
+        autoJoinUsers,
+        regularUsers,
+      });
+      // invited users can autojoin, create their memberships in org
+      if (autoJoinUsers.length) {
+        await prisma.membership.createMany({
+          data: autoJoinUsers.map((userToAutoJoin) => {
+            const organizationRole = userToAutoJoin.teams?.[0]?.role;
+            return {
+              userId: userToAutoJoin.id,
+              teamId: team.id,
+              accepted: true,
+              role:
+                organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
+                  ? organizationRole
+                  : input.role,
+            };
+          }),
+        });
+      }
+
+      // invited users cannot autojoin, create provisional memberships and send email
+      if (regularUsers.length) {
+        await createProvisionalMemberships({
+          input,
+          invitees: regularUsers,
+        });
+        await sendTeamInviteEmails({
+          currentUserName: ctx?.user?.name,
+          currentUserTeamName: team?.name,
+          existingUsersWithMembersips: regularUsers,
+          language: translation,
+          isOrg: input.isOrg,
+          teamId: team.id,
+          currentUserParentTeamName: team?.parent?.name,
+        });
+      }
+    } else {
+      for (const user of existingUsersWithMembersips) {
+        // FIXME: Don't rely on user input
+        await createProfile({
+          userId: user.id,
+          organizationId: team.id,
+          username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),
+        });
+        const orgConnectionInfo =
+          orgConnectInfoByUsernameOrEmail[user.email] || orgConnectInfoByUsernameOrEmail[user.username || ""];
+        await prisma.membership.create({
+          data: {
+            userId: user.id,
             teamId: team.id,
             accepted: true,
             role:

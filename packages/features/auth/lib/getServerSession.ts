@@ -60,8 +60,9 @@ export async function getServerSession(options: {
 
   const hasValidLicense = await checkLicense(prisma);
 
+  console.log("Got TOKEN", token);
   const session: Session = {
-    hasValidLicense,
+    hasValidLicense: hasValidLicense,
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
     user: {
       id: user.id,
@@ -77,6 +78,7 @@ export async function getServerSession(options: {
       org: token.org,
       locale: user.locale ?? undefined,
     },
+    profileId: token.profileId,
   };
 
   CACHE.set(JSON.stringify(token), session);
