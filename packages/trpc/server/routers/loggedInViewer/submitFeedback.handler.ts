@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { sendFeedbackEmail } from "@calcom/emails";
+import { sendFeedbackFormbricks } from "@calcom/lib/formbricks";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -30,6 +31,8 @@ export const submitFeedbackHandler = async ({ ctx, input }: SubmitFeedbackOption
       comment: comment,
     },
   });
+  if (process.env.FORMBRICKS_HOST_URL && process.env.FORMBRICKS_ENVIRONMENT_ID)
+    sendFeedbackFormbricks(ctx.user.id, feedback);
 
   if (process.env.SEND_FEEDBACK_EMAIL && comment) sendFeedbackEmail(feedback);
 };
