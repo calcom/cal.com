@@ -53,6 +53,17 @@ export class OAuthFlowController {
       throw new BadRequestException("Invalid 'redirect_uri' value.");
     }
 
+    const alreadyAuthorized = await this.tokensRepository.getAuthorizationTokenByClientUserIds(
+      clientId,
+      userId
+    );
+
+    if (alreadyAuthorized) {
+      throw new BadRequestException(
+        `User with id=${userId} has already authorized client with id=${clientId}.`
+      );
+    }
+
     const { id } = await this.tokensRepository.createAuthorizationToken(clientId, userId);
 
     return res.redirect(`${body.redirectUri}?code=${id}`);
