@@ -65,7 +65,7 @@ jobs:
           TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
       - name: Upload Test Results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: embed-core-results-${{ matrix.shard }}_${{ strategy.job-total }}
           path: test-results
