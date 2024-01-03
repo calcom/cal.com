@@ -43,10 +43,14 @@ export class TokensRepository {
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
+    const issuedAtTime = Math.floor(Date.now() / 1000);
+
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId })),
+          secret: this.jwtService.sign(
+            JSON.stringify({ type: "access_token", clientId, ownerId, iat: issuedAtTime })
+          ),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: ownerId } },
@@ -54,7 +58,9 @@ export class TokensRepository {
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId })),
+          secret: this.jwtService.sign(
+            JSON.stringify({ type: "refresh_token", clientId, ownerId, iat: issuedAtTime })
+          ),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: ownerId } },
@@ -97,6 +103,8 @@ export class TokensRepository {
     const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
+    const issuedAtTime = Math.floor(Date.now() / 1000);
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, _refresh, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.deleteMany({
@@ -105,7 +113,9 @@ export class TokensRepository {
       this.dbWrite.prisma.refreshToken.delete({ where: { secret: refreshTokenSecret } }),
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId })),
+          secret: this.jwtService.sign(
+            JSON.stringify({ type: "access_token", clientId, userId: tokenUserId, iat: issuedAtTime })
+          ),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: tokenUserId } },
@@ -113,7 +123,9 @@ export class TokensRepository {
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId })),
+          secret: this.jwtService.sign(
+            JSON.stringify({ type: "refresh_token", clientId, userId: tokenUserId, iat: issuedAtTime })
+          ),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: tokenUserId } },
