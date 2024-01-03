@@ -105,7 +105,7 @@ export class TokensRepository {
       this.dbWrite.prisma.refreshToken.delete({ where: { secret: refreshTokenSecret } }),
       this.dbWrite.prisma.accessToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId: clientId })),
+          secret: this.jwtService.sign(JSON.stringify({ type: "access_token", clientId })),
           expiresAt: accessExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: tokenUserId } },
@@ -113,7 +113,7 @@ export class TokensRepository {
       }),
       this.dbWrite.prisma.refreshToken.create({
         data: {
-          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId: clientId })),
+          secret: this.jwtService.sign(JSON.stringify({ type: "refresh_token", clientId })),
           expiresAt: refreshExpiry,
           client: { connect: { id: clientId } },
           owner: { connect: { id: tokenUserId } },
