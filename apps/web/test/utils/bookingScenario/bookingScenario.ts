@@ -130,6 +130,7 @@ type WhiteListedBookingProps = {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  bookingSeat?: Prisma.BookingSeatCreateInput[];
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
@@ -322,7 +323,7 @@ async function addBookings(bookings: InputBooking[]) {
       );
     }
     return {
-      uid: uuidv4(),
+      uid: booking.uid || uuidv4(),
       workflowReminders: [],
       references: [],
       title: "Test Booking Title",
@@ -349,10 +350,20 @@ async function addBookings(bookings: InputBooking[]) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           createMany: {
-            data: booking.attendees,
+            data: booking.attendees.map((attendee) => {
+              return {
+                ...attendee,
+                ...(attendee.bookingSeat && {
+                  create: {
+                    ...attendee.bookingSeat,
+                  },
+                }),
+              };
+            }),
           },
         };
       }
+
       return bookingCreate;
     })
   );
@@ -506,7 +517,7 @@ export async function createBookingScenario(data: ScenarioData) {
 
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
-  await addBookings(data.bookings);
+  const bookings = await addBookings(data.bookings);
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
@@ -1331,13 +1342,16 @@ export function getMockBookingReference(
   };
 }
 
-export function getMockBookingAttendee(attendee: Omit<Attendee, "bookingId">) {
+export function getMockBookingAttendee(
+  attendee: Omit<Attendee, "bookingId"> & { bookingSeat?: Prisma.BookingSeatCreateInput }
+) {
   return {
     id: attendee.id,
     timeZone: attendee.timeZone,
     name: attendee.name,
     email: attendee.email,
     locale: attendee.locale,
+    bookingSeat: attendee.bookingSeat || null,
   };
 }
 
