@@ -65,13 +65,16 @@ export class OAuthFlowController {
     @Param("clientId") clientId: string,
     @Body() body: ExchangeAuthorizationCodeInput
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
-    const bearerToken = authorization.replace("Bearer ", "").trim();
-    if (!bearerToken) {
+    const authorizeEndpointCode = authorization.replace("Bearer ", "").trim();
+    if (!authorizeEndpointCode) {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { accessToken: accessToken, refreshToken: refreshToken } =
-      await this.oAuthFlowService.exchangeAuthorizationToken(bearerToken, clientId, body.clientSecret);
+    const { accessToken, refreshToken } = await this.oAuthFlowService.exchangeAuthorizationToken(
+      authorizeEndpointCode,
+      clientId,
+      body.clientSecret
+    );
 
     return {
       status: SUCCESS_STATUS,
