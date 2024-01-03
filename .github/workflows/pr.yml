@@ -65,6 +65,13 @@ jobs:
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
+  show-output:
+    needs: [changes]
+    if: always()
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    steps:
+      - run: echo ${{ needs.changes.outputs.source-files }}
+
   required:
     needs: [changes, lint, type-check, test, build]
     if: always()
