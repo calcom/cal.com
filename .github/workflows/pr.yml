@@ -59,8 +59,7 @@ jobs:
     secrets: inherit
 
   analyze:
-    needs: build
-    needs: [changes]
+    needs: [build, changes]
     if: needs.changes.outputs.source-files == "true"
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
