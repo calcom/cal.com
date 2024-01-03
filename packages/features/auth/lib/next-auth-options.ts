@@ -28,6 +28,7 @@ import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
+const FLAGSMITH_ENVIRONMENT_ID = process.env.FLAGSMITH_ENVIRONMENT_ID;
 const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
@@ -580,7 +581,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       const { user, account, profile } = params;
 
       await flagsmith.init({
-        environmentID: "mXywZJgm9hKEDUfwmspLVT",
+        environmentID: FLAGSMITH_ENVIRONMENT_ID,
       });
       flagsmith.identify(user.email);
 
