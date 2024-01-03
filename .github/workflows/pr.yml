@@ -27,7 +27,7 @@ jobs:
         with:
           filters: |
             has-files-requiring-all-checks:
-              - "!(.github/workflows/*.yml)"
+              - "!(**.md|.github/CODEOWNERS|.github/workflows/**/*)"
   type-check:
     name: Type check
     needs: [changes]
