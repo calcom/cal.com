@@ -13,7 +13,9 @@ test.describe("Settings/admin A/B tests", () => {
         url: "http://localhost:3000",
       },
     ]);
-    const user = await users.create();
+    const user = await users.create({
+      role: "ADMIN",
+    });
     await user.apiLogin();
 
     await page.goto("/settings/admin");

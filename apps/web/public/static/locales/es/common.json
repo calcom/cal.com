@@ -940,8 +940,6 @@
   "enterprise_license_description": "Para habilitar esta función, obtenga una clave de despliegue en la consola {{consoleUrl}} y añádala a su .env como CALCOM_LICENSE_KEY. Si su equipo ya tiene una licencia, póngase en contacto con {{supportMail}} para obtener ayuda.",
   "enterprise_license_development": "Puede probar esta función en el modo de desarrollo. Para el uso de producción, haga que un administrador vaya a <2>/auth/setup</2> para ingresar una clave de licencia.",
   "missing_license": "Falta la licencia",
-  "signup_requires": "Licencia comercial requerida",
-  "signup_requires_description": "Actualmente, {{companyName}} no ofrece una versión gratuita de código abierto de la página de registro. Para recibir acceso completo a los componentes de registro es necesario adquirir una licencia comercial. Para uso personal, recomendamos la Plataforma de Datos Prisma o cualquier otra interfaz Postgres para crear cuentas.",
   "next_steps": "Pasos siguientes",
   "acquire_commercial_license": "Adquirir una licencia comercial",
   "the_infrastructure_plan": "El plan de infraestructura está basado en el uso y tiene descuentos favorables para empresas emergentes.",

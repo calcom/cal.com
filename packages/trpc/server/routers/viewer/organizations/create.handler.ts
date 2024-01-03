@@ -121,7 +121,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
             metadata: {
               ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
               isOrganization: true,
-              isOrganizationVerified: false,
+              isOrganizationVerified: true,
               isOrganizationConfigured,
               orgAutoAcceptEmail: emailDomain,
             },

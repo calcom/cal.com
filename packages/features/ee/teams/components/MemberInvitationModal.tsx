@@ -383,7 +383,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     try {
                       // Required for Safari but also works on Chrome
                       // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
-                      if (typeof ClipboardItem) {
+                      if (typeof ClipboardItem !== "undefined") {
                         const inviteLinkClipbardItem = new ClipboardItem({
                           "text/plain": new Promise(async (resolve) => {
                             // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
