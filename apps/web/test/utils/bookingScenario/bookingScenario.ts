@@ -1343,7 +1343,9 @@ export function getMockBookingReference(
 }
 
 export function getMockBookingAttendee(
-  attendee: Omit<Attendee, "bookingId"> & { bookingSeat?: Prisma.BookingSeatCreateInput }
+  attendee: Omit<Attendee, "bookingId"> & {
+    bookingSeat?: Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
+  }
 ) {
   return {
     id: attendee.id,
