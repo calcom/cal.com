@@ -67,7 +67,7 @@ import {
   Trash,
   Upload,
   Users,
-  Lock,
+  VenetianMask,
 } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -475,20 +475,11 @@ export const EventTypeList = ({
                                   <Button
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={LinkIcon}
+                                    StartIcon={VenetianMask}
                                     onClick={() => {
                                       showToast(t("private_link_copied"), "success");
                                       navigator.clipboard.writeText(placeholderHashedLink);
-                                    }}>
-                                    <Lock
-                                      style={{
-                                        maxHeight: "0.6rem",
-                                        position: "absolute",
-                                        left: "14px",
-                                        top: "20px",
-                                      }}
-                                    />
-                                  </Button>
+                                    }}/>
                                 </Tooltip>
                               )}
                             </>
