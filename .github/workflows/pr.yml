@@ -29,6 +29,7 @@ jobs:
             source-files:
               - "!**.md"
               - "!.github/CODEOWNERS"
+              - "!.github/workflows/**"
   type-check:
     name: Type check
     if: steps.changes.outputs.source-files == "true"
@@ -60,10 +61,10 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, test, build]
-    if: steps.changes.outputs.source-files == "true"
+    needs: [changes, lint, type-check, test, build]
+    if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        if: needs.changes.outputs.source-files == "true" && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
