@@ -70,8 +70,7 @@ jobs:
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
-      - name: Show output
-      - run: echo ${{ needs.changes.outputs.source-files }}
       - name: fail if conditional jobs failed
+        run: echo ${{ needs.changes.outputs.source-files }}
         if: needs.changes.outputs.source-files == true && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
