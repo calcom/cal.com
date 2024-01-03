@@ -106,7 +106,9 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
   const extraDays = 7;
   const startDate = dayjs();
   const endDate = dayjs(startDate).add(extraDays - 1, "day");
-  const [availableTimeslots, setAvailableTimeslots] = useState<any>({});
+  const [availableTimeslots, setAvailableTimeslots] = useState<{
+    [key: string]: TimeRange[];
+  }>({});
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const [bio, setBio] = useState<string>(user?.bio || "");
 
@@ -179,15 +181,13 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
 
   useEffect(() => {
     if (timeZone !== "" && timeZone !== null) {
-      const targetTimeZone = timeZone;
-
       // Search country by timezone
       const targetCountry: ICountry | undefined = Country.getAllCountries().find((c: any) => {
         const alltimezones = c.timezones.map((t: any) => {
           return t.zoneName;
         });
 
-        if (alltimezones.includes(targetTimeZone)) return true;
+        if (alltimezones.includes(timeZone)) return true;
 
         return false;
       });
@@ -224,9 +224,9 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
           svgRef.current.removeChild(svgRef.current.firstChild);
         }
 
-        const svgSstr = getWorldViewSVGStr();
-        const svgparsed = parseSync(svgSstr);
-        svgparsed.children = svgparsed.children.map((child) => {
+        const svgString = getWorldViewSVGStr();
+        const svgParsed = parseSync(svgString);
+        svgParsed.children = svgParsed.children.map((child) => {
           if (
             isPointInsidePolygon(
               child.attributes.d
@@ -253,7 +253,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
           return child;
         });
 
-        const svgElement = createSVGElement(svgparsed, "svg", true, countryCoord);
+        const svgElement = createSVGElement(svgParsed, "svg", true, countryCoord);
         svgRef.current.appendChild(svgElement);
       }
     } else {
@@ -262,9 +262,9 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
           svgRef.current.removeChild(svgRef.current.firstChild);
         }
 
-        const svgSstr = getWorldViewSVGStr();
-        const svgparsed = parseSync(svgSstr);
-        const svgElement = createSVGElement(svgparsed, "svg", true, [0, 0]);
+        const svgString = getWorldViewSVGStr();
+        const svgParsed = parseSync(svgString);
+        const svgElement = createSVGElement(svgParsed, "svg", true, [0, 0]);
         svgRef.current.appendChild(svgElement);
       }
     }
@@ -325,7 +325,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
     return range;
   };
 
-  const calculateAvailableTimeslots = (ranges: TimeRange[], tempStartDate: Dayjs) => {
+  const calculateAvailableTimeslots = (ranges: TimeRange[]) => {
     const dateRange: TimeRange[] = [];
 
     ranges.map((m) => {
@@ -338,12 +338,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
       );
     });
 
-    const key = tempStartDate.format("YYYY-MM-DD");
-    const value = dateRange;
-
-    const obj: { [key: string]: any } = {};
-    obj[key] = value;
-    return value;
+    return dateRange;
   };
 
   const onAvailabilityChanged = (
@@ -364,46 +359,32 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
 
       switch (dddd) {
         case "Monday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            mondayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(mondayWatchedValue);
           break;
         case "Tuesday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            tuesdayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(tuesdayWatchedValue);
           break;
         case "Wednesday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            wednesdayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(wednesdayWatchedValue);
           break;
         case "Thursday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            thursdayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(thursdayWatchedValue);
           break;
         case "Friday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            fridayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(fridayWatchedValue);
           break;
         case "Saturday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            saturdayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(saturdayWatchedValue);
           break;
         case "Sunday":
-          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] = calculateAvailableTimeslots(
-            sundayWatchedValue,
-            tempStartDate
-          );
+          newAvailableTimeslots[tempStartDate.format("YYYY-MM-DD")] =
+            calculateAvailableTimeslots(sundayWatchedValue);
           break;
       }
 
