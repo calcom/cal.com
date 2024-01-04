@@ -976,7 +976,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                     <div className="flex">{t(item.name)}</div>
                   </span>
                 ) : (
-                  <SkeletonText className="h-[20px] w-full" />
+                  <SkeletonText style={{ width: `${item.name.length * 10}px` }} className="h-[20px]" />
                 )}
               </ButtonOrLink>
             </Tooltip>
