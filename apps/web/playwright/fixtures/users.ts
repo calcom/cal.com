@@ -1,8 +1,9 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
+import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
-import type { API } from "mailhog";
+import { uuid } from "short-uuid";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -13,6 +14,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
+import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
@@ -101,7 +103,7 @@ const createTeamAndAddUser = async (
 ) => {
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
-    name: `user-id-${user.id}'s Team ${isOrg ? "Org" : "Team"}`,
+    name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
@@ -140,8 +142,17 @@ const createTeamAndAddUser = async (
 };
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
-  const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
+export const createUsersFixture = (
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  workerInfo: WorkerInfo
+) => {
+  const store = { users: [], trackedEmails: [], page, teams: [] } as {
+    users: UserFixture[];
+    trackedEmails: { email: string }[];
+    page: typeof page;
+    teams: Team[];
+  };
   return {
     buildForSignup: (opts?: Pick<CustomUserOpts, "email" | "username" | "useExactUsername" | "password">) => {
       const uname =
@@ -322,6 +333,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
           },
           workerInfo
         );
+        store.teams.push(team);
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
@@ -379,6 +391,16 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       store.users.push(userFixture);
       return userFixture;
     },
+    /**
+     * Use this method to get an email that can be automatically cleaned up from all the places in DB
+     */
+    trackEmail: ({ username, domain }: { username: string; domain: string }) => {
+      const email = `${username}-${uuid().substring(0, 8)}@${domain}`;
+      store.trackedEmails.push({
+        email,
+      });
+      return email;
+    },
     get: () => store.users,
     logout: async () => {
       await page.goto("/auth/logout");
@@ -387,7 +409,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       const ids = store.users.map((u) => u.id);
       if (emails) {
         const emailMessageIds: string[] = [];
-        for (const user of store.users) {
+        for (const user of store.trackedEmails.concat(store.users.map((u) => ({ email: u.email })))) {
           const emailMessages = await emails.search(user.email);
           if (emailMessages && emailMessages.count > 0) {
             emailMessages.items.forEach((item) => {
@@ -401,7 +423,12 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       }
 
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
+      // Delete all users that were tracked by email(if they were created)
+      await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
+      await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
       store.users = [];
+      store.teams = [];
+      store.trackedEmails = [];
     },
     delete: async (id: number) => {
       await prisma.user.delete({ where: { id } });

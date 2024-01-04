@@ -941,8 +941,6 @@
   "enterprise_license_description": "Para ativar este recurso, obtenha uma chave de desenvolvimento no console {{consoleUrl}} e adicione ao seu .env como CALCOM_LICENSE_KEY. Caso sua equipe já tenha uma licença, entre em contato com {{supportMail}} para obter ajuda.",
   "enterprise_license_development": "Você pode testar este recurso no modo de desenvolvimento. Para uso em produção, solicite que um administrador acesse <2>/auth/setup</2> e insira uma chave de licença.",
   "missing_license": "Falta a licença",
-  "signup_requires": "Licença comercial obrigatória",
-  "signup_requires_description": "Atualmente a {{companyName}} não oferece nenhuma versão gratuita de código aberto da página de inscrição. Para obter acesso completo aos componentes da inscrição, você precisa adquirir uma licença comercial. Para uso pessoal, recomendamos o Prisma Data Platform ou outras interfaces em Postgres para criação de contas.",
   "next_steps": "Próximos passos",
   "acquire_commercial_license": "Adquira uma licença comercial",
   "the_infrastructure_plan": "O plano de infraestrutura é baseado no uso e tem descontos acessíveis para novos usuários.",

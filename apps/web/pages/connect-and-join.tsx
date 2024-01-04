@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { TRPCClientError } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Alert } from "@calcom/ui";
-import { Zap } from "@calcom/ui/components/icon";
+import { PhoneCall } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -51,7 +51,7 @@ function ConnectAndJoin() {
       {session ? (
         <EmptyScreen
           headline={t("instant_tab_title")}
-          Icon={Zap}
+          Icon={PhoneCall}
           description={t("uprade_to_create_instant_bookings")}
           buttonRaw={
             <div className="flex flex-col items-center justify-center	gap-4">
@@ -60,7 +60,7 @@ function ConnectAndJoin() {
                   <Trans i18nKey="some_other_host_already_accepted_the_meeting">
                     Some other host already accepted the meeting. Do you still want to join?
                     <Link className="inline-block cursor-pointer underline" href={meetingUrl}>
-                      Continue to Meeting Url
+                      Continue to Meeting
                     </Link>
                   </Trans>
                 </div>
