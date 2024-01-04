@@ -45,6 +45,7 @@ export const VerifyCodeDialog = ({
     },
     onError: (err) => {
       setIsLoading(false);
+      setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
       }
@@ -58,6 +59,7 @@ export const VerifyCodeDialog = ({
     },
     onError: (err) => {
       setIsLoading(false);
+      setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
       }
