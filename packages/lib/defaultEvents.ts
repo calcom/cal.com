@@ -116,7 +116,7 @@ const dynamicEvent = {
 
 const defaultEvents = [dynamicEvent];
 
-export const getDynamicEventDescription = (dynamicUsernames: string[]): string => {
+export const getDynamicEventDescription = (dynamicUsernames: (string | null)[]): string => {
   if (dynamicUsernames.length === 2) {
     return `Meet both ${dynamicUsernames[0]} and ${dynamicUsernames[1]} in a conference call.`;
   } else if (dynamicUsernames.length === 3) {
