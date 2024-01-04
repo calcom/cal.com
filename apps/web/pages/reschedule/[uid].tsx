@@ -1,4 +1,4 @@
-'use client';
+// page can be a server component
 import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";

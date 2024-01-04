@@ -1,10 +1,9 @@
+import { getServerSideProps } from "@pages/reschedule/[uid]";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import withEmbedSsr from "@lib/withEmbedSsr";
-
-import { getServerSideProps, withAppDir } from "../page";
 
 type PageProps = Readonly<{
   params: Params;
