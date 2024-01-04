@@ -5,7 +5,11 @@ import { classNames } from "@calcom/lib";
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="w-full overflow-auto md:overflow-visible">
-      <table ref={ref} className={classNames("w-full caption-bottom text-sm", className)} {...props} />
+      <table
+        ref={ref}
+        className={classNames("border-subtle w-full caption-bottom border text-sm", className)}
+        {...props}
+      />
     </div>
   )
 );
@@ -68,7 +72,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
-      className={classNames("text-default p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={classNames("text-default px-2 py-2.5 align-middle [&:has([role=checkbox])]:pr-0", className)}
       {...props}
     />
   )
