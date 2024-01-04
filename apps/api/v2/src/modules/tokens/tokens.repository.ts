@@ -3,7 +3,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PlatformAuthorizationToken } from "@prisma/client";
-import { randomBytes } from "crypto";
 import { DateTime } from "luxon";
 
 @Injectable()
@@ -42,7 +41,6 @@ export class TokensRepository {
               type: "access_token",
               clientId,
               ownerId,
-              secret: randomBytes(32).toString("hex"),
             })
           ),
           expiresAt: accessExpiry,
@@ -57,7 +55,6 @@ export class TokensRepository {
               type: "refresh_token",
               clientId,
               ownerId,
-              secret: randomBytes(32).toString("hex"),
             })
           ),
           expiresAt: refreshExpiry,
@@ -114,7 +111,6 @@ export class TokensRepository {
             JSON.stringify({
               type: "access_token",
               clientId: clientId,
-              secret: randomBytes(32).toString("hex"),
             })
           ),
           expiresAt: accessExpiry,
@@ -128,7 +124,6 @@ export class TokensRepository {
             JSON.stringify({
               type: "refresh_token",
               clientId: clientId,
-              secret: randomBytes(32).toString("hex"),
             })
           ),
           expiresAt: refreshExpiry,
