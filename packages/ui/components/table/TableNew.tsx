@@ -15,7 +15,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttribut
   ({ className, ...props }, ref) => (
     <thead
       ref={ref}
-      className={classNames("[&_tr]:bg-subtle md:sticky md:top-[4.25rem] md:z-10 [&_tr]:border-b", className)}
+      className={classNames("[&_tr]:bg-subtle md:top-[4.25rem] md:z-10 [&_tr]:border-b", className)}
       {...props}
     />
   )
@@ -68,7 +68,10 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
-      className={classNames("text-default p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={classNames(
+        "text-default overflow-x-hidde p-4 align-middle [&:has([role=checkbox])]:pr-0",
+        className
+      )}
       {...props}
     />
   )

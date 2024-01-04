@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div className="border-subtle border" ref={tableContainerRef} onScroll={onScroll}>
+      <div className="border-subtle overflow-x-scroll border" ref={tableContainerRef} onScroll={onScroll}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
