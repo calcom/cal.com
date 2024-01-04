@@ -471,18 +471,18 @@ export const EventTypeList = ({
                               </Tooltip>
 
                               {isPrivateURLEnabled && (
-                                      <Tooltip content={t("copy_link")}>
-                                        <Button
-                                          color="secondary"
-                                          variant="icon"
-                                          StartIcon={VenetianMask}
-                                          onClick={() => {
-                                            showToast(t("private_link_copied"), "success");
-                                            navigator.clipboard.writeText(placeholderHashedLink);
-                                          }}
-                                        />
-                                      </Tooltip>
-                                    )}
+                                <Tooltip content={t("copy_link")}>
+                                  <Button
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon={VenetianMask}
+                                    onClick={() => {
+                                      showToast(t("private_link_copied"), "success");
+                                      navigator.clipboard.writeText(placeholderHashedLink);
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                             </>
                           )}
                           <Dropdown modal={false}>
