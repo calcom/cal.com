@@ -3,7 +3,7 @@ export type Params = {
 };
 
 export type SearchParams = {
-  [param: string]: string | string[];
+  [param: string]: string | string[] | undefined;
 };
 
 export type PageProps = {
@@ -11,4 +11,4 @@ export type PageProps = {
   searchParams: SearchParams;
 };
 
-export type LayoutProps = PageProps & { children: React.ReactElement };
+export type LayoutProps = { params: Params; children: React.ReactElement };
