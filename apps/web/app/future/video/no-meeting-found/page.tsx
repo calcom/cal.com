@@ -9,7 +9,7 @@ export const generateMetadata = async () =>
     (t) => t("no_meeting_found")
   );
 
-export const getData = async () => {
+const getData = async () => {
   const ssr = await ssrInit();
 
   return {
@@ -17,4 +17,4 @@ export const getData = async () => {
   };
 };
 
-export default WithLayout({ getData, Page: LegacyPage, getLayout: null });
+export default WithLayout({ getData, Page: LegacyPage, getLayout: null })<"P">;

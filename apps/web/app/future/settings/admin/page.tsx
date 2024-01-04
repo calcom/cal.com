@@ -10,4 +10,4 @@ export const generateMetadata = async () =>
     () => "admin_description"
   );
 
-export default WithLayout({ getLayout, Page: LegacyPage });
+export default WithLayout({ getLayout, Page: LegacyPage })<"P">;

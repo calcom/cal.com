@@ -42,6 +42,7 @@ export const apiHandlers = {
   paypal: import("./paypal/api"),
   ping: import("./ping/api"),
   pipedream: import("./pipedream/api"),
+  "pipedrive-crm": import("./pipedrive-crm/api"),
   plausible: import("./plausible/api"),
   qr_code: import("./qr_code/api"),
   raycast: import("./raycast/api"),

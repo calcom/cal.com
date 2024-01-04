@@ -338,12 +338,11 @@ export const BookEventFormChild = ({
 
     // Ensures that duration is an allowed value, if not it defaults to the
     // default eventQuery duration.
-    const validDuration =
-      duration &&
-      eventQuery.data.metadata?.multipleDuration &&
-      eventQuery.data.metadata?.multipleDuration.includes(duration)
-        ? duration
-        : eventQuery.data.length;
+    const validDuration = eventQuery.data.isDynamic
+      ? duration || eventQuery.data.length
+      : duration && eventQuery.data.metadata?.multipleDuration?.includes(duration)
+      ? duration
+      : eventQuery.data.length;
 
     const bookingInput = {
       values,

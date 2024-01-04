@@ -10,4 +10,4 @@ export const generateMetadata = async () =>
     () => "Add new OAuth Clients"
   );
 
-export default WithLayout({ getLayout, Page: LegacyPage });
+export default WithLayout({ getLayout, Page: LegacyPage })<"P">;

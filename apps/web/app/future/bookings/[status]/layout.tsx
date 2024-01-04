@@ -42,6 +42,6 @@ const getData = async ({ params }: { params: Params }) => {
   };
 };
 
-export default WithLayout({ getLayout, getData });
+export default WithLayout({ getLayout, getData })<"L">;
 
 export const dynamic = "force-static";

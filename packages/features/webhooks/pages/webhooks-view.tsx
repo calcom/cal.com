@@ -78,7 +78,7 @@ const WebhooksView = () => {
             <></>
           )
         }
-        borderInShellHeader={data && data.profiles.length === 1}
+        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
       />
       <div>
         <WebhooksList webhooksByViewer={data} />
