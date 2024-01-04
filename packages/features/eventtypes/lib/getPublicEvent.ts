@@ -7,7 +7,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
-import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent, getDynamicEventDescription, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma";
@@ -176,6 +176,7 @@ export const getPublicEvent = async (
 
     return {
       ...defaultEvent,
+      description: getDynamicEventDescription(users.map((user) => user.name)),
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({

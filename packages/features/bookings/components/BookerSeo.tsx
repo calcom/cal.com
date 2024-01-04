@@ -38,10 +38,11 @@ export const BookerSeo = (props: BookerSeoProps) => {
   const profileName = event?.profile?.name ?? "";
   const profileImage = event?.profile?.image;
   const title = event?.title ?? "";
+  const description = event?.description ?? "";
   return (
     <HeadSeo
       title={`${rescheduleUid && !!bookingData ? t("reschedule") : ""} ${title} | ${profileName}`}
-      description={`${rescheduleUid ? t("reschedule") : ""} ${title}`}
+      description={`${rescheduleUid ? t("reschedule") : ""} ${description}`}
       meeting={{
         title: title,
         profile: { name: profileName, image: profileImage },

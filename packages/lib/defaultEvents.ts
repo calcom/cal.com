@@ -106,7 +106,7 @@ const commons = {
 const dynamicEvent = {
   length: 30,
   slug: "dynamic",
-  title: "Dynamic",
+  title: "Group Meeting",
   eventName: "Dynamic Event",
   description: "",
   descriptionAsSafeHTML: "",
@@ -116,8 +116,16 @@ const dynamicEvent = {
 
 const defaultEvents = [dynamicEvent];
 
-export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
-  return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;
+export const getDynamicEventDescription = (dynamicUsernames: string[]): string => {
+  if (dynamicUsernames.length === 2) {
+    return `Meet both ${dynamicUsernames[0]} and ${dynamicUsernames[1]} in a conference call.`;
+  } else if (dynamicUsernames.length === 3) {
+    return `Meet ${dynamicUsernames[0]}, ${dynamicUsernames[1]} and ${dynamicUsernames[2]} in a conference call.`;
+  } else {
+    return `Meet ${dynamicUsernames[0]}, ${dynamicUsernames[1]} and ${
+      dynamicUsernames.length - 2
+    } others in a conference call.`;
+  }
 };
 
 export const getDynamicEventName = (dynamicNames: string[], slug: string): string => {
