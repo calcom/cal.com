@@ -103,7 +103,7 @@ const createTeamAndAddUser = async (
 ) => {
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
-    name: `user-id-${user.id}'s Team ${isOrg ? "Org" : "Team"}`,
+    name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
     isOrganization: isOrg,
   };
   data.metadata = {
