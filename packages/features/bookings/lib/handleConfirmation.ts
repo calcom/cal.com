@@ -9,6 +9,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -138,6 +139,7 @@ export async function handleConfirmation(args: {
   }[] = [];
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+  const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
@@ -162,7 +164,7 @@ export async function handleConfirmation(args: {
           paid,
           metadata: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl,
+            videoCallUrl: meetingUrl,
           },
         },
         select: {
@@ -215,7 +217,10 @@ export async function handleConfirmation(args: {
         references: {
           create: scheduleResult.referencesToCreate,
         },
-        metadata: { ...(typeof booking.metadata === "object" ? booking.metadata : {}), videoCallUrl },
+        metadata: {
+          ...(typeof booking.metadata === "object" ? booking.metadata : {}),
+          videoCallUrl: meetingUrl,
+        },
       },
       select: {
         eventType: {
@@ -258,7 +263,11 @@ export async function handleConfirmation(args: {
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
-      const evtOfBooking = { ...evt, metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } };
+      const evtOfBooking = {
+        ...evt,
+        metadata: { videoCallUrl: meetingUrl },
+        eventType: { slug: eventTypeSlug },
+      };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
@@ -341,7 +350,7 @@ export async function handleConfirmation(args: {
         eventTypeId: booking.eventType?.id,
         status: "ACCEPTED",
         smsReminderNumber: booking.smsReminderNumber || undefined,
-        metadata: evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined,
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       }).catch((e) => {
         console.error(
           `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
