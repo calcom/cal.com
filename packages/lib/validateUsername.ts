@@ -116,7 +116,7 @@ export const validateAndGetCorrectedUsernameInTeam = async (
         username,
         email,
         organizationId: orgId,
-        orgAutoAcceptEmail: team?.organizationSettings?.orgAutoAcceptEmail || "",
+        orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
         isSignup,
       });
     } else {

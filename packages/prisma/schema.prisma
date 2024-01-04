@@ -323,8 +323,8 @@ model Team {
 
 model OrganizationSettings {
   id                       Int     @id @default(autoincrement())
-  team                     Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                   Int     @unique
+  organization             Team    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId           Int     @unique
   isOrganizationConfigured Boolean @default(false)
   isOrganizationVerified   Boolean @default(false)
   orgAutoAcceptEmail       String
