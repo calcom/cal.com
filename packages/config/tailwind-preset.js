@@ -150,6 +150,7 @@ module.exports = {
     },
   },
   plugins: [
+    require("@todesktop/tailwind-variants"),
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("tailwind-scrollbar")({ nocompatible: true }),

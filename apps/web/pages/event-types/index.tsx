@@ -907,6 +907,7 @@ const EventTypesPage = () => {
   const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
   const { data: user } = useMeQuery();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
@@ -918,12 +919,6 @@ const EventTypesPage = () => {
     cacheTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
-
-  function closeBanner() {
-    setShowProfileBanner(false);
-    document.cookie = `calcom-profile-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
-    showToast(t("we_wont_show_again"), "success");
-  }
 
   useEffect(() => {
     if (searchParams?.get("openIntercom") === "true") {
