@@ -5,32 +5,21 @@ import { JwtService as NestJwtService } from "@nestjs/jwt";
 export class JwtService {
   constructor(private readonly nestJwtService: NestJwtService) {}
 
-  sign(payload: Record<any, any>) {
+  signAccessToken(payload: Payload) {
+    const accessToken = this.sign({ type: "access_token", ...payload });
+    return accessToken;
+  }
+
+  signRefreshToken(payload: Payload) {
+    const refreshToken = this.sign({ type: "refresh_token", ...payload });
+    return refreshToken;
+  }
+
+  sign(payload: Payload) {
     const issuedAtTime = this.getIssuedAtTime();
 
-    const token = this.nestJwtService.sign(JSON.stringify({ ...payload, iat: issuedAtTime }));
-
+    const token = this.nestJwtService.sign({ ...payload, iat: issuedAtTime });
     return token;
-  }
-
-  signAccessToken(payload: Record<any, any>) {
-    const issuedAtTime = this.getIssuedAtTime();
-
-    const accessToken = this.nestJwtService.sign(
-      JSON.stringify({ type: "access_token", ...payload, iat: issuedAtTime })
-    );
-
-    return accessToken;
-  }
-
-  signRefreshToken(payload: Record<any, any>) {
-    const issuedAtTime = this.getIssuedAtTime();
-
-    const accessToken = this.nestJwtService.sign(
-      JSON.stringify({ type: "refresh_token", ...payload, iat: issuedAtTime })
-    );
-
-    return accessToken;
   }
 
   getIssuedAtTime() {
@@ -38,3 +27,5 @@ export class JwtService {
     return Math.floor(Date.now() / 1000);
   }
 }
+
+type Payload = Record<string | number | symbol, any>;
