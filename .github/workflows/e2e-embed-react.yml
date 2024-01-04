@@ -1,7 +1,8 @@
 name: E2E Embed React tests and booking flow (for non-embed as well)
 on:
   workflow_call:
-
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
 jobs:
   e2e-embed:
     timeout-minutes: 20
@@ -24,7 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
-      - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
