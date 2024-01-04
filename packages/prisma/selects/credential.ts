@@ -5,6 +5,7 @@ export const credentialForCalendarServiceSelect = Prisma.validator<Prisma.Creden
   appId: true,
   type: true,
   userId: true,
+  ownedByOrganizationId: true,
   user: {
     select: {
       email: true,
@@ -21,6 +22,7 @@ export const safeCredentialSelect = Prisma.validator<Prisma.CredentialSelect>()(
   /** Omitting to avoid frontend leaks */
   // key: true,
   userId: true,
+  ownedByOrganizationId: true,
   user: {
     select: {
       email: true,

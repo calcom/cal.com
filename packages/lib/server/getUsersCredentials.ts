@@ -1,10 +1,12 @@
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-export async function getUsersCredentials(userId: number) {
+export async function getUsersCredentials(user: NonNullable<TrpcSessionUser>) {
   const credentials = await prisma.credential.findMany({
     where: {
-      userId,
+      userId: user.id,
+      ownedByOrganizationId: user.profile?.organizationId ?? null,
     },
     select: credentialForCalendarServiceSelect,
     orderBy: {

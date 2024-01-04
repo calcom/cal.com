@@ -11,12 +11,13 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
-import { getOrganizations } from "@calcom/lib/server/repository/user";
+import { getOrgProfiles } from "@calcom/lib/server/repository/profile";
+import { getOrganizationForUser, getOrganizationProfile } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -472,15 +473,29 @@ export const AUTH_OPTIONS: AuthOptions = {
 
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
-        const { organizations } = await getOrganizations({ userId: existingUser.id });
         const { teams: _teams, organization, ...existingUserWithoutTeamsField } = existingUser;
 
         const parsedOrgMetadata = teamMetadataSchema.parse(organization?.metadata ?? {});
         // FIXME: Send the switched organization here
-        const chosenOrganization = organizations[0];
+        const organizationProfile = await getOrganizationProfile({
+          userId: existingUser.id,
+          profileId: token.profileId ?? null,
+        });
+        let chosenOrganization;
+        if (organizationProfile) {
+          chosenOrganization = await getOrganizationForUser({
+            userId: existingUser.id,
+            organizationId: organizationProfile.organizationId,
+          });
+        }
+        const allOrgProfiles = await getOrgProfiles(existingUser);
+        const profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : null;
+
+        console.log("autoMergeIdentities", token);
         return {
           ...existingUserWithoutTeamsField,
           ...token,
+          profileId,
           belongsToActiveTeam,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // Ideally we send the currently switched organization only here.
@@ -505,6 +520,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         return token;
       }
       if (account.type === "credentials") {
+        console.log('account.type === "credentials"');
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
           return token;
@@ -566,11 +582,22 @@ export const AUTH_OPTIONS: AuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      console.log("Session callback", session, token);
       const hasValidLicense = await checkLicense(prisma);
-      console.log("session", { session, token });
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: token?.email as string,
+        },
+      });
+      let profileId = token.profileId;
+      if (existingUser) {
+        const allOrgProfiles = await getOrgProfiles(existingUser);
+        profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : profileId;
+      }
+
       const calendsoSession: Session = {
-        profileId: token.profileId,
         ...session,
+        profileId,
         hasValidLicense,
         user: {
           ...session.user,

@@ -33,7 +33,7 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
+import { TOP_BANNER_HEIGHT, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -1126,7 +1126,7 @@ export const MobileNavigationMoreItems = () => (
 function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
   const { data } = trpc.viewer.me.useQuery();
-  if (!data) {
+  if (!data || !ENABLE_PROFILE_SWITCHER) {
     return null;
   }
   const options = data.profiles.map((profile) => ({
@@ -1142,7 +1142,9 @@ function ProfileDropdown() {
         if (!option) {
           return;
         }
-        update({ profileId: option.value });
+        update({ profileId: option.value }).then(() => {
+          window.location.reload();
+        });
       }}
     />
   );

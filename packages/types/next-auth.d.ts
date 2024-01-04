@@ -7,7 +7,7 @@ declare module "next-auth" {
    */
   interface Session {
     hasValidLicense: boolean;
-    profileId?: number;
+    profileId?: number | null;
     user: User;
   }
 

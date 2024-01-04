@@ -85,11 +85,12 @@ export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole
 
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
   const { prisma } = ctx;
-
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getByViewer:${ctx.user.id}`,
     rateLimitingType: "common",
   });
+  const profile = ctx.user.profile;
+  console.log("getByViewer", profile);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -107,6 +108,9 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       teams: {
         where: {
           accepted: true,
+          team: {
+            parentId: profile?.organization?.id ?? null,
+          },
         },
         select: {
           role: true,
@@ -142,6 +146,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         where: {
           teamId: null,
           userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
+          ownedByOrganizationId: profile?.organization?.id ?? null,
         },
         select: {
           ...userEventTypeSelect,
@@ -161,6 +166,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   if (!user) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
+
+  console.log("user", user);
 
   const memberships = user.teams.map((membership) => ({
     ...membership,

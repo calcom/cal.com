@@ -6,7 +6,7 @@ import { CompleteTeam, TeamModel, CompleteUser, UserModel, CompleteEventType, Ev
 export const _WebhookModel = z.object({
   id: z.string(),
   userId: z.number().int().nullish(),
-  organizationId: z.number().int().nullish(),
+  ownedByOrganizationId: z.number().int().nullish(),
   teamId: z.number().int().nullish(),
   eventTypeId: z.number().int().nullish(),
   subscriberUrl: z.string().url(),
@@ -19,7 +19,7 @@ export const _WebhookModel = z.object({
 })
 
 export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
-  organization?: CompleteTeam | null
+  ownedByOrganization?: CompleteTeam | null
   user?: CompleteUser | null
   team?: CompleteTeam | null
   eventType?: CompleteEventType | null
@@ -32,7 +32,7 @@ export interface CompleteWebhook extends z.infer<typeof _WebhookModel> {
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
 export const WebhookModel: z.ZodSchema<CompleteWebhook> = z.lazy(() => _WebhookModel.extend({
-  organization: TeamModel.nullish(),
+  ownedByOrganization: TeamModel.nullish(),
   user: UserModel.nullish(),
   team: TeamModel.nullish(),
   eventType: EventTypeModel.nullish(),

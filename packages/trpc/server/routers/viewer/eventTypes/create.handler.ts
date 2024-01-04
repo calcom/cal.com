@@ -84,10 +84,25 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data.schedulingType = schedulingType;
   }
 
+  const profile = ctx.user.profile;
   try {
-    const eventType = await ctx.prisma.eventType.create({ data });
+    const eventType = await ctx.prisma.eventType.create({
+      data: {
+        ...data,
+        ...(profile?.organizationId
+          ? {
+              organization: {
+                connect: {
+                  id: profile.organizationId,
+                },
+              },
+            }
+          : null),
+      },
+    });
     return { eventType };
   } catch (e) {
+    console.warn(e);
     if (e instanceof PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });

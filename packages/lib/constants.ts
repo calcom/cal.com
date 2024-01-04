@@ -88,10 +88,10 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
-export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES;
+export const IS_TEAM_BILLING_ENABLED = 1;
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
-
+export const ENABLE_PROFILE_SWITCHER = 0 || process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
 // Needed for orgs
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];

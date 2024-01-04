@@ -625,8 +625,8 @@ enum WebhookTriggerEvents {
 model Webhook {
   id              String                 @id @unique
   userId          Int?
-  organizationId  Int?
-  organization    Team?                  @relation("orgWebhooks", fields: [organizationId], references: [id], onDelete: Cascade)
+  ownedByOrganizationId  Int?
+  ownedByOrganization    Team?                  @relation("orgWebhooks", fields: [ownedByOrganizationId], references: [id], onDelete: Cascade)
   teamId          Int?
   eventTypeId     Int?
   /// @zod.url()

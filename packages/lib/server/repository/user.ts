@@ -42,3 +42,44 @@ export const getOrganizations = async ({ userId }: { userId: User["id"] }) => {
 export const isOrganization = ({ team }: { team: Pick<Team, "metadata"> }) => {
   return team.metadata?.isOrganization;
 };
+
+export const getOrganizationProfile = async ({
+  profileId,
+  userId,
+}: {
+  profileId: number | null;
+  userId: number;
+}) => {
+  if (!profileId) {
+    return null;
+  }
+  const profile = await prisma.profile.findUnique({
+    where: {
+      id: profileId,
+    },
+  });
+  if (profile?.userId !== userId) {
+    throw new Error("Unauthorized");
+  }
+  return profile;
+};
+
+export const getOrganizationForUser = async ({
+  userId,
+  organizationId,
+}: {
+  userId: number;
+  organizationId: number;
+}) => {
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: userId,
+      teamId: organizationId,
+    },
+    include: {
+      team: true,
+    },
+  });
+
+  return membership?.team ?? null;
+};

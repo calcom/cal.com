@@ -32,14 +32,18 @@ const getEnabledAppsFromCredentials = async (
 
   if (filterOnCredentials) {
     const userIds: number[] = [],
-      teamIds: number[] = [];
+      teamIds: number[] = [],
+      ownedByOrganizationIds: number[] = [];
 
     for (const credential of credentials) {
       if (credential.userId) userIds.push(credential.userId);
       if (credential.teamId) teamIds.push(credential.teamId);
+      if (credential.ownedByOrganizationId) ownedByOrganizationIds.push(credential.ownedByOrganizationId);
     }
     if (userIds.length) filterOnIds.credentials.some.OR.push({ userId: { in: userIds } });
     if (teamIds.length) filterOnIds.credentials.some.OR.push({ teamId: { in: teamIds } });
+    if (ownedByOrganizationIds.length)
+      filterOnIds.credentials.some.OR.push({ ownedByOrganizationId: { in: ownedByOrganizationIds } });
   }
 
   const where: Prisma.AppWhereInput = {
@@ -48,6 +52,7 @@ const getEnabledAppsFromCredentials = async (
     ...(filterOnIds.credentials.some.OR.length && filterOnIds),
   };
 
+  console.log("getEnabledAppsFromCredentials", JSON.stringify(where));
   const enabledApps = await prisma.app.findMany({
     where,
     select: { slug: true, enabled: true },

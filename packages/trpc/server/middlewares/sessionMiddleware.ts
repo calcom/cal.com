@@ -16,6 +16,18 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   if (!session?.user?.id) {
     return null;
   }
+  console.log("getUserFromSession", session?.profileId);
+
+  const profile = session?.profileId
+    ? await prisma.profile.findUnique({
+        where: {
+          id: session?.profileId,
+        },
+        include: {
+          organization: true,
+        },
+      })
+    : null;
 
   const user = await prisma.user.findUnique({
     where: {
@@ -106,6 +118,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     ...user,
     avatar:
       `${WEBAPP_URL}/${user.username}/avatar.png?${user.organizationId}` && `orgId=${user.organizationId}`,
+    // FIXME: Remove this
     organization: {
       ...user.organization,
       isOrgAdmin,
@@ -116,6 +129,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     username,
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
+    profile,
   };
 }
 
