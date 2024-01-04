@@ -516,7 +516,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const flags = useFlagMap();
-  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
   const [month, selectedDatesAndTimes] = useBookerStore(
@@ -957,34 +956,32 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           </div>
                         </Label>
                       ))}
-                      {isBookerLayoutsEnabled && (
-                        <Label className="mb-6">
-                          <div className="mb-2">{t("layout")}</div>
-                          <Select
-                            className="w-full"
-                            defaultValue={layoutOptions[0]}
-                            onChange={(option) => {
-                              if (!option) {
-                                return;
-                              }
-                              setPreviewState((previewState) => {
-                                const config = {
-                                  ...(previewState.floatingPopup.config ?? {}),
-                                  layout: option.value,
-                                };
-                                return {
-                                  ...previewState,
-                                  floatingPopup: {
-                                    config,
-                                  },
-                                  layout: option.value,
-                                };
-                              });
-                            }}
-                            options={layoutOptions}
-                          />
-                        </Label>
-                      )}
+                      <Label className="mb-6">
+                        <div className="mb-2">{t("layout")}</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              const config = {
+                                ...(previewState.floatingPopup.config ?? {}),
+                                layout: option.value,
+                              };
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
