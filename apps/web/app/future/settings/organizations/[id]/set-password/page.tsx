@@ -1,10 +1,8 @@
 import OldPage from "@pages/settings/organizations/[id]/set-password";
 import { _generateMetadata } from "app/_utils";
-import { headers } from "next/headers";
+import { WithLayout } from "app/layoutHOC";
 
 import { WizardLayout } from "@calcom/ui";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -20,15 +18,4 @@ const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-const Page = () => {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  return (
-    <PageWrapper getLayout={LayoutWrapper} requiresLicense={false} nonce={nonce} themeBasis={null}>
-      <OldPage />
-    </PageWrapper>
-  );
-};
-
-export default Page;
+export default WithLayout({ Page: OldPage, getLayout: LayoutWrapper });
