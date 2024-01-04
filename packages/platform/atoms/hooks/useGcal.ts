@@ -12,7 +12,7 @@ export const useGcal = ({ isAuth }: useGcalProps) => {
 
   const redirectToGcalOAuth = () => {
     http
-      ?.get("/apps/gcal/oauth/auth-url")
+      ?.get("/platform/gcal/oauth/auth-url")
       .then(({ data: responseBody }) => {
         if (responseBody.data?.authUrl) {
           window.location.href = responseBody.data.authUrl;

@@ -6,14 +6,15 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
 import * as request from "supertest";
+import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
-describe("OAuth Gcal App Endpoints", () => {
+describe("Platform Gcal Endpoints", () => {
   let app: INestApplication;
 
   let oAuthClient: PlatformOAuthClient;
@@ -22,7 +23,9 @@ describe("OAuth Gcal App Endpoints", () => {
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let tokensRepositoryFixture: TokensRepositoryFixture;
+  let credentialsRepositoryFixture: CredentialsRepositoryFixture;
   let user: User;
+  let gcalCredentials: Credential;
   let accessTokenSecret: string;
   let refreshTokenSecret: string;
   beforeAll(async () => {
@@ -38,9 +41,10 @@ describe("OAuth Gcal App Endpoints", () => {
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
+    credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     organization = await teamRepositoryFixture.create({ name: "organization" });
     oAuthClient = await createOAuthClient(organization.id);
-    user = await userRepositoryFixture.createOAuthManagedUser("managed-user-e2e@gmail.com", oAuthClient.id);
+    user = await userRepositoryFixture.createOAuthManagedUser("gcal-connect@gmail.com", oAuthClient.id);
     const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClient.id);
     accessTokenSecret = tokens.accessToken;
     refreshTokenSecret = tokens.refreshToken;
@@ -69,16 +73,16 @@ describe("OAuth Gcal App Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`/GET/apps/gcal/oauth/auth-url: it should respond 401 with invalid access token`, async () => {
+  it(`/GET/platform/gcal/oauth/auth-url: it should respond 401 with invalid access token`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/apps/gcal/oauth/auth-url`)
+      .get(`/api/v2/platform/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer invalid_access_token`)
       .expect(401);
   });
 
-  it(`/GET/apps/gcal/oauth/auth-url: it should auth-url to google oauth with valid access token `, async () => {
+  it(`/GET/platform/gcal/oauth/auth-url: it should auth-url to google oauth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
-      .get(`/api/v2/apps/gcal/oauth/auth-url`)
+      .get(`/api/v2/platform/gcal/oauth/auth-url`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("origin", "http://localhost:5555")
       .expect(200);
@@ -86,33 +90,65 @@ describe("OAuth Gcal App Endpoints", () => {
     expect(data.authUrl).toBeDefined();
   });
 
-  it(`/GET/apps/gcal/oauth/save: without oauth code`, async () => {
+  it(`/GET/platform/gcal/oauth/save: without oauth code`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/apps/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3Dhttp://localhost:5555&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/platform/gcal/oauth/save?state=accessToken=${accessTokenSecret}&origin%3Dhttp://localhost:5555&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
 
-  it(`/GET/apps/gcal/oauth/save: without access token`, async () => {
+  it(`/GET/platform/gcal/oauth/save: without access token`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/apps/gcal/oauth/save?state=origin%3Dhttp://localhost:5555&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/platform/gcal/oauth/save?state=origin%3Dhttp://localhost:5555&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
   });
 
-  it(`/GET/apps/gcal/oauth/save: without origin`, async () => {
+  it(`/GET/platform/gcal/oauth/save: without origin`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/api/v2/apps/gcal/oauth/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
+        `/api/v2/platform/gcal/oauth/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=https://www.googleapis.com/auth/calendar.readonly%20https://www.googleapis.com/auth/calendar.events`
       )
       .expect(400);
+  });
+
+  it(`/GET/platform/gcal/check with access token`, async () => {
+    await request(app.getHttpServer())
+      .get(`/api/v2/platform/gcal/check`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .expect(400);
+  });
+
+  it(`/GET/platform/gcal/check without access token`, async () => {
+    await request(app.getHttpServer()).get(`/api/v2/platform/gcal/check`).expect(401);
+  });
+
+  it(`/GET/platform/gcal/check with access token but no credentials`, async () => {
+    await request(app.getHttpServer())
+      .get(`/api/v2/platform/gcal/check`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .expect(400);
+  });
+
+  it(`/GET/platform/gcal/check with access token and gcal credentials`, async () => {
+    gcalCredentials = await credentialsRepositoryFixture.create(
+      "google_calendar",
+      {},
+      user.id,
+      "google-calendar"
+    );
+    await request(app.getHttpServer())
+      .get(`/api/v2/platform/gcal/check`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .expect(200);
   });
 
   afterAll(async () => {
     await oauthClientRepositoryFixture.delete(oAuthClient.id);
     await teamRepositoryFixture.delete(organization.id);
+    await credentialsRepositoryFixture.delete(gcalCredentials.id);
     await userRepositoryFixture.deleteByEmail(user.email);
     await app.close();
   });
