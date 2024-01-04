@@ -1,7 +1,7 @@
+import { JwtService } from "@/modules/jwt/jwt.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import type { PlatformOAuthClient } from "@prisma/client";
 
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
@@ -18,7 +18,7 @@ export class OAuthClientRepository {
     return this.dbWrite.prisma.platformOAuthClient.create({
       data: {
         ...data,
-        secret: await this.jwtService.signAsync(JSON.stringify(data)),
+        secret: this.jwtService.sign(data),
         organizationId,
       },
     });

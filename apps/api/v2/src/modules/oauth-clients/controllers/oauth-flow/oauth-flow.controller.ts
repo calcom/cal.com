@@ -53,6 +53,17 @@ export class OAuthFlowController {
       throw new BadRequestException("Invalid 'redirect_uri' value.");
     }
 
+    const alreadyAuthorized = await this.tokensRepository.getAuthorizationTokenByClientUserIds(
+      clientId,
+      userId
+    );
+
+    if (alreadyAuthorized) {
+      throw new BadRequestException(
+        `User with id=${userId} has already authorized client with id=${clientId}.`
+      );
+    }
+
     const { id } = await this.tokensRepository.createAuthorizationToken(clientId, userId);
 
     return res.redirect(`${body.redirectUri}?code=${id}`);
@@ -65,13 +76,16 @@ export class OAuthFlowController {
     @Param("clientId") clientId: string,
     @Body() body: ExchangeAuthorizationCodeInput
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string }>> {
-    const bearerToken = authorization.replace("Bearer ", "").trim();
-    if (!bearerToken) {
+    const authorizeEndpointCode = authorization.replace("Bearer ", "").trim();
+    if (!authorizeEndpointCode) {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { accessToken: accessToken, refreshToken: refreshToken } =
-      await this.oAuthFlowService.exchangeAuthorizationToken(bearerToken, clientId, body.clientSecret);
+    const { accessToken, refreshToken } = await this.oAuthFlowService.exchangeAuthorizationToken(
+      authorizeEndpointCode,
+      clientId,
+      body.clientSecret
+    );
 
     return {
       status: SUCCESS_STATUS,

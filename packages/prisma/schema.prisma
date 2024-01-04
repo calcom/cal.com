@@ -1067,8 +1067,8 @@ model PlatformOAuthClient {
 model PlatformAuthorizationToken {
   id String @id @default(cuid())
 
-  owner  User                @relation(fields: [userId], references: [id])
-  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id])
+  owner  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client PlatformOAuthClient @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
 
   platformOAuthClientId String @map("platform_oauth_client_id")
   userId                Int    @map("user_id")
