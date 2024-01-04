@@ -19,6 +19,7 @@ import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -66,6 +67,7 @@ import {
   Trash,
   Upload,
   Users,
+  VenetianMask,
 } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -388,6 +390,8 @@ export const EventTypeList = ({
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${bookerUrl}/${embedLink}`;
+          const isPrivateURLEnabled = type.hashedLink?.link;
+          const placeholderHashedLink = `${CAL_URL}/d/${type.hashedLink?.link}/${type.slug}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
@@ -465,6 +469,20 @@ export const EventTypeList = ({
                                   }}
                                 />
                               </Tooltip>
+
+                              {isPrivateURLEnabled && (
+                                <Tooltip content={t("copy_link")}>
+                                  <Button
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon={VenetianMask}
+                                    onClick={() => {
+                                      showToast(t("private_link_copied"), "success");
+                                      navigator.clipboard.writeText(placeholderHashedLink);
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                             </>
                           )}
                           <Dropdown modal={false}>
