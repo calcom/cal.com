@@ -32,7 +32,8 @@ class MyDocument extends Document<Props> {
 
     const newLocale =
       ctx.req && getLocaleModule
-        ? await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
         : "en";
 
     const asPath = ctx.asPath || "";
@@ -87,7 +88,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-darkgray-50 desktop-transparent bg-subtle antialiased"
+          className="dark:bg-darkgray-50 todesktop:!bg-transparent bg-subtle antialiased"
           style={
             isEmbed
               ? {
