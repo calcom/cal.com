@@ -55,7 +55,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0" data-testid={weekday}>
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>

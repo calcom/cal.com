@@ -41,16 +41,15 @@ export function createEventTypeFixture(page: Page) {
       const saturday = (await localize("en"))("saturday");
       const save = (await localize("en"))("save");
       const copyTimesTo = (await localize("en"))("copy_times_to");
-      const availabilityUpdatedSuccessfully = (await localize("en"))("availability_updated_successfully");
 
       await page.getByTestId("availablity-title").click();
       // change availability name
       await page.getByTestId("availablity-title").fill("Working Hours test");
       await expect(page.getByTestId("subtitle")).toBeVisible();
-      await page.locator("label").filter({ hasText: sunday }).getByRole("switch").click();
-      await page.locator("div").filter({ hasText: monday }).first().click();
-      await page.locator("label").filter({ hasText: wednesday }).getByRole("switch").click();
-      await page.locator("label").filter({ hasText: saturday }).getByRole("switch").click();
+      await page.getByTestId(sunday).getByRole("switch").click();
+      await page.getByTestId(monday).first().click();
+      await page.getByTestId(wednesday).getByRole("switch").click();
+      await page.getByTestId(saturday).getByRole("switch").click();
       await page
         .locator("div")
         .filter({ hasText: "Sunday9:00am - 5:00pm" })
