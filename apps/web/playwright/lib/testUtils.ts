@@ -6,13 +6,14 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
-import type { API, Messages } from "mailhog";
+import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
+import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
 import { test } from "./fixtures";
 
@@ -218,11 +219,15 @@ export async function getEmailsReceivedByUser({
   emails,
   userEmail,
 }: {
-  emails?: API;
+  emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
 }): Promise<Messages | null> {
   if (!emails) return null;
-  return emails.search(userEmail, "to");
+  const matchingEmails = await emails.search(userEmail, "to");
+  if (!matchingEmails?.total) {
+    console.log(`No emails received by ${userEmail}`);
+  }
+  return matchingEmails;
 }
 
 export async function expectEmailsToHaveSubject({
@@ -231,7 +236,7 @@ export async function expectEmailsToHaveSubject({
   booker,
   eventTitle,
 }: {
-  emails?: API;
+  emails?: ReturnType<typeof createEmailsFixture>;
   organizer: { name?: string | null; email: string };
   booker: { name: string; email: string };
   eventTitle: string;

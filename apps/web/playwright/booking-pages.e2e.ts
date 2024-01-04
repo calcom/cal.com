@@ -29,7 +29,10 @@ test.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
-    const bookerObj = { email: `testEmail-${randomString(4)}@example.com`, name: "testBooker" };
+    const bookerObj = {
+      email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
+      name: "testBooker",
+    };
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
