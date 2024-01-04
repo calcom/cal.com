@@ -440,7 +440,7 @@ describe("handleSeats", () => {
                     email: "seat1@test.com",
                     // Booker's locale when the fresh booking happened earlier
                     locale: "en",
-                    // Booker's timezone when the fresh booking happened earlier
+
                     timeZone: "America/Toronto",
                     bookingSeat: {
                       referenceUid: "booking-seat-1",
@@ -570,7 +570,7 @@ describe("handleSeats", () => {
                     email: "seat1@example.com",
                     // Booker's locale when the fresh booking happened earlier
                     locale: "en",
-                    // Booker's timezone when the fresh booking happened earlier
+
                     timeZone: "America/Toronto",
                     bookingSeat: {
                       referenceUid: "booking-seat-1",
@@ -614,6 +614,413 @@ describe("handleSeats", () => {
         });
 
         await expect(() => handleNewBooking(req)).rejects.toThrowError("Already signed up for this booking.");
+      });
+    });
+
+    describe("Rescheduling a booking", () => {
+      test("When rescheduling to an existing booking, move attendee", async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+        const booker = getBooker({
+          email: "seat2@example.com",
+          name: "Seat 2",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00.000Z`;
+        const firstBookingUid = "abc123";
+        const firstBookingId = 1;
+
+        const secondBookingUid = "def456";
+        const secondBookingId = 2;
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+
+        const attendeeToReschedule = getMockBookingAttendee({
+          id: 2,
+          name: "Seat 2",
+          email: "seat2@test.com",
+          locale: "en",
+
+          timeZone: "America/Toronto",
+          bookingSeat: {
+            referenceUid: "booking-seat-2",
+            data: {},
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: firstBookingId,
+                slug: "seated-event",
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                seatsPerTimeSlot: 3,
+                seatsShowAttendees: false,
+              },
+            ],
+            bookings: [
+              {
+                id: 1,
+                uid: firstBookingUid,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: firstBookingStartTime,
+                endTime: secondBookingEndTime,
+                metadata: {
+                  videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                },
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: "Seat 1",
+                    email: "seat1@test.com",
+                    // Booker's locale when the fresh booking happened earlier
+                    locale: "en",
+
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-1",
+                      data: {},
+                    },
+                  }),
+                  attendeeToReschedule,
+                ],
+              },
+              {
+                id: secondBookingId,
+                uid: secondBookingUid,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: secondBookingStartTime,
+                endTime: `${plus2DateString}T05:15:00.000Z`,
+                metadata: {
+                  videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                },
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 3,
+                    name: "Seat 3",
+                    email: "seat3@test.com",
+                    // Booker's locale when the fresh booking happened earlier
+                    locale: "en",
+
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-3",
+                      data: {},
+                    },
+                  }),
+                ],
+              },
+            ],
+            organizer,
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const reqBookingUser = "seatedAttendee";
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            rescheduleUid: "booking-seat-2",
+            start: secondBookingStartTime,
+            end: secondBookingEndTime,
+            user: reqBookingUser,
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        await handleNewBooking(req);
+
+        // Ensure that the attendee is no longer a part of the old booking
+        const oldBookingAttendees = await prismaMock.attendee.findMany({
+          where: {
+            bookingId: firstBookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(oldBookingAttendees).not.toContain({ id: attendeeToReschedule.id });
+        expect(oldBookingAttendees).toHaveLength(1);
+
+        // Ensure that the attendee is a part of the new booking
+        const newBookingAttendees = await prismaMock.attendee.findMany({
+          where: {
+            bookingId: secondBookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(newBookingAttendees).toContainEqual({ id: attendeeToReschedule.id });
+        expect(newBookingAttendees).toHaveLength(2);
+
+        // Ensure that the attendeeSeat is also updated to the new booking
+        const attendeeSeat = await prismaMock.bookingSeat.findFirst({
+          where: {
+            attendeeId: attendeeToReschedule.id,
+          },
+          select: {
+            bookingId: true,
+          },
+        });
+
+        expect(attendeeSeat?.bookingId).toEqual(secondBookingId);
+      });
+
+      test("When rescheduling to an empty timeslot, create a new booking", async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+        const booker = getBooker({
+          email: "seat2@example.com",
+          name: "Seat 2",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00.000Z`;
+        const firstBookingUid = "abc123";
+        const firstBookingId = 1;
+
+        const secondBookingUid = "def456";
+        const secondBookingId = 2;
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+
+        const attendeeToReschedule = getMockBookingAttendee({
+          id: 2,
+          name: "Seat 2",
+          email: "seat2@test.com",
+          locale: "en",
+
+          timeZone: "America/Toronto",
+          bookingSeat: {
+            referenceUid: "booking-seat-2",
+            data: {},
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: firstBookingId,
+                slug: "seated-event",
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                seatsPerTimeSlot: 3,
+                seatsShowAttendees: false,
+              },
+            ],
+            bookings: [
+              {
+                id: 1,
+                uid: firstBookingUid,
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: firstBookingStartTime,
+                endTime: secondBookingEndTime,
+                metadata: {
+                  videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                },
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: "Seat 1",
+                    email: "seat1@test.com",
+                    // Booker's locale when the fresh booking happened earlier
+                    locale: "en",
+
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-1",
+                      data: {},
+                    },
+                  }),
+                  attendeeToReschedule,
+                ],
+              },
+              // {
+              //   id: secondBookingId,
+              //   uid: secondBookingUid,
+              //   eventTypeId: 1,
+              //   status: BookingStatus.ACCEPTED,
+              //   startTime: secondBookingStartTime,
+              //   endTime: `${plus2DateString}T05:15:00.000Z`,
+              //   metadata: {
+              //     videoCallUrl: "https://existing-daily-video-call-url.example.com",
+              //   },
+              //   references: [
+              //     {
+              //       type: appStoreMetadata.dailyvideo.type,
+              //       uid: "MOCK_ID",
+              //       meetingId: "MOCK_ID",
+              //       meetingPassword: "MOCK_PASS",
+              //       meetingUrl: "http://mock-dailyvideo.example.com",
+              //       credentialId: null,
+              //     },
+              //   ],
+              //   attendees: [
+              //     getMockBookingAttendee({
+              //       id: 3,
+              //       name: "Seat 3",
+              //       email: "seat3@test.com",
+              //       // Booker's locale when the fresh booking happened earlier
+              //       locale: "en",
+
+              //       timeZone: "America/Toronto",
+              //       bookingSeat: {
+              //         referenceUid: "booking-seat-3",
+              //         data: {},
+              //       },
+              //     }),
+              //   ],
+              // },
+            ],
+            organizer,
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const reqBookingUser = "seatedAttendee";
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            rescheduleUid: "booking-seat-2",
+            start: secondBookingStartTime,
+            end: secondBookingEndTime,
+            user: reqBookingUser,
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const createdBooking = await handleNewBooking(req);
+
+        // Ensure that the attendee is no longer a part of the old booking
+        const oldBookingAttendees = await prismaMock.attendee.findMany({
+          where: {
+            bookingId: firstBookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(oldBookingAttendees).not.toContain({ id: attendeeToReschedule.id });
+        expect(oldBookingAttendees).toHaveLength(1);
+
+        expect(createdBooking.id).not.toEqual(firstBookingId);
+
+        const attendees = await prismaMock.attendee.findMany({});
+
+        // Ensure that the attendeeSeat is also updated to the new booking
+        const attendeeSeat = await prismaMock.bookingSeat.findFirst({
+          where: {
+            email: booker.email,
+          },
+          select: {
+            bookingId: true,
+          },
+        });
+
+        expect(attendeeSeat?.bookingId).toEqual(createdBooking.id);
       });
     });
   });

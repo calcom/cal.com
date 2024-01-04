@@ -1139,7 +1139,7 @@ async function handler(
 
   let originalRescheduledBooking: BookingType = null;
 
-  //this gets the orginal rescheduled booking
+  //this gets the original rescheduled booking
   if (rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
     bookingSeat = await prisma.bookingSeat.findUnique({
