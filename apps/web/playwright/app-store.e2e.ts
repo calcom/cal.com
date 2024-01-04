@@ -8,6 +8,33 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("App Store - Authed", () => {
+  test("should point to the /future/apps/", async ({ page, users, context }) => {
+    await context.addCookies([
+      {
+        name: "x-calcom-future-routes-override",
+        value: "1",
+        url: "http://localhost:3000",
+      },
+    ]);
+    const user = await users.create();
+
+    await user.apiLogin();
+
+    await page.goto("/apps/");
+
+    await page.waitForLoadState();
+
+    const dataNextJsRouter = await page.evaluate(() =>
+      window.document.documentElement.getAttribute("data-nextjs-router")
+    );
+
+    expect(dataNextJsRouter).toEqual("app");
+
+    const locator = page.getByRole("heading", { name: "App Store" });
+
+    await expect(locator).toBeVisible();
+  });
+
   test("Browse apple-calendar and try to install", async ({ page, users }) => {
     const pro = await users.create();
     await pro.apiLogin();
