@@ -1,3 +1,3 @@
 import { WithLayout } from "app/layoutHOC";
 
-export default WithLayout({ getLayout: null });
+export default WithLayout({ getLayout: null })<"L">;

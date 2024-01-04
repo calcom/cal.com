@@ -33,4 +33,4 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
 }
 
 // @ts-expect-error getData arg
-export default WithLayout({ getData, getLayout, Page: OldPage });
+export default WithLayout({ getData, getLayout, Page: OldPage })<"P">;

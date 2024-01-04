@@ -42,4 +42,4 @@ async function getPageProps() {
   };
 }
 
-export default WithLayout({ getData: getPageProps, Page: LegacyPage, getLayout: null });
+export default WithLayout({ getData: getPageProps, Page: LegacyPage, getLayout: null })<"P">;
