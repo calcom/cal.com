@@ -62,7 +62,7 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     if (organizationSettings || existingOrg.organizationSettings) {
       await prisma.organizationSettings.update({
         where: {
-          teamId: updatedOrganisation.id,
+          organizationId: updatedOrganisation.id,
         },
         data: {
           isOrganizationConfigured:

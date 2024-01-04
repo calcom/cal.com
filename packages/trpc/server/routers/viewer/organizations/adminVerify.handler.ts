@@ -40,7 +40,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   await prisma.organizationSettings.update({
     where: {
-      teamId: input.orgId,
+      organizationId: input.orgId,
     },
     data: {
       isOrganizationVerified: true,
