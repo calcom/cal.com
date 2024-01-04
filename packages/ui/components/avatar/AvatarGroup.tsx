@@ -31,6 +31,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
       {displayedAvatars.map((item, idx) => (
         <li key={idx} className="-mr-[4px] inline-block">
           <Avatar
+            data-testid="avatar"
             className="border-subtle"
             imageSrc={item.image}
             title={item.title}
