@@ -3,6 +3,7 @@ import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsContext } from "next";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -12,12 +13,27 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { trpc } from "@calcom/trpc/react";
 
-export const generateMetadata = async () =>
-  await _generateMetadata(
-    (t) => t("appearance"),
-    (t) => t("appearance_description")
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
+  // @ts-expect-error getPageProps arg
+  const pageProps = await getPageProps(buildLegacyCtx(headers(), cookies(), params));
+
+  const { entity, booking, user, slug, isTeamEvent } = pageProps;
+  const rescheduleUid = booking?.uid;
+  const { data: event } = trpc.viewer.public.event.useQuery(
+    { username: user, eventSlug: slug, isTeamEvent, org: entity.orgSlug ?? null },
+    { refetchOnWindowFocus: false }
   );
+  const profileName = event?.profile?.name ?? "";
+  const title = event?.title ?? "";
+  return await _generateMetadata(
+    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
+  );
+};
 
 async function getPageProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit();
