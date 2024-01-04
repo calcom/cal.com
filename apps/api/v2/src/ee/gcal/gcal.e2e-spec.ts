@@ -14,7 +14,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 
-describe("OAuth Atom Gcal Connect Endpoints", () => {
+describe("Platform Gcal Endpoints", () => {
   let app: INestApplication;
 
   let oAuthClient: PlatformOAuthClient;

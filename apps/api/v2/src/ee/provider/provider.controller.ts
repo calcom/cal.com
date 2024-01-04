@@ -24,7 +24,7 @@ import { ApiResponse } from "@calcom/platform-types";
   version: "2",
 })
 export class CalProviderController {
-  private readonly logger = new Logger("Cal Provider Controller");
+  private readonly logger = new Logger("Platform Provider Controller");
 
   constructor(
     private readonly tokensRepository: TokensRepository,
