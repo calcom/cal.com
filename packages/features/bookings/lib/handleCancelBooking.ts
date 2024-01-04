@@ -116,6 +116,8 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       scheduledJobs: true,
       seatsReferences: true,
       responses: true,
+      iCalUID: true,
+      iCalSequence: true,
     },
   });
 }
@@ -265,6 +267,8 @@ async function handler(req: CustomRequest) {
     }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
+    iCalUID: bookingToDelete.iCalUID,
+    iCalSequence: bookingToDelete.iCalSequence + 1,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -391,6 +395,8 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        // Assume that canceling the booking is the last action
+        iCalSequence: evt.iCalSequence || 100,
       },
       select: {
         startTime: true,

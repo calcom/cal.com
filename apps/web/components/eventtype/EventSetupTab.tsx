@@ -357,7 +357,6 @@ export const EventSetupTab = (
             <div className="flex">
               <LocationSelect
                 defaultMenuIsOpen={showEmptyLocationSelect}
-                autoFocus
                 placeholder={t("select")}
                 options={locationOptions}
                 value={selectedNewOption}

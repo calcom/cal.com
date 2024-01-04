@@ -1,6 +1,7 @@
 import type { App, Attendee, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import async from "async";
+import type { IncomingMessage } from "http";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -25,6 +26,7 @@ import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -36,6 +38,7 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -58,6 +61,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -67,7 +71,6 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
@@ -272,6 +275,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
+          parentId: true,
         },
       },
       bookingFields: true,
@@ -369,21 +373,16 @@ type IsFixedAwareUser = User & {
   organization: { slug: string };
 };
 
-const loadUsers = async (
-  eventType: NewBookingEventType,
-  dynamicUserList: string[],
-  reqHeadersHost: string | undefined
-) => {
+const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
   try {
     if (!eventType.id) {
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
-
       const users = await prisma.user.findMany({
         where: {
           username: { in: dynamicUserList },
-          organization: userOrgQuery(reqHeadersHost ? reqHeadersHost.replace(/^https?:\/\//, "") : ""),
+          organization: userOrgQuery(req),
         },
         select: {
           ...userSelect.select,
@@ -416,7 +415,7 @@ const loadUsers = async (
   }
 };
 
-async function ensureAvailableUsers(
+export async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: IsFixedAwareUser[];
   },
@@ -550,7 +549,7 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-async function getBookingData({
+export async function getBookingData({
   req,
   isNotAnApiCall,
   eventType,
@@ -716,6 +715,7 @@ async function createBooking({
     },
     dynamicEventSlugRef,
     dynamicGroupSlugRef,
+    iCalUID: evt.iCalUID ?? "",
     user: {
       connect: {
         id: organizerUser.id,
@@ -791,7 +791,7 @@ async function createBooking({
   return prisma.booking.create(createBookingObj);
 }
 
-function getCustomInputsResponses(
+export function getCustomInputsResponses(
   reqBody: {
     responses?: Record<string, object>;
     customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
@@ -820,6 +820,21 @@ function getCustomInputsResponses(
   }
 
   return customInputsResponses;
+}
+
+function getICalSequence(originalRescheduledBooking: BookingType | null) {
+  // If new booking set the sequence to 0
+  if (!originalRescheduledBooking) {
+    return 0;
+  }
+
+  // If rescheduling and there is no sequence set, assume sequence should be 1
+  if (!originalRescheduledBooking.iCalSequence) {
+    return 1;
+  }
+
+  // If rescheduling then increment sequence by 1
+  return originalRescheduledBooking.iCalSequence + 1;
 }
 
 async function handler(
@@ -950,7 +965,7 @@ async function handler(
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req.headers.host);
+  })[] = await loadUsers(eventType, dynamicUserList, req);
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
@@ -1269,8 +1284,17 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
+  const iCalUID = getICalUID({
+    event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },
+    uid,
+  });
+  // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
+  const iCalSequence = getICalSequence(originalRescheduledBooking);
+
   let evt: CalendarEvent = {
-    bookerUrl: await getBookerUrl(organizerUser),
+    bookerUrl: eventType.team
+      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
+      : await getBookerBaseUrl(organizerUser),
     type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -1305,6 +1329,8 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
+    iCalUID,
+    iCalSequence,
   };
 
   if (req.body.thirdPartyRecurringEventId) {
@@ -1415,6 +1441,12 @@ async function handler(
     teamId,
   };
 
+  const subscriberOptionsMeetingStarted = {
+    userId: triggerForUser ? organizerUser.id : null,
+    eventTypeId,
+    triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+    teamId,
+  };
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
@@ -2518,6 +2550,18 @@ async function handler(
         evt.appsStatus = handleAppsStatus(results, booking);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+
+        if (evt.iCalUID !== booking.iCalUID) {
+          // The eventManager could change the iCalUID. At this point we can update the DB record
+          await prisma.booking.update({
+            where: {
+              id: booking.id,
+            },
+            data: {
+              iCalUID: evt.iCalUID || booking.iCalUID,
+            },
+          });
+        }
       }
       if (noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;
@@ -2682,13 +2726,28 @@ async function handler(
   if (isConfirmedByDefault) {
     try {
       const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
       subscribersMeetingEnded.forEach((subscriber) => {
         if (rescheduleUid && originalRescheduledBooking) {
           cancelScheduledJobs(originalRescheduledBooking, undefined, true);
         }
         if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        }
+      });
+
+      subscribersMeetingStarted.forEach((subscriber) => {
+        if (rescheduleUid && originalRescheduledBooking) {
+          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+        }
+        if (booking && booking.status === BookingStatus.ACCEPTED) {
+          scheduleTrigger(
+            booking,
+            subscriber.subscriberUrl,
+            subscriber,
+            WebhookTriggerEvents.MEETING_STARTED
+          );
         }
       });
     } catch (error) {
@@ -2749,15 +2808,21 @@ async function handler(
   }
 
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
+  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+
+  await scheduleMandatoryReminder(
+    evtWithMetadata,
+    eventType.workflows || [],
+    !isConfirmedByDefault,
+    !!eventType.owner?.hideBranding,
+    evt.attendeeSeatId
+  );
 
   try {
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: {
-        ...evt,
-        ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
-      },
+      calendarEvent: evtWithMetadata,
       isNotConfirmed: !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,

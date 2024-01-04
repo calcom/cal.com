@@ -6,6 +6,20 @@ import { isENVDev } from "@calcom/lib/env";
 import { getAdditionalEmailHeaders } from "./getAdditionalEmailHeaders";
 
 function detectTransport(): SendmailTransport.Options | SMTPConnection.Options | string {
+  if (process.env.RESEND_API_KEY) {
+    const transport = {
+      host: "smtp.resend.com",
+      secure: true,
+      port: 465,
+      auth: {
+        user: "resend",
+        pass: process.env.RESEND_API_KEY,
+      },
+    };
+
+    return transport;
+  }
+
   if (process.env.EMAIL_SERVER) {
     return process.env.EMAIL_SERVER;
   }
