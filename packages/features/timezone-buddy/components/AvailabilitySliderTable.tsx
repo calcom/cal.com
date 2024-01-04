@@ -130,7 +130,7 @@ export function AvailabilitySliderTable() {
         id: "slider",
         header: () => {
           return (
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
               <ButtonGroup containerProps={{ className: "space-x-0" }}>
                 <Button
                   color="minimal"
@@ -145,7 +145,7 @@ export function AvailabilitySliderTable() {
                   variant="icon"
                 />
               </ButtonGroup>
-              <span>{browsingDate.format("DD dddd MMM, YYYY")}</span>
+              <span>{browsingDate.format("LL")}</span>
             </div>
           );
         },
@@ -192,8 +192,9 @@ export function AvailabilitySliderTable() {
         browsingDate: browsingDate.toDate(),
       })}>
       <>
-        <div className="relative">
+        <div className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6">
           <DataTable
+            variant="compact"
             searchKey="member"
             tableContainerRef={tableContainerRef}
             columns={memorisedColumns}
