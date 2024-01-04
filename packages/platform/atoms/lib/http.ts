@@ -34,7 +34,7 @@ const http = (function () {
     getAuthorizationHeader: () => {
       return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
     },
-    refreshTokens: async (refreshUrl: string) => {
+    refreshTokens: async (refreshUrl: string): Promise<string> => {
       const response = await fetch(`${refreshUrl}`, {
         method: "GET",
         headers: {

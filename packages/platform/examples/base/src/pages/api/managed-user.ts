@@ -11,7 +11,7 @@ type Data = {
   accessToken: string;
 };
 
-// endpoint to create a manated user cal.com user
+// example endpoint to create a managed cal.com user
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const { email } = JSON.parse(req.body);
 
@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   });
   const response = await fetch(
     // eslint-disable-next-line turbo/no-undeclared-env-vars
-    `http://localhost:5555/api/v2/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
+    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth-clients/${process.env.NEXT_PUBLIC_X_CAL_ID}/users`,
     {
       method: "POST",
       headers: {

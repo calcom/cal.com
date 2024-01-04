@@ -17,6 +17,7 @@ export interface IAtomsContext {
   isRefreshing?: boolean;
   isAuth: boolean;
   isValidClient: boolean;
+  isInit: boolean;
 }
 
 export const AtomsContext = createContext({

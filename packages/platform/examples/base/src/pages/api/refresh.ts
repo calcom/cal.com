@@ -9,7 +9,7 @@ type Data = {
   accessToken: string;
 };
 
-// endpoint called by the client to refresh the access token of cal.com managed user
+// example endpoint called by the client to refresh the access token of cal.com managed user
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const authHeader = req.headers.authorization;
 
@@ -24,7 +24,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (localUser?.refreshToken) {
       const response = await fetch(
         // eslint-disable-next-line turbo/no-undeclared-env-vars
-        `http://localhost:5555/api/v2/oauth/${process.env.NEXT_PUBLIC_X_CAL_ID ?? ""}/refresh`,
+        `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth/${
+          // eslint-disable-next-line turbo/no-undeclared-env-vars
+          process.env.NEXT_PUBLIC_X_CAL_ID ?? ""
+        }/refresh`,
         {
           method: "POST",
           headers: {
