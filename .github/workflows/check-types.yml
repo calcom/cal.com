@@ -2,7 +2,7 @@ name: Check types
 on:
   workflow_call:
 env:
-  NODE_OPTIONS: "--max-old-space-size=8192"
+  NODE_OPTIONS: --max-old-space-size=4096
 jobs:
   check-types:
     runs-on: buildjet-4vcpu-ubuntu-2204

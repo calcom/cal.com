@@ -4,9 +4,6 @@ on:
   pull_request_target:
     branches:
       - main
-    paths-ignore:
-      - "**.md"
-      - ".github/CODEOWNERS"
   merge_group:
   workflow_dispatch:
 
@@ -15,36 +12,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    permissions:
+      pull-requests: read
+    outputs:
+      has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            has-files-requiring-all-checks:
+              - "!(**.md|.github/CODEOWNERS)"
   type-check:
     name: Type check
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   test:
     name: Unit tests
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   lint:
     name: Linters
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   build:
     name: Production build
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
   analyze:
-    needs: build
+    name: Analyze Build
+    needs: [changes, build]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
   required:
-    needs: [lint, type-check, test, build]
+    needs: [changes, lint, type-check, test, build]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled')
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
