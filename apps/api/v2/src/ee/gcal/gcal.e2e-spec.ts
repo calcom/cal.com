@@ -73,25 +73,25 @@ describe("OAuth Atom Gcal Connect Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`/GET/atoms/gcal-connect/check with access token`, async () => {
+  it(`/GET/platform/gcal/check with access token`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/atoms/gcal-connect/check`)
+      .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .expect(400);
   });
 
-  it(`/GET/atoms/gcal-connect/check without access token`, async () => {
-    await request(app.getHttpServer()).get(`/api/v2/atoms/gcal-connect/check`).expect(401);
+  it(`/GET/platform/gcal/check without access token`, async () => {
+    await request(app.getHttpServer()).get(`/api/v2/platform/gcal/check`).expect(401);
   });
 
-  it(`/GET/atoms/gcal-connect/check with access token but no credentials`, async () => {
+  it(`/GET/platform/gcal/check with access token but no credentials`, async () => {
     await request(app.getHttpServer())
-      .get(`/api/v2/atoms/gcal-connect/check`)
+      .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .expect(400);
   });
 
-  it(`/GET/atoms/gcal-connect/check with access token and gcal credentials`, async () => {
+  it(`/GET/platform/gcal/check with access token and gcal credentials`, async () => {
     gcalCredentials = await credentialsRepositoryFixture.create(
       "google_calendar",
       {},
@@ -99,7 +99,7 @@ describe("OAuth Atom Gcal Connect Endpoints", () => {
       "google-calendar"
     );
     await request(app.getHttpServer())
-      .get(`/api/v2/atoms/gcal-connect/check`)
+      .get(`/api/v2/platform/gcal/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .expect(200);
   });

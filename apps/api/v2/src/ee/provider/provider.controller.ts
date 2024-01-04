@@ -20,11 +20,11 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "atoms/cal-provider",
+  path: "platform/provider",
   version: "2",
 })
 export class CalProviderController {
-  private readonly logger = new Logger("CalProviderController");
+  private readonly logger = new Logger("Cal Provider Controller");
 
   constructor(
     private readonly tokensRepository: TokensRepository,

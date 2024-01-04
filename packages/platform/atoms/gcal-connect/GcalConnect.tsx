@@ -6,7 +6,6 @@ import { CalendarDays } from "@calcom/ui/components/icon";
 
 import { useAtomsContext } from "../cal-provider/useProvider";
 import { useGcal } from "../hooks/useGcal";
-import http from "../lib/http";
 
 interface GcalConnectProps {
   className?: string;
@@ -21,7 +20,7 @@ export const GcalConnect: FC<GcalConnectProps> = ({
 }) => {
   const { isAuth } = useAtomsContext();
 
-  const { allowConnect, checked } = useGcal({ isAuth });
+  const { allowConnect, checked, redirectToGcalOAuth } = useGcal({ isAuth });
 
   if (!isAuth || !checked) return <></>;
 
@@ -31,16 +30,7 @@ export const GcalConnect: FC<GcalConnectProps> = ({
       color="primary"
       disabled={!allowConnect}
       className={cn("", className)}
-      onClick={() =>
-        http
-          ?.get("/apps/gcal/oauth/auth-url")
-          .then(({ data: responseBody }) => {
-            if (responseBody.data?.authUrl) {
-              window.location.href = responseBody.data.authUrl;
-            }
-          })
-          .catch(console.error)
-      }>
+      onClick={() => redirectToGcalOAuth()}>
       {allowConnect ? label : alreadyConnectedLabel}
     </Button>
   );

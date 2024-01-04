@@ -1,5 +1,4 @@
-import { CalProviderController } from "@/ee/atoms/controllers/cal-provider/cal-provider.controller";
-import { GcalConnectController } from "@/ee/atoms/controllers/gcal-connect/gcal-connect.controller";
+import { GcalController } from "@/ee/gcal/gcal.controller";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -9,6 +8,6 @@ import { Module } from "@nestjs/common";
 @Module({
   imports: [PrismaModule, TokensModule, OAuthClientModule],
   providers: [CredentialsRepository],
-  controllers: [CalProviderController, GcalConnectController],
+  controllers: [GcalController],
 })
-export class AtomsModule {}
+export class GcalModule {}

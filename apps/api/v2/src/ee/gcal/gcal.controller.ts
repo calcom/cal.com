@@ -15,11 +15,11 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "atoms/gcal-connect",
+  path: "platform/gcal",
   version: "2",
 })
-export class GcalConnectController {
-  private readonly logger = new Logger("GcalConnectProvider");
+export class GcalController {
+  private readonly logger = new Logger("Platform Gcal Provider");
 
   constructor(private readonly credentialRepository: CredentialsRepository) {}
 

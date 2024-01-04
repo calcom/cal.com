@@ -51,7 +51,7 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError }: use
       http.setAuthorizationHeader(accessToken);
       try {
         http
-          .get<ApiResponse>(`/atoms/cal-provider/${clientId}/access-token`)
+          .get<ApiResponse>(`/platform/provider/${clientId}/access-token`)
           .catch(async (err: AxiosError) => {
             if (err.response?.status === 401) onError?.("Invalid Access Token.");
 

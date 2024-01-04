@@ -40,7 +40,7 @@ export class TokensRepository {
   }
 
   async createOAuthTokens(clientId: string, ownerId: number) {
-    const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
+    const accessExpiry = DateTime.now().plus({ minute: 1 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.create({
@@ -93,7 +93,7 @@ export class TokensRepository {
   }
 
   async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {
-    const accessExpiry = DateTime.now().plus({ days: 1 }).startOf("day").toJSDate();
+    const accessExpiry = DateTime.now().plus({ minute: 1 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -21,7 +21,7 @@ import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE, GOOGLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { ApiRedirectResponseType, ApiResponse } from "@calcom/platform-types";
 
 const CALENDAR_SCOPES = [
@@ -80,6 +80,7 @@ export class GoogleCalendarOAuthController {
       .parse({ accessToken: stateParams.get("accessToken"), origin: stateParams.get("origin") });
 
     // User chose not to authorize your app or didn't authorize your app
+    // redirect directly without oauth code
     if (!code) {
       return { url: origin };
     }
@@ -106,10 +107,9 @@ export class GoogleCalendarOAuthController {
     const token = await oAuth2Client.getToken(parsedCode);
     const key = token.res?.data;
     const credential = await this.credentialRepository.createAppCredential(
-      "google_calendar",
+      GOOGLE_CALENDAR_TYPE,
       key,
-      ownerId,
-      "google-calendar"
+      ownerId
     );
 
     oAuth2Client.setCredentials(key);
@@ -128,7 +128,7 @@ export class GoogleCalendarOAuthController {
         primaryCal.id,
         credential.id,
         ownerId,
-        "google_calendar"
+        GOOGLE_CALENDAR_ID
       );
     }
 
