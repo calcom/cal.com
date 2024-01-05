@@ -108,7 +108,7 @@ const dynamicEvent = {
   slug: "dynamic",
   title: "Group Meeting",
   eventName: "Group Meeting",
-  description: "Let's have a meeting with multiple people",
+  description: "Join us for a meeting with multiple people",
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
