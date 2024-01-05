@@ -149,11 +149,7 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
-              <Button
-                type="submit"
-                onClick={verifyCode}
-                loading={isLoading}
-                disabled={!/^\d{6}$/.test(value.trim()) || hasVerified || error !== ""}>
+              <Button type="submit" onClick={verifyCode} loading={isLoading}>
                 {t("submit")}
               </Button>
             </DialogFooter>
