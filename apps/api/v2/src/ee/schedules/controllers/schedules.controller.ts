@@ -21,10 +21,7 @@ export class SchedulesController {
     @GetUser("id") userId: number,
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<ApiResponse> {
-    const schedule = await this.schedulesService.createScheduleWithDefaultAvailabilities(
-      userId,
-      bodySchedule
-    );
+    const schedule = await this.schedulesService.createScheduleWithDefaultAvailability(userId, bodySchedule);
 
     return {
       status: SUCCESS_STATUS,

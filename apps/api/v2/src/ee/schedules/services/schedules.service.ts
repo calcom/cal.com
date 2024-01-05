@@ -10,7 +10,7 @@ export class SchedulesService {
     private readonly availabilitiesService: AvailabilitiesService
   ) {}
 
-  async createScheduleWithDefaultAvailabilities(userId: number, schedule: CreateScheduleInput) {
+  async createScheduleWithDefaultAvailability(userId: number, schedule: CreateScheduleInput) {
     const defaultAvailability = this.availabilitiesService.getDefaultAvailability();
 
     const createdSchedule = await this.schedulesRepository.createScheduleWithAvailability(
