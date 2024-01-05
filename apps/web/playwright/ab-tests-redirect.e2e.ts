@@ -166,4 +166,31 @@ test.describe("apps/ A/B tests", () => {
 
     await expect(locator).toHaveClass(/bg-emphasis/);
   });
+
+  test("should point to the /future/getting-started", async ({ page, users, context }) => {
+    await context.addCookies([
+      {
+        name: "x-calcom-future-routes-override",
+        value: "1",
+        url: "http://localhost:3000",
+      },
+    ]);
+    const user = await users.create({ completedOnboarding: false, name: null });
+
+    await user.apiLogin();
+
+    await page.goto("/getting-started/connected-calendar");
+
+    await page.waitForLoadState();
+
+    const dataNextJsRouter = await page.evaluate(() =>
+      window.document.documentElement.getAttribute("data-nextjs-router")
+    );
+
+    expect(dataNextJsRouter).toEqual("app");
+
+    const locator = page.getByText("Apple Calendar");
+
+    await expect(locator).toBeVisible();
+  });
 });
