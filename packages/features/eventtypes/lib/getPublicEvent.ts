@@ -176,7 +176,6 @@ export const getPublicEvent = async (
 
     return {
       ...defaultEvent,
-      description: getDynamicEventDescription(users.map((user) => user.name)),
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
       users: users.map((user) => ({
