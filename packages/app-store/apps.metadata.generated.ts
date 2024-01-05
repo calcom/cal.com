@@ -42,10 +42,12 @@ import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
+import pipedrive_crm_config_json from "./pipedrive-crm/config.json";
 import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
+import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
@@ -119,10 +121,12 @@ export const appStoreMetadata = {
   paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
+  "pipedrive-crm": pipedrive_crm_config_json,
   plausible: plausible_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,
+  roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   sendgrid: sendgrid_config_json,

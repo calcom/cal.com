@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Booking" ADD COLUMN     "iCalSequence" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "iCalUID" TEXT DEFAULT '';

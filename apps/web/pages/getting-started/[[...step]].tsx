@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -105,7 +106,12 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]"
+      className={classNames(
+        "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
+      )}
       data-testid="onboarding"
       key={pathname}>
       <Head>
