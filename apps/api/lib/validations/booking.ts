@@ -6,7 +6,6 @@ import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
 import { schemaQueryUserId } from "./shared/queryUserId";
 
 const schemaBookingBaseBodyParams = Booking.pick({
-  uid: true,
   userId: true,
   eventTypeId: true,
   title: true,
