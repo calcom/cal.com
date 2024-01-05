@@ -1,7 +1,4 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { useClientSchedule } from "availability/hooks/useClientSchedule";
-import { useDeleteSchedule } from "availability/hooks/useDeleteSchedule";
-import { useProfileInfo } from "availability/hooks/useProfileInfo";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -19,6 +16,9 @@ import {
 import { Globe, MoreHorizontal, Star, Copy, Trash } from "@calcom/ui/components/icon";
 
 import { useApiKey } from "../cal-provider";
+import { useClientSchedule } from "./hooks/useClientSchedule.ts";
+import { useDeleteSchedule } from "./hooks/useDeleteSchedule";
+import { useProfileInfo } from "./hooks/useProfileInfo";
 
 export type AvailabilityFormValues = {
   name: string;
