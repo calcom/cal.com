@@ -1,4 +1,5 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
+import { GcalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -11,12 +12,12 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-  NotFoundException,
   Query,
   Redirect,
   Req,
   UnauthorizedException,
   UseGuards,
+  Headers,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
@@ -43,7 +44,8 @@ export class GcalController {
     private readonly credentialRepository: CredentialsRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
+    private readonly gcalService: GcalService
   ) {}
 
   private redirectUri = `${this.config.get("api.url")}/platform/gcal/oauth/save`;
@@ -51,19 +53,12 @@ export class GcalController {
   @Get("/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
-  async redirect(@Req() req: Request): Promise<ApiResponse<{ authUrl: string }>> {
-    const app = await this.appRepository.getAppBySlug("google-calendar");
-
-    if (!app) {
-      throw new NotFoundException();
-    }
-
-    const { client_id, client_secret } = z
-      .object({ client_id: z.string(), client_secret: z.string() })
-      .parse(app.keys);
-
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, this.redirectUri);
-    const accessToken = req.get("Authorization")?.replace("Bearer ", "");
+  async redirect(
+    @Headers("Authorization") authorization: string,
+    @Req() req: Request
+  ): Promise<ApiResponse<{ authUrl: string }>> {
+    const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
+    const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
@@ -97,16 +92,7 @@ export class GcalController {
       throw new UnauthorizedException("Invalid Access token.");
     }
 
-    const app = await this.appRepository.getAppBySlug("google-calendar");
-
-    if (!app) {
-      throw new NotFoundException();
-    }
-
-    const { client_id, client_secret } = z
-      .object({ client_id: z.string(), client_secret: z.string() })
-      .parse(app.keys);
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, this.redirectUri);
+    const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
     const token = await oAuth2Client.getToken(parsedCode);
     const key = token.res?.data;
     const credential = await this.credentialRepository.createAppCredential(
