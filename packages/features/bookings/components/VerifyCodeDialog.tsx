@@ -4,7 +4,16 @@ import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, Label, Input } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Label,
+  Input,
+} from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
@@ -140,6 +149,13 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
+              <Button
+                type="submit"
+                onClick={verifyCode}
+                loading={isLoading}
+                disabled={!/^\d{6}$/.test(value.trim()) || hasVerified || error !== ""}>
+                {t("submit")}
+              </Button>
             </DialogFooter>
           </div>
         </div>
