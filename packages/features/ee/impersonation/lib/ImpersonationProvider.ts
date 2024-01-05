@@ -63,7 +63,7 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
   if (!creds?.username) throw new Error("User identifier must be present");
 }
 
-export function checkPermission(session: Session | null) {
+export function checkGlobalPermission(session: Session | null) {
   if (
     (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user
@@ -148,8 +148,7 @@ const ImpersonationProvider = CredentialsProvider({
     const teamId = parseTeamId(creds);
     checkSelfImpersonation(session, creds);
     checkUserIdentifier(creds);
-    checkPermission(session);
-
+    checkGlobalPermission(session);
     const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
 
     if (session?.user.role === "ADMIN") {
