@@ -18,12 +18,12 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Input } from "@calcom/ui";
 import { Button, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
 import { MapPin } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
+import LocationsAutocomplete from "@components/eventtype/LocationsAutocomplete";
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type { LocationOption } from "@components/ui/form/LocationSelect";
 import LocationSelect from "@components/ui/form/LocationSelect";
@@ -53,9 +53,29 @@ const LocationInput = (props: {
 }): JSX.Element | null => {
   const { eventLocationType, locationFormMethods, ...remainingProps } = props;
   const { control } = useFormContext() as typeof locationFormMethods;
+
   if (eventLocationType?.organizerInputType === "text") {
+    const { defaultValue, ...rest } = remainingProps;
+
     return (
-      <Input {...locationFormMethods.register(eventLocationType.variable)} type="text" {...remainingProps} />
+      <Controller
+        name={eventLocationType.variable}
+        control={control}
+        defaultValue={defaultValue}
+        render={({ field: { value } }) => {
+          return (
+            <LocationsAutocomplete
+              name={eventLocationType.variable}
+              // saving selected location or typed location
+              onSave={(place: string) => {
+                locationFormMethods.setValue(eventLocationType.variable, place);
+              }}
+              value={value}
+              {...rest}
+            />
+          );
+        }}
+      />
     );
   } else if (eventLocationType?.organizerInputType === "phone") {
     const { defaultValue, ...rest } = remainingProps;
@@ -187,7 +207,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           <label htmlFor="locationInput" className="text-default block text-sm font-medium">
             {t(eventLocationType.messageForOrganizer || "")}
           </label>
-          <div className="mt-1">
+          <div className="my-1">
             <LocationInput
               locationFormMethods={locationFormMethods}
               eventLocationType={eventLocationType}

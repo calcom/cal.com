@@ -212,6 +212,7 @@ export const EventSetupTab = (
                     );
                   }}
                   value={value}
+                  watchInitialValue
                   {...rest}
                 />
               );

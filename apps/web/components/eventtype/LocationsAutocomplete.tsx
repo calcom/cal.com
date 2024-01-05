@@ -11,6 +11,7 @@ interface LocationsAutocompleteProps {
   placeholder: string;
   name: string;
   required?: boolean;
+  watchInitialValue?: boolean;
 
   onSave: (place: string) => void;
 }
@@ -18,16 +19,17 @@ interface LocationsAutocompleteProps {
 function LocationsAutocomplete({
   name,
   placeholder,
-  value,
+  value = "",
   required,
+  watchInitialValue = false,
   onSave,
   ...rest
 }: LocationsAutocompleteProps) {
   const locationsContainerRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(locationsContainerRef, () => setShowSuggestedLocations(false));
-  const [location, setLocation] = useState(value || "");
-  const debouncedLocation = useDebounce(location, 500);
+  const [location, setLocation] = useState(() => value || "");
+  const debouncedLocation = useDebounce(location, 750);
 
   const [suggestedLocations, setSuggestedLocations] = useState<string[]>([]);
   const [showSuggestedLocations, setShowSuggestedLocations] = useState<boolean>(false);
@@ -35,8 +37,8 @@ function LocationsAutocomplete({
   // getting places autocompletion from Google Places API
   const handlePlacesAutocomplete = useCallback(async () => {
     // if value is the same or empty, don't search
-    if (debouncedLocation === value || debouncedLocation === "") {
-      setSuggestedLocations([]);
+
+    if (debouncedLocation === "" || (watchInitialValue && debouncedLocation === value)) {
       return;
     }
 
@@ -47,7 +49,7 @@ function LocationsAutocomplete({
       const places = await res.json();
       setSuggestedLocations(places);
     }
-  }, [debouncedLocation, value]);
+  }, [debouncedLocation, value, watchInitialValue]);
 
   const saveLocation = (place: string) => {
     onSave(place);
@@ -55,8 +57,12 @@ function LocationsAutocomplete({
 
   // search for locations when the user types in the input (debounced)
   useEffect(() => {
-    if (debouncedLocation) handlePlacesAutocomplete();
-  }, [debouncedLocation, handlePlacesAutocomplete]);
+    if (debouncedLocation) {
+      handlePlacesAutocomplete();
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when debouncedLocation changes, no need to watch handlePlacesAutocomplete effects changes
+  }, [debouncedLocation]);
 
   return (
     <div className="w-full" ref={locationsContainerRef}>
