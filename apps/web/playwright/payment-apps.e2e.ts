@@ -13,9 +13,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "alby_payment",
@@ -30,7 +28,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByPlaceholder("Price").click();
@@ -38,7 +36,7 @@ test.describe("Payment app", () => {
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent.slug}`);
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
     expect(await page.locator("text=200 sats").first()).toBeTruthy();
@@ -55,9 +53,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "stripe_payment",
@@ -75,16 +71,16 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
     await page.locator("#event-type-form").getByRole("switch").click();
     await page.getByTestId("stripe-currency-select").click();
     await page.getByTestId("select-option-usd").click();
 
-    await page.getByTestId("price-input-stripe").click();
-    await page.getByTestId("price-input-stripe").fill("350");
+    await page.getByTestId("stripe-price-input").click();
+    await page.getByTestId("stripe-price-input").fill("350");
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent.slug}`);
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 200 sats to be displayed in page
     expect(await page.locator("text=350").first()).toBeTruthy();
@@ -101,9 +97,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
@@ -116,7 +110,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -131,7 +125,7 @@ test.describe("Payment app", () => {
     await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
     await page.getByTestId("update-eventtype").click();
 
-    await page.goto(`${user.username}/${paymentEvent.slug}`);
+    await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 150 to be displayed in page
     expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
@@ -149,9 +143,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "alby_payment",
@@ -160,7 +152,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -177,9 +169,7 @@ test.describe("Payment app", () => {
     const user = await users.create();
     await user.apiLogin();
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
     await prisma.credential.create({
       data: {
         type: "paypal_payment",
@@ -188,7 +178,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
 
@@ -211,9 +201,7 @@ test.describe("Payment app", () => {
     await user.apiLogin();
     // Any event should work here
     const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
-    if (!paymentEvent) {
-      throw new Error("No payment event found");
-    }
+    expect(paymentEvent).not.toBeNull();
 
     await prisma.credential.create({
       data: {
@@ -225,7 +213,7 @@ test.describe("Payment app", () => {
       },
     });
 
-    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+    await page.goto(`event-types/${paymentEvent?.id}?tabName=apps`);
 
     await page.locator("#event-type-form").getByRole("switch").click();
     // make sure Tracking ID is displayed
@@ -233,5 +221,129 @@ test.describe("Payment app", () => {
     await page.getByLabel("Tracking ID").click();
     await page.getByLabel("Tracking ID").fill("demo");
     await page.getByTestId("update-eventtype").click();
+  });
+
+  test("Should only be allowed to enable one payment app", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+    await prisma.credential.createMany({
+      data: [
+        {
+          type: "paypal_payment",
+          userId: user.id,
+          key: {
+            client_id: "randomString",
+            secret_key: "randomString",
+            webhook_id: "randomString",
+          },
+        },
+        {
+          type: "stripe_payment",
+          userId: user.id,
+          key: {
+            scope: "read_write",
+            livemode: false,
+            token_type: "bearer",
+            access_token: "sk_test_randomString",
+            refresh_token: "rt_randomString",
+            stripe_user_id: "acct_randomString",
+            default_currency: "usd",
+            stripe_publishable_key: "pk_test_randomString",
+          },
+        },
+      ],
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("[data-testid='paypal-app-switch']").click();
+    await page.locator("[data-testid='stripe-app-switch']").isDisabled();
+  });
+
+  test("when more than one payment app is installed the price should be updated when changing settings", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const paymentEvent = user.eventTypes.find((item) => item.slug === "paid");
+    if (!paymentEvent) {
+      throw new Error("No payment event found");
+    }
+
+    await prisma.credential.createMany({
+      data: [
+        {
+          type: "paypal_payment",
+          userId: user.id,
+          key: {
+            client_id: "randomString",
+            secret_key: "randomString",
+            webhook_id: "randomString",
+          },
+        },
+        {
+          type: "stripe_payment",
+          userId: user.id,
+          key: {
+            scope: "read_write",
+            livemode: false,
+            token_type: "bearer",
+            access_token: "sk_test_randomString",
+            refresh_token: "rt_randomString",
+            stripe_user_id: "acct_randomString",
+            default_currency: "usd",
+            stripe_publishable_key: "pk_test_randomString",
+          },
+        },
+      ],
+    });
+
+    await page.goto(`event-types/${paymentEvent.id}?tabName=apps`);
+
+    await page.locator("[data-testid='paypal-app-switch']").click();
+    await page.locator("[data-testid='paypal-price-input']").fill("100");
+    await page.locator("[data-testid='paypal-currency-select']").first().click();
+    await page.locator("#react-select-2-option-13").click();
+    // await page.locator(".mb-1 > .bg-default > div > div:nth-child(2)").first().click();
+    // await page.getByText("$MXNCurrencyMexican pesoPayment option").click();
+    await page.locator("[data-testid='update-eventtype']").click();
+
+    // Need to wait for the DB to be updated
+    await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
+
+    const paypalPrice = await prisma.eventType.findFirst({
+      where: {
+        id: paymentEvent.id,
+      },
+      select: {
+        price: true,
+      },
+    });
+
+    expect(paypalPrice?.price).toEqual(10000);
+
+    await page.locator("[data-testid='paypal-app-switch']").click();
+    await page.locator("[data-testid='stripe-app-switch']").click();
+    await page.locator("[data-testid='stripe-price-input']").fill("200");
+    await page.locator("[data-testid='update-eventtype']").click();
+
+    // Need to wait for the DB to be updated
+    await page.waitForResponse((res) => res.url().includes("update") && res.status() === 200);
+
+    const stripePrice = await prisma.eventType.findFirst({
+      where: {
+        id: paymentEvent.id,
+      },
+      select: {
+        price: true,
+      },
+    });
+
+    expect(stripePrice?.price).toEqual(20000);
   });
 });

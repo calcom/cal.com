@@ -27,7 +27,7 @@ jobs:
           npx -p nextjs-bundle-analysis@0.5.0 report
 
       - name: Upload bundle
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: bundle
           path: apps/web/.next/analyze/__bundle_analysis.json

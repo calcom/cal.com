@@ -1,3 +1,5 @@
+"use client";
+
 import DailyIframe from "@daily-co/daily-js";
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
@@ -19,7 +21,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
+export type JoinCallPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export default function JoinCall(props: JoinCallPageProps) {
@@ -78,7 +80,7 @@ export default function JoinCall(props: JoinCallPageProps) {
       <div style={{ zIndex: 2, position: "relative" }}>
         {booking?.user?.organization?.calVideoLogo ? (
           <img
-            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+            className="min-h-16 min-w-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
             src={booking.user.organization.calVideoLogo}
             alt="My Org Logo"
             style={{
@@ -192,7 +194,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           "no-scrollbar fixed left-0 top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-[232px]"
         )}>
-        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
+        <main className="prose-sm prose prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 max-w-64 w-full overflow-scroll overflow-x-hidden border-r border-gray-300/20 bg-black/80 p-4 text-white shadow-sm backdrop-blur-lg">
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>

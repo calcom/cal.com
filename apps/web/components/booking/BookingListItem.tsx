@@ -384,7 +384,7 @@ function BookingListItem(booking: BookingItemProps) {
                         target="_blank"
                         title={locationToDisplay}
                         rel="noreferrer"
-                        className="text-sm leading-6 text-blue-600 hover:underline">
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                         <div className="flex items-center gap-2">
                           {provider?.iconUrl && (
                             <img
@@ -483,7 +483,7 @@ function BookingListItem(booking: BookingItemProps) {
               <div
                 title={title}
                 className={classNames(
-                  "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
+                  "max-w-10/12 text-emphasis sm:max-w-56 text-sm font-medium leading-6 md:max-w-full",
                   isCancelled ? "line-through" : ""
                 )}>
                 {title}
@@ -497,7 +497,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
               {booking.description && (
                 <div
-                  className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                  className="max-w-10/12 text-default sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm"
                   title={booking.description}>
                   &quot;{booking.description}&quot;
                 </div>

@@ -147,7 +147,7 @@ Here is what you need to be able to run Cal.com.
 
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -216,7 +216,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
    If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
 
-   - [Setup postgres DB with railway.app](https://arctype.com/postgres/setup/railway-postgres)
+   - [Setup postgres DB with railway.app](https://docs.railway.app/guides/postgresql)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
@@ -553,6 +553,10 @@ following
 ### Obtaining Zoho Bigin Client ID and Secret
 
 [Follow these steps](./packages/app-store/zoho-bigin/)
+
+### Obtaining Pipedrive Client ID and Secret
+
+[Follow these steps](./packages/app-store/pipedrive-crm/)
 
 ## Workflows
 

@@ -99,11 +99,12 @@ const tabs: VerticalTabItemProps[] = [
         name: "billing",
         href: "/settings/organizations/billing",
       },
+      { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
     ],
   },
   {
     name: "teams",
-    href: "/settings/teams",
+    href: "/teams",
     icon: Users,
     children: [],
   },
@@ -139,7 +140,6 @@ const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery();
   const orgBranding = useOrgBranding();
-
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   tabs.map((tab) => {
@@ -175,10 +175,10 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
+      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
       data-testid={`vertical-tab-${name}`}>
       <ArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
-      <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate" loadingClassName="ms-3">
+      <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
     </Link>
