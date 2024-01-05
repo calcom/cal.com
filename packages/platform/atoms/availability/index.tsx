@@ -65,7 +65,7 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 sm:ltr:pl-0 rtl:pr-4 sm:rtl:pr-0">
         <div className="group flex w-full items-center justify-between sm:px-6">
           <div className="space-x-2 rtl:space-x-reverse">
             <span className="text-emphasis truncate font-medium">{schedule.name}</span>
@@ -107,7 +107,7 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
           </DropdownMenuTrigger>
           {!isLoading && schedule && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted min-w-40">
                 {!schedule.isDefault && (
                   <DropdownItem
                     type="button"
@@ -130,7 +130,7 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
                   Duplicate
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted min-w-40">
                 <DropdownItem
                   type="button"
                   color="destructive"
