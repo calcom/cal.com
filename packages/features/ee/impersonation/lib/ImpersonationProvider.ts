@@ -146,10 +146,10 @@ async function getImpersonatedUser({
 
 async function isReturningToSelf({ session, creds }: { session: Session | null; creds: Credentials | null }) {
   const impersonatedByUID = session?.user.impersonatedByUID;
-  console.log({ impersonatedByUID, creds });
   if (!impersonatedByUID || !creds?.returnToId) return;
   const returnToId = parseInt(creds?.returnToId, 10);
 
+  // Ensure session impersonatedUID + the returnToId is the same so we cant take over a random account
   if (impersonatedByUID !== returnToId) return;
 
   const returningUser = await prisma.user.findUnique({
