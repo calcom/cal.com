@@ -521,7 +521,7 @@ export async function createBookingScenario(data: ScenarioData) {
 
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
-  const bookings = await addBookings(data.bookings);
+  await addBookings(data.bookings);
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
