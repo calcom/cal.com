@@ -42,7 +42,7 @@ export const BookerSeo = (props: BookerSeoProps) => {
   return (
     <HeadSeo
       title={`${rescheduleUid && !!bookingData ? t("reschedule") : ""} ${title} | ${profileName}`}
-      description={`${rescheduleUid ? t("reschedule") : ""} ${description}`}
+      description={`${rescheduleUid ? t("reschedule") : ""} ${title}`}
       meeting={{
         title: title,
         profile: { name: profileName, image: profileImage },
