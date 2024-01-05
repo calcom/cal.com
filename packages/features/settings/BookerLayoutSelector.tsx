@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -52,9 +51,6 @@ export const BookerLayoutSelector = ({
   const { t } = useLocale();
   // Only fallback if event current does not have any settings, and the fallbackToUserSettings boolean is set.
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
-
-  const flags = useFlagMap();
-  if (flags["booker-layouts"] !== true) return null;
 
   return (
     <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>

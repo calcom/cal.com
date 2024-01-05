@@ -11,6 +11,7 @@ import { Code, Trello } from "@calcom/ui/components/icon";
 import type { EmbedType, PreviewState, EmbedFramework } from "../types";
 import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
 import { EMBED_PREVIEW_HTML_URL, embedLibUrl } from "./constants";
+import { getApiName } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
 
@@ -22,10 +23,10 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedHtml({ embedType, calLink, previewState }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
+    >(function EmbedHtml({ embedType, calLink, previewState, namespace }, ref) {
       const { t } = useLocale();
-      const embedSnippetString = useGetEmbedSnippetString();
+      const embedSnippetString = useGetEmbedSnippetString(namespace);
       const embedCalOrigin = useEmbedCalOrigin();
       if (ref instanceof Function || !ref) {
         return null;
@@ -55,7 +56,14 @@ export const tabs = [
                 : ""
             }<script type="text/javascript">
   ${embedSnippetString}
-  ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previewState, embedCalOrigin })}
+  ${getEmbedTypeSpecificString({
+    embedFramework: "HTML",
+    embedType,
+    calLink,
+    previewState,
+    embedCalOrigin,
+    namespace,
+  })}
   </script>
   <!-- Cal ${embedType} embed code ends -->`}
           />
@@ -71,8 +79,8 @@ export const tabs = [
     type: "code",
     Component: forwardRef<
       HTMLTextAreaElement | HTMLIFrameElement | null,
-      { embedType: EmbedType; calLink: string; previewState: PreviewState }
-    >(function EmbedReact({ embedType, calLink, previewState }, ref) {
+      { embedType: EmbedType; calLink: string; previewState: PreviewState; namespace: string }
+    >(function EmbedReact({ embedType, calLink, previewState, namespace }, ref) {
       const { t } = useLocale();
       const embedCalOrigin = useEmbedCalOrigin();
 
@@ -99,7 +107,14 @@ export const tabs = [
   
   /* If you are using npm */
   // npm install @calcom/embed-react
-  ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, previewState, embedCalOrigin })}
+  ${getEmbedTypeSpecificString({
+    embedFramework: "react",
+    embedType,
+    calLink,
+    previewState,
+    embedCalOrigin,
+    namespace,
+  })}
   `}
           />
         </>
@@ -113,7 +128,7 @@ export const tabs = [
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState }
+      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
     >(function Preview({ calLink, embedType }, ref) {
       const bookerUrl = useBookerUrl();
       const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
@@ -144,12 +159,14 @@ const getEmbedTypeSpecificString = ({
   calLink,
   embedCalOrigin,
   previewState,
+  namespace,
 }: {
   embedFramework: EmbedFramework;
   embedType: EmbedType;
   calLink: string;
   previewState: PreviewState;
   embedCalOrigin: string;
+  namespace: string;
 }) => {
   const frameworkCodes = Codes[embedFramework];
   if (!frameworkCodes) {
@@ -165,7 +182,7 @@ const getEmbedTypeSpecificString = ({
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
-      apiName: "cal",
+      apiName: getApiName({ namespace, mainApiName: "cal" }),
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
@@ -173,7 +190,7 @@ const getEmbedTypeSpecificString = ({
     };
   } else {
     uiInstructionStringArg = {
-      apiName: "Cal",
+      apiName: getApiName({ namespace, mainApiName: "Cal" }),
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
@@ -189,6 +206,7 @@ const getEmbedTypeSpecificString = ({
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
       previewState,
       embedCalOrigin,
+      namespace,
     });
   } else if (embedType === "floating-popup") {
     const floatingButtonArg = {
@@ -197,11 +215,13 @@ const getEmbedTypeSpecificString = ({
       ...previewState.floatingPopup,
     };
     return frameworkCodes[embedType]({
+      namespace,
       floatingButtonArg: JSON.stringify(floatingButtonArg),
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
+      namespace,
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
       previewState,
@@ -253,10 +273,10 @@ const getInstructionString = ({
   return `${apiName}("${instructionName}", ${JSON.stringify(instructionArg)});`;
 };
 
-function useGetEmbedSnippetString() {
+function useGetEmbedSnippetString(namespace: string | null) {
   const bookerUrl = useBookerUrl();
   // TODO: Import this string from @calcom/embed-snippet
   return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar); return; } p(cal, ar); }; })(window, "${embedLibUrl}", "init");
-Cal("init", {origin:"${bookerUrl}"});
+Cal("init", ${namespace ? `"${namespace}",` : ""} {origin:"${bookerUrl}"});
 `;
 }
