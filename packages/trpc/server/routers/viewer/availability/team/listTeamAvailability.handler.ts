@@ -187,7 +187,7 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
   let nextCursor: typeof cursor | undefined = undefined;
   if (teamMembers && teamMembers.length > limit) {
     const nextItem = teamMembers.pop();
-    nextCursor = nextItem!.id;
+    nextCursor = nextItem?.id;
   }
 
   const dateFrom = dayjs(input.startDate).tz(input.loggedInUsersTz).subtract(1, "day");
