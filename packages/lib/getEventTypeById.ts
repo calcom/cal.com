@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
-import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -9,7 +8,6 @@ import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@cal
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Credential } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -397,19 +395,3 @@ export default async function getEventTypeById({
   };
   return finalObj;
 }
-
-const getStripeCurrency = (stripeMetadata: { currency: string }, credentials: Credential[]) => {
-  // Favor the currency from the metadata as EventType.currency was not always set and should be deprecated
-  if (stripeMetadata.currency) {
-    return stripeMetadata.currency;
-  }
-
-  // Legacy support for EventType.currency
-  const stripeCredential = credentials.find((integration) => integration.type === "stripe_payment");
-  if (stripeCredential) {
-    return (stripeCredential.key as unknown as StripeData)?.default_currency || "usd";
-  }
-
-  // Fallback to USD but should not happen
-  return "usd";
-};
