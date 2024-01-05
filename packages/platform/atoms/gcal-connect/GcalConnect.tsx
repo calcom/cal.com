@@ -4,7 +4,7 @@ import type { FC } from "react";
 import { Button } from "@calcom/ui";
 import { CalendarDays } from "@calcom/ui/components/icon";
 
-import { useAtomsContext } from "../cal-provider/useProvider";
+import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useGcal } from "../hooks/useGcal";
 
 interface GcalConnectProps {

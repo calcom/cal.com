@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 
+import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
 import http from "../lib/http";
-import { AtomsContext } from "./useProvider";
 
 type CalProviderProps = {
   children?: ReactNode;
