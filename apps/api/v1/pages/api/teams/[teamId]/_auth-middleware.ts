@@ -27,6 +27,16 @@ export async function checkPermissions(
     version: req.query.version,
     apiKey: req.query.apiKey,
   });
+  return canUserAccessTeamWithRole(prisma, userId, isAdmin, teamId, role);
+}
+
+export async function canUserAccessTeamWithRole(
+  prisma: NextApiRequest["prisma"],
+  userId: number,
+  isAdmin: boolean,
+  teamId: number,
+  role: Prisma.MembershipWhereInput["role"] = MembershipRole.OWNER
+) {
   const args: Prisma.TeamFindFirstArgs = { where: { id: teamId } };
   /** If not ADMIN then we check if the actual user belongs to team and matches the required role */
   if (!isAdmin) args.where = { ...args.where, members: { some: { userId, role } } };

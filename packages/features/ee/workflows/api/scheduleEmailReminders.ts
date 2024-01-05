@@ -1,12 +1,10 @@
 /* Schedule any workflow reminder that falls within 72 hours for email */
 import client from "@sendgrid/client";
-import sgMail from "@sendgrid/mail";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -21,15 +19,10 @@ import {
   getAllUnscheduledReminders,
 } from "../lib/getWorkflowReminders";
 import { getiCalEventAsString } from "../lib/getiCalEventAsString";
+import { sendSendgridMail } from "../lib/reminders/providers/sendgridProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-
-const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-const senderEmail = process.env.SENDGRID_EMAIL as string;
-
-sgMail.setApiKey(sendgridAPIKey);
-client.setApiKey(sendgridAPIKey);
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
@@ -42,8 +35,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
-
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
 
   // delete batch_ids with already past scheduled date from scheduled_sends
   const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();
@@ -240,34 +231,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
           if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
             sendEmailPromises.push(
-              sgMail.send({
-                to: sendTo,
-                from: {
-                  email: senderEmail,
-                  name: reminder.workflowStep.sender || SENDER_NAME,
+              sendSendgridMail(
+                {
+                  to: sendTo,
+                  subject: emailContent.emailSubject,
+                  html: emailContent.emailBody,
+                  batchId: batchId,
+                  sendAt: dayjs(reminder.scheduledDate).unix(),
+                  replyTo: reminder.booking.user?.email,
+                  attachments: reminder.workflowStep.includeCalendarEvent
+                    ? [
+                        {
+                          content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString(
+                            "base64"
+                          ),
+                          filename: "event.ics",
+                          type: "text/calendar; method=REQUEST",
+                          disposition: "attachment",
+                          contentId: uuidv4(),
+                        },
+                      ]
+                    : undefined,
                 },
-                subject: emailContent.emailSubject,
-                html: emailContent.emailBody,
-                batchId: batchId,
-                sendAt: dayjs(reminder.scheduledDate).unix(),
-                replyTo: reminder.booking.user?.email || senderEmail,
-                mailSettings: {
-                  sandboxMode: {
-                    enable: sandboxMode,
-                  },
-                },
-                attachments: reminder.workflowStep.includeCalendarEvent
-                  ? [
-                      {
-                        content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
-                        filename: "event.ics",
-                        type: "text/calendar; method=REQUEST",
-                        disposition: "attachment",
-                        contentId: uuidv4(),
-                      },
-                    ]
-                  : undefined,
-              })
+                { sender: reminder.workflowStep.sender }
+              )
             );
           }
 
@@ -319,24 +306,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           const batchId = batchIdResponse[1].batch_id;
 
           sendEmailPromises.push(
-            sgMail.send({
-              to: sendTo,
-              from: {
-                email: senderEmail,
-                name: reminder.workflowStep?.sender || SENDER_NAME,
+            sendSendgridMail(
+              {
+                to: sendTo,
+                subject: emailContent.emailSubject,
+                html: emailContent.emailBody,
+                batchId: batchId,
+                sendAt: dayjs(reminder.scheduledDate).unix(),
+                replyTo: reminder.booking.user?.email,
               },
-              subject: emailContent.emailSubject,
-              html: emailContent.emailBody,
-              batchId: batchId,
-              sendAt: dayjs(reminder.scheduledDate).unix(),
-              replyTo: reminder.booking.user?.email || senderEmail,
-              mailSettings: {
-                sandboxMode: {
-                  enable: sandboxMode,
-                },
-              },
-              attachments: undefined,
-            })
+              { sender: reminder.workflowStep?.sender }
+            )
           );
 
           await prisma.workflowReminder.update({

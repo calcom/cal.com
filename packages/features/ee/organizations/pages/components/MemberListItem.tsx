@@ -1,11 +1,9 @@
 import classNames from "classnames";
 
 import TeamPill, { TeamRole } from "@calcom/ee/teams/components/TeamPill";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
-  Avatar,
   Button,
   ButtonGroup,
   Dropdown,
@@ -17,6 +15,8 @@ import {
 } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal } from "@calcom/ui/components/icon";
 
+import { UserAvatar } from "@components/ui/avatar/UserAvatar";
+
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
 }
@@ -26,22 +26,17 @@ export default function MemberListItem(props: Props) {
   const { member } = props;
 
   const { user } = member;
-  const bookerUrl = useBookerUrl();
+  const name = user.name || user.username || user.email;
+  const bookerUrl = props.member.bookerUrl;
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = user.username && `${bookerUrlWithoutProtocol}/${user.username}`;
-  const name = user.name || user.username || user.email;
 
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between overflow-hidden sm:flex-row">
           <div className="flex">
-            <Avatar
-              size="sm"
-              imageSrc={`${bookerUrl}/${user.username}/avatar.png`}
-              alt={name || ""}
-              className="h-10 w-10 rounded-full"
-            />
+            <UserAvatar size="sm" user={user} className="h-10 w-10 rounded-full" />
 
             <div className="ms-3 inline-block overflow-hidden">
               <div className="mb-1 flex">
