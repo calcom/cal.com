@@ -74,7 +74,6 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 }
 
 export function checkGlobalPermission(session: Session | null) {
-  console.log({ session, teamImpersonationValue: process.env.NEXT_PUBLIC_TEAM_IMPERSONATION });
   if (
     (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user
@@ -209,7 +208,9 @@ const ImpersonationProvider = CredentialsProvider({
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
     const teamId = parseTeamId(creds);
+    console.log("Checking self impersonation");
     checkSelfImpersonation(session, creds);
+    console.log("Checking user identifier present");
     checkUserIdentifier(creds);
 
     // Returning to target and UID is self without having to do perm checks.
@@ -223,6 +224,7 @@ const ImpersonationProvider = CredentialsProvider({
       );
     }
 
+    console.log("Checking global app role");
     checkGlobalPermission(session);
 
     const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
@@ -238,6 +240,7 @@ const ImpersonationProvider = CredentialsProvider({
       );
     }
 
+    console.log("Checking TeamId present");
     if (!teamId) throw new Error("You do not have permission to do this.");
 
     // Check session
