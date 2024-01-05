@@ -1,28 +1,19 @@
-import OldPage from "@pages/settings/organizations/new/index";
-import { type Params } from "app/_types";
+import LegacyPage from "@pages/settings/organizations/new/index";
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
-import { headers, cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { WizardLayout } from "@calcom/ui";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import PageWrapper from "@components/PageWrapperAppDir";
-
 export const generateMetadata = async () =>
   await _generateMetadata(
-    () => "",
-    () => ""
+    (t) => t("set_up_your_organization"),
+    (t) => t("organizations_description")
   );
 
-type PageProps = Readonly<{
-  params: Params;
-}>;
-
-const getData = async (context: GetServerSidePropsContext) => {
+const getPageProps = async (context: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
   // Check if organizations are enabled
@@ -45,18 +36,5 @@ const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-const Page = async ({ params }: PageProps) => {
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
-  const props = await getData(legacyCtx);
-
-  return (
-    <PageWrapper getLayout={LayoutWrapper} requiresLicense={false} nonce={nonce} themeBasis={null}>
-      <OldPage {...props} />
-    </PageWrapper>
-  );
-};
-
-export default Page;
+// @ts-expect-error getData arg
+export default WithLayout({ getLayout: LayoutWrapper, Page: LegacyPage, getData: getPageProps });

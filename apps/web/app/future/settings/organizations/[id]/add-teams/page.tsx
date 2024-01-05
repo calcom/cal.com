@@ -1,4 +1,4 @@
-import OldPage from "@pages/settings/organizations/[id]/add-teams";
+import LegacyPage from "@pages/settings/organizations/[id]/add-teams";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { redirect } from "next/navigation";
@@ -22,4 +22,4 @@ const LayoutWrapper = (page: React.ReactElement) => (
   </WizardLayout>
 );
 
-export default WithLayout({ Page: OldPage, getLayout: LayoutWrapper });
+export default WithLayout({ Page: LegacyPage, getLayout: LayoutWrapper });

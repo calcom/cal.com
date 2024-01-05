@@ -1,4 +1,4 @@
-import OldPage from "@pages/settings/organizations/[id]/set-password";
+import LegacyPage from "@pages/settings/organizations/[id]/set-password";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
@@ -18,4 +18,4 @@ const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export default WithLayout({ Page: OldPage, getLayout: LayoutWrapper });
+export default WithLayout({ Page: LegacyPage, getLayout: LayoutWrapper });

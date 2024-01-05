@@ -1,4 +1,4 @@
-import OldPage from "@pages/settings/organizations/[id]/onboard-admins";
+import LegacyPage from "@pages/settings/organizations/[id]/onboard-admins";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { headers } from "next/headers";
@@ -37,7 +37,7 @@ const Page = ({ params }: PageProps) => {
       requiresLicense={false}
       nonce={nonce}
       themeBasis={null}>
-      <OldPage />
+      <LegacyPage />
     </PageWrapper>
   );
 };
