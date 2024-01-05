@@ -24,6 +24,7 @@ export class SchedulesRepository {
         availability: {
           create: {
             ...availability,
+            userId,
           },
         },
       },
