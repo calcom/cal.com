@@ -9,13 +9,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "[WARNING] GOOGLE_PLACES_API_KEY is not provided, locations autocomplete will not be available."
     );
 
-    res.status(500).json({ error: "API key is not provided" });
-    return;
+    return res.status(500).json({ error: "API key is not provided" });
   }
 
   if (!place) {
-    res.status(400).json({ error: "Place is not provided" });
-    return;
+    return res.status(400).json({ error: "Place is not provided" });
   }
 
   try {
@@ -35,9 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return prediction.description;
     });
 
-    res.status(200).json(predictions);
+    return res.status(200).json(predictions);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Something went wrong" });
+    return res.status(500).json({ error: "Something went wrong" });
   }
 }
