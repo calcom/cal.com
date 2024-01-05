@@ -435,7 +435,11 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
+      referencesToCreate: evt.requiresConfirmation
+        ? []
+        : changedOrganizer
+        ? bookingReferenceChangedOrganizer
+        : [...booking.references],
     };
   }
 
