@@ -1,4 +1,5 @@
 import type { SessionContextValue } from "next-auth/react";
+import { signIn } from "next-auth/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui";
@@ -9,6 +10,7 @@ function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
   const { t } = useLocale();
 
   if (!data?.user.impersonatedByUID) return null;
+  const returnToId = data.user.impersonatedByUID;
 
   return (
     <>
@@ -16,9 +18,13 @@ function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
         text={t("impersonating_user_warning", { user: data.user.username })}
         variant="warning"
         actions={
-          <a className="border-b border-b-black" href="/auth/logout">
-            {t("impersonating_stop_instructions")}
-          </a>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              signIn("impersonation-auth", { returnToId });
+            }}>
+            <button className="text-emphasis hover:underline">{t("impersonating_stop_instructions")}</button>
+          </form>
         }
       />
     </>
