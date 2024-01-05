@@ -1,4 +1,5 @@
 import { getServerSideProps } from "@pages/reschedule/[uid]";
+import { withAppDir } from "app/AppDirSSRHOC";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 
