@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-export const useClientSchedule = (clientId: string, key: string) => {
+const useClientSchedule = (clientId: string, key: string) => {
   const { isLoading, error, data } = useQuery({
     queryKey: ["schedule"],
     queryFn: () => {
@@ -13,3 +13,5 @@ export const useClientSchedule = (clientId: string, key: string) => {
 
   return { isLoading, error, data };
 };
+
+export default useClientSchedule;

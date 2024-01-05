@@ -8,7 +8,7 @@ interface IPDeleteOAuthClient {
   onError?: () => void;
 }
 
-export const useDeleteSchedule = (
+const useDeleteSchedule = (
   { onSuccess, onError }: IPDeleteOAuthClient = {
     onSuccess: () => {
       return;
@@ -40,3 +40,5 @@ export const useDeleteSchedule = (
 
   return mutation;
 };
+
+export default useDeleteSchedule;
