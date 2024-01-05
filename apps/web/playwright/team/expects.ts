@@ -1,13 +1,14 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
-import type { API, Messages } from "mailhog";
+import type { Messages } from "mailhog";
+import type { createEmailsFixture } from "playwright/fixtures/emails";
 
 import { getEmailsReceivedByUser } from "../lib/testUtils";
 
 export async function expectInvitationEmailToBeReceived(
   page: Page,
-  emails: API | undefined,
+  emails: ReturnType<typeof createEmailsFixture>,
   userEmail: string,
   subject: string,
   returnLink?: string
@@ -15,7 +16,7 @@ export async function expectInvitationEmailToBeReceived(
   if (!emails) return null;
 
   // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(10000);
+  await page.waitForTimeout(2000);
   const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
   expect(receivedEmails?.total).toBe(1);
 

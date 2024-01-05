@@ -8,7 +8,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, SettingsToggle } from "@calcom/ui";
-import { Zap } from "@calcom/ui/components/icon";
+import { PhoneCall } from "@calcom/ui/components/icon";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
@@ -44,7 +44,7 @@ export default function InstantEventController({
         {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("instant_tab_title")}
-            Icon={Zap}
+            Icon={PhoneCall}
             description={t("uprade_to_create_instant_bookings")}
             buttonRaw={<Button href="/enterprise">{t("upgrade")}</Button>}
           />

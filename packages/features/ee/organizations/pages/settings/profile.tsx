@@ -205,6 +205,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
               return (
                 <>
                   <Avatar
+                    data-testid="profile-upload-avatar"
                     alt={defaultValues.name || ""}
                     imageSrc={getPlaceholderAvatar(value, defaultValues.name as string)}
                     size="lg"
