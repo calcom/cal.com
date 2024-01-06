@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -92,13 +92,6 @@ export const AvailableTimeSlots = ({
     : [];
 
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
-
-  useEffect(() => {
-    if (isEmbed) return;
-    if (containerRef.current && !schedule.isLoading && isMobile) {
-      containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [containerRef, schedule.isLoading, isEmbed, isMobile]);
 
   return (
     <>
