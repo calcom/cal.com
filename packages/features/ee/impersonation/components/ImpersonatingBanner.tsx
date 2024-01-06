@@ -9,8 +9,8 @@ export type ImpersonatingBannerProps = { data: SessionContextValue["data"] };
 function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
   const { t } = useLocale();
 
-  if (!data?.user.impersonatedByUID) return null;
-  const returnToId = data.user.impersonatedByUID;
+  if (!data?.user.impersonatedBy) return null;
+  const returnToId = data.user.impersonatedBy.id;
 
   return (
     <>

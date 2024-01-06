@@ -200,7 +200,7 @@ const useBanners = () => {
   if (isLoading || !userSession) return null;
 
   const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
-  const userImpersonatedByUID = userSession?.user.impersonatedByUID;
+  const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
 
   const userSessionBanners = {
     adminPasswordBanner: isUserInactiveAdmin ? userSession : null,

@@ -45,9 +45,23 @@ const auditAndReturnNextUser = async (
   };
 
   if (!isReturningToSelf) {
+    const impersonatedByUser = await prisma.user.findUnique({
+      where: {
+        id: impersonatedByUID,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+    if (!impersonatedByUser) return;
+
     return {
       ...obj,
-      impersonatedByUID,
+      impersonatedBy: {
+        id: impersonatedByUser?.id,
+        role: impersonatedByUser?.role,
+      },
     };
   }
 
@@ -144,7 +158,7 @@ async function getImpersonatedUser({
 }
 
 async function isReturningToSelf({ session, creds }: { session: Session | null; creds: Credentials | null }) {
-  const impersonatedByUID = session?.user.impersonatedByUID;
+  const impersonatedByUID = session?.user.impersonatedBy?.id;
   if (!impersonatedByUID || !creds?.returnToId) return;
   const returnToId = parseInt(creds?.returnToId, 10);
 
@@ -177,6 +191,9 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
   });
 
   if (returningUser) {
+    // Skip for none org users
+    if (returningUser.role !== "ADMIN" && !returningUser.organizationId) return;
+
     const hasTeams = returningUser.teams.length >= 1;
     return {
       user: {
