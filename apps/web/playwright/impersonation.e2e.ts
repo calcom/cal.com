@@ -4,8 +4,6 @@ import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
 
-// a test to logout requires both a succesfull login as logout, to prevent
-// a doubling of tests failing on logout & logout, we can group them.
 test.describe("Users can impersonate", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
