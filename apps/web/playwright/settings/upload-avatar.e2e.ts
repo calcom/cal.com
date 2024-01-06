@@ -43,8 +43,11 @@ test.describe("UploadAvatar", async () => {
       // todo: remove this; ideally the organization-avatar is updated the moment
       //       'Settings updated succesfully' is saved.
       await page.waitForLoadState("networkidle");
+      const avatar = page.getByTestId("profile-upload-avatar").locator("img");
 
-      await expect(await page.getByTestId("organization-avatar").innerHTML()).toContain(response.objectKey);
+      const src = await avatar.getAttribute("src");
+
+      await expect(src).toContain(response.objectKey);
 
       const urlResponse = await page.request.get(`/api/avatar/${response.objectKey}.png`, {
         maxRedirects: 0,

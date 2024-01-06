@@ -14,7 +14,6 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { handleUserForwarding } from "@calcom/features/booking-forwarding/handle-user";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -31,6 +30,7 @@ import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -127,7 +127,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             </div>
           )}
           <div className="mb-8 text-center">
-            <OrganizationMemberAvatar
+            <UserAvatar
               size="xl"
               user={{
                 organizationId: profile.organization?.id,
