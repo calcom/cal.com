@@ -12,21 +12,29 @@ function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
   if (!data?.user.impersonatedBy) return null;
   const returnToId = data.user.impersonatedBy.id;
 
+  const canReturnToSelf = data.user.impersonatedBy.role == "ADMIN" || data.user?.org?.id;
+
   return (
     <>
       <TopBanner
         text={t("impersonating_user_warning", { user: data.user.username })}
         variant="warning"
         actions={
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              signIn("impersonation-auth", { returnToId });
-            }}>
-            <button className="text-emphasis hover:underline" data-testid="stop-impersonating-button">
+          canReturnToSelf ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                signIn("impersonation-auth", { returnToId });
+              }}>
+              <button className="text-emphasis hover:underline" data-testid="stop-impersonating-button">
+                {t("impersonating_stop_instructions")}
+              </button>
+            </form>
+          ) : (
+            <a className="border-b border-b-black" href="/auth/logout">
               {t("impersonating_stop_instructions")}
-            </button>
-          </form>
+            </a>
+          )
         }
       />
     </>
