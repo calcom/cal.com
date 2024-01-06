@@ -10,7 +10,7 @@ test.describe("Users can impersonate", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
   });
-  test("App Admin can impersonate users with impersonation disabled", async ({ page, users }) => {
+  test("App Admin can impersonate users with impersonation enabled", async ({ page, users }) => {
     // log in trail user
     const user = await users.create({
       role: "ADMIN",

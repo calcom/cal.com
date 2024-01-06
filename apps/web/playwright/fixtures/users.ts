@@ -597,7 +597,7 @@ const createUser = (
     locale: opts?.locale ?? "en",
     role: opts?.role ?? "USER",
     twoFactorEnabled: opts?.twoFactorEnabled ?? false,
-    disableImpersonation: opts?.twoFactorEnabled ?? false,
+    disableImpersonation: opts?.disableImpersonation ?? false,
     ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true
