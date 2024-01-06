@@ -28,7 +28,7 @@ const NAMESPACE = "organizations";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
+  create: authedAdminProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler(opts);
   }),

@@ -368,10 +368,11 @@ export async function sendVerificationEmail({
       language: translation,
       from: ctx.user.name || `${team.name}'s admin`,
       to: usernameOrEmail,
-      teamName: team?.parent?.name || team.name,
+      teamName: team.name,
       joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
       isCalcomMember: false,
       isOrg: input.isOrg,
+      parentTeamName: team?.parent?.name,
     });
   } else {
     await sendOrganizationAutoJoinEmail({
@@ -478,12 +479,14 @@ export const sendTeamInviteEmails = async ({
   language,
   currentUserTeamName,
   currentUserName,
+  currentUserParentTeamName,
   isOrg,
   teamId,
 }: {
   language: TFunction;
   existingUsersWithMembersips: UserWithMembership[];
   currentUserTeamName?: string;
+  currentUserParentTeamName: string | undefined;
   currentUserName?: string | null;
   isOrg: boolean;
   teamId: number;
@@ -529,6 +532,7 @@ export const sendTeamInviteEmails = async ({
         teamName: currentUserTeamName,
         ...inviteTeamOptions,
         isOrg: isOrg,
+        parentTeamName: currentUserParentTeamName,
       });
     }
   });

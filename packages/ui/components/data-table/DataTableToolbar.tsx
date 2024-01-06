@@ -4,6 +4,8 @@ import type { Table } from "@tanstack/react-table";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { Button } from "../button";
 import { Input } from "../form";
 import { DataTableFilter } from "./DataTableFilter";
@@ -35,8 +37,10 @@ export function DataTableToolbar<TData>({
   // If you select ALL filters for a column, the table is not filtered and we dont get a reset button
   const isFiltered = table.getState().columnFilters.length > 0;
 
+  const { t } = useLocale();
+
   return (
-    <div className="bg-default sticky top-[3rem] z-10 flex items-center justify-end space-x-2 py-4 md:top-0">
+    <div className="sticky top-[3rem] z-10 flex items-center justify-end space-x-2 py-4 md:top-0">
       {searchKey && (
         <Input
           className="max-w-64 mb-0 mr-auto rounded-md"
@@ -51,7 +55,7 @@ export function DataTableToolbar<TData>({
           EndIcon={X}
           onClick={() => table.resetColumnFilters()}
           className="h-8 px-2 lg:px-3">
-          Reset
+          {t("clear")}
         </Button>
       )}
 

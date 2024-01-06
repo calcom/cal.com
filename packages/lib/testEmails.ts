@@ -6,7 +6,7 @@ declare global {
       content: string;
     };
     to: string;
-    from: string;
+    from: string | { email: string; name: string };
     subject: string;
     html: string;
   }[];

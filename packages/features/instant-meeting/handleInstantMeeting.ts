@@ -13,8 +13,6 @@ import {
   getCustomInputsResponses,
 } from "@calcom/features/bookings/lib/handleNewBooking";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -24,12 +22,31 @@ import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 const handleInstantMeetingWebhookTrigger = async (args: {
-  subscriberOptions: GetSubscriberOptions;
+  eventTypeId: number;
   webhookData: Record<string, unknown>;
 }) => {
   try {
     const eventTrigger = WebhookTriggerEvents.INSTANT_MEETING;
-    const subscribers = await getWebhooks(args.subscriberOptions);
+
+    const subscribers = await prisma.webhook.findMany({
+      where: {
+        AND: {
+          eventTypeId: args.eventTypeId,
+          eventTriggers: {
+            has: eventTrigger,
+          },
+          active: true,
+        },
+      },
+      select: {
+        id: true,
+        subscriberUrl: true,
+        payloadTemplate: true,
+        appId: true,
+        secret: true,
+      },
+    });
+
     const { webhookData } = args;
 
     const promises = subscribers.map((sub) => {
@@ -178,12 +195,6 @@ async function handler(req: NextApiRequest) {
   });
 
   // Trigger Webhook
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: null,
-    eventTypeId: eventType.id,
-    triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
-    teamId: eventType.team.id,
-  };
 
   const webhookData = {
     triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
@@ -196,7 +207,7 @@ async function handler(req: NextApiRequest) {
   };
 
   await handleInstantMeetingWebhookTrigger({
-    subscriberOptions,
+    eventTypeId: eventType.id,
     webhookData,
   });
 
