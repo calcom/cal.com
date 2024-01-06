@@ -23,7 +23,9 @@ function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
               e.preventDefault();
               signIn("impersonation-auth", { returnToId });
             }}>
-            <button className="text-emphasis hover:underline">{t("impersonating_stop_instructions")}</button>
+            <button className="text-emphasis hover:underline" data-testid="stop-impersonating-button">
+              {t("impersonating_stop_instructions")}
+            </button>
           </form>
         }
       />
