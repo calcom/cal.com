@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { FC } from "react";
+import type { DragEvent, FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -225,6 +225,8 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
+  const [dragStartPosition, setDragStartPosition] = useState(0);
+  const [dragOverPosition, setDragOverPosition] = useState(0);
   const utils = trpc.useContext();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
@@ -272,14 +274,26 @@ export const EventTypeList = ({
     },
   });
 
-  async function moveEventType(index: number, increment: 1 | -1) {
-    const newList = [...types];
+  async function moveEventType(index: number, increment: number) {
+    let newList = [...types];
 
-    const type = types[index];
-    const tmp = types[index + increment];
-    if (tmp) {
-      newList[index] = tmp;
-      newList[index + increment] = type;
+    if (increment === 0) return;
+    else if (index + increment < 0 || index + increment >= newList.length) return;
+    else if (increment === 1 || increment === -1) {
+      const type = types[index];
+      const tmp = types[index + increment];
+      if (tmp) {
+        newList[index] = tmp;
+        newList[index + increment] = type;
+      }
+    } else {
+      newList = newList.filter((item) => item.id !== types[index].id);
+
+      newList.splice(dragOverPosition, 0, types[index]);
+
+      mutation.mutate({
+        ids: newList.map((type) => type.id),
+      });
     }
 
     await utils.viewer.eventTypes.getByViewer.cancel();
@@ -300,6 +314,20 @@ export const EventTypeList = ({
       ids: newList.map((type) => type.id),
     });
   }
+
+  const dragStart = (e: DragEvent<HTMLLIElement>, position: number) => {
+    setDragStartPosition(position);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
+  };
+
+  const dragOver = (position: number) => {
+    setDragOverPosition(position);
+  };
+
+  const drop = () => {
+    moveEventType(dragStartPosition, dragOverPosition - dragStartPosition);
+  };
 
   async function deleteEventTypeHandler(id: number) {
     const payload = { id };
@@ -396,7 +424,12 @@ export const EventTypeList = ({
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
           return (
-            <li key={type.id}>
+            <li
+              key={type.id}
+              draggable={!readOnly}
+              onDragStart={(e) => dragStart(e, index)}
+              onDragEnter={() => dragOver(index)}
+              onDragEnd={drop}>
               <div className="hover:bg-muted flex w-full items-center justify-between transition">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
