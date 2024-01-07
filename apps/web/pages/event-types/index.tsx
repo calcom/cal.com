@@ -165,7 +165,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   );
 
   return readOnly ? (
-    <div className="flex-1 overflow-hidden pr-4 text-sm">
+    <div className="flex-1 cursor-grab overflow-hidden pr-4 text-sm">
       {content()}
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
@@ -176,7 +176,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   ) : (
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
-      className="flex-1 overflow-hidden pr-4 text-sm"
+      className="flex-1 cursor-grab overflow-hidden pr-4 text-sm"
       title={type.title}>
       <div>
         <span
@@ -318,6 +318,8 @@ export const EventTypeList = ({
   const dragStart = (e: DragEvent<HTMLLIElement>, position: number) => {
     setDragStartPosition(position);
     e.dataTransfer.effectAllowed = "move";
+    e.currentTarget.style.opacity = "0.5";
+    e.currentTarget.style.cursor = "grabbing";
     e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
   };
 
@@ -325,8 +327,10 @@ export const EventTypeList = ({
     setDragOverPosition(position);
   };
 
-  const drop = () => {
+  const drop = (e: DragEvent<HTMLLIElement>) => {
     moveEventType(dragStartPosition, dragOverPosition - dragStartPosition);
+    e.currentTarget.style.opacity = "1";
+    e.currentTarget.style.cursor = "grab";
   };
 
   async function deleteEventTypeHandler(id: number) {
@@ -429,7 +433,8 @@ export const EventTypeList = ({
               draggable={!readOnly}
               onDragStart={(e) => dragStart(e, index)}
               onDragEnter={() => dragOver(index)}
-              onDragEnd={drop}>
+              onDragEnd={(e) => drop(e)}
+              className="cursor-grab">
               <div className="hover:bg-muted flex w-full items-center justify-between transition">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
