@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
 
@@ -89,8 +88,7 @@ async function postHandler(req: NextApiRequest) {
   }
 
   if (args.data.eventTriggers) {
-    const uniqueEventTriggers = Array.from(new Set(args.data.eventTriggers as WebhookTriggerEvents[]));
-    args.data.eventTriggers = uniqueEventTriggers;
+    args.data.eventTriggers = [...new Set(args.data.eventTriggers)];
   }
 
   const data = await prisma.webhook.create(args);

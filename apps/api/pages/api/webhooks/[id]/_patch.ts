@@ -3,7 +3,6 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
@@ -89,8 +88,7 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   if (args.data.eventTriggers) {
-    const uniqueEventTriggers = Array.from(new Set(args.data.eventTriggers as WebhookTriggerEvents[]));
-    args.data.eventTriggers = uniqueEventTriggers;
+    args.data.eventTriggers = [...new Set(args.data.eventTriggers)];
   }
 
   const result = await prisma.webhook.update(args);
