@@ -1,6 +1,14 @@
+import { baseApiUrl } from "greenhouse/api/callback";
+import { getGreenhouseAppKeys } from "greenhouse/lib/getGreenhouseAppKeys";
 import { z } from "zod";
 
-/** @link https://developers.greenhouse.io/harvest.html#the-scheduled-interview-object */
+import dayjs from "@calcom/dayjs";
+import prisma from "@calcom/prisma";
+import type { Credential } from "@calcom/prisma/client";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
+
+/** @link https://developers.greenhouse.io/harvest.html#get-retrieve-user */
 export const greenhouseUserSchema = z.object({
   id: z.number(),
   first_name: z.string(),
@@ -9,16 +17,9 @@ export const greenhouseUserSchema = z.object({
   employee_id: z.number(),
 });
 
-export const greenhouseInterviewerSchema = z.object({
-  id: z.number(),
-  employee_id: z.string(),
-  name: z.string(),
-  email: z.string().email(),
-  response_status: z.enum(["needs_action", "declined", "tentative", "accepted"]),
-  scorecard_id: z.number(),
-});
+/** @link https://developers.greenhouse.io/harvest.html#the-scheduled-interview-object  */
 export const greenhouseInterviewSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   start: z.object({
     date_time: z.string(),
   }),
@@ -28,8 +29,116 @@ export const greenhouseInterviewSchema = z.object({
   location: z.string().optional(), //check if optional
   video_conferencing_url: z.string(),
   status: z.enum(["scheduled", "awaiting_feedback", "complete"]),
-  created_at: z.date(),
-  updated_at: z.date(),
   organizer: greenhouseUserSchema,
-  interviewers: z.array(greenhouseInterviewerSchema),
+  interviewers: z.array(greenhouseUserSchema),
 });
+
+export const greenhouseInterviewsSchema = z.array(greenhouseInterviewSchema);
+const GreenhouseCalendarService = (credential: CredentialPayload) => {
+  const translateEvent = (event: CalendarEvent) => {
+    /**
+     * To convert the Cal's CalendarEvent type to a Greenhouse scheduled interview type
+     * @link https://developers.greenhouse.io/harvest.html#the-scheduled-interview-object
+     */
+
+    return {
+      title: event.title,
+      start: dayjs(event.startTime).utc().format(),
+      end: dayjs(event.endTime).utc().format(),
+      location: event.location,
+      organizer: event.organizer,
+      interviewers: event.attendees.map((attendee) => ({
+        email: attendee.email,
+      })),
+      sendEmail: true,
+    };
+  };
+
+  const fetchGreenhouseApi = async (endpoint: string, options?: RequestInit) => {
+    const { api_key } = await getGreenhouseAppKeys();
+
+    /** Note: the full url is passed as endpoint since some urls use Greenhouse API v1 and some use v2. See note in the `/api/callback file` */
+    const response = await fetch(`${endpoint}`, {
+      method: "GET",
+      ...options,
+      headers: {
+        Authorization: `Basic ${api_key}`,
+        ...options?.headers,
+      },
+    });
+    const responseBody = await handleGreenhouseResponse(response, credential.id);
+    return responseBody;
+  };
+
+  return {
+    getInterviews: async () => {
+      try {
+        const responseBody = await fetchGreenhouseApi(`${baseApiUrl}/scheduled_interviews`);
+        const data = greenhouseInterviewsSchema.parse(responseBody);
+
+        return data.map((interview) => ({
+          start: interview.start,
+          end: interview.end,
+        }));
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
+    },
+    createInterview: async (event: CalendarEvent) => {
+      /** Uses the v2 endpoint
+       * @link https://developers.greenhouse.io/harvest.html#post-create-scheduled-interview
+       */
+    },
+  };
+};
+const handleGreenhouseResponse = async (response: Response, credentialId: Credential["id"]) => {
+  let _response = response.clone();
+  const responseClone = response.clone();
+  if (_response.headers.get("content-encoding") === "gzip") {
+    const responseString = await response.text();
+    _response = JSON.parse(responseString);
+  }
+  if (!response.ok || (response.status < 200 && response.status >= 300)) {
+    const responseBody = await _response.json();
+
+    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
+      await invalidateCredential(credentialId);
+    }
+    throw Error(response.statusText);
+  }
+  // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
+  if (response.status === 204) {
+    return;
+  }
+  return responseClone.json();
+};
+
+const invalidateCredential = async (credentialId: Credential["id"]) => {
+  const credential = await prisma.credential.findUnique({
+    where: {
+      id: credentialId,
+    },
+  });
+
+  if (credential) {
+    await prisma.credential.update({
+      where: {
+        id: credentialId,
+      },
+      data: {
+        invalid: true,
+      },
+    });
+  }
+};
+
+export default GreenhouseCalendarService;
+/**
+ * TODOS
+ * fetch list of interviews
+ * get a specific scheduled interview
+ * update a scheduled interview
+ * delete a schedule interview
+ * webhook - there's only one webhook available for scheduled interview - triggered when an interview is deleted
+ */

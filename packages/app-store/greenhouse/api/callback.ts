@@ -8,6 +8,13 @@ import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredentia
 import config from "../config.json";
 import { getGreenhouseAppKeys } from "../lib/getGreenhouseAppKeys";
 
+/**
+ * Note: Documentation includes links to both v1 and v2 versions of the Greenhouse API
+ * Auth docs have v1 link @link https://developers.greenhouse.io/harvest.html#introduction
+ * Create interview uses the v2 endpoint @link https://developers.greenhouse.io/harvest.html#post-create-scheduled-interview
+ * Since the v1 endpoint is used in most case, this is used as a baseApiUrl and notes have been added where v2 endpoint is used
+ * */
+
 export const baseApiUrl = "https://harvest.greenhouse.io/v1";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
