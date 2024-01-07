@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   /** @link https://developers.greenhouse.io/harvest.html#authentication **/
 
   const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
-  const authHeader = "Basic " + Buffer.from(api_key + ":").toString("base64");
+  const authHeader = `Basic ${Buffer.from(`${api_key}:`).toString("base64")}`;
   const result = await fetch(baseApiUrl, {
     method: "GET",
     headers: {
@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
    * when creating a video room we only do findFirst so the if they have more than 1
    * others get ignored
    * */
-  const existingCredentialGreenhouseVideo = await prisma.credential.findMany({
+  const existingCredentialGreenhouse = await prisma.credential.findMany({
     select: {
       id: true,
     },
@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // Making sure we only delete Greenhouse_video
-  const credentialIdsToDelete = existingCredentialGreenhouseVideo.map((item) => item.id);
+  const credentialIdsToDelete = existingCredentialGreenhouse.map((item) => item.id);
   if (credentialIdsToDelete.length > 0) {
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
