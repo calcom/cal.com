@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge, List, ListItem, ListItemText, ListItemTitle, Switch, showToast } from "@calcom/ui";
@@ -28,9 +30,9 @@ export const FlagAdminList = () => {
 type Flag = RouterOutputs["viewer"]["features"]["list"][number];
 
 const FlagToggle = (props: { flag: Flag }) => {
-  const {
-    flag: { slug, enabled },
-  } = props;
+  const [enabled, setEnabled] = useState<boolean | undefined>(props.flag.enabled);
+
+  const slug = props.flag.slug;
   const utils = trpc.useContext();
   const mutation = trpc.viewer.admin.toggleFeatureFlag.useMutation({
     onSuccess: () => {
@@ -43,6 +45,7 @@ const FlagToggle = (props: { flag: Flag }) => {
     <Switch
       defaultChecked={enabled}
       onCheckedChange={(checked) => {
+        setEnabled((prev) => !prev);
         mutation.mutate({ slug, enabled: checked });
       }}
     />
