@@ -268,8 +268,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
             {member.role === MembershipRole.MEMBER && <Badge variant="gray">{t("member")}</Badge>}
 
-            {member.role === MembershipRole.ADMIN && <Badge variant="default">{t("admin")}</Badge>}
-            {member.role === MembershipRole.OWNER && <Badge variant="default">{t("owner")}</Badge>}
+            {member.role === MembershipRole.ADMIN && <Badge variant="gray">{t("admin")}</Badge>}
+            {member.role === MembershipRole.OWNER && <Badge variant="gray">{t("owner")}</Badge>}
           </div>
           {member.username ? (
             <p className="text-default truncate">{`${bookerUrl}/${member.username}`}</p>
