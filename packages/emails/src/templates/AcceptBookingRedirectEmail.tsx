@@ -1,13 +1,13 @@
-import type { IBookingForwarding } from "../../templates/accept-booking-forwarding";
+import type { IBookingRedirect } from "../../templates/accept-booking-redirect";
 import { BaseEmailHtml, CallToAction, CallToActionTable, Separator } from "../components";
 
-export const AcceptBookingForwardingEmail = (
-  props: IBookingForwarding & Partial<React.ComponentProps<typeof BaseEmailHtml>>
+export const AcceptBookingRedirectEmail = (
+  props: IBookingRedirect & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   return (
     <BaseEmailHtml
-      subject={props.language("accept_booking_forwarding_email_subject")}
-      title={props.language("accept_booking_forwarding_email_title")}>
+      subject={props.language("accept_booking_redirect_email_subject")}
+      title={props.language("accept_booking_redirect_email_title")}>
       <p
         style={{
           color: "black",
@@ -15,7 +15,7 @@ export const AcceptBookingForwardingEmail = (
           lineHeight: "24px",
           fontWeight: "400",
         }}>
-        {props.language("accept_booking_forwarding_email_description", {
+        {props.language("accept_booking_redirect_email_description", {
           toName: props.toName,
         })}
         {props.dates}

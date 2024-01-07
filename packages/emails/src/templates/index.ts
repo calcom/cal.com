@@ -31,4 +31,4 @@ export { OrganisationAccountVerifyEmail } from "./OrganizationAccountVerifyEmail
 export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";
 export { MonthlyDigestEmail } from "./MonthlyDigestEmail";
 export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificationEmail";
-export { AcceptBookingForwardingEmail } from "./AcceptBookingForwardingEmail";
+export { AcceptBookingRedirectEmail } from "./AcceptBookingRedirectEmail";

@@ -8,8 +8,8 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
-import type { IBookingForwarding } from "./templates/accept-booking-forwarding";
-import AcceptBookingForwarding from "./templates/accept-booking-forwarding";
+import type { IBookingRedirect } from "./templates/accept-booking-redirect";
+import AcceptBookingRedirect from "./templates/accept-booking-redirect";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
@@ -440,6 +440,6 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
   await sendEmail(() => new AdminOrganizationNotification(input));
 };
 
-export const sendAcceptBookingForwarding = async (bookingForwarding: IBookingForwarding) => {
-  await sendEmail(() => new AcceptBookingForwarding(bookingForwarding));
+export const sendAcceptBookingRedirect = async (bookingRedirect: IBookingRedirect) => {
+  await sendEmail(() => new AcceptBookingRedirect(bookingRedirect));
 };

@@ -10,20 +10,20 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("Booking forwarding", () => {
-  test("User should be asked to create a team if /settings/my-account/out-of-office", async ({
-    page,
-    users,
-  }) => {
+test.describe("Out of office", () => {
+  test("User can create out of office entry", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
+
     await user.apiLogin();
 
-    await page.goto(`/settings/my-account/out-of-office`);
+    await page.goto("/settings/my-account/out-of-office");
 
-    await expect(page.locator("data-testid=create_team_booking_forwarding")).toBeVisible();
+    await page.locator("data-testid=send-request-redirect").click();
+
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 
-  test("User can configure booking forwarding", async ({ page, users }) => {
+  test("User can configure booking redirect", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
 
@@ -56,22 +56,24 @@ test.describe("Booking forwarding", () => {
 
     await page.goto(`/settings/my-account/out-of-office`);
 
+    await page.getByTestId("profile-redirect-switch").click({ timeout: 500 });
+
     await page.locator(".bg-default > div > div:nth-child(2)").first().click();
     await page.locator("#react-select-2-option-0 div").click();
 
     // send request
-    await page.locator("data-testid=send-request-forwarding").click();
+    await page.locator("data-testid=send-request-redirect").click();
 
-    // expect table-forwarding-toUserId to be visible
-    await expect(page.locator(`data-testid=table-forwarding-${userTo.username}`)).toBeVisible();
+    // expect table-redirect-toUserId to be visible
+    await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
   });
 
-  test("User can accept/reject booking forwarding", async ({ page, users }) => {
+  test("User can accept/reject booking redirect", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
     await userTo.apiLogin();
     const uuid = uuidv4();
-    await prisma.bookingForwarding.create({
+    await prisma.outOfOfficeEntry.create({
       data: {
         start: dayjs().startOf("day").add(1, "hour").toDate(),
         uuid,
@@ -83,20 +85,20 @@ test.describe("Booking forwarding", () => {
       },
     });
 
-    await page.goto(`/booking-forwarding/accept/${uuid}`);
+    await page.goto(`/booking-redirect/accept/${uuid}`);
 
-    await expect(page.locator("data-testid=success_accept_forwarding")).toBeTruthy();
+    await expect(page.locator("data-testid=success_accept_redirect")).toBeTruthy();
 
-    await page.goto(`/booking-forwarding/reject/${uuid}`);
+    await page.goto(`/booking-redirect/reject/${uuid}`);
 
-    await expect(page.locator("data-testid=success_reject_forwarding")).toBeTruthy();
+    await expect(page.locator("data-testid=success_reject_redirect")).toBeTruthy();
   });
 
   test("Profile redirection", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
     const uuid = uuidv4();
-    await prisma.bookingForwarding.create({
+    await prisma.outOfOfficeEntry.create({
       data: {
         start: dayjs().startOf("day").toDate(),
         end: dayjs().startOf("day").add(1, "w").toDate(),
@@ -118,23 +120,5 @@ test.describe("Booking forwarding", () => {
     await page.goto(`/${userTo.username}/30-min`);
 
     expect(page.url()).toMatch(new RegExp(`/${userTo.username}/30-min`));
-  });
-
-  test("User with no team shouldn't be redirected to /settings/my-account/out-of-office", async ({
-    page,
-    users,
-  }) => {
-    const user = await users.create({ name: "userOne" });
-
-    await user.apiLogin();
-
-    await page.goto("/event-types");
-
-    await page.locator("data-testid=user-dropdown-trigger-button").first().click();
-
-    await page.locator("data-testid=set-away-button").click();
-
-    // expect not to be redirected to /settings/my-account/out-of-office
-    await expect(page.url()).not.toBe("/settings/my-account/out-of-office");
   });
 });

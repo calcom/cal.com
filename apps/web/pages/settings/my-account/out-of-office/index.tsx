@@ -5,25 +5,25 @@ import dayjs from "@calcom/dayjs";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
 import { CAL_URL } from "@calcom/lib/constants";
+import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button, ButtonGroup, Meta, showToast, Badge, Select, SkeletonText } from "@calcom/ui";
+import { Button, Meta, showToast, Badge, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
-import { FastForward, Link, Moon, Send, Trash2 } from "@calcom/ui/components/icon";
+import { Link, Send, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { OutOfOfficeDateRangePicker } from "@components/out-of-office/DateRangePicker";
 
-export type BookingForwardingForm = {
+export type BookingRedirectForm = {
   startDate: string;
   endDate: string;
   toTeamUserId: number | null;
 };
 
-const BookingForwardingSection = () => {
+const OutOfOfficeSection = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
@@ -32,9 +32,10 @@ const BookingForwardingSection = () => {
     dayjs().add(1, "d").endOf("d").toDate(),
     null,
   ]);
+  const [profileRedirect, setProfileRedirect] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
-  const { handleSubmit, setValue } = useForm<BookingForwardingForm>({
+  const { handleSubmit, setValue } = useForm<BookingRedirectForm>({
     defaultValues: {
       startDate: dateRange[0]?.toISOString(),
       endDate: dateRange[1]?.toISOString(),
@@ -42,16 +43,18 @@ const BookingForwardingSection = () => {
     },
   });
 
-  const createBookingForwardingMutation = trpc.viewer.bookingForwardingCreate.useMutation({
+  const createOutOfOfficeEntry = trpc.viewer.outOfOfficeCreate.useMutation({
     onSuccess: () => {
       showToast(t("success_request"), "success");
-      utils.viewer.bookingForwardingList.invalidate();
+      utils.viewer.outOfOfficeEntriesList.invalidate();
+      setProfileRedirect(false);
     },
     onError: (error) => {
       showToast(t(error.message), "error");
     },
   });
 
+  const { hasPaidPlan } = useHasPaidPlan();
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
   const memberListOptions: {
@@ -64,23 +67,20 @@ const BookingForwardingSection = () => {
         value: member.id || null,
         label: member.name || "",
       })) || [];
-
+  console.log({ hasPaidPlan });
   return (
     <>
       <form
         onSubmit={handleSubmit((data) => {
-          createBookingForwardingMutation.mutate(data);
+          createOutOfOfficeEntry.mutate(data);
           setValue("toTeamUserId", null);
           setSelectedMember(null);
         })}>
         <div className="border-subtle mt-6 flex flex-col rounded-t-lg border border-b-0 p-6 text-sm">
-          <p className="text-default font-cal text-base font-semibold">{t("booking_forwarding_action")}</p>
-
+          <p className="text-default font-cal text-base font-semibold">{t("going_away_title")}</p>
           {/* Add startDate and end date inputs */}
           <div className="mt-2">
-            <p className="text-emphasis mb-2 mt-4 block text-sm font-medium">
-              {t("select_date_range_availability")}
-            </p>
+            <p className="text-emphasis mb-2 mt-4 block text-sm">{t("select_date_range_availability")}</p>
             <div className=" w-[250px]">
               <OutOfOfficeDateRangePicker
                 dateRange={dateRange}
@@ -90,35 +90,57 @@ const BookingForwardingSection = () => {
             </div>
           </div>
 
-          <div className="mt-6">
-            <p className="text-emphasis mb-2 block text-sm font-medium">{t("select_team_member")}</p>
-            <Select
-              className="mt-1 max-w-[350px] text-white"
-              name="toTeamUsername"
-              data-testid="team_username_select"
-              value={selectedMember}
-              placeholder={t("select")}
-              isSearchable
-              options={memberListOptions}
-              onChange={(selectedOption) => {
-                if (selectedOption?.value) {
-                  setSelectedMember(selectedOption);
-                  setValue("toTeamUserId", selectedOption?.value);
-                }
+          {/* Add toggle to enable/disable redirect */}
+          <div className="mt-6 flex flex-row">
+            <Switch
+              disabled={!hasPaidPlan}
+              data-testid="profile-redirect-switch"
+              checked={profileRedirect}
+              id="profile-redirect-switch"
+              onCheckedChange={(state) => {
+                setProfileRedirect(state);
               }}
+              label={hasPaidPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
             />
+            {!hasPaidPlan && (
+              <div className="mx-2" data-testid="upgrade-team-badge">
+                <UpgradeTeamsBadge />
+              </div>
+            )}
           </div>
+
+          {profileRedirect && (
+            <div className="mt-6">
+              <p className="text-sm">{t("booking_redirect_action")}</p>
+
+              <Select
+                className="mt-1 max-w-[350px] text-white"
+                name="toTeamUsername"
+                data-testid="team_username_select"
+                value={selectedMember}
+                placeholder={t("select_team_member")}
+                isSearchable
+                options={memberListOptions}
+                onChange={(selectedOption) => {
+                  if (selectedOption?.value) {
+                    setSelectedMember(selectedOption);
+                    setValue("toTeamUserId", selectedOption?.value);
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
-        <SectionBottomActions align="start">
+        <SectionBottomActions align="end">
           <Button
             color="primary"
             type="submit"
-            disabled={createBookingForwardingMutation.isLoading}
-            data-testid="send-request-forwarding"
+            disabled={createOutOfOfficeEntry.isLoading}
+            data-testid="send-request-redirect"
             EndIcon={() => (
               <Send className="font-semi mx-2 h-5 w-5 text-white dark:text-black" aria-hidden="true" />
             )}>
-            {t("send_request")}
+            {profileRedirect ? t("send_request") : "Create out of office entry"}
           </Button>
         </SectionBottomActions>
       </form>
@@ -126,32 +148,32 @@ const BookingForwardingSection = () => {
   );
 };
 
-const BookingForwardingList = () => {
+const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data, isLoading } = trpc.viewer.bookingForwardingList.useQuery();
-  const deleteBookingForwardingMutation = trpc.viewer.bookingForwardingDelete.useMutation({
+  const { data, isLoading } = trpc.viewer.outOfOfficeEntriesList.useQuery();
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
-      showToast(`Successfully deleted request`, "success");
-      utils.viewer.bookingForwardingList.invalidate();
+      showToast(t("success_deleted_entry_out_of_office"), "success");
+      utils.viewer.outOfOfficeEntriesList.invalidate();
       useFormState;
     },
     onError: () => {
       showToast(`An error ocurred`, "error");
     },
   });
-  if (data === null || data?.length === 0) return null;
+  if (data === null || data?.length === 0 || data === undefined) return null;
   return (
     <>
       <div className="border-subtle mt-6 flex flex-col rounded-lg border p-6 text-sm">
         {/* Table that displays current request and status */}
-        <p className="text-default font-cal text-base font-semibold">{t("forwarding_list")}</p>
+        <p className="text-default font-cal text-base font-semibold">{t("out_of_office_unavailable_list")}</p>
         <TableNew className="mt-4">
           <TableHeader>
             <TableRow>
               <TableHead className="capitalize">{t("from")}</TableHead>
               <TableHead>{t("to")}</TableHead>
-              <TableHead>{t("username")}</TableHead>
+              <TableHead>{t("team_username")}</TableHead>
               <TableHead>{t("status")}</TableHead>
               <TableHead>{t("share")}</TableHead>
               <TableHead>{t("delete")}</TableHead>
@@ -159,48 +181,56 @@ const BookingForwardingList = () => {
           </TableHeader>
           <TableBody>
             {data?.map((item) => (
-              <TableRow key={item.id} data-testid={`table-forwarding-${item.toUser?.username}`}>
-                <TableCell>{dayjs(item.start).format("YYYY-MM-DD")}</TableCell>
+              <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
                 <TableCell>
-                  <p>{dayjs(item.end).format("YYYY-MM-DD")}</p>
+                  <p className="px-2">{dayjs(item.start).format("YYYY-MM-DD")}</p>
                 </TableCell>
                 <TableCell>
-                  <p>{item.toUser?.username}</p>
+                  <p className="px-2">{dayjs(item.end).format("YYYY-MM-DD")}</p>
                 </TableCell>
                 <TableCell>
+                  <p className="px-2">{item.toUser?.username || "N/A"}</p>
+                </TableCell>
+                <TableCell>
+                  {item.status === null && <p className="px-4 text-xs">N/A</p>}
                   {item.status === "PENDING" && (
-                    <Badge variant="warning" className="text-xs">
+                    <Badge variant="warning" className="px-4 text-xs">
                       {t("pending")}
                     </Badge>
                   )}
                   {item.status === "ACCEPTED" && (
-                    <Badge variant="success" className="capitalize">
+                    <Badge variant="success" className="px-4 text-xs capitalize">
                       {t("accepted")}
                     </Badge>
                   )}
                   {item.status === "REJECTED" && (
-                    <Badge variant="error" className="text-xs">
+                    <Badge variant="error" className="px-4 text-xs">
                       {t("rejected")}
                     </Badge>
                   )}
                 </TableCell>
                 <TableCell>
                   {/* Button to share link to accept */}
-                  <Button
-                    tooltip={t("copy_link_booking_forwarding_request")}
-                    color="minimal"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`${CAL_URL}/booking-forwarding/accept/${item.uuid}`);
-                    }}>
-                    <Link width={15} height={15} />
-                  </Button>
+                  {item.toUser?.username && (
+                    <Button
+                      className="px-4"
+                      tooltip={t("copy_link_booking_redirect_request")}
+                      color="minimal"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${CAL_URL}/booking-redirect/accept/${item.uuid}`);
+                      }}>
+                      <Link width={15} height={15} />
+                    </Button>
+                  )}
+                  {!item.toUser?.username && <p className="px-4">N/A</p>}
                 </TableCell>
                 <TableCell>
                   <Button
-                    disabled={deleteBookingForwardingMutation.isLoading}
+                    className="px-4"
+                    disabled={deleteOutOfOfficeEntryMutation.isLoading}
                     color="destructive"
                     onClick={() => {
-                      deleteBookingForwardingMutation.mutate({ bookingForwardingUid: item.uuid });
+                      deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
                     }}>
                     <Trash2 width={15} height={15} />
                   </Button>
@@ -220,7 +250,7 @@ const BookingForwardingList = () => {
             {!isLoading && (data === undefined || data.length === 0) && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
-                  <p className="text-subtle text-sm">{t("no_forwardings_found")}</p>
+                  <p className="text-subtle text-sm">{t("no_redirects_found")}</p>
                 </TableCell>
               </TableRow>
             )}
@@ -231,73 +261,8 @@ const BookingForwardingList = () => {
   );
 };
 
-const SetAway = () => {
-  const { t } = useLocale();
-  const { data: user } = useMeQuery();
-  const utils = trpc.useContext();
-
-  const mutation = trpc.viewer.away.useMutation({
-    onMutate: async ({ away }) => {
-      await utils.viewer.me.cancel();
-
-      const previousValue = utils.viewer.me.getData();
-
-      if (previousValue) {
-        utils.viewer.me.setData(undefined, { ...previousValue, away });
-      }
-
-      return { previousValue };
-    },
-    onError: (_, __, context) => {
-      if (context?.previousValue) {
-        utils.viewer.me.setData(undefined, context.previousValue);
-      }
-
-      showToast(t("toggle_away_error"), "error");
-    },
-    onSettled() {
-      utils.viewer.me.invalidate();
-    },
-  });
-
-  return (
-    <>
-      <div className="border-subtle mt-6 flex items-center rounded-t-lg border border-b-0 p-6 text-sm">
-        <p className="text-default font-cal text-base font-semibold">{t("going_away_title")}</p>
-      </div>
-      <SectionBottomActions align="start">
-        <Button
-          EndIcon={() => (
-            <Moon className="font-semi mx-2 h-5 w-5 text-white dark:text-black" aria-hidden="true" />
-          )}
-          onClick={() => {
-            mutation.mutate({ away: !user?.away });
-          }}>
-          {user?.away ? t("set_as_free") : t("set_as_away")}
-        </Button>
-        {user?.away && (
-          // Link to see profile as away
-          <div className="mx-2 my-1">
-            <a href={`/${user.username}`} target="_blank" className="text-light flex flex-row underline">
-              {t("see_profile_as_away")}
-            </a>
-          </div>
-        )}
-      </SectionBottomActions>
-    </>
-  );
-};
-
 const OutOfOfficePage = () => {
   const { t } = useLocale();
-
-  const features = [
-    {
-      icon: <FastForward className="h-5 w-5 text-black dark:text-white" />,
-      title: t("forward_request_feature_title"),
-      description: t("forward_request_feature_description"),
-    },
-  ];
 
   return (
     <>
@@ -309,34 +274,8 @@ const OutOfOfficePage = () => {
       <ShellMain>
         <>
           <div className="mt-2"> </div>
-          <UpgradeTip
-            plan="team"
-            title={t("request_booking_forwarding_feature")}
-            description={t("request_booking_forwarding_feature_description")}
-            features={features}
-            background="/tips/teams"
-            buttons={
-              <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-                <ButtonGroup>
-                  <Button
-                    color="primary"
-                    href="/settings/teams/new"
-                    target="_blank"
-                    data-testid="create_team_booking_forwarding">
-                    {t("create_team")}
-                  </Button>
-                  <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                    {t("learn_more")}
-                  </Button>
-                </ButtonGroup>
-              </div>
-            }>
-            <>
-              <SetAway />
-              <BookingForwardingSection />
-              <BookingForwardingList />
-            </>
-          </UpgradeTip>
+          <OutOfOfficeSection />
+          <OutOfOfficeEntriesList />
         </>
       </ShellMain>
     </>

@@ -13,7 +13,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { handleUserForwarding } from "@calcom/features/booking-forwarding/handle-user";
+import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-user";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -316,9 +316,13 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const usernameList = getUsernameList(context.query.user as string);
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
+  let outOfOffice = false;
 
   if (usernameList.length === 1) {
-    const result = await handleUserForwarding({ username: usernameList[0] });
+    const result = await handleUserRedirection({ username: usernameList[0] });
+    if (result && result.outOfOffice) {
+      outOfOffice = true;
+    }
     if (result && result.redirect?.destination) {
       return result;
     }
@@ -434,7 +438,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   }));
 
   // if profile only has one public event-type, redirect to it
-  if (eventTypes.length === 1 && context.query.redirect !== "false") {
+  if (eventTypes.length === 1 && context.query.redirect !== "false" && !outOfOffice) {
     // Redirect but don't change the URL
     const urlDestination = `/${user.username}/${eventTypes[0].slug}`;
     const { query } = context;
@@ -460,7 +464,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         username: user.username,
         bio: user.bio,
         avatarUrl: user.avatarUrl,
-        away: user.away,
+        away: usernameList.length === 1 ? outOfOffice : user.away,
         verified: user.verified,
       })),
       entity: {

@@ -1,4 +1,4 @@
-import type { BookingForwardingForm } from "@pages/settings/my-account/out-of-office";
+import type { BookingRedirectForm } from "@pages/settings/my-account/out-of-office";
 import { DateRangePicker } from "@tremor/react";
 import type { UseFormSetValue } from "react-hook-form";
 
@@ -10,7 +10,7 @@ import "./DateSelect.module.css";
 interface IOutOfOfficeDateRangeSelectProps {
   dateRange: [Date | null, Date | null, null];
   setDateRange: React.Dispatch<React.SetStateAction<[Date | null, Date | null, null]>>;
-  setValue: UseFormSetValue<BookingForwardingForm>;
+  setValue: UseFormSetValue<BookingRedirectForm>;
 }
 
 const OutOfOfficeDateRangePicker = (props: IOutOfOfficeDateRangeSelectProps) => {

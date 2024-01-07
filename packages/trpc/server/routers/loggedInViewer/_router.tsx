@@ -3,11 +3,6 @@ import { router } from "../../trpc";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { ZAwayInputSchema } from "./away.schema";
-import {
-  ZBookingForwardingConfirm,
-  ZBookingForwardingDelete,
-  ZBookingForwardingInputSchema,
-} from "./bookingForwarding.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZDeleteCredentialInputSchema } from "./deleteCredential.schema";
@@ -17,6 +12,11 @@ import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schem
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
+import {
+  ZOutOfOfficeInputSchema,
+  ZOutOfOfficeDelete,
+  ZOutOfOfficeRedirectConfirm,
+} from "./outOfOffice.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
@@ -52,10 +52,10 @@ type AppsRouterHandlerCache = {
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
-  bookingForwardingCreate?: typeof import("./bookingForwarding.handler").bookingForwardingCreate;
-  bookingForwardingAccept?: typeof import("./bookingForwarding.handler").bookingForwardingAccept;
-  bookingForwardingList?: typeof import("./bookingForwarding.handler").bookingForwardingList;
-  bookingForwardingDelete?: typeof import("./bookingForwarding.handler").bookingForwardingDelete;
+  outOfOfficeCreateEntry?: typeof import("./outOfOffice.handler").outOfOfficeCreate;
+  outOfOfficeRedirectConfirm?: typeof import("./outOfOffice.handler").outOfOfficeRedirectConfirm;
+  outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
+  outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -455,66 +455,60 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.connectAndJoin({ ctx, input });
   }),
-  bookingForwardingCreate: authedProcedure
-    .input(ZBookingForwardingInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingCreate) {
-        UNSTABLE_HANDLER_CACHE.bookingForwardingCreate = (
-          await import("./bookingForwarding.handler")
-        ).bookingForwardingCreate;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingCreate) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.bookingForwardingCreate({ ctx, input });
-    }),
-  bookingForwardingAccept: authedProcedure
-    .input(ZBookingForwardingConfirm)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingAccept) {
-        UNSTABLE_HANDLER_CACHE.bookingForwardingAccept = (
-          await import("./bookingForwarding.handler")
-        ).bookingForwardingAccept;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingAccept) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.bookingForwardingAccept({ ctx, input });
-    }),
-  bookingForwardingList: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.bookingForwardingList) {
-      UNSTABLE_HANDLER_CACHE.bookingForwardingList = (
-        await import("./bookingForwarding.handler")
-      ).bookingForwardingList;
+  outOfOfficeCreate: authedProcedure.input(ZOutOfOfficeInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreate) {
+      UNSTABLE_HANDLER_CACHE.outOfOfficeCreate = (await import("./outOfOffice.handler")).outOfOfficeCreate;
     }
 
     // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.bookingForwardingList) {
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreate) {
       throw new Error("Failed to load handler");
     }
 
-    return UNSTABLE_HANDLER_CACHE.bookingForwardingList({ ctx });
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeCreate({ ctx, input });
   }),
-  bookingForwardingDelete: authedProcedure
-    .input(ZBookingForwardingDelete)
+  outOfOfficeRedirectConfirm: authedProcedure
+    .input(ZOutOfOfficeRedirectConfirm)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingDelete) {
-        UNSTABLE_HANDLER_CACHE.bookingForwardingDelete = (
-          await import("./bookingForwarding.handler")
-        ).bookingForwardingDelete;
+      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeRedirectConfirm) {
+        UNSTABLE_HANDLER_CACHE.outOfOffice = (
+          await import("./outOfOffice.handler")
+        ).outOfOfficeRedirectConfirm;
       }
 
       // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.bookingForwardingDelete) {
+      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeRedirectConfirm) {
         throw new Error("Failed to load handler");
       }
 
-      return UNSTABLE_HANDLER_CACHE.bookingForwardingDelete({ ctx, input });
+      return UNSTABLE_HANDLER_CACHE.outOfOfficeRedirectConfirm({ ctx, input });
     }),
+  outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
+      UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (
+        await import("./outOfOffice.handler")
+      ).outOfOfficeEntriesList;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList({ ctx });
+  }),
+  outOfOfficeEntryDelete: authedProcedure.input(ZOutOfOfficeDelete).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete) {
+      UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete = (
+        await import("./outOfOffice.handler")
+      ).outOfOfficeEntryDelete;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.outOfOfficeEntryDelete({ ctx, input });
+  }),
 });

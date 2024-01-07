@@ -494,31 +494,14 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  {/* If not in a team simple set as away */}
-                  {!hasTeamPlan && (
-                    <DropdownItem
-                      data-testid="set-away-button"
-                      type="button"
-                      StartIcon={(props) => (
-                        <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
-                      )}
-                      onClick={() => {
-                        mutation.mutate({ away: !user.away });
-                      }}>
-                      {user.away ? t("set_as_free") : t("set_as_away")}
-                    </DropdownItem>
-                  )}
-                  {/* If in a team show new button of Out of office */}
-                  {hasTeamPlan && (
-                    <DropdownItem
-                      type="button"
-                      StartIcon={(props) => (
-                        <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
-                      )}
-                      href="/settings/my-account/out-of-office">
-                      {t("set_as_away")}
-                    </DropdownItem>
-                  )}
+                  <DropdownItem
+                    type="button"
+                    StartIcon={(props) => (
+                      <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
+                    )}
+                    href="/settings/my-account/out-of-office">
+                    {t("out_of_office")}
+                  </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>

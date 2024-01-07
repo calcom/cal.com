@@ -6,14 +6,12 @@ import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { BookingForwardingStatus } from "@calcom/prisma/enums";
+import type { BookingRedirectStatus } from "@calcom/prisma/enums";
 import { EmptyScreen } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function BookingForwardingAction(
-  props: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
+export default function BookingRedirectAction(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { action } = props;
   const { t } = useLocale();
   return (
@@ -21,19 +19,17 @@ export default function BookingForwardingAction(
       heading={t("forward_request_feature_title")}
       subtitle={t("forward_request_feature_description")}>
       <EmptyScreen
-        headline={t("booking_forwarding_request_title")}
-        title={t("booking_forwarding_request_title")}
+        headline={t("booking_redirect_request_title")}
+        title={t("booking_redirect_request_title")}
         description={
-          action === "accept"
-            ? t("success_accept_booking_forwarding")
-            : t("success_reject_booking_forwarding")
+          action === "accept" ? t("success_accept_booking_redirect") : t("success_reject_booking_redirect")
         }
         Icon={action === "accept" ? CalendarCheck : CalendarX}
       />
       {action === "accept" ? (
-        <input data-testid="success_reject_forwarding" type="hidden" />
+        <input data-testid="success_reject_redirect" type="hidden" />
       ) : (
-        <input data-testid="success_accept_forwarding" type="number" />
+        <input data-testid="success_accept_redirect" type="number" />
       )}
     </ShellMain>
   );
@@ -58,8 +54,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return { redirect: { permanent: false, destination: "/404" } };
   }
 
-  // Fetch the bookingForwarding
-  const bookingForwarding = await prisma.bookingForwarding.findFirst({
+  // Fetch the bookingRedirect
+  const bookingRedirect = await prisma.outOfOfficeEntry.findFirst({
     select: {
       user: {
         select: {
@@ -72,18 +68,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     where: { uuid: paramsSchema.data.uuid, toUserId: session?.user?.id },
   });
 
-  if (!bookingForwarding) {
+  if (!bookingRedirect) {
     return { redirect: { permanent: false, destination: "/404" } };
   }
 
-  // update the bookingForwarding
-  let activeStatus: BookingForwardingStatus = "PENDING";
+  // update the bookingRedirect
+  let activeStatus: BookingRedirectStatus = "PENDING";
   if (paramsSchema.data.action === "accept") {
     activeStatus = "ACCEPTED";
   } else {
     activeStatus = "REJECTED";
   }
-  await prisma.bookingForwarding.update({
+  await prisma.outOfOfficeEntry.update({
     where: { uuid: paramsSchema.data.uuid },
     data: { status: activeStatus },
   });
@@ -91,10 +87,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   return {
     props: {
       action: paramsSchema.data.action || null,
-      username: bookingForwarding.user.username,
+      username: bookingRedirect.user.username,
     },
   };
 };
 
-BookingForwardingAction.PageWrapper = PageWrapper;
-BookingForwardingAction.getLayout = getLayout;
+BookingRedirectAction.PageWrapper = PageWrapper;
+BookingRedirectAction.getLayout = getLayout;
