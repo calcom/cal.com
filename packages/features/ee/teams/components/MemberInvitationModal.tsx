@@ -170,6 +170,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const resetFields = () => {
     newMemberFormMethods.reset();
     newMemberFormMethods.setValue("emailOrUsername", "");
+    newMemberFormMethods.setValue("role", options[0].value);
     setModalInputMode("INDIVIDUAL");
   };
 

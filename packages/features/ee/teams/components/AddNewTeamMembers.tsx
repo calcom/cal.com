@@ -144,6 +144,7 @@ export const AddNewTeamMembersForm = ({
                   onSuccess: async (data) => {
                     await utils.viewer.teams.get.invalidate();
                     setMemberInviteModal(false);
+                    resetFields();
                     if (Array.isArray(data.usernameOrEmail)) {
                       showToast(
                         t("email_invite_team_bulk", {
@@ -151,7 +152,6 @@ export const AddNewTeamMembersForm = ({
                         }),
                         "success"
                       );
-                      resetFields();
                     } else {
                       showToast(
                         t("email_invite_team", {
