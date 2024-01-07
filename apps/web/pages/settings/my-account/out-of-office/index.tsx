@@ -67,7 +67,7 @@ const OutOfOfficeSection = () => {
         value: member.id || null,
         label: member.name || "",
       })) || [];
-  console.log({ hasPaidPlan });
+
   return (
     <>
       <form
