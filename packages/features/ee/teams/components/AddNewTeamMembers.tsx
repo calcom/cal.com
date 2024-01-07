@@ -30,14 +30,14 @@ type FormValues = {
   members: TeamMember[];
 };
 
-const AddNewTeamMembers = () => {
+const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
   const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
-    { teamId },
+    { teamId, isOrg },
     { enabled: session.status === "authenticated" }
   );
 
@@ -50,15 +50,23 @@ const AddNewTeamMembers = () => {
 
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
-  return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
+  return (
+    <AddNewTeamMembersForm
+      defaultValues={{ members: teamQuery.data.members }}
+      teamId={teamId}
+      isOrg={isOrg}
+    />
+  );
 };
 
 export const AddNewTeamMembersForm = ({
   defaultValues,
   teamId,
+  isOrg,
 }: {
   defaultValues: FormValues;
   teamId: number;
+  isOrg?: boolean;
 }) => {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
@@ -71,7 +79,7 @@ export const AddNewTeamMembersForm = ({
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
   const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
     {
       teamIdToExclude: teamId,
@@ -130,6 +138,7 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
+                  isOrg: !!isOrg,
                 },
                 {
                   onSuccess: async (data) => {
@@ -181,14 +190,18 @@ export const AddNewTeamMembersForm = ({
       <hr className="border-subtle my-6" />
       <Button
         data-testid="publish-button"
-        EndIcon={!orgBranding ? ArrowRight : undefined}
+        EndIcon={!orgBranding || isOrg ? ArrowRight : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
-          router.push(`/settings/teams/${teamId}/profile`);
+          let uri = `/settings/teams/${teamId}/profile`;
+          if (isOrg) {
+            uri = `/settings/organizations/${teamId}/add-teams`;
+          }
+          router.push(uri);
         }}>
-        {t("finish")}
+        {isOrg ? t("continue") : t("finish")}
       </Button>
     </>
   );
@@ -253,8 +266,10 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {/* Assume that the first member of the team is the creator */}
             {member.id === session.data?.user.id && <Badge variant="green">{t("you")}</Badge>}
             {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
-            {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
-            {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
+            {member.role === MembershipRole.MEMBER && <Badge variant="gray">{t("member")}</Badge>}
+
+            {member.role === MembershipRole.ADMIN && <Badge variant="default">{t("admin")}</Badge>}
+            {member.role === MembershipRole.OWNER && <Badge variant="default">{t("owner")}</Badge>}
           </div>
           {member.username ? (
             <p className="text-default truncate">{`${bookerUrl}/${member.username}`}</p>

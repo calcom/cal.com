@@ -1,6 +1,6 @@
 import type { AppProps as NextAppProps } from "next/app";
 
-import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
+import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta, WizardLayout } from "@calcom/ui";
 
@@ -17,7 +17,7 @@ const OnboardTeamMembersPage = () => {
         title={t("invite_organization_admins")}
         description={t("invite_organization_admins_description")}
       />
-      <AddNewOrgAdminsForm />
+      <AddNewTeamMembers isOrg={true} />
     </>
   );
 };
