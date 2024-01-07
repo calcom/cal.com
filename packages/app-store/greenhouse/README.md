@@ -1,0 +1,2 @@
+1. Go to the [Dev Center](https://app7.greenhouse.io/configure/dev_center/credentials) in your Greenhouse dashboard and create a Harvest API key with all permissions enabled for the `Scheduled Interviews` category (see screenshot).
+2. Copy then API key and add it while enabling the app through Settings -> Admin -> Apps interface.
