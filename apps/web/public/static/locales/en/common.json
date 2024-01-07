@@ -2219,5 +2219,7 @@
   "out_of_office_unavailable_list": "Out of office unavailability list",
   "team_username": "Team Username",
   "success_deleted_entry_out_of_office": "Successfully deleted entry",
+  "temporarily_out_of_office":"Temporarily Out-Of-Office?",
+  "add_a_redirect": "Add a redirect",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

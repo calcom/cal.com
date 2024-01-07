@@ -125,9 +125,9 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
             </ul>
           </div>
           <div className="text-default mb-16 mt-4 hidden text-center text-sm md:block">
-            Temporarily Out-Of-Office?{" "}
-            <Link href="/settings/out-of-office" className="underline">
-              Add a redirect
+            {t("temporarily_out_of_office")}{" "}
+            <Link href="settings/my-account/out-of-office" className="underline">
+              {t("add_a_redirect")}
             </Link>
           </div>
         </>
