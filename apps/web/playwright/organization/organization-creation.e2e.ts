@@ -103,7 +103,7 @@ test.describe("Organization", () => {
       await page.locator("button[type=submit]").click();
 
       // Waiting to be in next step URL
-      await page.waitForURL("/settings/organizations/*/onboard-admins");
+      await page.waitForURL("/settings/organizations/*/onboard-members");
     });
 
     await test.step("On-board administrators", async () => {
