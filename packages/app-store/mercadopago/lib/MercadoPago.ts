@@ -28,7 +28,7 @@ class MercadoPago {
    * @returns Redirect uri to MercadoPago's callback in Cal.com
    */
   private getRedirectUri() {
-    const redirectUri = encodeURI(WEBAPP_URL + "/api/integrations/mercadopago/callback");
+    const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/mercadopago/callback`);
     return redirectUri;
   }
 

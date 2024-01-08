@@ -45,6 +45,9 @@ export class PaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
+    _userId: Booking["userId"],
+    _username: string | null,
+    _bookerName: string | null,
     bookerEmail: string,
     paymentOption: PaymentOption,
     eventTitle?: string
@@ -194,5 +197,9 @@ export class PaymentService implements IAbstractPaymentService {
 
   deletePayment(_paymentId: number): Promise<boolean> {
     return Promise.resolve(false);
+  }
+
+  isSetupAlready(): boolean {
+    return !!this.mercadoPago;
   }
 }
