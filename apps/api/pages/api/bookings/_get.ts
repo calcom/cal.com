@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
@@ -163,8 +163,7 @@ function buildWhereClause(
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
 
-  const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined;
-  const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : undefined;
+  const { dateFrom, dateTo } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
   args.include = {
