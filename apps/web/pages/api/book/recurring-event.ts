@@ -56,6 +56,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       ...booking,
       appsStatus,
       allRecurringDates,
+      isFirstRecurringSlot: key == 0,
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
@@ -66,7 +67,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       recurringEventReq,
       {
         isNotAnApiCall: true,
-        skipAvailabilityCheck: key >= numSlotsToCheckForAvailability || thirdPartyRecurringEventId !== null,
+        skipAvailabilityCheck: key >= numSlotsToCheckForAvailability,
       }
     );
 

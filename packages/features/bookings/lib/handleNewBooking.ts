@@ -1081,7 +1081,7 @@ async function handler(
   }
 
   //checks what users are available
-  if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
+  if (!eventType.seatsPerTimeSlot) {
     const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
       users: IsFixedAwareUser[];
     } = {
@@ -1094,68 +1094,72 @@ async function handler(
         },
       }),
     };
-    const availableUsers = await ensureAvailableUsers(
-      eventTypeWithUsers,
-      {
-        dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-        dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-        timeZone: reqBody.timeZone,
-        originalRescheduledBooking,
-      },
-      loggerWithEventDetails
-    );
-    if (req.body.allRecurringDates && req.body.allRecurringDates.length > 1) {
-      for (
-        let i = 1;
-        i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
-        i++
-      ) {
-        const start = req.body.allRecurringDates[i].start;
-        const end = req.body.allRecurringDates[i].end;
-        await ensureAvailableUsers(
-          eventTypeWithUsers,
-          {
-            dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-            dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-            timeZone: reqBody.timeZone,
-            originalRescheduledBooking,
-          },
-          loggerWithEventDetails
-        );
+    if (req.body.allRecurringDates) {
+      if (req.body.isFirstRecurringSlot) {
+        for (
+          let i = 0;
+          i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+          i++
+        ) {
+          const start = req.body.allRecurringDates[i].start;
+          const end = req.body.allRecurringDates[i].end;
+          await ensureAvailableUsers(
+            eventTypeWithUsers,
+            {
+              dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+              dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+              timeZone: reqBody.timeZone,
+              originalRescheduledBooking,
+            },
+            loggerWithEventDetails
+          );
+        }
       }
     }
+    if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
+      const availableUsers = await ensureAvailableUsers(
+        eventTypeWithUsers,
+        {
+          dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+          dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+          timeZone: reqBody.timeZone,
+          originalRescheduledBooking,
+        },
+        loggerWithEventDetails
+      );
 
-    const luckyUsers: typeof users = [];
-    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
-    loggerWithEventDetails.debug(
-      "Computed available users",
-      safeStringify({
-        availableUsers: availableUsers.map((user) => user.id),
-        luckyUserPool: luckyUserPool.map((user) => user.id),
-      })
-    );
-    // loop through all non-fixed hosts and get the lucky users
-    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-      const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-        // find a lucky user that is not already in the luckyUsers array
-        availableUsers: luckyUserPool.filter(
-          (user) => !luckyUsers.find((existing) => existing.id === user.id)
-        ),
-        eventTypeId: eventType.id,
-      });
-      if (!newLuckyUser) {
-        break; // prevent infinite loop
+      const luckyUsers: typeof users = [];
+      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      loggerWithEventDetails.debug(
+        "Computed available users",
+        safeStringify({
+          availableUsers: availableUsers.map((user) => user.id),
+          luckyUserPool: luckyUserPool.map((user) => user.id),
+        })
+      );
+      // loop through all non-fixed hosts and get the lucky users
+      while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+        const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+          // find a lucky user that is not already in the luckyUsers array
+          availableUsers: luckyUserPool.filter(
+            (user) => !luckyUsers.find((existing) => existing.id === user.id)
+          ),
+          eventTypeId: eventType.id,
+        });
+        if (!newLuckyUser) {
+          break; // prevent infinite loop
+        }
+        luckyUsers.push(newLuckyUser);
       }
-      luckyUsers.push(newLuckyUser);
+      // ALL fixed users must be available
+      if (
+        availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
+      ) {
+        throw new Error(ErrorCode.HostsUnavailableForBooking);
+      }
+      // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
+      users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
     }
-    // ALL fixed users must be available
-    if (
-      availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-    ) {
-      throw new Error(ErrorCode.HostsUnavailableForBooking);
-    }
-    // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-    users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
   const [organizerUser] = users;
