@@ -1,18 +1,17 @@
+import { CreateAvailabilityInput } from "@/ee/availabilities/inputs/create-availability.input";
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { AvailabilityInput } from "@/modules/availabilities/availabilities.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Availability, Schedule } from "@prisma/client";
 
 @Injectable()
 export class SchedulesRepository {
   constructor(private readonly dbWrite: PrismaWriteService) {}
 
-  async createScheduleWithAvailability(
+  async createScheduleWithAvailabilities(
     userId: number,
     schedule: CreateScheduleInput,
-    availability: AvailabilityInput
-  ): Promise<ScheduleWithAvailabilities> {
+    availabilities: CreateAvailabilityInput[]
+  ) {
     const createdSchedule = await this.dbWrite.prisma.schedule.create({
       data: {
         user: {
@@ -22,19 +21,28 @@ export class SchedulesRepository {
         },
         ...schedule,
         availability: {
-          create: {
-            ...availability,
-            userId,
+          createMany: {
+            data: availabilities.map((availability) => {
+              return {
+                ...availability,
+                userId,
+              };
+            }),
           },
         },
       },
       include: {
-        availability: true,
+        availability: {
+          select: {
+            id: true,
+            days: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
       },
     });
 
     return createdSchedule;
   }
 }
-
-type ScheduleWithAvailabilities = Schedule & { availability: Availability[] };

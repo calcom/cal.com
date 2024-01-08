@@ -1,9 +1,9 @@
+import { CreateAvailabilityInput } from "@/ee/availabilities/inputs/create-availability.input";
 import { Injectable } from "@nestjs/common";
-import { Availability } from "@prisma/client";
 
 @Injectable()
 export class AvailabilitiesService {
-  getDefaultAvailability(): AvailabilityInput {
+  getDefaultAvailability(): CreateAvailabilityInput {
     const startTime = new Date(new Date().setUTCHours(9, 0, 0, 0));
     const endTime = new Date(new Date().setUTCHours(17, 0, 0, 0));
 
@@ -14,5 +14,3 @@ export class AvailabilitiesService {
     };
   }
 }
-
-export type AvailabilityInput = Pick<Availability, "days" | "startTime" | "endTime">;
