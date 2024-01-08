@@ -96,7 +96,7 @@ export function cancelScheduledEmail(referenceId: string | null) {
   });
 }
 
-export function deleteScheuledSend(referenceId: string | null) {
+export function deleteScheduledSend(referenceId: string | null) {
   if (!referenceId) {
     console.info("No referenceId provided, skip deleting scheduledSend");
     return Promise.resolve();

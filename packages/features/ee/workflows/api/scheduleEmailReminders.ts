@@ -20,7 +20,7 @@ import {
 import { getiCalEventAsString } from "../lib/getiCalEventAsString";
 import {
   cancelScheduledEmail,
-  deleteScheuledSend,
+  deleteScheduledSend,
   getBatchId,
   sendSendgridMail,
 } from "../lib/reminders/providers/sendgridProvider";
@@ -46,7 +46,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const deletePromises: Promise<any>[] = [];
 
   for (const reminder of remindersToDelete) {
-    const deletePromise = deleteScheuledSend(reminder.referenceId);
+    const deletePromise = deleteScheduledSend(reminder.referenceId);
     deletePromises.push(deletePromise);
   }
 
