@@ -85,15 +85,13 @@ test.describe("Out of office", () => {
       },
     });
 
-    await page.goto(`/booking-forwarding/accept/${uuid}`);
+    await page.goto(`/booking-redirect/accept/${uuid}`);
 
-    // todo: check whatever text is shown on EmptyScreen
-    // await expect(page.locator("data-testid=success_accept_redirect")).toBeTruthy();
+    await expect(page.locator("data-testid=success_accept_redirect")).toBeTruthy();
 
-    await page.goto(`/booking-forwarding/reject/${uuid}`);
+    await page.goto(`/booking-redirect/reject/${uuid}`);
 
-    // todo: check whatever text is shown on EmptyScreen
-    // await expect(page.locator("data-testid=success_reject_redirect")).toBeTruthy();
+    await expect(page.locator("data-testid=success_reject_redirect")).toBeTruthy();
   });
 
   test("Profile redirection", async ({ page, users }) => {

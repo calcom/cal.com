@@ -61,42 +61,16 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     toUserId = user?.id;
   }
 
-  // Validate if OOO entry for these dates already exists
+  // Validate if already exists
   const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
     where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          OR: [
-            {
-              start: {
-                lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
-              },
-              end: {
-                gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
-              },
-            },
-            {
-              //existing start is within the new input range
-              start: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-            {
-              //existing end is within the new input range
-              end: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-          ],
-        },
-      ],
+      start: inputStartTime.toISOString(),
+      end: inputEndTime.toISOString(),
+      userId: ctx.user.id,
+      toUserId: toUserId,
     },
   });
 
-  // don't allow overlapping entries
   if (outOfOfficeEntry) {
     throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
   }
@@ -132,7 +106,6 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     },
   });
 
-  // don't allow infinite redirects
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
@@ -168,8 +141,8 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       fromEmail: ctx.user.email,
       toEmail: userToNotify.email,
       toName: ctx.user.username || "",
-      acceptLink: `${WEBAPP_URL}/booking-forwarding/accept/${createdRedirect?.uuid}`,
-      rejectLink: `${WEBAPP_URL}/booking-forwarding/reject/${createdRedirect?.uuid}`,
+      acceptLink: `${WEBAPP_URL}/booking-redirect/accept/${createdRedirect?.uuid}`,
+      rejectLink: `${WEBAPP_URL}/booking-redirect/reject/${createdRedirect?.uuid}`,
       dates: `${formattedStartDate} - ${formattedEndDate}`,
     });
   }
