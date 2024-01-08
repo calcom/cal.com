@@ -26,8 +26,8 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
-import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
@@ -199,17 +199,19 @@ export default function MemberListItem(props: Props) {
                   StartIcon={Clock}
                 />
               </Tooltip> */}
-              <Tooltip content={t("view_public_page")}>
-                <Button
-                  target="_blank"
-                  href={`${bookerUrl}/${props.member.username}`}
-                  color="secondary"
-                  className={classNames(!editMode ? "rounded-r-md" : "")}
-                  variant="icon"
-                  StartIcon={ExternalLink}
-                  disabled={!props.member.accepted}
-                />
-              </Tooltip>
+              {!!props.member.accepted && (
+                <Tooltip content={t("view_public_page")}>
+                  <Button
+                    target="_blank"
+                    href={`${bookerUrl}/${props.member.username}`}
+                    color="secondary"
+                    className={classNames(!editMode ? "rounded-r-md" : "")}
+                    variant="icon"
+                    StartIcon={ExternalLink}
+                    disabled={!props.member.accepted}
+                  />
+                </Tooltip>
+              )}
               {editMode && (
                 <Dropdown>
                   <DropdownMenuTrigger asChild>

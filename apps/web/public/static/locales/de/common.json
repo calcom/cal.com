@@ -941,8 +941,6 @@
   "enterprise_license_description": "Um diese Funktion zu aktivieren, holen Sie sich einen Deployment-Schlüssel von der {{consoleUrl}}-Konsole und fügen Sie ihn als CALCOM_LICENSE_KEY zu Ihrer .env hinzu. Wenn Ihr Team bereits eine Lizenz hat, wenden Sie sich bitte an {{supportMail}} für Hilfe.",
   "enterprise_license_development": "Sie können diese Funktion im Entwicklungsmodus testen. Zur Nutzung im regulären Arbeitsumfeld, besuchen Sie bitte <2>/auth/setup</2>, um einen Lizenzschlüssel einzugeben.",
   "missing_license": "Lizenz fehlt",
-  "signup_requires": "Kommerzielle Lizenz erforderlich",
-  "signup_requires_description": "{{companyName}} bietet zur Zeit keine kostenlose Open-Source-Version der Anmeldeseite an. Um vollen Zugriff auf die Registrierungskomponenten zu erhalten, müssen Sie eine kommerzielle Lizenz erwerben. Für den persönlichen Gebrauch empfehlen wir die Prisma Data Platform oder jede andere Postgres-Schnittstelle zur Erstellung von Accounts.",
   "next_steps": "Nächste Schritte",
   "acquire_commercial_license": "Eine kommerzielle Lizenz erwerben",
   "the_infrastructure_plan": "Der Infrastrukturplan ist nutzungsbasiert und bietet Startup-freundliche Discounts an.",

@@ -42,6 +42,7 @@ import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
+import pipedrive_crm_config_json from "./pipedrive-crm/config.json";
 import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
@@ -120,6 +121,7 @@ export const appStoreMetadata = {
   paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
+  "pipedrive-crm": pipedrive_crm_config_json,
   plausible: plausible_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,

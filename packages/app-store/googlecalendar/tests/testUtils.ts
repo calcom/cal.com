@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { bookFirstEvent } from "@calcom/web/playwright/lib/testUtils";
+import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
@@ -20,8 +20,13 @@ export const createBookingAndFetchGCalEvent = async (
   qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }> | null,
   qaUsername: string
 ) => {
-  await page.goto(`/${qaUsername}`);
-  await bookFirstEvent(page);
+  await page.goto(`/${qaUsername}/15min`);
+  await selectSecondAvailableTimeSlotNextMonth(page);
+  await bookTimeSlot(page);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await page.waitForNavigation({ state: "networkidle" });
+  await page.locator("[data-testid=success-page]");
 
   const bookingUrl = await page.url();
   const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
@@ -64,6 +69,7 @@ export const createBookingAndFetchGCalEvent = async (
     }),
   ]);
   assertValueExists(gCalReference, "gCalReference");
+
   assertValueExists(booking, "booking");
 
   // Need to refresh keys from DB
