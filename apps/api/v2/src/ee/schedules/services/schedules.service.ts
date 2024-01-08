@@ -49,4 +49,14 @@ export class SchedulesService {
   async getUserSchedules(userId: number) {
     return this.schedulesRepository.getSchedulesByUserId(userId);
   }
+
+  async deleteUserSchedule(userId: number, scheduleId: number) {
+    const schedule = await this.schedulesRepository.getScheduleById(scheduleId);
+
+    if (schedule?.userId !== userId) {
+      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
+    }
+
+    return this.schedulesRepository.deleteScheduleById(scheduleId);
+  }
 }

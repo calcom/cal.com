@@ -86,4 +86,12 @@ export class SchedulesRepository {
 
     return schedules;
   }
+
+  async deleteScheduleById(scheduleId: number) {
+    return this.dbWrite.prisma.schedule.delete({
+      where: {
+        id: scheduleId,
+      },
+    });
+  }
 }

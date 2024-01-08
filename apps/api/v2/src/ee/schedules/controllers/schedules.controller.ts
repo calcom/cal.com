@@ -1,7 +1,7 @@
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -42,7 +42,10 @@ export class SchedulesController {
 
   @Get("/:scheduleId")
   @UseGuards(AccessTokenGuard)
-  async getSchedule(@GetUser("id") userId: number, scheduleId: number): Promise<ApiResponse> {
+  async getSchedule(
+    @GetUser("id") userId: number,
+    @Param("scheduleId") scheduleId: number
+  ): Promise<ApiResponse> {
     const schedule = await this.schedulesService.getUserSchedule(userId, scheduleId);
 
     return {
@@ -59,6 +62,19 @@ export class SchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: schedules,
+    };
+  }
+
+  @Delete("/:scheduleId")
+  @UseGuards(AccessTokenGuard)
+  async deleteSchedule(
+    @GetUser("id") userId: number,
+    @Param("scheduleId") scheduleId: number
+  ): Promise<ApiResponse> {
+    await this.schedulesService.deleteUserSchedule(userId, scheduleId);
+
+    return {
+      status: SUCCESS_STATUS,
     };
   }
 }
