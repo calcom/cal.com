@@ -15,9 +15,7 @@ export default function BookingRedirectAction(props: InferGetServerSidePropsType
   const { action } = props;
   const { t } = useLocale();
   return (
-    <ShellMain
-      heading={t("forward_request_feature_title")}
-      subtitle={t("forward_request_feature_description")}>
+    <ShellMain>
       <EmptyScreen
         headline={t("booking_redirect_request_title")}
         title={t("booking_redirect_request_title")}
@@ -26,11 +24,6 @@ export default function BookingRedirectAction(props: InferGetServerSidePropsType
         }
         Icon={action === "accept" ? CalendarCheck : CalendarX}
       />
-      {action === "accept" ? (
-        <input data-testid="success_reject_redirect" type="hidden" />
-      ) : (
-        <input data-testid="success_accept_redirect" type="number" />
-      )}
     </ShellMain>
   );
 }

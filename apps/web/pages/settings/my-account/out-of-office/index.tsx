@@ -217,7 +217,7 @@ const OutOfOfficeEntriesList = () => {
                       tooltip={t("copy_link_booking_redirect_request")}
                       color="minimal"
                       onClick={() => {
-                        navigator.clipboard.writeText(`${CAL_URL}/booking-redirect/accept/${item.uuid}`);
+                        navigator.clipboard.writeText(`${CAL_URL}/booking-forwarding/accept/${item.uuid}`);
                       }}>
                       <Link width={15} height={15} />
                     </Button>
