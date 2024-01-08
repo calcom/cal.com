@@ -1,7 +1,4 @@
-import { ssrInit } from "app/_trpc/ssrInit";
-import type { Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -13,7 +10,9 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import PageWrapper from "@components/PageWrapperAppDir";
+import { ssrInit } from "@server/lib/ssr";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { WithLayout } from "app/layoutHOC";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -26,19 +25,20 @@ const querySchema = z.object({
   uid: z.string(),
 });
 
-async function getData(params: Params) {
-  const req = { headers: headers(), cookies: cookies() };
+async function getData(context: ReturnType<typeof buildLegacyCtx>) {
 
-  const session = await getServerSession({ req });
+// @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to 
+ const session = await getServerSession({ req: context.req });
 
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
 
-  const ssr = await ssrInit();
+  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
+  const ssr = await ssrInit(context);
   await ssr.viewer.me.prefetch();
 
-  const { uid } = querySchema.parse(params);
+  const { uid } = querySchema.parse(context.params);
   const rawPayment = await prisma.payment.findFirst({
     where: {
       uid,
@@ -167,19 +167,4 @@ async function getData(params: Params) {
   };
 }
 
-type PageProps = Readonly<{
-  params: Params;
-}>;
-
-export default async function Page({ params }: PageProps) {
-  const props = await getData(params);
-
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  return (
-    <PageWrapper getLayout={null} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
-      <PaymentPage {...props} />
-    </PageWrapper>
-  );
-}
+export default WithLayout({ getLayout: null, getData,  Page: PaymentPage})
