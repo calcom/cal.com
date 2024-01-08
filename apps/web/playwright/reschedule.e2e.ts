@@ -284,7 +284,7 @@ test.describe("Reschedule Tests", async () => {
     const confirmBooking = async (bookingId: number) => {
       await user.apiLogin();
       await page.goto("/bookings/upcoming");
-      const elem = await page.locator(`[data-bookingid="${bookingId}"]`);
+      const elem = await page.locator(`[data-bookingid="${bookingId}"][data-testid="confirm"]`);
       await elem.click();
       await page.getByTestId("toast-success").waitFor();
       await user.logout();
