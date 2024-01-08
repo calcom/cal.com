@@ -408,7 +408,7 @@ export function createBookingPageFixture(page: Page) {
         await expect(bookingSchedulingPage.getByText("America/New_York")).toBeVisible();
         if (options.shouldConfirmBooking) {
           await bookingSchedulingPage.getByTestId("confirm-book-button").click();
-          await expect(bookingSchedulingPage.getByText("This meeting is scheduled")).toBeVisible();
+          await expect(bookingSchedulingPage.getByTestId("cancel")).toBeVisible();
         }
       } else {
         await expect(
@@ -454,7 +454,7 @@ export function createBookingPageFixture(page: Page) {
         .nth(2)
         .click();
       await page?.getByRole("button", { name: "Yes, delete" }).click();
-      page !== undefined && (await expect(page?.getByText("Event type deleted successfully")).toBeVisible());
+      page !== undefined && (await expect(page?.getByTestId("toast-success")).toBeVisible());
     },
     cancelUpcomingBooking: async (bookingName: string, page?: Page) => {
       await page?.getByRole("link", { name: "Bookings" }).click();
