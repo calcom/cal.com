@@ -182,35 +182,39 @@ export async function removeUserFromOrg({ targetOrgId, userId }: { targetOrgId: 
  * Make sure that the migration is idempotent
  */
 export async function moveTeamToOrg({
-  targetOrgId,
+  targetOrg,
   teamId,
   moveMembers,
 }: {
-  targetOrgId: number;
+  targetOrg: { id: number; teamSlug: string };
   teamId: number;
   moveMembers?: boolean;
 }) {
-  const possibleOrg = await getTeamOrThrowError(targetOrgId);
-  const movedTeam = await dbMoveTeamToOrg({ teamId, targetOrgId });
+  const possibleOrg = await getTeamOrThrowError(targetOrg.id);
+  const { oldTeamSlug, updatedTeam } = await dbMoveTeamToOrg({ teamId, targetOrg });
 
   const teamMetadata = teamMetadataSchema.parse(possibleOrg?.metadata);
 
   if (!teamMetadata?.isOrganization) {
-    throw new Error(`${targetOrgId} is not an Org`);
+    throw new Error(`${targetOrg.id} is not an Org`);
   }
 
   const targetOrganization = possibleOrg;
   const orgMetadata = teamMetadata;
-  await addTeamRedirect(movedTeam.slug, targetOrganization.slug || orgMetadata.requestedSlug || null);
-  await setOrgSlugIfNotSet({ slug: targetOrganization.slug }, orgMetadata, targetOrgId);
+  await addTeamRedirect({
+    oldTeamSlug,
+    teamSlug: updatedTeam.slug,
+    orgSlug: targetOrganization.slug || orgMetadata.requestedSlug || null,
+  });
+  await setOrgSlugIfNotSet({ slug: targetOrganization.slug }, orgMetadata, targetOrg.id);
   if (moveMembers) {
-    for (const membership of movedTeam.members) {
+    for (const membership of updatedTeam.members) {
       await moveUserToOrg({
         user: {
           id: membership.userId,
         },
         targetOrg: {
-          id: targetOrgId,
+          id: targetOrg.id,
           membership: {
             role: membership.role,
             accepted: membership.accepted,
@@ -220,21 +224,30 @@ export async function moveTeamToOrg({
       });
     }
   }
-  log.debug(`Successfully moved team ${teamId} to org ${targetOrgId}`);
+  log.debug(`Successfully moved team ${teamId} to org ${targetOrg.id}`);
 }
 
 /**
  * Make sure that the migration is idempotent
  */
 export async function removeTeamFromOrg({ targetOrgId, teamId }: { targetOrgId: number; teamId: number }) {
-  const removedTeam = await dbRemoveTeamFromOrg({ teamId, targetOrgId });
+  const removedTeam = await dbRemoveTeamFromOrg({ teamId });
 
   await removeTeamRedirect(removedTeam.slug);
 
   log.debug(`Successfully removed team ${teamId} from org ${targetOrgId}`);
 }
 
-async function dbMoveTeamToOrg({ teamId, targetOrgId }: { teamId: number; targetOrgId: number }) {
+async function dbMoveTeamToOrg({
+  teamId,
+  targetOrg,
+}: {
+  teamId: number;
+  targetOrg: {
+    id: number;
+    teamSlug: string;
+  };
+}) {
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
@@ -251,21 +264,30 @@ async function dbMoveTeamToOrg({ teamId, targetOrgId }: { teamId: number; target
     });
   }
 
-  if (team.parentId === targetOrgId) {
-    log.warn(`Team ${teamId} is already in org ${targetOrgId}`);
-    return team;
-  }
+  const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+  const oldTeamSlug = teamMetadata?.migratedToOrgFrom?.teamSlug || team.slug;
 
-  await prisma.team.update({
+  const updatedTeam = await prisma.team.update({
     where: {
       id: teamId,
     },
     data: {
-      parentId: targetOrgId,
+      slug: targetOrg.teamSlug,
+      parentId: targetOrg.id,
+      metadata: {
+        ...teamMetadata,
+        migratedToOrgFrom: {
+          teamSlug: team.slug,
+          lastMigrationTime: new Date().toISOString(),
+        },
+      },
+    },
+    include: {
+      members: true,
     },
   });
 
-  return team;
+  return { oldTeamSlug, updatedTeam };
 }
 
 async function getUniqueUserThatDoesntBelongToOrg(
@@ -460,11 +482,25 @@ async function addRedirect({
   }
 }
 
-async function addTeamRedirect(teamSlug: string | null, orgSlug: string | null) {
+async function addTeamRedirect({
+  oldTeamSlug,
+  teamSlug,
+  orgSlug,
+}: {
+  oldTeamSlug: string | null;
+  teamSlug: string | null;
+  orgSlug: string | null;
+}) {
+  if (!oldTeamSlug) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "No oldSlug for team. Not adding the redirect",
+    });
+  }
   if (!teamSlug) {
     throw new HttpError({
       statusCode: 400,
-      message: "No slug for team. Not removing the redirect",
+      message: "No slug for team. Not adding the redirect",
     });
   }
   if (!orgSlug) {
@@ -477,13 +513,13 @@ async function addTeamRedirect(teamSlug: string | null, orgSlug: string | null) 
     where: {
       from_type_fromOrgId: {
         type: RedirectType.Team,
-        from: teamSlug,
+        from: oldTeamSlug,
         fromOrgId: 0,
       },
     },
     create: {
       type: RedirectType.Team,
-      from: teamSlug,
+      from: oldTeamSlug,
       fromOrgId: 0,
       toUrl: `${orgUrlPrefix}/${teamSlug}`,
     },
@@ -678,7 +714,7 @@ async function removeUserAlongWithItsTeamsRedirects({
   }
 }
 
-async function dbRemoveTeamFromOrg({ teamId, targetOrgId }: { teamId: number; targetOrgId: number }) {
+async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
@@ -692,13 +728,7 @@ async function dbRemoveTeamFromOrg({ teamId, targetOrgId }: { teamId: number; ta
     });
   }
 
-  if (team.parentId !== targetOrgId) {
-    log.warn(`Team ${teamId} is not part of org ${targetOrgId}. Not updating`);
-    return {
-      slug: team.slug,
-    };
-  }
-
+  const teamMetadata = teamMetadataSchema.parse(team?.metadata);
   try {
     return await prisma.team.update({
       where: {
@@ -706,6 +736,14 @@ async function dbRemoveTeamFromOrg({ teamId, targetOrgId }: { teamId: number; ta
       },
       data: {
         parentId: null,
+        slug: teamMetadata?.migratedToOrgFrom?.teamSlug || team.slug,
+        metadata: {
+          ...teamMetadata,
+          migratedToOrgFrom: {
+            reverted: true,
+            lastRevertTime: new Date().toISOString(),
+          },
+        },
       },
       select: {
         slug: true,
