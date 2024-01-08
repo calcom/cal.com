@@ -3,12 +3,14 @@ import prismock from "../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it } from "vitest";
 import type { z } from "zod";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import type { MembershipRole, Prisma } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { moveTeamToOrg, moveUserToOrg, removeTeamFromOrg, removeUserFromOrg } from "./orgMigration";
 
+const WEBSITE_PROTOCOL = new URL(WEBSITE_URL).protocol;
 describe("orgMigration", () => {
   describe("moveUserToOrg", () => {
     describe("when user email does not match orgAutoAcceptEmail", () => {
@@ -1366,7 +1368,7 @@ async function expectRedirectToBeEnabled({
   }
 
   expect(redirect).not.toBeNull();
-  expect(redirect?.toUrl).toBe(`http://${orgSlug}.cal.local:3000/${to}`);
+  expect(redirect?.toUrl).toBe(`${WEBSITE_PROTOCOL}//${orgSlug}.cal.local:3000/${to}`);
   if (!redirect) {
     throw new Error(`Redirect doesn't exist for ${JSON.stringify(tempOrgRedirectWhere)}`);
   }
