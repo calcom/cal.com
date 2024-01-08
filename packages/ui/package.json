@@ -10,9 +10,11 @@
     "./components/icon": "./components/icon/index.ts",
     "./components/icon/Discord": "./components/icon/Discord.tsx",
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
-    "./components/icon/Spinner": "./components/icon/Spinner.tsx"
+    "./components/icon/Spinner": "./components/icon/Spinner.tsx",
+    "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
+    "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts"
   },
-  "types": "./index.tsx",
+  "types": "./index.ts",
   "license": "MIT",
   "scripts": {
     "lint": "eslint .",
