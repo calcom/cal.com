@@ -1,7 +1,8 @@
+import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -75,6 +76,21 @@ export class SchedulesController {
 
     return {
       status: SUCCESS_STATUS,
+    };
+  }
+
+  @Put("/:scheduleId")
+  @UseGuards(AccessTokenGuard)
+  async updateSchedule(
+    @GetUser("id") userId: number,
+    @Param("scheduleId") scheduleId: number,
+    @Body() bodySchedule: UpdateScheduleInput
+  ): Promise<ApiResponse> {
+    const schedule = await this.schedulesService.updateUserSchedule(userId, scheduleId, bodySchedule);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: schedule,
     };
   }
 }

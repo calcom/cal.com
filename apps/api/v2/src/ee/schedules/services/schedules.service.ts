@@ -1,4 +1,5 @@
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
+import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -21,9 +22,7 @@ export class SchedulesService {
       availabilities
     );
 
-    if (schedule.isDefault) {
-      await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
-    }
+    await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
 
     return createdSchedule;
   }
@@ -48,6 +47,21 @@ export class SchedulesService {
 
   async getUserSchedules(userId: number) {
     return this.schedulesRepository.getSchedulesByUserId(userId);
+  }
+
+  async updateUserSchedule(userId: number, scheduleId: number, schedule: UpdateScheduleInput) {
+    const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
+
+    if (existingSchedule?.userId !== userId) {
+      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
+    }
+
+    const updatedSchedule = await this.schedulesRepository.updateScheduleWithAvailabilities(
+      scheduleId,
+      schedule
+    );
+
+    return updatedSchedule;
   }
 
   async deleteUserSchedule(userId: number, scheduleId: number) {

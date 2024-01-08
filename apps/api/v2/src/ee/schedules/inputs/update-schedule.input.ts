@@ -3,12 +3,14 @@ import { IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { TimeZone } from "@calcom/platform-constants";
 
-export class CreateScheduleInput {
+export class UpdateScheduleInput {
   @IsString()
-  name!: string;
+  @IsOptional()
+  name?: string;
 
   @IsString()
-  timeZone!: TimeZone;
+  @IsOptional()
+  timeZone?: TimeZone;
 
   @ValidateNested({ each: true })
   @IsOptional()
