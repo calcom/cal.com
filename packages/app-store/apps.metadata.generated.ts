@@ -22,6 +22,7 @@ import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016cal
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
+import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
@@ -100,6 +101,7 @@ export const appStoreMetadata = {
   exchangecalendar: exchangecalendar_config_json,
   facetime: facetime_config_json,
   fathom: fathom_config_json,
+  feishucalendar: feishucalendar__metadata_ts,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
