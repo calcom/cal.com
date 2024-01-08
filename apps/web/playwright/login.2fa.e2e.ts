@@ -24,7 +24,7 @@ test.describe("2FA Tests", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const userPassword = user.username!;
-      await user.login();
+      await user.apiLogin();
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
@@ -94,7 +94,7 @@ test.describe("2FA Tests", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const userPassword = user.username!;
-      await user.login();
+      await user.apiLogin();
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");

@@ -77,6 +77,7 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
       if (aggregate[user.id]) return; // Bookings are ordered DESC, so if the reducer aggregate
       // contains the user id, it's already got the most recent booking marked.
       if (!booking.attendees.map((attendee) => attendee.email).includes(user.email)) return;
+      if (organizerIdAndAtCreatedPair[user.id] > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
       aggregate[user.id] = booking.createdAt;
     });
     return aggregate;

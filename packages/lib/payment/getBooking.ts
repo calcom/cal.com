@@ -30,6 +30,7 @@ export async function getBooking(bookingId: number) {
       ...bookingMinimalSelect,
       responses: true,
       eventType: true,
+      metadata: true,
       smsReminderNumber: true,
       location: true,
       eventTypeId: true,
@@ -84,7 +85,7 @@ export async function getBooking(bookingId: number) {
   const attendeesList = await Promise.all(attendeesListPromises);
   const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
-    type: booking.title,
+    type: booking?.eventType?.slug as string,
     title: booking.title,
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
@@ -96,6 +97,7 @@ export async function getBooking(bookingId: number) {
     }),
     organizer: {
       email: user.email,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: user.name!,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),

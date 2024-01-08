@@ -22,6 +22,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       team: {
         include: {
           inviteTokens: true,
+          parent: true,
         },
       },
     },
@@ -41,3 +42,5 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
     }));
 };
+
+export default listHandler;

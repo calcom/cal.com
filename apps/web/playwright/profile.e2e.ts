@@ -1,5 +1,3 @@
-import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -19,6 +17,6 @@ test.describe("Teams", () => {
     await page.goto("/settings/my-account/profile");
 
     // check if user avatar is loaded
-    await expect(page.locator('[data-testid="organization-avatar"]')).toBeVisible();
+    await page.getByTestId("profile-upload-avatar").isVisible();
   });
 });

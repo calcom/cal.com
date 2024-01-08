@@ -105,6 +105,7 @@ const providers: Provider[] = [
           email: credentials.email.toLowerCase(),
         },
         select: {
+          locked: true,
           role: true,
           id: true,
           username: true,
@@ -134,6 +135,11 @@ const providers: Provider[] = [
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
+
+      // Locked users cannot login
+      if (user.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
       }
 
       await checkRateLimitAndThrowError({
@@ -226,6 +232,12 @@ const providers: Provider[] = [
         if (role !== "ADMIN") return role;
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
+
+        if (process.env.NEXT_PUBLIC_IS_E2E) {
+          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+          return role;
+        }
+
         // User's password is valid and two-factor authentication is enabled
         if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
         // Code is running in a development environment

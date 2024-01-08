@@ -1,6 +1,6 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { prisma } from "@calcom/prisma";
+import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 import type { RawDataInput } from "./raw-data.schema";

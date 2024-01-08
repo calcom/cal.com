@@ -1,6 +1,6 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "@calcom/ui";
 import {
@@ -18,7 +18,7 @@ import { Plus } from "@calcom/ui/components/icon";
 export interface Option {
   teamId: number | null | undefined; // if undefined, then it's a profile
   label: string | null;
-  image?: string | null;
+  image: string | null;
   slug: string | null;
 }
 
@@ -40,9 +40,8 @@ export type CreateBtnProps = {
 export function CreateButton(props: CreateBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
-  const bookerUrl = useBookerUrl();
 
   const {
     createDialog,
@@ -113,12 +112,7 @@ export function CreateButton(props: CreateBtnProps) {
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
                   StartIcon={(props) => (
-                    <Avatar
-                      alt={option.label || ""}
-                      imageSrc={option.image || `${bookerUrl}/${option.label}/avatar.png`} // if no image, use default avatar
-                      size="sm"
-                      {...props}
-                    />
+                    <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
                   )}
                   onClick={() =>
                     !!CreateDialog

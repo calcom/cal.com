@@ -11,7 +11,6 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
@@ -20,6 +19,7 @@ import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
@@ -27,6 +27,7 @@ import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
 
 import type { EmbedProps } from "@lib/withEmbedSsr";
@@ -54,6 +55,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
     // So it doesn't display in the Link (and make tests fail)
     user: _user,
     orgSlug: _orgSlug,
+    redirect: _redirect,
     ...query
   } = useRouterQuery();
 
@@ -82,7 +84,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         description={markdownStrippedBio}
         meeting={{
           title: markdownStrippedBio,
-          profile: { name: `${profile.name}`, image: null },
+          profile: { name: `${profile.name}`, image: user.avatarUrl || null },
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
@@ -99,7 +101,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
-            <OrganizationMemberAvatar
+            <UserAvatar
               size="xl"
               user={{
                 organizationId: profile.organization?.id,
@@ -116,7 +118,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   : null
               }
             />
-            <h1 className="font-cal text-emphasis mb-1 text-3xl" data-testid="name-title">
+            <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
               {user.verified && (
                 <Verified className=" mx-1 -mt-1 inline h-6 w-6 fill-blue-500 text-white dark:text-black" />
@@ -187,46 +189,55 @@ UserPage.isBookingPage = true;
 UserPage.PageWrapper = PageWrapper;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
-  return (
-    await prisma.eventType.findMany({
-      where: {
-        AND: [
-          {
-            teamId: null,
-          },
-          {
-            OR: [
-              {
-                userId,
-              },
-              {
-                users: {
-                  some: {
-                    id: userId,
-                  },
+  const eventTypes = await prisma.eventType.findMany({
+    where: {
+      AND: [
+        {
+          teamId: null,
+        },
+        {
+          OR: [
+            {
+              userId,
+            },
+            {
+              users: {
+                some: {
+                  id: userId,
                 },
               },
-            ],
-          },
-        ],
-      },
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
+            },
+          ],
         },
       ],
-      select: {
-        ...baseEventTypeSelect,
-        metadata: true,
+    },
+    orderBy: [
+      {
+        position: "desc",
       },
-    })
-  ).map((eventType) => ({
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-  }));
+      {
+        id: "asc",
+      },
+    ],
+    select: {
+      ...baseEventTypeSelect,
+      metadata: true,
+    },
+  });
+  // map and filter metadata, exclude eventType entirely when faulty metadata is found.
+  // report error to exception so we don't lose the error.
+  return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
+    const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
+    if (!parsedMetadata.success) {
+      logger.error(parsedMetadata.error);
+      return eventTypes;
+    }
+    eventTypes.push({
+      ...eventType,
+      metadata: parsedMetadata.data,
+    });
+    return eventTypes;
+  }, []);
 };
 
 export type UserPageProps = {
@@ -245,7 +256,7 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified">[];
+  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -295,6 +306,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      avatarUrl: true,
       organizationId: true,
       organization: {
         select: {
@@ -363,6 +375,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     image: user.avatar,
     theme: user.theme,
     brandColor: user.brandColor,
+    avatarUrl: user.avatarUrl,
     darkBrandColor: user.darkBrandColor,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
@@ -386,6 +399,16 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     descriptionAsSafeHTML: markdownToSafeHTML(eventType.description),
   }));
 
+  // if profile only has one public event-type, redirect to it
+  if (eventTypes.length === 1 && context.query.redirect !== "false") {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/${user.username}/${eventTypes[0].slug}`,
+      },
+    };
+  }
+
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
@@ -397,6 +420,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
+        avatarUrl: user.avatarUrl,
         away: user.away,
         verified: user.verified,
       })),

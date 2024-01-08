@@ -17,6 +17,7 @@ const appStore = {
   mercadopago: () => import("./mercadopago"),
   plausible: () => import("./plausible"),
   paypal: () => import("./paypal"),
+  "pipedrive-crm": () => import("./pipedrive-crm"),
   salesforce: () => import("./salesforce"),
   zohocrm: () => import("./zohocrm"),
   sendgrid: () => import("./sendgrid"),
@@ -38,6 +39,7 @@ const appStore = {
   "zoho-bigin": () => import("./zoho-bigin"),
   basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),
+  shimmervideo: () => import("./shimmervideo"),
 };
 
 export default appStore;

@@ -15,15 +15,18 @@ import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as make_zod_ts } from "./make/zod";
+import { appDataSchema as matomo_zod_ts } from "./matomo/zod";
 import { appDataSchema as mercadopago_zod_ts } from "./mercadopago/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as paypal_zod_ts } from "./paypal/zod";
+import { appDataSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
+import { appDataSchema as shimmervideo_zod_ts } from "./shimmervideo/zod";
 import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
@@ -51,15 +54,18 @@ export const appDataSchemas = {
   jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
   make: make_zod_ts,
+  matomo: matomo_zod_ts,
   mercadopago: mercadopago_zod_ts,
   metapixel: metapixel_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
   paypal: paypal_zod_ts,
+  "pipedrive-crm": pipedrive_crm_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,
+  shimmervideo: shimmervideo_zod_ts,
   stripe: stripepayment_zod_ts,
   tandemvideo: tandemvideo_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,

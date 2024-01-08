@@ -6,6 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/client";
 
 export default function Type() {
   // Just redirect to the schedule page to reschedule it.
@@ -63,6 +64,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       dynamicEventSlugRef: true,
       dynamicGroupSlugRef: true,
       user: true,
+      status: true,
     },
   });
   const dynamicEventSlugRef = booking?.dynamicEventSlugRef || "";
@@ -71,6 +73,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+
+  // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
+  if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+    return {
+      redirect: {
+        destination: `/booking/${uid}`,
+        permanent: false,
+      },
+    };
   }
 
   if (!booking?.eventType && !booking?.dynamicEventSlugRef) {

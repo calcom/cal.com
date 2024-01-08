@@ -32,4 +32,11 @@ export function useHasTeamPlan() {
   return { isLoading, hasTeamPlan: hasTeamPlan?.hasTeamPlan };
 }
 
+export function useHasEnterprisePlan() {
+  // TODO: figure out how to get "has Enterprise / has Org" from the backend
+  const { data: hasTeamPlan, isLoading } = trpc.viewer.teams.hasTeamPlan.useQuery();
+
+  return { isLoading, hasTeamPlan: hasTeamPlan?.hasTeamPlan };
+}
+
 export default useHasPaidPlan;

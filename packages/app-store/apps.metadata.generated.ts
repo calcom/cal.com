@@ -13,6 +13,7 @@ import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
+import deel_config_json from "./deel/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -32,6 +33,7 @@ import intercom_config_json from "./intercom/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import make_config_json from "./make/config.json";
+import matomo_config_json from "./matomo/config.json";
 import mercadopago_config_json from "./mercadopago/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
@@ -41,13 +43,16 @@ import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
+import pipedrive_crm_config_json from "./pipedrive-crm/config.json";
 import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
 import riverside_config_json from "./riverside/config.json";
+import roam_config_json from "./roam/config.json";
 import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
+import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
 import skiff_config_json from "./skiff/config.json";
@@ -88,6 +93,7 @@ export const appStoreMetadata = {
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
+  deel: deel_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -107,6 +113,7 @@ export const appStoreMetadata = {
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
   make: make_config_json,
+  matomo: matomo_config_json,
   mercadopago: mercadopago_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
@@ -116,13 +123,16 @@ export const appStoreMetadata = {
   paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
+  "pipedrive-crm": pipedrive_crm_config_json,
   plausible: plausible_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,
+  roam: roam_config_json,
   "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   sendgrid: sendgrid_config_json,
+  shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
   skiff: skiff_config_json,

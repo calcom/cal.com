@@ -4,7 +4,7 @@ import { createEvent } from "ics";
 import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -36,6 +36,7 @@ import {
 } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -99,7 +100,7 @@ export default function Success(props: SuccessProps) {
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -486,48 +487,24 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
                           {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
-                            locationToDisplay.startsWith("http") ? (
-                              <a
-                                href={locationToDisplay}
-                                target="_blank"
-                                title={locationToDisplay}
-                                className="text-default flex items-center gap-2"
-                                rel="noreferrer">
-                                {providerName || "Link"}
-                                <ExternalLink className="text-default inline h-4 w-4" />
-                              </a>
-                            ) : (
-                              locationToDisplay
-                            )
+                            <DisplayLocation
+                              locationToDisplay={locationToDisplay}
+                              providerName={providerName}
+                            />
                           ) : (
                             <>
-                              {!!formerTime &&
-                                (locationToDisplay.startsWith("http") ? (
-                                  <a
-                                    href={locationToDisplay}
-                                    target="_blank"
-                                    title={locationToDisplay}
-                                    className="text-default flex items-center gap-2 line-through"
-                                    rel="noreferrer">
-                                    {providerName || "Link"}
-                                    <ExternalLink className="text-default inline h-4 w-4" />
-                                  </a>
-                                ) : (
-                                  <p className="line-through">{locationToDisplay}</p>
-                                ))}
-                              {rescheduleLocationToDisplay.startsWith("http") ? (
-                                <a
-                                  href={rescheduleLocationToDisplay}
-                                  target="_blank"
-                                  title={rescheduleLocationToDisplay}
-                                  className="text-default flex items-center gap-2"
-                                  rel="noreferrer">
-                                  {rescheduleProviderName || "Link"}
-                                  <ExternalLink className="text-default inline h-4 w-4" />
-                                </a>
-                              ) : (
-                                rescheduleLocationToDisplay
+                              {!!formerTime && (
+                                <DisplayLocation
+                                  locationToDisplay={locationToDisplay}
+                                  providerName={providerName}
+                                  className="line-through"
+                                />
                               )}
+
+                              <DisplayLocation
+                                locationToDisplay={rescheduleLocationToDisplay}
+                                providerName={rescheduleProviderName}
+                              />
                             </>
                           )}
                         </div>
@@ -575,7 +552,7 @@ export default function Success(props: SuccessProps) {
                             className="text-default break-words"
                             data-testid="field-response"
                             data-fob-field={field.name}>
-                            {response.toString()}
+                            {field.type === "boolean" ? (response ? t("yes") : t("no")) : response.toString()}
                           </p>
                         </>
                       );
@@ -829,6 +806,29 @@ export default function Success(props: SuccessProps) {
     </div>
   );
 }
+
+const DisplayLocation = ({
+  locationToDisplay,
+  providerName,
+  className,
+}: {
+  locationToDisplay: string;
+  providerName?: string;
+  className?: string;
+}) =>
+  locationToDisplay.startsWith("http") ? (
+    <a
+      href={locationToDisplay}
+      target="_blank"
+      title={locationToDisplay}
+      className={classNames("text-default flex items-center gap-2", className)}
+      rel="noreferrer">
+      {providerName || "Link"}
+      <ExternalLink className="text-default inline h-4 w-4" />
+    </a>
+  ) : (
+    <p className={className}>{locationToDisplay}</p>
+  );
 
 Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
@@ -1244,6 +1244,7 @@ async function getRecurringBookings(recurringEventId: string | null) {
   const recurringBookings = await prisma.booking.findMany({
     where: {
       recurringEventId,
+      status: BookingStatus.ACCEPTED,
     },
     select: {
       startTime: true,

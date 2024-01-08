@@ -17,7 +17,7 @@ class CalendarEventClass implements CalendarEvent {
   organizer!: Person;
   attendees!: Person[];
   description?: string | null;
-  team?: { name: string; members: Person[] };
+  team?: { name: string; members: Person[]; id: number };
   location?: string | null;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
@@ -30,6 +30,7 @@ class CalendarEventClass implements CalendarEvent {
   hideCalendarNotes?: boolean;
   additionalNotes?: string | null | undefined;
   recurrence?: string;
+  iCalUID?: string | null;
 
   constructor(initProps?: CalendarEvent) {
     // If more parameters are given we update this
