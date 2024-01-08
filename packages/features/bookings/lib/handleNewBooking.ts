@@ -841,13 +841,10 @@ async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
     isNotAnApiCall = false,
-    skipAvailabilityCheck = false,
   }: {
     isNotAnApiCall?: boolean;
-    skipAvailabilityCheck?: boolean;
   } = {
     isNotAnApiCall: false,
-    skipAvailabilityCheck: false,
   }
 ) {
   const { userId } = req;
@@ -919,7 +916,6 @@ async function handler(
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
-      skipAvailabilityCheck,
       paymentAppData: {
         enabled: paymentAppData.enabled,
         price: paymentAppData.price,

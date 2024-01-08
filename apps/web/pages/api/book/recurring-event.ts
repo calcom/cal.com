@@ -67,7 +67,6 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       recurringEventReq,
       {
         isNotAnApiCall: true,
-        skipAvailabilityCheck: key >= numSlotsToCheckForAvailability,
       }
     );
 
