@@ -1,5 +1,4 @@
 import { baseApiUrl } from "greenhouse/api/callback";
-import { getGreenhouseAppKeys } from "greenhouse/lib/getGreenhouseAppKeys";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -7,6 +6,8 @@ import prisma from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 /** @link https://developers.greenhouse.io/harvest.html#get-retrieve-user */
 export const greenhouseUserSchema = z.object({
@@ -55,7 +56,7 @@ const GreenhouseCalendarService = (credential: CredentialPayload) => {
   };
 
   const fetchGreenhouseApi = async (endpoint: string, options?: RequestInit) => {
-    const { api_key, user_id } = await getGreenhouseAppKeys();
+    const { api_key, user_id } = await getAppKeysFromSlug("greenhouse");
 
     /** Note: the full url is passed as endpoint since some urls use Greenhouse API v1 and some use v2. See note in the `/api/callback file` */
     const response = await fetch(`${endpoint}`, {

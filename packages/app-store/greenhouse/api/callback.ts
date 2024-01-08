@@ -3,10 +3,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import config from "../config.json";
-import { getGreenhouseAppKeys } from "../lib/getGreenhouseAppKeys";
 
 /**
  * Note: Documentation includes links to both v1 and v2 versions of the Greenhouse API
@@ -19,7 +19,7 @@ export const baseApiUrl = "https://harvest.greenhouse.io/v1";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
-  const { api_key } = await getGreenhouseAppKeys();
+  const { api_key, user_id } = await getAppKeysFromSlug("greenhouse");
 
   /** @link https://developers.greenhouse.io/harvest.html#authentication **/
 
@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       Authorization: authHeader,
       Host: "harvest.greenhouse.io",
       "Content-Type": "application/x-www-form-urlencoded",
+      "On-Behalf-Of": `${user_id}`,
     },
   });
 
