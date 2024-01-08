@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: {
-      entry: [resolve(__dirname, "booker/export.ts")],
+      entry: [resolve(__dirname, "components.ts")],
       name: "CalAtoms",
       fileName: "cal-atoms",
     },
@@ -23,9 +23,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      fs: resolve("../../node_modules/rollup-plugin-node-builtins"),
-      path: resolve("../../node_modules/rollup-plugin-node-builtins"),
-      os: resolve("../../node_modules/rollup-plugin-node-builtins"),
+      fs: resolve("../../../node_modules/rollup-plugin-node-builtins"),
+      path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
+      os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
       "@": path.resolve(__dirname, "./src"),
     },
   },

@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
-import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
+import * as twilio from "../lib/reminders/providers/twilioProvider";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = req.headers.authorization || req.query.apiKey;
