@@ -516,6 +516,10 @@ following
 7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
    For example, `Cal.com (support@cal.com)`.
 
+### Obtaining Greenhouse API Key
+
+[See Greenhouse Readme](./packages/app-store/greenhouse/)
+
 ### Obtaining HubSpot Client ID and Secret
 
 1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.
