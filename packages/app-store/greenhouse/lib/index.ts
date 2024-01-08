@@ -1,2 +1,1 @@
-export { getGreenhouseAppKeys } from "./getGreenhouseAppKeys";
-//TODO - export CalendarService
+export { default as CalendarService } from "./CalendarService";
