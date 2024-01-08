@@ -1,17 +1,16 @@
-import type { GetServerSidePropsContext } from "next";
-import { getProviders, signIn, getCsrfToken } from "next-auth/react";
+"use client";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { signIn } from "next-auth/react";
+
 import { Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-type Provider = {
-  name: string;
-  id: string;
-};
+import { getLegacyPageProps } from "@server/lib/getLegacyPageProps";
+import { getSignInData } from "@server/lib/singInGetData";
 
-function signin({ providers }: { providers: Provider[] }) {
+function Signin({ providers }: NonNullable<InferGetServerSidePropsType<typeof getServerSideProps>>) {
   return (
     <div className="center mt-10 justify-between space-y-5 text-center align-baseline">
       {Object.values(providers).map((provider) => {
@@ -25,25 +24,9 @@ function signin({ providers }: { providers: Provider[] }) {
   );
 }
 
-signin.PageWrapper = PageWrapper;
+Signin.PageWrapper = PageWrapper;
 
-export default signin;
+export default Signin;
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req, res });
-  const csrfToken = await getCsrfToken(context);
-  const providers = await getProviders();
-  if (session) {
-    return {
-      redirect: { destination: "/" },
-    };
-  }
-  return {
-    props: {
-      csrfToken,
-      providers,
-    },
-  };
-}
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) =>
+  getLegacyPageProps(ctx, getSignInData);
