@@ -317,11 +317,13 @@ describe("orgMigration", () => {
         await expectTeamToBeAPartOfOrg({
           teamId: team1.id,
           orgId: dbOrg.id,
+          teamSlugInOrg: team1.slug,
         });
 
         await expectTeamToBeAPartOfOrg({
           teamId: team2.id,
           orgId: dbOrg.id,
+          teamSlugInOrg: team2.slug,
         });
 
         await expectUserToBeNotAPartOfTheOrg({
@@ -873,6 +875,7 @@ describe("orgMigration", () => {
           id: 1,
           name: "Team 1",
           slug: "team1",
+          newSlug: "team1-new-slug",
         },
         targetOrg: {
           id: 2,
@@ -902,19 +905,23 @@ describe("orgMigration", () => {
 
       await moveTeamToOrg({
         teamId: data.teamToMigrate.id,
-        targetOrgId: data.targetOrg.id,
+        targetOrg: {
+          id: data.targetOrg.id,
+          teamSlug: data.teamToMigrate.newSlug,
+        },
       });
 
       await expectTeamToBeAPartOfOrg({
         teamId: data.teamToMigrate.id,
         orgId: data.targetOrg.id,
+        teamSlugInOrg: data.teamToMigrate.newSlug,
       });
 
       expectTeamRedirectToBeEnabled({
         from: {
           teamSlug: data.teamToMigrate.slug,
         },
-        to: data.teamToMigrate.slug,
+        to: data.teamToMigrate.newSlug,
         orgSlug: data.targetOrg.slug,
       });
     });
@@ -1198,7 +1205,15 @@ async function expectUserToBeNotAPartOfTheOrg({
   expect(membership).toBeUndefined();
 }
 
-async function expectTeamToBeAPartOfOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
+async function expectTeamToBeAPartOfOrg({
+  teamId,
+  orgId,
+  teamSlugInOrg,
+}: {
+  teamId: number;
+  orgId: number;
+  teamSlugInOrg: string | null;
+}) {
   const migratedTeam = await prismock.team.findUnique({
     where: {
       id: teamId,
@@ -1208,7 +1223,11 @@ async function expectTeamToBeAPartOfOrg({ teamId, orgId }: { teamId: number; org
     throw new Error(`Team with id ${teamId} does not exist`);
   }
 
+  if (!teamSlugInOrg) {
+    throw new Error(`teamSlugInOrg should be defined`);
+  }
   expect(migratedTeam.parentId).toBe(orgId);
+  expect(migratedTeam.slug).toBe(teamSlugInOrg);
 }
 
 async function expectTeamToBeNotPartOfAnyOrganization({ teamId }: { teamId: number }) {

@@ -186,12 +186,6 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
-  useEffect(() => {
-    if (layout === "mobile") {
-      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [layout]);
-
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
   if (entity.isUnpublished) {
