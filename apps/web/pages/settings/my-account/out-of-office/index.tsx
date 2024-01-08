@@ -1,18 +1,28 @@
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { Link, MoreHorizontal, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { CAL_URL } from "@calcom/lib/constants";
 import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button, Meta, showToast, Badge, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
+import {
+  Button,
+  Meta,
+  showToast,
+  Badge,
+  Select,
+  SkeletonText,
+  UpgradeTeamsBadge,
+  Switch,
+  Dropdown,
+  DropdownItem,
+} from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
-import { Link, Send, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 import { OutOfOfficeDateRangePicker } from "@components/out-of-office/DateRangePicker";
@@ -76,73 +86,76 @@ const OutOfOfficeSection = () => {
           setValue("toTeamUserId", null);
           setSelectedMember(null);
         })}>
-        <div className="border-subtle mt-6 flex flex-col rounded-t-lg border border-b-0 p-6 text-sm">
-          <p className="text-default font-cal text-base font-semibold">{t("going_away_title")}</p>
+        <div className="border-subtle flex flex-col rounded-b-lg border border-t-0 p-6 px-6 py-8 text-sm">
+          {/* <p className="text-default font-cal text-base font-semibold">{t("going_away_title")}</p> */}
           {/* Add startDate and end date inputs */}
-          <div className="mt-2">
-            <p className="text-emphasis mb-2 mt-4 block text-sm">{t("select_date_range_availability")}</p>
-            <div className=" w-[250px]">
-              <OutOfOfficeDateRangePicker
-                dateRange={dateRange}
-                setValue={setValue}
-                setDateRange={setDateRange}
-              />
-            </div>
-          </div>
-
-          {/* Add toggle to enable/disable redirect */}
-          <div className="mt-6 flex flex-row">
-            <Switch
-              disabled={!hasPaidPlan}
-              data-testid="profile-redirect-switch"
-              checked={profileRedirect}
-              id="profile-redirect-switch"
-              onCheckedChange={(state) => {
-                setProfileRedirect(state);
-              }}
-              label={hasPaidPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
-            />
-            {!hasPaidPlan && (
-              <div className="mx-2" data-testid="upgrade-team-badge">
-                <UpgradeTeamsBadge />
-              </div>
-            )}
-          </div>
-
-          {profileRedirect && (
-            <div className="mt-6">
-              <p className="text-sm">{t("booking_redirect_action")}</p>
-
-              <Select
-                className="mt-1 max-w-[350px] text-white"
-                name="toTeamUsername"
-                data-testid="team_username_select"
-                value={selectedMember}
-                placeholder={t("select_team_member")}
-                isSearchable
-                options={memberListOptions}
-                onChange={(selectedOption) => {
-                  if (selectedOption?.value) {
-                    setSelectedMember(selectedOption);
-                    setValue("toTeamUserId", selectedOption?.value);
-                  }
+          <div className="border-subtle mt-2 rounded-lg border bg-gray-50 p-6 dark:bg-transparent">
+            {/* Add toggle to enable/disable redirect */}
+            <div className="mt-6 flex flex-row">
+              <Switch
+                disabled={!hasPaidPlan}
+                data-testid="profile-redirect-switch"
+                checked={profileRedirect}
+                id="profile-redirect-switch"
+                onCheckedChange={(state) => {
+                  setProfileRedirect(state);
                 }}
+                label={hasPaidPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
               />
+              {!hasPaidPlan && (
+                <div className="mx-2" data-testid="upgrade-team-badge">
+                  <UpgradeTeamsBadge />
+                </div>
+              )}
             </div>
-          )}
+            <div className="mt-4 flex flex-row">
+              {profileRedirect && (
+                <div className="mr-2 w-1/2 lg:w-1/3">
+                  <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+                  <Select
+                    className="mt-1 h-4 max-w-[350px] text-white"
+                    name="toTeamUsername"
+                    data-testid="team_username_select"
+                    value={selectedMember}
+                    placeholder={t("select_team_member")}
+                    isSearchable
+                    innerClassNames={{
+                      control: "h-[38px]",
+                    }}
+                    options={memberListOptions}
+                    onChange={(selectedOption) => {
+                      if (selectedOption?.value) {
+                        setSelectedMember(selectedOption);
+                        setValue("toTeamUserId", selectedOption?.value);
+                      }
+                    }}
+                  />
+                </div>
+              )}
+              <div className="w-1/2 lg:w-1/3">
+                <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
+
+                <OutOfOfficeDateRangePicker
+                  dateRange={dateRange}
+                  setValue={setValue}
+                  setDateRange={setDateRange}
+                />
+              </div>
+            </div>
+
+            <div className="mt-7">
+              <Button
+                color="primary"
+                type="submit"
+                disabled={createOutOfOfficeEntry.isLoading}
+                data-testid="send-request-redirect">
+                {profileRedirect ? t("send_request") : t("create_entry")}
+              </Button>
+            </div>
+          </div>
+
+          <OutOfOfficeEntriesList />
         </div>
-        <SectionBottomActions align="end">
-          <Button
-            color="primary"
-            type="submit"
-            disabled={createOutOfOfficeEntry.isLoading}
-            data-testid="send-request-redirect"
-            EndIcon={() => (
-              <Send className="font-semi mx-2 h-5 w-5 text-white dark:text-black" aria-hidden="true" />
-            )}>
-            {profileRedirect ? t("send_request") : "Create out of office entry"}
-          </Button>
-        </SectionBottomActions>
       </form>
     </>
   );
@@ -164,100 +177,107 @@ const OutOfOfficeEntriesList = () => {
   });
   if (data === null || data?.length === 0 || data === undefined) return null;
   return (
-    <>
-      <div className="border-subtle mt-6 flex flex-col rounded-lg border p-6 text-sm">
-        {/* Table that displays current request and status */}
-        <p className="text-default font-cal text-base font-semibold">{t("out_of_office_unavailable_list")}</p>
-        <TableNew className="mt-4">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="capitalize">{t("from")}</TableHead>
-              <TableHead>{t("to")}</TableHead>
-              <TableHead>{t("team_username")}</TableHead>
-              <TableHead>{t("status")}</TableHead>
-              <TableHead>{t("share")}</TableHead>
-              <TableHead>{t("delete")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data?.map((item) => (
-              <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
-                <TableCell>
-                  <p className="px-2">{dayjs(item.start).format("YYYY-MM-DD")}</p>
-                </TableCell>
-                <TableCell>
-                  <p className="px-2">{dayjs(item.end).format("YYYY-MM-DD")}</p>
-                </TableCell>
-                <TableCell>
-                  <p className="px-2">{item.toUser?.username || "N/A"}</p>
-                </TableCell>
-                <TableCell>
-                  {item.status === null && <p className="px-4 text-xs">N/A</p>}
-                  {item.status === "PENDING" && (
-                    <Badge variant="warning" className="px-4 text-xs">
-                      {t("pending")}
-                    </Badge>
-                  )}
-                  {item.status === "ACCEPTED" && (
-                    <Badge variant="success" className="px-4 text-xs capitalize">
-                      {t("accepted")}
-                    </Badge>
-                  )}
-                  {item.status === "REJECTED" && (
-                    <Badge variant="error" className="px-4 text-xs">
-                      {t("rejected")}
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {/* Button to share link to accept */}
-                  {item.toUser?.username && (
+    <div className="border-subtle mt-6 rounded-lg border">
+      <TableNew className="border-0">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="rounded-tl-lg font-normal capitalize">{t("time_range")}</TableHead>
+            <TableHead className="font-normal">{t("username")}</TableHead>
+            <TableHead className="font-normal">{t("status")}</TableHead>
+            <TableHead className="rounded-tr-lg font-normal">{t("more")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data?.map((item) => (
+            <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
+              <TableCell>
+                <p className="px-2">
+                  {dayjs(item.start).format("ll")} - {dayjs(item.end).format("ll")}
+                </p>
+              </TableCell>
+              <TableCell>
+                <p className="px-2">{item.toUser?.username || "N/A"}</p>
+              </TableCell>
+              <TableCell>
+                {item.status === null && <p className="px-4 text-xs">N/A</p>}
+                {item.status === "PENDING" && (
+                  <Badge variant="warning" className="px-4 text-xs">
+                    {t("pending")}
+                  </Badge>
+                )}
+                {item.status === "ACCEPTED" && (
+                  <Badge variant="success" className="px-4 text-xs capitalize">
+                    {t("accepted")}
+                  </Badge>
+                )}
+                {item.status === "REJECTED" && (
+                  <Badge variant="error" className="px-4 text-xs">
+                    {t("rejected")}
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell>
+                <Dropdown modal={false} className="">
+                  <DropdownMenuTrigger asChild data-testid="event-type-options">
                     <Button
-                      className="px-4"
-                      tooltip={t("copy_link_booking_redirect_request")}
-                      color="minimal"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${CAL_URL}/booking-redirect/accept/${item.uuid}`);
-                      }}>
-                      <Link width={15} height={15} />
-                    </Button>
-                  )}
-                  {!item.toUser?.username && <p className="px-4">N/A</p>}
+                      type="button"
+                      variant="icon"
+                      color="secondary"
+                      StartIcon={MoreHorizontal}
+                      className="mx-1 border-none hover:bg-gray-200"
+                    />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="border-subtle rounded-lg border bg-white">
+                    {item.status !== null && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          disabled={item.status === null}
+                          data-testid="event-type-duplicate"
+                          StartIcon={Link}
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${CAL_URL}/booking-redirect/accept/${item.uuid}`);
+                          }}>
+                          {t("copy_link_booking_redirect_request")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        disabled={deleteOutOfOfficeEntryMutation.isLoading}
+                        StartIcon={Trash2}
+                        onClick={() => {
+                          deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
+                        }}>
+                        {t("delete")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </Dropdown>
+              </TableCell>
+            </TableRow>
+          ))}
+          {isLoading && (
+            <TableRow>
+              {new Array(6).fill(0).map((_, index) => (
+                <TableCell key={index}>
+                  <SkeletonText className="h-8 w-full" />
                 </TableCell>
-                <TableCell>
-                  <Button
-                    className="px-4"
-                    disabled={deleteOutOfOfficeEntryMutation.isLoading}
-                    color="destructive"
-                    onClick={() => {
-                      deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
-                    }}>
-                    <Trash2 width={15} height={15} />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {isLoading && (
-              <TableRow>
-                {new Array(6).fill(0).map((_, index) => (
-                  <TableCell key={index}>
-                    <SkeletonText className="h-8 w-full" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            )}
+              ))}
+            </TableRow>
+          )}
 
-            {!isLoading && (data === undefined || data.length === 0) && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center">
-                  <p className="text-subtle text-sm">{t("no_redirects_found")}</p>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </TableNew>
-      </div>
-    </>
+          {!isLoading && (data === undefined || data.length === 0) && (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center">
+                <p className="text-subtle text-sm">{t("no_redirects_found")}</p>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </TableNew>
+    </div>
   );
 };
 
@@ -266,17 +286,9 @@ const OutOfOfficePage = () => {
 
   return (
     <>
-      <Meta
-        title={t("out_of_office")}
-        description={t("out_of_office_description")}
-        borderInShellHeader={false}
-      />
+      <Meta title={t("out_of_office")} description={t("out_of_office_description")} borderInShellHeader />
       <ShellMain>
-        <>
-          <div className="mt-2"> </div>
-          <OutOfOfficeSection />
-          <OutOfOfficeEntriesList />
-        </>
+        <OutOfOfficeSection />
       </ShellMain>
     </>
   );
