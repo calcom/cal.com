@@ -14,7 +14,7 @@
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
     "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts"
   },
-  "types": "./index.ts",
+  "types": "./index.tsx",
   "license": "MIT",
   "scripts": {
     "lint": "eslint .",
