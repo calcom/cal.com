@@ -442,6 +442,7 @@ export const BookEventFormChild = ({
                 type="submit"
                 color="primary"
                 loading={
+                  bookingForm.formState.isSubmitting ||
                   createBookingMutation.isLoading ||
                   createRecurringBookingMutation.isLoading ||
                   // A redirect is triggered on mutation success, so keep the button disabled as this is happening.
