@@ -1,5 +1,4 @@
 import OldPage from "@pages/booking/[uid]";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsContext } from "next";
@@ -15,6 +14,8 @@ import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getRecurringBookings, handleSeatsEventTypeOnBooking, getEventTypesFromDB } from "@lib/booking";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const stringToBoolean = z
   .string()
@@ -41,7 +42,7 @@ export const generateMetadata = async () =>
   );
 
 export const getData = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit();
+  const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
@@ -189,7 +190,7 @@ export const getData = async (context: GetServerSidePropsContext) => {
     profile,
     eventType,
     recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
     dynamicEventName: bookingInfo?.eventType?.eventName || "",
     bookingInfo,
     paymentStatus: payment,
