@@ -1,8 +1,9 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { LargeScreenCTA } from "availability/cta/large-screen";
 import { SmallScreenCTA } from "availability/cta/small-screen";
-import { useClientSchedule } from "availability/hooks/useClientSchedule";
-import { useDeleteSchedule } from "availability/hooks/useDeleteSchedule";
+import { DateOverride } from "availability/date-overrides";
+import useClientSchedule from "availability/hooks/useClientSchedule";
+import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
 import { useProfileInfo } from "availability/hooks/useProfileInfo";
 import { Timezone } from "availability/timezone";
 import { Troubleshooter } from "availability/troubleshooter";
@@ -10,6 +11,7 @@ import { useApiKey } from "cal-provider";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
+import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
@@ -35,7 +37,7 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
   const { key, error } = useApiKey();
   // if user doesnt provide a scheduleId we use the default schedule id
   // since we know there will always be one default schedule so schedule cant be empty
-  const { isLoading, data: schedule } = useClientSchedule(id ? id : "1", key);
+  const { isLoading, data: schedule } = useClientSchedule(id, key);
   const user = useProfileInfo(key);
 
   const { timeFormat } = user.data || { timeFormat: null };
@@ -126,7 +128,32 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
         }>
         <div className="mt-4 w-full md:mt-0">
           <Form form={form} id="availability-form" className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
-            <div className="flex-1 flex-row xl:mr-0" />
+            <div className="flex-1 flex-row xl:mr-0">
+              <div className="border-subtle mb-6 rounded-md border">
+                <div>
+                  {typeof user.data?.weekStart === "string" && (
+                    <Schedule
+                      control={form.control}
+                      name="schedule"
+                      weekStart={
+                        [
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                      }
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="border-subtle my-6 rounded-md border">
+                {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+              </div>
+            </div>
             <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
               <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                 <Timezone />
