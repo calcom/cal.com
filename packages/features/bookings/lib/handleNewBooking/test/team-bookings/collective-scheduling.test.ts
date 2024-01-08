@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1279,7 +1279,7 @@ describe("handleNewBooking", () => {
               booking: {
                 uid: createdBooking.uid!,
                 // All booking links are of WEBAPP_URL and not of the org because the team isn't part of the org
-                urlOrigin: WEBAPP_URL,
+                urlOrigin: CAL_URL,
               },
               booker,
               organizer,
