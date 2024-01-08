@@ -58,7 +58,14 @@ If you can't find a referenced user, ask the user for their email or @username. 
 
 The primary user's id is: ${userId}
 The primary user's username is: ${user.username}
-The current time in the primary user's timezone is: ${now(user.timeZone)}
+The current time in the primary user's timezone is: ${now(user.timeZone, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      })}
 The primary user's time zone is: ${user.timeZone}
 The primary user's event types are: ${user.eventTypes
         .map((e: EventType) => `ID: ${e.id}, Slug: ${e.slug}, Title: ${e.title}, Length: ${e.length};`)
