@@ -56,13 +56,17 @@ test.describe("Out of office", () => {
 
     await page.goto(`/settings/my-account/out-of-office`);
 
-    await page.getByTestId("profile-redirect-switch").click({ timeout: 500 });
-
-    await page.locator(".bg-default > div > div:nth-child(2)").first().click();
+    await page.getByTestId("profile-redirect-switch").click();
+    await page
+      .getByTestId("team_username_select")
+      .locator("div")
+      .filter({ hasText: "Select team member" })
+      .first()
+      .click();
     await page.locator("#react-select-2-option-0 div").click();
 
     // send request
-    await page.locator("data-testid=send-request-redirect").click();
+    await page.getByTestId("send-request-redirect").click();
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -88,12 +92,10 @@ test.describe("Out of office", () => {
     await page.goto(`/booking-redirect/accept/${uuid}`);
 
     // todo: check whatever text is shown on EmptyScreen
-    // await expect(page.locator("data-testid=success_accept_redirect")).toBeTruthy();
 
     await page.goto(`/booking-redirect/reject/${uuid}`);
 
     // todo: check whatever text is shown on EmptyScreen
-    // await expect(page.locator("data-testid=success_reject_redirect")).toBeTruthy();
   });
 
   test("Profile redirection", async ({ page, users }) => {
