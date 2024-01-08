@@ -2,7 +2,7 @@
 
 #### `DESCRIPTION.md`
 
-1. images - include atleast 4 images (do we have a recommended size here?). Can show app in use and/or installation steps
+1. images - include at least 4 images (do we have a recommended size here?). Can show app in use and/or installation steps
 2. add only file name for images, path not required. i.e. `1.jpeg`, not `/app-store/zohocalendar/1.jpeg`
 3. description should include what the integration with Cal allows the user to do e.g. `Allows you to sync Cal bookings with your Zoho Calendar`
 
