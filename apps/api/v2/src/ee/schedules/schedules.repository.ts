@@ -66,4 +66,24 @@ export class SchedulesRepository {
 
     return schedule;
   }
+
+  async getSchedulesByUserId(userId: number) {
+    const schedules = await this.dbRead.prisma.schedule.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        availability: {
+          select: {
+            id: true,
+            days: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
+      },
+    });
+
+    return schedules;
+  }
 }

@@ -12,7 +12,7 @@ export class SchedulesService {
     private readonly usersRepository: UsersRepository
   ) {}
 
-  async createSchedule(userId: number, schedule: CreateScheduleInput) {
+  async createUserSchedule(userId: number, schedule: CreateScheduleInput) {
     const availabilities = schedule.availabilities || [this.availabilitiesService.getDefaultAvailability()];
 
     const createdSchedule = await this.schedulesRepository.createScheduleWithAvailabilities(
@@ -28,7 +28,7 @@ export class SchedulesService {
     return createdSchedule;
   }
 
-  async getDefaultSchedule(userId: number) {
+  async getUserScheduleDefault(userId: number) {
     const user = await this.usersRepository.findById(userId);
 
     if (!user?.defaultScheduleId) return null;
@@ -36,7 +36,7 @@ export class SchedulesService {
     return this.schedulesRepository.getScheduleById(user.defaultScheduleId);
   }
 
-  async getSchedule(userId: number, scheduleId: number) {
+  async getUserSchedule(userId: number, scheduleId: number) {
     const schedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
     if (schedule?.userId !== userId) {
@@ -44,5 +44,9 @@ export class SchedulesService {
     }
 
     return schedule;
+  }
+
+  async getUserSchedules(userId: number) {
+    return this.schedulesRepository.getSchedulesByUserId(userId);
   }
 }

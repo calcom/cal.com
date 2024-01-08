@@ -21,7 +21,7 @@ export class SchedulesController {
     @GetUser("id") userId: number,
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<ApiResponse> {
-    const schedule = await this.schedulesService.createSchedule(userId, bodySchedule);
+    const schedule = await this.schedulesService.createUserSchedule(userId, bodySchedule);
 
     return {
       status: SUCCESS_STATUS,
@@ -32,7 +32,7 @@ export class SchedulesController {
   @Get("/default")
   @UseGuards(AccessTokenGuard)
   async getDefaultSchedule(@GetUser("id") userId: number): Promise<ApiResponse> {
-    const schedule = await this.schedulesService.getDefaultSchedule(userId);
+    const schedule = await this.schedulesService.getUserScheduleDefault(userId);
 
     return {
       status: SUCCESS_STATUS,
@@ -43,11 +43,22 @@ export class SchedulesController {
   @Get("/:scheduleId")
   @UseGuards(AccessTokenGuard)
   async getSchedule(@GetUser("id") userId: number, scheduleId: number): Promise<ApiResponse> {
-    const schedule = await this.schedulesService.getSchedule(userId, scheduleId);
+    const schedule = await this.schedulesService.getUserSchedule(userId, scheduleId);
 
     return {
       status: SUCCESS_STATUS,
       data: schedule,
+    };
+  }
+
+  @Get("/")
+  @UseGuards(AccessTokenGuard)
+  async getSchedules(@GetUser("id") userId: number): Promise<ApiResponse> {
+    const schedules = await this.schedulesService.getUserSchedules(userId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: schedules,
     };
   }
 }
