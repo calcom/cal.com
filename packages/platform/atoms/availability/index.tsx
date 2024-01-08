@@ -16,8 +16,8 @@ import {
 import { Globe, MoreHorizontal, Star, Copy, Trash } from "@calcom/ui/components/icon";
 
 import { useApiKey } from "../cal-provider";
-import { useClientSchedule } from "./hooks/useClientSchedule.ts";
-import { useDeleteSchedule } from "./hooks/useDeleteSchedule";
+import useClientSchedule from "./hooks/useClientSchedule";
+import useDeleteSchedule from "./hooks/useDeleteSchedule";
 import { useProfileInfo } from "./hooks/useProfileInfo";
 
 export type AvailabilityFormValues = {
@@ -65,7 +65,7 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 sm:ltr:pl-0 rtl:pr-4 sm:rtl:pr-0">
+      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
         <div className="group flex w-full items-center justify-between sm:px-6">
           <div className="space-x-2 rtl:space-x-reverse">
             <span className="text-emphasis truncate font-medium">{schedule.name}</span>
