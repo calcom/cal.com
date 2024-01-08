@@ -2,7 +2,7 @@ import LegacyPage from "@pages/settings/organizations/[id]/set-password";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayoutAppDir } from "@calcom/ui";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,9 +12,9 @@ export const generateMetadata = async () =>
 
 const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={2} maxSteps={5}>
+    <WizardLayoutAppDir currentStep={2} maxSteps={5}>
       {page}
-    </WizardLayout>
+    </WizardLayoutAppDir>
   );
 };
 

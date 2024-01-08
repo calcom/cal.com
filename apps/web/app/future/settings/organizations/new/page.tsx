@@ -5,7 +5,7 @@ import { type GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayoutAppDir } from "@calcom/ui";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -30,9 +30,9 @@ const getPageProps = async (context: GetServerSidePropsContext) => {
 
 const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={1} maxSteps={5}>
+    <WizardLayoutAppDir currentStep={1} maxSteps={5}>
       {page}
-    </WizardLayout>
+    </WizardLayoutAppDir>
   );
 };
 

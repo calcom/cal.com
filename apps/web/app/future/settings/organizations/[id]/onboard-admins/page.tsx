@@ -4,7 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { WizardLayout } from "@calcom/ui";
+import { WizardLayoutAppDir } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
@@ -25,14 +25,14 @@ const Page = ({ params }: PageProps) => {
   return (
     <PageWrapper
       getLayout={(page: React.ReactElement) => (
-        <WizardLayout
+        <WizardLayoutAppDir
           currentStep={4}
           maxSteps={5}
           isOptionalCallback={() => {
             redirect(`/settings/organizations/${params.id}/add-teams`);
           }}>
           {page}
-        </WizardLayout>
+        </WizardLayoutAppDir>
       )}
       requiresLicense={false}
       nonce={nonce}
