@@ -558,6 +558,10 @@ following
 
 [Follow these steps](./packages/app-store/pipedrive-crm/)
 
+### Obtaining MercadoPago Client ID, Secret and Public Key
+
+[Follow these steps](./packages/app-store/mercadopago/)
+
 ## Workflows
 
 ### Setting up SendGrid for Email reminders
