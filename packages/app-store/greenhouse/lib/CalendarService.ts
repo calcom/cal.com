@@ -55,7 +55,7 @@ const GreenhouseCalendarService = (credential: CredentialPayload) => {
   };
 
   const fetchGreenhouseApi = async (endpoint: string, options?: RequestInit) => {
-    const { api_key } = await getGreenhouseAppKeys();
+    const { api_key, user_id } = await getGreenhouseAppKeys();
 
     /** Note: the full url is passed as endpoint since some urls use Greenhouse API v1 and some use v2. See note in the `/api/callback file` */
     const response = await fetch(`${endpoint}`, {
@@ -63,6 +63,7 @@ const GreenhouseCalendarService = (credential: CredentialPayload) => {
       ...options,
       headers: {
         Authorization: `Basic ${api_key}`,
+        "On-Behalf-Of": `${user_id}`,
         ...options?.headers,
       },
     });
@@ -89,6 +90,88 @@ const GreenhouseCalendarService = (credential: CredentialPayload) => {
       /** Uses the v2 endpoint
        * @link https://developers.greenhouse.io/harvest.html#post-create-scheduled-interview
        */
+      try {
+        const response = await fetchGreenhouseApi("https://harvest.greenhouse.io/v2/scheduled_interviews", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        });
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          }
+        }
+
+        const data = greenhouseInterviewSchema.parse(response);
+
+        if (data.id && data.location) {
+          return {
+            type: "greenhouse_other",
+            id: data.id.toString(),
+            url: data.location,
+          };
+        }
+        throw new Error(`Failed to create scheduled interview. Response is ${JSON.stringify(data)}`);
+      } catch (err) {
+        console.error(err);
+        return [];
+      }
+    },
+
+    deleteInterview: async (uid: string): Promise<void> => {
+      try {
+        const response = await fetchGreenhouseApi(`${baseApiUrl}/scheduled_interviews/${uid}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          }
+        }
+
+        if (response.ok) {
+          return;
+        } else {
+          throw new Error(`Failed to delete scheduled interview for uid ${uid}`);
+        }
+      } catch (err) {
+        console.error(err);
+        return;
+      }
+    },
+    updateInterview: async (uid: string, event: CalendarEvent, externalCalendarId: string) => {
+      try {
+        const response = await fetchGreenhouseApi(
+          `https://harvest.greenhouse.io/v2/scheduled_interviews/${uid}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
+          }
+        }
+        if (response.ok) {
+          return;
+        } else {
+          throw new Error(`Failed to update scheduled interview for uid ${uid}`);
+        }
+      } catch (err) {
+        console.error(err);
+        return;
+      }
     },
   };
 };
