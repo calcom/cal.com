@@ -1,4 +1,4 @@
-export type LarkAppKeys = {
+export type FeishuAppKeys = {
   app_id?: string;
   app_secret?: string;
   app_access_token?: string;
@@ -7,7 +7,7 @@ export type LarkAppKeys = {
   open_verification_token?: string;
 };
 
-export type LarkAuthCredentials = {
+export type FeishuAuthCredentials = {
   expiry_date: number;
   access_token: string;
   refresh_token: string;
@@ -35,7 +35,7 @@ export type RefreshTokenResp = {
   };
 };
 
-export type LarkEvent = {
+export type FeishuEvent = {
   event_id?: string;
   organizer_calendar_id?: string;
   summary: string;
@@ -64,11 +64,11 @@ export type CreateEventResp = {
   code: number;
   msg: string;
   data: {
-    event: LarkEvent;
+    event: FeishuEvent;
   };
 };
 
-export type LarkEventAttendee = {
+export type FeishuEventAttendee = {
   type: "user" | "third_party";
   is_optional: boolean;
   user_id?: string;
@@ -79,7 +79,7 @@ export type CreateAttendeesResp = {
   code: number;
   msg: string;
   data: {
-    attendees: LarkEventAttendee[];
+    attendees: FeishuEventAttendee[];
   };
 };
 
@@ -87,7 +87,7 @@ export type ListAttendeesResp = {
   code: number;
   msg: string;
   data: {
-    items: (LarkEventAttendee & { attendee_id: string })[];
+    items: (FeishuEventAttendee & { attendee_id: string })[];
     has_more: boolean;
     page_token: string;
   };
