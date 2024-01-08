@@ -21,3 +21,5 @@ export const buildLegacyCtx = (headers: ReadonlyHeaders, cookies: ReadonlyReques
     req: { headers, cookies },
   };
 };
+
+export type LegacyCtx = ReturnType<typeof buildLegacyCtx>;

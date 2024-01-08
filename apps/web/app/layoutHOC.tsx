@@ -1,6 +1,7 @@
 import type { LayoutProps, PageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
 
+import type { LegacyCtx } from "@lib/buildLegacyCtx";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import PageWrapper from "@components/PageWrapperAppDir";
@@ -8,7 +9,7 @@ import PageWrapper from "@components/PageWrapperAppDir";
 type WithLayoutParams<T extends Record<string, any>> = {
   getLayout: ((page: React.ReactElement) => React.ReactNode) | null;
   Page?: (props: T) => React.ReactElement;
-  getData?: (arg: ReturnType<typeof buildLegacyCtx>) => Promise<T>;
+  getData?: (arg: LegacyCtx) => Promise<T>;
 };
 
 export function WithLayout<T extends Record<string, any>>({ getLayout, getData, Page }: WithLayoutParams<T>) {
