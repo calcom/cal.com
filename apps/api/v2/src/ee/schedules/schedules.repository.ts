@@ -35,14 +35,7 @@ export class SchedulesRepository {
         },
       },
       include: {
-        availability: {
-          select: {
-            id: true,
-            days: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
+        availability: true,
       },
     });
 
@@ -55,14 +48,7 @@ export class SchedulesRepository {
         id: scheduleId,
       },
       include: {
-        availability: {
-          select: {
-            id: true,
-            days: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
+        availability: true,
       },
     });
 
@@ -75,14 +61,7 @@ export class SchedulesRepository {
         userId,
       },
       include: {
-        availability: {
-          select: {
-            id: true,
-            days: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
+        availability: true,
       },
     });
 
@@ -121,14 +100,7 @@ export class SchedulesRepository {
       where: { id: scheduleId },
       data: updatedScheduleData,
       include: {
-        availability: {
-          select: {
-            id: true,
-            days: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
+        availability: true,
       },
     });
 

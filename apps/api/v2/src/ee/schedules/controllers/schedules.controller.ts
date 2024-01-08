@@ -1,5 +1,6 @@
 import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { schemaScheduleResponse } from "@/ee/schedules/zod/response/response";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
@@ -34,10 +35,13 @@ export class SchedulesController {
   @UseGuards(AccessTokenGuard)
   async getDefaultSchedule(@GetUser("id") userId: number): Promise<ApiResponse> {
     const schedule = await this.schedulesService.getUserScheduleDefault(userId);
+    const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedule,
+      data: {
+        schedule: scheduleResponse,
+      },
     };
   }
 
@@ -48,10 +52,13 @@ export class SchedulesController {
     @Param("scheduleId") scheduleId: number
   ): Promise<ApiResponse> {
     const schedule = await this.schedulesService.getUserSchedule(userId, scheduleId);
+    const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedule,
+      data: {
+        schedule: scheduleResponse,
+      },
     };
   }
 
@@ -59,10 +66,13 @@ export class SchedulesController {
   @UseGuards(AccessTokenGuard)
   async getSchedules(@GetUser("id") userId: number): Promise<ApiResponse> {
     const schedules = await this.schedulesService.getUserSchedules(userId);
+    const schedulesResponse = schedules.map((schedule) => schemaScheduleResponse.parse(schedule));
 
     return {
       status: SUCCESS_STATUS,
-      data: schedules,
+      data: {
+        schedules: schedulesResponse,
+      },
     };
   }
 
@@ -87,10 +97,13 @@ export class SchedulesController {
     @Body() bodySchedule: UpdateScheduleInput
   ): Promise<ApiResponse> {
     const schedule = await this.schedulesService.updateUserSchedule(userId, scheduleId, bodySchedule);
+    const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedule,
+      data: {
+        schedule: scheduleResponse,
+      },
     };
   }
 }
