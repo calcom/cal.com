@@ -1,28 +1,18 @@
 import NotFoundPage from "@pages/404";
-import { ssgInit } from "app/_trpc/ssgInit";
-import { headers } from "next/headers";
+import { WithLayout } from "app/layoutHOC";
 
-import PageWrapper from "@components/PageWrapperAppDir";
+import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-const getProps = async () => {
-  const ssg = await ssgInit();
+import { ssgInit } from "@server/lib/ssg";
+
+const getData = async (context: ReturnType<typeof buildLegacyCtx>) => {
+  const ssg = await ssgInit(context);
 
   return {
-    dehydratedState: await ssg.dehydrate(),
+    dehydratedState: ssg.dehydrate(),
   };
-};
-
-const NotFound = async () => {
-  const nonce = headers().get("x-nonce") ?? undefined;
-  const props = await getProps();
-
-  return (
-    <PageWrapper getLayout={null} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
-      <NotFoundPage />
-    </PageWrapper>
-  );
 };
 
 export const dynamic = "force-static";
 
-export default NotFound;
+export default WithLayout({ getLayout: null, getData, Page: NotFoundPage });
