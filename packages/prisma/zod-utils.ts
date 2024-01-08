@@ -338,6 +338,14 @@ export const teamMetadataSchema = z
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
+    migratedToOrgFrom: z
+      .object({
+        teamSlug: z.string().or(z.null()).optional(),
+        lastMigrationTime: z.string().optional(),
+        reverted: z.boolean().optional(),
+        lastRevertTime: z.string().optional(),
+      })
+      .optional(),
   })
   .partial()
   .nullable();
