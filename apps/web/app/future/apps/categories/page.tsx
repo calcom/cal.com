@@ -21,7 +21,6 @@ const getData = async (ctx: ReturnType<typeof buildLegacyCtx>) => {
   // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
   const ssr = await ssrInit(ctx);
 
-  console.log(ssr.dehydrate(), "dehydrate???");
   // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest | IncomingMessage
   const session = await getServerSession({ req: ctx.req });
 
