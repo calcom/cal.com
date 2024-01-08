@@ -14,11 +14,11 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
   path: "schedules",
   version: "2",
 })
+@UseGuards(AccessTokenGuard)
 export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
   @Post("/")
-  @UseGuards(AccessTokenGuard)
   async createSchedule(
     @GetUser("id") userId: number,
     @Body() bodySchedule: CreateScheduleInput
@@ -35,7 +35,6 @@ export class SchedulesController {
   }
 
   @Get("/default")
-  @UseGuards(AccessTokenGuard)
   async getDefaultSchedule(@GetUser("id") userId: number): Promise<ApiResponse> {
     const schedule = await this.schedulesService.getUserScheduleDefault(userId);
     const scheduleResponse = schemaScheduleResponse.parse(schedule);
@@ -49,7 +48,6 @@ export class SchedulesController {
   }
 
   @Get("/:scheduleId")
-  @UseGuards(AccessTokenGuard)
   async getSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
@@ -66,7 +64,6 @@ export class SchedulesController {
   }
 
   @Get("/")
-  @UseGuards(AccessTokenGuard)
   async getSchedules(@GetUser("id") userId: number): Promise<ApiResponse> {
     const schedules = await this.schedulesService.getUserSchedules(userId);
     const schedulesResponse = schedules.map((schedule) => schemaScheduleResponse.parse(schedule));
@@ -80,7 +77,6 @@ export class SchedulesController {
   }
 
   @Delete("/:scheduleId")
-  @UseGuards(AccessTokenGuard)
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
@@ -93,7 +89,6 @@ export class SchedulesController {
   }
 
   @Put("/:scheduleId")
-  @UseGuards(AccessTokenGuard)
   async updateSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number,
