@@ -1,6 +1,5 @@
+import { DateTime } from "luxon";
 import { z } from "zod";
-
-import dayjs from "@calcom/dayjs";
 
 const scheduleSchema = z.object({
   id: z.number().int(),
@@ -26,8 +25,8 @@ export const schemaScheduleResponse = z
         .transform((availabilities) =>
           availabilities.map((availability) => ({
             ...availability,
-            startTime: dayjs.utc(availability.startTime).format("HH:mm:ss"),
-            endTime: dayjs.utc(availability.endTime).format("HH:mm:ss"),
+            startTime: DateTime.fromJSDate(availability.startTime).toUTC().toFormat("HH:mm:ss"),
+            endTime: DateTime.fromJSDate(availability.endTime).toUTC().toFormat("HH:mm:ss"),
           }))
         )
         .optional(),

@@ -24,10 +24,13 @@ export class SchedulesController {
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<ApiResponse> {
     const schedule = await this.schedulesService.createUserSchedule(userId, bodySchedule);
+    const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedule,
+      data: {
+        schedule: scheduleResponse,
+      },
     };
   }
 
