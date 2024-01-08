@@ -39,4 +39,15 @@ export class SchedulesController {
       data: schedule,
     };
   }
+
+  @Get("/:scheduleId")
+  @UseGuards(AccessTokenGuard)
+  async getSchedule(@GetUser("id") userId: number, scheduleId: number): Promise<ApiResponse> {
+    const schedule = await this.schedulesService.getSchedule(userId, scheduleId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: schedule,
+    };
+  }
 }

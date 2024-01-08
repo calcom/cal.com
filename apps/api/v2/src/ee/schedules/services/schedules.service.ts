@@ -2,7 +2,7 @@ import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class SchedulesService {
@@ -34,5 +34,15 @@ export class SchedulesService {
     if (!user?.defaultScheduleId) return null;
 
     return this.schedulesRepository.getScheduleById(user.defaultScheduleId);
+  }
+
+  async getSchedule(userId: number, scheduleId: number) {
+    const schedule = await this.schedulesRepository.getScheduleById(scheduleId);
+
+    if (schedule?.userId !== userId) {
+      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
+    }
+
+    return schedule;
   }
 }
