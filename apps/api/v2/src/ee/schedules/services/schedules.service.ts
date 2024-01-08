@@ -3,7 +3,8 @@ import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { Schedule } from "@prisma/client";
 
 @Injectable()
 export class SchedulesService {
@@ -36,13 +37,15 @@ export class SchedulesService {
   }
 
   async getUserSchedule(userId: number, scheduleId: number) {
-    const schedule = await this.schedulesRepository.getScheduleById(scheduleId);
+    const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
-    if (schedule?.userId !== userId) {
-      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
+    if (!existingSchedule) {
+      throw new NotFoundException(`Schedule with ID=${scheduleId} does not exist.`);
     }
 
-    return schedule;
+    this.checkUserOwnsSchedule(userId, existingSchedule);
+
+    return existingSchedule;
   }
 
   async getUserSchedules(userId: number) {
@@ -52,9 +55,11 @@ export class SchedulesService {
   async updateUserSchedule(userId: number, scheduleId: number, schedule: UpdateScheduleInput) {
     const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
-    if (existingSchedule?.userId !== userId) {
-      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
+    if (!existingSchedule) {
+      throw new NotFoundException(`Schedule with ID=${scheduleId} does not exist.`);
     }
+
+    this.checkUserOwnsSchedule(userId, existingSchedule);
 
     const updatedSchedule = await this.schedulesRepository.updateScheduleWithAvailabilities(
       scheduleId,
@@ -65,12 +70,20 @@ export class SchedulesService {
   }
 
   async deleteUserSchedule(userId: number, scheduleId: number) {
-    const schedule = await this.schedulesRepository.getScheduleById(scheduleId);
+    const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
-    if (schedule?.userId !== userId) {
-      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
+    if (!existingSchedule) {
+      throw new BadRequestException(`Schedule with ID=${scheduleId} does not exist.`);
     }
 
+    this.checkUserOwnsSchedule(userId, existingSchedule);
+
     return this.schedulesRepository.deleteScheduleById(scheduleId);
+  }
+
+  checkUserOwnsSchedule(userId: number, schedule: Pick<Schedule, "id" | "userId">) {
+    if (userId !== schedule.userId) {
+      throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${schedule.id}`);
+    }
   }
 }
