@@ -1,4 +1,4 @@
-import { CreateAvailabilityInput } from "@/ee/availabilities/inputs/create-availability.input";
+import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

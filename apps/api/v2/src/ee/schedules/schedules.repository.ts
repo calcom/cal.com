@@ -1,6 +1,6 @@
-import { CreateAvailabilityInput } from "@/ee/availabilities/inputs/create-availability.input";
 import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
 import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
+import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
