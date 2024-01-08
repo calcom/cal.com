@@ -224,10 +224,10 @@ const OutOfOfficeEntriesList = () => {
                       variant="icon"
                       color="secondary"
                       StartIcon={MoreHorizontal}
-                      className="mx-1 border-none hover:bg-gray-200"
+                      className="mx-1 border-none hover:bg-gray-200 dark:hover:bg-black"
                     />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="border-subtle rounded-lg border bg-white">
+                  <DropdownMenuContent className="border-subtle rounded-lg border bg-white dark:bg-black">
                     {item.status !== null && (
                       <DropdownMenuItem>
                         <DropdownItem
