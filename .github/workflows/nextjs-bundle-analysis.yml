@@ -35,7 +35,7 @@ jobs:
 
       - name: Download base branch bundle stats
         uses: dawidd6/action-download-artifact@v2
-        if: success() && github.event.number
+        if: success()
         with:
           workflow: nextjs-bundle-analysis.yml
           branch: ${{ github.event.pull_request.base.ref }}
@@ -55,14 +55,14 @@ jobs:
       # Either of these arguments can be changed or removed by editing the `nextBundleAnalysis`
       # entry in your package.json file.
       - name: Compare with base branch bundle
-        if: success() && github.event.number
+        if: success()
         run: |
           cd apps/web
           ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
 
       - name: Get comment body
         id: get-comment-body
-        if: success() && github.event.number
+        if: success()
         run: |
           cd apps/web
           body=$(cat .next/analyze/__bundle_analysis_comment.txt)
@@ -73,7 +73,7 @@ jobs:
 
       - name: Find Comment
         uses: peter-evans/find-comment@v2
-        if: success() && github.event.number
+        if: success()
         id: fc
         with:
           issue-number: ${{ github.event.number }}
