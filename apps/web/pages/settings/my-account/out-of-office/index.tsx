@@ -1,5 +1,4 @@
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { Link, MoreHorizontal, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { useForm, useFormState } from "react-hook-form";
 
@@ -10,18 +9,7 @@ import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import {
-  Button,
-  Meta,
-  showToast,
-  Badge,
-  Select,
-  SkeletonText,
-  UpgradeTeamsBadge,
-  Switch,
-  Dropdown,
-  DropdownItem,
-} from "@calcom/ui";
+import { Button, Meta, showToast, Badge, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -87,11 +75,11 @@ const OutOfOfficeSection = () => {
           setSelectedMember(null);
         })}>
         <div className="border-subtle flex flex-col rounded-b-lg border border-t-0 p-6 px-6 py-8 text-sm">
-          {/* <p className="text-default font-cal text-base font-semibold">{t("going_away_title")}</p> */}
+          {/* <p className="text-base font-semibold text-default font-cal">{t("going_away_title")}</p> */}
           {/* Add startDate and end date inputs */}
           <div className="border-subtle mt-2 rounded-lg border bg-gray-50 p-6 dark:bg-transparent">
             {/* Add toggle to enable/disable redirect */}
-            <div className="mt-6 flex flex-row">
+            <div className="flex flex-row">
               <Switch
                 disabled={!hasPaidPlan}
                 data-testid="profile-redirect-switch"
@@ -217,44 +205,16 @@ const OutOfOfficeEntriesList = () => {
                 )}
               </TableCell>
               <TableCell>
-                <Dropdown modal={false} className="">
-                  <DropdownMenuTrigger asChild data-testid="event-type-options">
-                    <Button
-                      type="button"
-                      variant="icon"
-                      color="secondary"
-                      StartIcon={MoreHorizontal}
-                      className="mx-1 border-none hover:bg-gray-200 dark:hover:bg-black"
-                    />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="border-subtle rounded-lg border bg-white dark:bg-black">
-                    {item.status !== null && (
-                      <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          disabled={item.status === null}
-                          data-testid="event-type-duplicate"
-                          StartIcon={Link}
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${CAL_URL}/booking-redirect/accept/${item.uuid}`);
-                          }}>
-                          {t("copy_link_booking_redirect_request")}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        disabled={deleteOutOfOfficeEntryMutation.isLoading}
-                        StartIcon={Trash2}
-                        onClick={() => {
-                          deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
-                        }}>
-                        {t("delete")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </Dropdown>
+                <Button
+                  type="button"
+                  color="minimal"
+                  variant="icon"
+                  disabled={deleteOutOfOfficeEntryMutation.isLoading}
+                  StartIcon={Trash2}
+                  onClick={() => {
+                    deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
+                  }}
+                />
               </TableCell>
             </TableRow>
           ))}
