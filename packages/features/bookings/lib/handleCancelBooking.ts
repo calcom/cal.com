@@ -276,27 +276,6 @@ async function handler(req: CustomRequest) {
   const result = await handleSeatedEventCancellation(req, dataForWebhooks);
   if (result) return { success: true };
 
-  // If it's just an attendee of a booking then just remove them from that booking
-  if (seatReferenceUid && bookingToDelete.attendees.length > 1) {
-    const seatReference = bookingToDelete.seatsReferences.find(
-      (reference) => reference.referenceUid === seatReferenceUid
-    );
-
-    const attendee = bookingToDelete.attendees.find((attendee) => attendee.id === seatReference?.attendeeId);
-
-    if (!seatReference || !attendee)
-      throw new HttpError({ statusCode: 400, message: "User not a part of this booking" });
-
-    await prisma.attendee.delete({
-      where: {
-        id: seatReference.attendeeId,
-      },
-    });
-
-    req.statusCode = 200;
-    return { message: "No longer attending event" };
-  }
-
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
