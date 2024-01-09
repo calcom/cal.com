@@ -10,7 +10,6 @@ on:
 jobs:
   build:
     name: Production build
-    if: ${{ github.event_name == 'push' }}
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
   analyze:
