@@ -41,6 +41,7 @@ const CalendarsView = () => {
   return (
     <>
       <Meta
+        className="p-4 border"
         title={t("calendars")}
         description={t("calendars_description")}
         CTA={<AddCalendarButton />}
