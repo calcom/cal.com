@@ -3,7 +3,18 @@ import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { ScheduleResponse, schemaScheduleResponse } from "@/ee/schedules/zod/response/response";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from "@nestjs/common";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -96,6 +107,7 @@ export class SchedulesController {
   }
 
   @Delete("/:scheduleId")
+  @HttpCode(HttpStatus.OK)
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number

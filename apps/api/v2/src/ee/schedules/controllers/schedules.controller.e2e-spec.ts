@@ -314,6 +314,10 @@ describe("Schedules Endpoints", () => {
         });
     });
 
+    it("should delete schedule", async () => {
+      return request(app.getHttpServer()).delete(`/api/v2/schedules/${createdSchedule.id}`).expect(200);
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await app.close();
