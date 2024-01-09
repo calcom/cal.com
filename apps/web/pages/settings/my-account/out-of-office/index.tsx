@@ -5,7 +5,7 @@ import { useForm, useFormState } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
+import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -52,7 +52,7 @@ const OutOfOfficeSection = () => {
     },
   });
 
-  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasTeamPlan } = useHasTeamPlan();
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
   const memberListOptions: {
@@ -80,16 +80,16 @@ const OutOfOfficeSection = () => {
             {/* Add toggle to enable/disable redirect */}
             <div className="flex flex-row">
               <Switch
-                disabled={!hasPaidPlan}
+                disabled={!hasTeamPlan}
                 data-testid="profile-redirect-switch"
                 checked={profileRedirect}
                 id="profile-redirect-switch"
                 onCheckedChange={(state) => {
                   setProfileRedirect(state);
                 }}
-                label={hasPaidPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
+                label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
               />
-              {!hasPaidPlan && (
+              {!hasTeamPlan && (
                 <div className="mx-2" data-testid="upgrade-team-badge">
                   <UpgradeTeamsBadge />
                 </div>
