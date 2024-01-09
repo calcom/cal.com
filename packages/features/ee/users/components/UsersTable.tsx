@@ -128,13 +128,15 @@ function UsersTableBare() {
 
   return (
     <>
-      <TextField
-        placeholder="username or email"
-        label="Search"
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
+      <div className="border-subtle border-l border-r p-2 pb-1">
+        <TextField
+          placeholder="username or email"
+          label="Search"
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <div
-        className="border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={() => fetchMoreOnBottomReached()}
         style={{

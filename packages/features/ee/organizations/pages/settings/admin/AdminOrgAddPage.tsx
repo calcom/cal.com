@@ -12,9 +12,11 @@ import LicenseRequired from "../../../../common/components/LicenseRequired";
 export const OrgAddPage = () => {
   return (
     <LicenseRequired>
-      <Meta title="Add a new organization" description="and create a billing plan" />
+      <Meta title="Add a new organization" description="and create a billing plan" borderInShellHeader />
       <NoSSR>
-        <OrgForm />
+        <div className="border-subtle rounded-b-md border border-t-0 p-4">
+          <OrgForm />
+        </div>
       </NoSSR>
     </LicenseRequired>
   );

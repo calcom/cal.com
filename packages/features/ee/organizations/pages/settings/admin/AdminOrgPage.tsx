@@ -16,7 +16,9 @@ import {
   Badge,
   ConfirmationDialogContent,
   Dialog,
+  EmptyScreen,
 } from "@calcom/ui";
+import { Building } from "@calcom/ui/components/icon";
 import { Check, CheckCheck, Trash, Edit, BookOpenCheck } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../../settings/layouts/SettingsLayout";
@@ -76,132 +78,146 @@ function AdminOrgTable() {
 
   const [orgToDelete, setOrgToDelete] = useState<number | null>(null);
   return (
-    <div>
-      <Table>
-        <Header>
-          <ColumnTitle widthClassNames="w-auto">{t("organization")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("owner")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("verified")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">
-            <span className="sr-only">{t("edit")}</span>
-          </ColumnTitle>
-        </Header>
+    <div className="-mt-px">
+      {data.length === 0 ? (
+        <EmptyScreen
+          Icon={Building}
+          headline={t("create_your_org")}
+          description={t("branded_subdomain_description")}
+          className="rounded-b-lg rounded-t-none border-t-0"
+          buttonRaw={
+            <Button color="secondary" href="/settings/admin/organizations/add">
+              {t(`add`)}
+            </Button>
+          }
+        />
+      ) : (
+        <Table>
+          <Header>
+            <ColumnTitle widthClassNames="w-auto">{t("organization")}</ColumnTitle>
+            <ColumnTitle widthClassNames="w-auto">{t("owner")}</ColumnTitle>
+            <ColumnTitle widthClassNames="w-auto">{t("verified")}</ColumnTitle>
+            <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
+            <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
+            <ColumnTitle widthClassNames="w-auto">
+              <span className="sr-only">{t("edit")}</span>
+            </ColumnTitle>
+          </Header>
 
-        <Body>
-          {data.map((org) => (
-            <Row key={org.id}>
-              <Cell widthClassNames="w-auto">
-                <div className="text-subtle font-medium">
-                  <span className="text-default">{org.name}</span>
-                  <br />
-                  <span className="text-muted">
-                    {org.slug}.{subdomainSuffix()}
+          <Body>
+            {data.map((org) => (
+              <Row key={org.id}>
+                <Cell widthClassNames="w-auto">
+                  <div className="text-subtle font-medium">
+                    <span className="text-default">{org.name}</span>
+                    <br />
+                    <span className="text-muted">
+                      {org.slug}.{subdomainSuffix()}
+                    </span>
+                  </div>
+                </Cell>
+                <Cell widthClassNames="w-auto">
+                  <span className="break-all">
+                    {org.members.length ? org.members[0].user.email : "No members"}
                   </span>
-                </div>
-              </Cell>
-              <Cell widthClassNames="w-auto">
-                <span className="break-all">
-                  {org.members.length ? org.members[0].user.email : "No members"}
-                </span>
-              </Cell>
-              <Cell>
-                <div className="space-x-2">
-                  {!org.metadata?.isOrganizationVerified ? (
-                    <Badge variant="red">{t("unverified")}</Badge>
-                  ) : (
-                    <Badge variant="blue">{t("verified")}</Badge>
-                  )}
-                </div>
-              </Cell>
-              <Cell>
-                <div className="space-x-2">
-                  {org.metadata?.isOrganizationConfigured ? (
-                    <Badge variant="blue">{t("dns_configured")}</Badge>
-                  ) : (
-                    <Badge variant="red">{t("dns_missing")}</Badge>
-                  )}
-                </div>
-              </Cell>
-              <Cell>
-                <div className="space-x-2">
-                  {!org.slug ? (
-                    <Badge variant="red">{t("unpublished")}</Badge>
-                  ) : (
-                    <Badge variant="green">{t("published")}</Badge>
-                  )}
-                </div>
-              </Cell>
-              <Cell widthClassNames="w-auto">
-                <div className="flex w-full justify-end">
-                  <DropdownActions
-                    actions={[
-                      ...(!org.metadata?.isOrganizationVerified
-                        ? [
-                            {
-                              id: "verify",
-                              label: t("verify"),
-                              onClick: () => {
-                                verifyMutation.mutate({
-                                  orgId: org.id,
-                                });
+                </Cell>
+                <Cell>
+                  <div className="space-x-2">
+                    {!org.metadata?.isOrganizationVerified ? (
+                      <Badge variant="red">{t("unverified")}</Badge>
+                    ) : (
+                      <Badge variant="blue">{t("verified")}</Badge>
+                    )}
+                  </div>
+                </Cell>
+                <Cell>
+                  <div className="space-x-2">
+                    {org.metadata?.isOrganizationConfigured ? (
+                      <Badge variant="blue">{t("dns_configured")}</Badge>
+                    ) : (
+                      <Badge variant="red">{t("dns_missing")}</Badge>
+                    )}
+                  </div>
+                </Cell>
+                <Cell>
+                  <div className="space-x-2">
+                    {!org.slug ? (
+                      <Badge variant="red">{t("unpublished")}</Badge>
+                    ) : (
+                      <Badge variant="green">{t("published")}</Badge>
+                    )}
+                  </div>
+                </Cell>
+                <Cell widthClassNames="w-auto">
+                  <div className="flex w-full justify-end">
+                    <DropdownActions
+                      actions={[
+                        ...(!org.metadata?.isOrganizationVerified
+                          ? [
+                              {
+                                id: "verify",
+                                label: t("verify"),
+                                onClick: () => {
+                                  verifyMutation.mutate({
+                                    orgId: org.id,
+                                  });
+                                },
+                                icon: Check,
                               },
-                              icon: Check,
-                            },
-                          ]
-                        : []),
-                      ...(!org.metadata?.isOrganizationConfigured
-                        ? [
-                            {
-                              id: "dns",
-                              label: t("mark_dns_configured"),
-                              onClick: () => {
-                                updateMutation.mutate({
-                                  id: org.id,
-                                  metadata: {
-                                    isOrganizationConfigured: true,
-                                  },
-                                });
+                            ]
+                          : []),
+                        ...(!org.metadata?.isOrganizationConfigured
+                          ? [
+                              {
+                                id: "dns",
+                                label: t("mark_dns_configured"),
+                                onClick: () => {
+                                  updateMutation.mutate({
+                                    id: org.id,
+                                    metadata: {
+                                      isOrganizationConfigured: true,
+                                    },
+                                  });
+                                },
+                                icon: CheckCheck,
                               },
-                              icon: CheckCheck,
-                            },
-                          ]
-                        : []),
-                      {
-                        id: "edit",
-                        label: t("edit"),
-                        href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: Edit,
-                      },
-                      ...(!org.slug
-                        ? [
-                            {
-                              id: "publish",
-                              label: t("publish"),
-                              onClick: () => {
-                                publishOrg(org);
-                              },
-                              icon: BookOpenCheck,
-                            },
-                          ]
-                        : []),
-                      {
-                        id: "delete",
-                        label: t("delete"),
-                        onClick: () => {
-                          setOrgToDelete(org.id);
+                            ]
+                          : []),
+                        {
+                          id: "edit",
+                          label: t("edit"),
+                          href: `/settings/admin/organizations/${org.id}/edit`,
+                          icon: Edit,
                         },
-                        icon: Trash,
-                      },
-                    ]}
-                  />
-                </div>
-              </Cell>
-            </Row>
-          ))}
-        </Body>
-      </Table>
+                        ...(!org.slug
+                          ? [
+                              {
+                                id: "publish",
+                                label: t("publish"),
+                                onClick: () => {
+                                  publishOrg(org);
+                                },
+                                icon: BookOpenCheck,
+                              },
+                            ]
+                          : []),
+                        {
+                          id: "delete",
+                          label: t("delete"),
+                          onClick: () => {
+                            setOrgToDelete(org.id);
+                          },
+                          icon: Trash,
+                        },
+                      ]}
+                    />
+                  </div>
+                </Cell>
+              </Row>
+            ))}
+          </Body>
+        </Table>
+      )}
       <DeleteOrgDialog
         orgId={orgToDelete}
         onClose={() => setOrgToDelete(null)}
@@ -228,6 +244,7 @@ const AdminOrgList = () => {
             <Button href="/settings/admin/organizations/add">{t("add")}</Button>
           </div>
         }
+        borderInShellHeader
       />
       <NoSSR>
         <AdminOrgTable />

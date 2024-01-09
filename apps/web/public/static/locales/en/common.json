@@ -2096,7 +2096,7 @@
   "admin_org_notification_email_cta": "Go to Organizations Admin Settings",
   "org_has_been_processed": "Org has been processed",
   "org_error_processing": "There has been an error processing this organization",
-  "orgs_page_description": "A list of all organizations. Accepting an organization will allow all users with that email domain to sign up WITHOUT email verification.",
+  "orgs_page_description": "A list of all organizations. Accepting an organization will allow all users with that email domain to sign up without email verification.",
   "unverified": "Unverified",
   "verified": "Verified",
   "dns_missing": "DNS Missing",
