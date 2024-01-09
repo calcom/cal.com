@@ -15,7 +15,7 @@ function AdminView() {
 
   return (
     <>
-      <Meta title={t("admin")} description={t("impersonation")} />
+      <Meta title={t("admin")} description={t("impersonation")} borderInShellHeader />
       <form
         className="mb-6 w-full sm:w-1/2"
         onSubmit={(e) => {
@@ -23,7 +23,7 @@ function AdminView() {
           const enteredUsername = usernameRef.current?.value.toLowerCase();
           signIn("impersonation-auth", { username: enteredUsername });
         }}>
-        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <div className="border-subtle flex items-center space-x-2 rounded-lg rounded-t-none border border-t-0 px-4 py-8 rtl:space-x-reverse">
           <TextField
             containerClassName="w-full"
             name={t("user_impersonation_heading")}

@@ -80,7 +80,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
       <Meta
         title={t("booking_appearance")}
         description={t("appearance_team_description")}
-        borderInShellHeader={false}
+        borderInShellHeader
       />
       {isAdmin ? (
         <>
@@ -92,7 +92,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
                 theme: values.theme || null,
               });
             }}>
-            <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+            <div className="border-subtle flex items-center rounded-t-none border border-y-0 p-6 text-sm">
               <div>
                 <p className="font-semibold">{t("theme")}</p>
                 <p className="text-default">{t("theme_applies_note")}</p>

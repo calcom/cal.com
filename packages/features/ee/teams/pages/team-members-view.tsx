@@ -133,6 +133,7 @@ const MembersView = () => {
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
+        borderInShellHeader
         CTA={
           isAdmin || isOrgAdminOrOwner ? (
             <Button
@@ -150,32 +151,35 @@ const MembersView = () => {
         }
       />
       {!isLoading && (
+        <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-4 py-8 sm:px-6">
+          {team && (
+            <>
+              {isInviteOpen && (
+                <TeamInviteList
+                  teams={[
+                    {
+                      id: team.id,
+                      accepted: team.membership.accepted || false,
+                      name: team.name,
+                      slug: team.slug,
+                      role: team.membership.role,
+                    },
+                  ]}
+                />
+              )}
+            </>
+          )}
+
+          {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
+            <>
+              <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
+            </>
+          )}
+        </div>
+      )}
+      {!isLoading && (
         <>
           <div>
-            {team && (
-              <>
-                {isInviteOpen && (
-                  <TeamInviteList
-                    teams={[
-                      {
-                        id: team.id,
-                        accepted: team.membership.accepted || false,
-                        name: team.name,
-                        slug: team.slug,
-                        role: team.membership.role,
-                      },
-                    ]}
-                  />
-                )}
-              </>
-            )}
-
-            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
-              <>
-                <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
-              </>
-            )}
-
             {team && session.data && (
               <DisableTeamImpersonation
                 teamId={team.id}

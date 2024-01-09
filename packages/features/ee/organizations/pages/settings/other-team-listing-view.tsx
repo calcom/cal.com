@@ -8,8 +8,14 @@ const OtherTeamListingView = (): React.ReactElement => {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("org_admin_other_teams")} description={t("org_admin_other_teams_description")} />
-      <OtherTeamsListing />
+      <Meta
+        title={t("org_admin_other_teams")}
+        description={t("org_admin_other_teams_description")}
+        borderInShellHeader
+      />
+      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
+        <OtherTeamsListing />
+      </div>
     </>
   );
 };

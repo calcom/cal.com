@@ -13,6 +13,7 @@ const DeploymentUsersListPage = () => {
       <Meta
         title="Users"
         description="A list of all the users in your account including their name, title, email and role."
+        borderInShellHeader
         CTA={
           <div className="mt-4 space-x-5 sm:ml-16 sm:mt-0 sm:flex-none">
             {/* TODO: Add import users functionality */}
@@ -21,9 +22,11 @@ const DeploymentUsersListPage = () => {
           </div>
         }
       />
-      <NoSSR>
-        <UsersTable />
-      </NoSSR>
+      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
+        <NoSSR>
+          <UsersTable />
+        </NoSSR>
+      </div>
     </LicenseRequired>
   );
 };
