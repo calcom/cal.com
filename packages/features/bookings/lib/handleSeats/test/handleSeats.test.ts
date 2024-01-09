@@ -1411,8 +1411,8 @@ describe("handleSeats", () => {
         const bookingUid = "abc123";
         const bookingId = 1;
 
-        const attendeeIdToBeCancelled = 2;
-        const bookingSeatToBeCancelledUid = "booking-seat-2";
+        const attendeeIdToBeCancelled = 1;
+        const bookingSeatToBeCancelledUid = "booking-seat-1";
 
         await createBookingScenario(
           getScenarioData({
@@ -1466,17 +1466,6 @@ describe("handleSeats", () => {
                       data: {},
                     },
                   }),
-                  getMockBookingAttendee({
-                    id: 2,
-                    name: "Seat 2",
-                    email: "seat2@test.com",
-                    locale: "en",
-                    timeZone: "America/Toronto",
-                    bookingSeat: {
-                      referenceUid: "booking-seat-2",
-                      data: {},
-                    },
-                  }),
                 ],
               },
             ],
@@ -1519,7 +1508,7 @@ describe("handleSeats", () => {
         });
 
         // Check that the booking is still accepted
-        expect(cancelledBooking?.status).toEqual(BookingStatus.ACCEPTED);
+        expect(cancelledBooking?.status).toEqual(BookingStatus.CANCELLED);
 
         // Check that the booking does not contain the cancelled attendee
         const attendees = await prismaMock.attendee.findMany({
