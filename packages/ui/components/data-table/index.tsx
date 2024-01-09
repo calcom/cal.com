@@ -38,6 +38,7 @@ export interface DataTableProps<TData, TValue> {
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
+  variant?: "default" | "compact";
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +51,7 @@ export function DataTable<TData, TValue>({
   tableContainerRef,
   isLoading,
   tableOverlay,
+  variant,
   /** This should only really be used if you dont have actions in a row. */
   onRowMouseclick,
   onScroll,
@@ -102,7 +104,7 @@ export function DataTable<TData, TValue>({
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div className="border-subtle border" ref={tableContainerRef} onScroll={onScroll}>
+      <div ref={tableContainerRef} onScroll={onScroll}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -128,16 +130,18 @@ export function DataTable<TData, TValue>({
             {virtualRows && !isLoading ? (
               virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<TData>;
-
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                    className={classNames(onRowMouseclick && "hover:cursor-pointer")}>
+                    className={classNames(
+                      onRowMouseclick && "hover:cursor-pointer",
+                      variant === "compact" && "!border-0"
+                    )}>
                     {row.getVisibleCells().map((cell) => {
                       return (
-                        <TableCell key={cell.id}>
+                        <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       );
