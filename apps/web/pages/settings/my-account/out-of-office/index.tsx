@@ -43,7 +43,7 @@ const OutOfOfficeSection = () => {
 
   const createOutOfOfficeEntry = trpc.viewer.outOfOfficeCreate.useMutation({
     onSuccess: () => {
-      showToast(t("success_request"), "success");
+      showToast(t("success_entry_created"), "success");
       utils.viewer.outOfOfficeEntriesList.invalidate();
       setProfileRedirect(false);
     },
