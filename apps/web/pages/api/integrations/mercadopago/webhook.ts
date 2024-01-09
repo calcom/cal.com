@@ -1,1 +1,1 @@
-export { default, config } from "@calcom/features/ee/payments/api/mercadopago-webhook";
+export { default, config } from "@calcom/app-store/mercadopago/api/webhook";
