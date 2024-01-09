@@ -1,5 +1,5 @@
 import { getServerSideProps } from "@pages/reschedule/[uid]";
-import { withAppDir } from "app/AppDirSSRHOC";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 
@@ -12,8 +12,7 @@ type PageProps = Readonly<{
 
 const Page = async ({ params }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
-  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }'
-  await withAppDir(withEmbedSsr(getServerSideProps))(legacyCtx);
+  await withAppDirSsr(withEmbedSsr(getServerSideProps))(legacyCtx);
 
   return null;
 };

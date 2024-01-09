@@ -13,13 +13,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const session = await getServerSession({ req, res });
 
   if (!session?.user?.id) {
-    return res.writeHead(401).end();
+    const redirect = { redirect: { permanent: false, destination: "/auth/login" } } as const;
+
+    return redirect;
   }
 
   const credentials = await prisma.credential.findFirst({
     where: {
       type: "alby_payment",
-      userId: session.user.id,
+      userId: session?.user.id,
     },
   });
 
