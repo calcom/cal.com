@@ -15,4 +15,8 @@ export class SchedulesRepositoryFixture {
   async deleteById(scheduleId: Schedule["id"]) {
     return this.prismaWriteClient.schedule.delete({ where: { id: scheduleId } });
   }
+
+  async deleteAvailabilities(scheduleId: Schedule["id"]) {
+    return this.prismaWriteClient.availability.deleteMany({ where: { scheduleId } });
+  }
 }

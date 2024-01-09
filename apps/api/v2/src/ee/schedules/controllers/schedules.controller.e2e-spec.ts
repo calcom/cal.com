@@ -95,6 +95,7 @@ describe("Schedules Endpoints", () => {
           const scheduleUser = await userRepositoryFixture.get(responseBody.data.schedule.userId);
           expect(scheduleUser?.defaultScheduleId).toEqual(responseBody.data.schedule.id);
           await scheduleRepositoryFixture.deleteById(responseBody.data.schedule.id);
+          await scheduleRepositoryFixture.deleteAvailabilities(responseBody.data.schedule.id);
         });
     });
 
@@ -311,6 +312,8 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(newAvailabilityDays);
           expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(newAvailabilityStartTime);
           expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(newAvailabilityEndTime);
+
+          createdSchedule = responseBody.data.schedule;
         });
     });
 

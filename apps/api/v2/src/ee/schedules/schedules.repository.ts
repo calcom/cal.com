@@ -87,7 +87,13 @@ export class SchedulesRepository {
       throw new BadRequestException(`Schedule with ID=${scheduleId} not found`);
     }
 
-    const updatedScheduleData: Prisma.ScheduleUpdateInput = {};
+    const updatedScheduleData: Prisma.ScheduleUpdateInput = {
+      user: {
+        connect: {
+          id: existingSchedule.userId,
+        },
+      },
+    };
     if (schedule.name) updatedScheduleData.name = schedule.name;
     if (schedule.timeZone) updatedScheduleData.timeZone = schedule.timeZone;
 
@@ -100,6 +106,7 @@ export class SchedulesRepository {
         createMany: {
           data: schedule.availabilities.map((availability) => ({
             ...availability,
+            userId: existingSchedule.userId,
           })),
         },
       };
