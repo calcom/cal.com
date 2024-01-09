@@ -13,12 +13,13 @@ type CalProps = {
     debug?: boolean;
     uiDebug?: boolean;
   };
+  namespace?: string;
   config?: PrefillAndIframeAttrsConfig;
   embedJsUrl?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 const Cal = function Cal(props: CalProps) {
-  const { calLink, calOrigin, config, initConfig = {}, embedJsUrl, ...restProps } = props;
+  const { calLink, calOrigin, namespace = "", config, initConfig = {}, embedJsUrl, ...restProps } = props;
   if (!calLink) {
     throw new Error("calLink is required");
   }
@@ -31,16 +32,28 @@ const Cal = function Cal(props: CalProps) {
     }
     initializedRef.current = true;
     const element = ref.current;
-    Cal("init", {
-      ...initConfig,
-      origin: calOrigin,
-    });
-    Cal("inline", {
-      elementOrSelector: element,
-      calLink,
-      config,
-    });
-  }, [Cal, calLink, config, calOrigin, initConfig]);
+    if (namespace) {
+      Cal("init", namespace, {
+        ...initConfig,
+        origin: calOrigin,
+      });
+      Cal.ns[namespace]("inline", {
+        elementOrSelector: element,
+        calLink,
+        config,
+      });
+    } else {
+      Cal("init", {
+        ...initConfig,
+        origin: calOrigin,
+      });
+      Cal("inline", {
+        elementOrSelector: element,
+        calLink,
+        config,
+      });
+    }
+  }, [Cal, calLink, config, namespace, calOrigin, initConfig]);
 
   if (!Cal) {
     return null;

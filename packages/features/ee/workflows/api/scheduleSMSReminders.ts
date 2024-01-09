@@ -10,7 +10,7 @@ import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/pri
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
-import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
+import * as twilio from "../lib/reminders/providers/twilioProvider";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";

@@ -8,6 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
+import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
 import { paymentOptions } from "../lib/constants";
 import {
   convertToSmallestCurrencyUnit,
@@ -18,7 +19,11 @@ import type { appDataSchema } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  eventTypeFormMetadata,
+}) {
   const pathname = usePathname();
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
@@ -32,6 +37,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
+
+  const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -66,7 +74,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      disableSwitch={shouldDisableSwitch}
+      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
       <>
         {recurringEventDefined && (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
@@ -75,7 +85,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <>
             <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
-                data-testid="price-input-stripe"
+                data-testid="stripe-price-input"
                 label={t("price")}
                 className="h-[38px]"
                 addOnLeading={
