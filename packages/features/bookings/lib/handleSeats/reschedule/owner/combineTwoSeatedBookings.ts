@@ -80,7 +80,7 @@ const combineTwoSeatedBookings = async (
     );
   }
 
-  await Promise.all([
+  await prisma.$transaction([
     ...moveAttendeeCalls,
     // Delete any attendees that are already a part of that new time slot booking
     prisma.attendee.deleteMany({

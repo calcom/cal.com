@@ -56,8 +56,8 @@ const attendeeRescheduleSeatedBooking = async (
   // Need to change the new seat reference and attendee record to remove it from the old booking and add it to the new booking
   // https://stackoverflow.com/questions/4980963/database-insert-new-rows-or-update-existing-ones
   if (seatAttendee?.id && bookingSeat?.id) {
-    await Promise.all([
-      await prisma.attendee.update({
+    await prisma.$transaction([
+      prisma.attendee.update({
         where: {
           id: seatAttendee.id,
         },
@@ -65,7 +65,7 @@ const attendeeRescheduleSeatedBooking = async (
           bookingId: newTimeSlotBooking.id,
         },
       }),
-      await prisma.bookingSeat.update({
+      prisma.bookingSeat.update({
         where: {
           id: bookingSeat.id,
         },
