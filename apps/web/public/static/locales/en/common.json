@@ -2205,7 +2205,7 @@
   "success_request": "Successfully sent request",
   "booking_redirect_email_subject": "Booking redirect notification",
   "booking_redirect_email_title": "Booking Redirect Notification",
-  "booking_redirect_email_description": "You have received a booking redirection from {{toName}} so their profile links will be redirect to yours from this time interval:",
+  "booking_redirect_email_description": "You have received a booking redirection from {{toName}} so their profile links will be redirect to yours for the time interval: ",
   "success_accept_booking_redirect":"You have accepted this booking redirect request.",
   "success_reject_booking_redirect":"You have rejected this booking redirect request.",
   "copy_link_booking_redirect_request": "Copy link to share request",
