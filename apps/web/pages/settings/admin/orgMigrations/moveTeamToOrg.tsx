@@ -21,6 +21,7 @@ export const getFormSchema = (t: TFunction) => {
     teamId: z.number().or(getStringAsNumberRequiredSchema(t)),
     targetOrgId: z.number().or(getStringAsNumberRequiredSchema(t)),
     moveMembers: z.boolean(),
+    teamSlugInOrganization: z.string(),
   });
 };
 
@@ -102,6 +103,12 @@ export default function MoveTeamToOrg() {
             label="Team ID"
             required
             placeholder="Enter teamId to move to org"
+          />
+          <TextField
+            {...register("teamSlugInOrganization")}
+            label="New Slug"
+            required
+            placeholder="Team slug in the Organization"
           />
           <TextField
             {...register("targetOrgId")}

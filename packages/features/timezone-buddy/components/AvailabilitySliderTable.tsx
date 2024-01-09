@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup, DataTable } from "@calcom/ui";
-import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
+import { UserAvatar } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";
