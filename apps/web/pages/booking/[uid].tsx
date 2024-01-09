@@ -486,48 +486,24 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
                           {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
-                            locationToDisplay.startsWith("http") ? (
-                              <a
-                                href={locationToDisplay}
-                                target="_blank"
-                                title={locationToDisplay}
-                                className="text-default flex items-center gap-2"
-                                rel="noreferrer">
-                                {providerName || "Link"}
-                                <ExternalLink className="text-default inline h-4 w-4" />
-                              </a>
-                            ) : (
-                              locationToDisplay
-                            )
+                            <DisplayLocation
+                              locationToDisplay={locationToDisplay}
+                              providerName={providerName}
+                            />
                           ) : (
                             <>
-                              {!!formerTime &&
-                                (locationToDisplay.startsWith("http") ? (
-                                  <a
-                                    href={locationToDisplay}
-                                    target="_blank"
-                                    title={locationToDisplay}
-                                    className="text-default flex items-center gap-2 line-through"
-                                    rel="noreferrer">
-                                    {providerName || "Link"}
-                                    <ExternalLink className="text-default inline h-4 w-4" />
-                                  </a>
-                                ) : (
-                                  <p className="line-through">{locationToDisplay}</p>
-                                ))}
-                              {rescheduleLocationToDisplay.startsWith("http") ? (
-                                <a
-                                  href={rescheduleLocationToDisplay}
-                                  target="_blank"
-                                  title={rescheduleLocationToDisplay}
-                                  className="text-default flex items-center gap-2"
-                                  rel="noreferrer">
-                                  {rescheduleProviderName || "Link"}
-                                  <ExternalLink className="text-default inline h-4 w-4" />
-                                </a>
-                              ) : (
-                                rescheduleLocationToDisplay
+                              {!!formerTime && (
+                                <DisplayLocation
+                                  locationToDisplay={locationToDisplay}
+                                  providerName={providerName}
+                                  className="line-through"
+                                />
                               )}
+
+                              <DisplayLocation
+                                locationToDisplay={rescheduleLocationToDisplay}
+                                providerName={rescheduleProviderName}
+                              />
                             </>
                           )}
                         </div>
@@ -829,6 +805,29 @@ export default function Success(props: SuccessProps) {
     </div>
   );
 }
+
+const DisplayLocation = ({
+  locationToDisplay,
+  providerName,
+  className,
+}: {
+  locationToDisplay: string;
+  providerName?: string;
+  className?: string;
+}) =>
+  locationToDisplay.startsWith("http") ? (
+    <a
+      href={locationToDisplay}
+      target="_blank"
+      title={locationToDisplay}
+      className={classNames("text-default flex items-center gap-2", className)}
+      rel="noreferrer">
+      {providerName || "Link"}
+      <ExternalLink className="text-default inline h-4 w-4" />
+    </a>
+  ) : (
+    <p className={className}>{locationToDisplay}</p>
+  );
 
 Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
