@@ -26,7 +26,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if (team) {
     return GSSTeamPage({ ...ctx, query: { slug: ctx.query.user } });
   }
-  return GSSUserPage({ ...ctx, query: { user: ctx.query.user } });
+  return GSSUserPage({ ...ctx, query: { user: ctx.query.user, redirect: ctx.query.redirect } });
 };
 
 type Props = UserPageProps | TeamPageProps;

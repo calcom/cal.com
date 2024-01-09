@@ -92,7 +92,9 @@ const Route = ({
 }) => {
   const index = routes.indexOf(route);
 
-  const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery({
+    forRoutingForms: true,
+  });
 
   const eventOptions: { label: string; value: string }[] = [];
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -551,11 +553,18 @@ export default function RouteBuilder({
     <SingleForm
       form={form}
       appUrl={appUrl}
-      Page={({ hookForm, form }) => (
-        <div className="route-config">
-          <Routes hookForm={hookForm} appUrl={appUrl} form={form} />
-        </div>
-      )}
+      Page={({ hookForm, form }) => {
+        // If hookForm hasn't been initialized, don't render anything
+        // This is important here because some states get initialized which aren't reset when the hookForm is reset with the form values and they don't get the updated values
+        if (!hookForm.getValues().id) {
+          return null;
+        }
+        return (
+          <div className="route-config">
+            <Routes hookForm={hookForm} appUrl={appUrl} form={form} />
+          </div>
+        );
+      }}
     />
   );
 }

@@ -179,7 +179,7 @@ export default class EventManager {
       }
       const isCalendarType = isCalendarResult(result);
       if (isCalendarType) {
-        evt.iCalUID = result.iCalUID || undefined;
+        evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
       }
 
       return {
@@ -323,7 +323,9 @@ export default class EventManager {
   public async reschedule(
     event: CalendarEvent,
     rescheduleUid: string,
-    newBookingId?: number
+    newBookingId?: number,
+    changedOrganizer?: boolean,
+    newDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -370,38 +372,50 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
+    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({ booking, event });
     } else {
-      // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-      const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-      // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-      if (isDedicated) {
-        const result = await this.updateVideoEvent(evt, booking);
-        const [updatedEvent] = Array.isArray(result.updatedEvent)
-          ? result.updatedEvent
-          : [result.updatedEvent];
+      if (changedOrganizer) {
+        log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+        await this.deleteEventsAndMeetings({ booking, event });
 
-        if (updatedEvent) {
-          evt.videoCallData = updatedEvent;
-          evt.location = updatedEvent.url;
+        log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
+
+        const newEvent = { ...evt, destinationCalendar: newDestinationCalendar };
+        const createdEvent = await this.create(newEvent);
+        results.push(...createdEvent.results);
+        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
+      } else {
+        // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
+        const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+        // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+        if (isDedicated) {
+          const result = await this.updateVideoEvent(evt, booking);
+          const [updatedEvent] = Array.isArray(result.updatedEvent)
+            ? result.updatedEvent
+            : [result.updatedEvent];
+
+          if (updatedEvent) {
+            evt.videoCallData = updatedEvent;
+            evt.location = updatedEvent.url;
+          }
+          results.push(result);
         }
-        results.push(result);
-      }
 
-      const bookingCalendarReference = booking.references.find((reference) =>
-        reference.type.includes("_calendar")
-      );
-      // There was a case that booking didn't had any reference and we don't want to throw error on function
-      if (bookingCalendarReference) {
-        // Update all calendar events.
-        results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+        const bookingCalendarReference = booking.references.find((reference) =>
+          reference.type.includes("_calendar")
+        );
+        // There was a case that booking didn't had any reference and we don't want to throw error on function
+        if (bookingCalendarReference) {
+          // Update all calendar events.
+          results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+        }
       }
     }
-
     const bookingPayment = booking?.payment;
 
     // Updating all payment to new
@@ -421,7 +435,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: [...booking.references],
+      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
     };
   }
 
@@ -560,24 +574,25 @@ export default class EventManager {
             (c) => c.type === destination.integration
           );
           // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
-          const firstCalendarCredential = destinationCalendarCredentials[0];
+          const firstCalendarCredential = destinationCalendarCredentials[0] as
+            | (typeof destinationCalendarCredentials)[number]
+            | undefined;
 
           if (!firstCalendarCredential) {
             log.warn(
               "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
             );
             await fallbackToFirstConnectedCalendar();
+          } else {
+            log.warn(
+              "No credentialId found for destination calendar, falling back to first found calendar of same type as destination calendar",
+              safeStringify({
+                destination: getPiiFreeDestinationCalendar(destination),
+                firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
+              })
+            );
+            createdEvents.push(await createEvent(firstCalendarCredential, event));
           }
-
-          log.warn(
-            "No credentialId found for destination calendar, falling back to first found calendar",
-            safeStringify({
-              destination: getPiiFreeDestinationCalendar(destination),
-              firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
-            })
-          );
-
-          createdEvents.push(await createEvent(firstCalendarCredential, event));
         }
       }
     } else {

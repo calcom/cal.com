@@ -1,119 +1,486 @@
+import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
+
 import { test } from "../lib/fixtures";
+import { getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails, clipboard }) => {
-  clipboard.reset();
+test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
-  emails?.deleteAll();
+  await orgs.deleteAll();
 });
 
 test.describe("Organization", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails, clipboard }) => {
-    const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
-    const { team: org } = await orgOwner.getOrg();
-    await orgOwner.apiLogin();
-    await page.goto("/settings/organizations/members");
-    await page.waitForLoadState("networkidle");
-
-    await test.step("To the organization by email (external user)", async () => {
-      const invitedUserEmail = `rick@domain-${Date.now()}.com`;
-      await page.locator('button:text("Add")').click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator('button:text("Send invite")').click();
-      await page.waitForLoadState("networkidle");
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
-        emails,
-        invitedUserEmail,
-        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
-        "signup?token"
-      );
-
-      // Check newly invited member exists and is pending
-      await expect(
-        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(1);
-
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!inviteLink) return null;
-
-      // Follow invite link in new window
-      const context = await browser.newContext();
-      const newPage = await context.newPage();
-      newPage.goto(inviteLink);
-      await newPage.waitForLoadState("networkidle");
-
-      // Check required fields
-      await newPage.locator("button[type=submit]").click();
-      await expect(newPage.locator(".text-red-700")).toHaveCount(3); // 3 password hints
-      await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
-      await newPage.locator("button[type=submit]").click();
-      await newPage.waitForURL("/getting-started?from=signup");
-      await context.close();
-      await newPage.close();
-
-      // Check newly invited member is not pending anymore
-      await page.bringToFront();
+  test.describe("Email not matching orgAutoAcceptEmail", () => {
+    test("Org Invitation", async ({ browser, page, users, emails }) => {
+      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
+      const { team: org } = await orgOwner.getOrgMembership();
+      await orgOwner.apiLogin();
       await page.goto("/settings/organizations/members");
-      page.locator(`[data-testid="login-form"]`);
-      await expect(
-        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(0);
+      await page.waitForLoadState("networkidle");
+
+      await test.step("By email", async () => {
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
+        // '-domain' because the email doesn't match orgAutoAcceptEmail
+        const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
+
+        await inviteAnEmail(page, invitedUserEmail);
+        const inviteLink = await expectInvitationEmailToBeReceived(
+          page,
+          emails,
+          invitedUserEmail,
+          `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+          "signup?token"
+        );
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: false,
+          email: invitedUserEmail,
+        });
+
+        assertInviteLink(inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
+
+        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+      });
+
+      await test.step("By invite link", async () => {
+        const inviteLink = await copyInviteLink(page);
+        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
+        // '-domain' because the email doesn't match orgAutoAcceptEmail
+        const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+        await signupFromInviteLink({ browser, inviteLink, email });
+        const dbUser = await prisma.user.findUnique({ where: { email } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email,
+        });
+      });
     });
 
-    await test.step("To the organization by invite link", async () => {
-      // Get the invite link
-      await page.locator('button:text("Add")').click();
-      await page.locator(`[data-testid="copy-invite-link-button"]`).click();
-      const inviteLink = await clipboard.get();
-      await page.waitForLoadState("networkidle");
+    test("Team invitation", async ({ browser, page, users, emails }) => {
+      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, hasSubteam: true });
+      await orgOwner.apiLogin();
+      const { team } = await orgOwner.getFirstTeamMembership();
+      const { team: org } = await orgOwner.getOrgMembership();
 
-      // Follow invite link in new window
-      const context = await browser.newContext();
-      const inviteLinkPage = await context.newPage();
-      await inviteLinkPage.goto(inviteLink);
-      await inviteLinkPage.waitForLoadState("networkidle");
+      await test.step("By email", async () => {
+        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.waitForLoadState("networkidle");
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
+        // '-domain' because the email doesn't match orgAutoAcceptEmail
+        const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
+        await inviteAnEmail(page, invitedUserEmail);
+        await expectUserToBeAMemberOfTeam({
+          page,
+          teamId: team.id,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: false,
+          email: invitedUserEmail,
+        });
 
-      // Check required fields
-      await inviteLinkPage.locator("button[type=submit]").click();
-      await expect(inviteLinkPage.locator(".text-red-700")).toHaveCount(4); // email + 3 password hints
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: false,
+          email: invitedUserEmail,
+        });
 
-      // Happy path
-      await inviteLinkPage.locator("input[name=email]").fill(`rick@domain-${Date.now()}.com`);
-      await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
-      await inviteLinkPage.locator("button[type=submit]").click();
-      await inviteLinkPage.waitForURL("/getting-started");
+        await page.waitForLoadState("networkidle");
+        const inviteLink = await expectInvitationEmailToBeReceived(
+          page,
+          emails,
+          invitedUserEmail,
+          `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
+          "signup?token"
+        );
+
+        assertInviteLink(inviteLink);
+
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
+
+        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+
+        await expectUserToBeAMemberOfTeam({
+          page,
+          teamId: team.id,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+      });
+
+      await test.step("By invite link", async () => {
+        await page.goto(`/settings/teams/${team.id}/members`);
+        const inviteLink = await copyInviteLink(page);
+        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
+        // '-domain' because the email doesn't match orgAutoAcceptEmail
+        const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+        await signupFromInviteLink({ browser, inviteLink, email });
+
+        const dbUser = await prisma.user.findUnique({ where: { email } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+        await expectUserToBeAMemberOfTeam({
+          teamId: team.id,
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: email,
+        });
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: email,
+        });
+      });
     });
   });
 
-  test("Invitation (verified)", async ({ browser, page, users, emails }) => {
-    const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
-    const { team: org } = await orgOwner.getOrg();
-    await orgOwner.apiLogin();
-    await page.goto("/settings/organizations/members");
-    await page.waitForLoadState("networkidle");
-
-    await test.step("To the organization by email (internal user)", async () => {
-      const invitedUserEmail = `rick@example.com`;
-      await page.locator('button:text("Add")').click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator('button:text("Send invite")').click();
+  test.describe("Email matching orgAutoAcceptEmail and a Verified Organization", () => {
+    test("Org Invitation", async ({ browser, page, users, emails }) => {
+      const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, isOrgVerified: true });
+      const { team: org } = await orgOwner.getOrgMembership();
+      await orgOwner.apiLogin();
+      await page.goto("/settings/organizations/members");
       await page.waitForLoadState("networkidle");
-      await expectInvitationEmailToBeReceived(
-        page,
-        emails,
-        invitedUserEmail,
-        `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`
-      );
 
-      // Check newly invited member exists and is pending
-      await expect(
-        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(0);
+      await test.step("By email", async () => {
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
+        const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
+        await inviteAnEmail(page, invitedUserEmail);
+        const inviteLink = await expectInvitationEmailToBeReceived(
+          page,
+          emails,
+          invitedUserEmail,
+          `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+          "signup?token"
+        );
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+
+        assertInviteLink(inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
+
+        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+      });
+
+      await test.step("By invite link", async () => {
+        const inviteLink = await copyInviteLink(page);
+        const email = users.trackEmail({ username: "rick", domain: "example.com" });
+        const usernameDerivedFromEmail = email.split("@")[0];
+        await signupFromInviteLink({ browser, inviteLink, email });
+
+        const dbUser = await prisma.user.findUnique({ where: { email } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email,
+        });
+      });
+    });
+
+    test("Team Invitation", async ({ browser, page, users, emails }) => {
+      const orgOwner = await users.create(undefined, {
+        hasTeam: true,
+        isOrg: true,
+        hasSubteam: true,
+        isOrgVerified: true,
+      });
+      const { team: org } = await orgOwner.getOrgMembership();
+      const { team } = await orgOwner.getFirstTeamMembership();
+
+      await orgOwner.apiLogin();
+
+      await test.step("By email", async () => {
+        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.waitForLoadState("networkidle");
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
+        const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
+        await inviteAnEmail(page, invitedUserEmail);
+        await expectUserToBeAMemberOfTeam({
+          page,
+          teamId: team.id,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+        const inviteLink = await expectInvitationEmailToBeReceived(
+          page,
+          emails,
+          invitedUserEmail,
+          `${team.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
+          "signup?token"
+        );
+
+        assertInviteLink(inviteLink);
+
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
+
+        const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+
+        await expectUserToBeAMemberOfTeam({
+          page,
+          teamId: team.id,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: invitedUserEmail,
+        });
+      });
+
+      await test.step("By invite link", async () => {
+        await page.goto(`/settings/teams/${team.id}/members`);
+
+        const inviteLink = await copyInviteLink(page);
+        const email = users.trackEmail({ username: "rick", domain: "example.com" });
+        // '-domain' because the email doesn't match orgAutoAcceptEmail
+        const usernameDerivedFromEmail = `${email.split("@")[0]}`;
+
+        await signupFromInviteLink({ browser, inviteLink, email });
+
+        const dbUser = await prisma.user.findUnique({ where: { email } });
+        expect(dbUser?.username).toBe(usernameDerivedFromEmail);
+        await expectUserToBeAMemberOfTeam({
+          teamId: team.id,
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: email,
+        });
+        await expectUserToBeAMemberOfOrganization({
+          page,
+          username: usernameDerivedFromEmail,
+          role: "member",
+          isMemberShipAccepted: true,
+          email: email,
+        });
+      });
     });
   });
 });
+
+async function signupFromInviteLink({
+  browser,
+  inviteLink,
+  email,
+}: {
+  browser: Browser;
+  inviteLink: string;
+  email: string;
+}) {
+  const context = await browser.newContext();
+  const inviteLinkPage = await context.newPage();
+  await inviteLinkPage.goto(inviteLink);
+  await inviteLinkPage.waitForLoadState("networkidle");
+
+  // Check required fields
+  const button = inviteLinkPage.locator("button[type=submit][disabled]");
+  await expect(button).toBeVisible(); // email + 3 password hints
+
+  await inviteLinkPage.locator("input[name=email]").fill(email);
+  await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+  await inviteLinkPage.locator("button[type=submit]").click();
+  await inviteLinkPage.waitForURL("/getting-started");
+  return { email };
+}
+
+async function signupFromEmailInviteLink({
+  browser,
+  inviteLink,
+  expectedUsername,
+  expectedEmail,
+}: {
+  browser: Browser;
+  inviteLink: string;
+  expectedUsername: string;
+  expectedEmail: string;
+}) {
+  // Follow invite link in new window
+  const context = await browser.newContext();
+  const signupPage = await context.newPage();
+
+  signupPage.goto(inviteLink);
+  await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
+  await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
+  expect(await signupPage.locator(`[data-testid="signup-usernamefield"]`).inputValue()).toBe(
+    expectedUsername
+  );
+  await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
+  expect(await signupPage.locator(`[data-testid="signup-emailfield"]`).inputValue()).toBe(expectedEmail);
+
+  await signupPage.waitForLoadState("networkidle");
+  // Check required fields
+  await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+  await signupPage.locator("button[type=submit]").click();
+  await signupPage.waitForURL("/getting-started?from=signup");
+  await context.close();
+  await signupPage.close();
+}
+
+async function inviteAnEmail(page: Page, invitedUserEmail: string) {
+  await page.locator('button:text("Add")').click();
+  await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
+  await page.locator('button:text("Send invite")').click();
+  await page.waitForLoadState("networkidle");
+}
+
+async function expectUserToBeAMemberOfOrganization({
+  page,
+  username,
+  email,
+  role,
+  isMemberShipAccepted,
+}: {
+  page: Page;
+  username: string;
+  role: string;
+  isMemberShipAccepted: boolean;
+  email: string;
+}) {
+  // Check newly invited member is not pending anymore
+  await page.goto("/settings/organizations/members");
+  expect(await page.locator(`[data-testid="member-${username}-username"]`).textContent()).toBe(username);
+  expect(await page.locator(`[data-testid="member-${username}-email"]`).textContent()).toBe(email);
+  expect((await page.locator(`[data-testid="member-${username}-role"]`).textContent())?.toLowerCase()).toBe(
+    role.toLowerCase()
+  );
+  if (isMemberShipAccepted) {
+    await expect(page.locator(`[data-testid2="member-${username}-pending"]`)).toBeHidden();
+  } else {
+    await expect(page.locator(`[data-testid2="member-${username}-pending"]`)).toBeVisible();
+  }
+}
+
+async function expectUserToBeAMemberOfTeam({
+  page,
+  teamId,
+  email,
+  role,
+  username,
+  isMemberShipAccepted,
+}: {
+  page: Page;
+  username: string;
+  role: string;
+  teamId: number;
+  isMemberShipAccepted: boolean;
+  email: string;
+}) {
+  // Check newly invited member is not pending anymore
+  await page.goto(`/settings/teams/${teamId}/members`);
+  await page.reload();
+  expect(
+    (
+      await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()
+    )?.toLowerCase()
+  ).toBe(role.toLowerCase());
+  if (isMemberShipAccepted) {
+    await expect(page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)).toBeHidden();
+  } else {
+    await expect(page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)).toBeVisible();
+  }
+}
+
+function assertInviteLink(inviteLink: string | null | undefined): asserts inviteLink is string {
+  if (!inviteLink) throw new Error("Invite link not found");
+}
+
+async function copyInviteLink(page: Page) {
+  await page.locator('button:text("Add")').click();
+  await page.locator(`[data-testid="copy-invite-link-button"]`).click();
+  const inviteLink = await getInviteLink(page);
+  return inviteLink;
+}

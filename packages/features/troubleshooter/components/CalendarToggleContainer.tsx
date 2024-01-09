@@ -54,7 +54,8 @@ function EmptyCalendarToggleItem() {
 
   return (
     <TroubleshooterListItemContainer
-      title="Please install a calendar"
+      title={t("installed", { count: 0 })}
+      subtitle={t("please_install_a_calendar")}
       prefixSlot={
         <>
           <div className="h-4 w-4 self-center rounded-[4px] bg-blue-500" />
@@ -63,7 +64,7 @@ function EmptyCalendarToggleItem() {
       suffixSlot={
         <div>
           <Badge variant="orange" withDot size="sm">
-            Not found
+            {t("unavailable")}
           </Badge>
         </div>
       }>

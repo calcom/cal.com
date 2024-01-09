@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
+import { IS_PRODUCTION, WEBSITE_URL } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
@@ -90,14 +91,19 @@ export function getOrgDomainConfigFromHostname({
 }
 
 export function subdomainSuffix() {
+  if (!IS_PRODUCTION && process.env.LOCAL_TESTING_DOMAIN_VERCEL) {
+    // Allow testing with a valid domain so that we can test with deployment services like Vercel and Cloudflare locally.
+    return process.env.LOCAL_TESTING_DOMAIN_VERCEL;
+  }
   const urlSplit = WEBAPP_URL.replace("https://", "")?.replace("http://", "").split(".");
   return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }
 
 export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug) return WEBAPP_URL;
+  if (!slug)
+    return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
   const orgFullOrigin = `${
-    options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""
+    options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;
   return orgFullOrigin;
 }
@@ -140,7 +146,7 @@ export function whereClauseForOrgWithSlugOrRequestedSlug(slug: string) {
   } satisfies Prisma.TeamWhereInput;
 }
 
-export function userOrgQuery(hostname: string, fallback?: string | string[]) {
-  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfigFromHostname({ hostname, fallback });
+export function userOrgQuery(req: IncomingMessage | undefined, fallback?: string | string[]) {
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, fallback);
   return isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null;
 }

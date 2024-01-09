@@ -3,6 +3,7 @@ import { expect, type Page } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
+import { localize } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -74,10 +75,10 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     multiselect: async () => {
       if (customLocators.shouldChangeMultiSelectLocator) {
-        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByLabel("multi-select-dropdown").click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
-        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByLabel("multi-select-dropdown").last().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       }
     },
@@ -89,10 +90,10 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     select: async () => {
       if (customLocators.shouldChangeSelectLocator) {
-        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByLabel("select-dropdown").first().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
-        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByLabel("select-dropdown").last().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       }
     },
@@ -139,11 +140,12 @@ const fillAllQuestions = async (eventTypePage: Page, questions: string[], option
           await eventTypePage.getByPlaceholder("Textarea test").fill("This is a sample text for textarea.");
           break;
         case "select":
-          await eventTypePage.locator("form svg").last().click();
+          await eventTypePage.getByLabel("select-dropdown").last().click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "multiselect":
-          await eventTypePage.locator("form svg").nth(4).click();
+          // select-dropdown
+          await eventTypePage.getByLabel("multi-select-dropdown").click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "number":
@@ -213,7 +215,7 @@ export function createBookingPageFixture(page: Page) {
       placeholder?: string
     ) => {
       await page.getByTestId("add-field").click();
-      await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("test-field-type").click();
       await page.getByTestId(`select-option-${questionType}`).click();
       await page.getByLabel("Identifier").dblclick();
       await page.getByLabel("Identifier").fill(identifier);
@@ -227,6 +229,23 @@ export function createBookingPageFixture(page: Page) {
         await page.getByRole("radio", { name: "No" }).click();
       }
       await page.getByTestId("field-add-save").click();
+    },
+    updateRecurringTab: async (repeatWeek: string, maxEvents: string) => {
+      const repeatText = (await localize("en"))("repeats_every");
+      const maximumOf = (await localize("en"))("for_a_maximum_of");
+      await page.getByTestId("recurring-event-check").click();
+      await page
+        .getByTestId("recurring-event-collapsible")
+        .locator("div")
+        .filter({ hasText: repeatText })
+        .getByRole("spinbutton")
+        .fill(repeatWeek);
+      await page
+        .getByTestId("recurring-event-collapsible")
+        .locator("div")
+        .filter({ hasText: maximumOf })
+        .getByRole("spinbutton")
+        .fill(maxEvents);
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
@@ -252,6 +271,14 @@ export function createBookingPageFixture(page: Page) {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await page.getByTestId("confirm-reschedule-button").click();
+    },
+
+    fillRecurringFieldAndConfirm: async (eventTypePage: Page) => {
+      await eventTypePage.getByTestId("occurrence-input").click();
+      await eventTypePage.getByTestId("occurrence-input").fill("2");
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
+      await eventTypePage.getByTestId("time").first().click();
+      await expect(eventTypePage.getByTestId("recurring-dates")).toBeVisible();
     },
 
     cancelBookingWithReason: async (page: Page) => {
@@ -285,6 +312,10 @@ export function createBookingPageFixture(page: Page) {
 
     assertBookingRescheduled: async (page: Page) => {
       await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+
+    assertRepeatEventType: async () => {
+      await expect(page.getByTestId("repeat-eventtype")).toBeVisible();
     },
 
     cancelBooking: async (eventTypePage: Page) => {
