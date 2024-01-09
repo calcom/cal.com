@@ -1,4 +1,3 @@
-"use client";
 
 import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
