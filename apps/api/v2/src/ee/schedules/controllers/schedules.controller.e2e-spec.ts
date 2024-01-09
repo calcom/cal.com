@@ -51,15 +51,21 @@ describe("Schedules Endpoints", () => {
       expect(user).toBeDefined();
     });
 
-    it.only("should create a schedule", async () => {
+    it("should create a schedule", async () => {
+      const scheduleName = "schedule-name";
+      const scheduleTimeZone = "Europe/Rome";
+      const availabilityDays = [1, 2, 3, 4, 5];
+      const availabilityStartTime = "09:00:00";
+      const availabilityEndTime = "17:00:00";
+
       const body = {
-        name: "test",
-        timeZone: "Europe/Rome",
+        name: scheduleName,
+        timeZone: scheduleTimeZone,
         availabilities: [
           {
-            days: [1, 2, 3, 4, 5],
-            startTime: "09:00:00",
-            endTime: "17:00:00",
+            days: availabilityDays,
+            startTime: availabilityStartTime,
+            endTime: availabilityEndTime,
           },
         ],
       };
@@ -72,9 +78,18 @@ describe("Schedules Endpoints", () => {
           const responseBody: ApiSuccessResponse<{ schedule: ScheduleResponse }> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
+
           expect(responseBody.data.schedule).toBeDefined();
+          expect(responseBody.data.schedule.id).toBeDefined();
+          expect(responseBody.data.schedule.userId).toEqual(user.id);
+          expect(responseBody.data.schedule.name).toEqual(scheduleName);
+          expect(responseBody.data.schedule.timeZone).toEqual(scheduleTimeZone);
+
           expect(responseBody.data.schedule.availability).toBeDefined();
-          // todo check the response body exactly
+          expect(responseBody.data.schedule.availability?.length).toEqual(1);
+          expect(responseBody.data.schedule.availability?.[0]?.days).toEqual(availabilityDays);
+          expect(responseBody.data.schedule.availability?.[0]?.startTime).toEqual(availabilityStartTime);
+          expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(availabilityEndTime);
         });
     });
 
