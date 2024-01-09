@@ -1,10 +1,8 @@
-import Workflows from "@pages/workflows";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
-
-import type { CalPageWrapper } from "@components/PageWrapper";
+import LgeacyPage from "@calcom/features/ee/workflows/pages/index";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,7 +10,4 @@ export const generateMetadata = async () =>
     (t) => t("workflows_to_automate_notifications")
   );
 
-const WorkflowsPage = Workflows as CalPageWrapper;
-
-// @ts-expect-error Type 'CalPageWrapper' is not assignable to type '(props: Record<string, any>) => ReactElement<any, string | JSXElementConstructor<any>>'
-export default WithLayout({ getLayout, Page: WorkflowsPage })<"P">;
+export default WithLayout({ getLayout, Page: LgeacyPage })<"P">;

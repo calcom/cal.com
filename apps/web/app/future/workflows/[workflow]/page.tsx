@@ -1,33 +1,30 @@
-import LegacyPage from "@pages/workflows/[workflow]";
-import type { Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import { type GetServerSidePropsContext } from "next";
+import { headers, cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
+
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 const querySchema = z.object({
   workflow: z.string(),
 });
 
-export const generateMetadata = async ({ params }: { params: Params }) => {
-  // const req = {
-  //   headers: headers(),
-  //   cookies: cookies(),
-  // };
-
-  // const ctx = await createContext({ req });
-  // const workflow = await getServerCaller(ctx).viewer.workflows.get({ id: Number(params.workflow) });
-
+export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
+  const { workflow } = await getProps(
+    buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext
+  );
   return await _generateMetadata(
-    () => `untitled | ${APP_NAME}`,
+    () => workflow ?? "Untitled",
     () => ""
   );
 };
 
-async function getProps({ params }: { params: Params }) {
-  const safeParams = querySchema.safeParse(params);
+async function getProps(context: GetServerSidePropsContext) {
+  const safeParams = querySchema.safeParse(context.params);
 
   console.log("Built workflow page:", safeParams);
   if (!safeParams.success) {
@@ -38,7 +35,6 @@ async function getProps({ params }: { params: Params }) {
 
 export const generateStaticParams = () => [];
 
-// @ts-expect-error export default WithLayout({ getLayout: null, getData: getProps, Page: LegacyPage })
 export default WithLayout({ getLayout: null, getData: getProps, Page: LegacyPage })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand

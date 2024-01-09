@@ -1,5 +1,3 @@
-"use client";
-
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 

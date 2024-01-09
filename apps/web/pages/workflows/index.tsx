@@ -1,5 +1,3 @@
-"use client";
-
 import Workflows from "@calcom/features/ee/workflows/pages/index";
 
 import PageWrapper from "@components/PageWrapper";
