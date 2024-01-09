@@ -221,12 +221,6 @@ export function createBookingPageFixture(page: Page) {
       }
       await page.getByTestId("field-add-save").click();
     },
-    makeEveryDayAvailable: async () => {
-      await page.goto("/availability");
-      await page.getByTestId("schedules").locator("div").first().click();
-      await page.locator("label").filter({ hasText: "Sunday" }).getByRole("switch").click();
-      await page.locator("label").filter({ hasText: "Saturday" }).getByRole("switch").click();
-      await page.getByRole("button", { name: "Save" }).click();
     updateRecurringTab: async (repeatWeek: string, maxEvents: string) => {
       const repeatText = (await localize("en"))("repeats_every");
       const maximumOf = (await localize("en"))("for_a_maximum_of");
@@ -243,6 +237,13 @@ export function createBookingPageFixture(page: Page) {
         .filter({ hasText: maximumOf })
         .getByRole("spinbutton")
         .fill(maxEvents);
+    },
+    makeEveryDayAvailable: async () => {
+      await page.goto("/availability");
+      await page.getByTestId("schedules").locator("div").first().click();
+      await page.locator("label").filter({ hasText: "Sunday" }).getByRole("switch").click();
+      await page.locator("label").filter({ hasText: "Saturday" }).getByRole("switch").click();
+      await page.getByRole("button", { name: "Save" }).click();
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
