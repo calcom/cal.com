@@ -165,7 +165,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   );
 
   return readOnly ? (
-    <div className="flex-1 cursor-grab overflow-hidden pr-4 text-sm">
+    <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
       <EventTypeDescription
         // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
@@ -176,7 +176,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   ) : (
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
-      className="flex-1 cursor-grab overflow-hidden pr-4 text-sm"
+      className="flex-1 overflow-hidden pr-4 text-sm"
       title={type.title}>
       <div>
         <span
@@ -315,22 +315,29 @@ export const EventTypeList = ({
     });
   }
 
-  const dragStart = (e: DragEvent<HTMLLIElement>, position: number) => {
+  const dragStart = (e: DragEvent<HTMLDivElement>, position: number) => {
     setDragStartPosition(position);
     e.dataTransfer.effectAllowed = "move";
-    e.currentTarget.style.opacity = "0.5";
     e.currentTarget.style.cursor = "grabbing";
-    e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
+    if (e.currentTarget.parentElement?.parentElement?.parentElement) {
+      e.dataTransfer.setDragImage(e.currentTarget.parentElement?.parentElement?.parentElement, 20, 20);
+      e.currentTarget.parentElement?.parentElement?.parentElement?.classList.remove("opacity-100");
+      e.currentTarget.parentElement?.parentElement?.parentElement?.classList.add("opacity-30");
+    }
   };
 
   const dragOver = (position: number) => {
     setDragOverPosition(position);
   };
 
-  const drop = (e: DragEvent<HTMLLIElement>) => {
+  const drop = (e: DragEvent<HTMLDivElement>) => {
     moveEventType(dragStartPosition, dragOverPosition - dragStartPosition);
-    e.currentTarget.style.opacity = "1";
+    // e.currentTarget.style.opacity = "1";
     e.currentTarget.style.cursor = "grab";
+    if (e.currentTarget.parentElement?.parentElement?.parentElement) {
+      e.currentTarget.parentElement?.parentElement?.parentElement?.classList.remove("opacity-30");
+      e.currentTarget.parentElement?.parentElement?.parentElement?.classList.add("opacity-100");
+    }
   };
 
   async function deleteEventTypeHandler(id: number) {
@@ -428,22 +435,21 @@ export const EventTypeList = ({
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
           return (
-            <li
-              key={type.id}
-              draggable={!readOnly}
-              onDragStart={(e) => dragStart(e, index)}
-              onDragEnter={() => dragOver(index)}
-              onDragEnd={(e) => drop(e)}
-              className="cursor-grab">
+            <li key={type.id} onDragEnter={() => dragOver(index)}>
               <div className="hover:bg-muted flex w-full items-center justify-between transition">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
-                  {!(firstItem && firstItem.id === type.id) && (
-                    <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
-                  )}
+                  <div
+                    draggable={!readOnly}
+                    onDragStart={(e) => dragStart(e, index)}
+                    onDragEnd={(e) => drop(e)}>
+                    {!(firstItem && firstItem.id === type.id) && (
+                      <ArrowButton arrowDirection="up" onClick={() => moveEventType(index, -1)} />
+                    )}
 
-                  {!(lastItem && lastItem.id === type.id) && (
-                    <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
-                  )}
+                    {!(lastItem && lastItem.id === type.id) && (
+                      <ArrowButton arrowDirection="down" onClick={() => moveEventType(index, 1)} />
+                    )}
+                  </div>
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
