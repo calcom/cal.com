@@ -23,7 +23,6 @@ export class SchedulesController {
     @GetUser("id") userId: number,
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<ApiResponse<{ schedule: ScheduleResponse }>> {
-    console.log("asap rocky bodySchedule", JSON.stringify(bodySchedule, null, 2));
     const schedule = await this.schedulesService.createUserSchedule(userId, bodySchedule);
     const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
