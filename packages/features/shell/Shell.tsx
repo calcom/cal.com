@@ -37,7 +37,6 @@ import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
 import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isKeyInObject } from "@calcom/lib/isKeyInObject";
 import type { User } from "@calcom/prisma/client";
@@ -368,7 +367,6 @@ function UserDropdown({ small }: UserDropdownProps) {
   const { data: user } = useMeQuery();
   const utils = trpc.useContext();
   const bookerUrl = useBookerUrl();
-  const { hasTeamPlan } = useHasTeamPlan();
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
