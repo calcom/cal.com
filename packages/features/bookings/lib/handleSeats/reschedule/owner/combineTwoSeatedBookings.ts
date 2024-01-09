@@ -9,7 +9,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
-import { addVideoCallDataToEvt, findBookingQuery } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent, findBookingQuery } from "../../../handleNewBooking";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
@@ -117,7 +117,7 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = addVideoCallDataToEvt(updatedNewBooking.references, evt);
+  evt = addVideoCallDataToEvent(updatedNewBooking.references, evt);
 
   const copyEvent = cloneDeep(evt);
 

@@ -858,7 +858,7 @@ export function getCustomInputsResponses(
  *
  * @returns updated evt with video call data
  */
-export const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
+export const addVideoCallDataToEvent = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
   const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
 
   if (videoCallReference) {
@@ -1659,7 +1659,7 @@ async function handler(
       );
     }
 
-    addVideoCallDataToEvt(originalRescheduledBooking.references, evt);
+    addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
