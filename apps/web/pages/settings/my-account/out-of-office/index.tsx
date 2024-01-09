@@ -75,7 +75,6 @@ const OutOfOfficeSection = () => {
           setSelectedMember(null);
         })}>
         <div className="border-subtle flex flex-col rounded-b-lg border border-t-0 p-6 px-6 py-8 text-sm">
-          {/* <p className="text-base font-semibold text-default font-cal">{t("going_away_title")}</p> */}
           {/* Add startDate and end date inputs */}
           <div className="border-subtle mt-2 rounded-lg border bg-gray-50 p-6 dark:bg-transparent">
             {/* Add toggle to enable/disable redirect */}
