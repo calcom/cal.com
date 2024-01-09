@@ -889,7 +889,7 @@ export function handleAppsStatus(
   reqAppsStatus: ReqAppsStatus
 ) {
   // Taking care of apps status
-  let resultStatus: AppsStatus[] = results.map((app) => ({
+  const resultStatus: AppsStatus[] = results.map((app) => ({
     appName: app.appName,
     type: app.type,
     success: app.success ? 1 : 0,
@@ -917,8 +917,7 @@ export function handleAppsStatus(
     }
     return prev;
   }, {} as { [key: string]: AppsStatus });
-  resultStatus = Object.values(calcAppsStatus);
-  return resultStatus;
+  return Object.values(calcAppsStatus);
 }
 
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
