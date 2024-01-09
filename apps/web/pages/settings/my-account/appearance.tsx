@@ -136,7 +136,7 @@ const AppearanceView = ({
 
   return (
     <div>
-      <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader={true} />
+      <Meta title={t("appearance")} description={t("appearance_description")} borderInShellHeader />
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("theme")}</p>
