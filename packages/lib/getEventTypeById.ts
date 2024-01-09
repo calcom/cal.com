@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
-import type { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -9,11 +8,13 @@ import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@cal
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Credential } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
+
+import { CAL_URL } from "./constants";
+import { getBookerBaseUrl } from "./getBookerUrl/server";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
@@ -77,6 +78,7 @@ export default async function getEventTypeById({
       slug: true,
       description: true,
       length: true,
+      isInstantEvent: true,
       offsetStart: true,
       hidden: true,
       locations: true,
@@ -106,6 +108,11 @@ export default async function getEventTypeById({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
+      owner: {
+        select: {
+          organizationId: true,
+        },
+      },
       parent: {
         select: {
           teamId: true,
@@ -167,6 +174,7 @@ export default async function getEventTypeById({
               username: true,
               email: true,
               id: true,
+              organizationId: true,
             },
           },
           hidden: true,
@@ -257,12 +265,18 @@ export default async function getEventTypeById({
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
+    bookerUrl: restEventType.team
+      ? await getBookerBaseUrl({ organizationId: restEventType.team.parentId })
+      : restEventType.owner
+      ? await getBookerBaseUrl(restEventType.owner)
+      : CAL_URL,
     children: restEventType.children.flatMap((ch) =>
       ch.owner !== null
         ? {
             ...ch,
             owner: {
               ...ch.owner,
+              avatar: getUserAvatarUrl(ch.owner),
               email: ch.owner.email,
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
@@ -381,19 +395,3 @@ export default async function getEventTypeById({
   };
   return finalObj;
 }
-
-const getStripeCurrency = (stripeMetadata: { currency: string }, credentials: Credential[]) => {
-  // Favor the currency from the metadata as EventType.currency was not always set and should be deprecated
-  if (stripeMetadata.currency) {
-    return stripeMetadata.currency;
-  }
-
-  // Legacy support for EventType.currency
-  const stripeCredential = credentials.find((integration) => integration.type === "stripe_payment");
-  if (stripeCredential) {
-    return (stripeCredential.key as unknown as StripeData)?.default_currency || "usd";
-  }
-
-  // Fallback to USD but should not happen
-  return "usd";
-};

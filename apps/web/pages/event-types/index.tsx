@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { User } from "@prisma/client";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,8 +18,8 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
-import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -33,7 +32,6 @@ import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Alert,
   Avatar,
-  AvatarGroup,
   Badge,
   Button,
   ButtonGroup,
@@ -69,6 +67,7 @@ import {
   Trash,
   Upload,
   Users,
+  VenetianMask,
 } from "@calcom/ui/components/icon";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -85,7 +84,7 @@ interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
   teamId?: number | null;
-  orgSlug?: string;
+  bookerUrl: string;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -95,6 +94,7 @@ interface EventTypeListProps {
   group: EventTypeGroup;
   groupIndex: number;
   readOnly: boolean;
+  bookerUrl: string | null;
   types: EventType[];
 }
 
@@ -127,6 +127,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
           types={events[0].eventTypes}
           group={events[0]}
           groupIndex={0}
+          bookerUrl={events[0].bookerUrl}
           readOnly={events[0].metadata.readOnly}
         />
       ) : (
@@ -207,12 +208,17 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
 
 const MemoizedItem = memo(Item);
 
-export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
+export const EventTypeList = ({
+  group,
+  groupIndex,
+  readOnly,
+  types,
+  bookerUrl,
+}: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const orgBranding = useOrgBranding();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
@@ -383,7 +389,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
-          const calLink = `${orgBranding?.fullDomain ?? CAL_URL}/${embedLink}`;
+          const calLink = `${bookerUrl}/${embedLink}`;
+          const isPrivateURLEnabled = type.hashedLink?.link;
+          const placeholderHashedLink = `${CAL_URL}/d/${type.hashedLink?.link}/${type.slug}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
@@ -410,17 +418,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         />
                       )}
                       {isManagedEventType && type?.children && type.children?.length > 0 && (
-                        <AvatarGroup
+                        <UserAvatarGroup
                           className="relative right-3"
                           size="sm"
                           truncateAfter={4}
-                          items={type?.children
-                            .flatMap((ch) => ch.users)
-                            .map((user: Pick<User, "name" | "username">) => ({
-                              alt: user.name || "",
-                              image: `${orgBranding?.fullDomain ?? WEBAPP_URL}/${user.username}/avatar.png`,
-                              title: user.name || "",
-                            }))}
+                          users={type?.children.flatMap((ch) => ch.users) ?? []}
                         />
                       )}
                       <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
@@ -467,6 +469,20 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   }}
                                 />
                               </Tooltip>
+
+                              {isPrivateURLEnabled && (
+                                <Tooltip content={t("copy_link")}>
+                                  <Button
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon={VenetianMask}
+                                    onClick={() => {
+                                      showToast(t("private_link_copied"), "success");
+                                      navigator.clipboard.writeText(placeholderHashedLink);
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                             </>
                           )}
                           <Dropdown modal={false}>
@@ -697,10 +713,10 @@ const EventTypeListHeading = ({
   profile,
   membershipCount,
   teamId,
+  bookerUrl,
 }: EventTypeListHeadingProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
-  const orgBranding = useOrgBranding();
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
@@ -710,18 +726,13 @@ const EventTypeListHeading = ({
       showToast(error.message, "error");
     },
   });
-  const bookerUrl = useBookerUrl();
 
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
         alt={profile?.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={
-          orgBranding?.fullDomain
-            ? `${orgBranding.fullDomain}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`
-            : profile.image
-        }
+        imageSrc={`${bookerUrl}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -742,9 +753,7 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link
-            href={`${orgBranding ? orgBranding.fullDomain : CAL_URL}/${profile.slug}`}
-            className="text-subtle block text-xs">
+          <Link href={`${bookerUrl}/${profile.slug}`} className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
@@ -865,18 +874,22 @@ const Main = ({
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
             data.eventTypeGroups.map((group: EventTypeGroup, index: number) => (
-              <div className="mt-4 flex flex-col" key={group.profile.slug}>
+              <div
+                className="mt-4 flex flex-col"
+                data-testid={`slug-${group.profile.slug}`}
+                key={group.profile.slug}>
                 <EventTypeListHeading
                   profile={group.profile}
                   membershipCount={group.metadata.membershipCount}
                   teamId={group.teamId}
-                  orgSlug={orgBranding?.slug}
+                  bookerUrl={group.bookerUrl}
                 />
 
                 {group.eventTypes.length ? (
                   <EventTypeList
                     types={group.eventTypes}
                     group={group}
+                    bookerUrl={group.bookerUrl}
                     groupIndex={index}
                     readOnly={group.metadata.readOnly}
                   />
@@ -895,6 +908,7 @@ const Main = ({
             types={data.eventTypeGroups[0].eventTypes}
             group={data.eventTypeGroups[0]}
             groupIndex={0}
+            bookerUrl={data.eventTypeGroups[0].bookerUrl}
             readOnly={data.eventTypeGroups[0].metadata.readOnly}
           />
         )
@@ -911,6 +925,7 @@ const EventTypesPage = () => {
   const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
   const { data: user } = useMeQuery();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
@@ -922,12 +937,6 @@ const EventTypesPage = () => {
     cacheTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
-
-  function closeBanner() {
-    setShowProfileBanner(false);
-    document.cookie = `calcom-profile-banner=1;max-age=${60 * 60 * 24 * 90}`; // 3 months
-    showToast(t("we_wont_show_again"), "success");
-  }
 
   useEffect(() => {
     if (searchParams?.get("openIntercom") === "true") {
