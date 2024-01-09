@@ -1,5 +1,4 @@
 import LegacyPage from "@pages/d/[link]/[slug]";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsContext } from "next";
@@ -17,9 +16,12 @@ import { trpc } from "@calcom/trpc/react";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
-  // @ts-expect-error getPageProps arg
-  const pageProps = await getPageProps(buildLegacyCtx(headers(), cookies(), params));
+  const pageProps = await getPageProps(
+    buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext
+  );
 
   const { entity, booking, user, slug, isTeamEvent } = pageProps;
   const rescheduleUid = booking?.uid;
@@ -36,7 +38,7 @@ export const generateMetadata = async ({ params }: { params: Record<string, stri
 };
 
 async function getPageProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit();
+  const ssr = await ssrInit(context);
 
   const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
@@ -125,5 +127,4 @@ async function getPageProps(context: GetServerSidePropsContext) {
 
 const paramsSchema = z.object({ link: z.string(), slug: z.string().transform((s) => slugify(s)) });
 
-// @ts-expect-error getData arg
 export default WithLayout({ getLayout: null, Page: LegacyPage, getData: getPageProps });
