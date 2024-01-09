@@ -18,7 +18,7 @@ test.describe("Out of office", () => {
 
     await page.goto("/settings/my-account/out-of-office");
 
-    await page.locator("data-testid=send-request-redirect").click();
+    await page.locator("data-testid=create-entry-ooo-redirect").click();
 
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
@@ -66,7 +66,7 @@ test.describe("Out of office", () => {
     await page.locator("#react-select-2-option-0 div").click();
 
     // send request
-    await page.getByTestId("send-request-redirect").click();
+    await page.getByTestId("create-entry-ooo-redirect").click();
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();

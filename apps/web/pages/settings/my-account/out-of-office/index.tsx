@@ -135,8 +135,8 @@ const OutOfOfficeSection = () => {
                 color="primary"
                 type="submit"
                 disabled={createOutOfOfficeEntry.isLoading}
-                data-testid="send-request-redirect">
-                {profileRedirect ? t("send_request") : t("create_entry")}
+                data-testid="create-entry-ooo-redirect">
+                {t("create_entry")}
               </Button>
             </div>
           </div>
