@@ -2015,7 +2015,9 @@ async function handler(
         workflows: eventType.workflows,
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
-        isNotConfirmed: evt.requiresConfirmation || false,
+        isNotConfirmed: rescheduleUid
+          ? originalRescheduledBooking?.status !== BookingStatus.ACCEPTED
+          : evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
@@ -2792,7 +2794,9 @@ async function handler(
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
-      isNotConfirmed: !isConfirmedByDefault,
+      isNotConfirmed: rescheduleUid
+        ? originalRescheduledBooking?.status !== BookingStatus.ACCEPTED
+        : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
