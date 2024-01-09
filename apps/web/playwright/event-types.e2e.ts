@@ -11,7 +11,7 @@ import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Event Types A/B tests", () => {
-  test.skip("should point to the /future/event-types page", async ({ page, users, context }) => {
+  test("should point to the /future/event-types page", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",

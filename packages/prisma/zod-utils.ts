@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
+import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -333,6 +334,14 @@ export const teamMetadataSchema = z
     isOrganizationVerified: z.boolean().nullable(),
     isOrganizationConfigured: z.boolean().nullable(),
     orgAutoAcceptEmail: z.string().nullable(),
+    migratedToOrgFrom: z
+      .object({
+        teamSlug: z.string().or(z.null()).optional(),
+        lastMigrationTime: z.string().optional(),
+        reverted: z.boolean().optional(),
+        lastRevertTime: z.string().optional(),
+      })
+      .optional(),
   })
   .partial()
   .nullable();
@@ -552,6 +561,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  isInstantEvent: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -639,3 +649,5 @@ export const ZVerifyCodeInputSchema = z.object({
 export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 
 export const coerceToDate = z.coerce.date();
+export const getStringAsNumberRequiredSchema = (t: TFunction) =>
+  z.string().min(1, t("error_required_field")).pipe(z.coerce.number());

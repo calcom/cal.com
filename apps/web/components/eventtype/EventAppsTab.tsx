@@ -47,10 +47,17 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const getAppDataSetter = (appId: EventTypeAppsList, credentialId?: number): SetAppData => {
+  const eventTypeFormMetadata = methods.getValues("metadata");
+
+  const getAppDataSetter = (
+    appId: EventTypeAppsList,
+    appCategories: string[],
+    credentialId?: number
+  ): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
       const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+
       const appData = allAppsDataFromForm[appId];
       setAllAppsData({
         ...allAppsDataFromForm,
@@ -58,6 +65,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ...appData,
           [key]: value,
           credentialId,
+          appCategories,
         },
       });
     };
@@ -77,10 +85,15 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       appCards.push(
         <EventTypeAppCard
           getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-          setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.userCredentialIds[0])}
+          setAppData={getAppDataSetter(
+            app.slug as EventTypeAppsList,
+            app.categories,
+            app.userCredentialIds[0]
+          )}
           key={app.slug}
           app={app}
           eventType={eventType}
+          eventTypeFormMetadata={eventTypeFormMetadata}
           {...shouldLockDisableProps("apps")}
         />
       );
@@ -91,7 +104,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         appCards.push(
           <EventTypeAppCard
             getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-            setAppData={getAppDataSetter(app.slug as EventTypeAppsList, team.credentialId)}
+            setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.categories, team.credentialId)}
             key={app.slug + team?.credentialId}
             app={{
               ...app,
@@ -104,6 +117,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               },
             }}
             eventType={eventType}
+            eventTypeFormMetadata={eventTypeFormMetadata}
             {...shouldLockDisableProps("apps")}
           />
         );
@@ -148,10 +162,15 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               return (
                 <EventTypeAppCard
                   getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-                  setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.userCredentialIds[0])}
+                  setAppData={getAppDataSetter(
+                    app.slug as EventTypeAppsList,
+                    app.categories,
+                    app.userCredentialIds[0]
+                  )}
                   key={app.slug}
                   app={app}
                   eventType={eventType}
+                  eventTypeFormMetadata={eventTypeFormMetadata}
                   {...shouldLockDisableProps("apps")}
                 />
               );
@@ -179,10 +198,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             {notInstalledApps?.map((app) => (
               <EventTypeAppCard
                 getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                setAppData={getAppDataSetter(app.slug as EventTypeAppsList, app.categories)}
                 key={app.slug}
                 app={app}
                 eventType={eventType}
+                eventTypeFormMetadata={eventTypeFormMetadata}
               />
             ))}
           </div>
