@@ -46,7 +46,7 @@ export const BookerLayoutSelector = ({
   isDark,
   isDisabled = false,
   isOuterBorder = false,
-  isUpdateBtnLoading,
+  isUpdateBtnLoading = false,
 }: BookerLayoutSelectorProps) => {
   const { control, getValues } = useFormContext();
   const { t } = useLocale();
