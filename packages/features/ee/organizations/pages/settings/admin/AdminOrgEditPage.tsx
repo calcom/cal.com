@@ -32,6 +32,7 @@ const OrgEditView = ({ orgId }: { orgId: number }) => {
       <Meta
         title={`Editing organization: ${org.name}`}
         description="Here you can edit a current organization."
+        borderInShellHeader
       />
       <NoSSR>
         <OrgForm org={org} />

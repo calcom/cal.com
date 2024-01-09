@@ -9,7 +9,11 @@ const MembersView = () => {
 
   return (
     <LicenseRequired>
-      <Meta title={t("organization_members")} description={t("organization_description")} />
+      <Meta
+        title={t("organization_members")}
+        description={t("organization_description")}
+        borderInShellHeader
+      />
       <div>
         <UserListTable />
       </div>
