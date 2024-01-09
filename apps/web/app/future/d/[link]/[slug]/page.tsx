@@ -116,7 +116,7 @@ async function getPageProps(context: GetServerSidePropsContext) {
     away: user?.away,
     user: username,
     slug,
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
     // Sending the team event from the server, because this template file
     // is reused for both team and user events.
