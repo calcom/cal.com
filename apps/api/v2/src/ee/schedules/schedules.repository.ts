@@ -100,13 +100,12 @@ export class SchedulesRepository {
         createMany: {
           data: schedule.availabilities.map((availability) => ({
             ...availability,
-            scheduleId,
           })),
         },
       };
     }
 
-    const updatedSchedule = this.dbWrite.prisma.schedule.update({
+    const updatedSchedule = await this.dbWrite.prisma.schedule.update({
       where: { id: scheduleId },
       data: updatedScheduleData,
       include: {

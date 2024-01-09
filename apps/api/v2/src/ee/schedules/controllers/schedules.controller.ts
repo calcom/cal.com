@@ -78,18 +78,6 @@ export class SchedulesController {
     };
   }
 
-  @Delete("/:scheduleId")
-  async deleteSchedule(
-    @GetUser("id") userId: number,
-    @Param("scheduleId") scheduleId: number
-  ): Promise<ApiResponse> {
-    await this.schedulesService.deleteUserSchedule(userId, scheduleId);
-
-    return {
-      status: SUCCESS_STATUS,
-    };
-  }
-
   @Put("/:scheduleId")
   async updateSchedule(
     @GetUser("id") userId: number,
@@ -104,6 +92,18 @@ export class SchedulesController {
       data: {
         schedule: scheduleResponse,
       },
+    };
+  }
+
+  @Delete("/:scheduleId")
+  async deleteSchedule(
+    @GetUser("id") userId: number,
+    @Param("scheduleId") scheduleId: number
+  ): Promise<ApiResponse> {
+    await this.schedulesService.deleteUserSchedule(userId, scheduleId);
+
+    return {
+      status: SUCCESS_STATUS,
     };
   }
 }
