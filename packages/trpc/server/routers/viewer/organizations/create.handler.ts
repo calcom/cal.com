@@ -43,17 +43,22 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  // An org doesn't have a parentId. A team that isn't part of an org also doesn't have a parentId.
-  // So, an org can't have the same slug as a non-org team.
-  // There is a unique index on [slug, parentId] in Team because we don't add the slug to the team always. We only add metadata.requestedSlug in some cases. So, DB won't prevent creation of such an organization.
-  const hasANonOrgTeamOrOrgWithSameSlug = await prisma.team.findFirst({
+  const hasAnOrgWithSameSlug = await prisma.team.findFirst({
     where: {
       slug: slug,
       parentId: null,
+      metadata: {
+        path: ["isOrganization"],
+        equals: true,
+      },
     },
   });
 
-  if (hasANonOrgTeamOrOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
+  // Allow creating an organization with same requestedSlug as a non-org Team's slug
+  // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
+  // Publishing the organization would fail if the team with the same slug is not migrated first
+
+  if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 

@@ -1,21 +1,20 @@
-import { ssgInit } from "app/_trpc/ssgInit";
-import type { Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
-import type { ReactElement } from "react";
 import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
+
+import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import { ssgInit } from "@server/lib/ssg";
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const querySchema = z.object({
   status: z.enum(validStatuses),
 });
-
-type Props = { params: Params; children: ReactElement };
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -27,18 +26,18 @@ export const generateStaticParams = async () => {
   return validStatuses.map((status) => ({ status }));
 };
 
-const getData = async ({ params }: { params: Params }) => {
-  const parsedParams = querySchema.safeParse(params);
+const getData = async (ctx: ReturnType<typeof buildLegacyCtx>) => {
+  const parsedParams = querySchema.safeParse(ctx.params);
 
   if (!parsedParams.success) {
     notFound();
   }
 
-  const ssg = await ssgInit();
+  const ssg = await ssgInit(ctx);
 
   return {
     status: parsedParams.data.status,
-    dehydratedState: await ssg.dehydrate(),
+    dehydratedState: ssg.dehydrate(),
   };
 };
 
