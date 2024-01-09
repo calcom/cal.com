@@ -1,5 +1,4 @@
 import LegacyPage from "@pages/getting-started/[[...step]]";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -7,6 +6,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
 import PageWrapper from "@components/PageWrapperAppDir";
+
+import { ssrInit } from "@server/lib/ssr";
 
 async function getData() {
   const req = { headers: headers(), cookies: cookies() };
