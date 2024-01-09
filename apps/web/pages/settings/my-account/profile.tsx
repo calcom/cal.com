@@ -333,7 +333,7 @@ const ProfileView = () => {
       <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
         <DialogContent
           title={t("confirm_password")}
-          description={t("confirm_password_change_email")}
+          description={t("confirm_password_change_email_to", { email: tempFormValues?.email })}
           type="creation"
           Icon={AlertTriangle}>
           <div className="mb-10">
