@@ -144,7 +144,7 @@ html.todesktop header {
 }
 
 html.todesktop header button,
-html.todesktop header a{
+html.todesktop header a {
   -webkit-app-region: no-drag;
 }
 
