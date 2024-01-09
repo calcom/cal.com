@@ -10,11 +10,12 @@ import type { TeamWithParent } from "./types";
 import type { Invitee, UserWithMembership } from "./utils";
 import {
   checkPermissions,
-  getEmailsToInvite,
+  getUsernameOrEmailsToInvite,
   getIsOrgVerified,
   getOrgConnectionInfo,
   validateInviteeEligibility,
   shouldAutoJoinIfInOrg,
+  checkInputEmailIsValid,
 } from "./utils";
 
 vi.mock("@calcom/lib/server/queries", () => {
@@ -101,22 +102,35 @@ describe("Invite Member Utils", () => {
       await expect(checkPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
     });
   });
-  describe("getEmailsToInvite", () => {
+  describe("getUsernameOrEmailsToInvite", () => {
     it("should throw a TRPCError with code BAD_REQUEST if no emails are provided", async () => {
-      await expect(getEmailsToInvite([])).rejects.toThrow(TRPCError);
+      await expect(getUsernameOrEmailsToInvite([])).rejects.toThrow(TRPCError);
     });
 
     it("should return an array with one email if a string is provided", async () => {
-      const result = await getEmailsToInvite("test@example.com");
+      const result = await getUsernameOrEmailsToInvite("test@example.com");
       expect(result).toEqual(["test@example.com"]);
     });
 
     it("should return an array with multiple emails if an array is provided", async () => {
-      const result = await getEmailsToInvite(["test1@example.com", "test2@example.com"]);
+      const result = await getUsernameOrEmailsToInvite(["test1@example.com", "test2@example.com"]);
       expect(result).toEqual(["test1@example.com", "test2@example.com"]);
     });
   });
+  describe("checkInputEmailIsValid", () => {
+    it("should throw a TRPCError with code BAD_REQUEST if the email is invalid", () => {
+      const invalidEmail = "invalid-email";
+      expect(() => checkInputEmailIsValid(invalidEmail)).toThrow(TRPCError);
+      expect(() => checkInputEmailIsValid(invalidEmail)).toThrowError(
+        "Invite failed because invalid-email is not a valid email address"
+      );
+    });
 
+    it("should not throw an error if the email is valid", () => {
+      const validEmail = "valid-email@example.com";
+      expect(() => checkInputEmailIsValid(validEmail)).not.toThrow();
+    });
+  });
   describe("getOrgConnectionInfo", () => {
     const orgAutoAcceptDomain = "example.com";
     const usersEmail = "user@example.com";

@@ -16,6 +16,7 @@ const appStore = {
   office365video: () => import("./office365video"),
   plausible: () => import("./plausible"),
   paypal: () => import("./paypal"),
+  "pipedrive-crm": () => import("./pipedrive-crm"),
   salesforce: () => import("./salesforce"),
   zohocrm: () => import("./zohocrm"),
   sendgrid: () => import("./sendgrid"),
