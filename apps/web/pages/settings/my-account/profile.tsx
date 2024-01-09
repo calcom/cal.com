@@ -6,7 +6,6 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -41,6 +40,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -106,8 +106,17 @@ const ProfileView = () => {
       setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },
-    onError: () => {
-      showToast(t("error_updating_settings"), "error");
+    onError: (e) => {
+      switch (e.message) {
+        // TODO: Add error codes.
+        case "email_already_used":
+          {
+            showToast(t(e.message), "error");
+          }
+          return;
+        default:
+          showToast(t("error_updating_settings"), "error");
+      }
     },
   });
 
@@ -439,7 +448,8 @@ const ProfileForm = ({
                   : null;
               return (
                 <>
-                  <OrganizationMemberAvatar
+                  <UserAvatar
+                    data-testid="profile-upload-avatar"
                     previewSrc={value}
                     size="lg"
                     user={user}
