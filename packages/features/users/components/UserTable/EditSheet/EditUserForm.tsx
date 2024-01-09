@@ -1,10 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch } from "react";
+import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import {
   Form,
@@ -21,12 +23,17 @@ import {
 import type { Action } from "../UserListTable";
 import { useEditMode } from "./store";
 
+type MembershipOption = {
+  value: MembershipRole;
+  label: string;
+};
+
 const editSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   avatar: z.string(),
   bio: z.string(),
-  role: z.enum(["ADMIN", "MEMBER", "OWNER"]),
+  role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
@@ -60,6 +67,31 @@ export function EditForm({
     },
   });
 
+  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
+  const isOwner = currentMembership?.user.role === MembershipRole.OWNER;
+
+  const membershipOptions = useMemo<MembershipOption[]>(() => {
+    const options: MembershipOption[] = [
+      {
+        value: MembershipRole.MEMBER,
+        label: t("member"),
+      },
+      {
+        value: MembershipRole.ADMIN,
+        label: t("admin"),
+      },
+    ];
+
+    if (isOwner) {
+      options.push({
+        value: MembershipRole.OWNER,
+        label: t("owner"),
+      });
+    }
+
+    return options;
+  }, [t, isOwner]);
+
   const mutation = trpc.viewer.organizations.updateUser.useMutation({
     onSuccess: () => {
       dispatch({ type: "CLOSE_MODAL" });
@@ -88,7 +120,7 @@ export function EditForm({
         setMutationLoading(true);
         mutation.mutate({
           userId: selectedUser?.id ?? "",
-          role: values.role as "ADMIN" | "MEMBER", // Cast needed as we dont provide an option for owner
+          role: values.role,
           name: values.name,
           email: values.email,
           avatar: values.avatar,
@@ -135,16 +167,7 @@ export function EditForm({
             isFullWidth
             defaultValue={selectedUser?.role ?? "MEMBER"}
             value={form.watch("role")}
-            options={[
-              {
-                value: "MEMBER",
-                label: t("member"),
-              },
-              {
-                value: "ADMIN",
-                label: t("admin"),
-              },
-            ]}
+            options={membershipOptions}
             onValueChange={(value: EditSchema["role"]) => {
               form.setValue("role", value);
             }}

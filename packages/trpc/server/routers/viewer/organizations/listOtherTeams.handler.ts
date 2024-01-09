@@ -8,15 +8,18 @@ type ListOptions = {
   };
 };
 
-export const listOtherTeamHandler = async ({ ctx }: ListOptions) => {
+export const listOtherTeamHandler = async ({ ctx: { user } }: ListOptions) => {
+  if (!user?.organization?.isOrgAdmin) {
+    return [];
+  }
   const teamsInOrgIamNotPartOf = await prisma.team.findMany({
     where: {
       parent: {
-        id: ctx.user?.organization?.id,
+        id: user?.organization?.id,
       },
       members: {
         none: {
-          userId: ctx.user.id,
+          userId: user.id,
         },
       },
     },
