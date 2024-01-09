@@ -1,5 +1,7 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { PasskeyProvider, tenant } from "@teamhanko/passkeys-next-auth-provider";
 import type { AuthOptions, Session } from "next-auth";
+import type { User as NextAuthUser } from "next-auth/core/types";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -33,6 +35,15 @@ const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
+
+/**
+ * Whether passkeys are enabled. If PASSKEY_LOGIN_ENABLED is not explicitly set to "false", passkeys
+ * are enabled for login if the required env vars are set.
+ */
+const IS_PASSKEY_LOGIN_ENABLED =
+  process.env.PASSKEY_LOGIN_ENABLED !== "false" &&
+  process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID &&
+  process.env.HANKO_PASSKEYS_API_KEY;
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 
@@ -94,172 +105,206 @@ const providers: Provider[] = [
       totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
       backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
     },
-    async authorize(credentials) {
-      if (!credentials) {
-        console.error(`For some reason credentials are missing`);
-        throw new Error(ErrorCode.InternalServerError);
-      }
-
-      const user = await prisma.user.findUnique({
-        where: {
-          email: credentials.email.toLowerCase(),
-        },
-        select: {
-          locked: true,
-          role: true,
-          id: true,
-          username: true,
-          name: true,
-          email: true,
-          metadata: true,
-          identityProvider: true,
-          password: true,
-          organizationId: true,
-          twoFactorEnabled: true,
-          twoFactorSecret: true,
-          backupCodes: true,
-          locale: true,
-          organization: {
-            select: {
-              id: true,
-            },
-          },
-          teams: {
-            include: {
-              team: true,
-            },
-          },
-        },
-      });
-
-      // Don't leak information about it being username or password that is invalid
-      if (!user) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
-
-      // Locked users cannot login
-      if (user.locked) {
-        throw new Error(ErrorCode.UserAccountLocked);
-      }
-
-      await checkRateLimitAndThrowError({
-        identifier: user.email,
-      });
-
-      if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
-      }
-      if (!user.password && user.identityProvider == IdentityProvider.CAL) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
-      if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
-        throw new Error(ErrorCode.IncorrectEmailPassword);
-      }
-
-      if (user.password && !credentials.totpCode) {
-        if (!user.password) {
-          throw new Error(ErrorCode.IncorrectEmailPassword);
-        }
-        const isCorrectPassword = await verifyPassword(credentials.password, user.password);
-        if (!isCorrectPassword) {
-          throw new Error(ErrorCode.IncorrectEmailPassword);
-        }
-      }
-
-      if (user.twoFactorEnabled && credentials.backupCode) {
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error("Missing encryption key; cannot proceed with backup code login.");
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
-
-        const backupCodes = JSON.parse(
-          symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY)
-        );
-
-        // check if user-supplied code matches one
-        const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
-        if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
-
-        // delete verified backup code and re-encrypt remaining
-        backupCodes[index] = null;
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
-          },
-        });
-      } else if (user.twoFactorEnabled) {
-        if (!credentials.totpCode) {
-          throw new Error(ErrorCode.SecondFactorRequired);
-        }
-
-        if (!user.twoFactorSecret) {
-          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
-          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-        if (secret.length !== 32) {
-          console.error(
-            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-          );
-          throw new Error(ErrorCode.InternalServerError);
-        }
-
-        const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
-          credentials.totpCode,
-          secret
-        );
-        if (!isValidToken) {
-          throw new Error(ErrorCode.IncorrectTwoFactorCode);
-        }
-      }
-      // Check if the user you are logging into has any active teams
-      const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
-
-      // authentication success- but does it meet the minimum password requirements?
-      const validateRole = (role: UserPermissionRole) => {
-        // User's role is not "ADMIN"
-        if (role !== "ADMIN") return role;
-        // User's identity provider is not "CAL"
-        if (user.identityProvider !== IdentityProvider.CAL) return role;
-
-        if (process.env.NEXT_PUBLIC_IS_E2E) {
-          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
-          return role;
-        }
-
-        // User's password is valid and two-factor authentication is enabled
-        if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
-        // Code is running in a development environment
-        if (isENVDev) return role;
-        // By this point it is an ADMIN without valid security conditions
-        return "INACTIVE_ADMIN";
-      };
-
-      return {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        role: validateRole(user.role),
-        belongsToActiveTeam: hasActiveTeams,
-        organizationId: user.organizationId,
-        locale: user.locale,
-      };
-    },
+    authorize: (credentials) => authorize(credentials),
   }),
   ImpersonationProvider,
 ];
+
+type User = NextAuthUser & { organizationId: number | null };
+
+async function authorize(
+  credentials:
+    | {
+        email: string;
+        password: string;
+        totpCode: string;
+        backupCode: string;
+      }
+    | undefined,
+
+  /**
+   * "unsafe" properties should only be used serverside. They will log a user in without requiring
+   * any sort of authentication.
+   *
+   * For example, passing `unsafe.userId` will log in the user with the given ID (as long as all other checks pass)
+   *
+   * This means they are not safe to use from e.g. CredentialsProvider as users could just pass in any userId they want.
+   */
+  unsafe?: {
+    unsafe: {
+      userId: number;
+    };
+  }
+): Promise<User> {
+  // Do not change this. If you change this, make sure all the
+  // `credentials?.<something>` and `if (credentials && ...)` checks are still valid.
+  //
+  // Otherwise, if no credentials are passed in, this could lead to security issues
+  // as we're not sure this was called with `unsafe` i.e. manually from server code.
+  if (!credentials && !unsafe) {
+    console.error("For some reason credentials are missing");
+    throw new Error(ErrorCode.InternalServerError);
+  }
+
+  // If `credentials` is passed in, this is from a next-auth credentials provider.
+  // Otherwise, this **has to be** from a manual call that provides `unsafe`.
+  // We're falling back to -1 in the `unsafe` case just to be super duper sure
+  const where = credentials ? { email: credentials.email.toLowerCase() } : { id: unsafe!.unsafe.userId };
+
+  const user = await prisma.user.findUnique({
+    where,
+    select: {
+      locked: true,
+      role: true,
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      metadata: true,
+      identityProvider: true,
+      password: true,
+      organizationId: true,
+      twoFactorEnabled: true,
+      twoFactorSecret: true,
+      backupCodes: true,
+      locale: true,
+      organization: {
+        select: {
+          id: true,
+        },
+      },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
+    },
+  });
+
+  // Don't leak information about it being username or password that is invalid
+  if (!user) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
+
+  // Locked users cannot login
+  if (user.locked) {
+    throw new Error(ErrorCode.UserAccountLocked);
+  }
+
+  await checkRateLimitAndThrowError({
+    identifier: user.email,
+  });
+
+  if (user.identityProvider !== IdentityProvider.CAL && !credentials?.totpCode) {
+    throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
+  }
+  if (!user.password && user.identityProvider == IdentityProvider.CAL) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
+  if (!user.password && user.identityProvider !== IdentityProvider.CAL && !credentials?.totpCode) {
+    throw new Error(ErrorCode.IncorrectEmailPassword);
+  }
+
+  if (credentials && user.password && !credentials?.totpCode) {
+    if (!user.password) {
+      throw new Error(ErrorCode.IncorrectEmailPassword);
+    }
+    const isCorrectPassword = await verifyPassword(credentials.password, user.password);
+    if (!isCorrectPassword) {
+      throw new Error(ErrorCode.IncorrectEmailPassword);
+    }
+  }
+
+  if (credentials && user.twoFactorEnabled && credentials.backupCode) {
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error("Missing encryption key; cannot proceed with backup code login.");
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    if (!user.backupCodes) throw new Error(ErrorCode.MissingBackupCodes);
+
+    const backupCodes = JSON.parse(symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY));
+
+    // check if user-supplied code matches one
+    const index = backupCodes.indexOf(credentials.backupCode.replaceAll("-", ""));
+    if (index === -1) throw new Error(ErrorCode.IncorrectBackupCode);
+
+    // delete verified backup code and re-encrypt remaining
+    backupCodes[index] = null;
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+      },
+    });
+  } else if (user.twoFactorEnabled) {
+    if (!credentials?.totpCode) {
+      throw new Error(ErrorCode.SecondFactorRequired);
+    }
+
+    if (!user.twoFactorSecret) {
+      console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+      console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+    if (secret.length !== 32) {
+      console.error(
+        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+      );
+      throw new Error(ErrorCode.InternalServerError);
+    }
+
+    const isValidToken = (await import("@calcom/lib/totp")).totpAuthenticatorCheck(
+      credentials.totpCode,
+      secret
+    );
+    if (!isValidToken) {
+      throw new Error(ErrorCode.IncorrectTwoFactorCode);
+    }
+  }
+  // Check if the user you are logging into has any active teams
+  const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
+
+  // authentication success- but does it meet the minimum password requirements?
+  const validateRole = (role: UserPermissionRole) => {
+    // User's role is not "ADMIN"
+    if (role !== "ADMIN") return role;
+    // User's identity provider is not "CAL"
+    if (user.identityProvider !== IdentityProvider.CAL) return role;
+
+    if (process.env.NEXT_PUBLIC_IS_E2E) {
+      console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+      return role;
+    }
+
+    // User's password is valid and two-factor authentication is enabled
+    if (credentials && isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled)
+      return role;
+    // Code is running in a development environment
+    if (isENVDev) return role;
+    // By this point it is an ADMIN without valid security conditions
+    return "INACTIVE_ADMIN";
+  };
+
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    name: user.name,
+    role: validateRole(user.role),
+    belongsToActiveTeam: hasActiveTeams,
+    organizationId: user.organizationId,
+    locale: user.locale,
+  };
+}
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
   providers.push(
@@ -361,6 +406,18 @@ if (isSAMLLoginEnabled) {
           email_verified: true,
         };
       },
+    })
+  );
+}
+
+if (IS_PASSKEY_LOGIN_ENABLED) {
+  providers.push(
+    PasskeyProvider({
+      tenant: tenant({
+        apiKey: process.env.HANKO_PASSKEYS_API_KEY!,
+        tenantId: process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID!,
+      }),
+      authorize: ({ userId }) => authorize(undefined, { unsafe: { userId: Number(userId) } }),
     })
   );
 }
