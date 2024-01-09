@@ -25,7 +25,7 @@ describe("Schedules Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let scheduleRepositoryFixture: SchedulesRepositoryFixture;
 
-    const userEmail = "test-e2e@api.com";
+    const userEmail = "schedules-controller-e2e@api.com";
     let user: User;
 
     let createdSchedule: ScheduleResponse;
