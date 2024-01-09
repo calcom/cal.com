@@ -29,7 +29,7 @@ import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } fro
 
 import PageWrapper from "@components/PageWrapper";
 
-import { getServerSideProps } from "../server/lib/signupGetData";
+import { getServerSideProps } from "../server/lib/signup/getServerSideProps";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API

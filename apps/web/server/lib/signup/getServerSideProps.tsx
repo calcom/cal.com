@@ -1,4 +1,3 @@
-// "use server";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -11,7 +10,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { ssrInit } from "@server/lib/ssr";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "./constants";
+import { IS_GOOGLE_LOGIN_ENABLED } from "../constants";
 
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
