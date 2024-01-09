@@ -126,6 +126,7 @@ export type InputEventType = {
   schedule?: InputUser["schedules"][number];
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
+  owner?: number;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type WhiteListedBookingProps = {
@@ -273,6 +274,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
             },
           }
         : eventType.schedule,
+      owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));

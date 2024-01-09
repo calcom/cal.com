@@ -17,6 +17,7 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import { getMockRequestDataForCancelBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForCancelBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import * as handleSeatsModule from "../handleSeats";
@@ -1246,11 +1247,6 @@ describe("handleSeats", () => {
         const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking"))
           .default;
 
-        const booker = getBooker({
-          email: "booker@example.com",
-          name: "Booker",
-        });
-
         const organizer = getOrganizer({
           name: "Organizer",
           email: "organizer@example.com",
@@ -1259,16 +1255,19 @@ describe("handleSeats", () => {
         });
 
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.00Z`;
-        const firstBookingEndTime = `${plus1DateString}T15:00:00.00Z`;
-        const firstBookingUid = "abc123";
-        const firstBookingId = 1;
+        const bookingStartTime = `${plus1DateString}T04:00:00.00Z`;
+        const bookingEndTime = `${plus1DateString}T15:00:00.00Z`;
+        const bookingUid = "abc123";
+        const bookingId = 1;
+
+        const attendeeIdToBeCancelled = 2;
+        const bookingSeatToBeCancelledUid = "booking-seat-2";
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: bookingId,
                 slug: "seated-event",
                 slotInterval: 45,
                 length: 45,
@@ -1285,12 +1284,12 @@ describe("handleSeats", () => {
             bookings: [
               {
                 id: 1,
-                uid: firstBookingUid,
+                uid: bookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,
                 status: BookingStatus.ACCEPTED,
-                startTime: firstBookingStartTime,
-                endTime: firstBookingEndTime,
+                startTime: bookingStartTime,
+                endTime: bookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -1343,21 +1342,15 @@ describe("handleSeats", () => {
           },
         });
 
-        const mockBookingData = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: BookingLocations.CalVideo },
-            },
-            rescheduleUid: firstBookingUid,
-          },
+        const mockCancelBookingData = getMockRequestDataForCancelBooking({
+          id: bookingId,
+          uid: bookingUid,
+          seatReferenceUid: bookingSeatToBeCancelledUid,
         });
 
         const { req } = createMockNextJsRequest({
           method: "POST",
-          body: mockBookingData,
+          body: mockCancelBookingData,
         });
 
         req.userId = organizer.id;
@@ -1367,18 +1360,189 @@ describe("handleSeats", () => {
         // Ensure that the booking has been cancelled
         const cancelledBooking = await prismaMock.booking.findFirst({
           where: {
-            id: firstBookingId,
+            id: bookingId,
           },
           select: {
             status: true,
           },
         });
 
-        expect(cancelledBooking?.status).toEqual(BookingStatus.CANCELLED);
+        // Check that the booking is still accepted
+        expect(cancelledBooking?.status).toEqual(BookingStatus.ACCEPTED);
+
+        // Check that the booking does not contain the cancelled attendee
+        const attendees = await prismaMock.attendee.findMany({
+          where: {
+            bookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(attendees).not.toContain({ id: attendeeIdToBeCancelled });
+
+        const bookingSeats = await prismaMock.bookingSeat.findMany({
+          where: {
+            bookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(bookingSeats).not.toContain({ referenceUid: bookingSeatToBeCancelledUid });
       });
 
       test("When last attendee cancels a booking, delete event", async () => {
-        return;
+        const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking"))
+          .default;
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00.00Z`;
+        const bookingEndTime = `${plus1DateString}T15:00:00.00Z`;
+        const bookingUid = "abc123";
+        const bookingId = 1;
+
+        const attendeeIdToBeCancelled = 2;
+        const bookingSeatToBeCancelledUid = "booking-seat-2";
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: bookingId,
+                slug: "seated-event",
+                slotInterval: 45,
+                length: 45,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                seatsPerTimeSlot: 4,
+                seatsShowAttendees: false,
+                owner: organizer.id,
+              },
+            ],
+            bookings: [
+              {
+                id: 1,
+                uid: bookingUid,
+                eventTypeId: 1,
+                userId: organizer.id,
+                status: BookingStatus.ACCEPTED,
+                startTime: bookingStartTime,
+                endTime: bookingEndTime,
+                metadata: {
+                  videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                },
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  getMockBookingAttendee({
+                    id: 1,
+                    name: "Seat 1",
+                    email: "seat1@test.com",
+                    locale: "en",
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-1",
+                      data: {},
+                    },
+                  }),
+                  getMockBookingAttendee({
+                    id: 2,
+                    name: "Seat 2",
+                    email: "seat2@test.com",
+                    locale: "en",
+                    timeZone: "America/Toronto",
+                    bookingSeat: {
+                      referenceUid: "booking-seat-2",
+                      data: {},
+                    },
+                  }),
+                ],
+              },
+            ],
+            organizer,
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const mockCancelBookingData = getMockRequestDataForCancelBooking({
+          id: bookingId,
+          uid: bookingUid,
+          seatReferenceUid: bookingSeatToBeCancelledUid,
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockCancelBookingData,
+        });
+
+        req.userId = organizer.id;
+
+        await handleCancelBooking(req);
+
+        // Ensure that the booking has been cancelled
+        const cancelledBooking = await prismaMock.booking.findFirst({
+          where: {
+            id: bookingId,
+          },
+          select: {
+            status: true,
+          },
+        });
+
+        // Check that the booking is still accepted
+        expect(cancelledBooking?.status).toEqual(BookingStatus.ACCEPTED);
+
+        // Check that the booking does not contain the cancelled attendee
+        const attendees = await prismaMock.attendee.findMany({
+          where: {
+            bookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(attendees).not.toContain({ id: attendeeIdToBeCancelled });
+
+        const bookingSeats = await prismaMock.bookingSeat.findMany({
+          where: {
+            bookingId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        expect(bookingSeats).not.toContain({ referenceUid: bookingSeatToBeCancelledUid });
       });
     });
   });
