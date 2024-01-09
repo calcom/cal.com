@@ -35,8 +35,9 @@ async function getProps(context: GetServerSidePropsContext) {
 
 export const generateStaticParams = () => [];
 
+// @ts-expect-error getData arg
 export default WithLayout({ getLayout: null, getData: getProps, Page: LegacyPage })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand
-export const dynamicParams = "true";
+export const dynamicParams = true;
 export const revalidate = 10;
