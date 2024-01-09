@@ -9,7 +9,7 @@ import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button, Meta, showToast, Badge, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
+import { Button, Meta, showToast, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -170,8 +170,8 @@ const OutOfOfficeEntriesList = () => {
           <TableRow>
             <TableHead className="rounded-tl-lg font-normal capitalize">{t("time_range")}</TableHead>
             <TableHead className="font-normal">{t("username")}</TableHead>
-            <TableHead className="font-normal">{t("status")}</TableHead>
-            <TableHead className="rounded-tr-lg font-normal">{t("more")}</TableHead>
+
+            <TableHead className="rounded-tr-lg font-normal">{t("action")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -185,25 +185,7 @@ const OutOfOfficeEntriesList = () => {
               <TableCell>
                 <p className="px-2">{item.toUser?.username || "N/A"}</p>
               </TableCell>
-              <TableCell>
-                {item.status === null && <p className="px-4 text-xs">N/A</p>}
-                {item.status === "PENDING" && (
-                  <Badge variant="warning" className="px-4 text-xs">
-                    {t("pending")}
-                  </Badge>
-                )}
-                {item.status === "ACCEPTED" && (
-                  <Badge variant="success" className="px-4 text-xs capitalize">
-                    {t("accepted")}
-                  </Badge>
-                )}
-                {item.status === "REJECTED" && (
-                  <Badge variant="error" className="px-4 text-xs">
-                    {t("rejected")}
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell>
+              <TableCell className="px-4">
                 <Button
                   type="button"
                   color="minimal"

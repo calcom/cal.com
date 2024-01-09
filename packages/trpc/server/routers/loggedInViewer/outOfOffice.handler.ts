@@ -1,15 +1,14 @@
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { sendAcceptBookingRedirect } from "@calcom/emails";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { sendBookingRedirectNotification } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TOutOfOfficeRedirectConfirm, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
+import type { TOutOfOfficeDelete, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
 
 type TBookingRedirect = {
   ctx: {
@@ -106,12 +105,10 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     select: {
       userId: true,
       toUserId: true,
-      status: true,
     },
     where: {
       userId: toUserId,
       toUserId: ctx.user.id,
-      // any status since it can be accepted in the future
       // Check for time overlap or collision
       OR: [
         // Outside of range
@@ -144,7 +141,6 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       end: dayjs(input.endDate).endOf("day").toISOString(),
       userId: ctx.user.id,
       toUserId: toUserId,
-      status: !toUserId ? null : "PENDING",
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -164,13 +160,11 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.start);
     const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.end);
     if (userToNotify?.email) {
-      await sendAcceptBookingRedirect({
+      await sendBookingRedirectNotification({
         language: t,
         fromEmail: ctx.user.email,
         toEmail: userToNotify.email,
         toName: ctx.user.username || "",
-        acceptLink: `${WEBAPP_URL}/booking-redirect/accept/${createdRedirect?.uuid}`,
-        rejectLink: `${WEBAPP_URL}/booking-redirect/reject/${createdRedirect?.uuid}`,
         dates: `${formattedStartDate} - ${formattedEndDate}`,
       });
     }
@@ -179,48 +173,11 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   return {};
 };
 
-type TBookingRedirectConfirm = {
-  ctx: {
-    user: NonNullable<TrpcSessionUser>;
-  };
-  input: TOutOfOfficeRedirectConfirm;
-};
-
-export const outOfOfficeRedirectConfirm = async ({ ctx, input }: TBookingRedirectConfirm) => {
-  if (!input.outOfOfficeUid) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "out_of_office_id_required" });
-  }
-
-  // Validate bookingRedirect is targeted to the user accepting it
-  const bookingRedirect = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      id: Number(input.outOfOfficeUid),
-      toUserId: ctx.user.id,
-    },
-  });
-
-  if (!bookingRedirect) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
-  }
-
-  await prisma.outOfOfficeEntry.update({
-    where: {
-      id: Number(input.outOfOfficeUid),
-    },
-    data: {
-      status: "PENDING",
-      updatedAt: new Date(),
-    },
-  });
-
-  return {};
-};
-
 type TBookingRedirectDelete = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TOutOfOfficeRedirectConfirm;
+  input: TOutOfOfficeDelete;
 };
 
 export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDelete) => {
@@ -269,7 +226,6 @@ export const outOfOfficeEntriesList = async ({ ctx }: { ctx: { user: NonNullable
       uuid: true,
       start: true,
       end: true,
-      status: true,
       toUserId: true,
       toUser: {
         select: {

@@ -12,11 +12,7 @@ import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schem
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
 import { ZIntegrationsInputSchema } from "./integrations.schema";
 import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
-import {
-  ZOutOfOfficeInputSchema,
-  ZOutOfOfficeDelete,
-  ZOutOfOfficeRedirectConfirm,
-} from "./outOfOffice.schema";
+import { ZOutOfOfficeInputSchema, ZOutOfOfficeDelete } from "./outOfOffice.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
@@ -53,7 +49,6 @@ type AppsRouterHandlerCache = {
   getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   outOfOfficeCreateEntry?: typeof import("./outOfOffice.handler").outOfOfficeCreate;
-  outOfOfficeRedirectConfirm?: typeof import("./outOfOffice.handler").outOfOfficeRedirectConfirm;
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
 };
@@ -467,22 +462,6 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.outOfOfficeCreate({ ctx, input });
   }),
-  outOfOfficeRedirectConfirm: authedProcedure
-    .input(ZOutOfOfficeRedirectConfirm)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeRedirectConfirm) {
-        UNSTABLE_HANDLER_CACHE.outOfOffice = (
-          await import("./outOfOffice.handler")
-        ).outOfOfficeRedirectConfirm;
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeRedirectConfirm) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.outOfOfficeRedirectConfirm({ ctx, input });
-    }),
   outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
       UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (

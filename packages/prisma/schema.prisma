@@ -1056,27 +1056,21 @@ model Avatar {
   @@map(name: "avatars")
 }
 
-enum BookingRedirectStatus {
-  ACCEPTED @map("accepted")
-  REJECTED @map("rejected")
-  PENDING  @map("pending")
-}
-
 model OutOfOfficeEntry {
-  id        Int                    @id @default(autoincrement())
-  uuid      String                 @unique
-  start     DateTime
-  end       DateTime
-  userId    Int
-  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId  Int?
-  toUser    User?                  @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  status    BookingRedirectStatus?
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
+  id       Int      @id @default(autoincrement())
+  uuid     String   @unique
+  start    DateTime
+  end      DateTime
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId Int?
+  toUser   User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([uuid])
   @@index([userId])
   @@index([toUserId])
-  @@index([start, end, status])
+  @@index([start, end])
 }

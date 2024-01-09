@@ -8,8 +8,6 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
-import type { IBookingRedirect } from "./templates/accept-booking-redirect";
-import AcceptBookingRedirect from "./templates/accept-booking-redirect";
 import type { EmailVerifyLink } from "./templates/account-verify-email";
 import AccountVerifyEmail from "./templates/account-verify-email";
 import type { OrganizationNotification } from "./templates/admin-organization-notification";
@@ -26,6 +24,8 @@ import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import type { EmailVerifyCode } from "./templates/attendee-verify-email";
 import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
+import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
+import type { IBookingRedirect } from "./templates/booking-redirect-notification";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
@@ -440,6 +440,6 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
   await sendEmail(() => new AdminOrganizationNotification(input));
 };
 
-export const sendAcceptBookingRedirect = async (bookingRedirect: IBookingRedirect) => {
-  await sendEmail(() => new AcceptBookingRedirect(bookingRedirect));
+export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
+  await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };

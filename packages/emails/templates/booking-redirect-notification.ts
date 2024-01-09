@@ -10,17 +10,15 @@ export interface IBookingRedirect {
   fromEmail: string;
   toEmail: string;
   toName: string;
-  acceptLink: string;
-  rejectLink: string;
   dates: string;
 }
 
-export default class AcceptBookingRedirect extends BaseEmail {
+export default class BookingRedirectNotification extends BaseEmail {
   bookingRedirect: IBookingRedirect;
 
   constructor(bookingRedirect: IBookingRedirect) {
     super();
-    this.name = "ACCEPT_BOOKING_REDIRECT";
+    this.name = "BOOKING_REDIRECT_NOTIFICATION";
     this.bookingRedirect = bookingRedirect;
   }
 
@@ -28,8 +26,8 @@ export default class AcceptBookingRedirect extends BaseEmail {
     return {
       to: `${this.bookingRedirect.toEmail} <${this.bookingRedirect.toName}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.bookingRedirect.language("accept_booking_redirect_email_subject"),
-      html: await renderEmail("AcceptBookingRedirectEmail", {
+      subject: this.bookingRedirect.language("booking_redirect_email_subject"),
+      html: await renderEmail("BookingRedirectEmailNotification", {
         ...this.bookingRedirect,
       }),
       text: "",

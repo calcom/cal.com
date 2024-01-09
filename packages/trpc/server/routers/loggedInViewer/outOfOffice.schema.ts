@@ -8,12 +8,6 @@ export const ZOutOfOfficeInputSchema = z.object({
 
 export type TOutOfOfficeInputSchema = z.infer<typeof ZOutOfOfficeInputSchema>;
 
-export const ZOutOfOfficeRedirectConfirm = z.object({
-  outOfOfficeUid: z.string(),
-});
-
-export type TOutOfOfficeRedirectConfirm = z.infer<typeof ZOutOfOfficeRedirectConfirm>;
-
 export const ZOutOfOfficeDelete = z.object({
   outOfOfficeUid: z.string(),
 });
