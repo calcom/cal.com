@@ -12,6 +12,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 import {
@@ -434,6 +435,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       embedUrl: embedLink,
+      // We are okay with namespace clashing here if just in case names clash
+      namespace: slugify((routingForm?.name || "").substring(0, 5)),
     },
     edit: {
       href: `${appUrl}/form-edit/${routingForm?.id}`,

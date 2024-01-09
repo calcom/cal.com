@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 
@@ -13,7 +15,7 @@ import PageWrapper from "@components/PageWrapper";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export default function Apps({ categories }: inferSSRProps<typeof getServerSideProps>) {
+export default function Apps({ categories }: Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">) {
   const { t, isLocaleReady } = useLocale();
 
   return (
