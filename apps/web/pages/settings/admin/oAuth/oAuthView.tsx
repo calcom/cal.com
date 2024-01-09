@@ -35,7 +35,7 @@ export default function OAuthView() {
 
   return (
     <div>
-      <Meta title="OAuth" description="Add new OAuth Clients" />
+      <Meta title="OAuth" description="Add new OAuth Clients" borderInShellHeader />
       {!clientId ? (
         <Form
           form={oAuthForm}
@@ -46,7 +46,7 @@ export default function OAuthView() {
               logo: values.logo,
             });
           }}>
-          <div className="">
+          <div className="border-subtle rounded-b-xl border border-t-0 px-4 py-6 sm:px-6">
             <TextField
               {...oAuthForm.register("name")}
               label="Client name"

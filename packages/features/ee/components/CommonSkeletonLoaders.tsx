@@ -4,8 +4,8 @@ import { Meta, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/u
 export const AppearanceSkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={false} />
-      <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+      <Meta title={title} description={description} borderInShellHeader={true} />
+      <div className="border-subtle flex items-center rounded-t-none border p-6 text-sm">
         <SkeletonText className="h-8 w-1/3" />
       </div>
       <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">

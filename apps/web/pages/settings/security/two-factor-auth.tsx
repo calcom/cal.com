@@ -21,7 +21,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="mb-8 mt-6 space-y-6">
+      <div className="border-subtle space-y-6 border border-t-0 px-4 py-8 sm:px-6">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
           <SkeletonText className="h-8 w-full" />

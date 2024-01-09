@@ -10,7 +10,11 @@ const AboutOrganizationPage = () => {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("about_your_organization")} description={t("about_your_organization_description")} />
+      <Meta
+        title={t("about_your_organization")}
+        description={t("about_your_organization_description")}
+        borderInShellHeader
+      />
       <AboutOrganizationForm />
     </>
   );

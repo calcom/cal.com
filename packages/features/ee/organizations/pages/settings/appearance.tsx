@@ -77,11 +77,7 @@ const OrgAppearanceView = ({
 
   return (
     <LicenseRequired>
-      <Meta
-        title={t("appearance")}
-        description={t("appearance_org_description")}
-        borderInShellHeader={false}
-      />
+      <Meta title={t("appearance")} description={t("appearance_org_description")} borderInShellHeader />
       {isAdminOrOwner ? (
         <div>
           <div className="my-6">

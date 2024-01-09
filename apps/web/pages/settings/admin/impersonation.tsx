@@ -15,9 +15,9 @@ function AdminView() {
 
   return (
     <>
-      <Meta title={t("admin")} description={t("impersonation")} />
+      <Meta title={t("admin")} description={t("impersonation")} borderInShellHeader />
       <form
-        className="mb-6 w-full sm:w-1/2"
+        className="border-subtle rounded-b-xl border border-t-0 px-4 py-6 sm:px-6"
         onSubmit={(e) => {
           e.preventDefault();
           const enteredUsername = usernameRef.current?.value.toLowerCase();
