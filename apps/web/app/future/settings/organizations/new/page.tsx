@@ -36,5 +36,4 @@ const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-// @ts-expect-error getData arg
 export default WithLayout({ getLayout: LayoutWrapper, Page: LegacyPage, getData: getPageProps });
