@@ -1410,7 +1410,7 @@ async function handler(
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = getICalSequence(originalRescheduledBooking);
 
-  const evt: CalendarEvent = {
+  let evt: CalendarEvent = {
     bookerUrl: eventType.team
       ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
       : await getBookerBaseUrl(organizerUser),
@@ -1658,7 +1658,7 @@ async function handler(
       );
     }
 
-    addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
+    evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
