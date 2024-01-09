@@ -1,6 +1,6 @@
 import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { schemaScheduleResponse } from "@/ee/schedules/zod/response/response";
+import { ScheduleResponse, schemaScheduleResponse } from "@/ee/schedules/zod/response/response";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
@@ -22,7 +22,8 @@ export class SchedulesController {
   async createSchedule(
     @GetUser("id") userId: number,
     @Body() bodySchedule: CreateScheduleInput
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<{ schedule: ScheduleResponse }>> {
+    console.log("asap rocky bodySchedule", JSON.stringify(bodySchedule, null, 2));
     const schedule = await this.schedulesService.createUserSchedule(userId, bodySchedule);
     const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
@@ -35,7 +36,9 @@ export class SchedulesController {
   }
 
   @Get("/default")
-  async getDefaultSchedule(@GetUser("id") userId: number): Promise<ApiResponse> {
+  async getDefaultSchedule(
+    @GetUser("id") userId: number
+  ): Promise<ApiResponse<{ schedule: ScheduleResponse }>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(userId);
     const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
@@ -51,7 +54,7 @@ export class SchedulesController {
   async getSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<{ schedule: ScheduleResponse }>> {
     const schedule = await this.schedulesService.getUserSchedule(userId, scheduleId);
     const scheduleResponse = schemaScheduleResponse.parse(schedule);
 
@@ -64,7 +67,7 @@ export class SchedulesController {
   }
 
   @Get("/")
-  async getSchedules(@GetUser("id") userId: number): Promise<ApiResponse> {
+  async getSchedules(@GetUser("id") userId: number): Promise<ApiResponse<{ schedules: ScheduleResponse[] }>> {
     const schedules = await this.schedulesService.getUserSchedules(userId);
     const schedulesResponse = schedules.map((schedule) => schemaScheduleResponse.parse(schedule));
 
@@ -93,7 +96,7 @@ export class SchedulesController {
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number,
     @Body() bodySchedule: UpdateScheduleInput
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<{ schedule: ScheduleResponse }>> {
     const schedule = await this.schedulesService.updateUserSchedule(userId, scheduleId, bodySchedule);
     const scheduleResponse = schemaScheduleResponse.parse(schedule);
 

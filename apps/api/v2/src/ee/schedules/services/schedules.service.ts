@@ -15,7 +15,9 @@ export class SchedulesService {
   ) {}
 
   async createUserSchedule(userId: number, schedule: CreateScheduleInput) {
-    const availabilities = schedule.availabilities || [this.availabilitiesService.getDefaultAvailability()];
+    const availabilities = schedule.availabilities?.length
+      ? schedule.availabilities
+      : [this.availabilitiesService.getDefaultAvailabilityInput()];
 
     const createdSchedule = await this.schedulesRepository.createScheduleWithAvailabilities(
       userId,

@@ -32,3 +32,5 @@ export const schemaScheduleResponse = z
         .optional(),
     })
   );
+
+export type ScheduleResponse = z.infer<typeof schemaScheduleResponse>;

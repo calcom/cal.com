@@ -15,24 +15,34 @@ export class SchedulesRepository {
     schedule: CreateScheduleInput,
     availabilities: CreateAvailabilityInput[]
   ) {
+    const createScheduleData: Prisma.ScheduleCreateInput = {
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      name: schedule.name,
+      timeZone: schedule.timeZone,
+    };
+
+    if (availabilities.length > 0) {
+      createScheduleData.availability = {
+        createMany: {
+          data: availabilities.map((availability) => {
+            return {
+              days: availability.days,
+              startTime: availability.startTime,
+              endTime: availability.endTime,
+              userId,
+            };
+          }),
+        },
+      };
+    }
+
     const createdSchedule = await this.dbWrite.prisma.schedule.create({
       data: {
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-        ...schedule,
-        availability: {
-          createMany: {
-            data: availabilities.map((availability) => {
-              return {
-                ...availability,
-                userId,
-              };
-            }),
-          },
-        },
+        ...createScheduleData,
       },
       include: {
         availability: true,
