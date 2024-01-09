@@ -124,5 +124,6 @@
   "already_have_an_account": "Vai jums jau ir konts?",
   "create_account": "Izveidot Kontu",
   "confirm_password": "Apstiprināt paroli",
-  "confirm_auth_change": "Šis mainīs veidu, kā jūs autorizējaties"
+  "confirm_auth_change": "Šis mainīs veidu, kā jūs autorizējaties",
+  "already_have_account": "Vai jums jau ir konts?"
 }

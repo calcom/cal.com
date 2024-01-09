@@ -144,7 +144,7 @@ const updateMeeting = async (
   if (!updatedMeeting) {
     log.error(
       "updateMeeting failed",
-      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+      safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
       appName: credential.appId || "",
@@ -202,6 +202,28 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);
+};
+
+export const createInstantMeetingWithCalVideo = async (endTime: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.createInstantCalVideoRoom?.(endTime);
 };
 
 const getRecordingsOfCalVideoByRoomName = async (

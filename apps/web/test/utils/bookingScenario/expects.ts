@@ -4,11 +4,11 @@ import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalend
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import dayjs from "@calcom/dayjs";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -68,6 +68,7 @@ type ExpectedEmail = {
     filename: string;
     iCalUID?: string;
     recurrence?: Recurrence;
+    method: string;
   };
   /**
    * Checks that there is no
@@ -135,7 +136,7 @@ expect.extend({
 
       return {
         pass: false,
-        message: () => `Email content ${isNot ? "is" : "is not"} matching`,
+        message: () => `Email content ${isNot ? "is" : "is not"} matching. ${JSON.stringify(emailsToLog)}`,
         actual: actualEmailContent,
         expected: expectedEmailContent,
       };
@@ -162,9 +163,14 @@ expect.extend({
     }
 
     if (!expectedEmail.noIcs && !isIcsUIDExpected) {
+      const icsObjectKeys = icsObject ? Object.keys(icsObject) : [];
+      const icsKey = icsObjectKeys.find((key) => key !== "vcalendar");
+      if (!icsKey) throw new Error("icsKey not found");
       return {
         pass: false,
-        actual: JSON.stringify(icsObject),
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        actual: icsObject[icsKey].uid!,
         expected: expectedEmail.ics?.iCalUID,
         message: () => `Expected ICS UID ${isNot ? "is" : "isn't"} present in actual`,
       };
@@ -298,8 +304,41 @@ export function expectWebhookToHaveBeenCalledWith(
   }
 }
 
-export function expectWorkflowToBeTriggered() {
-  // TODO: Implement this.
+export function expectWorkflowToBeTriggered({
+  emails,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string; timeZone: string };
+}) {
+  const subjectPattern = /^Reminder: /i;
+  expect(emails.get()).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        subject: expect.stringMatching(subjectPattern),
+        to: organizer.email,
+      }),
+    ])
+  );
+}
+
+export function expectWorkflowToBeNotTriggered({
+  emails,
+  organizer,
+}: {
+  emails: Fixtures["emails"];
+  organizer: { email: string; name: string; timeZone: string };
+}) {
+  const subjectPattern = /^Reminder: /i;
+
+  expect(emails.get()).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        subject: expect.stringMatching(subjectPattern),
+        to: organizer.email,
+      }),
+    ])
+  );
 }
 
 export async function expectBookingToBeInDatabase(
@@ -343,7 +382,7 @@ export function expectSuccessfulBookingCreationEmails({
   bookingTimeRange?: { start: Date; end: Date };
   booking: { uid: string; urlOrigin?: string };
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || WEBAPP_URL;
+  const bookingUrlOrigin = booking.urlOrigin || CAL_URL;
   expect(emails).toHaveEmail(
     {
       titleTag: "confirmed_event_type_subject",
@@ -375,6 +414,7 @@ export function expectSuccessfulBookingCreationEmails({
         filename: "event.ics",
         iCalUID: `${iCalUID}`,
         recurrence,
+        method: "REQUEST",
       },
     },
     `${organizer.email}`
@@ -397,8 +437,9 @@ export function expectSuccessfulBookingCreationEmails({
       to: `${booker.name} <${booker.email}>`,
       ics: {
         filename: "event.ics",
-        iCalUID: iCalUID,
+        iCalUID: `${iCalUID}`,
         recurrence,
+        method: "REQUEST",
       },
       links: recurrence
         ? [
@@ -436,7 +477,8 @@ export function expectSuccessfulBookingCreationEmails({
           to: `${otherTeamMember.email}`,
           ics: {
             filename: "event.ics",
-            iCalUID: iCalUID,
+            iCalUID: `${iCalUID}`,
+            method: "REQUEST",
           },
           links: [
             {
@@ -472,7 +514,8 @@ export function expectSuccessfulBookingCreationEmails({
           to: `${guest.email}`,
           ics: {
             filename: "event.ics",
-            iCalUID: iCalUID,
+            iCalUID: `${iCalUID}`,
+            method: "REQUEST",
           },
         },
         `${guest.name} <${guest.email}`
@@ -529,6 +572,7 @@ export function expectCalendarEventCreationFailureEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
     },
     `${organizer.email}`
@@ -541,13 +585,14 @@ export function expectCalendarEventCreationFailureEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
     },
     `${booker.name} <${booker.email}>`
   );
 }
 
-export function expectSuccessfulRoudRobinReschedulingEmails({
+export function expectSuccessfulRoundRobinReschedulingEmails({
   emails,
   newOrganizer,
   prevOrganizer,
@@ -557,32 +602,38 @@ export function expectSuccessfulRoudRobinReschedulingEmails({
   prevOrganizer: { email: string; name: string };
 }) {
   if (newOrganizer !== prevOrganizer) {
-    // new organizer should recieve scheduling emails
-    expect(emails).toHaveEmail(
-      {
-        heading: "new_event_scheduled",
-        to: `${newOrganizer.email}`,
-      },
-      `${newOrganizer.email}`
-    );
+    vi.waitFor(() => {
+      // new organizer should recieve scheduling emails
+      expect(emails).toHaveEmail(
+        {
+          heading: "new_event_scheduled",
+          to: `${newOrganizer.email}`,
+        },
+        `${newOrganizer.email}`
+      );
+    });
 
-    // old organizer should recieve cancelled emails
-    expect(emails).toHaveEmail(
-      {
-        heading: "event_request_cancelled",
-        to: `${prevOrganizer.email}`,
-      },
-      `${prevOrganizer.email}`
-    );
+    vi.waitFor(() => {
+      // old organizer should recieve cancelled emails
+      expect(emails).toHaveEmail(
+        {
+          heading: "event_request_cancelled",
+          to: `${prevOrganizer.email}`,
+        },
+        `${prevOrganizer.email}`
+      );
+    });
   } else {
-    // organizer should recieve rescheduled emails
-    expect(emails).toHaveEmail(
-      {
-        heading: "event_has_been_rescheduled",
-        to: `${newOrganizer.email}`,
-      },
-      `${newOrganizer.email}`
-    );
+    vi.waitFor(() => {
+      // organizer should recieve rescheduled emails
+      expect(emails).toHaveEmail(
+        {
+          heading: "event_has_been_rescheduled",
+          to: `${newOrganizer.email}`,
+        },
+        `${newOrganizer.email}`
+      );
+    });
   }
 }
 
@@ -606,6 +657,7 @@ export function expectSuccessfulBookingRescheduledEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
       appsStatus,
     },
@@ -619,6 +671,7 @@ export function expectSuccessfulBookingRescheduledEmails({
       ics: {
         filename: "event.ics",
         iCalUID,
+        method: "REQUEST",
       },
     },
     `${booker.name} <${booker.email}>`
@@ -689,7 +742,7 @@ export function expectBookingRequestRescheduledEmails({
   booking: { uid: string; urlOrigin?: string };
   bookNewTimePath: string;
 }) {
-  const bookingUrlOrigin = booking.urlOrigin || WEBAPP_URL;
+  const bookingUrlOrigin = booking.urlOrigin || CAL_URL;
 
   expect(emails).toHaveEmail(
     {
@@ -705,6 +758,7 @@ export function expectBookingRequestRescheduledEmails({
       to: `${booker.email}`,
       ics: {
         filename: "event.ics",
+        method: "REQUEST",
       },
     },
     `${booker.email}`
@@ -718,6 +772,7 @@ export function expectBookingRequestRescheduledEmails({
       to: `${loggedInUser.email}`,
       ics: {
         filename: "event.ics",
+        method: "REQUEST",
       },
     },
     `${loggedInUser.email}`
@@ -1067,4 +1122,12 @@ export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { fro
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...to,
   });
+}
+
+export function expectICalUIDAsString(iCalUID: string | undefined | null) {
+  if (typeof iCalUID !== "string") {
+    throw new Error("iCalUID is not a string");
+  }
+
+  return iCalUID;
 }

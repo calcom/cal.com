@@ -1,7 +1,9 @@
 import { useWatch } from "react-hook-form";
+import { ZodError } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { ZTestTriggerInputSchema } from "@calcom/trpc/server/routers/viewer/webhook/testTrigger.schema";
 import { Badge, Button, showToast } from "@calcom/ui";
 import { Activity } from "@calcom/ui/components/icon";
 
@@ -27,9 +29,25 @@ export default function WebhookTestDisclosure() {
           color="secondary"
           disabled={mutation.isLoading || !subscriberUrl}
           StartIcon={Activity}
-          onClick={() =>
-            mutation.mutate({ url: subscriberUrl, secret: webhookSecret, type: "PING", payloadTemplate })
-          }>
+          onClick={() => {
+            try {
+              ZTestTriggerInputSchema.parse({
+                url: subscriberUrl,
+                secret: webhookSecret,
+                type: "PING",
+                payloadTemplate,
+              });
+              mutation.mutate({ url: subscriberUrl, secret: webhookSecret, type: "PING", payloadTemplate });
+            } catch (error) {
+              //this catches invalid subscriberUrl before calling the mutation
+              if (error instanceof ZodError) {
+                const errorMessage = error.errors.map((e) => e.message).join(", ");
+                showToast(errorMessage, "error");
+              } else {
+                showToast(t("unexpected_error_try_again"), "error");
+              }
+            }
+          }}>
           {t("ping_test")}
         </Button>
       </div>
