@@ -72,32 +72,6 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
   });
 
-  test("User can accept/reject booking redirect", async ({ page, users }) => {
-    const user = await users.create({ name: "userOne" });
-    const userTo = await users.create({ name: "userTwo" });
-    await userTo.apiLogin();
-    const uuid = uuidv4();
-    await prisma.outOfOfficeEntry.create({
-      data: {
-        start: dayjs().startOf("day").add(1, "hour").toDate(),
-        uuid,
-        end: dayjs().startOf("day").add(2, "hour").toDate(),
-        user: { connect: { id: user.id } },
-        toUser: { connect: { id: userTo.id } },
-        status: "PENDING",
-        createdAt: new Date(),
-      },
-    });
-
-    await page.goto(`/booking-redirect/accept/${uuid}`);
-
-    // todo: check whatever text is shown on EmptyScreen
-
-    await page.goto(`/booking-redirect/reject/${uuid}`);
-
-    // todo: check whatever text is shown on EmptyScreen
-  });
-
   test("Profile redirection", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
@@ -109,7 +83,6 @@ test.describe("Out of office", () => {
         uuid,
         user: { connect: { id: user.id } },
         toUser: { connect: { id: userTo.id } },
-        status: "ACCEPTED",
         createdAt: new Date(),
       },
     });

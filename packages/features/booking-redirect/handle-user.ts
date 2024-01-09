@@ -26,19 +26,10 @@ export const handleUserRedirection = async (props: HandleUserRedirectionProps) =
         },
         toUserId: true,
         userId: true,
-        status: true,
         start: true,
         end: true,
       },
       where: {
-        OR: [
-          {
-            status: "ACCEPTED",
-          },
-          {
-            status: null,
-          },
-        ],
         userId: fromUser.id,
         start: {
           lte: new Date(),
