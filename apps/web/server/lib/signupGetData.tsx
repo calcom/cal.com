@@ -23,7 +23,7 @@ const querySchema = z.object({
   email: z.string().email().optional(),
 });
 
-export const getData = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
   const token = z.string().optional().parse(ctx.query.token);

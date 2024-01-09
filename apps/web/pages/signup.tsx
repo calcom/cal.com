@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
-import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,7 +29,7 @@ import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } fro
 
 import PageWrapper from "@components/PageWrapper";
 
-import { getData } from "../server/lib/signupGetData";
+import { getServerSideProps } from "../server/lib/signupGetData";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -544,8 +543,6 @@ export default function Signup({
   );
 }
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  return getData(ctx);
-};
+export { getServerSideProps };
 
 Signup.PageWrapper = PageWrapper;
