@@ -65,7 +65,7 @@ const OrgForm = () => {
   };
 
   return (
-    <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
+    <Form form={form} className="max-w-screen-sm space-y-4" handleSubmit={onSubmit}>
       <TextField
         addOnSuffix=".cal.com"
         label="Subdomain"
@@ -74,7 +74,7 @@ const OrgForm = () => {
       />
       <EmailField label="Owner Email" placeholder="owner@acme.com" {...form.register("ownerEmail")} />
       <small className="relative -top-2 block opacity-50">
-        This needs to be the email the organisation owner will sign into cal.com
+        This needs to be the email the organization owner will sign into cal.com
       </small>
 
       <EmailField label="Billing Email" placeholder="billing@acme.com" {...form.register("billingEmail")} />
@@ -90,7 +90,7 @@ const OrgForm = () => {
         {...form.register("accountManagerEmail")}
       />
       <small className="relative -top-2 block opacity-50">
-        The cal.com account manager that helps set up the organisation
+        The cal.com account manager that helps set up the organization
       </small>
 
       <TextField type="number" label="Seats" placeholder="30" {...form.register("seats")} />
@@ -105,8 +105,11 @@ const OrgForm = () => {
 
       {/*  TODO: Create user, create Stripe subscription, send email invite, */}
       <Button type="submit" color="primary" loading={mutation.isLoading}>
-        {t("invite")}
+        {t("create")}
       </Button>
+      <small className="relative -top-2 block opacity-50">
+        Creating an Organization will send an email with billing information to the owner
+      </small>
     </Form>
   );
 };

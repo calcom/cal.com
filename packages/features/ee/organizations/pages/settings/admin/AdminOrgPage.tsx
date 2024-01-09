@@ -11,6 +11,7 @@ import {
   Meta,
   DropdownActions,
   showToast,
+  Button,
   Table,
   Badge,
   ConfirmationDialogContent,
@@ -219,7 +220,15 @@ const AdminOrgList = () => {
   const { t } = useLocale();
   return (
     <LicenseRequired>
-      <Meta title={t("organizations")} description={t("orgs_page_description")} />
+      <Meta
+        title={t("organizations")}
+        description={t("orgs_page_description")}
+        CTA={
+          <div className="mt-4 space-x-5 sm:ml-16 sm:mt-0 sm:flex-none">
+            <Button href="/settings/admin/organizations/add">{t("add")}</Button>
+          </div>
+        }
+      />
       <NoSSR>
         <AdminOrgTable />
       </NoSSR>
