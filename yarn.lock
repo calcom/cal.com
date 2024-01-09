@@ -3698,6 +3698,7 @@ __metadata:
     "@calcom/prisma": "*"
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
+    "@teamhanko/passkeys-next-auth-provider": ^0.2.4
     bcryptjs: ^2.4.3
     handlebars: ^4.7.7
     jose: ^4.13.1
