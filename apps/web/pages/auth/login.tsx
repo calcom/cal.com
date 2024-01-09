@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signInWithPasskey } from "@teamhanko/passkeys-next-auth-provider/client";
 import classNames from "classnames";
 import { jwtVerify } from "jose";
 import type { GetServerSidePropsContext } from "next";
@@ -31,10 +32,11 @@ import withNonce from "@lib/withNonce";
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
 import BackupCode from "@components/auth/BackupCode";
+import PasskeyIcon from "@components/auth/PasskeyIcon";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
+import { IS_GOOGLE_LOGIN_ENABLED, IS_PASSKEY_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
 interface LoginValues {
@@ -48,6 +50,7 @@ export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
+  isPasskeyLoginEnabled,
   samlTenantID,
   samlProductID,
   totpEmail,
@@ -234,9 +237,12 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
               </Button>
             </div>
           </form>
+
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
+              {(isGoogleLoginEnabled || displaySSOLogin || isPasskeyLoginEnabled) && (
+                <hr className="border-subtle my-8" />
+              )}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -258,6 +264,21 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
                     samlProductID={samlProductID}
                     setErrorMessage={setErrorMessage}
                   />
+                )}
+                {isPasskeyLoginEnabled && (
+                  <Button
+                    color="secondary"
+                    className="w-full justify-center"
+                    disabled={formState.isSubmitting}
+                    StartIcon={PasskeyIcon}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      await signInWithPasskey({
+                        tenantId: process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID ?? "",
+                      });
+                    }}>
+                    {t("signin_with_passkey")}
+                  </Button>
                 )}
               </div>
             </>
@@ -352,6 +373,7 @@ const _getServerSideProps = async function getServerSideProps(context: GetServer
       csrfToken: await getCsrfToken(context),
       trpcState: ssr.dehydrate(),
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isPasskeyLoginEnabled: IS_PASSKEY_LOGIN_ENABLED,
       isSAMLLoginEnabled,
       samlTenantID,
       samlProductID,
