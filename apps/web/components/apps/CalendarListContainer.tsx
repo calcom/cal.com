@@ -261,6 +261,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                   category: t("calendar").toLowerCase(),
                 })}
                 description={t(`no_category_apps_description_calendar`)}
+                className="rounded-t-none border-t-0"
                 buttonRaw={
                   <Button
                     color="secondary"

@@ -133,6 +133,7 @@ const MembersView = () => {
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
+        borderInShellHeader
         CTA={
           isAdmin || isOrgAdminOrOwner ? (
             <Button
@@ -151,7 +152,7 @@ const MembersView = () => {
       />
       {!isLoading && (
         <>
-          <div>
+          <div className="pt-4">
             {team && (
               <>
                 {isInviteOpen && (
