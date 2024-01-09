@@ -150,29 +150,32 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     },
   });
 
-  // await send email to notify user
-  const userToNotify = await prisma.user.findFirst({
-    where: {
-      id: toUserId,
-    },
-    select: {
-      email: true,
-    },
-  });
-  const t = await getTranslation(ctx.user.locale ?? "en", "common");
-  const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.start);
-  const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.end);
-  if (userToNotify?.email) {
-    await sendAcceptBookingRedirect({
-      language: t,
-      fromEmail: ctx.user.email,
-      toEmail: userToNotify.email,
-      toName: ctx.user.username || "",
-      acceptLink: `${WEBAPP_URL}/booking-redirect/accept/${createdRedirect?.uuid}`,
-      rejectLink: `${WEBAPP_URL}/booking-redirect/reject/${createdRedirect?.uuid}`,
-      dates: `${formattedStartDate} - ${formattedEndDate}`,
+  if (toUserId) {
+    // await send email to notify user
+    const userToNotify = await prisma.user.findFirst({
+      where: {
+        id: toUserId,
+      },
+      select: {
+        email: true,
+      },
     });
+    const t = await getTranslation(ctx.user.locale ?? "en", "common");
+    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.start);
+    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.end);
+    if (userToNotify?.email) {
+      await sendAcceptBookingRedirect({
+        language: t,
+        fromEmail: ctx.user.email,
+        toEmail: userToNotify.email,
+        toName: ctx.user.username || "",
+        acceptLink: `${WEBAPP_URL}/booking-redirect/accept/${createdRedirect?.uuid}`,
+        rejectLink: `${WEBAPP_URL}/booking-redirect/reject/${createdRedirect?.uuid}`,
+        dates: `${formattedStartDate} - ${formattedEndDate}`,
+      });
+    }
   }
+
   return {};
 };
 
