@@ -11,7 +11,6 @@ export const handleTypeRedirection = async (props: HandleTypeRedirectionProps) =
   const outOfOfficeEntryActive = await prisma.outOfOfficeEntry.findFirst({
     select: {
       userId: true,
-      status: true,
       start: true,
       end: true,
       toUserId: true,
@@ -23,14 +22,6 @@ export const handleTypeRedirection = async (props: HandleTypeRedirectionProps) =
       },
     },
     where: {
-      OR: [
-        {
-          status: "ACCEPTED",
-        },
-        {
-          status: null,
-        },
-      ],
       userId: userId,
       start: {
         lte: new Date(),
