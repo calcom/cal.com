@@ -13,7 +13,11 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import logger from "../logger";
 
 const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
+export async function handlePaymentSuccess(
+  paymentId: number,
+  bookingId: number,
+  extraPaymentData?: Prisma.InputJsonValue
+) {
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
@@ -47,6 +51,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
     },
     data: {
       success: true,
+      ...(extraPaymentData ? { data: extraPaymentData } : {}),
     },
   });
 
