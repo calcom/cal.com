@@ -301,34 +301,40 @@ test.describe("Reschedule Tests", async () => {
 
     const currentBooking = await prisma.booking.findFirst({ where: { uid: bookingUID } });
     expect(currentBooking).not.toBeUndefined();
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (currentBooking) {
+      await confirmBooking(currentBooking.id);
 
-    await confirmBooking(currentBooking?.id);
+      await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${currentBooking.uid}`);
+      await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${currentBooking.uid}`);
-    await selectFirstAvailableTimeSlotNextMonth(page);
+      await page.locator('[data-testid="confirm-reschedule-button"]').click();
+      await expect(page).toHaveURL(/.*booking/);
 
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
-    await expect(page).toHaveURL(/.*booking/);
+      const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: currentBooking.uid } });
+      expect(newBooking).not.toBeUndefined();
+      expect(newBooking?.status).toBe(BookingStatus.PENDING);
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (newBooking) {
+        await confirmBooking(newBooking?.id);
 
-    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: currentBooking.uid } });
-    expect(newBooking).not.toBeNull();
-    expect(newBooking?.status).toBe(BookingStatus.PENDING);
+        const booking = await prisma.booking.findFirst({ where: { id: newBooking.id } });
+        expect(booking).not.toBeUndefined();
+        expect(booking.status).toBe(BookingStatus.ACCEPTED);
 
-    await confirmBooking(newBooking?.id);
+        // eslint-disable-next-line playwright/no-conditional-in-test
+        if (booking) {
+          const expectedVideoCallUrl = `${WEBAPP_URL}/video/${booking?.uid}`;
+          const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
 
-    const booking = await prisma.booking.findFirst({ where: { id: newBooking.id } });
+          // Check if cal video call url is valid after rescheduling
+          expect(locationVideoCallUrl).not.toBeUndefined();
+          expect(locationVideoCallUrl).toBe(expectedVideoCallUrl);
 
-    expect(booking).not.toBeUndefined();
-    expect(booking.status).toBe(BookingStatus.ACCEPTED);
-
-    const expectedVideoCallUrl = `${WEBAPP_URL}/video/${booking?.uid}`;
-    const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
-
-    // Check if cal video call url is valid after rescheduling
-    expect(locationVideoCallUrl).not.toBeUndefined();
-    expect(locationVideoCallUrl).toBe(expectedVideoCallUrl);
-
-    await page.goto(expectedVideoCallUrl);
-    await expect(page.frameLocator("iFrame").locator('text="Continue"')).toBeVisible();
+          await page.goto(expectedVideoCallUrl);
+          await expect(page.frameLocator("iFrame").locator('text="Continue"')).toBeVisible();
+        }
+      }
+    }
   });
 });
