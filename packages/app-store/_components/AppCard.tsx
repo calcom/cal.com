@@ -94,7 +94,6 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
-                  data-testid="app-switch"
                   disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
@@ -104,7 +103,7 @@ export default function AppCard({
                   }}
                   checked={switchChecked}
                   LockedIcon={LockedIcon}
-                  data-testId={`${app.slug}-app-switch`}
+                  data-testid={`${app.slug}-app-switch`}
                   tooltip={switchTooltip}
                 />
               </div>

@@ -1,9 +1,11 @@
 import type { TestFunction } from "vitest";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 import { createOrganization } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
+const WEBSITE_PROTOCOL = new URL(WEBSITE_URL).protocol;
 const _testWithAndWithoutOrg = (
   description: Parameters<typeof testWithAndWithoutOrg>[0],
   fn: Parameters<typeof testWithAndWithoutOrg>[1],
@@ -28,7 +30,7 @@ const _testWithAndWithoutOrg = (
         skip,
         org: {
           organization: org,
-          urlOrigin: `http://${org.slug}.cal.local:3000`,
+          urlOrigin: `${WEBSITE_PROTOCOL}//${org.slug}.cal.local:3000`,
         },
       });
     },
