@@ -9,7 +9,7 @@ import { TextField, Label, Skeleton, SettingsToggle, Select } from "@calcom/ui";
 
 import { DescriptionEditor } from "../../components/description-editor";
 
-type EventTypeSetupProps = {
+export type EventTypeSetupProps = {
   eventType: any;
   locationOptions: any;
   team: any;
