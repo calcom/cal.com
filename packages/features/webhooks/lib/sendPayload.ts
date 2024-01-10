@@ -49,12 +49,15 @@ function addUTCOffset(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ): WithUTCOffsetType<WebhookDataType> {
   if (data.organizer?.timeZone) {
-    (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(data.organizer.timeZone);
+    (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
+      data.organizer.timeZone,
+      data.startTime
+    );
   }
 
   if (data?.attendees?.length) {
     (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
-      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone);
+      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, data.startTime);
     });
   }
 
