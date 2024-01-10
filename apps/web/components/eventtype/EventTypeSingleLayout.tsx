@@ -67,6 +67,7 @@ type Props = {
   availability?: AvailabilityOption;
   isUserOrganizationAdmin: boolean;
   bookerUrl: string;
+  disableSave?: boolean;
 };
 
 function getNavigation(props: {
@@ -136,6 +137,7 @@ function EventTypeSingleLayout({
   availability,
   isUserOrganizationAdmin,
   bookerUrl,
+  disableSave,
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -413,6 +415,7 @@ function EventTypeSingleLayout({
             type="submit"
             loading={isUpdateMutationLoading}
             data-testid="update-eventtype"
+            disabled={disableSave}
             form="event-type-form">
             {t("save")}
           </Button>

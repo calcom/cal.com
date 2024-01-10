@@ -548,6 +548,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       clearTimeout(timeout);
     };
   }, []);
+
+  const [disableSave, setDisableSave] = useState<boolean>(true);
   return (
     <>
       <EventTypeSingleLayout
@@ -563,10 +565,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         disableBorder={true}
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
-        isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
+        isUserOrganizationAdmin={props.isUserOrganizationAdmin}
+        disableSave={disableSave}>
         <Form
           form={formMethods}
           id="event-type-form"
+          onChange={() => setDisableSave(false)}
           handleSubmit={async (values) => {
             const {
               periodDates,
