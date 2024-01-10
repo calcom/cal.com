@@ -1,7 +1,10 @@
 import LegacyPage from "@pages/video/no-meeting-found";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+
+import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -9,11 +12,12 @@ export const generateMetadata = async () =>
     (t) => t("no_meeting_found")
   );
 
-const getData = async () => {
-  const ssr = await ssrInit();
+const getData = async (context: ReturnType<typeof buildLegacyCtx>) => {
+  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
+  const ssr = await ssrInit(context);
 
   return {
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
   };
 };
 
