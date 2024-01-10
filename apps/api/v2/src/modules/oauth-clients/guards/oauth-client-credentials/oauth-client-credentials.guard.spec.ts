@@ -86,6 +86,7 @@ describe("OAuthClientCredentialsGuard", () => {
         getRequest: () => ({
           headers,
           params,
+          get: (headerName: string) => headers[headerName],
         }),
       }),
     });
