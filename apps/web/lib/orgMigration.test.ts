@@ -3,12 +3,14 @@ import prismock from "../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it } from "vitest";
 import type { z } from "zod";
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import type { MembershipRole, Prisma } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { moveTeamToOrg, moveUserToOrg, removeTeamFromOrg, removeUserFromOrg } from "./orgMigration";
 
+const WEBSITE_PROTOCOL = new URL(WEBSITE_URL).protocol;
 describe("orgMigration", () => {
   describe("moveUserToOrg", () => {
     describe("when user email does not match orgAutoAcceptEmail", () => {
@@ -317,11 +319,13 @@ describe("orgMigration", () => {
         await expectTeamToBeAPartOfOrg({
           teamId: team1.id,
           orgId: dbOrg.id,
+          teamSlugInOrg: team1.slug,
         });
 
         await expectTeamToBeAPartOfOrg({
           teamId: team2.id,
           orgId: dbOrg.id,
+          teamSlugInOrg: team2.slug,
         });
 
         await expectUserToBeNotAPartOfTheOrg({
@@ -873,6 +877,7 @@ describe("orgMigration", () => {
           id: 1,
           name: "Team 1",
           slug: "team1",
+          newSlug: "team1-new-slug",
         },
         targetOrg: {
           id: 2,
@@ -902,19 +907,23 @@ describe("orgMigration", () => {
 
       await moveTeamToOrg({
         teamId: data.teamToMigrate.id,
-        targetOrgId: data.targetOrg.id,
+        targetOrg: {
+          id: data.targetOrg.id,
+          teamSlug: data.teamToMigrate.newSlug,
+        },
       });
 
       await expectTeamToBeAPartOfOrg({
         teamId: data.teamToMigrate.id,
         orgId: data.targetOrg.id,
+        teamSlugInOrg: data.teamToMigrate.newSlug,
       });
 
       expectTeamRedirectToBeEnabled({
         from: {
           teamSlug: data.teamToMigrate.slug,
         },
-        to: data.teamToMigrate.slug,
+        to: data.teamToMigrate.newSlug,
         orgSlug: data.targetOrg.slug,
       });
     });
@@ -1198,7 +1207,15 @@ async function expectUserToBeNotAPartOfTheOrg({
   expect(membership).toBeUndefined();
 }
 
-async function expectTeamToBeAPartOfOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
+async function expectTeamToBeAPartOfOrg({
+  teamId,
+  orgId,
+  teamSlugInOrg,
+}: {
+  teamId: number;
+  orgId: number;
+  teamSlugInOrg: string | null;
+}) {
   const migratedTeam = await prismock.team.findUnique({
     where: {
       id: teamId,
@@ -1208,7 +1225,11 @@ async function expectTeamToBeAPartOfOrg({ teamId, orgId }: { teamId: number; org
     throw new Error(`Team with id ${teamId} does not exist`);
   }
 
+  if (!teamSlugInOrg) {
+    throw new Error(`teamSlugInOrg should be defined`);
+  }
   expect(migratedTeam.parentId).toBe(orgId);
+  expect(migratedTeam.slug).toBe(teamSlugInOrg);
 }
 
 async function expectTeamToBeNotPartOfAnyOrganization({ teamId }: { teamId: number }) {
@@ -1347,7 +1368,7 @@ async function expectRedirectToBeEnabled({
   }
 
   expect(redirect).not.toBeNull();
-  expect(redirect?.toUrl).toBe(`http://${orgSlug}.cal.local:3000/${to}`);
+  expect(redirect?.toUrl).toBe(`${WEBSITE_PROTOCOL}//${orgSlug}.cal.local:3000/${to}`);
   if (!redirect) {
     throw new Error(`Redirect doesn't exist for ${JSON.stringify(tempOrgRedirectWhere)}`);
   }

@@ -1,3 +1,5 @@
+"use client";
+
 import Head from "next/head";
 
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
@@ -19,12 +21,13 @@ const OnboardTeamMembersPage = () => {
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
+export const GetLayout = (page: React.ReactElement) => (
   <WizardLayout currentStep={2} maxSteps={2}>
     {page}
   </WizardLayout>
 );
 
+OnboardTeamMembersPage.getLayout = GetLayout;
 OnboardTeamMembersPage.PageWrapper = PageWrapper;
 
 export default OnboardTeamMembersPage;
