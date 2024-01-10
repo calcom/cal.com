@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
@@ -484,6 +485,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    // Prevent two payment apps to be enabled
+    // Ok to cast type here because this metadata will be updated as the event type metadata
+    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
+
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
@@ -516,6 +522,32 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const slug = formMethods.watch("slug") ?? eventType.slug;
 
+  // Optional prerender all tabs after 300 ms on mount
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const Components = [
+        EventSetupTab,
+        EventAvailabilityTab,
+        EventTeamTab,
+        EventLimitsTab,
+        EventAdvancedTab,
+        EventInstantTab,
+        EventRecurringTab,
+        EventAppsTab,
+        EventWorkflowsTab,
+        EventWebhooksTab,
+      ];
+
+      Components.forEach((C) => {
+        // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
+        C.render.preload();
+      });
+    }, 300);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
   return (
     <>
       <EventTypeSingleLayout
@@ -584,6 +616,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+
+            // Prevent two payment apps to be enabled
+            // Ok to cast type here because this metadata will be updated as the event type metadata
+            if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+              throw new Error(t("event_setup_multiple_payment_apps_error"));
+
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({

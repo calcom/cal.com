@@ -8,9 +8,8 @@ import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
-  emails?.deleteAll();
 });
 
 test.describe("Team", () => {
@@ -23,7 +22,10 @@ test.describe("Team", () => {
     await page.waitForLoadState("networkidle");
 
     await test.step("To the team by email (external user)", async () => {
-      const invitedUserEmail = `rick_${Date.now()}@domain-${Date.now()}.com`;
+      const invitedUserEmail = users.trackEmail({
+        username: "rick",
+        domain: `domain-${Date.now()}.com`,
+      });
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
@@ -104,7 +106,10 @@ test.describe("Team", () => {
     await page.waitForLoadState("networkidle");
 
     await test.step("To the organization by email (internal user)", async () => {
-      const invitedUserEmail = `rick@example.com`;
+      const invitedUserEmail = users.trackEmail({
+        username: "rick",
+        domain: `example.com`,
+      });
       await page.locator(`button:text("${t("add")}")`).click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
