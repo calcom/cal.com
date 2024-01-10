@@ -4,7 +4,16 @@ import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, Label, Input } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Label,
+  Input,
+} from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
@@ -45,6 +54,7 @@ export const VerifyCodeDialog = ({
     },
     onError: (err) => {
       setIsLoading(false);
+      setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
       }
@@ -58,6 +68,7 @@ export const VerifyCodeDialog = ({
     },
     onError: (err) => {
       setIsLoading(false);
+      setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
       }
@@ -138,6 +149,9 @@ export const VerifyCodeDialog = ({
             )}
             <DialogFooter>
               <DialogClose />
+              <Button type="submit" onClick={verifyCode} loading={isLoading}>
+                {t("submit")}
+              </Button>
             </DialogFooter>
           </div>
         </div>
