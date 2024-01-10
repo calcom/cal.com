@@ -4,6 +4,7 @@ import { uuid } from "short-uuid";
 
 import type EventManager from "@calcom/core/EventManager";
 import { sendRescheduledEmails } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -52,7 +53,7 @@ const combineTwoSeatedBookings = async (
     attendeesToMove.length + newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
       eventType.seatsPerTimeSlot
   ) {
-    throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
+    throw new HttpError({ statusCode: 409, message: ErrorCode.NotEnoughAvailableSeats });
   }
 
   const moveAttendeeCalls = [];

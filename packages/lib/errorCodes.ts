@@ -6,4 +6,10 @@ export enum ErrorCode {
   AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
   HostsUnavailableForBooking = "hosts_unavailable_for_booking",
   EventTypeNotFound = "event_type_not_found_error",
+  BookingNotFound = "booking_not_found_error",
+  BookingSeatsFull = "booking_seats_full_error",
+  MissingPaymentCredential = "missing_payment_credential_error",
+  MissingPaymentAppId = "missing_payment_app_id_error",
+  UpdateDatedBookingNotFound = "update_dated_booking_not_found_error",
+  NotEnoughAvailableSeats = "not_enough_available_seats_error",
 }

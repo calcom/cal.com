@@ -2,6 +2,7 @@
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -62,7 +63,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   });
 
   if (!seatedBooking) {
-    throw new HttpError({ statusCode: 404, message: "Could not find booking" });
+    throw new HttpError({ statusCode: 404, message: ErrorCode.BookingNotFound });
   }
 
   // See if attendee is already signed up for timeslot
@@ -70,7 +71,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     seatedBooking.attendees.find((attendee) => attendee.email === invitee[0].email) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
   ) {
-    throw new HttpError({ statusCode: 409, message: "Already signed up for this booking." });
+    throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
   }
 
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
