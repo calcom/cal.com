@@ -61,6 +61,8 @@ const createNewSeat = async (
 
   const attendeeUniqueId = uuid();
 
+  const inviteeToAdd = invitee[0];
+
   await prisma.booking.update({
     where: {
       uid: reqBookingUid,
@@ -71,10 +73,10 @@ const createNewSeat = async (
     data: {
       attendees: {
         create: {
-          email: invitee[0].email,
-          name: invitee[0].name,
-          timeZone: invitee[0].timeZone,
-          locale: invitee[0].language.locale,
+          email: inviteeToAdd.email,
+          name: inviteeToAdd.name,
+          timeZone: inviteeToAdd.timeZone,
+          locale: inviteeToAdd.language.locale,
           bookingSeat: {
             create: {
               referenceUid: attendeeUniqueId,
