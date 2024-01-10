@@ -16,7 +16,7 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
-const generateCheckoutSession = async ({
+export const generateCheckoutSession = async ({
   teamSlug,
   teamName,
   userId,

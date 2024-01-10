@@ -7,7 +7,10 @@ export const schemaTeamBaseBodyParams = Team.omit({ id: true, createdAt: true })
   metadata: true,
 });
 
-const schemaTeamRequiredParams = z.object({});
+const schemaTeamRequiredParams = z.object({
+  slug: z.string().min(3).max(255),
+  name: z.string().max(255),
+});
 
 export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamRequiredParams).strict();
 
