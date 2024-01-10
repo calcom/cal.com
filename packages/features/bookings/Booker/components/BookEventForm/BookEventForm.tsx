@@ -209,6 +209,7 @@ export const BookEventFormChild = ({
             absolute: false,
           })
         );
+        return;
       }
 
       if (!uid) {
