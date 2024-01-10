@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
@@ -7,6 +9,7 @@ import { z } from "zod";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
@@ -50,13 +53,18 @@ const stepRouteSchema = z.object({
 const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const result = stepRouteSchema.safeParse(params);
+
+  const result = stepRouteSchema.safeParse({
+    ...params,
+    step: Array.isArray(params.step) ? params.step : [params.step],
+  });
+
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-
   const headers = [
     {
       title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
@@ -105,7 +113,12 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:9CA3AF] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]"
+      className={classNames(
+        "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
+      )}
       data-testid="onboarding"
       key={pathname}>
       <Head>
@@ -212,7 +225,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { redirect: { permanent: false, destination: "/event-types" } };
   }
   const locale = await getLocale(context.req);
-
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),

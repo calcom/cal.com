@@ -9,18 +9,10 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
-import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 
 @Module({
-  imports: [
-    PassportModule,
-    JwtModule.register({}),
-    ApiKeyModule,
-    UsersModule,
-    MembershipsModule,
-    TokensModule,
-  ],
+  imports: [PassportModule, ApiKeyModule, UsersModule, MembershipsModule, TokensModule],
   providers: [
     ApiKeyAuthStrategy,
     NextAuthGuard,

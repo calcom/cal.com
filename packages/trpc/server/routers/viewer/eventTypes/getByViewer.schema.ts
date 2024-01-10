@@ -9,6 +9,7 @@ export const filterQuerySchemaStrict = z.object({
 export const ZEventTypeInputSchema = z
   .object({
     filters: filterQuerySchemaStrict.optional(),
+    forRoutingForms: z.boolean().optional(),
   })
   .nullish();
 

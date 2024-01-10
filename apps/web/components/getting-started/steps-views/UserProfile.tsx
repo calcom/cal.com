@@ -3,7 +3,6 @@ import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -11,6 +10,7 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
@@ -108,9 +108,7 @@ const UserProfile = () => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && (
-          <OrganizationMemberAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />
-        )}
+        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />}
         <input
           ref={avatarRef}
           type="hidden"
@@ -152,9 +150,7 @@ const UserProfile = () => {
           firstRender={firstRender}
           setFirstRender={setFirstRender}
         />
-        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
-          {t("few_sentences_about_yourself")}
-        </p>
+        <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
       <Button EndIcon={ArrowRight} type="submit" className="mt-8 w-full items-center justify-center">
         {t("finish")}

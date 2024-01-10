@@ -262,7 +262,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      const promiseSteps = steps.map(async (step) => {
+      const promiseSteps = userWorkflow.steps.map(async (step) => {
         if (
           step.action !== WorkflowActions.SMS_ATTENDEE &&
           step.action !== WorkflowActions.WHATSAPP_ATTENDEE
@@ -327,7 +327,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 emailSubject: step.emailSubject || "",
                 emailBody: step.reminderBody || "",
                 template: step.template,
-                sender: step.senderName,
+                sender: step.sender,
                 workflowStepId: step.id,
               });
             } else if (step.action === WorkflowActions.SMS_NUMBER) {
@@ -619,11 +619,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       return stepToAdd;
     }
   });
-
   if (addedSteps) {
-    const eventTypesToCreateReminders = activeOn.filter(
-      (activeEventType) => activeEventType && !newEventTypes.includes(activeEventType)
-    );
     const promiseAddedSteps = addedSteps.map(async (step) => {
       if (step) {
         const { senderName, ...newStep } = step;
@@ -637,13 +633,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         });
         if (
           (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
-          eventTypesToCreateReminders &&
           step.action !== WorkflowActions.SMS_ATTENDEE &&
           step.action !== WorkflowActions.WHATSAPP_ATTENDEE
         ) {
           const bookingsForReminders = await ctx.prisma.booking.findMany({
             where: {
-              eventTypeId: { in: eventTypesToCreateReminders as number[] },
+              eventTypeId: { in: activeOn },
               status: BookingStatus.ACCEPTED,
               startTime: {
                 gte: new Date(),
