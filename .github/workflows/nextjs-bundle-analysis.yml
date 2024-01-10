@@ -2,6 +2,7 @@ name: "Next.js Bundle Analysis"
 
 on:
   workflow_call:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -34,7 +35,7 @@ jobs:
 
       - name: Download base branch bundle stats
         uses: dawidd6/action-download-artifact@v2
-        if: success() && github.event.number
+        if: success()
         with:
           workflow: nextjs-bundle-analysis.yml
           branch: ${{ github.event.pull_request.base.ref }}
@@ -54,7 +55,7 @@ jobs:
       # Either of these arguments can be changed or removed by editing the `nextBundleAnalysis`
       # entry in your package.json file.
       - name: Compare with base branch bundle
-        if: success() && github.event.number
+        if: success()
         run: |
           cd apps/web
           ls -laR .next/analyze/base && npx -p nextjs-bundle-analysis compare
@@ -68,10 +69,10 @@ jobs:
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
-          echo ::set-output name=body::$body
+          echo "{body}={$body}" >> $GITHUB_OUTPUT
 
       - name: Find Comment
-        uses: peter-evans/find-comment@v1
+        uses: peter-evans/find-comment@v2
         if: success() && github.event.number
         id: fc
         with:
@@ -79,14 +80,14 @@ jobs:
           body-includes: "<!-- __NEXTJS_BUNDLE_@calcom/web -->"
 
       - name: Create Comment
-        uses: peter-evans/create-or-update-comment@v1.4.4
+        uses: peter-evans/create-or-update-comment@v3
         if: success() && github.event.number && steps.fc.outputs.comment-id == 0
         with:
           issue-number: ${{ github.event.number }}
           body: ${{ steps.get-comment-body.outputs.body }}
 
       - name: Update Comment
-        uses: peter-evans/create-or-update-comment@v1.4.4
+        uses: peter-evans/create-or-update-comment@v3
         if: success() && github.event.number && steps.fc.outputs.comment-id != 0
         with:
           issue-number: ${{ github.event.number }}

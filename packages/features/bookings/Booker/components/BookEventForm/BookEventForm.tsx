@@ -200,7 +200,7 @@ export const BookEventFormChild = ({
       const { uid, paymentUid } = responseData;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
       if (paymentUid) {
-        return router.push(
+        router.push(
           createPaymentLink({
             paymentUid,
             date: timeslot,
@@ -209,6 +209,7 @@ export const BookEventFormChild = ({
             absolute: false,
           })
         );
+        return;
       }
 
       if (!uid) {
@@ -225,7 +226,7 @@ export const BookEventFormChild = ({
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
 
-      return bookingSuccessRedirect({
+      bookingSuccessRedirect({
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
         booking: responseData,
@@ -272,7 +273,7 @@ export const BookEventFormChild = ({
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
 
-      return bookingSuccessRedirect({
+      bookingSuccessRedirect({
         successRedirectUrl: eventType?.successRedirectUrl || "",
         query,
         booking,
@@ -325,10 +326,6 @@ export const BookEventFormChild = ({
     );
 
   const bookEvent = (values: BookingFormValues) => {
-    // Clears form values stored in store, so old values won't stick around.
-    setFormValues({});
-    bookingForm.clearErrors();
-
     // It shouldn't be possible that this method is fired without having eventQuery data,
     // but since in theory (looking at the types) it is possible, we still handle that case.
     if (!eventQuery?.data) {
@@ -375,6 +372,9 @@ export const BookEventFormChild = ({
     } else {
       createBookingMutation.mutate(mapBookingToMutationInput(bookingInput));
     }
+    // Clears form values stored in store, so old values won't stick around.
+    setFormValues({});
+    bookingForm.clearErrors();
   };
 
   if (!eventType) {
@@ -442,7 +442,14 @@ export const BookEventFormChild = ({
               <Button
                 type="submit"
                 color="primary"
-                loading={createBookingMutation.isLoading || createRecurringBookingMutation.isLoading}
+                loading={
+                  bookingForm.formState.isSubmitting ||
+                  createBookingMutation.isLoading ||
+                  createRecurringBookingMutation.isLoading ||
+                  // A redirect is triggered on mutation success, so keep the button disabled as this is happening.
+                  createBookingMutation.isSuccess ||
+                  createRecurringBookingMutation.isSuccess
+                }
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>

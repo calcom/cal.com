@@ -751,7 +751,7 @@ export async function makePaymentUsingStripe(page: Page) {
   const stripeFrame = stripeElement.frameLocator("iframe").first();
   await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
   const now = new Date();
-  await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
+  await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth() + 1} / ${now.getFullYear() + 1}`);
   await stripeFrame.locator('[name="cvc"]').fill("111");
   const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
   if (postcalCodeIsVisible) {

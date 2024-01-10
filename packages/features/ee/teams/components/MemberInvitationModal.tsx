@@ -271,7 +271,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                         required
                         value={value}
                         onChange={(e) => {
-                          const targetValues = e.target.value.split(",");
+                          const targetValues = e.target.value.split(/[\n,]/);
                           const emails =
                             targetValues.length === 1
                               ? targetValues[0].trim().toLocaleLowerCase()
