@@ -1397,9 +1397,11 @@ async function handler(
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
       teamDestinationCalendars.push(user.destinationCalendar);
     }
+
+    const destinationEmail = user?.destinationCalendar?.primaryEmail;
     return {
       id: user.id,
-      email: user.email ?? "",
+      email: destinationEmail ?? user.email ?? "",
       name: user.name ?? "",
       firstName: "",
       lastName: "",
