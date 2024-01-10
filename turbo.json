@@ -112,6 +112,7 @@
       "cache": false
     },
     "dx": {
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
     "lint": {
@@ -211,6 +212,7 @@
     "APP_ROUTER_SETTINGS_TEAMS_ENABLED",
     "APP_ROUTER_WORKFLOWS_ENABLED",
     "APP_ROUTER_VIDEO_ENABLED",
+    "APP_ROUTER_TEAMS_ENABLED",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
