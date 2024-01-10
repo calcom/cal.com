@@ -203,11 +203,7 @@ export default function Success(props: PageProps) {
       duration: calculatedDuration,
       organizer: {
         name: users[0].name || "Nameless",
-        email:
-          bookingInfo.destinationCalendar?.primaryEmail ||
-          bookingInfo.destinationCalendar?.externalId ||
-          users[0].email ||
-          "Email-less",
+        email: bookingInfo.destinationCalendar?.primaryEmail || users[0].email || "Email-less",
         timeZone: users[0].timeZone,
       },
       confirmed: !needsConfirmation,
@@ -455,9 +451,7 @@ export default function Success(props: PageProps) {
                                 <Badge variant="blue">{t("Host")}</Badge>
                               </div>
                               <p className="text-default">
-                                {bookingInfo.destinationCalendar?.primaryEmail ??
-                                  bookingInfo.destinationCalendar?.externalId ??
-                                  bookingInfo.user.email}
+                                {bookingInfo.destinationCalendar?.primaryEmail ?? bookingInfo.user.email}
                               </p>
                             </div>
                           )}
