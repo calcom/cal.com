@@ -146,6 +146,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
+  const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
@@ -196,7 +197,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
-                    isDisabled={shouldLockDisableProps("bookingLimits").disabled}
+                    isDisabled={shouldLockDisableProps("beforeBufferTime").disabled}
                     defaultValue={
                       beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
                     }
@@ -232,7 +233,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                     onChange={(val) => {
                       if (val) onChange(val.value);
                     }}
-                    isDisabled={shouldLockDisableProps("bookingLimits").disabled}
+                    isDisabled={shouldLockDisableProps("afterBufferTime").disabled}
                     defaultValue={
                       afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
                     }
@@ -343,6 +344,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               title={t("limit_booking_only_first_slot")}
               description={t("limit_booking_only_first_slot_description")}
               checked={isChecked}
+              {...onlyFirstAvailableSlotLocked}
               onCheckedChange={(active) => {
                 formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false);
               }}

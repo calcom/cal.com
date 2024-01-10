@@ -139,6 +139,7 @@ const useLockedFieldsManager = (
       // eslint-disable-next-line react-hooks/rules-of-hooks
       fieldStates[fieldName] = useState(getLockedInitState(fieldName));
     }
+    console.log("fieldStates", fieldStates);
     return LockedIndicator(
       isManagedEventType,
       fieldStates[fieldName],

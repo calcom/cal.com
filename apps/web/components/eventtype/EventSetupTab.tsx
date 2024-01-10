@@ -203,6 +203,7 @@ export const EventSetupTab = (
                   required
                   onChange={onChange}
                   value={value}
+                  {...(shouldLockDisableProps("locations").disabled ? { disabled: true } : {})}
                   className="my-0"
                   {...rest}
                 />
@@ -222,6 +223,7 @@ export const EventSetupTab = (
               return (
                 <PhoneInput
                   required
+                  isDisabled={shouldLockDisableProps("locations").disabled}
                   placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
                   name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
                   value={value}
@@ -292,16 +294,18 @@ export const EventSetupTab = (
                       }
                     }}
                   />
-                  <button
-                    data-testid={`delete-locations.${index}.type`}
-                    className="min-h-9 block h-9 px-2"
-                    type="button"
-                    onClick={() => remove(index)}
-                    aria-label={t("remove")}>
-                    <div className="h-4 w-4">
-                      <X className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
-                    </div>
-                  </button>
+                  {!(shouldLockDisableProps("locations").disabled && isChildrenManagedEventType) && (
+                    <button
+                      data-testid={`delete-locations.${index}.type`}
+                      className="min-h-9 block h-9 px-2"
+                      type="button"
+                      onClick={() => remove(index)}
+                      aria-label={t("remove")}>
+                      <div className="h-4 w-4">
+                        <X className="border-l-1 hover:text-emphasis text-subtle h-4 w-4" />
+                      </div>
+                    </button>
+                  )}
                 </div>
 
                 {eventLocationType?.organizerInputType && (
@@ -333,6 +337,7 @@ export const EventSetupTab = (
                       <CheckboxField
                         name={`locations[${index}].displayLocationPublicly`}
                         data-testid="display-location"
+                        isDisabled={shouldLockDisableProps("locations").disabled}
                         defaultChecked={defaultLocation?.displayLocationPublicly}
                         description={t("display_location_label")}
                         onChange={(e) => {
@@ -421,7 +426,8 @@ export const EventSetupTab = (
               </a>
             </p>
           )}
-          {validLocations.length > 0 && !isManagedEventType && !isChildrenManagedEventType && (
+          {validLocations.length > 0 && !shouldLockDisableProps("locations").disabled && (
+            //  && !isChildrenManagedEventType : Add this to hide add-location button only when location is disabled by Admin
             <li>
               <Button
                 data-testid="add-location"
@@ -448,6 +454,8 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
+  const urlLockedProps = shouldLockDisableProps("slug");
+  const titleLockedProps = shouldLockDisableProps("title");
   const urlPrefix = orgBranding
     ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
     : `${CAL_URL?.replace(/^(https?:|)\/\//, "")}`;
@@ -459,14 +467,14 @@ export const EventSetupTab = (
           <TextField
             required
             label={t("title")}
-            {...shouldLockDisableProps("title")}
+            {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
             defaultValue={eventType.title}
             {...formMethods.register("title")}
           />
           <div>
             <Label htmlFor="editor">
               {t("description")}
-              {shouldLockIndicator("description")}
+              {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
             </Label>
             <DescriptionEditor
               description={eventType?.description}
@@ -476,7 +484,7 @@ export const EventSetupTab = (
           <TextField
             required
             label={t("URL")}
-            {...shouldLockDisableProps("slug")}
+            {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             addOnLeading={
               <>
@@ -559,7 +567,7 @@ export const EventSetupTab = (
             <TextField
               required
               type="number"
-              {...lengthLockedProps}
+              {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
               label={t("duration")}
               defaultValue={eventType.length ?? 15}
               {...formMethods.register("length")}
@@ -589,14 +597,15 @@ export const EventSetupTab = (
             </div>
           )}
         </div>
-
+        {console.log("Event Type=>", eventType)}
         <div className="border-subtle rounded-lg border p-6">
           <div>
             <Skeleton as={Label} loadingClassName="w-16" htmlFor="locations">
               {t("location")}
+              {/*improve shouldLockIndicator function to also accept eventType and then conditionally render
+              based on Managed Event type or not.*/}
               {shouldLockIndicator("locations")}
             </Skeleton>
-
             <Controller
               name="locations"
               control={formMethods.control}

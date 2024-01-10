@@ -155,11 +155,8 @@ EventTypeScheduleDetails.displayName = "EventTypeScheduleDetails";
 const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { shouldLockIndicator, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
-    eventType,
-    formMethods,
-    t
-  );
+  const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
+    useLockedFieldsManager(eventType, formMethods, t);
   const { watch, setValue, getValues } = useFormContext<FormValues>();
   const watchSchedule = watch("schedule");
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
@@ -234,7 +231,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
       <div className="border-subtle rounded-t-md border p-6">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {t("availability")}
-          {shouldLockIndicator("availability")}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("availability")}
         </label>
         {isLoading && <SelectSkeletonLoader />}
         {!isLoading && (
@@ -245,6 +242,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                 <Select
                   placeholder={t("select")}
                   options={options}
+                  isDisabled={shouldLockDisableProps("availability").disabled}
                   isSearchable={false}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
