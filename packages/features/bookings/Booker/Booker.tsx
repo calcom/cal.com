@@ -33,7 +33,9 @@ import { useBrandColors } from "./utils/use-brand-colors";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
-const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
+const UnpublishedEntity = dynamic(() =>
+  import("@calcom/ui/components/unpublished-entity/UnpublishedEntity").then((mod) => mod.UnpublishedEntity)
+);
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
@@ -185,12 +187,6 @@ const BookerComponent = ({
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
-
-  useEffect(() => {
-    if (layout === "mobile") {
-      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [layout]);
 
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
