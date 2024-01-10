@@ -1,7 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import flagsmith from "flagsmith/isomorphic";
-import { FlagsmithProvider } from "flagsmith/react";
-import type { IState } from "flagsmith/types";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
@@ -261,20 +258,6 @@ function FeatureFlagsProvider({ children }: { children: React.ReactNode }) {
   return <FeatureProvider value={flags}>{children}</FeatureProvider>;
 }
 
-function FeatureFlagsmithProvider({
-  children,
-  flagsmithState,
-}: {
-  children: React.ReactElement;
-  flagsmithState: IState;
-}) {
-  return (
-    <FlagsmithProvider flagsmith={flagsmith} serverState={flagsmithState}>
-      {children}
-    </FlagsmithProvider>
-  );
-}
-
 function useOrgBrandingValues() {
   const session = useSession();
   return session?.data?.user.org;
@@ -311,13 +294,11 @@ const AppProviders = (props: AppPropsWithChildren) => {
               isThemeSupported={props.Component.isThemeSupported}
               isBookingPage={props.Component.isBookingPage || isBookingPage}
               router={props.router}>
-              <FeatureFlagsmithProvider flagsmithState={props.pageProps.flagsmithState}>
-                <FeatureFlagsProvider>
-                  <OrgBrandProvider>
-                    <MetaProvider>{props.children}</MetaProvider>
-                  </OrgBrandProvider>
-                </FeatureFlagsProvider>
-              </FeatureFlagsmithProvider>
+              <FeatureFlagsProvider>
+                <OrgBrandProvider>
+                  <MetaProvider>{props.children}</MetaProvider>
+                </OrgBrandProvider>
+              </FeatureFlagsProvider>
             </CalcomThemeProvider>
           </TooltipProvider>
         </CustomI18nextProvider>

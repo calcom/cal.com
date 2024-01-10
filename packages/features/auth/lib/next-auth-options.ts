@@ -1,5 +1,4 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
-import flagsmith from "flagsmith/isomorphic";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -579,11 +578,6 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async signIn(params) {
       const { user, account, profile } = params;
-
-      await flagsmith.init({
-        environmentID: FLAGSMITH_ENVIRONMENT_ID,
-      });
-      flagsmith.identify(user.email);
 
       if (account?.provider === "email") {
         return true;

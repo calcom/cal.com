@@ -1,8 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useFlags } from "flagsmith/react";
-import type { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -77,9 +75,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
-
-import { flagsmithInit } from "@server/lib/flagsmithInit";
-import { ssrInit } from "@server/lib/ssr";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -820,15 +815,8 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
 };
 
 const Actions = () => {
-  const flags = useFlags(["new_feature"]);
-  console.log("flagflagsmithStatesflagsflags: ", flags);
   return (
     <div className="hidden items-center md:flex">
-      {flags["new_feature"].enabled && (
-        <Button className="mr-5" data-testid="new-feature-button" color="secondary" target="_blank">
-          New Feature
-        </Button>
-      )}
       <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
@@ -983,27 +971,5 @@ const EventTypesPage = () => {
 EventTypesPage.getLayout = getLayout;
 
 EventTypesPage.PageWrapper = PageWrapper;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-  const { flagsmithState, session } = await flagsmithInit(context);
-
-  if (!session?.user?.id) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-
-  await ssr.viewer.eventTypes.getByViewer.prefetch();
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-      flagsmithState,
-    },
-  };
-};
 
 export default EventTypesPage;
