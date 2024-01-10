@@ -112,6 +112,7 @@
       "cache": false
     },
     "dx": {
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
     "lint": {
@@ -211,6 +212,7 @@
     "APP_ROUTER_SETTINGS_TEAMS_ENABLED",
     "APP_ROUTER_WORKFLOWS_ENABLED",
     "APP_ROUTER_VIDEO_ENABLED",
+    "APP_ROUTER_TEAMS_ENABLED",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
@@ -256,6 +258,9 @@
     "EMAIL_SERVER_USER",
     "EMAIL_SERVER",
     "EXCHANGE_DEFAULT_EWS_URL",
+    "FORMBRICKS_HOST_URL",
+    "FORMBRICKS_ENVIRONMENT_ID",
+    "FORMBRICKS_FEEDBACK_SURVEY_ID",
     "GIPHY_API_KEY",
     "GITHUB_API_REPO_TOKEN",
     "GOOGLE_API_CREDENTIALS",

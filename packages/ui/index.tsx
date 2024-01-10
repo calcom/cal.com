@@ -1,4 +1,4 @@
-export { Avatar, AvatarGroup } from "./components/avatar";
+export { Avatar, AvatarGroup, UserAvatar } from "./components/avatar";
 export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
 export { ArrowButton } from "./components/arrow-button";
 export type { ArrowButtonProps } from "./components/arrow-button";

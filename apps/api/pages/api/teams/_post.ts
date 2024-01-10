@@ -68,6 +68,18 @@ async function postHandler(req: NextApiRequest) {
     }
   }
 
+  // Check if parentId is related to this user
+  if (data.parentId) {
+    const parentTeam = await prisma.team.findFirst({
+      where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
+    });
+    if (!parentTeam)
+      throw new HttpError({
+        statusCode: 401,
+        message: "Unauthorized: Invalid parent id. You can only use parent id of your own teams.",
+      });
+  }
+
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
