@@ -420,6 +420,7 @@ function UserDropdown({ small }: UserDropdownProps) {
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button
+          data-testid="user-dropdown-trigger-button"
           className={classNames(
             "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
@@ -496,10 +497,8 @@ function UserDropdown({ small }: UserDropdownProps) {
                     StartIcon={(props) => (
                       <Moon className={classNames("text-default", props.className)} aria-hidden="true" />
                     )}
-                    onClick={() => {
-                      mutation.mutate({ away: !user.away });
-                    }}>
-                    {user.away ? t("set_as_free") : t("set_as_away")}
+                    href="/settings/my-account/out-of-office">
+                    {t("out_of_office")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -893,7 +892,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="px-1.5">
+              <Link href="/settings/organizations/profile" className="mt-3 w-full px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}

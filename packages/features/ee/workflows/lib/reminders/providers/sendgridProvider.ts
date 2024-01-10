@@ -77,3 +77,35 @@ export function sendSendgridMail(
     sendAt: mailData.sendAt,
   });
 }
+
+export function cancelScheduledEmail(referenceId: string | null) {
+  if (!referenceId) {
+    console.info("No referenceId provided, skip canceling email");
+    return Promise.resolve();
+  }
+
+  assertSendgrid();
+
+  return client.request({
+    url: "/v3/user/scheduled_sends",
+    method: "POST",
+    body: {
+      batch_id: referenceId,
+      status: "cancel",
+    },
+  });
+}
+
+export function deleteScheduledSend(referenceId: string | null) {
+  if (!referenceId) {
+    console.info("No referenceId provided, skip deleting scheduledSend");
+    return Promise.resolve();
+  }
+
+  assertSendgrid();
+
+  return client.request({
+    url: `/v3/user/scheduled_sends/${referenceId}`,
+    method: "DELETE",
+  });
+}
