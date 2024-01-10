@@ -2,6 +2,8 @@ import { expect } from "@playwright/test";
 import path from "path";
 import { uuid } from "short-uuid";
 
+import { prisma } from "@calcom/prisma";
+
 import { test } from "../lib/fixtures";
 import { generateTotpCode } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
@@ -107,14 +109,16 @@ test.describe("Organization", () => {
     });
 
     await test.step("On-board administrators", async () => {
-      // Required field
-      await page.locator("button[type=submit]").click();
+      await page.waitForSelector('[data-testid="pending-member-list"]');
+      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
 
-      // Happy path
       const adminEmail = users.trackEmail({ username: "rick", domain: `${orgDomain}.com` });
-      await page.locator('textarea[name="emails"]').fill(adminEmail);
-      await page.locator("button[type=submit]").click();
 
+      //can add members
+      await page.getByTestId("new-member-button").click();
+      await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
+      await page.getByTestId("invite-new-member-button").click();
+      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
       // Check if invited admin received the invitation email
       await expectInvitationEmailToBeReceived(
         page,
@@ -122,7 +126,18 @@ test.describe("Organization", () => {
         adminEmail,
         `${orgName}'s admin invited you to join the organization ${orgName} on Cal.com`
       );
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
 
+      // can remove members
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
+      const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
+      await lastRemoveMemberButton.click();
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
+      // Cleanup here since this user is created without our fixtures.
+      await prisma.user.delete({ where: { email: adminEmail } });
+
+      await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
       await page.waitForURL("/settings/organizations/*/add-teams");
     });
