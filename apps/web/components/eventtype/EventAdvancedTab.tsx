@@ -108,11 +108,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { shouldLockDisableProps, useLockedLabel, useLockedSwitch } = useLockedFieldsManager(
-    eventType,
-    formMethods,
-    t
-  );
+  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -121,6 +117,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
+  const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
+  const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -170,7 +168,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           <TextField
             label={t("event_name_in_calendar")}
             type="text"
-            // {...EventNameLabel}
+            isDisabled={shouldLockDisableProps("eventName").disabled}
             {...shouldLockDisableProps("eventName")}
             placeholder={eventNamePlaceholder}
             defaultValue={eventType.eventName || ""}
@@ -179,6 +177,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <Button
                 color="minimal"
                 size="sm"
+                {...(shouldLockDisableProps("eventName").disabled ? { disabled: true } : {})}
                 aria-label="edit custom name"
                 className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                 onClick={() => setShowEventNameTip((old) => !old)}>
@@ -237,7 +236,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("disable_notes")}
-            {...shouldLockDisableProps("hideCalendarNotes")}
+            {...hideCalendarNotesLocked}
             description={t("disable_notes_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
@@ -442,7 +441,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
             title={t("lock_timezone_toggle_on_booking_page")}
-            {...shouldLockDisableProps("lockTimeZoneToggleOnBookingPage")}
+            {...lockTimeZoneToggleOnBookingPageLocked}
             description={t("description_lock_timezone_toggle_on_booking_page")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
