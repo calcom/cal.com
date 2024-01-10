@@ -15,11 +15,11 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
-import { getBookerUrl } from "@calcom/lib/server/getBookerUrl";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -53,7 +53,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       startTime: true,
       endTime: true,
       eventTypeId: true,
-      eventType: true,
+      eventType: {
+        include: {
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
+        },
+      },
       location: true,
       attendees: true,
       references: true,
@@ -175,9 +183,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const [userAsPeopleType] = usersToPeopleType([user], userTranslation);
 
   const builder = new CalendarEventBuilder();
+  const eventType = bookingToReschedule.eventType;
   builder.init({
     title: bookingToReschedule.title,
-    bookerUrl: await getBookerUrl(user),
+    bookerUrl: eventType?.team
+      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
+      : await getBookerBaseUrl(user),
     type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),

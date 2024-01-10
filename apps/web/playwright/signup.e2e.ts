@@ -14,9 +14,8 @@ test.describe("Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
     features.reset(); // This resets to the inital state not an empt yarray
   });
-  test.afterAll(async ({ users, emails }) => {
+  test.afterAll(async ({ users }) => {
     await users.deleteAll();
-    emails?.deleteAll();
   });
   test("Username is taken", async ({ page, users }) => {
     // log in trail user
@@ -204,6 +203,7 @@ test.describe("Signup Flow Test", async () => {
       data: { enabled: true },
     });
     const userToCreate = users.buildForSignup({
+      email: users.trackEmail({ username: "email-verify", domain: "example.com" }),
       username: "email-verify",
       password: "Password99!",
     });
@@ -242,7 +242,7 @@ test.describe("Signup Flow Test", async () => {
 
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
-    const { team } = await teamOwner.getFirstTeam();
+    const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("networkidle");

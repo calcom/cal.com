@@ -1,8 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +13,7 @@ export type ChildrenEventType = {
   label: string;
   created: boolean;
   owner: {
+    avatar: string;
     id: number;
     email: string;
     name: string;
@@ -36,7 +35,6 @@ export const ChildrenEventTypeSelect = ({
   onChange: (value: readonly ChildrenEventType[]) => void;
 }) => {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
@@ -63,9 +61,7 @@ export const ChildrenEventTypeSelect = ({
               <Avatar
                 size="mdLg"
                 className="overflow-visible"
-                imageSrc={`${orgBranding ? getOrgFullOrigin(orgBranding.slug) : CAL_URL}/${
-                  children.owner.username
-                }/avatar.png`}
+                imageSrc={children.owner.avatar}
                 alt={children.owner.name || children.owner.email || ""}
               />
               <div className="flex w-full flex-row justify-between">

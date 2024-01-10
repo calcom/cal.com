@@ -1,8 +1,9 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
+import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
-import type { API } from "mailhog";
+import { uuid } from "short-uuid";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -13,6 +14,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
+import type { createEmailsFixture } from "./emails";
 import { TimeZoneEnum } from "./types";
 
 // Don't import hashPassword from app as that ends up importing next-auth and initializing it before NEXTAUTH_URL can be updated during tests.
@@ -101,7 +103,7 @@ const createTeamAndAddUser = async (
 ) => {
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
-    name: `user-id-${user.id}'s Team ${isOrg ? "Org" : "Team"}`,
+    name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
@@ -140,8 +142,17 @@ const createTeamAndAddUser = async (
 };
 
 // creates a user fixture instance and stores the collection
-export const createUsersFixture = (page: Page, emails: API | undefined, workerInfo: WorkerInfo) => {
-  const store = { users: [], page } as { users: UserFixture[]; page: typeof page };
+export const createUsersFixture = (
+  page: Page,
+  emails: ReturnType<typeof createEmailsFixture>,
+  workerInfo: WorkerInfo
+) => {
+  const store = { users: [], trackedEmails: [], page, teams: [] } as {
+    users: UserFixture[];
+    trackedEmails: { email: string }[];
+    page: typeof page;
+    teams: Team[];
+  };
   return {
     buildForSignup: (opts?: Pick<CustomUserOpts, "email" | "username" | "useExactUsername" | "password">) => {
       const uname =
@@ -322,6 +333,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
           },
           workerInfo
         );
+        store.teams.push(team);
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
@@ -379,6 +391,16 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       store.users.push(userFixture);
       return userFixture;
     },
+    /**
+     * Use this method to get an email that can be automatically cleaned up from all the places in DB
+     */
+    trackEmail: ({ username, domain }: { username: string; domain: string }) => {
+      const email = `${username}-${uuid().substring(0, 8)}@${domain}`;
+      store.trackedEmails.push({
+        email,
+      });
+      return email;
+    },
     get: () => store.users,
     logout: async () => {
       await page.goto("/auth/logout");
@@ -387,7 +409,7 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       const ids = store.users.map((u) => u.id);
       if (emails) {
         const emailMessageIds: string[] = [];
-        for (const user of store.users) {
+        for (const user of store.trackedEmails.concat(store.users.map((u) => ({ email: u.email })))) {
           const emailMessages = await emails.search(user.email);
           if (emailMessages && emailMessages.count > 0) {
             emailMessages.items.forEach((item) => {
@@ -401,7 +423,12 @@ export const createUsersFixture = (page: Page, emails: API | undefined, workerIn
       }
 
       await prisma.user.deleteMany({ where: { id: { in: ids } } });
+      // Delete all users that were tracked by email(if they were created)
+      await prisma.user.deleteMany({ where: { email: { in: store.trackedEmails.map((e) => e.email) } } });
+      await prisma.team.deleteMany({ where: { id: { in: store.teams.map((org) => org.id) } } });
       store.users = [];
+      store.teams = [];
+      store.trackedEmails = [];
     },
     delete: async (id: number) => {
       await prisma.user.delete({ where: { id } });
@@ -458,7 +485,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     logout: async () => {
       await page.goto("/auth/logout");
     },
-    getFirstTeam: async () => {
+    getFirstTeamMembership: async () => {
       const memberships = await prisma.membership.findMany({
         where: { userId: user.id },
         include: { team: true },
@@ -491,13 +518,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           },
         },
-        include: {
-          team: {
-            include: {
-              children: true,
-            },
-          },
-        },
+        include: { team: { include: { children: true } } },
       });
     },
     getFirstEventAsOwner: async () =>
@@ -514,8 +535,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       });
     },
     getPaymentCredential: async () => getPaymentCredential(store.page),
-    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">) =>
-      setupEventWithPrice(eventType, store.page),
+    setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">, slug: string) =>
+      setupEventWithPrice(eventType, slug, store.page),
     bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
       bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
@@ -541,7 +562,8 @@ type CustomUserOptsKeys =
   | "locale"
   | "name"
   | "email"
-  | "organizationId";
+  | "organizationId"
+  | "role";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -571,6 +593,7 @@ const createUser = (
     completedOnboarding: opts?.completedOnboarding ?? true,
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
+    role: opts?.role ?? "USER",
     ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true
@@ -699,9 +722,9 @@ export async function apiLogin(
   });
 }
 
-export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, page: Page) {
+export async function setupEventWithPrice(eventType: Pick<Prisma.EventType, "id">, slug: string, page: Page) {
   await page.goto(`/event-types/${eventType?.id}?tabName=apps`);
-  await page.locator("[data-testid='app-switch']").first().click();
+  await page.locator(`[data-testid='${slug}-app-switch']`).first().click();
   await page.getByPlaceholder("Price").fill("100");
   await page.getByTestId("update-eventtype").click();
 }
@@ -728,7 +751,7 @@ export async function makePaymentUsingStripe(page: Page) {
   const stripeFrame = stripeElement.frameLocator("iframe").first();
   await stripeFrame.locator('[name="number"]').fill("4242 4242 4242 4242");
   const now = new Date();
-  await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth()} / ${now.getFullYear() + 1}`);
+  await stripeFrame.locator('[name="expiry"]').fill(`${now.getMonth() + 1} / ${now.getFullYear() + 1}`);
   await stripeFrame.locator('[name="cvc"]').fill("111");
   const postcalCodeIsVisible = await stripeFrame.locator('[name="postalCode"]').isVisible();
   if (postcalCodeIsVisible) {
