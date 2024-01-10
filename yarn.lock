@@ -3745,6 +3745,7 @@ __metadata:
     "@tailwindcss/forms": ^0.5.2
     "@tailwindcss/line-clamp": ^0.4.0
     "@tailwindcss/typography": ^0.5.4
+    "@todesktop/tailwind-variants": ^1.0.0
     "@trivago/prettier-plugin-sort-imports": 4.1.1
     "@typescript-eslint/eslint-plugin": ^5.52.0
     "@typescript-eslint/parser": ^5.52.0
@@ -4175,6 +4176,7 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@faker-js/faker": ^7.3.0
+    "@formbricks/api": ^1.1.0
     "@sendgrid/client": ^7.7.0
     "@vercel/og": ^0.5.0
     bcryptjs: ^2.4.3
@@ -4590,7 +4592,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
-    "@formkit/auto-animate": ^1.0.0-beta.5
+    "@formkit/auto-animate": ^0.8.1
     "@radix-ui/react-checkbox": ^1.0.4
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-popover": ^1.0.2
@@ -4673,7 +4675,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.37.0
-    "@formkit/auto-animate": ^1.0.0-beta.5
+    "@formkit/auto-animate": ^0.8.1
     "@glidejs/glide": ^3.5.2
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
@@ -6228,10 +6230,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@formkit/auto-animate@npm:^1.0.0-beta.5":
-  version: 1.0.0-beta.5
-  resolution: "@formkit/auto-animate@npm:1.0.0-beta.5"
-  checksum: 479a4f694d91e7272b2d8bdf2051fd1ae2dd5fbb522612406eaef55d88b7131402a7d5f683df8eb4e7c00810ebec8d3048483a774b0864c299d2d7af81262eb2
+"@formbricks/api@npm:^1.1.0":
+  version: 1.4.0
+  resolution: "@formbricks/api@npm:1.4.0"
+  checksum: 2fabf27f7a1013d7e327e1c1d3d99d4860451a51ce7775968d62e9cd6149b62fce4e736b4a5c21800040b257bff82733a28c3409d8d0ae48cb59d61ca1738c6a
+  languageName: node
+  linkType: hard
+
+"@formkit/auto-animate@npm:^0.8.1":
+  version: 0.8.1
+  resolution: "@formkit/auto-animate@npm:0.8.1"
+  checksum: ffc1a3432ce81bcf7abd4360fabf05b7aee01005e64ce519f57d134e68a5e15a81f295a7b2979678896bfd7d2048202a9fa2dbd09781267899e9056e918120c1
   languageName: node
   linkType: hard
 
@@ -12252,6 +12261,15 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 3e6bc9fd53dfe2f3648190193ed2fd4bca2a1bfb47f68810df3b33f05412526e5fd5c4ef9dc5375635e0f4cdf1859916867b597eed22bda1321e04242ea6c519
+  languageName: node
+  linkType: hard
+
+"@todesktop/tailwind-variants@npm:^1.0.0":
+  version: 1.0.1
+  resolution: "@todesktop/tailwind-variants@npm:1.0.1"
+  peerDependencies:
+    tailwindcss: ^3.4.0
+  checksum: 53dffba36455b555553cf4d1d74554b54f4a586ef6dc8f7eb66d586b935765f56a0b806c2bbba0fddb435340744fe68bb9e1bbf66a4646fdc3b18af13521e4b6
   languageName: node
   linkType: hard
 
