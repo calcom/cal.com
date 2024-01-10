@@ -62,18 +62,18 @@ jobs:
 
       - name: Get comment body
         id: get-comment-body
-        if: success()
+        if: success() && github.event.number
         run: |
           cd apps/web
           body=$(cat .next/analyze/__bundle_analysis_comment.txt)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
-          echo "{name}={$body}" >> $GITHUB_OUTPUT
+          echo "{body}={$body}" >> $GITHUB_OUTPUT
 
       - name: Find Comment
         uses: peter-evans/find-comment@v2
-        if: success()
+        if: success() && github.event.number
         id: fc
         with:
           issue-number: ${{ github.event.number }}
