@@ -70,3 +70,25 @@ export type FormValues = {
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
 };
+
+export type DestinationCalendar = {
+  id: number;
+  credentialId: number | null;
+  userId: number | null;
+  eventTypeId: number | null;
+  integration: string;
+  externalId: string;
+};
+
+export type Location = {
+  type: string;
+  address?: string | undefined;
+  attendeeAddress?: string | undefined;
+  link?: string | undefined;
+  hostPhoneNumber?: string | undefined;
+  displayLocationPublicly?: boolean | undefined;
+  phone?: string | undefined;
+  hostDefault?: string | undefined;
+  credentialId?: number | undefined;
+  teamName?: string | undefined;
+};
