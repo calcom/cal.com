@@ -1,14 +1,16 @@
 import LegacyPage from "@pages/getting-started/[[...step]]";
-import { ssrInit } from "app/_trpc/ssrInit";
+import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
-import PageWrapper from "@components/PageWrapperAppDir";
+import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-async function getData() {
+import { ssrInit } from "@server/lib/ssr";
+
+const getData = async (ctx: ReturnType<typeof buildLegacyCtx>) => {
   const req = { headers: headers(), cookies: cookies() };
 
   //@ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest
@@ -17,8 +19,8 @@ async function getData() {
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
-
-  const ssr = await ssrInit();
+  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
+  const ssr = await ssrInit(ctx);
   await ssr.viewer.me.prefetch();
 
   const user = await prisma.user.findUnique({
@@ -51,20 +53,11 @@ async function getData() {
   }
 
   return {
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
     hasPendingInvites: user.teams.find((team: any) => team.accepted === false) ?? false,
+    requiresLicense: false,
+    themeBasis: null,
   };
-}
+};
 
-export default async function Page() {
-  const props = await getData();
-
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  return (
-    <PageWrapper getLayout={null} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
-      <LegacyPage />
-    </PageWrapper>
-  );
-}
+export default WithLayout({ getLayout: null, getData, Page: LegacyPage });
