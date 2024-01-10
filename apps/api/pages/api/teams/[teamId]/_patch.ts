@@ -66,6 +66,7 @@ export async function patchHandler(req: NextApiRequest) {
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
 
+
   // Check if slug already exists
   const slugAlreadyExist = await prisma.team.findFirst({
     where: {
@@ -77,6 +78,24 @@ export async function patchHandler(req: NextApiRequest) {
   });
   if (slugAlreadyExist && data.slug !== _team.slug)
     throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+
+  // Check if parentId is related to this user
+  if (data.parentId && data.parentId === teamId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Bad request: Parent id cannot be the same as the team id.",
+    });
+  }
+  if (data.parentId) {
+    const parentTeam = await prisma.team.findFirst({
+      where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
+    });
+    if (!parentTeam)
+      throw new HttpError({
+        statusCode: 401,
+        message: "Unauthorized: Invalid parent id. You can only use parent id of your own teams.",
+      });
+  }
 
   let paymentUrl;
   if (_team.slug === null && data.slug) {
