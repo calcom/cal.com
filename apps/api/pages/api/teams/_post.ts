@@ -3,10 +3,9 @@ import type { NextApiRequest } from "next";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { generateCheckoutSession } from "@calcom/trpc/server/routers/viewer/teams/create.handler";
 
-import { schemaMembershipPublic } from "~/lib/validations/membership";
-import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
+import { schemaTeamCreateBodyParams } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -90,13 +89,6 @@ async function postHandler(req: NextApiRequest) {
       },
     });
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
-    if (IS_TEAM_BILLING_ENABLED) {
-      // Setting slug in metadata, so it can be published later
-      data.metadata = {
-        requestedSlug: data.slug,
-      };
-      delete data.slug;
-    }
   }
 
   // Check if parentId is related to this user
@@ -111,33 +103,21 @@ async function postHandler(req: NextApiRequest) {
       });
   }
 
-  // TODO: Perhaps there is a better fix for this?
-  const cloneData: typeof data & {
-    metadata: NonNullable<typeof data.metadata> | undefined;
-  } = {
-    ...data,
-    metadata: data.metadata === null ? {} : data.metadata || undefined,
-  };
-  const team = await prisma.team.create({
-    data: {
-      ...cloneData,
-      createdAt: new Date(),
-      members: {
-        // We're also creating the relation membership of team ownership in this call.
-        create: { userId: effectiveUserId, role: MembershipRole.OWNER, accepted: true },
-      },
-    },
-    include: { members: true },
+  if (!IS_TEAM_BILLING_ENABLED) {
+    const PRECONDITION_FAILED_STATUS_CODE = 412;
+    throw new HttpError({
+      statusCode: PRECONDITION_FAILED_STATUS_CODE,
+      message: "Team creation is currently unavailable as team billing is disabled.",
+    });
+  }
+
+  const checkoutSessionResponse = await generateCheckoutSession({
+    teamSlug: data.slug,
+    teamName: data.name,
+    userId: effectiveUserId,
   });
-  req.statusCode = 201;
-  // We are also returning the new ownership relation as owner besides team.
-  return {
-    team: schemaTeamReadPublic.parse(team),
-    owner: schemaMembershipPublic.parse(team.members[0]),
-    message: isAdmin
-      ? "Team created successfully, we also made user with submitted userId the owner of this team"
-      : "Team created successfully, we also made you the owner of this team",
-  };
+
+  return checkoutSessionResponse;
 }
 
 async function checkPermissions(req: NextApiRequest) {
