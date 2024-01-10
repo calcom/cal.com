@@ -1,10 +1,11 @@
 import { useState } from "react";
 
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Card, showToast } from "@calcom/ui";
-import { UserPlus, Users, Edit } from "@calcom/ui/components/icon";
+import { UserPlus, Building, LineChart, Paintbrush, Users, Edit } from "@calcom/ui/components/icon";
 
 import TeamListItem from "./TeamListItem";
 
@@ -42,8 +43,67 @@ export default function TeamList(props: Props) {
     deleteTeamMutation.mutate({ teamId });
   }
 
+  const hasOrgPlan = false;
+
   return (
     <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
+      {!props.pending &&
+        !IS_CALCOM &&
+        props.teams.length > 2 &&
+        props.teams.map(
+          (team, i) =>
+            team.role !== "MEMBER" &&
+            i === 0 && (
+              <div className="bg-subtle p-4">
+                <div className="grid-col-1 grid gap-2 md:grid-cols-3">
+                  <Card
+                    icon={<Building className="h-5 w-5 text-red-700" />}
+                    variant="basic"
+                    title={t("You have a lot of teams")}
+                    description={t(
+                      "Consider consolidating your teams in an organisation, unify billing, admin tools and analytics."
+                    )}
+                    actionButton={
+                      hasOrgPlan
+                        ? {
+                            href: "https://cal.com/sales",
+                            child: t("contact_sales"),
+                          }
+                        : {
+                            href: `/settings/organizations/move-teams`,
+                            child: t("set_up_your_organization"),
+                          }
+                    }
+                  />
+                  <Card
+                    icon={<Paintbrush className="h-5 w-5 text-orange-700" />}
+                    variant="basic"
+                    title={t("Get a clean subdomain")}
+                    description={t(
+                      "Right now, team member URLs are all over the place. Get a beautiful link and turn every email address into a scheduling link: anna@acme.com → acme.cal.com/anna"
+                    )}
+                    actionButton={{
+                      href: "https://www.youtube.com/watch?v=G0Jd2dp7064",
+                      child: t("learn_more"),
+                    }}
+                  />
+                  <Card
+                    icon={<LineChart className="h-5 w-5 text-green-700" />}
+                    variant="basic"
+                    title={t("Admin tools and analytics")}
+                    description={t(
+                      "As an organization owner, you are in charge of every team account. You can make changes with admin-only tools and see organization wide analytics in one place."
+                    )}
+                    actionButton={{
+                      href: "https://i.cal.com/sales/enterprise",
+                      child: t("learn_more"),
+                    }}
+                  />
+                </div>
+              </div>
+            )
+        )}
+
       {props.teams.map((team) => (
         <TeamListItem
           key={team?.id as number}
