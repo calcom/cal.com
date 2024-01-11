@@ -5,6 +5,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
+import { invalidateSchedules } from "@calcom/features/schedules/components/invalidate";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { availabilityAsString } from "@calcom/lib/availability";
@@ -13,7 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
+import type { WorkingHours, AvailabilityFormValues } from "@calcom/types/schedule";
 import {
   Button,
   ConfirmationDialogContent,
@@ -35,15 +36,12 @@ import PageWrapper from "@components/PageWrapper";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
-type AvailabilityFormValues = {
-  name: string;
-  schedule: ScheduleType;
-  dateOverrides: { ranges: TimeRange[] }[];
-  timeZone: string;
-  isDefault: boolean;
+type DateOverrideProps = {
+  workingHours: WorkingHours[];
+  schedule: AvailabilityFormValues;
 };
 
-const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+const DateOverride = ({ workingHours, schedule }: DateOverrideProps) => {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -71,6 +69,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         <DateOverrideInputDialog
           workingHours={workingHours}
           excludedDates={excludedDates}
+          schedule={schedule}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
@@ -108,16 +107,8 @@ export default function Availability() {
   });
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
-      if (prevDefaultId && currentDefaultId) {
-        // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
-        if (prevDefaultId !== currentDefaultId) {
-          // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
-          utils.viewer.availability.schedule.get.invalidate({ scheduleId: prevDefaultId });
-          utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
-        }
-      }
-      utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
-      utils.viewer.availability.list.invalidate();
+      invalidateSchedules(utils, prevDefaultId, currentDefaultId, data);
+
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -376,7 +367,9 @@ export default function Availability() {
               </div>
             </div>
             <div className="border-subtle my-6 rounded-md border">
-              {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+              {schedule?.workingHours && (
+                <DateOverride workingHours={schedule.workingHours} schedule={schedule} />
+              )}
             </div>
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">

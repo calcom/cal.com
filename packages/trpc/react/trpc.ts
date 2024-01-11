@@ -132,3 +132,5 @@ export const transformer = superjson;
 
 export type RouterInputs = inferRouterInputs<AppRouter>;
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
+
+export type RouterContext = Awaited<ReturnType<typeof trpc.useContext>>;

@@ -18,3 +18,31 @@ export type WorkingHours = {
   endTime: number;
   userId?: number | null;
 };
+
+export type ScheduleObject = {
+  id: number;
+  name: string;
+  isManaged: boolean;
+
+  workingHours: WorkingHours[];
+
+  name: string;
+  schedule: ScheduleType;
+  dateOverrides: {
+    start: Date;
+    end: Date;
+  }[];
+
+  timeZone: string;
+  isDefault: boolean;
+
+  readOnly: boolean;
+};
+
+export type AvailabilityFormValues = {
+  name: string;
+  schedule: ScheduleType;
+  dateOverrides: { ranges: TimeRange[] }[];
+  timeZone: string;
+  isDefault: boolean;
+};

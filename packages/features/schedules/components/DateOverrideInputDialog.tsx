@@ -4,8 +4,10 @@ import { useForm } from "react-hook-form";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { yyyymmdd } from "@calcom/lib/date-fns";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkingHours } from "@calcom/types/schedule";
+import { trpc } from "@calcom/trpc/react";
+import type { WorkingHours, AvailabilityFormValues, Schedule } from "@calcom/types/schedule";
 import {
   Dialog,
   DialogContent,
@@ -13,27 +15,38 @@ import {
   DialogHeader,
   DialogClose,
   Switch,
-  showToast,
   Form,
   Button,
+  showToast,
 } from "@calcom/ui";
 
 import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
+import { invalidateSchedules } from "./invalidate";
 
 const DateOverrideForm = ({
   value,
   workingHours,
   excludedDates,
+  schedule,
   onChange,
+  onClose,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
   excludedDates: string[];
   value?: TimeRange[];
   onClose?: () => void;
+  schedule: AvailabilityFormValues;
 }) => {
+  const searchParams = useCompatSearchParams();
+  const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
+
+  const utils = trpc.useContext();
+
+  const updateMutation = trpc.viewer.availability.schedule.update.useMutation();
+
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
@@ -103,7 +116,7 @@ const DateOverrideForm = ({
   return (
     <Form
       form={form}
-      handleSubmit={(values) => {
+      handleSubmit={async (values) => {
         if (selectedDates.length === 0) return;
 
         const datesInRanges: TimeRange[] = [];
@@ -123,7 +136,7 @@ const DateOverrideForm = ({
           });
         }
 
-        onChange(
+        const dates = (
           datesUnavailable
             ? selectedDates.map((date) => {
                 return {
@@ -132,8 +145,47 @@ const DateOverrideForm = ({
                 };
               })
             : datesInRanges
+        ).map((date) => ({
+          ranges: [date],
+        }));
+
+        if (scheduleId) {
+          const newSchedule = schedule as AvailabilityFormValues & { availability: Schedule };
+
+          await updateMutation.mutateAsync(
+            {
+              scheduleId,
+              ...newSchedule,
+              schedule: newSchedule.availability,
+              dateOverrides: dates.flatMap((date) => date.ranges),
+            },
+            {
+              onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
+                invalidateSchedules(utils, prevDefaultId, currentDefaultId, data);
+
+                showToast(
+                  t("availability_updated_successfully", {
+                    scheduleName: data.schedule.name,
+                  }),
+                  "success"
+                );
+              },
+              onError: (error) => {
+                showToast(error.message, "error", 500);
+              },
+            }
+          );
+        }
+
+        onChange(
+          dates.map((date) => ({
+            start: date.ranges[0].start,
+            end: date.ranges[0].end,
+          }))
         );
+
         setSelectedDates([]);
+        onClose?.();
       }}
       className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
@@ -178,9 +230,6 @@ const DateOverrideForm = ({
                 className="ml-2"
                 color="primary"
                 type="submit"
-                onClick={() => {
-                  showToast(t("date_successfully_added"), "success", 500);
-                }}
                 disabled={selectedDates.length === 0}
                 data-testid="add-override-submit-btn">
                 {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
@@ -208,6 +257,7 @@ const DateOverrideInputDialog = ({
   Trigger: React.ReactNode;
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
+  schedule: AvailabilityFormValues;
 }) => {
   const [open, setOpen] = useState(false);
   return (
