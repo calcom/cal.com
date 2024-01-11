@@ -54,7 +54,7 @@ const auditAndReturnNextUser = async (
         role: true,
       },
     });
-    if (!impersonatedByUser) return;
+    if (!impersonatedByUser) throw new Error("This user does not exist.");
 
     return {
       ...obj,
