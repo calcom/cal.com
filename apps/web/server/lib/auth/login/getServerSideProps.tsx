@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
-export async function getLoginPageData(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res, query } = context;
 
   const session = await getServerSession({ req, res });

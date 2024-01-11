@@ -5,7 +5,7 @@ import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
-import { getLoginPageData } from "@server/lib/loginGetData";
+import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -17,5 +17,5 @@ export const generateMetadata = async () => {
 export default WithLayout({
   getLayout: null,
   Page: Login,
-  getData: withAppDir(getLoginPageData),
+  getData: withAppDir(getServerSideProps),
 })<"P">;

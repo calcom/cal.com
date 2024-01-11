@@ -30,7 +30,7 @@ import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { getLoginPageData } from "@server/lib/loginGetData";
+import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
 interface LoginValues {
   email: string;
@@ -264,6 +264,6 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
   );
 }
 
-export const getServerSideProps = getLoginPageData;
+export { getServerSideProps };
 
 Login.PageWrapper = PageWrapper;
