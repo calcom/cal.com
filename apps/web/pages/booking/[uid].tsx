@@ -44,13 +44,15 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
-import { type getServerSideProps } from "@lib/booking/[uid]/getServerSideProps";
+import { getServerSideProps } from "@lib/booking/[uid]/getServerSideProps";
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
+
+export { getServerSideProps };
 
 const stringToBoolean = z
   .string()
