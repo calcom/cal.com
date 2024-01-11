@@ -10,6 +10,5 @@ export enum ErrorCode {
   BookingSeatsFull = "booking_seats_full_error",
   MissingPaymentCredential = "missing_payment_credential_error",
   MissingPaymentAppId = "missing_payment_app_id_error",
-  UpdateDatedBookingNotFound = "update_dated_booking_not_found_error",
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
 }
