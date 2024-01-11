@@ -77,7 +77,6 @@ const EventWebhooksTab = dynamic(() =>
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
-
 export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
