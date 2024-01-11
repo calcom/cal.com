@@ -1,3 +1,5 @@
+"use client";
+
 import Head from "next/head";
 
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
