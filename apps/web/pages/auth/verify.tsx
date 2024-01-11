@@ -1,5 +1,7 @@
+"use client";
+
 import { motion } from "framer-motion";
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import type { InferGetServerSidePropsType } from "next";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,6 +18,8 @@ import { AlertTriangle, ExternalLink, MailOpen } from "@calcom/ui/components/ico
 
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
+
+import { getServerSideProps } from "@server/lib/verify/getServerSideProps";
 
 async function sendVerificationLogin(email: string, username: string) {
   await signIn("email", {
@@ -242,13 +246,5 @@ export default function Verify(props: InferGetServerSidePropsType<typeof getServ
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const EMAIL_FROM = process.env.EMAIL_FROM;
-
-  return {
-    props: {
-      EMAIL_FROM,
-    },
-  };
-};
+export { getServerSideProps };
 Verify.PageWrapper = PageWrapper;
