@@ -1,8 +1,7 @@
 "use client";
 
+import { getServerSideProps as _getServerSideProps } from "@lib/booking/[uid]/getServerSideProps";
 import withEmbedSsr from "@lib/withEmbedSsr";
-
-import { getServerSideProps as _getServerSideProps } from "../[uid]";
 
 export { default } from "../[uid]";
 
