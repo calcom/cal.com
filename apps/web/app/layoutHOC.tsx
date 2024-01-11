@@ -7,7 +7,7 @@ import PageWrapper from "@components/PageWrapperAppDir";
 
 type WithLayoutParams<T extends Record<string, any>> = {
   getLayout: ((page: React.ReactElement) => React.ReactNode) | null;
-  Page?: (props: T) => React.ReactElement;
+  Page?: (props: T) => React.ReactElement | null;
   getData?: (arg: ReturnType<typeof buildLegacyCtx>) => Promise<T>;
 };
 
