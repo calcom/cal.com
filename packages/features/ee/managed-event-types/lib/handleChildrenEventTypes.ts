@@ -218,7 +218,7 @@ export default async function handleChildrenEventTypes({
       userIds: oldUserIds,
       teamName: oldEventType.team?.name || null,
     });
-    console.log(managedEventTypeValues);
+
     // Update event types for old users
     const oldEventTypes = await prisma.$transaction(
       oldUserIds.map((userId) => {
@@ -237,7 +237,7 @@ export default async function handleChildrenEventTypes({
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
             recurringEvent:
-              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? null,
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
