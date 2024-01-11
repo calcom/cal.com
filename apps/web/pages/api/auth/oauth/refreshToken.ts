@@ -55,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const payload: OAuthTokenPayload = {
     userId: decodedRefreshToken.userId,
+    teamId: decodedRefreshToken.teamId,
     scope: decodedRefreshToken.scope,
     token_type: "Access Token",
     clientId: client_id,

@@ -522,6 +522,32 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const slug = formMethods.watch("slug") ?? eventType.slug;
 
+  // Optional prerender all tabs after 300 ms on mount
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const Components = [
+        EventSetupTab,
+        EventAvailabilityTab,
+        EventTeamTab,
+        EventLimitsTab,
+        EventAdvancedTab,
+        EventInstantTab,
+        EventRecurringTab,
+        EventAppsTab,
+        EventWorkflowsTab,
+        EventWebhooksTab,
+      ];
+
+      Components.forEach((C) => {
+        // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
+        C.render.preload();
+      });
+    }, 300);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
   return (
     <>
       <EventTypeSingleLayout

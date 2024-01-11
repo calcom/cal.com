@@ -97,6 +97,7 @@ export async function getBooking(bookingId: number) {
     }),
     organizer: {
       email: user.email,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: user.name!,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
