@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { Booker } from "@calcom/atoms";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { handleTypeRedirection } from "@calcom/features/booking-redirect/handle-type";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
@@ -164,7 +165,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-
+  let outOfOffice = false;
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {
@@ -188,7 +189,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       organization: userOrgQuery(context.req, context.params?.orgSlug),
     },
     select: {
-      away: true,
+      id: true,
       hideBranding: true,
       allowSEOIndexing: true,
     },
@@ -198,6 +199,18 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+  // If user is found, quickly verify bookingRedirects
+  const result = await handleTypeRedirection({
+    userId: user.id,
+    username,
+    slug,
+  });
+  if (result && result.outOfOffice) {
+    outOfOffice = true;
+  }
+  if (result && result.redirect?.destination) {
+    return result;
   }
 
   let booking: GetBookingType | null = null;
@@ -230,7 +243,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         length: eventData.length,
         metadata: eventData.metadata,
       },
-      away: user?.away,
+      away: outOfOffice,
       user: username,
       slug,
       trpcState: ssr.dehydrate(),
