@@ -67,5 +67,5 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
 };
 
 // @ts-expect-error getData arg
-export default WithLayout({ getData: getPageProps, Page: CategoryPage })<P>;
+export default WithLayout({ getData: getPageProps, Page: CategoryPage })<"P">;
 export const dynamic = "force-static";
