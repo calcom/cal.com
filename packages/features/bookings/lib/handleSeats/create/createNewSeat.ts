@@ -133,7 +133,7 @@ const createNewSeat = async (
     }
     await sendScheduledSeatsEmails(
       copyEvent,
-      invitee[0],
+      inviteeToAdd,
       newSeat,
       !!eventType.seatsShowAttendees,
       isHostConfirmationEmailsDisabled,
