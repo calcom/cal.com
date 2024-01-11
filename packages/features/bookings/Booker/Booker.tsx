@@ -15,7 +15,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
-import { BookEventContainer, BookEventForm } from "./components/BookEventForm";
+import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
 import { Header } from "./components/Header";
@@ -76,7 +76,7 @@ const BookerComponent = ({
     duration,
   });
   const event = useEvent();
-  const { selectedTimeslot, setSelectedTimeslot, handleRemoveSlot, handleReserveSlot } = useSlots(event);
+  const { selectedTimeslot, setSelectedTimeslot } = useSlots(event);
   const {
     shouldShowFormInDialog,
     hasDarkBackground,
@@ -208,43 +208,38 @@ const BookerComponent = ({
     return null;
   }
 
-  const BookEventWizard = (
-    <BookEventContainer
-      onRemoveSelectedSlot={handleRemoveSlot}
-      onReserveSlot={handleReserveSlot}
-      event={event.data}>
-      <BookEventForm
-        key={key}
-        onCancel={() => {
-          setSelectedTimeslot(null);
-          if (seatedEventData.bookingUid) {
-            setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
-          }
-        }}
-        onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
-        errorRef={bookerFormErrorRef}
-        errors={errors}
-        loadingStates={loadingStates}
-        renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-        bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
-        eventQuery={event}
-        rescheduleUid={rescheduleUid}>
-        <>
-          <VerifyCodeDialog
-            isOpenDialog={isEmailVerificationModalVisible}
-            setIsOpenDialog={setEmailVerificationModalVisible}
-            email={formEmail}
-            onSuccess={() => {
-              setVerifiedEmail(formEmail);
-              setEmailVerificationModalVisible(false);
-              handleBookEvent();
-            }}
-            isUserSessionRequiredToVerify={false}
-          />
-          <RedirectToInstantMeetingModal hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired} />
-        </>
-      </BookEventForm>
-    </BookEventContainer>
+  const EventBooker = (
+    <BookEventForm
+      key={key}
+      onCancel={() => {
+        setSelectedTimeslot(null);
+        if (seatedEventData.bookingUid) {
+          setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+        }
+      }}
+      onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
+      errorRef={bookerFormErrorRef}
+      errors={errors}
+      loadingStates={loadingStates}
+      renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+      bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
+      eventQuery={event}
+      rescheduleUid={rescheduleUid}>
+      <>
+        <VerifyCodeDialog
+          isOpenDialog={isEmailVerificationModalVisible}
+          setIsOpenDialog={setEmailVerificationModalVisible}
+          email={formEmail}
+          onSuccess={() => {
+            setVerifiedEmail(formEmail);
+            setEmailVerificationModalVisible(false);
+            handleBookEvent();
+          }}
+          isUserSessionRequiredToVerify={false}
+        />
+        <RedirectToInstantMeetingModal hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired} />
+      </>
+    </BookEventForm>
   );
 
   return (
@@ -307,7 +302,7 @@ const BookerComponent = ({
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
                 <Header
-                  username={username}
+                  isMyLink={Boolean(username === event?.data?.owner?.username)}
                   eventSlug={eventSlug}
                   enabledLayouts={bookerLayouts.enabledLayouts}
                   extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
@@ -342,7 +337,7 @@ const BookerComponent = ({
               className="border-subtle sticky top-0 ml-[-1px] h-full p-6 md:w-[var(--booker-main-width)] md:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
-              {BookEventWizard}
+              {EventBooker}
             </BookerSection>
 
             <BookerSection
@@ -406,7 +401,7 @@ const BookerComponent = ({
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
-        {BookEventWizard}
+        {EventBooker}
       </BookFormAsModal>
     </>
   );

@@ -66,7 +66,6 @@ export const useBookingForm = ({ event, hashedLink }: IUseBookingForm) => {
   const username = useBookerStore((state) => state.username);
   const routerQuery = useRouterQuery();
   const searchParams = useSearchParams();
-  const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
 
   const bookingFormSchema = z
     .object({
@@ -307,9 +306,11 @@ export const useBookingForm = ({ event, hashedLink }: IUseBookingForm) => {
       createInstantBookingMutation.error,
   };
 
+  // A redirect is triggered on mutation success, so keep the loading state while it is happening.
   const loadingStates = {
-    creatingBooking: createBookingMutation.isLoading,
-    creatingRecurringBooking: createRecurringBookingMutation.isLoading,
+    creatingBooking: createBookingMutation.isLoading || createBookingMutation.isSuccess,
+    creatingRecurringBooking:
+      createRecurringBookingMutation.isLoading || createRecurringBookingMutation.isSuccess,
     creatingInstantBooking: createInstantBookingMutation.isLoading,
   };
 

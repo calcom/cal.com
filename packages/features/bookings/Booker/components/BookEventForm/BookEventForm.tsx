@@ -3,11 +3,10 @@ import type {
   IUseBookingFormLoadingStates,
 } from "bookings/Booker/components/hooks/useBookingForm";
 import type { TFunction } from "next-i18next";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FieldError } from "react-hook-form";
 import type { UseFormReturn, FieldValues } from "react-hook-form";
 
-import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
@@ -27,38 +26,6 @@ type BookEventFormProps = {
   children?: React.ReactNode;
   bookingForm: UseFormReturn<FieldValues, any>;
   renderConfirmNotVerifyEmailButtonCond: boolean;
-};
-
-type BookEventContainerProps = {
-  onReserveSlot: () => void;
-  onRemoveSelectedSlot: () => void;
-  event: useEventReturnType["data"];
-  children?: React.ReactNode;
-};
-
-export const BookEventContainer = ({
-  onReserveSlot,
-  onRemoveSelectedSlot,
-  event,
-  children,
-}: BookEventContainerProps) => {
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
-
-  useEffect(() => {
-    onReserveSlot();
-
-    const interval = setInterval(() => {
-      onReserveSlot();
-    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
-
-    return () => {
-      onRemoveSelectedSlot();
-      clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.id, timeslot]);
-
-  return <div className="flex h-full flex-col">{children}</div>;
 };
 
 export const BookEventForm = ({

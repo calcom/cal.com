@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
 
 export const useSlots = (event: useEventReturnType) => {
@@ -44,6 +46,22 @@ export const useSlots = (event: useEventReturnType) => {
       });
     }
   };
+
+  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+
+  useEffect(() => {
+    handleReserveSlot();
+
+    const interval = setInterval(() => {
+      handleReserveSlot();
+    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+
+    return () => {
+      handleRemoveSlot();
+      clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.data?.id, timeslot]);
 
   return {
     selectedTimeslot,

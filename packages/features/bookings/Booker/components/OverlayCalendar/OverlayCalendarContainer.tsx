@@ -119,7 +119,7 @@ export function OverlayCalendarContainer() {
     shallow
   );
 
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session } = useSession();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const switchEnabled =
     searchParams?.get("overlayCalendar") === "true" ||
