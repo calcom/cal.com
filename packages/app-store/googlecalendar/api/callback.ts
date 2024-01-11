@@ -44,7 +44,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
-  let key = "";
+  let key;
   let invalid = false;
 
   if (code) {
