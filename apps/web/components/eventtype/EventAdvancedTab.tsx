@@ -307,9 +307,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
-        {...(isChildrenManagedEventType
-          ? { disabled: true, LockedIcon: shouldLockIndicator("hashedLink", false) }
-          : {})}
+        {...(isManagedEventType || isChildrenManagedEventType ? { disabled: true } : {})}
+        {...(isChildrenManagedEventType ? { LockedIcon: shouldLockIndicator("hashedLink", false) } : {})}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
