@@ -1,3 +1,5 @@
+"use client";
+
 import type { getProviders } from "next-auth/react";
 import { signIn } from "next-auth/react";
 
