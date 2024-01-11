@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
-import LgeacyPage from "@calcom/features/ee/workflows/pages/index";
+import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -10,4 +10,4 @@ export const generateMetadata = async () =>
     (t) => t("workflows_to_automate_notifications")
   );
 
-export default WithLayout({ getLayout, Page: LgeacyPage })<"P">;
+export default WithLayout({ getLayout, Page: LegacyPage })<"P">;
