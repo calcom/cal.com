@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
