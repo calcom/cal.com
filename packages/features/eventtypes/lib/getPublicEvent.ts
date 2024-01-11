@@ -149,7 +149,7 @@ export const getPublicEvent = async (
       defaultLayout: BookerLayouts.MONTH_VIEW,
     } as BookerLayoutSettings;
     const disableBookingTitle = !defaultEvent.isDynamic;
-    const unPublishedOrgUser = users.find((user) => user.orgProfile?.organization?.slug === null);
+    const unPublishedOrgUser = users.find((user) => user.relevantProfile?.organization?.slug === null);
 
     return {
       ...defaultEvent,
@@ -158,7 +158,7 @@ export const getPublicEvent = async (
       users: users.map((user) => ({
         ...user,
         metadata: undefined,
-        bookerUrl: getBookerBaseUrlSync(user.orgProfile?.organization?.slug ?? null),
+        bookerUrl: getBookerBaseUrlSync(user.relevantProfile?.organization?.slug ?? null),
       })),
       locations: privacyFilteredLocations(locations),
       profile: {
@@ -176,7 +176,7 @@ export const getPublicEvent = async (
       entity: {
         isUnpublished: unPublishedOrgUser !== undefined,
         orgSlug: org,
-        name: unPublishedOrgUser?.orgProfile?.organization?.name ?? null,
+        name: unPublishedOrgUser?.relevantProfile?.organization?.name ?? null,
       },
       isInstantEvent: false,
     };

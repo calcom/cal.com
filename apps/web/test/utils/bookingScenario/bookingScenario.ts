@@ -7,7 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, v4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -103,6 +103,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
+  profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
 };
 
 export type InputEventType = {
@@ -433,6 +434,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
         include: {
           credentials: true,
           teams: true,
+          profiles: true,
           schedules: {
             include: {
               availability: true,
@@ -520,6 +522,15 @@ async function addUsers(users: InputUser[]) {
         //@ts-ignore
         createMany: {
           data: user.selectedCalendars,
+        },
+      };
+    }
+    if (user.profiles) {
+      newUser.profiles = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        createMany: {
+          data: user.profiles,
         },
       };
     }
@@ -913,6 +924,7 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
+    profiles: [],
   };
 }
 
@@ -940,8 +952,18 @@ export function getScenarioData(
 ) {
   const users = [organizer, ...usersApartFromOrganizer];
   if (org) {
+    const orgId = org.id;
+    if (!orgId) {
+      throw new Error("If org is specified org.id is required");
+    }
     users.forEach((user) => {
-      user.organizationId = org.id;
+      user.profiles = [
+        {
+          organizationId: orgId,
+          username: user.username || "",
+          uid: v4(),
+        },
+      ];
     });
   }
 

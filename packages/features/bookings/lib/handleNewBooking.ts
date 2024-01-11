@@ -196,15 +196,15 @@ const getAllCredentials = async (
     }
   }
 
-  const orgProfile = await Profile.getRelevantOrgProfile({
+  const relevantProfile = await Profile.getRelevantOrgProfile({
     userId: user.id,
     ownedByOrganizationId: null,
   });
   // If the user is a part of an organization, query for the organization's credentials
-  if (orgProfile) {
+  if (relevantProfile) {
     const org = await prisma.team.findUnique({
       where: {
-        id: orgProfile.organizationId,
+        id: relevantProfile.organizationId,
       },
       select: {
         credentials: {
@@ -1265,11 +1265,14 @@ async function handler(
       username: dynamicUserList[0],
     },
   });
+
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+  const bookerUrl = eventType.team
+    ? await getBookerBaseUrl(eventType.team.parentId)
+    : await getBookerBaseUrl(organizerOrganizationId ?? null);
+
   let evt: CalendarEvent = {
-    bookerUrl: eventType.team
-      ? await getBookerBaseUrl(eventType.team.parentId)
-      : await getBookerBaseUrl(organizerOrganizationId ?? null),
+    bookerUrl,
     type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -2983,11 +2986,11 @@ export const getUsersFromUsernameInOrgContext = async ({
       },
     })
   ).map((user) => {
-    const orgProfile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
+    const relevantProfile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
     return {
       ...user,
-      organizationId: orgProfile?.organizationId ?? null,
-      orgProfile,
+      organizationId: relevantProfile?.organizationId ?? null,
+      relevantProfile,
     };
   });
 };

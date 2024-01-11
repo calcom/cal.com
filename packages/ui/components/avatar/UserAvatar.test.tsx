@@ -1,7 +1,7 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { render } from "@testing-library/react";
 
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import type { RelevantProfile } from "@calcom/types/RelevantProfile";
 
 import { UserAvatar } from "./UserAvatar";
 
@@ -9,6 +9,8 @@ const mockUser = {
   name: "John Doe",
   username: "pro",
   organizationId: null,
+  avatarUrl: "",
+  relevantProfile: null,
 };
 
 describe("tests for UserAvatar component", () => {
@@ -20,12 +22,17 @@ describe("tests for UserAvatar component", () => {
   });
 
   test("It should render the organization logo if a organization is passed in", () => {
+    const relevantProfile: RelevantProfile = {
+      username: "",
+      organizationId: 1,
+      organization: {
+        id: 1,
+        requestedSlug: "steve",
+        slug: "steve",
+      },
+    };
     const { getByTestId } = render(
-      <UserAvatar
-        user={mockUser}
-        organization={{ id: -1, requestedSlug: "steve", slug: "steve", logoUrl: AVATAR_FALLBACK }}
-        data-testid="user-avatar-test"
-      />
+      <UserAvatar user={{ ...mockUser, relevantProfile }} data-testid="user-avatar-test" />
     );
 
     const avatar = getByTestId("user-avatar-test");

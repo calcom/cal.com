@@ -391,8 +391,8 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
   }
 
-  const isNonOrgUser = (user: { orgProfile: unknown }) => {
-    return !user.orgProfile;
+  const isNonOrgUser = (user: { relevantProfile: unknown }) => {
+    return !user.relevantProfile;
   };
 
   if (!users.length || (!isValidOrgDomain && !users.some(isNonOrgUser))) {
@@ -415,9 +415,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: {
-      id: user.orgProfile?.organization.id ?? null,
-      slug: user.orgProfile?.organization?.slug ?? null,
-      requestedSlug: user.orgProfile?.organization?.metadata?.requestedSlug ?? null,
+      id: user.relevantProfile?.organization.id ?? null,
+      slug: user.relevantProfile?.organization?.slug ?? null,
+      requestedSlug: user.relevantProfile?.organization?.metadata?.requestedSlug ?? null,
     },
   };
 
@@ -452,7 +452,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
-  const org = usersWithoutAvatar[0].orgProfile?.organization;
+  const org = usersWithoutAvatar[0].relevantProfile?.organization;
 
   return {
     props: {

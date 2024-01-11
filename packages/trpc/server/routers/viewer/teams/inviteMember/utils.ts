@@ -88,11 +88,7 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
   return emailsToInvite;
 }
 
-export function validateInviteeEligibility(
-  invitee: UserWithMembership,
-  team: TeamWithParent,
-  isOrg: boolean
-) {
+export function validateInviteeEligibility(invitee: UserWithMembership, team: TeamWithParent) {
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
     throw new TRPCError({
@@ -115,27 +111,13 @@ export function validateInviteeEligibility(
     });
   }
 
-  // user is invited to join a team which is not in his organization
-  // if (invitee.organizationId && invitee.organizationId !== team.parentId) {
-  //   throw new TRPCError({
-  //     code: "FORBIDDEN",
-  //     message: `User ${invitee.username} is already a member of another organization.`,
-  //   });
-  // }
-
-  // if (invitee && isOrg) {
-  //   throw new TRPCError({
-  //     code: "FORBIDDEN",
-  //     message: `You cannot add a user that already exists in Cal.com to an organization. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
-  //   });
-  // }
-
-  // if (team.parentId && invitee) {
-  //   throw new TRPCError({
-  //     code: "FORBIDDEN",
-  //     message: `You cannot add a user that already exists in Cal.com to an organization's team. If they wish to join via this email address, they must update their email address in their profile to that of your organization.`,
-  //   });
-  // }
+  // user is invited to join a team in an organization where he isn't a member
+  if (invitee.profiles.find((profile) => profile.organizationId != team.parentId)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `User ${invitee.username} is already a member of another organization.`,
+    });
+  }
 }
 
 export async function getUsersToInvite({
@@ -188,7 +170,7 @@ export async function getUsersToInvite({
 
   // Check if the users found in the database can be invited to join the team/org
   invitees.forEach((invitee) => {
-    validateInviteeEligibility(invitee, team, isInvitedToOrg);
+    validateInviteeEligibility(invitee, team);
   });
   return invitees;
 }

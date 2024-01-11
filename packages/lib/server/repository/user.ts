@@ -2,10 +2,13 @@ import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { isOrganization } from "../../entityPermissionUtils";
+import logger from "../../logger";
+import { safeStringify } from "../../safeStringify";
 import { Profile } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 import type { User as UserType } from ".prisma/client";
 
+const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 export class User {
   static async getTeamsFromUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
@@ -118,14 +121,22 @@ export class User {
       currentOrgDomain,
       usernameList,
     });
-    console.log("getUsersFromUsernameInOrgContext", JSON.stringify({ where, profiles }));
+
     return (
       await prisma.user.findMany({
         where,
       })
     ).map((user) => {
-      const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
+      // User isn't part of any organization
+      if (!profiles) {
+        return {
+          ...user,
+          relevantProfile: null,
+        };
+      }
+      const profile = profiles.find((profile) => profile.user.id === user.id) ?? null;
       if (!profile) {
+        log.error("Profile not found for user", safeStringify({ user, profiles }));
         // Profile must be there because profile itself was used to retrieve the user
         throw new Error("Profile couldn't be found");
       }
@@ -133,7 +144,6 @@ export class User {
       return {
         ...user,
         relevantProfile: profileWithoutUser,
-        orgProfile: profileWithoutUser,
       };
     });
   }
