@@ -87,6 +87,10 @@ async function postHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
+  if (args.data.eventTriggers) {
+    args.data.eventTriggers = [...new Set(args.data.eventTriggers)];
+  }
+
   const data = await prisma.webhook.create(args);
 
   return {
