@@ -108,7 +108,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(eventType, formMethods, t);
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps, shouldLockIndicator } =
+    useLockedFieldsManager(eventType, formMethods, t);
   const eventNamePlaceholder = getEventName({
     ...eventNameObject,
     eventName: formMethods.watch("eventName"),
@@ -306,7 +307,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
-        {...shouldLockDisableProps("hashedLinkCheck")}
+        {...(isChildrenManagedEventType
+          ? { disabled: true, LockedIcon: shouldLockIndicator("hashedLink", false) }
+          : {})}
         description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
