@@ -1,10 +1,9 @@
-import LegacyPage from "@pages/settings/organizations/[id]/onboard-admins";
+import LegacyPage, {
+  buildWrappedOnboardTeamMembersPage,
+} from "@pages/settings/organizations/[id]/onboard-admins";
 import { type Params } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-
-import { WizardLayoutAppDir } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapperAppDir";
 
@@ -24,16 +23,7 @@ const Page = ({ params }: PageProps) => {
 
   return (
     <PageWrapper
-      getLayout={(page: React.ReactElement) => (
-        <WizardLayoutAppDir
-          currentStep={4}
-          maxSteps={5}
-          isOptionalCallback={() => {
-            redirect(`/settings/organizations/${params.id}/add-teams`);
-          }}>
-          {page}
-        </WizardLayoutAppDir>
-      )}
+      getLayout={(page: React.ReactElement) => buildWrappedOnboardTeamMembersPage(params.id, page)}
       requiresLicense={false}
       nonce={nonce}
       themeBasis={null}>

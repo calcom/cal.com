@@ -1,11 +1,10 @@
-import LegacyPage from "@pages/settings/organizations/new/index";
+import LegacyPage, { WrappedCreateNewOrganizationPage } from "@pages/settings/organizations/new/index";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
-import { WizardLayoutAppDir } from "@calcom/ui";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -28,12 +27,8 @@ const getPageProps = async (context: GetServerSidePropsContext) => {
   };
 };
 
-const LayoutWrapper = (page: React.ReactElement) => {
-  return (
-    <WizardLayoutAppDir currentStep={1} maxSteps={5}>
-      {page}
-    </WizardLayoutAppDir>
-  );
-};
-
-export default WithLayout({ getLayout: LayoutWrapper, Page: LegacyPage, getData: getPageProps });
+export default WithLayout({
+  getLayout: WrappedCreateNewOrganizationPage,
+  Page: LegacyPage,
+  getData: getPageProps,
+});
