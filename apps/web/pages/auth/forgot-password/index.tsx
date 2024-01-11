@@ -1,21 +1,18 @@
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
-import type { GetServerSidePropsContext } from "next";
-import { getCsrfToken } from "next-auth/react";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
+import { getForgotPasswordPageData } from "@server/lib/forgotPasswordGetData";
+
+export default function ForgotPassword({ csrfToken }: { csrfToken: string | undefined }) {
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<{ message: string } | null>(null);
@@ -145,23 +142,4 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
 
 ForgotPassword.PageWrapper = PageWrapper;
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req });
-
-  // @TODO res will not be available in future pages (app dir)
-  if (session) {
-    res.writeHead(302, { Location: "/" });
-    res.end();
-    return { props: {} };
-  }
-  const locale = await getLocale(context.req);
-
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-      ...(await serverSideTranslations(locale, ["common"])),
-    },
-  };
-};
+export const getServerSideProps = getForgotPasswordPageData;
