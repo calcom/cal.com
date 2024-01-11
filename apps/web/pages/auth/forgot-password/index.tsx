@@ -10,7 +10,7 @@ import { Button, EmailField } from "@calcom/ui";
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { getServerSideProps } from "@server/lib/forgotPasswordGetData";
+import { getServerSideProps } from "@server/lib/forgot-password/getServerSideProps";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string | undefined }) {
   const { t } = useLocale();

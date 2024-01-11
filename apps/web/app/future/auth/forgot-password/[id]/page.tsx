@@ -3,7 +3,7 @@ import { withAppDir } from "app/AppDirSSRHOC";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSideProps } from "@server/lib/forgotPasswordWithIdGetData";
+import { getServerSideProps } from "@server/lib/forgot-password/[id]/getServerSideProps";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(

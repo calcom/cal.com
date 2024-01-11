@@ -8,7 +8,7 @@ import { Button, PasswordField, Form } from "@calcom/ui";
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { getServerSideProps } from "@server/lib/forgotPasswordWithIdGetData";
+import { getServerSideProps } from "@server/lib/forgot-password/[id]/getServerSideProps";
 
 type Props = {
   requestId: string;
