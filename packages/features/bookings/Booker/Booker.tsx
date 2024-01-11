@@ -114,7 +114,7 @@ const BookerComponent = ({
   );
 
   const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
-  const bookerLayouts = event.data?.profile?.bookerLayouts || defaultBookerLayoutSettings;
+  const bookerLayouts = event.data?.profile.bookerLayouts || defaultBookerLayoutSettings;
   const animationScope = useBookerResizeAnimation(layout, bookerState);
   const totalWeekDays = 7;
   const addonDays =

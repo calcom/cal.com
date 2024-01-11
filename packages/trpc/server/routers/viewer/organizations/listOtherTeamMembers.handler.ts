@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -109,20 +109,17 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
   for (const membership of members) {
     enrichedMemberships.push({
       ...membership,
-      user: {
-        ...membership.user,
-        relevantProfile: await Profile.getRelevantOrgProfile({
-          userId: membership.user.id,
-          ownedByOrganizationId: team.parentId,
-        }),
-      },
+      user: await User.enrichUserWithOrganizationProfile({
+        user: membership.user,
+        organizationId: team.parentId,
+      }),
     });
   }
   return {
     rows: enrichedMemberships.map((m) => {
       return {
         ...m,
-        bookerUrl: getBookerBaseUrlSync(m.user.relevantProfile?.organization?.slug || ""),
+        bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
       };
     }),
     nextCursor,

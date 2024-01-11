@@ -1,5 +1,6 @@
 import type z from "zod";
 
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -16,13 +17,23 @@ export const createOrUpdateMemberships = async ({
 }) => {
   return await prisma.$transaction(async (tx) => {
     if (teamMetadata?.isOrganization) {
-      await tx.user.update({
+      const dbUser = await tx.user.update({
         where: {
           id: user.id,
         },
         data: {
-          // @ts-expect-error Keep it till we remove organizationId from user table
           organizationId: team.id,
+        },
+        select: {
+          username: true,
+        },
+      });
+      await tx.profile.create({
+        data: {
+          uid: Profile.generateProfileUid(),
+          userId: user.id,
+          organizationId: team.id,
+          username: dbUser.username || "",
         },
       });
     }

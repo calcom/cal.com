@@ -1,5 +1,6 @@
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { isOrganization } from "../../entityPermissionUtils";
 import logger from "../../logger";
@@ -9,6 +10,8 @@ import { getParsedTeam } from "./teamUtils";
 import type { User as UserType } from ".prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
+type ProfileId = number | null;
+export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 export class User {
   static async getTeamsFromUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
@@ -47,7 +50,7 @@ export class User {
     };
   }
 
-  static async getOrganizationProfile({ profileId, userId }: { profileId: number | null; userId: number }) {
+  static async getOrganizationProfile({ profileId, userId }: { profileId: ProfileId; userId: number }) {
     if (!profileId) {
       return null;
     }
@@ -108,17 +111,14 @@ export class User {
   }
 
   static async getUsersFromUsernameInOrgContext({
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug,
     usernameList,
   }: {
-    isValidOrgDomain: boolean;
-    currentOrgDomain: string | null;
+    orgSlug: string | null;
     usernameList: string[];
   }) {
     const { where, profiles } = await User._getWhereClauseForGettingUsers({
-      isValidOrgDomain,
-      currentOrgDomain,
+      orgSlug,
       usernameList,
     });
 
@@ -131,7 +131,7 @@ export class User {
       if (!profiles) {
         return {
           ...user,
-          relevantProfile: null,
+          profile: Profile.getPersonalProfile({ user }),
         };
       }
       const profile = profiles.find((profile) => profile.user.id === user.id) ?? null;
@@ -143,26 +143,23 @@ export class User {
       const { user: _1, ...profileWithoutUser } = profile;
       return {
         ...user,
-        relevantProfile: profileWithoutUser,
+        profile: profileWithoutUser,
       };
     });
   }
 
   static async _getWhereClauseForGettingUsers({
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug,
     usernameList,
   }: {
-    isValidOrgDomain: boolean;
-    currentOrgDomain: string | null;
+    orgSlug: string | null;
     usernameList: string[];
   }) {
-    const isOrgContext = isValidOrgDomain && currentOrgDomain;
     // Lookup in profiles because that's where the organization usernames exist
-    const profiles = isOrgContext
+    const profiles = orgSlug
       ? (
           await Profile.getProfilesBySlugs({
-            orgSlug: currentOrgDomain,
+            orgSlug: orgSlug,
             usernames: usernameList,
           })
         ).map((profile) => ({
@@ -225,6 +222,18 @@ export class User {
     };
   }
 
+  static async getUserById({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+  }
+
   static async getAllUsersForOrganization({ organizationId }: { organizationId: number }) {
     const profiles = await Profile.getAllProfilesForOrg({ organizationId });
     return profiles.map((profile) => profile.user);
@@ -243,5 +252,80 @@ export class User {
   static async isUserAMemberOfAnyOrganization({ userId }: { userId: number }) {
     const orgProfiles = await Profile.getOrgProfilesForUser({ id: userId });
     return orgProfiles.length > 0;
+  }
+
+  static async enrichUserWithProfile<T extends { username: string | null }>({
+    user,
+    profileId,
+  }: {
+    user: T;
+    profileId: ProfileId;
+  }) {
+    const profile = await Profile.getProfile(profileId);
+    if (!profile) {
+      return {
+        ...user,
+        profile: Profile.getPersonalProfile({ user }),
+      };
+    }
+    return {
+      ...user,
+      profile,
+    };
+  }
+
+  static async enrichUserWithOrganizationProfile<T extends { id: number; username: string | null }>({
+    user,
+    organizationId,
+  }: {
+    user: T;
+    /**
+     * It would be made mandatory to pass an organizationId here
+     * Pass ORGANIZATION_ID_UNKNOWN to indicate that the organizationId is unknown. This is needed till we have a clear way to know at the caller side as to which profile is needed.
+     * If you don't have organizationId but have profileId use `enrichUserWithProfile` instead
+     */
+    organizationId: number | null | typeof ORGANIZATION_ID_UNKNOWN;
+  }): Promise<T & { profile: UserProfile }> {
+    if (typeof organizationId === "number") {
+      const profile = await Profile.getProfileByUserIdAndOrgId({
+        userId: user.id,
+        organizationId: organizationId,
+      });
+      return {
+        ...user,
+        profile,
+      };
+    }
+
+    // An explicity null organizationId means that non org profile is requested
+    if (organizationId === null) {
+      return {
+        ...user,
+        profile: Profile.getPersonalProfile({ user }),
+      };
+    }
+
+    // TODO: OrgNewSchema - later -> Correctly determine the organizationId at the caller level and then pass that.
+    // organizationId not specified Get the first organization profile for now
+    const orgProfiles = await Profile.getOrgProfilesForUser({ id: user.id });
+
+    if (orgProfiles.length > 1) {
+      // We need to have `ownedByOrganizationId` on the entity to support this
+      throw new Error("User having more than one organization profile isn't supported yet");
+    }
+
+    if (orgProfiles.length) {
+      // TODO: OrgNewSchema - later -> Support choosing the correct organization from either req.user or better organizationId in the handleNewBooking payload itself
+      return {
+        ...user,
+        profile: orgProfiles[0],
+      };
+    }
+
+    // If no organization profile exists use the personal profile
+    return {
+      ...user,
+      profile: Profile.getPersonalProfile({ user }),
+    };
   }
 }

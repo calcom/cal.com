@@ -5,8 +5,6 @@ import { Profile } from "@calcom/lib/server/repository/profile";
 import { User } from "@calcom/lib/server/repository/user";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { TRPCError } from "@trpc/server";
-
 type MeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -17,44 +15,47 @@ type MeOptions = {
 export const meHandler = async ({ ctx }: MeOptions) => {
   const crypto = await import("crypto");
 
-  const { user, session } = ctx;
+  const { user: sessionUser, session } = ctx;
 
-  const allUserEnrichedProfiles = await Profile.getAllProfilesForUser(user);
+  const allUserEnrichedProfiles = await Profile.getAllProfilesForUser(sessionUser);
 
-  const organizationProfile = await User.getOrganizationProfile({
-    profileId: session.profileId ?? null,
-    userId: user.id,
-  });
+  // const organizationProfile = await User.getOrganizationProfile({
+  //   profileId: session.profileId ?? null,
+  //   userId: user.id,
+  // });
+  const user = await User.enrichUserWithProfile({ user: sessionUser, profileId: session.profileId ?? null });
 
-  let chosenOrganization;
+  // let chosenOrganization;
 
-  if (organizationProfile) {
-    chosenOrganization = await User.getOrganizationForUser({
-      userId: user.id,
-      organizationId: organizationProfile.organizationId,
-    });
-    if (!chosenOrganization) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Organization not found for the profile",
-      });
-    }
-  }
+  // if (organizationProfile) {
+  //   chosenOrganization = await User.getOrganizationForUser({
+  //     userId: user.id,
+  //     organizationId: organizationProfile.organizationId,
+  //   });
+  //   if (!chosenOrganization) {
+  //     throw new TRPCError({
+  //       code: "INTERNAL_SERVER_ERROR",
+  //       message: "Organization not found for the profile",
+  //     });
+  //   }
+  // }
 
-  const userWithRelevantProfile = {
-    ...user,
-    relevantProfile:
-      organizationProfile && chosenOrganization
-        ? {
-            ...organizationProfile,
-            organization: {
-              id: chosenOrganization.id,
-              slug: chosenOrganization.slug,
-              requestedSlug: chosenOrganization.requestedSlug,
-            },
-          }
-        : null,
-  };
+  // const userWithUserProfile = {
+  //   ...user,
+  //   profile:
+  //     organizationProfile && chosenOrganization
+  //       ? {
+  //           ...organizationProfile,
+  //           organization: {
+  //             name: chosenOrganization.name,
+  //             calVideoLogo: chosenOrganization.calVideoLogo,
+  //             id: chosenOrganization.id,
+  //             slug: chosenOrganization.slug,
+  //             requestedSlug: chosenOrganization.requestedSlug,
+  //           },
+  //         }
+  //       : Profile.getPersonalProfile({ user }),
+  // };
 
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
@@ -69,7 +70,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     locale: user.locale,
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
-    avatar: getUserAvatarUrl(userWithRelevantProfile),
+    avatar: getUserAvatarUrl(user),
     avatarUrl: user.avatarUrl,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
@@ -90,10 +91,10 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
-    organizationId: chosenOrganization?.id ?? null,
+    organizationId: user.profile?.organizationId ?? null,
     organization: user.organization,
-    username: organizationProfile?.username ?? user.username ?? null,
-    relevantProfile: organizationProfile ?? null,
+    username: user.profile?.username ?? user.username ?? null,
+    profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
   };
 };

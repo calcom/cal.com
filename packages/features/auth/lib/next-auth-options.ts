@@ -443,12 +443,14 @@ export const AUTH_OPTIONS: AuthOptions = {
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
+        const allOrgProfiles = await Profile.getOrgProfilesForUser(existingUser);
+        const profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : token.profileId;
 
         let parsedOrgMetadata;
         // FIXME: Send the switched organization here
         const organizationProfile = await User.getOrganizationProfile({
           userId: existingUser.id,
-          profileId: token.profileId ?? null,
+          profileId: profileId ?? null,
         });
         let chosenOrganization;
 
@@ -459,9 +461,6 @@ export const AUTH_OPTIONS: AuthOptions = {
           });
           parsedOrgMetadata = teamMetadataSchema.parse(chosenOrganization?.metadata ?? {});
         }
-
-        const allOrgProfiles = await Profile.getOrgProfilesForUser(existingUser);
-        const profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : null;
 
         return {
           ...existingUserWithoutTeamsField,

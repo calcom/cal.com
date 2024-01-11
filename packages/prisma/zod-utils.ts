@@ -326,7 +326,7 @@ export const userMetadata = z
 
 export const teamMetadataSchema = z
   .object({
-    requestedSlug: z.string(),
+    requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),

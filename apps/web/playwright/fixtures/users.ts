@@ -9,6 +9,7 @@ import { v4 } from "uuid";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -127,7 +128,7 @@ const createTeamAndAddUser = async (
     ? {
         create: [
           {
-            uid: v4(),
+            uid: Profile.generateProfileUid(),
             username: user.username ?? user.email.split("@")[0],
             user: {
               connect: {
@@ -393,30 +394,35 @@ export const createUsersFixture = (
           }
           // Add Teammates to OrgUsers
           if (scenario.isOrg) {
+            const orgProfiles = {
+              create: teamMates
+                .map((teamUser) => ({
+                  user: {
+                    connect: {
+                      id: teamUser.id,
+                    },
+                  },
+                  uid: v4(),
+                  username: teamUser.username || teamUser.email.split("@")[0],
+                }))
+                .concat([
+                  {
+                    user: { connect: { id: user.id } },
+                    uid: v4(),
+                    username: user.username || user.email.split("@")[0],
+                  },
+                ]),
+            };
+            console.log({
+              orgProfiles: JSON.stringify(orgProfiles),
+            });
+
             await prisma.team.update({
               where: {
                 id: team.id,
               },
               data: {
-                orgProfiles: {
-                  create: teamMates
-                    .map((teamUser) => ({
-                      user: {
-                        connect: {
-                          id: teamUser.id,
-                        },
-                      },
-                      uid: v4(),
-                      username: teamUser.username || teamUser.email.split("@")[0],
-                    }))
-                    .concat([
-                      {
-                        user: { connect: { id: user.id } },
-                        uid: v4(),
-                        username: user.username || user.email.split("@")[0],
-                      },
-                    ]),
-                },
+                orgProfiles,
               },
             });
           }
@@ -663,7 +669,19 @@ const createUser = (
       throw new Error("Missing role for user in organization");
     }
     return {
-      organizationId: organizationId || null,
+      profiles: organizationId
+        ? {
+            create: {
+              uid: Profile.generateProfileUid(),
+              username: uname,
+              organization: {
+                connect: {
+                  id: organizationId,
+                },
+              },
+            },
+          }
+        : undefined,
       ...(organizationId
         ? {
             teams: {

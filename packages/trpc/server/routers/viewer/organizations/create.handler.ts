@@ -9,6 +9,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -112,30 +113,39 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
-    const createOwnerOrg = await prisma.user.create({
-      data: {
-        username: slugify(adminUsername),
-        email: adminEmail,
-        emailVerified: new Date(),
-        password: hashedPassword,
-        // @ts-expect-error - Temporary
-        organizationId: organization.id,
-        // Default schedule
-        schedules: {
-          create: {
-            name: t("default_schedule_name"),
-            availability: {
-              createMany: {
-                data: availability.map((schedule) => ({
-                  days: schedule.days,
-                  startTime: schedule.startTime,
-                  endTime: schedule.endTime,
-                })),
+    const createOwnerOrg = await prisma.$transaction(async () => {
+      const user = await prisma.user.create({
+        data: {
+          username: slugify(adminUsername),
+          email: adminEmail,
+          emailVerified: new Date(),
+          password: hashedPassword,
+          organizationId: organization.id,
+          // Default schedule
+          schedules: {
+            create: {
+              name: t("default_schedule_name"),
+              availability: {
+                createMany: {
+                  data: availability.map((schedule) => ({
+                    days: schedule.days,
+                    startTime: schedule.startTime,
+                    endTime: schedule.endTime,
+                  })),
+                },
               },
             },
           },
         },
-      },
+      });
+
+      await Profile.createProfile({
+        userId: createOwnerOrg.id,
+        username: slugify(adminUsername),
+        organizationId: organization.id,
+        email: createOwnerOrg.email,
+      });
+      return user;
     });
 
     if (!organization.id) throw Error("User not created");

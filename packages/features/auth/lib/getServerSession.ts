@@ -62,7 +62,7 @@ export async function getServerSession(options: {
   const hasValidLicense = await checkLicense(prisma);
   const profile = await Profile.getProfile(token.profileId ?? null);
   const session: Session = {
-    hasValidLicense: hasValidLicense,
+    hasValidLicense,
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
     user: {
       id: user.id,

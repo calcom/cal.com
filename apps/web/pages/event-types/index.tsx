@@ -730,7 +730,7 @@ const EventTypeListHeading = ({
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
-        alt={profile?.name || ""}
+        alt={profile.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
         imageSrc={`${bookerUrl}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`}
         size="md"
@@ -740,7 +740,7 @@ const EventTypeListHeading = ({
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
           className="text-emphasis font-bold">
-          {profile?.name || ""}
+          {profile.name || ""}
         </Link>
         {membershipCount && teamId && (
           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
@@ -752,13 +752,13 @@ const EventTypeListHeading = ({
             </Link>
           </span>
         )}
-        {profile?.slug && (
+        {profile.slug && (
           <Link href={`${bookerUrl}/${profile.slug}`} className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
-      {!profile?.slug && !!teamId && (
+      {!profile.slug && !!teamId && (
         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
           <Badge variant="gray" className="-ml-2 mb-1">
             {t("upgrade")}

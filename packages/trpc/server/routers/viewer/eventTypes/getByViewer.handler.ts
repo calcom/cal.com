@@ -9,7 +9,8 @@ import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { _getPrismaWhereClauseForUserTeams } from "@calcom/lib/server/repository/team";
+import { ORGANIZATION_ID_UNKNOWN, User } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -119,9 +120,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       teams: {
         where: {
           accepted: true,
-          team: {
-            parentId: profile?.organization?.id ?? null,
-          },
+          team: _getPrismaWhereClauseForUserTeams({ organizationId: profile?.organizationId ?? null }),
         },
         select: {
           role: true,
@@ -192,10 +191,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
     users: await Promise.all(
       (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-        async (u) => ({
-          ...u,
-          relevantProfile: await Profile.getRelevantOrgProfile({ userId: u.id, ownedByOrganizationId: null }),
-        })
+        async (u) =>
+          await User.enrichUserWithOrganizationProfile({ user: u, organizationId: ORGANIZATION_ID_UNKNOWN })
       )
     ),
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
@@ -203,14 +200,13 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       (eventType.children || []).map(async (c) => ({
         ...c,
         users: await Promise.all(
-          c.users.map(async (u) => ({
-            ...u,
-            // TODO: OrgNewSchema - Later - Figure out which profile to use
-            relevantProfile: await Profile.getRelevantOrgProfile({
-              userId: u.id,
-              ownedByOrganizationId: null,
-            }),
-          }))
+          c.users.map(
+            async (u) =>
+              await User.enrichUserWithOrganizationProfile({
+                user: u,
+                organizationId: ORGANIZATION_ID_UNKNOWN,
+              })
+          )
         ),
       }))
     ),
@@ -242,17 +238,17 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   );
 
   if (!input?.filters || !hasFilter(input?.filters) || input?.filters?.userIds?.includes(user.id)) {
-    const bookerUrl = await getBookerBaseUrl(profile?.organizationId ?? null);
+    const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);
     eventTypeGroups.push({
       teamId: null,
       bookerUrl,
       membershipRole: null,
       profile: {
-        slug: profile?.username || user.username,
+        slug: profile.username || user.username,
         name: user.name,
         image: getUserAvatarUrl({
           ...user,
-          relevantProfile: profile,
+          profile: profile,
         }),
       },
       eventTypes: orderBy(unmanagedEventTypes, ["position", "id"], ["desc", "asc"]),

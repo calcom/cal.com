@@ -59,7 +59,7 @@ const generateCheckoutSession = async ({
 const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) => {
   if (!ctx.user.profile?.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (!isOrganisationAdmin(ctx.user.id, ctx.user?.profile?.organizationId))
+  if (!isOrganisationAdmin(ctx.user.id, ctx.user?.profile.organizationId))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const createdTeam = await prisma.team.findFirst({

@@ -118,7 +118,7 @@ const usernameCheck = async (usernameRaw: string) => {
   const user = await prisma.user.findFirst({
     where: {
       username,
-      // @ts-expect-error - Once we remove organizationId it can be removed safely
+      // Simply remove it when we drop organizationId column
       organizationId: null,
     },
     select: {

@@ -232,7 +232,6 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     twoFactorSecret: null,
     verified: false,
     weekStart: "",
-    //@ts-expect-error - Temporary
     organizationId: null,
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,

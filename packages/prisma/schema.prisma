@@ -255,8 +255,8 @@ model User {
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
-  // organizationId       Int?
-  // organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  organizationId       Int?
+  organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
@@ -327,6 +327,7 @@ model Team {
   parentId             Int?
   parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children             Team[]                  @relation("organization")
+  orgUsers             User[]                  @relation("scope")
   inviteTokens         VerificationToken[]
   webhooks             Webhook[]
   timeFormat           Int?

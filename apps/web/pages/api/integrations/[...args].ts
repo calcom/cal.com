@@ -36,7 +36,7 @@ const defaultIntegrationAddHandler = async ({
           ? {
               AND: [{ userId: user.id }, { teamId }],
             }
-          : { userId: user.id, ownedByOrganizationId: user.profile?.organizationId }),
+          : { userId: user.id }),
       },
     });
     if (alreadyInstalled) {

@@ -2,7 +2,7 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import type { Maybe } from "@trpc/server";
@@ -13,13 +13,15 @@ import { middleware } from "../trpc";
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
   const { prisma } = ctx;
-  if (!session?.user?.id) {
+  if (!session) {
     return null;
   }
 
-  const profile = session?.profileId ? await Profile.getProfile(session.profileId) : null;
+  if (!session.user?.id) {
+    return null;
+  }
 
-  const user = await prisma.user.findUnique({
+  const userFromDb = await prisma.user.findUnique({
     where: {
       id: session.user.id,
       // Locked users can't login
@@ -68,9 +70,11 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   });
 
   // some hacks to make sure `username` and `email` are never inferred as `null`
-  if (!user) {
+  if (!userFromDb) {
     return null;
   }
+
+  const user = await User.enrichUserWithProfile({ user: userFromDb, profileId: session.profileId ?? null });
 
   const { email, username, id } = user;
   if (!email || !id) {
@@ -78,27 +82,29 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   }
 
   const userMetaData = userMetadata.parse(user.metadata || {});
-  const orgMetadata = teamMetadataSchema.parse(profile?.organization?.metadata || {});
+  const orgMetadata = teamMetadataSchema.parse(user.profile?.organization?.metadata || {});
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
   const locale = user?.locale ?? ctx.locale;
 
-  const isOrgAdmin = !!profile?.organization?.members.length;
+  const isOrgAdmin = !!user.profile?.organization?.members.length;
   // Want to reduce the amount of data being sent
-  if (isOrgAdmin && profile?.organization?.members) {
-    profile.organization.members = [];
+  if (isOrgAdmin && user.profile?.organization?.members) {
+    user.profile.organization.members = [];
   }
+
   const organization = {
-    ...profile?.organization,
-    id: profile?.organization?.id ?? null,
+    ...user.profile?.organization,
+    id: user.profile?.organization?.id ?? null,
     isOrgAdmin,
     metadata: orgMetadata,
     requestedSlug: orgMetadata?.requestedSlug ?? null,
   };
+
   return {
     ...user,
     avatar: `${WEBAPP_URL}/${user.username}/avatar.png?${organization.id}` && `orgId=${organization.id}`,
-    // FIXME: Remove this
+    // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
     organization,
     organizationId: organization.id,
     id,
@@ -106,15 +112,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     username,
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
-    profile: profile
-      ? {
-          ...profile,
-          organization: {
-            ...profile.organization,
-            requestedSlug: organization.requestedSlug,
-          },
-        }
-      : null,
   };
 }
 

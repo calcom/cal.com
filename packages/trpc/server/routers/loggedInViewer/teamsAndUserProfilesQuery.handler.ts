@@ -72,7 +72,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       slug: user.username,
       image: getUserAvatarUrl({
         ...user,
-        relevantProfile: profile,
+        profile: profile,
       }),
       readOnly: false,
     },

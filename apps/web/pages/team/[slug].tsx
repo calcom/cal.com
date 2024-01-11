@@ -22,7 +22,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ORGANIZATION_ID_UNKNOWN, User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -354,33 +354,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
-  const membersWithRelevantProfile = [];
-  for (const member of team.members) {
-    membersWithRelevantProfile.push({
-      ...member,
-      relevantProfile: await Profile.getRelevantOrgProfile({
-        userId: member.id,
-        ownedByOrganizationId: null,
-      }),
-    });
-  }
-  const members = !team.isPrivate
-    ? membersWithRelevantProfile.map((member) => {
-        return {
-          name: member.name,
-          avatarUrl: member.avatarUrl,
-          id: member.id,
-          bio: member.bio,
-          relevantProfile: member.relevantProfile,
-          subteams: member.subteams,
-          username: member.username,
-          accepted: member.accepted,
-          organizationId: member.organizationId,
-          safeBio: markdownToSafeHTML(member.bio || ""),
-          bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
-        };
-      })
-    : [];
+
+  const members = await Promise.all(
+    !team.isPrivate
+      ? team.members.map(async (m) => {
+          const member = await User.enrichUserWithOrganizationProfile({
+            user: m,
+            organizationId: ORGANIZATION_ID_UNKNOWN,
+          });
+          return {
+            name: member.name,
+            avatarUrl: member.avatarUrl,
+            id: member.id,
+            bio: member.bio,
+            profile: member.profile,
+            subteams: member.subteams,
+            username: member.username,
+            accepted: member.accepted,
+            organizationId: member.organizationId,
+            safeBio: markdownToSafeHTML(member.bio || ""),
+            bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
+          };
+        })
+      : []
+  );
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 

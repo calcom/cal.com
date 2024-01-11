@@ -4,7 +4,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -61,21 +61,18 @@ async function getTeamMembers({
     distinct: ["userId"],
   });
 
-  const membershipWithRelevantProfile = [];
+  const membershipWithUserProfile = [];
   for (const membership of memberships) {
-    membershipWithRelevantProfile.push({
+    membershipWithUserProfile.push({
       ...membership,
-      user: {
-        ...membership.user,
-        relevantProfile: await Profile.getRelevantOrgProfile({
-          userId: membership.user.id,
-          ownedByOrganizationId: organizationId,
-        }),
-      },
+      user: await User.enrichUserWithOrganizationProfile({
+        user: membership.user,
+        organizationId,
+      }),
     });
   }
 
-  return membershipWithRelevantProfile;
+  return membershipWithUserProfile;
 }
 
 type Member = Awaited<ReturnType<typeof getTeamMembers>>[number];
@@ -84,7 +81,7 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
   if (!member.user.defaultScheduleId) {
     return {
       id: member.user.id,
-      organizationId: member.user.relevantProfile?.organizationId ?? null,
+      organizationId: member.user.profile?.organizationId ?? null,
       name: member.user.name,
       username: member.user.username,
       email: member.user.email,
@@ -113,8 +110,8 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     username: member.user.username,
     email: member.user.email,
     avatarUrl: member.user.avatarUrl,
-    relevantProfile: member.user.relevantProfile,
-    organizationId: member.user.relevantProfile?.organizationId,
+    profile: member.user.profile,
+    organizationId: member.user.profile?.organizationId,
     name: member.user.name,
     timeZone,
     role: member.role,

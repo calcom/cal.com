@@ -1,3 +1,4 @@
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -69,11 +70,13 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
     select: {
       id: true,
+      username: true,
       email: true,
     },
   });
 
-  const userIds = foundUsersWithMatchingEmailDomain.map((user) => user.id);
+  const users = foundUsersWithMatchingEmailDomain;
+  const userIds = users.map((user) => user.id);
 
   await prisma.$transaction([
     prisma.membership.updateMany({
@@ -96,7 +99,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         accepted: true,
       },
     }),
-    // FIXME: OrgNewSchema - I think we should update the profile as well here.
+
     prisma.user.updateMany({
       where: {
         id: {
@@ -104,9 +107,19 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         },
       },
       data: {
-        //@ts-expect-error - Temporary
         organizationId: input.orgId,
       },
+    }),
+
+    Profile.createMany({
+      users: users.map((user) => {
+        return {
+          id: user.id,
+          username: user.username || user.email.split("@")[0],
+          email: user.email,
+        };
+      }),
+      organizationId: input.orgId,
     }),
   ]);
 

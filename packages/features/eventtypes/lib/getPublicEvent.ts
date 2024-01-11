@@ -10,8 +10,7 @@ import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { Profile } from "@calcom/lib/server/repository/profile";
-import { User } from "@calcom/lib/server/repository/user";
+import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
@@ -23,7 +22,7 @@ import {
   BookerLayouts,
   teamMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import type { RelevantProfile } from "@calcom/types/RelevantProfile";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
@@ -121,8 +120,7 @@ export const getPublicEvent = async (
   if (usernameList.length > 1) {
     const usersInOrgContext = await User.getUsersFromUsernameInOrgContext({
       usernameList,
-      isValidOrgDomain: true,
-      currentOrgDomain: org,
+      orgSlug: org,
     });
     console.log("getPublicEvent - dynamic", usersInOrgContext);
     const users = usersInOrgContext;
@@ -149,7 +147,7 @@ export const getPublicEvent = async (
       defaultLayout: BookerLayouts.MONTH_VIEW,
     } as BookerLayoutSettings;
     const disableBookingTitle = !defaultEvent.isDynamic;
-    const unPublishedOrgUser = users.find((user) => user.relevantProfile?.organization?.slug === null);
+    const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
     return {
       ...defaultEvent,
@@ -158,7 +156,7 @@ export const getPublicEvent = async (
       users: users.map((user) => ({
         ...user,
         metadata: undefined,
-        bookerUrl: getBookerBaseUrlSync(user.relevantProfile?.organization?.slug ?? null),
+        bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
       })),
       locations: privacyFilteredLocations(locations),
       profile: {
@@ -176,7 +174,7 @@ export const getPublicEvent = async (
       entity: {
         isUnpublished: unPublishedOrgUser !== undefined,
         orgSlug: org,
-        name: unPublishedOrgUser?.relevantProfile?.organization?.name ?? null,
+        name: unPublishedOrgUser?.profile?.organization?.name ?? null,
       },
       isInstantEvent: false,
     };
@@ -226,66 +224,59 @@ export const getPublicEvent = async (
   for (const host of event.hosts) {
     hosts.push({
       ...host,
-      user: {
-        ...host.user,
-        relevantProfile: await Profile.getRelevantOrgProfile({
-          userId: host.user.id,
-          ownedByOrganizationId: null,
-        }),
-      },
+      user: await User.enrichUserWithOrganizationProfile({
+        user: host.user,
+        organizationId: ORGANIZATION_ID_UNKNOWN,
+      }),
     });
   }
 
-  const eventWithRelevantProfiles = {
+  const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? {
-          ...event.owner,
-          relevantProfile: await Profile.getRelevantOrgProfile({
-            userId: event.owner.id,
-            ownedByOrganizationId: null,
-          }),
-        }
+      ? await User.enrichUserWithOrganizationProfile({
+          user: event.owner,
+          organizationId: ORGANIZATION_ID_UNKNOWN,
+        })
       : null,
     hosts: hosts,
   };
 
-  const users =
-    getUsersFromEvent(eventWithRelevantProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
+  const users = getUsersFromEvent(eventWithUserProfiles) || (await getOwnerFromUsersArray(prisma, event.id));
 
   if (users === null) {
     throw new Error("Event has no owner");
   }
 
   return {
-    ...eventWithRelevantProfiles,
+    ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
-    description: markdownToSafeHTML(eventWithRelevantProfiles.description),
+    description: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
-    locations: privacyFilteredLocations((eventWithRelevantProfiles.locations || []) as LocationObject[]),
+    locations: privacyFilteredLocations((eventWithUserProfiles.locations || []) as LocationObject[]),
     bookingFields: getBookingFieldsWithSystemFields(event),
-    recurringEvent: isRecurringEvent(eventWithRelevantProfiles.recurringEvent)
+    recurringEvent: isRecurringEvent(eventWithUserProfiles.recurringEvent)
       ? parseRecurringEvent(event.recurringEvent)
       : null,
     // Sets user data on profile object for easier access
-    profile: getProfileFromEvent(eventWithRelevantProfiles),
+    profile: getProfileFromEvent(eventWithUserProfiles),
     users,
     entity: {
       isUnpublished:
-        eventWithRelevantProfiles.team?.slug === null ||
-        eventWithRelevantProfiles.owner?.relevantProfile?.organization?.slug === null ||
-        eventWithRelevantProfiles.team?.parent?.slug === null,
+        eventWithUserProfiles.team?.slug === null ||
+        eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
+        eventWithUserProfiles.team?.parent?.slug === null,
       orgSlug: org,
-      teamSlug: (eventWithRelevantProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
+      teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
-        (eventWithRelevantProfiles.owner?.relevantProfile?.organization?.name ||
-          eventWithRelevantProfiles.team?.parent?.name ||
-          eventWithRelevantProfiles.team?.name) ??
+        (eventWithUserProfiles.owner?.profile?.organization?.name ||
+          eventWithUserProfiles.team?.parent?.name ||
+          eventWithUserProfiles.team?.name) ??
         null,
     },
     isDynamic: false,
-    isInstantEvent: eventWithRelevantProfiles.isInstantEvent,
+    isInstantEvent: eventWithUserProfiles.isInstantEvent,
   };
 };
 
@@ -325,12 +316,12 @@ function getUsersFromEvent(
   event: Omit<Event, "owner" | "hosts"> & {
     owner:
       | (Event["owner"] & {
-          relevantProfile: RelevantProfile;
+          profile: UserProfile;
         })
       | null;
     hosts: (Omit<Event["hosts"][number], "user"> & {
       user: Event["hosts"][number]["user"] & {
-        relevantProfile: RelevantProfile;
+        profile: UserProfile;
       };
     })[];
   }
@@ -342,8 +333,8 @@ function getUsersFromEvent(
   if (!owner) {
     return null;
   }
-  const { username, name, weekStart, relevantProfile, avatarUrl } = owner;
-  const organizationId = relevantProfile?.organization?.id ?? null;
+  const { username, name, weekStart, profile, avatarUrl } = owner;
+  const organizationId = profile?.organization?.id ?? null;
   return [
     {
       username,
@@ -351,8 +342,8 @@ function getUsersFromEvent(
       weekStart,
       organizationId,
       avatarUrl,
-      relevantProfile,
-      bookerUrl: getBookerBaseUrlSync(owner.relevantProfile?.organization?.slug ?? null),
+      profile,
+      bookerUrl: getBookerBaseUrlSync(owner.profile?.organization?.slug ?? null),
     },
   ];
 }
@@ -373,30 +364,30 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
     },
   });
   if (!users.length) return null;
-  const usersWithRelevantProfile = [];
+  const usersWithUserProfile = [];
   for (const user of users) {
-    const relevantProfile = await Profile.getRelevantOrgProfile({
-      userId: user.id,
-      ownedByOrganizationId: null,
+    const { profile } = await User.enrichUserWithOrganizationProfile({
+      user: user,
+      organizationId: ORGANIZATION_ID_UNKNOWN,
     });
-    usersWithRelevantProfile.push({
+    usersWithUserProfile.push({
       ...user,
-      organizationId: relevantProfile?.organization?.id ?? null,
-      organization: relevantProfile?.organization,
-      relevantProfile,
+      organizationId: profile?.organization?.id ?? null,
+      organization: profile?.organization,
+      profile,
     });
   }
   return [
     {
-      ...usersWithRelevantProfile[0],
-      bookerUrl: getBookerBaseUrlSync(usersWithRelevantProfile[0].organization?.slug ?? null),
+      ...usersWithUserProfile[0],
+      bookerUrl: getBookerBaseUrlSync(usersWithUserProfile[0].organization?.slug ?? null),
     },
   ];
 }
 
 function mapHostsToUsers(host: {
   user: Pick<UserType, "username" | "name" | "weekStart" | "avatarUrl"> & {
-    relevantProfile: RelevantProfile;
+    profile: UserProfile;
   };
 }) {
   return {
@@ -404,8 +395,8 @@ function mapHostsToUsers(host: {
     name: host.user.name,
     avatarUrl: host.user.avatarUrl,
     weekStart: host.user.weekStart,
-    organizationId: host.user.relevantProfile?.organizationId ?? null,
-    bookerUrl: getBookerBaseUrlSync(host.user.relevantProfile?.organization?.slug ?? null),
-    relevantProfile: host.user.relevantProfile,
+    organizationId: host.user.profile?.organizationId ?? null,
+    bookerUrl: getBookerBaseUrlSync(host.user.profile?.organization?.slug ?? null),
+    profile: host.user.profile,
   };
 }

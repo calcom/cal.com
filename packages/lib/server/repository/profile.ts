@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
+import type { PersonalProfile } from "@calcom/types/UserProfile";
 
-import { HttpError } from "../../http-error";
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
 
@@ -13,19 +14,26 @@ const organizationSelect = {
   metadata: true,
   calVideoLogo: true,
 };
+
 export class Profile {
+  static generateProfileUid() {
+    return `profile-${uuidv4()}`;
+  }
+
   static createProfile({
     userId,
     organizationId,
     username,
+    email,
   }: {
     userId: number;
     organizationId: number;
-    username: string;
+    username: string | null;
+    email: string;
   }) {
     return prisma.profile.create({
       data: {
-        uid: uuidv4(),
+        uid: Profile.generateProfileUid(),
         user: {
           connect: {
             id: userId,
@@ -36,8 +44,39 @@ export class Profile {
             id: organizationId,
           },
         },
-        username,
+        username: username || email.split("@")[0],
       },
+    });
+  }
+
+  static createMany({
+    users,
+    organizationId,
+  }: {
+    users: { id: number; username: string; email: string }[];
+    organizationId: number;
+  }) {
+    return prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: Profile.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user.username || user.email.split("@")[0],
+      })),
+    });
+  }
+
+  static delete({ userId, organizationId }: { userId: number; organizationId: number }) {
+    // Even though there can be just one profile matching a userId and organizationId, we are using deleteMany as it won't error if the profile doesn't exist
+    return prisma.profile.deleteMany({
+      where: { userId, organizationId },
+    });
+  }
+
+  static deleteMany({ userIds }: { userIds: number[] }) {
+    // Even though there can be just one profile matching a userId and organizationId, we are using deleteMany as it won't error if the profile doesn't exist
+    return prisma.profile.deleteMany({
+      where: { userId: { in: userIds } },
     });
   }
 
@@ -63,9 +102,11 @@ export class Profile {
         user: true,
       },
     });
+
     if (!profile) {
       return null;
     }
+
     const organization = getParsedTeam(profile.organization);
     return {
       ...profile,
@@ -77,11 +118,34 @@ export class Profile {
     };
   }
 
+  static async getProfileByOrgIdAndUsername({
+    organizationId,
+    username,
+  }: {
+    organizationId: number;
+    username: string;
+  }) {
+    const profile = await prisma.profile.findFirst({
+      where: {
+        username,
+        organizationId,
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+        user: true,
+      },
+    });
+    return profile;
+  }
+
   static async getProfile(id: number | null) {
     if (!id) {
       return null;
     }
-    return await prisma.profile.findUnique({
+
+    const profile = await prisma.profile.findUnique({
       where: {
         id,
       },
@@ -94,6 +158,12 @@ export class Profile {
         },
       },
     });
+
+    if (!profile) {
+      return null;
+    }
+
+    return enrichProfile(profile);
   }
 
   static async getProfilesBySlugs({ usernames, orgSlug }: { usernames: string[]; orgSlug: string }) {
@@ -115,7 +185,7 @@ export class Profile {
       },
     });
 
-    return profiles.map(sanitizeProfile);
+    return profiles.map(enrichProfile);
   }
 
   static async getAllProfilesForUser(user: { id: number; username: string | null }) {
@@ -171,32 +241,6 @@ export class Profile {
     return profiles;
   }
 
-  static async getRelevantOrgProfile({
-    userId,
-    ownedByOrganizationId,
-  }: {
-    userId: number;
-    ownedByOrganizationId: number | null;
-  }) {
-    if (ownedByOrganizationId) {
-      const relevantProfile = await Profile.getProfileByUserIdAndOrgId({
-        userId,
-        organizationId: ownedByOrganizationId,
-      });
-      return relevantProfile;
-    }
-    const orgProfiles = await Profile.getOrgProfilesForUser({ id: userId });
-    if (orgProfiles.length > 1) {
-      // We need to have `ownedByOrganizationId` on the entity to support this
-      throw new HttpError({
-        statusCode: 400,
-        message: "User having more than one organization profile isn't supported yet",
-      });
-    }
-    // TODO: OrgNewSchema - later -> Support choosing the correct organization from either req.user or better organizationId in the handleNewBooking payload itself
-    return orgProfiles[0];
-  }
-
   static async getAllProfilesForOrg({ organizationId }: { organizationId: number }) {
     return await prisma.profile.findMany({
       where: {
@@ -210,10 +254,19 @@ export class Profile {
       },
     });
   }
+
+  static getPersonalProfile({ user }: { user: { username: string | null } }): PersonalProfile {
+    return {
+      username: user.username,
+      organizationId: null,
+      organization: null,
+    };
+  }
 }
 
-export const sanitizeProfile = <
+export const enrichProfile = <
   T extends {
+    organization: Pick<Team, keyof typeof organizationSelect>;
     createdAt: Date;
     updatedAt: Date;
   }
@@ -222,6 +275,7 @@ export const sanitizeProfile = <
 ) => {
   return {
     ...profile,
+    organization: getParsedTeam(profile.organization),
     createdAt: profile.createdAt.toISOString(),
     updatedAt: profile.updatedAt.toISOString(),
   };

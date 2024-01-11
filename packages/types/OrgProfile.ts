@@ -1,4 +1,4 @@
-export type RelevantProfile = {
+export type OrgProfile = {
   username: string;
   organizationId: number;
   organization: {

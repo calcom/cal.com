@@ -7,7 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
-import { v4 as uuidv4, v4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -16,6 +16,7 @@ import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -961,7 +962,7 @@ export function getScenarioData(
         {
           organizationId: orgId,
           username: user.username || "",
-          uid: v4(),
+          uid: Profile.generateProfileUid(),
         },
       ];
     });

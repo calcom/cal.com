@@ -227,8 +227,7 @@ export async function getDynamicEventType(
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
   const { where } = await User._getWhereClauseForGettingUsers({
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     usernameList: Array.isArray(input.usernameList)
       ? input.usernameList
       : input.usernameList
@@ -623,8 +622,7 @@ async function getUserIdFromUsername(
 
   const [user] = await User.getUsersFromUsernameInOrgContext({
     usernameList: [username],
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
   return user?.id;
 }

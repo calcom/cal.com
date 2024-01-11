@@ -1,17 +1,18 @@
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
-import { v4 as uuidv4 } from "uuid";
 
 import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, Profile, Team } from "@calcom/prisma/client";
+import type { Membership, Team } from "@calcom/prisma/client";
 import { Prisma, type User as UserType } from "@calcom/prisma/client";
+import type { Profile as ProfileType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -28,7 +29,7 @@ export type Invitee = Pick<
 
 export type UserWithMembership = Invitee & {
   teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
-  profiles: Profile[];
+  profiles: ProfileType[];
 };
 
 export async function checkPermissions({
@@ -238,8 +239,22 @@ export async function createNewUsersConnectToOrgIfExists({
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
-            // @ts-expect-error - // Let organizationId be updated for backward compatibility
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+            ...(orgId
+              ? {
+                  profiles: {
+                    createMany: {
+                      data: [
+                        {
+                          uid: Profile.generateProfileUid(),
+                          username,
+                          organizationId: orgId,
+                        },
+                      ],
+                    },
+                  },
+                }
+              : null),
             teams: {
               create: {
                 teamId: input.teamId,
@@ -538,25 +553,17 @@ export function createOrganizationProfile({
   userId,
   organizationId,
   username,
+  email,
 }: {
   userId: number;
   organizationId: number;
   username: string;
+  email: string;
 }) {
-  return prisma.profile.create({
-    data: {
-      uid: uuidv4(),
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
-      organization: {
-        connect: {
-          id: organizationId,
-        },
-      },
-      username,
-    },
+  return Profile.createProfile({
+    userId: userId,
+    organizationId,
+    username,
+    email,
   });
 }

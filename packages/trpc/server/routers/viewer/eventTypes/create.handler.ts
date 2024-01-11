@@ -89,7 +89,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     const eventType = await ctx.prisma.eventType.create({
       data: {
         ...data,
-        ...(profile?.organizationId
+        ...(profile.organizationId
           ? {
               ownedByOrganization: {
                 connect: {

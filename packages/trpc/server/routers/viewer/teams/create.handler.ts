@@ -1,5 +1,6 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -65,12 +66,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
 
   if (user.profile?.organizationId) {
-    const nameCollisions = await prisma.user.findFirst({
-      where: {
-        // @ts-expect-error - // Let organizationId be updated for backward compatibility
-        organizationId: user.organization.id,
-        username: slug,
-      },
+    const nameCollisions = await isSlugTakenBySomeUserInTheOrganization({
+      organizationId: user.profile?.organizationId,
+      slug: slug,
     });
 
     if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
@@ -118,5 +116,18 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     team: createdTeam,
   };
 };
+
+async function isSlugTakenBySomeUserInTheOrganization({
+  organizationId,
+  slug,
+}: {
+  organizationId: number;
+  slug: string;
+}) {
+  return await Profile.getProfileByOrgIdAndUsername({
+    organizationId: organizationId,
+    username: slug,
+  });
+}
 
 export default createHandler;

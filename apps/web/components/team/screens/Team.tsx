@@ -13,7 +13,7 @@ type MemberType = Pick<
   MembersType[number],
   "id" | "name" | "bio" | "username" | "organizationId" | "avatarUrl"
 > & {
-  relevantProfile: RelevantProfile;
+  profile: UserProfile;
   safeBio: string | null;
   bookerUrl: string;
 };

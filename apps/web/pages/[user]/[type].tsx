@@ -92,8 +92,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usersInOrgContext = await User.getUsersFromUsernameInOrgContext({
     usernameList: usernames,
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
 
   const users = usersInOrgContext;

@@ -8,8 +8,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
-import { Profile } from "../../repository/profile";
 import { getTeam, getOrg } from "../../repository/team";
+import { User } from "../../repository/user";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -144,27 +144,25 @@ export async function getTeamWithMembers(args: {
   if (!teamOrOrg) return null;
   const currentOrgId = currentOrg?.id ?? (isOrgView ? teamOrOrg.id : teamOrOrg.parent?.id) ?? null;
 
-  const teamOrOrgMembers = [];
-  for (const member of teamOrOrg.members) {
-    teamOrOrgMembers.push({
-      ...member,
-      relevantOrgProfile: currentOrgId
-        ? await Profile.getProfileByUserIdAndOrgId({
-            userId: member.user.id,
-            organizationId: currentOrgId,
-          })
-        : null,
+  const teamOrOrgMemberships = [];
+  for (const membership of teamOrOrg.members) {
+    teamOrOrgMemberships.push({
+      ...membership,
+      user: await User.enrichUserWithOrganizationProfile({
+        user: membership.user,
+        organizationId: currentOrgId,
+      }),
     });
   }
-  const members = teamOrOrgMembers.map((m) => {
+  const members = teamOrOrgMemberships.map((m) => {
     const { credentials, ...restUser } = m.user;
     return {
       ...restUser,
-      username: m.relevantOrgProfile?.username ?? restUser.username,
+      username: m.user.profile?.username ?? restUser.username,
       role: m.role,
-      relevantProfile: m.relevantOrgProfile,
-      organizationId: m.relevantOrgProfile?.id ?? null,
-      organization: m.relevantOrgProfile?.organization,
+      profile: m.user.profile,
+      organizationId: m.user.profile?.organizationId ?? null,
+      organization: m.user.profile?.organization,
       accepted: m.accepted,
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
@@ -173,7 +171,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(m.relevantOrgProfile?.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -197,24 +195,23 @@ export async function getTeamWithMembers(args: {
     };
   });
 
-  const eventTypesWithUsersRelevantProfile = [];
+  const eventTypesWithUsersUserProfile = [];
   for (const eventType of teamOrOrg.eventTypes) {
-    const usersWithRelevantProfile = [];
+    const usersWithUserProfile = [];
     for (const user of eventType.users) {
-      usersWithRelevantProfile.push({
-        ...user,
-        relevantProfile: await Profile.getRelevantOrgProfile({
-          userId: user.id,
-          ownedByOrganizationId: currentOrgId,
-        }),
-      });
+      usersWithUserProfile.push(
+        await User.enrichUserWithOrganizationProfile({
+          user: user,
+          organizationId: currentOrgId,
+        })
+      );
     }
-    eventTypesWithUsersRelevantProfile.push({
+    eventTypesWithUsersUserProfile.push({
       ...eventType,
-      users: usersWithRelevantProfile,
+      users: usersWithUserProfile,
     });
   }
-  const eventTypes = eventTypesWithUsersRelevantProfile.map((eventType) => ({
+  const eventTypes = eventTypesWithUsersUserProfile.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));

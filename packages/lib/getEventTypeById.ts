@@ -7,7 +7,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -243,45 +243,38 @@ export default async function getEventTypeById({
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
-  const eventTeamMembershipsWithRelevantProfile = [];
+  const eventTeamMembershipsWithUserProfile = [];
   for (const eventTeamMembership of rawEventType.team?.members || []) {
-    eventTeamMembershipsWithRelevantProfile.push({
+    eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: {
-        ...eventTeamMembership.user,
-        relevantProfile: await Profile.getRelevantOrgProfile({
-          userId: eventTeamMembership.user.id,
-          ownedByOrganizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
-        }),
-      },
+      user: await User.enrichUserWithOrganizationProfile({
+        user: eventTeamMembership.user,
+        organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
+      }),
     });
   }
 
-  const childrenWithRelevantProfile = [];
+  const childrenWithUserProfile = [];
   for (const child of rawEventType.children || []) {
-    childrenWithRelevantProfile.push({
+    childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? {
-            ...child.owner,
-            relevantProfile: await Profile.getRelevantOrgProfile({
-              userId: child.owner.id,
-              ownedByOrganizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
-            }),
-          }
+        ? await User.enrichUserWithOrganizationProfile({
+            user: child.owner,
+            organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
+          })
         : null,
     });
   }
 
-  const eventTypeUsersWithRelevantProfile = [];
+  const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
-    eventTypeUsersWithRelevantProfile.push({
-      ...eventTypeUser,
-      relevantProfile: await Profile.getRelevantOrgProfile({
-        userId: eventTypeUser.id,
-        ownedByOrganizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
-      }),
-    });
+    eventTypeUsersWithUserProfile.push(
+      await User.enrichUserWithOrganizationProfile({
+        user: eventTypeUser,
+        organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
+      })
+    );
   }
 
   newMetadata.apps = {
@@ -351,7 +344,7 @@ export default async function getEventTypeById({
   }
 
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] =
-    eventTypeUsersWithRelevantProfile.map((user) => ({
+    eventTypeUsersWithUserProfile.map((user) => ({
       ...user,
       avatar: getUserAvatarUrl(user),
     }));
@@ -393,7 +386,7 @@ export default async function getEventTypeById({
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
-    ? eventTeamMembershipsWithRelevantProfile
+    ? eventTeamMembershipsWithUserProfile
         .filter((member) => member.accepted || isOrgEventType)
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {

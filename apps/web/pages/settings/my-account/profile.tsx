@@ -232,14 +232,13 @@ const ProfileView = () => {
     username: user.username || "",
     avatar: getUserAvatarUrl({
       ...user,
-      relevantProfile: user.relevantProfile,
+      profile: user.profile,
     }),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
   };
 
-  user.relevantProfile?.organization.requestedSlug;
   return (
     <>
       <Meta

@@ -72,8 +72,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@c
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Profile } from "@calcom/lib/server/repository/profile";
-import { User } from "@calcom/lib/server/repository/user";
+import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -196,15 +195,16 @@ const getAllCredentials = async (
     }
   }
 
-  const relevantProfile = await Profile.getRelevantOrgProfile({
-    userId: user.id,
-    ownedByOrganizationId: null,
+  const { profile } = await User.enrichUserWithOrganizationProfile({
+    user: user,
+    organizationId: ORGANIZATION_ID_UNKNOWN,
   });
+
   // If the user is a part of an organization, query for the organization's credentials
-  if (relevantProfile) {
+  if (profile?.organizationId) {
     const org = await prisma.team.findUnique({
       where: {
-        id: relevantProfile.organizationId,
+        id: profile.organizationId,
       },
       select: {
         credentials: {
@@ -380,10 +380,10 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
-
+      const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(req);
       const users = await getUsersFromUsernameInOrgContext({
         usernameList: dynamicUserList,
-        ...orgDomainConfig(req),
+        orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
 
       return users;
@@ -2960,17 +2960,14 @@ const findBookingQuery = async (bookingId: number) => {
 };
 
 export const getUsersFromUsernameInOrgContext = async ({
-  isValidOrgDomain,
-  currentOrgDomain,
   usernameList,
+  orgSlug,
 }: {
-  isValidOrgDomain: boolean;
-  currentOrgDomain: string | null;
+  orgSlug: string | null;
   usernameList: string[];
 }) => {
   const { where, profiles } = await User._getWhereClauseForGettingUsers({
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug,
     usernameList,
   });
   logger.debug("Querying User", { where });
@@ -2986,11 +2983,11 @@ export const getUsersFromUsernameInOrgContext = async ({
       },
     })
   ).map((user) => {
-    const relevantProfile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
+    const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
     return {
       ...user,
-      organizationId: relevantProfile?.organizationId ?? null,
-      relevantProfile,
+      organizationId: profile?.organizationId ?? null,
+      profile,
     };
   });
 };

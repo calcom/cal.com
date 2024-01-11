@@ -103,8 +103,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const [user] = await User.getUsersFromUsernameInOrgContext({
     usernameList: [username],
-    isValidOrgDomain,
-    currentOrgDomain,
+    orgSlug: org,
   });
 
   if (!user) {
