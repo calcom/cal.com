@@ -31,6 +31,12 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
+        env:
+          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          E2E_TEST_CALCOM_QA_EMAIL: ${{ secrets.E2E_TEST_CALCOM_QA_EMAIL }}
+          E2E_TEST_CALCOM_QA_PASSWORD: ${{ secrets.E2E_TEST_CALCOM_QA_PASSWORD }}
+          E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ secrets.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
+          E2E_TEST_CALCOM_GCAL_KEYS: ${{ secrets.E2E_TEST_CALCOM_GCAL_KEYS }}
       - name: Run Tests
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
         env:
