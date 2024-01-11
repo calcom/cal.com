@@ -13,7 +13,7 @@ import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
-import { getServerSideProps } from "@server/lib/setupGetData";
+import { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
 function useSetStep() {
   const router = useRouter();
