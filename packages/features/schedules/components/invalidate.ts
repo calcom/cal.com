@@ -1,6 +1,6 @@
 import { type RouterContext } from "@calcom/trpc/react";
 
-export async function invalidateSchedules<T>(
+export async function invalidateSchedules(
   utils: RouterContext,
   prevDefaultId: number | null | undefined,
   currentDefaultId: number | null | undefined,
