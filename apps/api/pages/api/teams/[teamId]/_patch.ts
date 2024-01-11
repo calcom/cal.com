@@ -66,9 +66,7 @@ export async function patchHandler(req: NextApiRequest) {
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
 
-
-  // Check if slug already exists
-  const slugAlreadyExist = await prisma.team.findFirst({
+  const slugAlreadyExists = await prisma.team.findFirst({
     where: {
       slug: {
         mode: "insensitive",
@@ -76,7 +74,8 @@ export async function patchHandler(req: NextApiRequest) {
       },
     },
   });
-  if (slugAlreadyExist && data.slug !== _team.slug)
+  
+  if (slugAlreadyExists && data.slug !== _team.slug)
     throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
 
   // Check if parentId is related to this user
