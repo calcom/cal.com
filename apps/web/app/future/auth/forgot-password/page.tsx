@@ -3,7 +3,7 @@ import { withAppDir } from "app/AppDirSSRHOC";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getForgotPasswordPageData } from "@server/lib/forgotPasswordGetData";
+import { getServerSideProps } from "@server/lib/forgotPasswordGetData";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -15,5 +15,5 @@ export const generateMetadata = async () => {
 export default WithLayout({
   getLayout: null,
   Page: ForgotPassword,
-  getData: withAppDir(getForgotPasswordPageData),
+  getData: withAppDir(getServerSideProps),
 })<"P">;

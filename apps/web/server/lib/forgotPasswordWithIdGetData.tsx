@@ -5,7 +5,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import prisma from "@calcom/prisma";
 
-export async function getForgotPasswordWithIdPageData(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;
 
   let resetPasswordRequest = await prisma.resetPasswordRequest.findFirst({

@@ -8,7 +8,7 @@ import { Button, PasswordField, Form } from "@calcom/ui";
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { getForgotPasswordWithIdPageData } from "@server/lib/forgotPasswordWithIdGetData";
+import { getServerSideProps } from "@server/lib/forgotPasswordWithIdGetData";
 
 type Props = {
   requestId: string;
@@ -140,4 +140,4 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: Props) 
 }
 
 Page.PageWrapper = PageWrapper;
-export const getServerSideProps = getForgotPasswordWithIdPageData;
+export { getServerSideProps };
