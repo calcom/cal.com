@@ -19,7 +19,7 @@ import { AlertTriangle, ExternalLink, MailOpen } from "@calcom/ui/components/ico
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
 
-import { getServerSideProps } from "@server/lib/verify/getServerSideProps";
+import { getServerSideProps } from "@server/lib/auth/verify/getServerSideProps";
 
 async function sendVerificationLogin(email: string, username: string) {
   await signIn("email", {
