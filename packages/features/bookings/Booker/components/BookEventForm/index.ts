@@ -1,1 +1,1 @@
-export { BookEventForm } from "./BookEventForm";
+export { BookEventContainer, BookEventForm } from "./BookEventForm";

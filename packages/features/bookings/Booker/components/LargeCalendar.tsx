@@ -7,19 +7,22 @@ import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/week
 import { localStorage } from "@calcom/lib/webstorage";
 
 import { useBookerStore } from "../store";
-import { useEvent, useScheduleForEvent } from "../utils/event";
+import type { useScheduleForEventReturnType } from "../utils/event";
+import { useEvent } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
 
-export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
+export const LargeCalendar = ({
+  extraDays,
+  schedule,
+}: {
+  extraDays: number;
+  schedule: useScheduleForEventReturnType;
+}) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
-  const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
-  const schedule = useScheduleForEvent({
-    prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
-  });
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 

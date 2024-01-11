@@ -22,6 +22,7 @@ export function Header({
   nextSlots,
   username,
   eventSlug,
+  ownerName,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -29,6 +30,7 @@ export function Header({
   nextSlots: number;
   username: string;
   eventSlug: string;
+  ownerName?: string;
 }) {
   const { t, i18n } = useLocale();
   const session = useSession();

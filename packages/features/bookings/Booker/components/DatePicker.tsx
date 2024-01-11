@@ -8,16 +8,16 @@ import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useBookerStore } from "../store";
-import { useEvent, useScheduleForEvent } from "../utils/event";
+import type { useEventReturnType } from "../utils/event";
+import { useScheduleForEvent } from "../utils/event";
 
-export const DatePicker = () => {
+export const DatePicker = ({ event }: { event: useEventReturnType }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth],
     shallow
   );
-  const event = useEvent();
   const schedule = useScheduleForEvent();
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 

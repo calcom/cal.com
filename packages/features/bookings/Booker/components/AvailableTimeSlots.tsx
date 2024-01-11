@@ -8,11 +8,11 @@ import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-sc
 import { classNames } from "@calcom/lib";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
-import { useEvent, useScheduleForEvent } from "../utils/event";
+import type { useEventReturnType } from "../utils/event";
+import { useScheduleForEvent } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -21,6 +21,7 @@ type AvailableTimeSlotsProps = {
   monthCount: number | undefined;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
+  event: useEventReturnType;
 };
 
 /**
@@ -37,14 +38,13 @@ export const AvailableTimeSlots = ({
   showAvailableSeatsCount,
   prefetchNextMonth,
   monthCount,
+  event,
 }: AvailableTimeSlotsProps) => {
-  const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const isEmbed = useIsEmbed();
-  const event = useEvent();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
