@@ -8,6 +8,7 @@ import type { ButtonProps } from "@calcom/ui";
 export type IntegrationOAuthCallbackState = {
   returnTo: string;
   onErrorReturnTo: string;
+  fromApp: boolean;
   installGoogleVideo?: boolean;
   teamId?: number;
 };
