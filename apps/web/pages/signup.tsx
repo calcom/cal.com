@@ -566,7 +566,7 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const flags = await getFeatureFlagMap(ctx.req);
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 

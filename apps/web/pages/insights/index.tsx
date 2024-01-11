@@ -1,3 +1,5 @@
+import type { GetServerSidePropsContext } from "next";
+
 import { getLayout } from "@calcom/features/MainLayout";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
@@ -105,9 +107,8 @@ InsightsPage.PageWrapper = PageWrapper;
 InsightsPage.getLayout = getLayout;
 
 // If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async () => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const flags = await getFeatureFlagMap(ctx.req);
 
   if (flags.insights === false) {
     return {

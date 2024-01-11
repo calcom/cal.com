@@ -1,3 +1,5 @@
+import type { NextApiRequest } from "next";
+
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -12,7 +14,6 @@ export const featureFlagRouter = router({
     });
   }),
   map: publicProcedure.query(async ({ ctx }) => {
-    const { prisma } = ctx;
-    return getFeatureFlagMap(prisma);
+    return getFeatureFlagMap(ctx.req as NextApiRequest);
   }),
 });

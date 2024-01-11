@@ -28,8 +28,7 @@ const LayoutWrapper = (page: React.ReactElement) => {
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const flags = await getFeatureFlagMap(context.req);
   // Check if organizations are enabled
   if (flags["organizations"] !== true) {
     return {
