@@ -50,7 +50,6 @@ export async function createDefaultInstallation({
       subscriptionId,
       paymentStatus,
       billingCycleStart,
-      // ownedByOrganizationId: user.profile?.organizationId ?? null,
     },
   });
   if (!installation) {

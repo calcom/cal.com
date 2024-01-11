@@ -31,7 +31,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teamId: null,
       appId: "apple-calendar",
       invalid: false,
-      ownedByOrganizationId: req.session?.user.profile?.organizationId ?? null,
     };
 
     try {

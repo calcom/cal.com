@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-nocheck - Temporary
 import prismock from "../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";

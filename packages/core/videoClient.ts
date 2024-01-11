@@ -199,7 +199,6 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
-      // ownedByOrganizationId: null,
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);
@@ -222,7 +221,6 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
-      // ownedByOrganizationId: null,
     },
   ]);
   return videoAdapter?.createInstantCalVideoRoom?.(endTime);
@@ -248,7 +246,6 @@ const getRecordingsOfCalVideoByRoomName = async (
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
-      // ownedByOrganizationId: null,
     },
   ]);
   return videoAdapter?.getRecordings?.(roomName);
@@ -272,7 +269,6 @@ const getDownloadLinkOfCalVideoByRecordingId = async (recordingId: string) => {
       teamId: null,
       key: dailyAppKeys,
       invalid: false,
-      // ownedByOrganizationId: null,
     },
   ]);
   return videoAdapter?.getRecordingDownloadLink?.(recordingId);

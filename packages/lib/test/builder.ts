@@ -112,7 +112,6 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     successRedirectUrl: null,
     bookingFields: [],
     parentId: null,
-    // ownedByOrganizationId: null,
     ...eventType,
   };
 };
@@ -130,7 +129,6 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     active: true,
     eventTriggers: [],
     teamId: null,
-    // ownedByOrganizationId: null,
     ...webhook,
   };
 };

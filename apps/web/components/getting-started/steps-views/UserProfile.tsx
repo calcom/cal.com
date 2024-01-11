@@ -99,7 +99,7 @@ const UserProfile = () => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />}
+        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} />}
         <input
           ref={avatarRef}
           type="hidden"

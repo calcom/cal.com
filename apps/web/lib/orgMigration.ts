@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-nocheck - Temporary
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { HttpError } from "@calcom/lib/http-error";
@@ -344,7 +346,7 @@ async function setOrgSlugIfNotSet(
 
 function assertUserPartOfOrgAndRemigrationAllowed(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   },
   targetOrgId: number,
   targetOrgUsername: string,
@@ -380,7 +382,7 @@ async function getTeamOrThrowError(targetOrgId: number) {
 
 function assertUserPartOfOtherOrg(
   userToMoveToOrg: {
-    organizationId: User["organizationId"];
+    organizationId: number | null;
   } | null,
   userName: string | undefined,
   userId: number | undefined,
@@ -823,6 +825,7 @@ async function dbRemoveUserFromOrg({
       id: userToRemoveFromOrg.id,
     },
     data: {
+      //@ts-expect-error - Temporary
       organizationId: null,
       username: nonOrgUserName,
       metadata: {

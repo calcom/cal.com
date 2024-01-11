@@ -28,7 +28,6 @@ import type { RelevantProfile } from "@calcom/types/RelevantProfile";
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
-  // ownedByOrganizationId: true,
   description: true,
   eventName: true,
   slug: true,
@@ -232,7 +231,6 @@ export const getPublicEvent = async (
         relevantProfile: await Profile.getRelevantOrgProfile({
           userId: host.user.id,
           ownedByOrganizationId: null,
-          // ownedByOrganizationId: event.ownedByOrganizationId,
         }),
       },
     });
@@ -246,7 +244,6 @@ export const getPublicEvent = async (
           relevantProfile: await Profile.getRelevantOrgProfile({
             userId: event.owner.id,
             ownedByOrganizationId: null,
-            // ownedByOrganizationId: event.ownedByOrganizationId,
           }),
         }
       : null,

@@ -34,13 +34,7 @@ const defaultIntegrationAddHandler = async ({
         appId: slug,
         ...(teamId
           ? {
-              AND: [
-                { userId: user.id },
-                // {
-                //   ownedByOrganizationId: user.profile?.organizationId ?? null,
-                // },
-                { teamId },
-              ],
+              AND: [{ userId: user.id }, { teamId }],
             }
           : { userId: user.id, ownedByOrganizationId: user.profile?.organizationId }),
       },
