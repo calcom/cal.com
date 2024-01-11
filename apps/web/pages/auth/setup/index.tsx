@@ -13,7 +13,7 @@ import { AdminUserContainer as AdminUser } from "@components/setup/AdminUser";
 import ChooseLicense from "@components/setup/ChooseLicense";
 import EnterpriseLicense from "@components/setup/EnterpriseLicense";
 
-import { getSetupPageData } from "@server/lib/setupGetData";
+import { getServerSideProps } from "@server/lib/setupGetData";
 
 function useSetStep() {
   const router = useRouter();
@@ -147,4 +147,4 @@ Setup.isThemeSupported = false;
 Setup.PageWrapper = PageWrapper;
 export default Setup;
 
-export const getServerSideProps = getSetupPageData;
+export { getServerSideProps };

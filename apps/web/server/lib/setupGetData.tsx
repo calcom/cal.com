@@ -7,7 +7,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export async function getSetupPageData(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
   const ssr = await ssrInit(context);
