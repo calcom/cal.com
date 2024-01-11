@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { InferGetServerSidePropsType } from "next";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,6 +12,7 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast } from "@calcom/ui";
 import { AlertTriangle, ExternalLink, MailOpen } from "@calcom/ui/components/icon";
 
@@ -116,7 +116,7 @@ const MailOpenIcon = () => (
   </div>
 );
 
-export default function Verify(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Verify(props: inferSSRProps<typeof getServerSideProps>) {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const router = useRouter();
