@@ -22,7 +22,11 @@ export function WithLayout<T extends Record<string, any>>({
   return async <P extends "P" | "L">(p: P extends "P" ? PageProps : LayoutProps) => {
     const h = headers();
     const nonce = h.get("x-nonce") ?? undefined;
-    const props = getData ? (await getData(buildLegacyCtx(h, cookies(), p.params))) ?? ({} as T) : ({} as T);
+    let props = {} as T;
+
+    if ("searchParams" in p && getData) {
+      props = (await getData(buildLegacyCtx(h, cookies(), p.params, p.searchParams))) ?? ({} as T);
+    }
 
     const children = "children" in p ? p.children : null;
 

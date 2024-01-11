@@ -15,8 +15,14 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 type Y = InferGetStaticPropsType<typeof getStaticProps>;
 const getData = withAppDirSsg<Y>(getStaticProps);
 
-export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params);
+export const generateMetadata = async ({
+  params,
+  searchParams,
+}: {
+  params: Record<string, string | string[]>;
+  searchParams: { [key: string]: string | string[] | undefined };
+}) => {
+  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const res = await getData(legacyContext);
 
   return await _generateMetadata(

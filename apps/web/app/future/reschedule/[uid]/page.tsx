@@ -1,5 +1,6 @@
 import OldPage, { getServerSideProps as _getServerSideProps } from "@pages/reschedule/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { headers, cookies } from "next/headers";
@@ -14,12 +15,13 @@ export const generateMetadata = async () =>
 
 type PageProps = Readonly<{
   params: Params;
+  searchParams: SearchParams;
 }>;
 
 const getData = withAppDirSsr(_getServerSideProps);
 
-const Page = async ({ params }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
+const Page = async ({ params, searchParams }: PageProps) => {
+  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
 
   await getData(legacyCtx);
 
