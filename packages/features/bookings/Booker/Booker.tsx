@@ -1,6 +1,6 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -33,7 +33,9 @@ import { useBrandColors } from "./utils/use-brand-colors";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
-const UnpublishedEntity = dynamic(() => import("@calcom/ui").then((mod) => mod.UnpublishedEntity));
+const UnpublishedEntity = dynamic(() =>
+  import("@calcom/ui/components/unpublished-entity/UnpublishedEntity").then((mod) => mod.UnpublishedEntity)
+);
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
@@ -78,6 +80,12 @@ const BookerComponent = ({
   // Floating Button and Element Click both are modal and thus have dark background
   const hasDarkBackground = isEmbed && embedType !== "inline";
   const embedUiConfig = useEmbedUiConfig();
+
+  const { t } = useLocale();
+
+  const searchParams = useSearchParams();
+  const isRedirect = searchParams?.get("redirected") === "true" || false;
+  const fromUserNameRedirected = searchParams?.get("username") || "";
 
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
@@ -186,12 +194,6 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
-  useEffect(() => {
-    if (layout === "mobile") {
-      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [layout]);
-
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
   if (entity.isUnpublished) {
@@ -225,6 +227,7 @@ const BookerComponent = ({
   return (
     <>
       {event.data ? <BookingPageTagManager eventType={event.data} /> : null}
+
       {bookerState !== "booking" && event.data?.isInstantEvent && (
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
@@ -239,6 +242,26 @@ const BookerComponent = ({
           "text-default flex min-h-full w-full flex-col items-center",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
         )}>
+        {/* redirect from other user profile */}
+        {isRedirect && (
+          <div className="mb-8 rounded-md bg-blue-100 p-4 dark:border dark:bg-transparent">
+            <h2 className="text-default mb-2 text-sm font-semibold">
+              {t("user_redirect_title", {
+                username: fromUserNameRedirected,
+              })}{" "}
+              🏝️
+            </h2>
+            <p className="text-default text-sm">
+              {t("user_redirect_description", {
+                profile: {
+                  username: username,
+                },
+                username: fromUserNameRedirected,
+              })}{" "}
+              😄
+            </p>
+          </div>
+        )}
         <div
           ref={animationScope}
           className={classNames(
