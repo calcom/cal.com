@@ -12,6 +12,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
   changes:
     name: Detect changes
     runs-on: buildjet-4vcpu-ubuntu-2204
@@ -56,6 +64,41 @@ jobs:
     uses: ./.github/workflows/production-build.yml
     secrets: inherit
 
+  build-without-database:
+    name: Production build (without database)
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
+  e2e:
+    name: E2E tests
+    needs: [changes, lint, build]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  e2e-app-store:
+    name: E2E App Store tests
+    needs: [changes, lint, build]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-app-store.yml
+    secrets: inherit
+
+  e2e-embed:
+    name: E2E embeds tests
+    needs: [changes, lint, build]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-embed.yml
+    secrets: inherit
+
+  e2e-embed-react:
+    name: E2E React embeds tests
+    needs: [changes, lint, build]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-embed-react.yml
+    secrets: inherit
+
   analyze:
     name: Analyze Build
     needs: [changes, build]
@@ -64,7 +107,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, build]
+    needs: [changes, lint, type-check, test, build, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:

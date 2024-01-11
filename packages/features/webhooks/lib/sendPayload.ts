@@ -3,7 +3,8 @@ import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -14,6 +15,18 @@ export type EventTypeInfo = {
   price?: number | null;
   currency?: string | null;
   length?: number | null;
+};
+
+export type UTCOffset = {
+  utcOffset?: number | null;
+};
+
+export type WithUTCOffsetType<T> = T & {
+  user?: Person & UTCOffset;
+} & {
+  organizer?: Person & UTCOffset;
+} & {
+  attendees?: (Person & UTCOffset)[];
 };
 
 export type WebhookDataType = CalendarEvent &
@@ -32,14 +45,34 @@ export type WebhookDataType = CalendarEvent &
     paymentId?: number;
   };
 
+function addUTCOffset(
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+): WithUTCOffsetType<WebhookDataType> {
+  if (data.organizer?.timeZone) {
+    (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
+      data.organizer.timeZone,
+      data.startTime
+    );
+  }
+
+  if (data?.attendees?.length) {
+    (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
+      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, data.startTime);
+    });
+  }
+
+  return data as WithUTCOffsetType<WebhookDataType>;
+}
+
 function getZapierPayload(
-  data: CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
+  data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
-  const attendees = data.attendees.map((attendee) => {
+  const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,
       timeZone: attendee.timeZone,
+      utcOffset: attendee.utcOffset,
     };
   });
 
@@ -62,6 +95,7 @@ function getZapierPayload(
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
+      utcOffset: data.organizer.utcOffset,
       locale: data.organizer.locale,
     },
     eventType: {
@@ -109,6 +143,8 @@ const sendPayload = async (
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
   data.description = data.description || data.additionalNotes;
+  data = addUTCOffset(data);
+
   let body;
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
