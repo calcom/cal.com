@@ -126,7 +126,7 @@ const rescheduleSeatedBooking = async (
   // seatAttendee is null when the organizer is rescheduling.
   const seatAttendee: SeatAttendee | null = bookingSeat?.attendee || null;
   if (seatAttendee) {
-    resultBooking = attendeeRescheduleSeatedBooking(
+    resultBooking = await attendeeRescheduleSeatedBooking(
       rescheduleSeatedBookingObject,
       seatAttendee,
       newTimeSlotBooking,
