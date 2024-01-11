@@ -697,7 +697,9 @@
   "event_name_info": "Gertaeraren motaren izena",
   "event_date_info": "Gertaeraren data",
   "event_time_info": "Gertaeraren hasiera-ordua",
+  "location_variable": "Kokapena",
   "location_info": "Gertaeraren kokapena",
+  "additional_notes_variable": "Ohar gehigarriak",
   "additional_notes_info": "Erreserbaren ohar gehigarriak",
   "organizer_name_info": "Antolatzailearen izena",
   "download_responses": "Deskargatu erantzunak",
@@ -757,5 +759,6 @@
   "options": "Aukerak",
   "add_an_option": "Gehitu aukera bat",
   "radio": "Irratia",
-  "all_bookings_filter_label": "Erreserba guztiak"
+  "all_bookings_filter_label": "Erreserba guztiak",
+  "timezone_variable": "Ordu-eremua"
 }

@@ -87,6 +87,10 @@ export async function patchHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
+  if (args.data.eventTriggers) {
+    args.data.eventTriggers = [...new Set(args.data.eventTriggers)];
+  }
+
   const result = await prisma.webhook.update(args);
   return { webhook: schemaWebhookReadPublic.parse(result) };
 }
