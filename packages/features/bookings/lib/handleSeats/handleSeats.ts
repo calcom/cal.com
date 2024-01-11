@@ -87,45 +87,46 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking);
   }
 
-  // Here we should handle every after action that needs to be done after booking creation
+  // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
+  if (resultBooking) {
+    // Obtain event metadata that includes videoCallUrl
+    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
+    try {
+      await scheduleWorkflowReminders({
+        workflows: eventType.workflows,
+        smsReminderNumber: smsReminderNumber || null,
+        calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
+        isNotConfirmed: evt.requiresConfirmation || false,
+        isRescheduleEvent: !!rescheduleUid,
+        isFirstRecurringEvent: true,
+        emailAttendeeSendToOverride: bookerEmail,
+        seatReferenceUid: evt.attendeeSeatId,
+        eventTypeRequiresConfirmation: eventType.requiresConfirmation,
+      });
+    } catch (error) {
+      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+    }
 
-  // Obtain event metadata that includes videoCallUrl
-  const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
-  try {
-    await scheduleWorkflowReminders({
-      workflows: eventType.workflows,
-      smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
-      isNotConfirmed: evt.requiresConfirmation || false,
-      isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: true,
-      emailAttendeeSendToOverride: bookerEmail,
-      seatReferenceUid: evt.attendeeSeatId,
-      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
-    });
-  } catch (error) {
-    loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+    const webhookData = {
+      ...evt,
+      ...eventTypeInfo,
+      uid: resultBooking?.uid || uid,
+      bookingId: seatedBooking?.id,
+      rescheduleUid,
+      rescheduleStartTime: originalRescheduledBooking?.startTime
+        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+        : undefined,
+      rescheduleEndTime: originalRescheduledBooking?.endTime
+        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+        : undefined,
+      metadata: { ...metadata, ...reqBodyMetadata },
+      eventTypeId,
+      status: "ACCEPTED",
+      smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
+    };
+
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
-
-  const webhookData = {
-    ...evt,
-    ...eventTypeInfo,
-    uid: resultBooking?.uid || uid,
-    bookingId: seatedBooking?.id,
-    rescheduleUid,
-    rescheduleStartTime: originalRescheduledBooking?.startTime
-      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-      : undefined,
-    rescheduleEndTime: originalRescheduledBooking?.endTime
-      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-      : undefined,
-    metadata: { ...metadata, ...reqBodyMetadata },
-    eventTypeId,
-    status: "ACCEPTED",
-    smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
-  };
-
-  await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
   return resultBooking;
 };
