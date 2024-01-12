@@ -180,8 +180,8 @@ const OrgAppearanceView = ({
             }}>
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
-              brandColor={currentOrg?.brandColor}
-              darkBrandColor={currentOrg?.darkBrandColor}
+              brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+              darkBrandColor={currentOrg?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
             />
           </Form>
 
