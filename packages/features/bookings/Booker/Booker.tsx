@@ -10,6 +10,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import dayjs from "@calcom/dayjs";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -126,8 +127,6 @@ const BookerComponent = ({
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
 
-  // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
-  // But if it's mobile view, there is only one layout supported which is 'mobile'
   const totalWeekDays = 7;
   const addonDays =
     nonEmptyScheduleDays.length < extraDays
@@ -149,6 +148,12 @@ const BookerComponent = ({
       : undefined;
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
+
+  useBrandColors({
+    brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    darkBrandColor: event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    theme: event.data?.profile.theme,
+  });
 
   useInitializeBookerStore({
     username,
