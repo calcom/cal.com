@@ -321,6 +321,7 @@ test.describe("Reschedule Tests", async () => {
         expect(booking).not.toBeUndefined();
         expect(booking?.status).toBe(BookingStatus.ACCEPTED);
         const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
+        expect(locationVideoCallUrl).not.toBeUndefined();
 
         // eslint-disable-next-line playwright/no-conditional-in-test
         if (booking && locationVideoCallUrl) {
