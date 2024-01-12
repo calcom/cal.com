@@ -1,4 +1,9 @@
-export type Reference = { uid: string; type: string; meetingUrl?: string; meetingPassword?: string };
+export type Reference = {
+  uid: string;
+  type: string;
+  meetingUrl: string | null;
+  meetingPassword: string | null;
+};
 
 export const getCalVideoReference = (references: Reference[]) => {
   const videoReferences = references.filter((reference) => reference.type.includes("_video"));
