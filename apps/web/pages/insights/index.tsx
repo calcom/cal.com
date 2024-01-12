@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 
 import { getLayout } from "@calcom/features/MainLayout";
