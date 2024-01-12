@@ -12,7 +12,6 @@ import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
-import { OverlayCalendarContainer } from "./OverlayCalendar/OverlayCalendarContainer";
 
 export function Header({
   extraDays,
@@ -21,6 +20,7 @@ export function Header({
   nextSlots,
   eventSlug,
   isMyLink,
+  renderOverlay,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -28,6 +28,7 @@ export function Header({
   nextSlots: number;
   eventSlug: string;
   isMyLink: boolean;
+  renderOverlay?: () => JSX.Element | null;
 }) {
   const { t, i18n } = useLocale();
 
@@ -60,7 +61,6 @@ export function Header({
       <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
     );
   };
-
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
@@ -75,7 +75,7 @@ export function Header({
             </Button>
           </Tooltip>
         ) : (
-          <OverlayCalendarContainer />
+          renderOverlay?.()
         )}
         <LayoutToggleWithData />
       </div>
@@ -136,7 +136,7 @@ export function Header({
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">
-        <OverlayCalendarContainer />
+        {renderOverlay?.()}
         <TimeFormatToggle />
         <div className="fixed top-4 ltr:right-4 rtl:left-4">
           <LayoutToggleWithData />

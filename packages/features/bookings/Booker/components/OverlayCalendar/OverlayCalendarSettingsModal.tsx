@@ -1,10 +1,10 @@
+import type { useOverlayCalendarReturnType } from "bookings/Booker/components/hooks/useOverlayCalendar";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Dialog,
@@ -21,11 +21,13 @@ import {
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useLocalSet } from "../hooks/useLocalSet";
-import { useOverlayCalendarStore } from "./store";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
+  isLoading: boolean;
+  connectedCalendars: useOverlayCalendarReturnType["connectedCalendars"];
+  onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
 }
 
 const SkeletonLoader = () => {
@@ -41,15 +43,14 @@ const SkeletonLoader = () => {
   );
 };
 
-export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModalProps) {
-  const utils = trpc.useContext();
-  const [initalised, setInitalised] = useState(false);
-  const searchParams = useSearchParams();
-  const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
-  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
-    enabled: !!props.open || Boolean(searchParams?.get("overlayCalendar")),
-  });
-  const { toggleValue, hasItem, set } = useLocalSet<{
+export function OverlayCalendarSettingsModal({
+  connectedCalendars,
+  isLoading,
+  open,
+  onClose,
+  onToggledConnectedCalendar,
+}: IOverlayCalendarContinueModalProps) {
+  const { hasItem } = useLocalSet<{
     credentialId: number;
     externalId: string;
   }>("toggledConnectedCalendars", []);
@@ -57,24 +58,9 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
   const router = useRouter();
   const { t } = useLocale();
 
-  useEffect(() => {
-    if (data?.connectedCalendars && set.size === 0 && !initalised) {
-      data?.connectedCalendars.forEach((item) => {
-        item.calendars?.forEach((cal) => {
-          const id = { credentialId: item.credentialId, externalId: cal.externalId };
-          if (cal.primary) {
-            toggleValue(id);
-          }
-        });
-      });
-      setInitalised(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, hasItem, set, initalised]);
-
   return (
     <>
-      <Dialog open={props.open} onOpenChange={props.onClose}>
+      <Dialog open={open} onOpenChange={onClose}>
         <DialogContent
           enableOverflow
           type="creation"
@@ -86,7 +72,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
               <SkeletonLoader />
             ) : (
               <>
-                {data?.connectedCalendars.length === 0 ? (
+                {connectedCalendars.length === 0 ? (
                   <EmptyScreen
                     Icon={Calendar}
                     headline={t("no_calendar_installed")}
@@ -96,7 +82,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
                   />
                 ) : (
                   <>
-                    {data?.connectedCalendars.map((item) => (
+                    {connectedCalendars.map((item) => (
                       <Fragment key={item.credentialId}>
                         {item.error && !item.calendars && (
                           <Alert severity="error" title={item.error.message} />
@@ -139,12 +125,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
                                           externalId: cal.externalId,
                                         })}
                                         onCheckedChange={() => {
-                                          toggleValue({
-                                            credentialId: item.credentialId,
-                                            externalId: cal.externalId,
-                                          });
-                                          setOverlayBusyDates([]);
-                                          utils.viewer.availability.calendarOverlay.reset();
+                                          onToggledConnectedCalendar(cal.externalId, item.credentialId);
                                         }}
                                       />
                                       <label htmlFor={id}>{cal.name}</label>

@@ -1,7 +1,3 @@
-import type {
-  IUseBookingFormErrors,
-  IUseBookingFormLoadingStates,
-} from "bookings/Booker/components/hooks/useBookingForm";
 import type { TFunction } from "next-i18next";
 import { useState } from "react";
 import type { FieldError } from "react-hook-form";
@@ -14,6 +10,8 @@ import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import type { useEventReturnType } from "../../utils/event";
+import type { useBookingFormReturnType } from "../hooks/useBookingForm";
+import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -21,8 +19,8 @@ type BookEventFormProps = {
   onCancel?: () => void;
   onSubmit: () => void;
   errorRef: React.RefObject<HTMLDivElement>;
-  errors: IUseBookingFormErrors;
-  loadingStates: IUseBookingFormLoadingStates;
+  errors: useBookingFormReturnType["errors"] & IUseBookingErrors;
+  loadingStates: IUseBookingLoadingStates;
   children?: React.ReactNode;
   bookingForm: UseFormReturn<FieldValues, any>;
   renderConfirmNotVerifyEmailButtonCond: boolean;
@@ -93,7 +91,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
         />
-        {errors.hasFormErrors && (
+        {(errors.hasFormErrors || errors.hasDataErrors) && (
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}

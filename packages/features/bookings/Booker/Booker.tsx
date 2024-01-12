@@ -21,11 +21,16 @@ import { EventMeta } from "./components/EventMeta";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
+import { OverlayCalendarContinueModal } from "./components/OverlayCalendar/OverlayCalendarContinueModal";
+import { OverlayCalendarSettingsModal } from "./components/OverlayCalendar/OverlayCalendarSettingsModal";
+import { OverlayCalendarSwitch } from "./components/OverlayCalendar/OverlayCalendarSwitch";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { useBookerLayout } from "./components/hooks/useBookerLayout";
 import { useBookingForm } from "./components/hooks/useBookingForm";
+import { useBookings } from "./components/hooks/useBookings";
+import { useOverlayCalendar } from "./components/hooks/useOverlayCalendar";
 import { useSlots } from "./components/hooks/useSlots";
 import { useVerifyEmail } from "./components/hooks/useVerifyEmail";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
@@ -161,19 +166,21 @@ const BookerComponent = ({
   });
 
   const {
-    handleBookEvent,
     bookerFormErrorRef,
     key,
-    errors,
-    loadingStates,
-    hasInstantMeetingTokenExpired,
     formEmail,
     formName,
     bookingForm,
     beforeVerifyEmail,
+    errors: formErrors,
   } = useBookingForm({
     event,
+  });
+
+  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates } = useBookings({
+    event,
     hashedLink,
+    bookingForm,
   });
 
   const {
@@ -188,6 +195,17 @@ const BookerComponent = ({
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: beforeVerifyEmail,
   });
+
+  const {
+    isOverlayCalendarEnabled,
+    connectedCalendars,
+    loadingConnectedCalendar,
+    handleCloseContinueModal,
+    handleCloseSettingsModal,
+    isOpenOverlayContinueModal,
+    isOpenOverlaySettingsModal,
+    handleToggleConnectedCalendar,
+  } = useOverlayCalendar();
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
@@ -219,7 +237,7 @@ const BookerComponent = ({
       }}
       onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
       errorRef={bookerFormErrorRef}
-      errors={errors}
+      errors={{ ...formErrors, ...errors }}
       loadingStates={loadingStates}
       renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
       bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
@@ -308,6 +326,26 @@ const BookerComponent = ({
                   extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                   isMobile={isMobile}
                   nextSlots={nextSlots}
+                  renderOverlay={() =>
+                    isEmbed ? (
+                      <></>
+                    ) : (
+                      <>
+                        <OverlayCalendarSwitch enabled={isOverlayCalendarEnabled} />
+                        <OverlayCalendarContinueModal
+                          open={isOpenOverlayContinueModal}
+                          onClose={handleCloseContinueModal}
+                        />
+                        <OverlayCalendarSettingsModal
+                          connectedCalendars={connectedCalendars}
+                          open={isOpenOverlaySettingsModal}
+                          onClose={handleCloseSettingsModal}
+                          isLoading={loadingConnectedCalendar}
+                          onToggleConnectedCalendar={handleToggleConnectedCalendar}
+                        />
+                      </>
+                    )
+                  }
                 />
               </BookerSection>
             )}
