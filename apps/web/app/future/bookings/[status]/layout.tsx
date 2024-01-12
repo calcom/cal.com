@@ -1,12 +1,11 @@
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import type { GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
-
-import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { ssgInit } from "@server/lib/ssg";
 
@@ -26,7 +25,7 @@ export const generateStaticParams = async () => {
   return validStatuses.map((status) => ({ status }));
 };
 
-const getData = async (ctx: ReturnType<typeof buildLegacyCtx>) => {
+const getData = async (ctx: GetServerSidePropsContext) => {
   const parsedParams = querySchema.safeParse(ctx.params);
 
   if (!parsedParams.success) {

@@ -66,7 +66,12 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  */
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
-  const { eventTypeId, userId: bodyUserId, ...body } = schemaWebhookCreateBodyParams.parse(req.body);
+  const {
+    eventTypeId,
+    userId: bodyUserId,
+    eventTriggers,
+    ...body
+  } = schemaWebhookCreateBodyParams.parse(req.body);
   const args: Prisma.WebhookCreateArgs = { data: { id: uuidv4(), ...body } };
 
   // If no event type, we assume is for the current user. If admin we run more checks below...
@@ -88,7 +93,8 @@ async function postHandler(req: NextApiRequest) {
   }
 
   if (args.data.eventTriggers) {
-    args.data.eventTriggers = [...new Set(args.data.eventTriggers)];
+    const eventTriggersSet = new Set(eventTriggers);
+    args.data.eventTriggers = Array.from(eventTriggersSet);
   }
 
   const data = await prisma.webhook.create(args);
