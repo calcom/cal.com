@@ -20,7 +20,6 @@ describe("Cal Video", () => {
         },
       ])
     ).toEqual({
-      id: 2,
       uid: "UID2",
       type: "daily_video",
       meetingUrl: "ID2",
