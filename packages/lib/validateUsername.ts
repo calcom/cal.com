@@ -95,13 +95,22 @@ export const validateAndGetCorrectedUsernameInTeam = async (
       select: {
         metadata: true,
         parentId: true,
+        parent: {
+          select: {
+            metadata: true,
+          },
+        },
       },
     });
 
+    console.log("validateAndGetCorrectedUsernameInTeam", {
+      teamId,
+      team,
+    });
     const teamData = { ...team, metadata: teamMetadataSchema.parse(team?.metadata) };
-
-    if (teamData.metadata?.isOrganization || teamData.parentId) {
-      const orgMetadata = teamData.metadata;
+    const organization = teamData.metadata?.isOrganization ? teamData : teamData.parent;
+    if (organization) {
+      const orgMetadata = teamMetadataSchema.parse(organization.metadata);
       // Organization context -> org-context username check
       const orgId = teamData.parentId || teamId;
       return validateAndGetCorrectedUsernameAndEmail({

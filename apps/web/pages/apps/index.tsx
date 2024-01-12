@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
@@ -64,7 +66,7 @@ export default function Apps({
   categories,
   appStore,
   userAdminTeams,
-}: inferSSRProps<typeof getServerSideProps>) {
+}: Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 

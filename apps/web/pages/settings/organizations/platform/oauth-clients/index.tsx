@@ -65,7 +65,7 @@ export const OAuthClients = () => {
                   return (
                     <OAuthClientCard
                       name={client.name}
-                      redirect_uris={client.redirect_uris}
+                      redirectUris={client.redirectUris}
                       permissions={client.permissions}
                       key={index}
                       lastItem={data.length === index + 1}

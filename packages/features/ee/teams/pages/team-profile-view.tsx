@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -7,11 +9,10 @@ import { useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
@@ -152,7 +153,7 @@ const ProfileView = () => {
       {isAdmin ? (
         <TeamProfileForm team={team} />
       ) : (
-        <div className="flex">
+        <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
           <div className="flex-grow">
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
@@ -168,7 +169,7 @@ const ProfileView = () => {
               </>
             )}
           </div>
-          <div className="">
+          <div>
             <Link href={permalink} passHref={true} target="_blank">
               <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
             </Link>
@@ -269,7 +270,6 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
   });
 
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBranding();
 
   const {
     formState: { isSubmitting, isDirty },
@@ -375,11 +375,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                 name="slug"
                 label={t("team_url")}
                 value={value}
-                addOnLeading={
-                  team.parent && orgBranding
-                    ? `${getOrgFullOrigin(orgBranding?.slug, { protocol: false })}/`
-                    : `${WEBAPP_URL}/team/`
-                }
+                data-testid="team-url"
+                addOnClassname="testid-leading-text-team-url"
+                addOnLeading={`${getTeamUrlSync(
+                  { orgSlug: team.parent ? team.parent.slug : null, teamSlug: null },
+                  {
+                    protocol: false,
+                  }
+                )}`}
                 onChange={(e) => {
                   form.clearErrors("slug");
                   form.setValue("slug", slugify(e?.target.value, true), { shouldDirty: true });

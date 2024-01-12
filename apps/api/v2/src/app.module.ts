@@ -3,6 +3,7 @@ import appConfig from "@/config/app";
 import { AppConfig } from "@/config/type";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints.module";
+import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -35,6 +36,7 @@ import { AppController } from "./app.controller";
     PrismaModule,
     EndpointsModule,
     AuthModule,
+    JwtModule,
   ],
   controllers: [AppController],
 })

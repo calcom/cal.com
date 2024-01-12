@@ -15,9 +15,12 @@ import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
 import { useEvent } from "../utils/event";
 
-const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
-  ssr: false,
-});
+const TimezoneSelect = dynamic(
+  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  {
+    ssr: false,
+  }
+);
 
 export const EventMeta = () => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
@@ -57,7 +60,7 @@ export const EventMeta = () => {
     : "text-bookinghighlight";
 
   return (
-    <div className="relative z-10 p-6">
+    <div className="relative z-10 p-6" data-testid="event-meta">
       {isLoading && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
