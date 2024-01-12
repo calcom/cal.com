@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getCalVideoReference } from "@calcom/get-cal-video-reference";
+import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
