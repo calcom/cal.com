@@ -1,4 +1,5 @@
-import LegacyPage from "@pages/d/[link]/[slug]";
+import LegacyPage, { type PageProps } from "@pages/d/[link]/[slug]";
+import { withAppDir } from "app/AppDirSSRHOC";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { GetServerSidePropsContext } from "next";
@@ -127,4 +128,6 @@ async function getPageProps(context: GetServerSidePropsContext) {
 
 const paramsSchema = z.object({ link: z.string(), slug: z.string().transform((s) => slugify(s)) });
 
-export default WithLayout({ getLayout: null, Page: LegacyPage, getData: getPageProps });
+// @ts-expect-error arg
+const getData = withAppDir<PageProps>(getPageProps);
+export default WithLayout({ getLayout: null, Page: LegacyPage, getData });
