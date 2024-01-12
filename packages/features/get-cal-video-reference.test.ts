@@ -9,13 +9,13 @@ describe("Cal Video", () => {
         {
           uid: "UID1",
           type: "daily_video",
-          meetingId: "ID1",
+          meetingUrl: "ID1",
           meetingPassword: "P1",
         },
         {
           uid: "UID2",
           type: "daily_video",
-          meetingId: "ID2",
+          meetingUrl: "ID2",
           meetingPassword: "P2",
         },
       ])
@@ -23,7 +23,7 @@ describe("Cal Video", () => {
       id: 2,
       uid: "UID2",
       type: "daily_video",
-      meetingId: "ID2",
+      meetingUrl: "ID2",
       meetingPassword: "P2",
     });
   });
