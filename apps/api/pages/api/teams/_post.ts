@@ -77,32 +77,32 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma, body, userId, isAdmin } = req;
-  const { ownerId, ...teamData } = schemaTeamCreateBodyParams.parse(body);
+  const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);
 
   const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
 
-  if (teamData.slug) {
+  if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
       where: {
-        slug: teamData.slug,
+        slug: data.slug,
       },
     });
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
     if (IS_TEAM_BILLING_ENABLED) {
       // Setting slug in metadata, so it can be published later
-      teamData.metadata = {
-        requestedSlug: teamData.slug,
+      data.metadata = {
+        requestedSlug: data.slug,
       };
-      delete teamData.slug;
+      delete data.slug;
     }
   }
 
   // Check if parentId is related to this user
-  if (teamData.parentId) {
+  if (data.parentId) {
     const parentTeam = await prisma.team.findFirst({
-      where: { id: teamData.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
+      where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
     });
     if (!parentTeam)
       throw new HttpError({
@@ -112,11 +112,11 @@ async function postHandler(req: NextApiRequest) {
   }
 
   // TODO: Perhaps there is a better fix for this?
-  const cloneData: typeof teamData & {
-    metadata: NonNullable<typeof teamData.metadata> | undefined;
+  const cloneData: typeof data & {
+    metadata: NonNullable<typeof data.metadata> | undefined;
   } = {
-    ...teamData,
-    metadata: teamData.metadata === null ? {} : teamData.metadata || undefined,
+    ...data,
+    metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
   const team = await prisma.team.create({
     data: {
@@ -132,8 +132,8 @@ async function postHandler(req: NextApiRequest) {
   req.statusCode = 201;
   // We are also returning the new ownership relation as owner besides team.
   return {
-    team: schemaTeamReadPublic.parse(teamData),
-    owner: schemaMembershipPublic.parse(teamData.members[0]),
+    team: schemaTeamReadPublic.parse(team),
+    owner: schemaMembershipPublic.parse(team.members[0]),
     message: isAdmin
       ? "Team created successfully, we also made user with submitted userId the owner of this team"
       : "Team created successfully, we also made you the owner of this team",
