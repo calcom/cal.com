@@ -392,16 +392,12 @@ export function createBookingPageFixture(page: Page) {
       }
     },
     createTeam: async (name: string) => {
-      const teamsText = (await localize("en"))("teams");
-      const continueText = (await localize("en"))("continue");
-      const publishTeamText = (await localize("en"))("team_publish");
-
-      await page.getByRole("link", { name: teamsText }).click();
+      await page.getByTestId("teams-test").click();
       await page.getByTestId("new-team-btn").click();
       await page.getByPlaceholder("Acme Inc.").click();
       await page.getByPlaceholder("Acme Inc.").fill(name);
-      await page.getByRole("button", { name: continueText }).click();
-      await page.getByRole("button", { name: publishTeamText }).click();
+      await page.getByTestId("continue-button").click();
+      await page.getByTestId("publish-button").click();
 
       await page.getByTestId("vertical-tab-Back").click();
     },
