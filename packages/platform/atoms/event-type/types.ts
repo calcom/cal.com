@@ -92,3 +92,11 @@ export type Location = {
   credentialId?: number | undefined;
   teamName?: string | undefined;
 };
+
+export type Option = {
+  label: string;
+  value: string;
+  disabled?: boolean | undefined;
+  icon?: string | undefined;
+  slug?: string | undefined;
+};
