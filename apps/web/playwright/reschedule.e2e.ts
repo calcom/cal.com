@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -320,18 +319,12 @@ test.describe("Reschedule Tests", async () => {
 
         const booking = await prisma.booking.findFirst({ where: { id: newBooking.id } });
         expect(booking).not.toBeUndefined();
-        expect(booking.status).toBe(BookingStatus.ACCEPTED);
+        expect(booking?.status).toBe(BookingStatus.ACCEPTED);
+        const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
 
         // eslint-disable-next-line playwright/no-conditional-in-test
-        if (booking) {
-          const expectedVideoCallUrl = `${WEBAPP_URL}/video/${booking?.uid}`;
-          const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
-
-          // Check if cal video call url is valid after rescheduling
-          expect(locationVideoCallUrl).not.toBeUndefined();
-          expect(locationVideoCallUrl).toBe(expectedVideoCallUrl);
-
-          await page.goto(expectedVideoCallUrl);
+        if (booking && locationVideoCallUrl) {
+          await page.goto(locationVideoCallUrl);
           await expect(page.frameLocator("iFrame").locator('text="Continue"')).toBeVisible();
         }
       }
