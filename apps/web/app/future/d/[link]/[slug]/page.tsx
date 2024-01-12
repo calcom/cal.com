@@ -130,4 +130,4 @@ const paramsSchema = z.object({ link: z.string(), slug: z.string().transform((s)
 
 // @ts-expect-error arg
 const getData = withAppDir<PageProps>(getPageProps);
-export default WithLayout({ getLayout: null, Page: LegacyPage, getData });
+export default WithLayout({ getLayout: null, Page: LegacyPage, getData })<"P">;
