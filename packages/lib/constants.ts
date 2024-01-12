@@ -105,7 +105,7 @@ export const CALCOM_VERSION = process.env.NEXT_PUBLIC_CALCOM_VERSION as string;
 export const APP_CREDENTIAL_SHARING_ENABLED =
   process.env.CALCOM_WEBHOOK_SECRET && process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY;
 
-export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
+export const DEFAULT_LIGHT_BRAND_COLOR = "#03fcdb";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
 
 export const TOP_BANNER_HEIGHT = 40;
