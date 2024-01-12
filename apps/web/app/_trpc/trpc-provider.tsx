@@ -1,7 +1,8 @@
-import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { type DehydratedState, QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-query";
 import { HydrateClient } from "app/_trpc/HydrateClient";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import superjson from "superjson";
 
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
@@ -43,6 +44,13 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
     () =>
       new QueryClient({
         defaultOptions: { queries: { staleTime: 5000 } },
+        queryCache: new QueryCache({
+          onError: (_error, query: { meta?: { errorMessage?: string } }) => {
+            if (query.meta?.errorMessage) {
+              toast.error(query.meta.errorMessage);
+            }
+          },
+        }),
       })
   );
   const url =
