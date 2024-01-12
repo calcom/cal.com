@@ -13,7 +13,6 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { trpc } from "@calcom/trpc/react";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -26,6 +25,7 @@ export const generateMetadata = async ({ params }: { params: Record<string, stri
 
   const { entity, booking, user, slug, isTeamEvent } = pageProps;
   const rescheduleUid = booking?.uid;
+  const { trpc } = await import("@calcom/trpc");
   const { data: event } = trpc.viewer.public.event.useQuery(
     { username: user ?? "", eventSlug: slug ?? "", isTeamEvent, org: entity.orgSlug ?? null },
     { refetchOnWindowFocus: false }
