@@ -18,6 +18,7 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -412,9 +413,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     name: user.name || user.username || "",
     image: user.avatar,
     theme: user.theme,
-    brandColor: user.brandColor,
+    brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor: user.darkBrandColor,
+    darkBrandColor: user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: {
