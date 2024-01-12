@@ -241,8 +241,9 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           {t("availability")}
           {shouldLockIndicator("availability")}
         </label>
-        {isLoading && <SelectSkeletonLoader />}
-        {!isLoading && (
+        {isLoading ? (
+          <SelectSkeletonLoader />
+        ) : (
           <Controller
             name="schedule"
             render={({ field }) => {
