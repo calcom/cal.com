@@ -18,7 +18,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
-type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+type PageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState"> & EmbedProps;
 
 export default function Type({
   slug,
