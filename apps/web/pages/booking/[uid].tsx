@@ -47,7 +47,12 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import {
+  bookingMetadataSchema,
+  bookingSeatDataSchema,
+  customInputSchema,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
 import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
@@ -96,9 +101,9 @@ const querySchema = z.object({
 
 const nameObjectSchema = z.object({
   firstName: z.string(),
-  lastName: z.string(),
+  lastName: z.string().optional(),
 });
-function parseName(name: { firstName: string; lastName: string } | string | undefined) {
+function parseName(name: z.infer<typeof nameObjectSchema> | string | undefined) {
   if (typeof name === "string") return name;
   else if (typeof name === "object" && nameObjectSchema.parse(name))
     return `${name.firstName} ${name.lastName}`.trim();
@@ -141,7 +146,7 @@ export default function Success(props: SuccessProps) {
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
 
-  const attendeeName = parseName(bookingInfo.responses.name);
+  const attendeeName = parseName(bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string);
 
   const attendees = bookingInfo?.attendees;
 
@@ -1071,14 +1076,15 @@ const handleSeatsEventTypeOnBooking = async (
     });
   }
   if (seatAttendee) {
-    bookingInfo["description"] = seatAttendee.data?.description ?? null;
-    bookingInfo["responses"] = seatAttendee.data?.responses ?? null;
+    const parsedSeatAttendeeData = bookingSeatDataSchema.parse(seatAttendee.data);
+    bookingInfo["description"] = parsedSeatAttendeeData.description ?? null;
+    bookingInfo["responses"] = parsedSeatAttendeeData.responses;
   }
 
   if (!eventType.seatsShowAttendees && !isHost) {
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
-        return a.email === seatAttendee.attendee?.email;
+        return a.email === seatAttendee?.attendee?.email;
       });
       bookingInfo["attendees"] = attendee ? [attendee] : [];
     } else {
