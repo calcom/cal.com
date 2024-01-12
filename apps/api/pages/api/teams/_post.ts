@@ -76,25 +76,25 @@ import { schemaTeamCreateBodyParams } from "~/lib/validations/team";
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma, body, userId, isAdmin } = req;
-  const { ownerId, ...team } = schemaTeamCreateBodyParams.parse(body);
+  const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);
 
   const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
 
-  if (team.slug) {
+  if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
       where: {
-        slug: team.slug,
+        slug: data.slug,
       },
     });
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
   }
 
   // Check if parentId is related to this user
-  if (team.parentId) {
+  if (data.parentId) {
     const parentTeam = await prisma.team.findFirst({
-      where: { id: team.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
+      where: { id: data.parentId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
     });
     if (!parentTeam)
       throw new HttpError({
@@ -112,8 +112,9 @@ async function postHandler(req: NextApiRequest) {
   }
 
   const checkoutSessionResponse = await generateCheckoutSession({
-    ...team,
-    ownerId: effectiveUserId,
+    teamSlug: data.slug,
+    teamName: data.name,
+    userId: effectiveUserId,
   });
 
   return checkoutSessionResponse;

@@ -5,7 +5,6 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-import type { TeamCreationInput } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const teamPaymentMetadataSchema = z.object({
@@ -33,8 +32,16 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
 /**
  * Used to generate a checkout session when trying to create a team
  */
-export const generateTeamCheckoutSession = async (team: TeamCreationInput) => {
-  const customer = await getStripeCustomerIdFromUserId(team.ownerId);
+export const generateTeamCheckoutSession = async ({
+  teamName,
+  teamSlug,
+  userId,
+}: {
+  teamName: string;
+  teamSlug: string;
+  userId: number;
+}) => {
+  const customer = await getStripeCustomerIdFromUserId(userId);
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
@@ -55,7 +62,11 @@ export const generateTeamCheckoutSession = async (team: TeamCreationInput) => {
     automatic_tax: {
       enabled: true,
     },
-    metadata: team,
+    metadata: {
+      teamName,
+      teamSlug,
+      userId,
+    },
   });
   return session;
 };

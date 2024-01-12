@@ -7,10 +7,15 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { schemaCreateTeam } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
+});
+
+const checkoutSessionMetadataSchema = z.object({
+  teamName: z.string(),
+  teamSlug: z.string(),
+  userId: z.string().transform(Number),
 });
 
 const generateRandomString = () => {
@@ -31,7 +36,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 402, message: "Payment required" });
 
   // Let's query to ensure that the team metadata carried over from the checkout session.
-  const parseCheckoutSessionMetadata = schemaCreateTeam.safeParse(checkoutSession.metadata);
+  const parseCheckoutSessionMetadata = checkoutSessionMetadataSchema.safeParse(checkoutSession.metadata);
 
   if (!parseCheckoutSessionMetadata.success) {
     console.error(
@@ -51,19 +56,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const checkoutSessionMetadata = parseCheckoutSessionMetadata.success
     ? parseCheckoutSessionMetadata.data
     : {
-        name: checkoutSession?.metadata?.name ?? generateRandomString(),
-        slug: checkoutSession?.metadata?.slug ?? generateRandomString(),
-        ownerId: checkoutSession.metadata.ownerId,
+        teamName: checkoutSession?.metadata?.teamName ?? generateRandomString(),
+        teamSlug: checkoutSession?.metadata?.teamSlug ?? generateRandomString(),
+        userId: checkoutSession.metadata.userId,
       };
-
-  const { ownerId, ...teamData } = checkoutSessionMetadata;
 
   const team = await prisma.team.create({
     data: {
-      ...teamData,
+      name: checkoutSessionMetadata.teamName,
+      slug: checkoutSessionMetadata.teamSlug,
       members: {
         create: {
-          userId: ownerId as number,
+          userId: checkoutSessionMetadata.userId as number,
           role: MembershipRole.OWNER,
           accepted: true,
         },

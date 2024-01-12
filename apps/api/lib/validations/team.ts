@@ -2,24 +2,25 @@ import { z } from "zod";
 
 import { _TeamModel as Team } from "@calcom/prisma/zod";
 
-export const schemaTeamBodyParams = Team.omit({ id: true, createdAt: true })
-  .partial({
-    hideBranding: true,
-    metadata: true,
-  })
-  .extend({
-    slug: z.string(),
-    name: z.string(),
-  })
-  .strict();
+export const schemaTeamBaseBodyParams = Team.omit({ id: true, createdAt: true }).partial({
+  hideBranding: true,
+  metadata: true,
+});
+
+const schemaTeamRequiredParams = z.object({
+  slug: z.string().min(3).max(255),
+  name: z.string().max(255),
+});
+
+export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamRequiredParams).strict();
 
 export const schemaTeamUpdateBodyParams = schemaTeamBodyParams.partial();
 
-export const schemaTeamCreateBodyParams = schemaTeamBodyParams
-  .extend({
-    ownerId: z.number().optional(),
-  })
-  .strict();
+const schemaOwnerId = z.object({
+  ownerId: z.number().optional(),
+});
+
+export const schemaTeamCreateBodyParams = schemaTeamBodyParams.merge(schemaOwnerId).strict();
 
 export const schemaTeamReadPublic = Team.omit({});
 

@@ -22,7 +22,6 @@ import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-b
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
-import { _TeamModel as Team } from "@calcom/prisma/zod";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -652,15 +651,3 @@ export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 export const coerceToDate = z.coerce.date();
 export const getStringAsNumberRequiredSchema = (t: TFunction) =>
   z.string().min(1, t("error_required_field")).pipe(z.coerce.number());
-
-const schemaCreateTeamRequired = z.object({
-  slug: z.string(),
-  name: z.string(),
-  ownerId: z.number(),
-});
-
-export const schemaCreateTeam = Team.omit({ id: true, createdAt: true })
-  .partial()
-  .merge(schemaCreateTeamRequired);
-
-export type TeamCreationInput = z.infer<typeof schemaCreateTeam>;

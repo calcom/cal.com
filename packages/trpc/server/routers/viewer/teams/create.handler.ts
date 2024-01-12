@@ -3,7 +3,6 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TeamCreationInput } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -17,13 +16,25 @@ type CreateOptions = {
   input: TCreateInputSchema;
 };
 
-export const generateCheckoutSession = async (team: TeamCreationInput) => {
+export const generateCheckoutSession = async ({
+  teamSlug,
+  teamName,
+  userId,
+}: {
+  teamSlug: string;
+  teamName: string;
+  userId: number;
+}) => {
   if (!IS_TEAM_BILLING_ENABLED) {
     console.info("Team billing is disabled, not generating a checkout session.");
     return;
   }
 
-  const checkoutSession = await generateTeamCheckoutSession(team);
+  const checkoutSession = await generateTeamCheckoutSession({
+    teamSlug,
+    teamName,
+    userId,
+  });
 
   if (!checkoutSession.url)
     throw new TRPCError({
@@ -67,9 +78,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   // If the user is not a part of an org, then make them pay before creating the team
   if (!isOrgChildTeam) {
     const checkoutSession = await generateCheckoutSession({
-      slug,
-      name,
-      ownerId: user.id,
+      teamSlug: slug,
+      teamName: name,
+      userId: user.id,
     });
 
     // If there is a checkout session, return it. Otherwise, it means it's disabled.
