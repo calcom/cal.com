@@ -435,7 +435,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    await page.waitForLoadState("networkidle");
+    await page.waitForResponse((res) => res.url().includes("api/cancel") && res.status() === 200);
 
     const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
