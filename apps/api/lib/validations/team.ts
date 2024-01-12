@@ -7,20 +7,13 @@ export const schemaTeamBaseBodyParams = Team.omit({ id: true, createdAt: true })
   metadata: true,
 });
 
-const schemaTeamRequiredParams = z.object({
-  slug: z.string().min(3).max(255),
-  name: z.string().max(255),
-});
+export const schemaTeamUpdateBodyParams = schemaTeamBaseBodyParams.partial();
 
-export const schemaTeamBodyParams = schemaTeamBaseBodyParams.merge(schemaTeamRequiredParams).strict();
-
-export const schemaTeamUpdateBodyParams = schemaTeamBodyParams.partial();
-
-const schemaOwnerId = z.object({
-  ownerId: z.number().optional(),
-});
-
-export const schemaTeamCreateBodyParams = schemaTeamBodyParams.merge(schemaOwnerId).strict();
+export const schemaTeamCreateBodyParams = schemaTeamBaseBodyParams
+  .extend({
+    ownerId: z.number().optional(),
+  })
+  .strict();
 
 export const schemaTeamReadPublic = Team.omit({});
 
