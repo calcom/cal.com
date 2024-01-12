@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -21,10 +22,16 @@ type Header = {
 };
 const FLAGSMITH_ENVIRONMENT_ID = process.env.FLAGSMITH_ENVIRONMENT_ID;
 
-async function getFlagsmithFlags(email: string | null | undefined) {
+async function getFlagsmithFlags(email: string | null | undefined, id: number | null | undefined) {
   // const baseUrl = `https://edge.api.flagsmith.com/api/v1`;
   const baseUrl = `http://13.233.201.155:8000/api/v1`;
-  const uri = !!email ? `${baseUrl}/identities/?identifier=${email}` : `${baseUrl}/flags/`;
+  let uri;
+  if (!!id) {
+    const hashedUserId = createHash("md5").update(`${id}-${email}`).digest("hex");
+    uri = `${baseUrl}/identities/?identifier=${hashedUserId}`;
+  } else {
+    uri = `${baseUrl}/flags/`;
+  }
   const headers: Header = {
     "Content-Type": "application/json",
   };
@@ -42,7 +49,7 @@ async function getFlagsmithFlags(email: string | null | undefined) {
 export async function getFeatureFlagMap(req: NextApiRequest | GetServerSidePropsContext["req"]) {
   if (!!FLAGSMITH_ENVIRONMENT_ID) {
     const session = await getServerSession({ req });
-    const flags = await getFlagsmithFlags(session?.user.email);
+    const flags = await getFlagsmithFlags(session?.user.email, session?.user.id);
     const res = flags.reduce<AppFlags>((acc, flag) => {
       acc[flag.feature.name as keyof AppFlags] = flag.enabled;
       return acc;

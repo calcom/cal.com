@@ -1,4 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { createHash } from "crypto";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -18,6 +19,7 @@ import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -57,23 +59,24 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
     return metadata.success && metadata.data?.subscriptionId;
   });
 
-const setFlagsmithIdentity = async (user: { id: number; email: string; organization: string }) => {
+const setFlagsmithIdentity = async (user: Pick<User, "email" | "id" | "username" | "organizationId">) => {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   if (FLAGSMITH_ENVIRONMENT_ID) {
     myHeaders.append("X-Environment-Key", FLAGSMITH_ENVIRONMENT_ID);
   }
 
+  const hashedUserId = createHash("md5").update(`${user.id}-${user.email}`).digest("hex");
   const raw = JSON.stringify({
-    identifier: user.email,
+    identifier: hashedUserId,
     traits: [
       {
-        trait_key: "organization",
-        trait_value: user.organization,
+        trait_key: "organizationId",
+        trait_value: user.organizationId,
       },
       {
-        trait_key: "userId",
-        trait_value: user.id,
+        trait_key: "email",
+        trait_value: user.email,
       },
     ],
   });
@@ -281,6 +284,10 @@ const providers: Provider[] = [
         // By this point it is an ADMIN without valid security conditions
         return "INACTIVE_ADMIN";
       };
+
+      if (FLAGSMITH_ENVIRONMENT_ID) {
+        await setFlagsmithIdentity(user);
+      }
 
       return {
         id: user.id,
@@ -618,9 +625,6 @@ export const AUTH_OPTIONS: AuthOptions = {
         return true;
       }
 
-      if (FLAGSMITH_ENVIRONMENT_ID) {
-        await setFlagsmithIdentity({ id: user.id, email: user.email, organization: user.org?.slug });
-      }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
       // Only if provider is not saml-idp
