@@ -1,24 +1,41 @@
-import type { GetServerSidePropsContext } from "next";
+import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
+import { type GetServerSidePropsContext } from "next";
+import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import PaymentPage from "@calcom/features/ee/payments/components/PaymentPage";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
+import { ssrInit } from "@server/lib/ssr";
 
-export type PaymentPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
+export const generateMetadata = async () =>
+  await _generateMetadata(
+    // the title does not contain the eventName as in the legacy page
+    (t) => `${t("payment")} | ${APP_NAME}`,
+    () => ""
+  );
 
 const querySchema = z.object({
   uid: z.string(),
 });
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
+async function getData(context: GetServerSidePropsContext) {
+  const session = await getServerSession({ req: context.req });
 
-  const { uid } = querySchema.parse(context.query);
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
+
+  const ssr = await ssrInit(context);
+  await ssr.viewer.me.prefetch();
+
+  const { uid } = querySchema.parse(context.params);
   const rawPayment = await prisma.payment.findFirst({
     where: {
       uid,
@@ -86,7 +103,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) return { notFound: true };
+  if (!rawPayment) {
+    return notFound();
+  }
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
 
@@ -95,7 +114,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as Record<string, unknown>,
   };
 
-  if (!_booking) return { notFound: true };
+  if (!_booking) {
+    return notFound();
+  }
 
   const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -104,9 +125,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     endTime: endTime.toString(),
   };
 
-  if (!eventType) return { notFound: true };
+  if (!eventType) {
+    return notFound();
+  }
 
-  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true };
+  if (eventType.users.length === 0 && !!!eventType.team) {
+    return notFound();
+  }
 
   const [user] = eventType?.users.length
     ? eventType.users
@@ -122,26 +147,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking.status as BookingStatus
     )
   ) {
-    return {
-      redirect: {
-        destination: `/booking/${booking.uid}`,
-        permanent: false,
-      },
-    };
+    return redirect(`/booking/${booking.uid}`);
   }
 
   return {
-    props: {
-      user,
-      eventType: {
-        ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      },
-      booking,
-      trpcState: ssr.dehydrate(),
-      payment,
-      clientSecret: getClientSecretFromPayment(payment),
-      profile,
+    user,
+    eventType: {
+      ...eventType,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     },
+    booking,
+    dehydratedState: ssr.dehydrate(),
+    payment,
+    clientSecret: getClientSecretFromPayment(payment),
+    profile,
   };
-};
+}
+
+export default WithLayout({ getLayout: null, getData, Page: PaymentPage });
