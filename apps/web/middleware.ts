@@ -118,7 +118,6 @@ export const config = {
     "/apps/routing_forms/:path*",
     "/event-types",
     "/future/event-types/",
-<<<<<<< HEAD
     "/settings/admin/:path*",
     "/future/settings/admin/:path*",
     "/apps/installed/:category/",
@@ -145,11 +144,6 @@ export const config = {
     "/future/video/:path*",
     "/teams",
     "/future/teams/",
-=======
-
-    "/payment/:uid/", 
-    "/future/payment/:uid/"
->>>>>>> 9a763b858 (chore: migrate payments page)
   ],
 };
 

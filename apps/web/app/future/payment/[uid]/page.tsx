@@ -1,4 +1,6 @@
 import { _generateMetadata } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
+import { type GetServerSidePropsContext } from "next";
 import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -11,8 +13,6 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { ssrInit } from "@server/lib/ssr";
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { WithLayout } from "app/layoutHOC";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -25,16 +25,13 @@ const querySchema = z.object({
   uid: z.string(),
 });
 
-async function getData(context: ReturnType<typeof buildLegacyCtx>) {
-
-// @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to 
- const session = await getServerSession({ req: context.req });
+async function getData(context: GetServerSidePropsContext) {
+  const session = await getServerSession({ req: context.req });
 
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
 
-  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
   const ssr = await ssrInit(context);
   await ssr.viewer.me.prefetch();
 
@@ -160,11 +157,11 @@ async function getData(context: ReturnType<typeof buildLegacyCtx>) {
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     },
     booking,
-    trpcState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
     payment,
     clientSecret: getClientSecretFromPayment(payment),
     profile,
   };
 }
 
-export default WithLayout({ getLayout: null, getData,  Page: PaymentPage})
+export default WithLayout({ getLayout: null, getData, Page: PaymentPage });
