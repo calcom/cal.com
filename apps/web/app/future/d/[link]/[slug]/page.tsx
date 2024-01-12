@@ -27,7 +27,7 @@ export const generateMetadata = async ({ params }: { params: Record<string, stri
   const { entity, booking, user, slug, isTeamEvent } = pageProps;
   const rescheduleUid = booking?.uid;
   const { data: event } = trpc.viewer.public.event.useQuery(
-    { username: user, eventSlug: slug, isTeamEvent, org: entity.orgSlug ?? null },
+    { username: user ?? "", eventSlug: slug ?? "", isTeamEvent, org: entity.orgSlug ?? null },
     { refetchOnWindowFocus: false }
   );
   const profileName = event?.profile?.name ?? "";
@@ -39,8 +39,6 @@ export const generateMetadata = async ({ params }: { params: Record<string, stri
 };
 
 async function getPageProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-
   const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
@@ -101,6 +99,7 @@ async function getPageProps(context: GetServerSidePropsContext) {
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
+  const ssr = await ssrInit(context);
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
