@@ -26,7 +26,6 @@ const BrandColorsForm = ({
   const brandColorsFormMethods = useFormContext();
   const {
     formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
-    handleSubmit,
   } = brandColorsFormMethods;
 
   const [isCustomBrandColorChecked, setIsCustomBrandColorChecked] = useState(
