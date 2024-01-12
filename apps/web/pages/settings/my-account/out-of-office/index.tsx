@@ -1,6 +1,6 @@
 import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import { useForm, useFormState } from "react-hook-form";
+import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -9,15 +9,22 @@ import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button, Meta, showToast, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
+import {
+  Button,
+  Meta,
+  showToast,
+  Select,
+  SkeletonText,
+  UpgradeTeamsBadge,
+  Switch,
+  DateRangePicker,
+} from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import { OutOfOfficeDateRangePicker } from "@components/out-of-office/DateRangePicker";
 
 export type BookingRedirectForm = {
-  startDate: string;
-  endDate: string;
+  dateRange: { startDate: Date; endDate: Date };
   toTeamUserId: number | null;
 };
 
@@ -25,18 +32,20 @@ const OutOfOfficeSection = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null, null | null]>([
-    dayjs().startOf("d").toDate(),
-    dayjs().add(1, "d").endOf("d").toDate(),
-    null,
-  ]);
   const [profileRedirect, setProfileRedirect] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
-  const { handleSubmit, setValue } = useForm<BookingRedirectForm>({
+  const [dateRange] = useState<{ startDate: Date; endDate: Date }>({
+    startDate: dayjs().startOf("d").toDate(),
+    endDate: dayjs().add(1, "d").endOf("d").toDate(),
+  });
+
+  const { handleSubmit, setValue, getValues, control } = useForm<BookingRedirectForm>({
     defaultValues: {
-      startDate: dateRange[0]?.toISOString(),
-      endDate: dateRange[1]?.toISOString(),
+      dateRange: {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      },
       toTeamUserId: null,
     },
   });
@@ -121,11 +130,22 @@ const OutOfOfficeSection = () => {
               )}
               <div className="w-1/2 lg:w-1/3">
                 <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
-
-                <OutOfOfficeDateRangePicker
-                  dateRange={dateRange}
-                  setValue={setValue}
-                  setDateRange={setDateRange}
+                <Controller
+                  name="dateRange"
+                  control={control}
+                  defaultValue={dateRange}
+                  render={() => (
+                    <DateRangePicker
+                      startDate={getValues("dateRange").startDate}
+                      endDate={getValues("dateRange").endDate}
+                      onDatesChange={({ startDate, endDate }) => {
+                        setValue("dateRange", {
+                          startDate,
+                          endDate,
+                        });
+                      }}
+                    />
+                  )}
                 />
               </div>
             </div>
