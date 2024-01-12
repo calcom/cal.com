@@ -115,7 +115,7 @@ function getNavigation(props: {
     {
       name: "workflows",
       href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: PhoneCall,
+      icon: Zap,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
@@ -218,7 +218,7 @@ function EventTypeSingleLayout({
         navigation.push({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: Zap,
+          icon: PhoneCall,
           info: `instant_event_tab_description`,
         });
       }
