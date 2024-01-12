@@ -74,4 +74,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  isInstantEvent: boolean;
+  lockTimeZoneToggleOnBookingPage: boolean;
+  onlyShowFirstAvailableSlot: boolean;
 };

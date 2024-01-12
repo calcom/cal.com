@@ -597,7 +597,6 @@ export const EventSetupTab = (
             </div>
           )}
         </div>
-        {console.log("Event Type=>", eventType)}
         <div className="border-subtle rounded-lg border p-6">
           <div>
             <Skeleton as={Label} loadingClassName="w-16" htmlFor="locations">

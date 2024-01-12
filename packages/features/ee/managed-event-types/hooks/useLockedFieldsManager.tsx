@@ -13,22 +13,6 @@ import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { Tooltip, Badge, Switch } from "@calcom/ui";
 import { Lock, Unlock } from "@calcom/ui/components/icon";
 
-export const LockedLabel = (isManagedEventType: boolean, isLocked: boolean, t: TFunction) => {
-  const stateText = t(isLocked ? "locked" : "unlocked");
-  const tooltipText = t(
-    `${isLocked ? "locked" : "unlocked"}_fields_${isManagedEventType ? "admin" : "member"}_description`
-  );
-
-  return (
-    <Tooltip content={<>{tooltipText}</>}>
-      <Badge variant={isLocked ? "gray" : "green"} className="ml-2 transform gap-1.5 p-1">
-        {isLocked ? <Lock className="text-subtle h-3 w-3" /> : <Unlock className="text-subtle h-3 w-3" />}
-        <span className="font-medium">{stateText}</span>
-      </Badge>
-    </Tooltip>
-  );
-};
-
 export const LockedSwitch = (
   isManagedEventType: boolean,
   [isLocked, setIsLocked]: [boolean, Dispatch<SetStateAction<boolean>>],

@@ -1,10 +1,11 @@
 import { useSession } from "next-auth/react";
-import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, SettingsToggle } from "@calcom/ui";
