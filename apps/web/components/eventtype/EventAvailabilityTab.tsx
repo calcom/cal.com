@@ -192,7 +192,11 @@ const useListScheduleOptions = ({
     });
   }
 
-  if (isChildrenManagedEventType && watchSchedule && !options.find((option) => option.id === watchSchedule)) {
+  if (
+    isChildrenManagedEventType &&
+    watchSchedule &&
+    !options.find((option) => option.value === watchSchedule)
+  ) {
     options.push({
       value: watchSchedule,
       label: eventType.scheduleName ?? t("default_schedule_name"),
