@@ -1,4 +1,3 @@
-import type { useOverlayCalendarReturnType } from "bookings/Booker/components/hooks/useOverlayCalendar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment } from "react";
@@ -21,6 +20,7 @@ import {
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useLocalSet } from "../hooks/useLocalSet";
+import type { useOverlayCalendarReturnType } from "../hooks/useOverlayCalendar";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
@@ -48,7 +48,7 @@ export function OverlayCalendarSettingsModal({
   isLoading,
   open,
   onClose,
-  onToggledConnectedCalendar,
+  onToggleConnectedCalendar,
 }: IOverlayCalendarContinueModalProps) {
   const { hasItem } = useLocalSet<{
     credentialId: number;
@@ -125,7 +125,7 @@ export function OverlayCalendarSettingsModal({
                                           externalId: cal.externalId,
                                         })}
                                         onCheckedChange={() => {
-                                          onToggledConnectedCalendar(cal.externalId, item.credentialId);
+                                          onToggleConnectedCalendar(cal.externalId, item.credentialId);
                                         }}
                                       />
                                       <label htmlFor={id}>{cal.name}</label>

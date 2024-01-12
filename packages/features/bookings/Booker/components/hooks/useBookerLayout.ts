@@ -1,4 +1,3 @@
-import type { useEventReturnType } from "bookings/Booker/utils/event";
 import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -10,6 +9,7 @@ import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { extraDaysConfig } from "../../config";
 import { useBookerStore } from "../../store";
 import type { BookerLayout } from "../../types";
+import type { useEventReturnType } from "../../utils/event";
 import { validateLayout } from "../../utils/layout";
 import { getQueryParam } from "../../utils/query-param";
 

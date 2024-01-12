@@ -23,7 +23,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
-import type { useBookingFormReturnType } from "./useBookingForms";
+import type { useBookingFormReturnType } from "./useBookingForm";
 import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookings {
