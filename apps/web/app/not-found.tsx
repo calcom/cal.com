@@ -1,11 +1,10 @@
 import NotFoundPage from "@pages/404";
 import { WithLayout } from "app/layoutHOC";
-
-import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import type { GetStaticPropsContext } from "next";
 
 import { ssgInit } from "@server/lib/ssg";
 
-const getData = async (context: ReturnType<typeof buildLegacyCtx>) => {
+const getData = async (context: GetStaticPropsContext) => {
   const ssg = await ssgInit(context);
 
   return {
