@@ -182,10 +182,10 @@ const OutOfOfficeEntriesList = () => {
   return (
     <div className="border-subtle mt-6 rounded-lg border">
       <TableNew className="border-0">
-        <TableHeader>
+        <TableHeader className="md:z-1">
           <TableRow>
             <TableHead className="rounded-tl-lg font-normal capitalize">{t("time_range")}</TableHead>
-            <TableHead className="font-normal">{t("username")}</TableHead>
+            <TableHead className="font-normal">{t("redirect_to")}</TableHead>
 
             <TableHead className="rounded-tr-lg font-normal">{t("action")}</TableHead>
           </TableRow>
