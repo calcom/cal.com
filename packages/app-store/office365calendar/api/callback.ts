@@ -26,10 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           getSafeRedirectUrl(state?.returnTo) ??
           `${WEBAPP_URL}/apps/installed`
       );
-    } else {
-      res.status(400).json({ message: "No code returned" });
-      return;
     }
+    res.status(400).json({ message: "No code returned" });
+    return;
   }
 
   const appKeys = await getAppKeysFromSlug("office365-calendar");
