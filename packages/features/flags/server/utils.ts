@@ -46,9 +46,12 @@ async function getFlagsmithFlags(email: string | null | undefined, id: number | 
   return res.flags ? (res.flags as Feature[]) : (res as Feature[]);
 }
 
-export async function getFeatureFlagMap(req: NextApiRequest | GetServerSidePropsContext["req"]) {
+export async function getFeatureFlagMap(req?: NextApiRequest | GetServerSidePropsContext["req"]) {
   if (!!FLAGSMITH_ENVIRONMENT_ID) {
-    const session = await getServerSession({ req });
+    let session = null;
+    if (req) {
+      session = await getServerSession({ req });
+    }
     const flags = await getFlagsmithFlags(session?.user.email, session?.user.id);
     const res = flags.reduce<AppFlags>((acc, flag) => {
       acc[flag.feature.name as keyof AppFlags] = flag.enabled;
