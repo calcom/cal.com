@@ -384,7 +384,8 @@ export default class GoogleCalendarService implements Calendar {
     items: { id: string }[];
   }): Promise<EventBusyDate[] | null> {
     const calendar = await this.authedCalendar();
-    const flags = await getFeatureFlagMap(prisma);
+    /** @todo: make it user specific */
+    const flags = await getFeatureFlagMap();
 
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     if (!flags["calendar-cache"]) {

@@ -7,7 +7,6 @@ import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
-import prisma from "@calcom/prisma";
 
 export default class BaseEmail {
   name = "";
@@ -28,7 +27,8 @@ export default class BaseEmail {
     return {};
   }
   public async sendEmail() {
-    const featureFlags = await getFeatureFlagMap(prisma);
+    /** @todo: make it user specific */
+    const featureFlags = await getFeatureFlagMap();
     /** If email kill switch exists and is active, we prevent emails being sent. */
     if (featureFlags.emails) {
       console.warn("Skipped Sending Email due to active Kill Switch");

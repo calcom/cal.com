@@ -20,7 +20,8 @@ interface VerifyEmailType {
 export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const flags = await getFeatureFlagMap(prisma);
+  /** @todo: make it user specific */
+  const flags = await getFeatureFlagMap();
 
   if (!flags["email-verification"]) {
     log.warn("Email verification is disabled - Skipping");
