@@ -19,15 +19,11 @@ import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
 
-<<<<<<< HEAD
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
   eventTypeFormMetadata,
 }) {
-  const { asPath } = useRouter();
-=======
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const searchParams = useSearchParams();
   /** TODO "pathname" no longer contains square-bracket expressions. Rewrite the code relying on them if required. **/
   const pathname = usePathname();
@@ -35,7 +31,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     () => `${pathname}${searchParams ? `?${searchParams.toString()}` : ""}`,
     [pathname, searchParams]
   );
->>>>>>> 9a763b858 (chore: migrate payments page)
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
 
