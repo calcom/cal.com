@@ -6,15 +6,17 @@ import { notFound } from "next/navigation";
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 
+import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
 export const generateMetadata = async () =>
   await _generateMetadata(
     () => "Insights",
     (t) => t("insights_subtitle")
   );
 
-async function getData() {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+async function getData(context: ReturnType<typeof buildLegacyCtx>) {
+  // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest | (IncomingMessage & { cookies: Partial<{ [key: string]: string; }>; })'.
+  const flags = await getFeatureFlagMap(context.req);
 
   if (flags.insights === false) {
     return notFound();
