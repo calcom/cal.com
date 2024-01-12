@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";

@@ -28,7 +28,7 @@ jobs:
         with:
           repo-token: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN }}
           organization-name: calcom
-          ignore-labels: "app-store, ai, authentication, automated-testing, platform, billing, bookings, caldav, calendar-apps, ci, console, crm-apps, docs, documentation, emails, embeds, event-types, i18n, impersonation, manual-testing, ui, performance, ops-stack, organizations, public-api, routing-forms, seats, teams, webhooks, workflows, zapier"
+          ignore-labels: "admin, app-store, ai, authentication, automated-testing, devops, platform, billing, bookings, caldav, calendar-apps, ci, console, crm-apps, docs, documentation, emails, embeds, event-types, i18n, impersonation, manual-testing, ui, performance, ops-stack, organizations, public-api, routing-forms, seats, teams, webhooks, workflows, zapier"
   apply-labels-from-issue:
     runs-on: ubuntu-latest
 
