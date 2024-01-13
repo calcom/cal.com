@@ -167,7 +167,7 @@ const generateTeamCheckoutSession = async ({
     customer,
     mode: "subscription",
     allow_promotion_codes: true,
-    success_url: `${WEBAPP_URL}/api/teams/server/create?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${WEBAPP_URL}/api/teams/api/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
       {
