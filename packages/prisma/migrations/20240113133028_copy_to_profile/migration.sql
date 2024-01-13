@@ -1,0 +1,2 @@
+-- Copy Org user data from User to profile
+INSERT INTO "Profile" ("uid","organizationId", "userId", "username",  "updatedAt") SELECT "id" as "uid", "organizationId", "id" AS "userId", "username", NOW() FROM "users" WHERE "organizationId" IS NOT NULL;
