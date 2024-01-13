@@ -1,12 +1,11 @@
 import LegacyPage from "@pages/apps/categories/index";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import type { GetServerSidePropsContext } from "next";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
-
-import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -17,11 +16,9 @@ export const generateMetadata = async () => {
   );
 };
 
-const getData = async (ctx: ReturnType<typeof buildLegacyCtx>) => {
-  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
+const getData = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
 
-  // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest | IncomingMessage
   const session = await getServerSession({ req: ctx.req });
 
   let appStore;
