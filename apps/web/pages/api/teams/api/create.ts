@@ -38,7 +38,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
       metadata: {
-        ...newTeamData.metadata,
+        ...(typeof newTeamData.metadata === "object" ? newTeamData.metadata : {}),
         paymentId: checkoutSession.id,
         subscriptionId: checkoutSessionSubscription.id || null,
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id || null,
