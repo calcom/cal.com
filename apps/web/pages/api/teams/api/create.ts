@@ -7,6 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { _MembershipModel as Membership, _TeamModel as Team } from "@calcom/prisma/zod";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -18,6 +19,9 @@ const checkoutSessionMetadataSchema = z.object({
 });
 
 type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
+
+export const schemaTeamReadPublic = Team.omit({});
+export const schemaMembershipPublic = Membership.merge(z.object({ team: Team }).partial());
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const checkoutSession = await getCheckoutSession(req);
@@ -51,7 +55,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     where: { id: checkoutSessionMetadata.awaitingPaymentTeamId },
   });
 
-  return res.status(200).send(JSON.stringify({ team }, null, 2));
+  const response = JSON.stringify(
+    {
+      message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,
+      team: schemaTeamReadPublic.parse(team),
+      owner: schemaMembershipPublic.parse(team.members[0]),
+    },
+    null,
+    2
+  );
+
+  return res.status(200).send(response);
 }
 
 async function getCheckoutSession(req: NextApiRequest) {
