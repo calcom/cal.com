@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
+import { JOIN_DISCORD } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
