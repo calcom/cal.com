@@ -11,7 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: Cache database
-      id: cache-db
+      id: cache-db # id is required for cache action
       uses: buildjet/cache@v3
       env:
         cache-name: cache-db
