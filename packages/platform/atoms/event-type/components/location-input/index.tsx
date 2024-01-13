@@ -1,9 +1,11 @@
+import { Phone } from "event-type/components/location-input/organization-input-type/phone";
+import { Text } from "event-type/components/location-input/organization-input-type/text";
 import type { FormValues } from "event-type/types";
-import { Controller } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { Input, PhoneInput } from "@calcom/ui";
+
+export type formMethods = UseFormReturn<FormValues, any>;
 
 type LocationInputProps = {
   eventLocationType: EventLocationType;
@@ -19,26 +21,15 @@ export function LocationInput(props: LocationInputProps) {
     const { defaultValue, ...rest } = remainingProps;
 
     return (
-      <Controller
-        control={formMethods.control}
+      <Text
+        formMethods={formMethods}
         name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
         defaultValue={defaultValue}
-        render={({ field: { onChange, value } }) => {
-          return (
-            <Input
-              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-              placeholder={
-                eventLocationType.organizerInputPlaceholder ? eventLocationType.organizerInputPlaceholder : ""
-              }
-              type="text"
-              required
-              onChange={onChange}
-              value={value}
-              className="my-0"
-              {...rest}
-            />
-          );
-        }}
+        inputName={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+        inputPlaceholder={
+          eventLocationType.organizerInputPlaceholder ? eventLocationType.organizerInputPlaceholder : ""
+        }
+        otherProps={{ ...rest }}
       />
     );
   }
@@ -47,24 +38,15 @@ export function LocationInput(props: LocationInputProps) {
     const { defaultValue, ...rest } = remainingProps;
 
     return (
-      <Controller
-        control={formMethods.control}
+      <Phone
+        formMethods={formMethods}
         name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
         defaultValue={defaultValue}
-        render={({ field: { onChange, value } }) => {
-          return (
-            <PhoneInput
-              required
-              placeholder={
-                eventLocationType.organizerInputPlaceholder ? eventLocationType.organizerInputPlaceholder : ""
-              }
-              name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-              value={value}
-              onChange={onChange}
-              {...rest}
-            />
-          );
-        }}
+        inputName={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+        inputPlaceholder={
+          eventLocationType.organizerInputPlaceholder ? eventLocationType.organizerInputPlaceholder : ""
+        }
+        otherProps={{ ...rest }}
       />
     );
   }
