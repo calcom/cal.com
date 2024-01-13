@@ -1,12 +1,12 @@
 import type { NextApiRequest } from "next";
 
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
+import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaMembershipPublic } from "~/lib/validations/membership";
-import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
+import { schemaTeamCreateBodyParams } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -31,6 +31,12 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *              required:
  *                - name
  *                - slug
+ *                - hideBookATeamMember
+ *                - brandColor
+ *                - darkBrandColor
+ *                - timeZone
+ *                - weekStart
+ *                - isPrivate
  *              properties:
  *                name:
  *                  type: string
@@ -38,6 +44,27 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *                slug:
  *                  type: string
  *                  description: A unique slug that works as path for the team public page
+ *                hideBookATeamMember:
+ *                  type: boolean
+ *                  description: Flag to hide or show the book a team member option
+ *                brandColor:
+ *                  type: string
+ *                  description: Primary brand color for the team
+ *                darkBrandColor:
+ *                  type: string
+ *                  description: Dark variant of the primary brand color for the team
+ *                timeZone:
+ *                  type: string
+ *                  description: Time zone of the team
+ *                weekStart:
+ *                  type: string
+ *                  description: Starting day of the week for the team
+ *                isPrivate:
+ *                  type: boolean
+ *                  description: Flag indicating if the team is private
+ *                ownerId:
+ *                  type: number
+ *                  description: ID of the team owner - only admins can set this.
  *     tags:
  *     - teams
  *     responses:
@@ -49,8 +76,20 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/te
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { prisma, body, userId } = req;
-  const data = schemaTeamBodyParams.parse(body);
+  if (!IS_TEAM_BILLING_ENABLED) {
+    const PRECONDITION_FAILED_STATUS_CODE = 412;
+    throw new HttpError({
+      statusCode: PRECONDITION_FAILED_STATUS_CODE,
+      message: "Team creation is unavailable because team billing is disabled.",
+    });
+  }
+
+  const { prisma, body, userId, isAdmin } = req;
+  const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
+
+  await checkPermissions(req);
+
+  const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
 
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
@@ -59,13 +98,11 @@ async function postHandler(req: NextApiRequest) {
       },
     });
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
-    if (IS_TEAM_BILLING_ENABLED) {
-      // Setting slug in metadata, so it can be published later
-      data.metadata = {
-        requestedSlug: data.slug,
-      };
-      delete data.slug;
-    }
+    // Setting slug in metadata, so it can be published later
+    data.metadata = {
+      requestedSlug: data.slug,
+    };
+    delete data.slug;
   }
 
   // Check if parentId is related to this user
@@ -87,24 +124,78 @@ async function postHandler(req: NextApiRequest) {
     ...data,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
-  const team = await prisma.team.create({
+  const awaitingPaymentTeam = await prisma.awaitingPaymentTeam.create({
     data: {
       ...cloneData,
       createdAt: new Date(),
-      members: {
-        // We're also creating the relation membership of team ownership in this call.
-        create: { userId, role: MembershipRole.OWNER, accepted: true },
-      },
     },
-    include: { members: true },
   });
-  req.statusCode = 201;
-  // We are also returning the new ownership relation as owner besides team.
+
+  const checkoutSession = await generateTeamCheckoutSession({
+    awaitingPaymentTeamId: awaitingPaymentTeam.id,
+    ownerId: effectiveUserId,
+  });
+
   return {
-    team: schemaTeamReadPublic.parse(team),
-    owner: schemaMembershipPublic.parse(team.members[0]),
-    message: "Team created successfully, we also made you the owner of this team",
+    message:
+      "Your team will be created once we receive your payment. Please complete the payment using the provided link.",
+    paymentLink: checkoutSession.url,
   };
 }
+
+async function checkPermissions(req: NextApiRequest) {
+  const { isAdmin } = req;
+  const body = schemaTeamCreateBodyParams.parse(req.body);
+
+  /* Non-admin users can only create teams for themselves */
+  if (!isAdmin && body.ownerId)
+    throw new HttpError({
+      statusCode: 401,
+      message: "ADMIN required for `ownerId`",
+    });
+}
+
+const generateTeamCheckoutSession = async ({
+  awaitingPaymentTeamId,
+  ownerId,
+}: {
+  awaitingPaymentTeamId: number;
+  ownerId: number;
+}) => {
+  const customer = await getStripeCustomerIdFromUserId(ownerId);
+  const session = await stripe.checkout.sessions.create({
+    customer,
+    mode: "subscription",
+    allow_promotion_codes: true,
+    success_url: `${WEBAPP_URL}/api/teams/server/create?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
+    line_items: [
+      {
+        /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
+        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        /**Initially it will be just the team owner */
+        quantity: 1,
+      },
+    ],
+    customer_update: {
+      address: "auto",
+    },
+    automatic_tax: {
+      enabled: true,
+    },
+    metadata: {
+      awaitingPaymentTeamId,
+      ownerId,
+    },
+  });
+
+  if (!session.url)
+    throw new HttpError({
+      statusCode: 500,
+      message: "Failed generating a checkout session URL.",
+    });
+
+  return session;
+};
 
 export default defaultResponder(postHandler);
