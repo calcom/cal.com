@@ -139,7 +139,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 
 export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label, icon, ...rest }, ref) => {
   return (
-    <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 hover:cursor-pointer">
+    <div className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
       <label className="flex w-full max-w-full items-center justify-between hover:cursor-pointer">
         <div className="flex items-center truncate">
           <div className="text-default flex h-4 w-4 items-center justify-center ltr:mr-2 rtl:ml-2">
@@ -158,7 +158,7 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(({ label,
             {...rest}
             ref={ref}
             type="checkbox"
-            className="text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+            className="text-primary-600 focus:ring-primary-500 border-default bg-default h-4 w-4 rounded transition hover:cursor-pointer"
           />
         </div>
       </label>
