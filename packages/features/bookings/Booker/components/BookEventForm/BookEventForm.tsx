@@ -543,7 +543,7 @@ const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) =>
               */}
 
               <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
-              <div className="-mt-3 h-[450px]">
+              <div className="h-[450px]">
                 <iframe className="mx-auto h-full" src="https://cal.games/" />
               </div>
             </div>
