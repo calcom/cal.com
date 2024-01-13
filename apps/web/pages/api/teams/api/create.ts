@@ -43,6 +43,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id || null,
       },
     },
+    include: { members: true },
   });
 
   await prisma.awaitingPaymentTeam.delete({
