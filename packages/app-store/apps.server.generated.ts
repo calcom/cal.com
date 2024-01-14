@@ -36,6 +36,7 @@ export const apiHandlers = {
   matomo: import("./matomo/api"),
   metapixel: import("./metapixel/api"),
   mirotalk: import("./mirotalk/api"),
+  "mock-payment-app": import("./mock-payment-app/api"),
   n8n: import("./n8n/api"),
   office365calendar: import("./office365calendar/api"),
   office365video: import("./office365video/api"),

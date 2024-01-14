@@ -1,8 +1,12 @@
+"use client";
+
 import type { AppProps as NextAppProps } from "next/app";
+import { redirect } from "next/navigation";
 
 import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta, WizardLayout } from "@calcom/ui";
+import { WizardLayoutAppDir } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -32,5 +36,18 @@ AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextAppProps["rou
 );
 
 AddNewTeamsPage.PageWrapper = PageWrapper;
+
+export const WrapperAddNewTeamsPage = (page: React.ReactElement) => {
+  return (
+    <WizardLayoutAppDir
+      currentStep={5}
+      maxSteps={5}
+      isOptionalCallback={() => {
+        redirect(`/event-types`);
+      }}>
+      {page}
+    </WizardLayoutAppDir>
+  );
+};
 
 export default AddNewTeamsPage;

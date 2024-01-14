@@ -6,7 +6,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
-  NotFoundPageText,
+  NotFoundPageTextAppDir,
   bookTimeSlot,
   doOnOrgDomain,
   fillStripeTestCheckout,
@@ -40,7 +40,7 @@ test.describe("Teams A/B tests", () => {
 
     expect(dataNextJsRouter).toEqual("app");
 
-    const locator = page.getByRole("heading", { name: "teams" });
+    const locator = page.getByRole("heading", { name: "Teams", exact: true });
 
     await expect(locator).toBeVisible();
   });
@@ -389,7 +389,7 @@ test.describe("Teams - Org", () => {
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
+    await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,

@@ -1,12 +1,13 @@
 import OldPage from "@pages/teams/index";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { redirect } from "next/navigation";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,8 +15,9 @@ export const generateMetadata = async () =>
     (t) => t("create_manage_teams_collaborative")
   );
 
-async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolvedUrl">) {
-  const ssr = await ssrInit();
+async function getData(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
+
   await ssr.viewer.me.prefetch();
 
   const session = await getServerSession({
@@ -29,8 +31,7 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
     return redirect(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
   }
 
-  return { dehydratedState: await ssr.dehydrate() };
+  return { dehydratedState: ssr.dehydrate() };
 }
 
-// @ts-expect-error getData arg
 export default WithLayout({ getData, getLayout, Page: OldPage })<"P">;
