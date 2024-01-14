@@ -1,5 +1,7 @@
 import { Profile } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
+import type { Profile as ProfileType } from "@calcom/prisma/client";
+import type { PrismaPromise } from "@calcom/prisma/client";
 
 export async function joinOrganization({
   organizationId,
@@ -44,6 +46,7 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
   if (!user) {
     throw new Error("User not found");
   }
+
   await prisma.$transaction([
     // Simply remove this update when we remove the `organizationId` field from the user table
     prisma.user.update({
@@ -54,12 +57,12 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
         organizationId: orgId,
       },
     }),
-    Profile.createProfile({
+    Profile.create({
       userId: userId,
       organizationId: orgId,
       email: user.email,
       username: user.username,
-    }),
+    }) as PrismaPromise<ProfileType>,
     prisma.membership.updateMany({
       where: {
         userId,

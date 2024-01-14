@@ -1,3 +1,5 @@
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -25,6 +27,18 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
         team: true,
       },
     });
+
+    const team = membership.team;
+    const isAnOrganization = isOrganization({ team });
+    const isASubteam = team.parentId !== null;
+    const idOfOrganizationInContext = isAnOrganization ? team.id : isASubteam ? team.parentId : null;
+    const needProfileUpdate = !!idOfOrganizationInContext;
+    if (needProfileUpdate) {
+      await createAProfileForAnExistingUser({
+        user: ctx.user,
+        organizationId: idOfOrganizationInContext,
+      });
+    }
 
     closeComUpsertTeamUser(membership.team, ctx.user, membership.role);
   } else {

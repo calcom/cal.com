@@ -4,6 +4,7 @@ import type { TFunction } from "next-i18next";
 import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { Profile } from "@calcom/lib/server/repository/profile";
@@ -22,6 +23,7 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
+const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
 export type Invitee = Pick<
   UserType,
   "id" | "email" | "username" | "password" | "identityProvider" | "completedOnboarding"
@@ -141,14 +143,16 @@ export async function getUsersToInvite({
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
+        // Either it's a username in that organization
         {
-          username: { in: usernamesOrEmails },
           profiles: {
             some: {
               organizationId: team.id,
+              username: { in: usernamesOrEmails },
             },
           },
         },
+        // Or it's an email
         { email: { in: usernamesOrEmails } },
       ],
     },
@@ -502,9 +506,13 @@ export const sendTeamInviteEmails = async ({
 }) => {
   const sendEmailsPromises = existingUsersWithMembersips.map(async (user) => {
     let sendTo = user.email;
+
     if (!isEmail(user.email)) {
       sendTo = user.email;
     }
+
+    log.debug("Sending team invite email to", safeStringify({ user, currentUserName, currentUserTeamName }));
+
     // inform user of membership by email
     if (currentUserName && currentUserTeamName) {
       const inviteTeamOptions = {

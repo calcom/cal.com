@@ -328,4 +328,29 @@ export class User {
       profile: Profile.getPersonalProfile({ user }),
     };
   }
+
+  static async updateWhereId({
+    whereId,
+    data,
+  }: {
+    whereId: number;
+    data: {
+      movedToProfileId?: number | null;
+    };
+  }) {
+    return prisma.user.update({
+      where: {
+        id: whereId,
+      },
+      data: {
+        movedToProfile: data.movedToProfileId
+          ? {
+              connect: {
+                id: data.movedToProfileId,
+              },
+            }
+          : undefined,
+      },
+    });
+  }
 }

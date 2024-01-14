@@ -27,6 +27,8 @@ import {
   sendEmails,
 } from "./utils";
 
+const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
+
 type InviteMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -74,6 +76,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     isInvitedToOrg: input.isOrg,
     team,
   });
+
   const existingUsersEmailsAndUsernames = existingUsersWithMembersips.reduce(
     (acc, user) => ({
       emails: user.email ? [...acc.emails, user.email] : acc.emails,
@@ -85,6 +88,17 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     (usernameOrEmail) =>
       !existingUsersEmailsAndUsernames.emails.includes(usernameOrEmail) &&
       !existingUsersEmailsAndUsernames.usernames.includes(usernameOrEmail)
+  );
+
+  log.debug(
+    "inviteMemberHandler",
+    safeStringify({
+      usernameOrEmailsToInvite,
+      orgConnectInfoByUsernameOrEmail,
+      existingUsersWithMembersips,
+      existingUsersEmailsAndUsernames,
+      newUsersEmailsOrUsernames,
+    })
   );
 
   // deal with users to create and invite to team/org

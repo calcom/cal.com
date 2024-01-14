@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { ENABLE_PROFILE_SWITCHER } from "../../constants";
+import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata"> & {
@@ -160,3 +161,17 @@ export const _getPrismaWhereClauseForUserTeams = ({ organizationId }: { organiza
     return {};
   }
 };
+
+export class Team {
+  static async findById({ id }: { id: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
+}

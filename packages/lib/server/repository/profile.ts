@@ -17,19 +17,21 @@ const organizationSelect = {
 
 export class Profile {
   static generateProfileUid() {
-    return `profile-${uuidv4()}`;
+    return uuidv4();
   }
 
-  static createProfile({
+  private static async _create({
     userId,
     organizationId,
     username,
     email,
+    movedFromUserId,
   }: {
     userId: number;
     organizationId: number;
     username: string | null;
     email: string;
+    movedFromUserId?: number;
   }) {
     return prisma.profile.create({
       data: {
@@ -44,8 +46,53 @@ export class Profile {
             id: organizationId,
           },
         },
+        movedFromUser: {
+          connect: {
+            id: movedFromUserId,
+          },
+        },
         username: username || email.split("@")[0],
       },
+    });
+  }
+
+  /**
+   * Accepts `email` as a source to derive username from when username is null
+   * @returns
+   */
+  static create({
+    userId,
+    organizationId,
+    username,
+    email,
+  }: {
+    userId: number;
+    organizationId: number;
+    username: string | null;
+    email: string;
+  }) {
+    return Profile._create({ userId, organizationId, username, email });
+  }
+
+  static async createForExistingUser({
+    userId,
+    organizationId,
+    username,
+    email,
+    movedFromUserId,
+  }: {
+    userId: number;
+    organizationId: number;
+    username: string | null;
+    email: string;
+    movedFromUserId: number;
+  }) {
+    return await Profile._create({
+      userId,
+      organizationId,
+      username,
+      email: email,
+      movedFromUserId,
     });
   }
 

@@ -235,6 +235,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     organizationId: null,
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,
+    movedToProfileId: null,
     ...user,
   };
 };
