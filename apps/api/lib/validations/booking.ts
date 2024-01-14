@@ -6,6 +6,7 @@ import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
 import { schemaQueryUserId } from "./shared/queryUserId";
 
 const schemaBookingBaseBodyParams = Booking.pick({
+  uid: true,
   userId: true,
   eventTypeId: true,
   title: true,
@@ -27,7 +28,9 @@ const schemaBookingEditParams = z
   })
   .strict();
 
-export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingEditParams);
+export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
+  .merge(schemaBookingEditParams)
+  .omit({ uid: true });
 
 export const schemaBookingReadPublic = Booking.extend({
   attendees: z
