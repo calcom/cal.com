@@ -2222,5 +2222,7 @@
   "add_a_redirect": "Add a redirect",
   "create_entry": "Create entry",
   "time_range": "Time range",
+  "automatically_add_to_all_team_members": "Automatically add to all team members",
+  "including_people_who_join_in_future": "Including people who join the team in the future",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

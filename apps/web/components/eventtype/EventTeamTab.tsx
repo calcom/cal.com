@@ -1,7 +1,7 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ComponentProps } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
@@ -11,7 +11,7 @@ import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTea
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { Label, Select } from "@calcom/ui";
+import { Label, Select, SettingsToggle } from "@calcom/ui";
 
 interface IUserToValue {
   id: number | null;
@@ -207,13 +207,45 @@ const ChildrenEventTypes = ({
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
 }) => {
+  const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
+  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(
+    formMethods.getValues("assignAllTeamMembers") ?? false
+  );
+
   return (
-    <Controller<FormValues>
-      name="children"
-      render={({ field: { onChange, value } }) => (
-        <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
-      )}
-    />
+    <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
+      <div className="flex flex-col gap-4">
+        <Controller<FormValues>
+          name="assignAllTeamMembers"
+          render={() => (
+            <SettingsToggle
+              title={t("automatically_add_to_all_team_members")}
+              description={t("including_people_who_join_in_future")}
+              checked={assignAllTeamMembers}
+              onCheckedChange={(active) => {
+                formMethods.setValue("assignAllTeamMembers", active);
+                setAssignAllTeamMembers(active);
+                // Setting children to an empty array when assignAllTeamMembers is checked
+                if (active) {
+                  formMethods.setValue("children", []);
+                }
+              }}
+            />
+          )}
+        />
+        {!assignAllTeamMembers ? (
+          <Controller<FormValues>
+            name="children"
+            render={({ field: { onChange, value } }) => (
+              <ChildrenEventTypesList value={value} options={childrenEventTypeOptions} onChange={onChange} />
+            )}
+          />
+        ) : (
+          <></>
+        )}
+      </div>
+    </div>
   );
 };
 

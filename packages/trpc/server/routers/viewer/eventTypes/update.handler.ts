@@ -39,6 +39,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     recurringEvent,
     users,
     children,
+    assignAllTeamMembers,
     hosts,
     id,
     hashedLink,
@@ -65,9 +66,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       team: {
         select: {
-          name: true,
           id: true,
+          name: true,
+          slug: true,
           parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  name: true,
+                  id: true,
+                  email: true,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -290,6 +315,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  data.assignAllTeamMembers = assignAllTeamMembers ?? false;
+
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
@@ -311,6 +338,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw e;
   }
 
+  const teamMembers = eventType.team?.members
+    ? eventType.team.members
+        .filter((member) => member.accepted)
+        .map((member) => {
+          return {
+            owner: {
+              ...member.user,
+              name: member.user.name ?? "",
+              eventTypeSlugs: member.user.eventTypes.map((evTy) => evTy.slug),
+            },
+            hidden: false,
+          };
+        })
+    : [];
+
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
@@ -319,7 +361,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hashedLink,
     connectedLink,
     updatedEventType,
-    children,
+    children: assignAllTeamMembers ? teamMembers : children,
     prisma: ctx.prisma,
   });
   const res = ctx.res as NextApiResponse;

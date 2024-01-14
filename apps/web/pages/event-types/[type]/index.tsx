@@ -144,6 +144,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  assignAllTeamMembers: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -195,6 +196,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           created: true,
         }))
       );
+      formMethods.setValue("assignAllTeamMembers", formMethods.getValues("assignAllTeamMembers") || false);
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
@@ -289,6 +291,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      assignAllTeamMembers: eventType.assignAllTeamMembers,
     };
   }, [eventType, periodDates, metadata]);
 
@@ -447,6 +450,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       customInputs,
       children,
+      assignAllTeamMembers,
       // We don't need to send send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       seatsPerTimeSlotEnabled,
@@ -516,6 +520,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       customInputs,
       children,
+      assignAllTeamMembers,
     });
   };
 

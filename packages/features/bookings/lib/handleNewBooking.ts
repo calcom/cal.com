@@ -304,6 +304,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       parentId: true,
       owner: {
         select: {
