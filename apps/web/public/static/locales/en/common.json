@@ -139,7 +139,6 @@
   "join_team": "Join team",
   "manage_this_team": "Manage this team",
   "team_info": "Team Info",
-  "join_meeting":"Join Meeting",
   "request_another_invitation_email": "If you prefer not to use {{toEmail}} as your {{appName}} email or already have a {{appName}} account, please request another invitation to that email.",
   "you_have_been_invited": "You have been invited to join the team {{teamName}}",
   "user_invited_you": "{{user}} invited you to join the {{entity}} {{team}} on {{appName}}",

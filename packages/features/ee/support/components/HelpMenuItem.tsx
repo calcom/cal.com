@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
+import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
@@ -24,6 +25,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [active, setActive] = useState(false);
   const [, loadChat] = useChat();
   const { t } = useLocale();
+  const { hasPaidPlan } = useHasPaidPlan();
 
   const { setActive: setFreshChat } = useFreshChat();
 
@@ -43,6 +45,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ rating: rating, comment: comment });
   };
+
+  console.log("haspaidPlan", hasPaidPlan);
 
   return (
     <div className="bg-default border-default w-full rounded-md">
@@ -185,23 +189,24 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       </div>
       <div className="text-subtle bg-muted w-full p-5">
         <p className="">{t("specific_issue")}</p>
-        <button
-          className="hover:text-emphasis text-defualt font-medium underline"
-          onClick={async () => {
-            setActive(true);
-            if (isFreshChatEnabled) {
-              setFreshChat(true);
-            } else if (isInterComEnabled) {
-              await open();
-            } else {
-              loadChat({ open: true });
-            }
-
-            onHelpItemSelect();
-          }}>
-          {t("contact_support")}
-        </button>
-        <span> {t("or").toLowerCase()} </span>
+        {hasPaidPlan && (
+          <button
+            className="hover:text-emphasis text-defualt font-medium underline"
+            onClick={async () => {
+              setActive(true);
+              if (isFreshChatEnabled) {
+                setFreshChat(true);
+              } else if (isInterComEnabled) {
+                await open();
+              } else {
+                loadChat({ open: true });
+              }
+              onHelpItemSelect();
+            }}>
+            {t("contact_support")}
+          </button>
+        )}
+        {hasPaidPlan && <span> {t("or").toLowerCase()} </span>}
         <a
           onClick={() => onHelpItemSelect()}
           className="hover:text-emphasis text-defualt font-medium underline"
