@@ -18,6 +18,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
+  if (!code) {
+    return res.redirect(`${WEBAPP_URL_FOR_OAUTH}/apps`);
+  }
+
   if (typeof code !== "string") {
     throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
   }
