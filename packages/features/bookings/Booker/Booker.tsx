@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -144,8 +145,8 @@ const BookerComponent = ({
     : bookerLayouts.defaultLayout;
 
   useBrandColors({
-    brandColor: event.data?.profile.brandColor,
-    darkBrandColor: event.data?.profile.darkBrandColor,
+    brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    darkBrandColor: event.data?.profile.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     theme: event.data?.profile.theme,
   });
 
