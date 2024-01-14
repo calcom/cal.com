@@ -46,8 +46,6 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
     mutation.mutate({ rating: rating, comment: comment });
   };
 
-  console.log("haspaidPlan", hasPaidPlan);
-
   return (
     <div className="bg-default border-default w-full rounded-md">
       <div className="w-full py-5">
