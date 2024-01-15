@@ -1,3 +1,5 @@
+"use client";
+
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
