@@ -1,5 +1,5 @@
-import LegacyPage from "@pages/apps/[slug]/[...pages]";
-import { ssrInit } from "app/_trpc/ssrInit";
+import LegacyPage, { getLayout } from "@pages/apps/[slug]/[...pages]";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import type { GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
@@ -17,7 +17,11 @@ import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import type { AppProps } from "@lib/app-providers";
-import { getQuery } from "@lib/getQuery";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import PageWrapper from "@components/PageWrapperAppDir";
+
+import { ssrInit } from "@server/lib/ssr";
 
 type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
@@ -59,7 +63,8 @@ export const generateMetadata = async ({ params }: { params: Record<string, stri
     );
   }
 
-  const { form } = await getPageProps({ params });
+  const legacyContext = buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext;
+  const { form } = await getPageProps(legacyContext);
 
   return await _generateMetadata(
     () => `${form.name} | ${APP_NAME}`,
@@ -91,7 +96,7 @@ function getRoute(appName: string, pages: string[]) {
   } as Found;
 }
 
-const getPageProps = async ({ params }: { params: Record<string, string | string[]> }) => {
+const getPageProps = async ({ params, query, req }: GetServerSidePropsContext) => {
   const p = paramsSchema.safeParse(params);
 
   if (!p.success) {
@@ -110,10 +115,7 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
     // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
     // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
     // We can write some validation logic later on that ensures that [...appPages].tsx file exists
-    params.appPages = pages.slice(1);
-
-    const req = { headers: headers(), cookies: cookies() };
-    const query = getQuery(req.headers.get("x-url") ?? "", params);
+    params!.appPages = pages.slice(1);
 
     const ctx = { req, params, query };
 
@@ -126,7 +128,6 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
     }
 
     const result = await route.getServerSideProps(
-      // @ts-expect-error req
       {
         ...ctx,
         params: {
@@ -165,7 +166,15 @@ const getPageProps = async ({ params }: { params: Record<string, string | string
   }
 };
 
-export default async function Page({ params }: { params: Record<string, string | string[]> }) {
-  const pageProps = await getPageProps({ params });
-  return <LegacyPage {...pageProps} />;
+export default async function Page({ params }: PageProps) {
+  const h = headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+
+  const legacyContext = buildLegacyCtx(h, cookies(), params) as unknown as GetServerSidePropsContext;
+  const props = await getPageProps(legacyContext);
+  return (
+    <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
+      <LegacyPage {...props} />
+    </PageWrapper>
+  );
 }

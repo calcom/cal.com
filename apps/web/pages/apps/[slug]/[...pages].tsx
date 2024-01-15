@@ -88,18 +88,22 @@ AppPage.isBookingPage = ({ router }) => {
   return !!isBookingPage;
 };
 
-AppPage.getLayout = (page, router) => {
-  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
+export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { slug, pages } = useParamsWithFallback();
+  const route = getRoute(slug as string, pages as string[]);
+
   if (route.notFound) {
     return null;
   }
   if (!route.Component.getLayout) {
     return page;
   }
-  return route.Component.getLayout(page, router);
+  return route.Component.getLayout(page);
 };
 
 AppPage.PageWrapper = PageWrapper;
+AppPage.getLayout = getLayout;
 
 export default AppPage;
 
