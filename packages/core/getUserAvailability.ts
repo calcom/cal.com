@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
@@ -258,6 +259,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+
+  if (!useHostSchedulesForTeamEvent && eventType?.schedule && !userSchedule?.availability) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.UserDefaultAvailabilityNotFound });
+  }
+
   log.debug(
     "Using schedule:",
     safeStringify({
