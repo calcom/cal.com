@@ -1046,72 +1046,77 @@ export function mockCalendar(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteEventCalls: any[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
-  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockResolvedValue({
-    lib: {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      CalendarService: function MockCalendarService() {
-        return {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
-            if (calendarData?.creationCrash) {
-              throw new Error("MockCalendarService.createEvent fake error");
-            }
-            const [calEvent, credentialId] = rest;
-            log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
-            createEventCalls.push(rest);
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {},
-              uid: "PROBABLY_UNUSED_UID",
-              // A Calendar is always expected to return an id.
-              id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
-              iCalUID: normalizedCalendarData.create?.iCalUID,
-              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-              password: "MOCK_PASSWORD",
-              url: "https://UNUSED_URL",
-            });
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
-            if (calendarData?.updationCrash) {
-              throw new Error("MockCalendarService.updateEvent fake error");
-            }
-            const [uid, event, externalCalendarId] = rest;
-            log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-            // eslint-disable-next-line prefer-rest-params
-            updateEventCalls.push(rest);
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {},
-              uid: "PROBABLY_UNUSED_UID",
-              iCalUID: normalizedCalendarData.update?.iCalUID,
 
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
-              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-              password: "MOCK_PASSWORD",
-              url: "https://UNUSED_URL",
-            });
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          deleteEvent: async (...rest: any[]) => {
-            log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-            // eslint-disable-next-line prefer-rest-params
-            deleteEventCalls.push(rest);
-          },
-          getAvailability: async (): Promise<EventBusyDate[]> => {
-            if (calendarData?.getAvailabilityCrash) {
-              throw new Error("MockCalendarService.getAvailability fake error");
-            }
-            return new Promise((resolve) => {
-              resolve(calendarData?.busySlots || []);
-            });
-          },
-        };
+  const appMock = appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default];
+
+  appMock &&
+    `mockResolvedValue` in appMock &&
+    appMock.mockResolvedValue({
+      lib: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        CalendarService: function MockCalendarService() {
+          return {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+              if (calendarData?.creationCrash) {
+                throw new Error("MockCalendarService.createEvent fake error");
+              }
+              const [calEvent, credentialId] = rest;
+              log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
+              createEventCalls.push(rest);
+              return Promise.resolve({
+                type: app.type,
+                additionalInfo: {},
+                uid: "PROBABLY_UNUSED_UID",
+                // A Calendar is always expected to return an id.
+                id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
+                iCalUID: normalizedCalendarData.create?.iCalUID,
+                // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                password: "MOCK_PASSWORD",
+                url: "https://UNUSED_URL",
+              });
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+              if (calendarData?.updationCrash) {
+                throw new Error("MockCalendarService.updateEvent fake error");
+              }
+              const [uid, event, externalCalendarId] = rest;
+              log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
+              // eslint-disable-next-line prefer-rest-params
+              updateEventCalls.push(rest);
+              return Promise.resolve({
+                type: app.type,
+                additionalInfo: {},
+                uid: "PROBABLY_UNUSED_UID",
+                iCalUID: normalizedCalendarData.update?.iCalUID,
+
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+                // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                password: "MOCK_PASSWORD",
+                url: "https://UNUSED_URL",
+              });
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            deleteEvent: async (...rest: any[]) => {
+              log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
+              // eslint-disable-next-line prefer-rest-params
+              deleteEventCalls.push(rest);
+            },
+            getAvailability: async (): Promise<EventBusyDate[]> => {
+              if (calendarData?.getAvailabilityCrash) {
+                throw new Error("MockCalendarService.getAvailability fake error");
+              }
+              return new Promise((resolve) => {
+                resolve(calendarData?.busySlots || []);
+              });
+            },
+          };
+        },
       },
-    },
-  });
+    });
   return {
     createEventCalls,
     deleteEventCalls,
