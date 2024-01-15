@@ -96,11 +96,6 @@ const BookerComponent = ({
     bookerLayouts,
   } = useBookerLayout(event.data);
   const animationScope = useBookerResizeAnimation(layout, bookerState);
-  useBrandColors({
-    brandColor: event.data?.profile.brandColor,
-    darkBrandColor: event.data?.profile.darkBrandColor,
-    theme: event.data?.profile.theme,
-  });
 
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const largeCalendarSchedule = useScheduleForEvent({
