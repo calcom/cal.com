@@ -274,12 +274,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
-  if (!schedule.availability) {
+  if (
+    !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
+  ) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
   const availability = (
-    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
   ).map((a) => ({
     ...a,
     userId: user.id,
