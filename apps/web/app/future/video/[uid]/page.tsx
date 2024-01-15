@@ -2,13 +2,12 @@ import OldPage from "@pages/video/[uid]";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import MarkdownIt from "markdown-it";
+import type { GetServerSidePropsContext } from "next";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-
-import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -20,8 +19,7 @@ export const generateMetadata = async () =>
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
-async function getData(context: ReturnType<typeof buildLegacyCtx>) {
-  // @ts-expect-error Argument of type '{ query: Params; params: Params; req: { headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }; }' is not assignable to parameter of type 'GetServerSidePropsContext'.
+async function getData(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
 
   const booking = await prisma.booking.findUnique({
@@ -79,12 +77,11 @@ async function getData(context: ReturnType<typeof buildLegacyCtx>) {
     endTime: booking.endTime.toString(),
   });
 
-  // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest | (IncomingMessage & { cookies: Partial<{ [key: string]: string; }>; })'.
   const session = await getServerSession({ req: context.req });
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {
-    bookingObj.references.forEach((bookRef: any) => {
+    bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = null;
     });
   }
