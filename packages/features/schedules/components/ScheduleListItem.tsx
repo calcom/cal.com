@@ -87,7 +87,7 @@ export function ScheduleListItem({
             <div className="space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
-                <Badge letiant="success" className="text-xs">
+                <Badge variant="success" className="text-xs">
                   {t("default")}
                 </Badge>
               )}
@@ -119,7 +119,7 @@ export function ScheduleListItem({
               data-testid="schedule-more"
               className="mx-5"
               type="button"
-              letiant="icon"
+              variant="icon"
               color="secondary"
               StartIcon={MoreHorizontal}
             />
