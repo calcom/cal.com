@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { LinkIcon } from "lucide-react";
@@ -205,6 +207,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
               return (
                 <>
                   <Avatar
+                    data-testid="profile-upload-avatar"
                     alt={defaultValues.name || ""}
                     imageSrc={getPlaceholderAvatar(value, defaultValues.name as string)}
                     size="lg"

@@ -17,9 +17,11 @@ import { appDataSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
 import { appDataSchema as make_zod_ts } from "./make/zod";
 import { appDataSchema as matomo_zod_ts } from "./matomo/zod";
 import { appDataSchema as metapixel_zod_ts } from "./metapixel/zod";
+import { appDataSchema as mock_payment_app_zod_ts } from "./mock-payment-app/zod";
 import { appDataSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as paypal_zod_ts } from "./paypal/zod";
+import { appDataSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
@@ -54,9 +56,11 @@ export const appDataSchemas = {
   make: make_zod_ts,
   matomo: matomo_zod_ts,
   metapixel: metapixel_zod_ts,
+  "mock-payment-app": mock_payment_app_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
   paypal: paypal_zod_ts,
+  "pipedrive-crm": pipedrive_crm_zod_ts,
   plausible: plausible_zod_ts,
   qr_code: qr_code_zod_ts,
   "routing-forms": routing_forms_zod_ts,

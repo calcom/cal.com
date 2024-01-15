@@ -36,12 +36,14 @@ import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
+import mock_payment_app_config_json from "./mock-payment-app/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
 import pipedream_config_json from "./pipedream/config.json";
+import pipedrive_crm_config_json from "./pipedrive-crm/config.json";
 import plausible_config_json from "./plausible/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
@@ -114,12 +116,14 @@ export const appStoreMetadata = {
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
+  "mock-payment-app": mock_payment_app_config_json,
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
   paypal: paypal_config_json,
   ping: ping_config_json,
   pipedream: pipedream_config_json,
+  "pipedrive-crm": pipedrive_crm_config_json,
   plausible: plausible_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,

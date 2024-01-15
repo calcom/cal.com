@@ -5,9 +5,8 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../../lib/fixtures";
 
-test.afterAll(({ users, emails }) => {
+test.afterAll(({ users }) => {
   users.deleteAll();
-  emails?.deleteAll();
 });
 
 test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {

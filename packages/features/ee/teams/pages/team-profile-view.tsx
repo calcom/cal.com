@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -151,7 +153,7 @@ const ProfileView = () => {
       {isAdmin ? (
         <TeamProfileForm team={team} />
       ) : (
-        <div className="flex">
+        <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
           <div className="flex-grow">
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
@@ -167,7 +169,7 @@ const ProfileView = () => {
               </>
             )}
           </div>
-          <div className="">
+          <div>
             <Link href={permalink} passHref={true} target="_blank">
               <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
             </Link>

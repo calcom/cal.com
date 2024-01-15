@@ -16,6 +16,7 @@ const appStore = {
   office365video: () => import("./office365video"),
   plausible: () => import("./plausible"),
   paypal: () => import("./paypal"),
+  "pipedrive-crm": () => import("./pipedrive-crm"),
   salesforce: () => import("./salesforce"),
   zohocrm: () => import("./zohocrm"),
   sendgrid: () => import("./sendgrid"),
@@ -40,4 +41,12 @@ const appStore = {
   shimmervideo: () => import("./shimmervideo"),
 };
 
-export default appStore;
+const exportedAppStore: typeof appStore & {
+  ["mock-payment-app"]?: () => Promise<typeof import("./mock-payment-app/index")>;
+} = appStore;
+
+if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
+  exportedAppStore["mock-payment-app"] = () => import("./mock-payment-app/index");
+}
+
+export default exportedAppStore;
