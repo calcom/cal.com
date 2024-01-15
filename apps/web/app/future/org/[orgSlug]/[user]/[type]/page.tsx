@@ -1,6 +1,8 @@
-import Page, { getServerSideProps, type PageProps } from "@pages/org/[orgSlug]/[user]/[type]";
+import Page, { type PageProps } from "@pages/org/[orgSlug]/[user]/[type]";
 import { withAppDir } from "app/AppDirSSRHOC";
 import { WithLayout } from "app/layoutHOC";
+
+import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 
 export const getData = withAppDir<PageProps>(getServerSideProps);
 
