@@ -1,5 +1,5 @@
 import DirectSSOLogin from "@pages/auth/sso/direct";
-import { withAppDir } from "app/AppDirSSRHOC";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@server/lib/auth/sso/direct/getServerSideProps";
@@ -7,5 +7,5 @@ import { getServerSideProps } from "@server/lib/auth/sso/direct/getServerSidePro
 export default WithLayout({
   getLayout: null,
   Page: DirectSSOLogin,
-  getData: withAppDir(getServerSideProps),
+  getData: withAppDirSsr(getServerSideProps),
 })<"P">;
