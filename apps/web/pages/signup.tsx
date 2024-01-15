@@ -521,7 +521,7 @@ export default function Signup({
             </>
           )}
           <div
-            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed lg:block lg:py-[6px] lg:pl-[6px]"
+            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:border-0 lg:block lg:py-[6px] lg:pl-[6px]"
             style={{
               backgroundColor: "rgba(236,237,239,0.9)",
             }}>
