@@ -1,10 +1,3 @@
-import type {
-  HandleSeatsResultBooking,
-  SeatedBooking,
-  RescheduleSeatedBookingObject,
-  SeatAttendee,
-} from "bookings/lib/handleSeats/types";
-
 // eslint-disable-next-line no-restricted-imports
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
@@ -15,6 +8,12 @@ import type { Person } from "@calcom/types/Calendar";
 
 import { refreshCredentials } from "../../handleNewBooking";
 import type { createLoggerWithEventDetails } from "../../handleNewBooking";
+import type {
+  HandleSeatsResultBooking,
+  SeatedBooking,
+  RescheduleSeatedBookingObject,
+  SeatAttendee,
+} from "../types";
 import attendeeRescheduleSeatedBooking from "./attendee/attendeeRescheduleSeatedBooking";
 import ownerRescheduleSeatedBooking from "./owner/ownerRescheduleSeatedBooking";
 
