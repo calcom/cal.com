@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
@@ -258,6 +259,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+
   log.debug(
     "Using schedule:",
     safeStringify({
@@ -272,8 +274,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
+  if (
+    !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
+  ) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
+  }
+
   const availability = (
-    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
   ).map((a) => ({
     ...a,
     userId: user.id,
