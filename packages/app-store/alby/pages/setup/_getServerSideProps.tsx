@@ -7,7 +7,9 @@ import { getAlbyKeys } from "../../lib/getAlbyKeys";
 import type { IAlbySetupProps } from "./index";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
+  const notFound = { notFound: true } as const;
+
+  if (typeof ctx.params?.slug !== "string") return notFound;
 
   const { req, res } = ctx;
   const session = await getServerSession({ req, res });
