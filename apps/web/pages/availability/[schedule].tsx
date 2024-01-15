@@ -106,6 +106,42 @@ export default function Availability() {
       schedule: schedule?.availability || [],
     },
   });
+  //changes for handling week start in availability
+  const weekStartIndex =
+    typeof me.data?.weekStart === "string"
+      ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+          me.data?.weekStart
+        ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+      : -1;
+  const sortedSchedule = [...(schedule?.schedule ?? [])];
+  let tempSchedArr = [];
+  for (const sched of schedule?.schedule ?? []) {
+    let tempDays = [
+      weekStartIndex,
+      (weekStartIndex + 1) % 7,
+      (weekStartIndex + 2) % 7,
+      (weekStartIndex + 3) % 7,
+      (weekStartIndex + 4) % 7,
+      (weekStartIndex + 5) % 7,
+      (weekStartIndex + 6) % 7,
+    ];
+    tempDays = tempDays.filter((element) => sched.days.includes(element));
+
+    const tempSched = { ...sched };
+    tempSched.days = tempDays;
+    tempSchedArr.push(tempSched);
+  }
+  tempSchedArr = tempSchedArr.sort((a, b) => a.days[0] - b.days[0]);
+  let index = tempSchedArr.findIndex((e) => e.days[0] == weekStartIndex);
+  let i = 0;
+  while (i < sortedSchedule.length) {
+    if (index === tempSchedArr.length) index = 0;
+    sortedSchedule[i] = { ...tempSchedArr[index] };
+    i++;
+    index++;
+  }
+  //changes for handling week start in availability end here
+
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
@@ -164,14 +200,12 @@ export default function Availability() {
       }
       subtitle={
         schedule ? (
-          schedule.schedule
-            .filter((availability) => !!availability.days.length)
-            .map((availability) => (
-              <span key={availability.id}>
-                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
-                <br />
-              </span>
-            ))
+          sortedSchedule.map((availability) => (
+            <span key={availability.id}>
+              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+              <br />
+            </span>
+          ))
         ) : (
           <SkeletonText className="h-4 w-48" />
         )
@@ -201,7 +235,7 @@ export default function Availability() {
             <DialogTrigger asChild>
               <Button
                 StartIcon={Trash}
-                variant="icon"
+                letiant="icon"
                 color="destructive"
                 aria-label={t("delete")}
                 className="hidden sm:inline"
@@ -211,7 +245,7 @@ export default function Availability() {
             </DialogTrigger>
             <ConfirmationDialogContent
               isLoading={deleteMutation.isLoading}
-              variety="danger"
+              letiety="danger"
               title={t("delete_schedule")}
               confirmBtnText={t("delete")}
               loadingText={t("delete")}
@@ -240,7 +274,7 @@ export default function Availability() {
                   <DialogTrigger asChild>
                     <Button
                       StartIcon={Trash}
-                      variant="icon"
+                      letiant="icon"
                       color="destructive"
                       aria-label={t("delete")}
                       className="ml-16 inline"
@@ -250,7 +284,7 @@ export default function Availability() {
                   </DialogTrigger>
                   <ConfirmationDialogContent
                     isLoading={deleteMutation.isLoading}
-                    variety="danger"
+                    letiety="danger"
                     title={t("delete_schedule")}
                     confirmBtnText={t("delete")}
                     loadingText={t("delete")}
@@ -340,7 +374,7 @@ export default function Availability() {
           <Button
             className="ml-3 sm:hidden"
             StartIcon={MoreVertical}
-            variant="icon"
+            letiant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}
           />

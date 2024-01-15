@@ -134,12 +134,17 @@ export function availabilityAsString(
   const weekSpan = (availability: Availability) => {
     const days = availability.days.slice(1).reduce(
       (days, day) => {
-        if (days[days.length - 1].length === 1 && days[days.length - 1][0] === day - 1) {
+        let lastRange = days[days.length - 1];
+        if (lastRange.length === 1 && lastRange[0] === day - 1) {
           // append if the range is not complete (but the next day needs adding)
-          days[days.length - 1].push(day);
-        } else if (days[days.length - 1][days[days.length - 1].length - 1] === day - 1) {
+          lastRange.push(day);
+        } else if (
+          lastRange[lastRange.length - 1] === day - 1 ||
+          (lastRange[lastRange.length - 1] === 6 && day === 0)
+        ) {
+          //(days[days.length - 1][days[days.length - 1].length - 1] === 6 && day===0) is to avoid the termination on index 6
           // range complete, overwrite if the last day directly preceeds the current day
-          days[days.length - 1] = [days[days.length - 1][0], day];
+          lastRange = [lastRange[0], day];
         } else {
           // new range
           days.push([day]);
