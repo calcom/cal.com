@@ -302,7 +302,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           // Posible to refactor TODO:
           const paymentApp = (await appStore[
             paymentAppCredential?.app?.dirName as keyof typeof appStore
-          ]()) as PaymentApp;
+          ]?.()) as PaymentApp;
           if (!paymentApp?.lib?.PaymentService) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
