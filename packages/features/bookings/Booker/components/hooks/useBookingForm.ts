@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -62,6 +62,14 @@ export const useBookingForm = ({ event }: IUseBookingForm) => {
       }
     ),
   });
+
+  useEffect(() => {
+    // initialValues would be null initially as the async schema parsing is happening. Let's show the form in first render without any prefill values
+    // But ensure that when initialValues is available, the form is reset and rerendered with the prefill values
+    bookingForm.reset(initialValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
   const email = bookingForm.watch("responses.email");
   const name = bookingForm.watch("responses.name");
 
