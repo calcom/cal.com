@@ -1,5 +1,5 @@
 import VerifyPage from "@pages/auth/verify";
-import { withAppDir } from "app/AppDirSSRHOC";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@server/lib/auth/verify/getServerSideProps";
@@ -7,5 +7,5 @@ import { getServerSideProps } from "@server/lib/auth/verify/getServerSideProps";
 export default WithLayout({
   getLayout: null,
   Page: VerifyPage,
-  getData: withAppDir(getServerSideProps),
+  getData: withAppDirSsr(getServerSideProps),
 })<"P">;
