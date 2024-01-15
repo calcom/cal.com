@@ -96,7 +96,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
 
   const paymentApp = (await appStore[
     paymentCredential?.app?.dirName as keyof typeof appStore
-  ]()) as PaymentApp;
+  ]?.()) as PaymentApp;
 
   if (!paymentApp?.lib?.PaymentService) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });

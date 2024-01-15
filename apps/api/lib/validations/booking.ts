@@ -28,7 +28,9 @@ const schemaBookingEditParams = z
   })
   .strict();
 
-export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingEditParams);
+export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
+  .merge(schemaBookingEditParams)
+  .omit({ uid: true });
 
 export const schemaBookingReadPublic = Booking.extend({
   attendees: z

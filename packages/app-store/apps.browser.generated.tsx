@@ -29,6 +29,7 @@ export const EventTypeAddonMap = {
   gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
   matomo: dynamic(() => import("./matomo/components/EventTypeAppCardInterface")),
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
+  "mock-payment-app": dynamic(() => import("./mock-payment-app/components/EventTypeAppCardInterface")),
   paypal: dynamic(() => import("./paypal/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
