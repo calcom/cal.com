@@ -34,7 +34,7 @@ const DateOverrideList = ({
   items: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
-  schedule: AvailabilityFormValues;
+  schedule?: AvailabilityFormValues;
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();

@@ -25,19 +25,23 @@ import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
 import { invalidateSchedules } from "./invalidate";
 
+type ScheduleWithAvailability = AvailabilityFormValues & { availability: Schedule };
+
 const DateOverrideForm = ({
   value,
   workingHours,
   excludedDates,
   schedule,
   onChange,
+  saveOnChange = false,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
   excludedDates: string[];
   value?: TimeRange[];
   onClose?: () => void;
-  schedule: AvailabilityFormValues;
+  schedule?: AvailabilityFormValues;
+  saveOnChange?: boolean; // This is needed because this component is used in two places (one without the individual schedule context)
 }) => {
   const searchParams = useCompatSearchParams();
   const scheduleId = searchParams?.get("schedule") ? Number(searchParams.get("schedule")) : -1;
@@ -148,8 +152,9 @@ const DateOverrideForm = ({
           ranges: [date],
         }));
 
-        if (scheduleId) {
-          const newSchedule = schedule as AvailabilityFormValues & { availability: Schedule };
+        // only save on db if we have a schedule id and saveOnChange is true
+        if (scheduleId && saveOnChange) {
+          const newSchedule = schedule as ScheduleWithAvailability;
 
           await updateMutation.mutateAsync(
             {
@@ -188,7 +193,6 @@ const DateOverrideForm = ({
         );
 
         setSelectedDates([]);
-        // onClose?.();
       }}
       className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
@@ -261,7 +265,8 @@ const DateOverrideInputDialog = ({
   Trigger: React.ReactNode;
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
-  schedule: AvailabilityFormValues;
+  schedule?: AvailabilityFormValues;
+  saveOnChange?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   return (

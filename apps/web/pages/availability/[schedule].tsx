@@ -77,6 +77,8 @@ const DateOverride = ({ workingHours, schedule }: DateOverrideProps) => {
               {t("add_an_override")}
             </Button>
           }
+          // we save the override on change so that the user can see the override instantly
+          saveOnChange
         />
       </div>
     </div>
