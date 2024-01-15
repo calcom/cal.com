@@ -20,12 +20,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
-    if (state?.onErrorReturnTo) {
+    if (state?.onErrorReturnTo || state?.returnTo) {
       res.redirect(
         getSafeRedirectUrl(state.onErrorReturnTo) ??
           getSafeRedirectUrl(state?.returnTo) ??
           `${CAL_URL}/apps/installed`
       );
+      return;
     }
     throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
   }

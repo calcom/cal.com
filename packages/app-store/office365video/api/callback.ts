@@ -19,12 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
-    if (state?.onErrorReturnTo) {
+    if (state?.onErrorReturnTo || state?.returnTo) {
       res.redirect(
         getSafeRedirectUrl(state.onErrorReturnTo) ??
           getSafeRedirectUrl(state?.returnTo) ??
           `${WEBAPP_URL}/apps/installed`
       );
+      return;
     }
     res.status(400).json({ message: "No code returned" });
     return;
