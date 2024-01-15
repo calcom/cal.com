@@ -1091,7 +1091,7 @@ describe("handleNewBooking", () => {
       );
 
       test(
-        `In Team Event type when location is Organizer Default App and User Metadata is {} (Empty Object).`,
+        `When event type location is Organizer Default App and user metadata is empty, default to Cal Video`,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const booker = getBooker({
