@@ -119,7 +119,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  * @returns An object that represents the WHERE clause for the findMany/findUnique operation.
  */
 function buildWhereClause(
-  userId: number,
+  userId: number | null,
   attendeeEmails: string[],
   userIds: number[] = [],
   userEmails: string[] = []
