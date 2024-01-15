@@ -5,6 +5,7 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
 import { useBookerStore } from "../../store";
@@ -33,7 +34,7 @@ export const useOverlayCalendar = () => {
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
   const switchEnabled =
     searchParams?.get("overlayCalendar") === "true" ||
-    localStorage.getItem("overlayCalendarSwitchDefault") === "true";
+    localStorage?.getItem("overlayCalendarSwitchDefault") === "true";
 
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
