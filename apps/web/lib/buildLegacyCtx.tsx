@@ -51,5 +51,3 @@ export const buildLegacyCtx = (
     }
   ) as unknown as GetServerSidePropsContext;
 };
-
-export type LegacyCtx = ReturnType<typeof buildLegacyCtx>;
