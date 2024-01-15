@@ -33,7 +33,7 @@ export function Header({
 }) {
   const { t, i18n } = useLocale();
   const session = useSession();
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
