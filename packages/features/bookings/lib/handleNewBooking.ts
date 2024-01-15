@@ -1325,7 +1325,7 @@ async function handler(
       organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
         organizerMetadata?.defaultConferencingApp?.appLink;
     } else {
-      locationBodyString = "";
+      locationBodyString = "integrations:daily";
     }
   }
 
