@@ -79,7 +79,7 @@ async function getBooking(prisma: PrismaClient, uid: string, isSeatedEvent?: boo
     return rawBooking;
   }
 
-  const booking = isSeatedEvent ? rawBooking : getBookingWithResponses(rawBooking);
+  const booking = getBookingWithResponses(rawBooking, isSeatedEvent);
 
   if (booking) {
     // @NOTE: had to do this because Server side cant return [Object objects]
@@ -99,11 +99,14 @@ export const getBookingWithResponses = <
     };
   }>
 >(
-  booking: T
+  booking: T,
+  isSeatedEvent?: boolean
 ) => {
   return {
     ...booking,
-    responses: bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
+    responses: isSeatedEvent
+      ? bookingResponsesDbSchema.parse(booking.responses)
+      : bookingResponsesDbSchema.parse(booking.responses || getResponsesFromOldBooking(booking)),
   } as Omit<T, "responses"> & { responses: z.infer<typeof bookingResponsesDbSchema> };
 };
 
@@ -140,7 +143,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
   // If no booking is found via the uid, it's probably a booking seat
   // that its being rescheduled, which we query next.
   let attendeeEmail: string | null = null;
-  let bookingSeatData: Prisma.JsonValue | null = null;
+  let bookingSeatData: { description?: string; responses: Prisma.JsonValue } | null = null;
   if (!theBooking) {
     const bookingSeat = await prisma.bookingSeat.findFirst({
       where: {
@@ -163,7 +166,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
       },
     });
     if (bookingSeat) {
-      bookingSeatData = bookingSeat.data;
+      bookingSeatData = bookingSeat.data as unknown as { description?: string; responses: Prisma.JsonValue };
       bookingSeatReferenceUid = bookingSeat.id;
       rescheduleUid = bookingSeat.booking.uid;
       attendeeEmail = bookingSeat.attendee.email;
@@ -193,7 +196,8 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
   if (!booking) return null;
 
   if (bookingSeatReferenceUid) {
-    booking["responses"] = bookingSeatData?.responses;
+    booking["description"] = bookingSeatData?.description ?? null;
+    booking["responses"] = bookingResponsesDbSchema.parse(bookingSeatData?.responses);
   }
   return {
     ...booking,
