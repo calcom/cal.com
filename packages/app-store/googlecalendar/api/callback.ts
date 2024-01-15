@@ -45,7 +45,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
   let key;
-  let invalid = false;
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
@@ -61,7 +60,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
             message: "You must grant all permissions to use this integration",
           });
         } else {
-          invalid = true;
+          res.redirect(
+            getSafeRedirectUrl(state.onErrorReturnTo) ??
+              getSafeRedirectUrl(state?.returnTo) ??
+              `${CAL_URL}/apps/installed`
+          );
+          return;
         }
       }
     }
@@ -72,7 +76,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         key,
         userId: req.session.user.id,
         appId: "google-calendar",
-        invalid,
       },
     });
 
