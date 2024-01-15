@@ -141,7 +141,7 @@ type WhiteListedBookingProps = {
   status: BookingStatus;
   attendees?: {
     email: string;
-    bookingSeat?: AttendeeBookingSeatInput;
+    bookingSeat?: AttendeeBookingSeatInput | null;
   }[];
   references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
