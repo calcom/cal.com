@@ -1287,6 +1287,7 @@
   "default_calendar_selected": "Default calendar",
   "hide_from_profile": "Hide from profile",
   "event_setup_tab_title": "Event Setup",
+  "availability_not_found_in_schedule_error":"No availability found in schedule",
   "event_limit_tab_title": "Limits",
   "event_limit_tab_description": "How often you can be booked",
   "event_advanced_tab_description": "Calendar settings & more...",
