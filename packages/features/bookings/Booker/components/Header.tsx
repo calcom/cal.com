@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -169,7 +168,7 @@ const LayoutToggle = ({
   layout: string;
   enabledLayouts?: BookerLayouts[];
 }) => {
-  const isEmbed = useIsEmbed();
+  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
 
   const { t } = useLocale();
 
