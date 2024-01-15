@@ -19,6 +19,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
@@ -887,6 +888,7 @@ export function getOrganizer({
   weekStart = "Sunday",
   teams,
   organizationId,
+  metadata,
 }: {
   name: string;
   email: string;
@@ -899,6 +901,7 @@ export function getOrganizer({
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: WeekDays;
   teams?: InputUser["teams"];
+  metadata?: userMetadataType;
 }) {
   return {
     ...TestData.users.example,
@@ -913,6 +916,7 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
+    metadata,
   };
 }
 

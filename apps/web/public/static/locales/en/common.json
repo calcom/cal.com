@@ -1307,6 +1307,7 @@
   "do_this": "Do this",
   "turn_off": "Turn off",
   "turn_on": "Turn on",
+  "cancelled_bookings_cannot_be_rescheduled":"Canceled bookings cannot be rescheduled",
   "settings_updated_successfully": "Settings updated successfully",
   "error_updating_settings": "Error updating settings",
   "personal_cal_url": "My personal {{appName}} URL",
@@ -2222,5 +2223,6 @@
   "add_a_redirect": "Add a redirect",
   "create_entry": "Create entry",
   "time_range": "Time range",
+  "redirect_to": "Redirect to",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
