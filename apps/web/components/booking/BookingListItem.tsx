@@ -147,6 +147,7 @@ function BookingListItem(booking: BookingItemProps) {
       ? [
           {
             id: "confirm",
+            bookingId: booking.id,
             label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
             onClick: () => {
               bookingConfirm(true);

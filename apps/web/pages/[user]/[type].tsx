@@ -90,6 +90,19 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const org = isValidOrgDomain ? currentOrgDomain : null;
+  if (!org) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernames,
+      redirectType: RedirectType.User,
+      eventTypeSlug: slug,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
 
   const users = await prisma.user.findMany({
     where: {
@@ -112,7 +125,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       notFound: true,
     } as const;
   }
-  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -167,10 +179,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   let outOfOffice = false;
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
-
   if (!isOrgContext) {
     const redirect = await getTemporaryOrgRedirect({
-      slug: usernames[0],
+      slugs: usernames,
       redirectType: RedirectType.User,
       eventTypeSlug: slug,
       currentQuery: context.query,
