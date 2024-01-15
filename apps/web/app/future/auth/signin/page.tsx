@@ -1,7 +1,12 @@
 import signin from "@pages/auth/signin";
-import { withAppDir } from "app/AppDirSSRHOC";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { WithLayout } from "app/layoutHOC";
+import type { InferGetServerSidePropsType } from "next";
 
 import { getServerSideProps } from "@server/lib/auth/signin/getServerSideProps";
 
-export default WithLayout({ getLayout: null, Page: signin, getData: withAppDir(getServerSideProps) })<"P">;
+export default WithLayout({
+  getLayout: null,
+  Page: signin,
+  getData: withAppDirSsr<InferGetServerSidePropsType<typeof getServerSideProps>>(getServerSideProps),
+})<"P">;
