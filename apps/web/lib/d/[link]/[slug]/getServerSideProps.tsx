@@ -48,10 +48,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const username = hashedLink?.eventType.users[0]?.username;
 
+  const notFound = {
+    notFound: true,
+  } as const;
+
   if (!hashedLink || !username) {
-    return {
-      notFound: true,
-    };
+    return notFound;
   }
 
   const user = await prisma.user.findFirst({
@@ -70,9 +72,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   });
 
   if (!user) {
-    return {
-      notFound: true,
-    };
+    return notFound;
   }
 
   let booking: GetBookingType | null = null;
@@ -87,9 +87,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const eventData = await ssr.viewer.public.event.fetch({ username, eventSlug: slug, isTeamEvent, org });
 
   if (!eventData) {
-    return {
-      notFound: true,
-    };
+    return notFound;
   }
 
   return {
