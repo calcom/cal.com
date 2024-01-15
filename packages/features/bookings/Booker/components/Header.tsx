@@ -3,6 +3,7 @@ import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -31,7 +32,7 @@ export function Header({
   renderOverlay?: () => JSX.Element | null;
 }) {
   const { t, i18n } = useLocale();
-
+  const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
@@ -65,7 +66,7 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="flex gap-2">
-        {isMyLink ? (
+        {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button
               color="primary"
@@ -165,7 +166,7 @@ const LayoutToggle = ({
   layout: string;
   enabledLayouts?: BookerLayouts[];
 }) => {
-  const isEmbed = typeof window !== "undefined" && window?.isEmbed?.();
+  const isEmbed = useIsEmbed();
 
   const { t } = useLocale();
 
