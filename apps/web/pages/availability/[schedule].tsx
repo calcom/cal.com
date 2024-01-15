@@ -235,7 +235,7 @@ export default function Availability() {
             <DialogTrigger asChild>
               <Button
                 StartIcon={Trash}
-                letiant="icon"
+                variant="icon"
                 color="destructive"
                 aria-label={t("delete")}
                 className="hidden sm:inline"
@@ -245,7 +245,7 @@ export default function Availability() {
             </DialogTrigger>
             <ConfirmationDialogContent
               isLoading={deleteMutation.isLoading}
-              letiety="danger"
+              variety="danger"
               title={t("delete_schedule")}
               confirmBtnText={t("delete")}
               loadingText={t("delete")}
@@ -274,7 +274,7 @@ export default function Availability() {
                   <DialogTrigger asChild>
                     <Button
                       StartIcon={Trash}
-                      letiant="icon"
+                      variant="icon"
                       color="destructive"
                       aria-label={t("delete")}
                       className="ml-16 inline"
@@ -284,7 +284,7 @@ export default function Availability() {
                   </DialogTrigger>
                   <ConfirmationDialogContent
                     isLoading={deleteMutation.isLoading}
-                    letiety="danger"
+                    variety="danger"
                     title={t("delete_schedule")}
                     confirmBtnText={t("delete")}
                     loadingText={t("delete")}
@@ -374,7 +374,7 @@ export default function Availability() {
           <Button
             className="ml-3 sm:hidden"
             StartIcon={MoreVertical}
-            letiant="icon"
+            variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}
           />
