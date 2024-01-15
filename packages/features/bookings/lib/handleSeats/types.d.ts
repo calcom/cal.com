@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-import type { Booking } from "../handleNewBooking";
+import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 
