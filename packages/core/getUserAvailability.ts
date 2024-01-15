@@ -275,7 +275,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
   if (!schedule.availability) {
-    throw new HttpError({ statusCode: 400, message: ErrorCode.UserAvailabilityNotFound });
+    throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
   const availability = (
