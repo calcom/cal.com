@@ -9,9 +9,9 @@ import TeamTypePage from "../../../team/[slug]/[type]";
 
 export { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 
-type Props = UserTypePageProps | TeamTypePageProps;
+export type PageProps = UserTypePageProps | TeamTypePageProps;
 
-export default function Page(props: Props) {
+export default function Page(props: PageProps) {
   if ((props as TeamTypePageProps)?.teamId) return <TeamTypePage {...(props as TeamTypePageProps)} />;
   return <UserTypePage {...(props as UserTypePageProps)} />;
 }
