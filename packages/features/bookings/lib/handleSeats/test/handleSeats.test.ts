@@ -3,6 +3,7 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, test, vi, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
   getBooker,
@@ -611,7 +612,7 @@ describe("handleSeats", () => {
           body: mockBookingData,
         });
 
-        await expect(() => handleNewBooking(req)).rejects.toThrowError("Already signed up for this booking.");
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.AlreadySignedUpForBooking);
       });
 
       test("If event is already full, fail", async () => {
@@ -733,7 +734,7 @@ describe("handleSeats", () => {
           body: mockBookingData,
         });
 
-        await expect(() => handleNewBooking(req)).rejects.toThrowError("Booking seats are full");
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.BookingSeatsFull);
       });
     });
 
@@ -923,11 +924,11 @@ describe("handleSeats", () => {
             bookingId: secondBookingId,
           },
           select: {
-            id: true,
+            email: true,
           },
         });
 
-        expect(newBookingAttendees).toContainEqual({ id: attendeeToReschedule.id });
+        expect(newBookingAttendees).toContainEqual({ email: attendeeToReschedule.email });
         expect(newBookingAttendees).toHaveLength(2);
 
         // Ensure that the attendeeSeat is also updated to the new booking
@@ -1429,8 +1430,8 @@ describe("handleSeats", () => {
         const secondBookingUid = "def456";
         const secondBookingId = 2;
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-        const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingStartTime = `${plus2DateString}T04:00:00.000Z`;
+        const secondBookingEndTime = `${plus2DateString}T05:15:00.000Z`;
 
         await createBookingScenario(
           getScenarioData({
@@ -1583,8 +1584,8 @@ describe("handleSeats", () => {
         const rescheduledBooking = await handleNewBooking(req);
 
         // Ensure that the booking has been moved
-        expect(rescheduledBooking?.startTime).toEqual(secondBookingStartTime);
-        expect(rescheduledBooking?.endTime).toEqual(secondBookingEndTime);
+        expect(rescheduledBooking?.startTime).toEqual(new Date(secondBookingStartTime));
+        expect(rescheduledBooking?.endTime).toEqual(new Date(secondBookingEndTime));
 
         // Ensure that the attendees are still a part of the event
         const attendees = await prismaMock.attendee.findMany({
@@ -1791,9 +1792,7 @@ describe("handleSeats", () => {
         req.userId = organizer.id;
 
         // const rescheduledBooking = await handleNewBooking(req);
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(
-          "Booking does not have enough available seats"
-        );
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
       });
     });
   });

@@ -305,10 +305,9 @@ async function addBookingsToDb(
   // Make sure that we store the date in Date object always. This is to ensure consistency which Prisma does but not prismock
   log.silly("Handling Prismock bug-3");
   const fixedBookings = bookings.map((booking) => {
-    // const startTime = getDateObj(booking.startTime);
-    // const endTime = getDateObj(booking.endTime);
-    // return { ...booking, startTime, endTime };
-    return { ...booking };
+    const startTime = getDateObj(booking.startTime);
+    const endTime = getDateObj(booking.endTime);
+    return { ...booking, startTime, endTime };
   });
 
   await prismock.booking.createMany({

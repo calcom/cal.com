@@ -32,7 +32,7 @@ const rescheduleSeatedBooking = async (
   // See if the new date has a booking already
   const newTimeSlotBooking = await prisma.booking.findFirst({
     where: {
-      startTime: evt.startTime,
+      startTime: dayjs(evt.startTime).toDate(),
       eventTypeId: eventType.id,
       status: BookingStatus.ACCEPTED,
     },
