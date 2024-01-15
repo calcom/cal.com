@@ -11,4 +11,5 @@ export enum ErrorCode {
   MissingPaymentCredential = "missing_payment_credential_error",
   MissingPaymentAppId = "missing_payment_app_id_error",
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
+  CancelledBookingsCannotBeRescheduled = "cancelled_bookings_cannot_be_rescheduled",
 }
