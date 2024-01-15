@@ -69,7 +69,12 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, userId, isAdmin } = req;
   const { id } = schemaQueryIdAsString.parse(query);
-  const { eventTypeId, userId: bodyUserId, ...data } = schemaWebhookEditBodyParams.parse(req.body);
+  const {
+    eventTypeId,
+    userId: bodyUserId,
+    eventTriggers,
+    ...data
+  } = schemaWebhookEditBodyParams.parse(req.body);
   const args: Prisma.WebhookUpdateArgs = { where: { id }, data };
 
   if (eventTypeId) {
@@ -88,7 +93,8 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   if (args.data.eventTriggers) {
-    args.data.eventTriggers = [...new Set(args.data.eventTriggers)];
+    const eventTriggersSet = new Set(eventTriggers);
+    args.data.eventTriggers = Array.from(eventTriggersSet);
   }
 
   const result = await prisma.webhook.update(args);

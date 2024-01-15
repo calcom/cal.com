@@ -1,23 +1,31 @@
 import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
-import { useForm, useFormState } from "react-hook-form";
+import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Button, Meta, showToast, Select, SkeletonText, UpgradeTeamsBadge, Switch } from "@calcom/ui";
+import {
+  Button,
+  Meta,
+  showToast,
+  Select,
+  SkeletonText,
+  UpgradeTeamsBadge,
+  Switch,
+  DateRangePicker,
+} from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
-import { OutOfOfficeDateRangePicker } from "@components/out-of-office/DateRangePicker";
 
 export type BookingRedirectForm = {
-  startDate: string;
-  endDate: string;
+  dateRange: { startDate: Date; endDate: Date };
   toTeamUserId: number | null;
 };
 
@@ -25,18 +33,20 @@ const OutOfOfficeSection = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null, null | null]>([
-    dayjs().startOf("d").toDate(),
-    dayjs().add(1, "d").endOf("d").toDate(),
-    null,
-  ]);
   const [profileRedirect, setProfileRedirect] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
-  const { handleSubmit, setValue } = useForm<BookingRedirectForm>({
+  const [dateRange] = useState<{ startDate: Date; endDate: Date }>({
+    startDate: dayjs().startOf("d").toDate(),
+    endDate: dayjs().add(1, "d").endOf("d").toDate(),
+  });
+
+  const { handleSubmit, setValue, getValues, control } = useForm<BookingRedirectForm>({
     defaultValues: {
-      startDate: dateRange[0]?.toISOString(),
-      endDate: dateRange[1]?.toISOString(),
+      dateRange: {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      },
       toTeamUserId: null,
     },
   });
@@ -74,75 +84,81 @@ const OutOfOfficeSection = () => {
           setValue("toTeamUserId", null);
           setSelectedMember(null);
         })}>
-        <div className="border-subtle flex flex-col rounded-b-lg border border-t-0 p-6 px-6 py-8 text-sm">
+        <div className="border-subtle flex flex-col border border-b-0 border-t-0 p-6 px-6 py-8 text-sm">
           {/* Add startDate and end date inputs */}
-          <div className="border-subtle mt-2 rounded-lg border bg-gray-50 p-6 dark:bg-transparent">
-            {/* Add toggle to enable/disable redirect */}
-            <div className="flex flex-row">
-              <Switch
-                disabled={!hasTeamPlan}
-                data-testid="profile-redirect-switch"
-                checked={profileRedirect}
-                id="profile-redirect-switch"
-                onCheckedChange={(state) => {
-                  setProfileRedirect(state);
-                }}
-                label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
-              />
-              {!hasTeamPlan && (
-                <div className="mx-2" data-testid="upgrade-team-badge">
-                  <UpgradeTeamsBadge />
-                </div>
-              )}
-            </div>
-            <div className="mt-4 flex flex-row">
-              {profileRedirect && (
-                <div className="mr-2 w-1/2 lg:w-1/3">
-                  <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
-                  <Select
-                    className="mt-1 h-4 max-w-[350px] text-white"
-                    name="toTeamUsername"
-                    data-testid="team_username_select"
-                    value={selectedMember}
-                    placeholder={t("select_team_member")}
-                    isSearchable
-                    innerClassNames={{
-                      control: "h-[38px]",
-                    }}
-                    options={memberListOptions}
-                    onChange={(selectedOption) => {
-                      if (selectedOption?.value) {
-                        setSelectedMember(selectedOption);
-                        setValue("toTeamUserId", selectedOption?.value);
-                      }
-                    }}
-                  />
-                </div>
-              )}
-              <div className="w-1/2 lg:w-1/3">
-                <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
-
-                <OutOfOfficeDateRangePicker
-                  dateRange={dateRange}
-                  setValue={setValue}
-                  setDateRange={setDateRange}
+          {/* Add toggle to enable/disable redirect */}
+          <div className="flex flex-row">
+            <Switch
+              disabled={!hasTeamPlan}
+              data-testid="profile-redirect-switch"
+              checked={profileRedirect}
+              id="profile-redirect-switch"
+              onCheckedChange={(state) => {
+                setProfileRedirect(state);
+              }}
+              label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
+            />
+            {!hasTeamPlan && (
+              <div className="mx-2" data-testid="upgrade-team-badge">
+                <UpgradeTeamsBadge />
+              </div>
+            )}
+          </div>
+          <div className="mt-4 flex flex-row">
+            {profileRedirect && (
+              <div className="mr-2 w-1/2 lg:w-1/3">
+                <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+                <Select
+                  className="mt-1 h-4 max-w-[350px] text-white"
+                  name="toTeamUsername"
+                  data-testid="team_username_select"
+                  value={selectedMember}
+                  placeholder={t("select_team_member")}
+                  isSearchable
+                  innerClassNames={{
+                    control: "h-[38px]",
+                  }}
+                  options={memberListOptions}
+                  onChange={(selectedOption) => {
+                    if (selectedOption?.value) {
+                      setSelectedMember(selectedOption);
+                      setValue("toTeamUserId", selectedOption?.value);
+                    }
+                  }}
                 />
               </div>
-            </div>
-
-            <div className="mt-7">
-              <Button
-                color="primary"
-                type="submit"
-                disabled={createOutOfOfficeEntry.isLoading}
-                data-testid="create-entry-ooo-redirect">
-                {t("create_entry")}
-              </Button>
+            )}
+            <div className="w-1/2 lg:w-1/3">
+              <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
+              <Controller
+                name="dateRange"
+                control={control}
+                defaultValue={dateRange}
+                render={() => (
+                  <DateRangePicker
+                    startDate={getValues("dateRange").startDate}
+                    endDate={getValues("dateRange").endDate}
+                    onDatesChange={({ startDate, endDate }) => {
+                      setValue("dateRange", {
+                        startDate,
+                        endDate,
+                      });
+                    }}
+                  />
+                )}
+              />
             </div>
           </div>
-
-          <OutOfOfficeEntriesList />
         </div>
+        <SectionBottomActions className="mb-6" align="end">
+          <Button
+            color="primary"
+            type="submit"
+            disabled={createOutOfOfficeEntry.isLoading}
+            data-testid="create-entry-ooo-redirect">
+            {t("create_entry")}
+          </Button>
+        </SectionBottomActions>
       </form>
     </>
   );
@@ -166,10 +182,10 @@ const OutOfOfficeEntriesList = () => {
   return (
     <div className="border-subtle mt-6 rounded-lg border">
       <TableNew className="border-0">
-        <TableHeader>
+        <TableHeader className="md:z-1">
           <TableRow>
             <TableHead className="rounded-tl-lg font-normal capitalize">{t("time_range")}</TableHead>
-            <TableHead className="font-normal">{t("username")}</TableHead>
+            <TableHead className="font-normal">{t("redirect_to")}</TableHead>
 
             <TableHead className="rounded-tr-lg font-normal">{t("action")}</TableHead>
           </TableRow>
@@ -230,6 +246,7 @@ const OutOfOfficePage = () => {
       <Meta title={t("out_of_office")} description={t("out_of_office_description")} borderInShellHeader />
       <ShellMain>
         <OutOfOfficeSection />
+        <OutOfOfficeEntriesList />
       </ShellMain>
     </>
   );

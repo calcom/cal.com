@@ -18,6 +18,7 @@ import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/or
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -317,7 +318,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
   let outOfOffice = false;
-
+  const isDynamicGroup = usernameList.length > 1;
   if (usernameList.length === 1) {
     const result = await handleUserRedirection({ username: usernameList[0] });
     if (result && result.outOfOffice) {
@@ -325,6 +326,19 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
     if (result && result.redirect?.destination) {
       return result;
+    }
+  }
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
     }
   }
 
@@ -361,21 +375,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     },
   });
 
-  const isDynamicGroup = usersWithoutAvatar.length > 1;
-  if (isDynamicGroup) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: `/${usernameList.join("+")}/dynamic`,
-      },
-    } as {
-      redirect: {
-        permanent: false;
-        destination: string;
-      };
-    };
-  }
-
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
     organization: {
@@ -385,17 +384,20 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     avatar: `/${user.username}/avatar.png`,
   }));
 
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slug: usernameList[0],
-      redirectType: RedirectType.User,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return redirect;
-    }
+  if (isDynamicGroup) {
+    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    logger.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
+    return {
+      redirect: {
+        permanent: false,
+        destination: destinationUrl,
+      },
+    } as {
+      redirect: {
+        permanent: false;
+        destination: string;
+      };
+    };
   }
 
   if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
@@ -412,9 +414,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     name: user.name || user.username || "",
     image: user.avatar,
     theme: user.theme,
-    brandColor: user.brandColor,
+    brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor: user.darkBrandColor,
+    darkBrandColor: user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: {

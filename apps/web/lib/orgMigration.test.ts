@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 import type { z } from "zod";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { MembershipRole, Prisma } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -1096,6 +1098,142 @@ describe("orgMigration", () => {
         orgSlug: data.targetOrg.slug,
       });
     });
+
+    it(`should remove a team from an organization with it's members`, async () => {
+      const data = {
+        teamToUnmigrate: {
+          name: "Team 1",
+          slug: "team1",
+          members: [
+            {
+              username: "user1-example",
+              email: "user1@example.com",
+              usernameBeforeMovingToOrg: "user1",
+            },
+          ],
+        },
+        targetOrg: {
+          name: "Org 1",
+          slug: "org1",
+        },
+      };
+
+      const targetOrg = await prismock.team.create({
+        data: {
+          slug: data.targetOrg.slug,
+          name: data.targetOrg.name,
+          metadata: {
+            isOrganization: true,
+          },
+        },
+      });
+
+      const { id: teamToUnMigrateId } = await prismock.team.create({
+        data: {
+          slug: data.teamToUnmigrate.slug,
+          name: data.teamToUnmigrate.name,
+          parent: {
+            connect: {
+              id: targetOrg.id,
+            },
+          },
+        },
+      });
+
+      const teamToUnmigrate = await prismock.team.findUnique({
+        where: {
+          id: teamToUnMigrateId,
+        },
+        include: {
+          parent: true,
+        },
+      });
+
+      if (!teamToUnmigrate?.parent || !teamToUnmigrate.parentId) {
+        throw new Error(`Couldn't setup team to unmigrate properly ID:${teamToUnMigrateId}`);
+      }
+
+      const member1OfTeam = await createUserInsideTheOrg(
+        {
+          email: data.teamToUnmigrate.members[0].email,
+          username: data.teamToUnmigrate.members[0].username,
+          metadata: {
+            migratedToOrgFrom: {
+              username: data.teamToUnmigrate.members[0].usernameBeforeMovingToOrg,
+            },
+          },
+        },
+        targetOrg.id
+      );
+
+      addMemberShipOfUserWithOrg({
+        userId: member1OfTeam.id,
+        teamId: targetOrg.id,
+        role: "MEMBER",
+        accepted: true,
+      });
+
+      addMemberShipOfUserWithTeam({
+        teamId: teamToUnmigrate.id,
+        userId: member1OfTeam.id,
+        role: "MEMBER",
+        accepted: true,
+      });
+
+      expectUserToBeAPartOfOrg({
+        userId: member1OfTeam.id,
+        orgId: targetOrg.id,
+        usernameInOrg: data.teamToUnmigrate.members[0].username,
+        expectedMembership: {
+          role: "MEMBER",
+          accepted: true,
+        },
+      });
+
+      expectUserToBeAPartOfTeam({
+        userId: member1OfTeam.id,
+        teamId: teamToUnmigrate.id,
+        expectedMembership: {
+          role: "MEMBER",
+          accepted: true,
+        },
+      });
+
+      await removeTeamFromOrg({
+        teamId: teamToUnMigrateId,
+        targetOrgId: targetOrg.id,
+      });
+
+      await expectTeamToBeNotPartOfAnyOrganization({
+        teamId: teamToUnMigrateId,
+      });
+
+      expectTeamRedirectToBeNotEnabled({
+        from: {
+          teamSlug: data.teamToUnmigrate.slug,
+        },
+        to: data.teamToUnmigrate.slug,
+        orgSlug: data.targetOrg.slug,
+      });
+
+      expectUserRedirectToBeNotEnabled({
+        from: {
+          username: data.teamToUnmigrate.members[0].usernameBeforeMovingToOrg,
+        },
+      });
+
+      expectUserToBeNotAPartOfTheOrg({
+        userId: member1OfTeam.id,
+        orgId: targetOrg.id,
+        username: data.teamToUnmigrate.members[0].usernameBeforeMovingToOrg,
+      });
+
+      expectUserToBeNotAPartOfTheTeam({
+        userId: member1OfTeam.id,
+        teamId: targetOrg.id,
+        username: data.teamToUnmigrate.members[0].usernameBeforeMovingToOrg,
+      });
+    });
   });
 });
 
@@ -1185,6 +1323,22 @@ async function expectUserToBeNotAPartOfTheOrg({
   orgId: number;
   username: string;
 }) {
+  expectUserToBeNotAPartOfTheTeam({
+    userId,
+    teamId: orgId,
+    username,
+  });
+}
+
+async function expectUserToBeNotAPartOfTheTeam({
+  userId,
+  teamId,
+  username,
+}: {
+  userId: number;
+  teamId: number;
+  username: string;
+}) {
   const user = await prismock.user.findUnique({
     where: {
       id: userId,
@@ -1201,7 +1355,7 @@ async function expectUserToBeNotAPartOfTheOrg({
   expect(user.organizationId).toBe(null);
 
   const membership = user.teams.find(
-    (membership) => membership.teamId === orgId && membership.userId === userId
+    (membership) => membership.teamId === teamId && membership.userId === userId
   );
 
   expect(membership).toBeUndefined();
@@ -1456,6 +1610,13 @@ async function createUserInsideTheOrg(
   if (!org) {
     throw new Error(`Org with id ${orgId} does not exist`);
   }
+  logger.debug(
+    `Creating user inside org`,
+    safeStringify({
+      orgId,
+      data,
+    })
+  );
   return await prismock.user.create({
     data: {
       ...data,
