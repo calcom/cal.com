@@ -6,6 +6,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
+import type { TFunction } from "next-i18next";
 import short, { uuid } from "short-uuid";
 import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
@@ -98,6 +99,7 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import getBookingDataSchema from "./getBookingDataSchema";
+import type { BookingSeat } from "./handleSeats";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -105,7 +107,7 @@ const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-type Booking = Prisma.PromiseReturnType<typeof createBooking>;
+export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
   | Awaited<ReturnType<typeof getDefaultEvent>>
   | Awaited<ReturnType<typeof getEventTypesFromDB>>;
@@ -113,8 +115,36 @@ export type NewBookingEventType =
 // Work with Typescript to require reqBody.end
 type ReqBodyWithoutEnd = z.infer<ReturnType<typeof getBookingDataSchema>>;
 type ReqBodyWithEnd = ReqBodyWithoutEnd & { end: string };
+export type Invitee = {
+  email: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  timeZone: string;
+  language: {
+    translate: TFunction;
+    locale: string;
+  };
+}[];
+export type OrganizerUser = Awaited<ReturnType<typeof loadUsers>>[number] & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+};
+export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
 
-interface IEventTypePaymentCredentialType {
+type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
+export type RescheduleReason = AwaitedBookingData["rescheduleReason"];
+export type NoEmail = AwaitedBookingData["noEmail"];
+export type AdditionalNotes = AwaitedBookingData["notes"];
+export type ReqAppsStatus = AwaitedBookingData["appsStatus"];
+export type SmsReminderNumber = AwaitedBookingData["smsReminderNumber"];
+export type EventTypeId = AwaitedBookingData["eventTypeId"];
+export type ReqBodyMetadata = ReqBodyWithEnd["metadata"];
+
+export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
+export type PaymentAppData = ReturnType<typeof getPaymentAppData>;
+
+export interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;
   app: {
     categories: App["categories"];
@@ -148,7 +178,9 @@ async function refreshCredential(credential: CredentialPayload): Promise<Credent
  *
  * @param credentials
  */
-async function refreshCredentials(credentials: Array<CredentialPayload>): Promise<Array<CredentialPayload>> {
+export async function refreshCredentials(
+  credentials: Array<CredentialPayload>
+): Promise<Array<CredentialPayload>> {
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
@@ -156,7 +188,7 @@ async function refreshCredentials(credentials: Array<CredentialPayload>): Promis
  * Gets credentials from the user, team, and org if applicable
  *
  */
-const getAllCredentials = async (
+export const getAllCredentials = async (
   user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
@@ -634,18 +666,18 @@ async function createBooking({
   paymentAppData,
   changedOrganizer,
 }: {
-  originalRescheduledBooking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
+  originalRescheduledBooking: OriginalRescheduledBooking;
   evt: CalendarEvent;
   eventType: NewBookingEventType;
-  eventTypeId: Awaited<ReturnType<typeof getBookingData>>["eventTypeId"];
-  eventTypeSlug: Awaited<ReturnType<typeof getBookingData>>["eventTypeSlug"];
+  eventTypeId: EventTypeId;
+  eventTypeSlug: AwaitedBookingData["eventTypeSlug"];
   reqBodyUser: ReqBodyWithEnd["user"];
   reqBodyMetadata: ReqBodyWithEnd["metadata"];
   reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
   uid: short.SUUID;
   responses: ReqBodyWithEnd["responses"] | null;
-  isConfirmedByDefault: ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
-  smsReminderNumber: Awaited<ReturnType<typeof getBookingData>>["smsReminderNumber"];
+  isConfirmedByDefault: IsConfirmedByDefault;
+  smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
   organizerUser: Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
@@ -822,6 +854,76 @@ export function getCustomInputsResponses(
   return customInputsResponses;
 }
 
+/** Updates the evt object with video call data found from booking references
+ *
+ * @param bookingReferences
+ * @param evt
+ *
+ * @returns updated evt with video call data
+ */
+export const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
+  const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
+
+  if (videoCallReference) {
+    evt.videoCallData = {
+      type: videoCallReference.type,
+      id: videoCallReference.meetingId,
+      password: videoCallReference?.meetingPassword,
+      url: videoCallReference.meetingUrl,
+    };
+  }
+
+  return evt;
+};
+
+export const createLoggerWithEventDetails = (
+  eventTypeId: number,
+  reqBodyUser: string | string[] | undefined,
+  eventTypeSlug: string | undefined
+) => {
+  return logger.getSubLogger({
+    prefix: ["book:user", `${eventTypeId}:${reqBodyUser}/${eventTypeSlug}`],
+  });
+};
+
+export function handleAppsStatus(
+  results: EventResult<AdditionalInformation>[],
+  booking: (Booking & { appsStatus?: AppsStatus[] }) | null,
+  reqAppsStatus: ReqAppsStatus
+) {
+  // Taking care of apps status
+  let resultStatus: AppsStatus[] = results.map((app) => ({
+    appName: app.appName,
+    type: app.type,
+    success: app.success ? 1 : 0,
+    failures: !app.success ? 1 : 0,
+    errors: app.calError ? [app.calError] : [],
+    warnings: app.calWarnings,
+  }));
+
+  if (reqAppsStatus === undefined) {
+    if (booking !== null) {
+      booking.appsStatus = resultStatus;
+    }
+    return resultStatus;
+  }
+  // From down here we can assume reqAppsStatus is not undefined anymore
+  // Other status exist, so this is the last booking of a series,
+  // proceeding to prepare the info for the event
+  const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
+    if (prev[curr.type]) {
+      prev[curr.type].success += curr.success;
+      prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
+      prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
+    } else {
+      prev[curr.type] = curr;
+    }
+    return prev;
+  }, {} as { [key: string]: AppsStatus });
+  resultStatus = Object.values(calcAppsStatus);
+  return resultStatus;
+}
+
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
   if (!originalRescheduledBooking) {
@@ -836,6 +938,52 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
 }
+
+export const findBookingQuery = async (bookingId: number) => {
+  const foundBooking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: {
+      uid: true,
+      location: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      description: true,
+      status: true,
+      responses: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+          username: true,
+        },
+      },
+      eventType: {
+        select: {
+          title: true,
+          description: true,
+          currency: true,
+          length: true,
+          lockTimeZoneToggleOnBookingPage: true,
+          requiresConfirmation: true,
+          requiresBookerEmailVerification: true,
+          price: true,
+        },
+      },
+    },
+  });
+
+  // This should never happen but it's just typescript safe
+  if (!foundBooking) {
+    throw new Error("Internal Error. Couldn't find booking");
+  }
+
+  // Don't leak any sensitive data
+  return foundBooking;
+};
 
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
@@ -884,9 +1032,7 @@ async function handler(
     eventType,
   });
 
-  const loggerWithEventDetails = logger.getSubLogger({
-    prefix: ["book:user", `${eventTypeId}:${reqBody.user}/${eventTypeSlug}`],
-  });
+  const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
@@ -1052,7 +1198,7 @@ async function handler(
   }
 
   let rescheduleUid = reqBody.rescheduleUid;
-  let bookingSeat: Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null = null;
+  let bookingSeat: BookingSeat = null;
 
   let originalRescheduledBooking: BookingType = null;
 
@@ -1176,7 +1322,7 @@ async function handler(
     }
   }
 
-  const invitee = [
+  const invitee: Invitee = [
     {
       email: bookerEmail,
       name: fullName,
@@ -1201,7 +1347,7 @@ async function handler(
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
-  }, [] as typeof invitee);
+  }, [] as Invitee);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
@@ -1313,20 +1459,6 @@ async function handler(
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
     evt.destinationCalendar?.push(...teamDestinationCalendars);
   }
-
-  /* Used for seats bookings to update evt object with video data */
-  const addVideoCallDataToEvt = (bookingReferences: BookingReference[]) => {
-    const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
-
-    if (videoCallReference) {
-      evt.videoCallData = {
-        type: videoCallReference.type,
-        id: videoCallReference.meetingId,
-        password: videoCallReference?.meetingPassword,
-        url: videoCallReference.meetingUrl,
-      };
-    }
-  };
 
   /* Check if the original booking has no more attendees, if so delete the booking
   and any calendar or video integrations */
@@ -1574,7 +1706,7 @@ async function handler(
             },
           });
 
-          addVideoCallDataToEvt(newBooking.references);
+          evt = addVideoCallDataToEvt(newBooking.references, evt);
 
           const copyEvent = cloneDeep(evt);
 
@@ -1611,7 +1743,7 @@ async function handler(
                 metadata.hangoutLink = updatedEvent.hangoutLink;
                 metadata.conferenceData = updatedEvent.conferenceData;
                 metadata.entryPoints = updatedEvent.entryPoints;
-                evt.appsStatus = handleAppsStatus(results, newBooking);
+                evt.appsStatus = handleAppsStatus(results, newBooking, reqAppsStatus);
               }
             }
           }
@@ -1719,7 +1851,7 @@ async function handler(
 
           evt.attendees = updatedBookingAttendees;
 
-          addVideoCallDataToEvt(updatedNewBooking.references);
+          evt = addVideoCallDataToEvt(updatedNewBooking.references, evt);
 
           const copyEvent = cloneDeep(evt);
 
@@ -2167,43 +2299,6 @@ async function handler(
   const credentials = await refreshCredentials(allCredentials);
   const eventManager = new EventManager({ ...organizerUser, credentials });
 
-  function handleAppsStatus(
-    results: EventResult<AdditionalInformation>[],
-    booking: (Booking & { appsStatus?: AppsStatus[] }) | null
-  ) {
-    // Taking care of apps status
-    let resultStatus: AppsStatus[] = results.map((app) => ({
-      appName: app.appName,
-      type: app.type,
-      success: app.success ? 1 : 0,
-      failures: !app.success ? 1 : 0,
-      errors: app.calError ? [app.calError] : [],
-      warnings: app.calWarnings,
-    }));
-
-    if (reqAppsStatus === undefined) {
-      if (booking !== null) {
-        booking.appsStatus = resultStatus;
-      }
-      return resultStatus;
-    }
-    // From down here we can assume reqAppsStatus is not undefined anymore
-    // Other status exist, so this is the last booking of a series,
-    // proceeding to prepare the info for the event
-    const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
-      if (prev[curr.type]) {
-        prev[curr.type].success += curr.success;
-        prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
-        prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
-      } else {
-        prev[curr.type] = curr;
-      }
-      return prev;
-    }, {} as { [key: string]: AppsStatus });
-    resultStatus = Object.values(calcAppsStatus);
-    return resultStatus;
-  }
-
   let videoCallUrl;
 
   //this is the actual rescheduling logic
@@ -2219,7 +2314,7 @@ async function handler(
       );
     }
 
-    addVideoCallDataToEvt(originalRescheduledBooking.references);
+    addVideoCallDataToEvt(originalRescheduledBooking.references, evt);
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
@@ -2346,7 +2441,7 @@ async function handler(
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking);
+        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
           results[0].createdEvent?.url ||
@@ -2361,7 +2456,7 @@ async function handler(
         : calendarResult?.updatedEvent?.iCalUID || undefined;
     }
 
-    evt.appsStatus = handleAppsStatus(results, booking);
+    evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
     // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
     if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
@@ -2516,7 +2611,7 @@ async function handler(
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking);
+        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
 
@@ -2911,49 +3006,3 @@ function handleCustomInputs(
     }
   });
 }
-
-const findBookingQuery = async (bookingId: number) => {
-  const foundBooking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    select: {
-      uid: true,
-      location: true,
-      startTime: true,
-      endTime: true,
-      title: true,
-      description: true,
-      status: true,
-      responses: true,
-      user: {
-        select: {
-          name: true,
-          email: true,
-          timeZone: true,
-          username: true,
-        },
-      },
-      eventType: {
-        select: {
-          title: true,
-          description: true,
-          currency: true,
-          length: true,
-          lockTimeZoneToggleOnBookingPage: true,
-          requiresConfirmation: true,
-          requiresBookerEmailVerification: true,
-          price: true,
-        },
-      },
-    },
-  });
-
-  // This should never happen but it's just typescript safe
-  if (!foundBooking) {
-    throw new Error("Internal Error. Couldn't find booking");
-  }
-
-  // Don't leak any sensitive data
-  return foundBooking;
-};
