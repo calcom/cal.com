@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -180,8 +182,8 @@ const OrgAppearanceView = ({
             }}>
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
-              brandColor={currentOrg?.brandColor}
-              darkBrandColor={currentOrg?.darkBrandColor}
+              brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+              darkBrandColor={currentOrg?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
             />
           </Form>
 
