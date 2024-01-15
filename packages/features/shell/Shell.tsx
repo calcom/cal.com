@@ -892,14 +892,14 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="mt-3 w-full px-1.5">
-                <div className="flex items-center gap-2 font-medium">
+              <Link href="/settings/organizations/profile" className="h-full w-full px-1.5">
+                <div className="flex h-full items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
                     imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
                     size="xsm"
                   />
-                  <p className="text line-clamp-1 text-sm">
+                  <p className="text mt-1 line-clamp-1 text-sm">
                     <span>{orgBranding.name}</span>
                   </p>
                 </div>
