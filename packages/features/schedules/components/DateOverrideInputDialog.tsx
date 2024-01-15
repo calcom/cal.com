@@ -156,7 +156,11 @@ const DateOverrideForm = ({
               scheduleId,
               ...newSchedule,
               schedule: newSchedule.availability,
-              dateOverrides: dates.flatMap((date) => date.ranges),
+              // merge the date overrides with the existing ones
+              dateOverrides: [
+                ...newSchedule.dateOverrides.flatMap((date) => date.ranges),
+                ...dates.flatMap((date) => date.ranges),
+              ],
             },
             {
               onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {

@@ -2,7 +2,7 @@ import type { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import type { AvailabilityFormValues, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button, DialogTrigger, Tooltip } from "@calcom/ui";
 import { Edit2, Trash2 } from "@calcom/ui/components/icon";
 
@@ -26,6 +26,7 @@ const DateOverrideList = ({
   replace,
   workingHours,
   excludedDates = [],
+  schedule,
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,6 +34,7 @@ const DateOverrideList = ({
   items: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
   excludedDates?: string[];
+  schedule: AvailabilityFormValues;
 }) => {
   const { t, i18n } = useLocale();
   const { hour12 } = useSettings();
@@ -87,6 +89,7 @@ const DateOverrideList = ({
                 replace([...items.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
                 delete unsortedFieldArrayMap[item.id];
               }}
+              schedule={schedule}
               Trigger={
                 <DialogTrigger asChild>
                   <Button

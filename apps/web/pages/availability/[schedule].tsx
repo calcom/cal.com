@@ -65,6 +65,7 @@ const DateOverride = ({ workingHours, schedule }: DateOverrideProps) => {
           replace={replace}
           items={fields}
           workingHours={workingHours}
+          schedule={schedule}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
