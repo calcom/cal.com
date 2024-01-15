@@ -114,6 +114,7 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
             absolute: false,
           })
         );
+        return;
       }
 
       if (!uid) {
