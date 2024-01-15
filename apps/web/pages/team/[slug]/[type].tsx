@@ -81,7 +81,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!isOrgContext) {
     const redirect = await getTemporaryOrgRedirect({
-      slug: teamSlug,
+      slugs: teamSlug,
       redirectType: RedirectType.Team,
       eventTypeSlug: meetingSlug,
       currentQuery: context.query,
