@@ -260,10 +260,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
 
-  if (!useHostSchedulesForTeamEvent && eventType?.schedule && !userSchedule?.availability) {
-    throw new HttpError({ statusCode: 400, message: ErrorCode.UserDefaultAvailabilityNotFound });
-  }
-
   log.debug(
     "Using schedule:",
     safeStringify({
@@ -277,6 +273,10 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const startGetWorkingHours = performance.now();
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
+
+  if (!schedule.availability) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.UserAvailabilityNotFound });
+  }
 
   const availability = (
     schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)

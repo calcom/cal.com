@@ -6,5 +6,5 @@ export enum ErrorCode {
   AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
   HostsUnavailableForBooking = "hosts_unavailable_for_booking",
   EventTypeNotFound = "event_type_not_found_error",
-  UserDefaultAvailabilityNotFound = "user_default_availability_not_found_error",
+  UserAvailabilityNotFound = "user_availability_not_found_error",
 }
