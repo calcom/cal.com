@@ -2,7 +2,7 @@ import appStoreMock from "../../../../../tests/libs/__mocks__/app-store";
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { BookingReference, Attendee, Booking, Membership, BookingSeat } from "@prisma/client";
+import type { BookingReference, Attendee, Booking, Membership } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
@@ -128,6 +128,8 @@ export type InputEventType = {
   durationLimits?: IntervalLimit;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
+type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
+
 type WhiteListedBookingProps = {
   id?: number;
   uid?: string;
@@ -137,7 +139,10 @@ type WhiteListedBookingProps = {
   endTime: string;
   title?: string;
   status: BookingStatus;
-  attendees?: { email: string; bookingSeat?: BookingSeat | null }[];
+  attendees?: {
+    email: string;
+    bookingSeat?: AttendeeBookingSeatInput;
+  }[];
   references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
@@ -1411,7 +1416,7 @@ export function getMockBookingReference(
 
 export function getMockBookingAttendee(
   attendee: Omit<Attendee, "bookingId"> & {
-    bookingSeat?: Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
+    bookingSeat?: AttendeeBookingSeatInput;
   }
 ) {
   return {
