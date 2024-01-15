@@ -31,7 +31,6 @@ const DateOverrideForm = ({
   excludedDates,
   schedule,
   onChange,
-  onClose,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -185,7 +184,7 @@ const DateOverrideForm = ({
         );
 
         setSelectedDates([]);
-        onClose?.();
+        // onClose?.();
       }}
       className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
@@ -250,6 +249,7 @@ const DateOverrideForm = ({
 const DateOverrideInputDialog = ({
   Trigger,
   excludedDates = [],
+  schedule,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -268,6 +268,7 @@ const DateOverrideInputDialog = ({
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
+          schedule={schedule}
           onClose={() => setOpen(false)}
         />
       </DialogContent>

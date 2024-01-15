@@ -17,6 +17,7 @@ import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
@@ -297,6 +298,7 @@ const LazySelect = ({
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
   const { options, filter } = useOptions();
+  const isDesktop = useMediaQuery("(min-width: 1280px)");
 
   useEffect(() => {
     filter({ current: value });
@@ -304,6 +306,8 @@ const LazySelect = ({
 
   return (
     <Select
+      // always bottom on desktop to avoid overflow clipping
+      menuPlacement={isDesktop ? "bottom" : "auto"}
       options={options}
       onMenuOpen={() => {
         if (min) filter({ offset: min });
