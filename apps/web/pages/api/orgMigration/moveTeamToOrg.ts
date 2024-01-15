@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: JSON.stringify(parsedBody.error) });
   }
 
-  const { teamId, targetOrgId, moveMembers } = parsedBody.data;
+  const { teamId, targetOrgId, moveMembers, teamSlugInOrganization } = parsedBody.data;
   const isAllowed = isAdmin;
   if (!isAllowed) {
     return res.status(403).json({ message: "Not Authorized" });
@@ -48,7 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     await moveTeamToOrg({
-      targetOrgId,
+      targetOrg: {
+        id: targetOrgId,
+        teamSlug: teamSlugInOrganization,
+      },
       teamId,
       moveMembers,
     });
