@@ -1,11 +1,12 @@
 import Setup from "@pages/auth/setup";
-import { withAppDir } from "app/AppDirSSRHOC";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { WithLayout } from "app/layoutHOC";
+import type { InferGetServerSidePropsType } from "next";
 
 import { getServerSideProps } from "@server/lib/setup/getServerSideProps";
 
 export default WithLayout({
   getLayout: null,
   Page: Setup,
-  getData: withAppDir(getServerSideProps),
+  getData: withAppDirSsr<InferGetServerSidePropsType<typeof getServerSideProps>>(getServerSideProps),
 })<"P">;
