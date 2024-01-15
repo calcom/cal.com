@@ -1,14 +1,10 @@
+import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 import { getToken } from "next-auth/jwt";
-
-class BaseStrategy {
-  success!: (user: unknown) => void;
-  error!: (error: Error) => void;
-}
 
 @Injectable()
 export class NextAuthStrategy extends PassportStrategy(BaseStrategy, "next-auth") {

@@ -1,11 +1,7 @@
+import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
-
-class BaseStrategy {
-  success!: (user: unknown) => void;
-  error!: (error: Error) => void;
-}
 
 @Injectable()
 export class AccessTokenMockStrategy extends PassportStrategy(BaseStrategy, "access-token") {
