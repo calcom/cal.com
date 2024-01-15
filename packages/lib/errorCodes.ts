@@ -7,4 +7,5 @@ export enum ErrorCode {
   HostsUnavailableForBooking = "hosts_unavailable_for_booking",
   EventTypeNotFound = "event_type_not_found_error",
   AvailabilityNotFoundInSchedule = "availability_not_found_in_schedule_error",
+  CancelledBookingsCannotBeRescheduled = "cancelled_bookings_cannot_be_rescheduled",
 }
