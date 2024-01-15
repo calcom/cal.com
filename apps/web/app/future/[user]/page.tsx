@@ -1,4 +1,4 @@
-import LegacyPage, { getServerSideProps } from "@pages/[user]";
+import LegacyPage, { getServerSideProps, type UserPageProps } from "@pages/[user]";
 import { withAppDir } from "app/AppDirSSRHOC";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -10,26 +10,16 @@ import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
-  const ssrResponse = await getServerSideProps(
+  const props = await getData(
     buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext
   );
 
-  if (
-    "props" in ssrResponse &&
-    "profile" in ssrResponse.props &&
-    "markdownStrippedBio" in ssrResponse.props
-  ) {
-    const { profile, markdownStrippedBio } = ssrResponse.props;
-    return await _generateMetadata(
-      () => profile.name,
-      () => markdownStrippedBio
-    );
-  }
-
+  const { profile, markdownStrippedBio } = props;
   return await _generateMetadata(
-    () => "",
-    () => ""
+    () => profile.name,
+    () => markdownStrippedBio
   );
 };
 
-export default WithLayout({ getLayout, getData: withAppDir(getServerSideProps), Page: LegacyPage })<"P">;
+export const getData = withAppDir<UserPageProps>(getServerSideProps);
+export default WithLayout({ getLayout, getData, Page: LegacyPage })<"P">;

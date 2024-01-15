@@ -8,43 +8,30 @@ import { headers, cookies } from "next/headers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
-  const ssrResponse = await getServerSideProps(
+  const props = await getData(
     buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext
   );
 
-  if (
-    "props" in ssrResponse &&
-    ssrResponse.props &&
-    "eventData" in ssrResponse.props &&
-    "booking" in ssrResponse.props &&
-    "user" in ssrResponse.props &&
-    "slug" in ssrResponse.props
-  ) {
-    const { eventData, booking, user, slug } = ssrResponse.props;
-    const rescheduleUid = booking?.uid;
-    const { trpc } = await import("@calcom/trpc/react");
-    const { data: event } = trpc.viewer.public.event.useQuery(
-      { username: user, eventSlug: slug, isTeamEvent: false, org: eventData.entity.orgSlug ?? null },
-      { refetchOnWindowFocus: false }
-    );
+  const { eventData, booking, user, slug } = props;
+  const rescheduleUid = booking?.uid;
+  const { trpc } = await import("@calcom/trpc/react");
+  const { data: event } = trpc.viewer.public.event.useQuery(
+    { username: user, eventSlug: slug, isTeamEvent: false, org: eventData.entity.orgSlug ?? null },
+    { refetchOnWindowFocus: false }
+  );
 
-    const profileName = event?.profile?.name ?? "";
-    const title = event?.title ?? "";
-
-    return await _generateMetadata(
-      (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-      (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
-    );
-  }
+  const profileName = event?.profile?.name ?? "";
+  const title = event?.title ?? "";
 
   return await _generateMetadata(
-    () => "",
-    () => ""
+    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
   );
 };
+export const getData = withAppDir<PageProps>(getServerSideProps);
 
 export default WithLayout({
-  getData: withAppDir<PageProps>(getServerSideProps),
+  getData,
   Page: LegacyPage,
   getLayout: null,
 })<"P">;

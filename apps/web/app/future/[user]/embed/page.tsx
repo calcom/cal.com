@@ -2,9 +2,8 @@ import LegacyPage from "@pages/[user]/[type]";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
-import { getPageProps } from "../page";
+import { getData } from "../page";
 
-const getEmbedData = withEmbedSsrAppDir(getPageProps);
+const getEmbedData = withEmbedSsrAppDir(getData);
 
-// @ts-expect-error arg
 export default WithLayout({ getLayout: null, getData: getEmbedData, Page: LegacyPage })<"P">;
