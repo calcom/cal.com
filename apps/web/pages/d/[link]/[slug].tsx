@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -16,7 +18,7 @@ import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";
 
-type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+export type PageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState"> & EmbedProps;
 
 export default function Type({
   slug,
