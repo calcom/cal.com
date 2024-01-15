@@ -1,5 +1,5 @@
 import ForgotPassword from "@pages/auth/forgot-password";
-import { withAppDir } from "app/AppDirSSRHOC";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
@@ -15,5 +15,5 @@ export const generateMetadata = async () => {
 export default WithLayout({
   getLayout: null,
   Page: ForgotPassword,
-  getData: withAppDir(getServerSideProps),
+  getData: withAppDirSsr(getServerSideProps),
 })<"P">;
