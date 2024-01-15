@@ -468,10 +468,10 @@ export default function Signup({
             </div>
           </div>
         </div>
-        <div className="border-muted mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl bg-[radial-gradient(162.05%_170%_at_109.58%_35%,_rgba(102,_117,_147,_0.7)_0%,_rgba(212,_212,_213,_0.4)_100%)] pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
-          {IS_CALCOM && (
+        <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
+          {!IS_CALCOM && (
             <>
-              <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-3 lg:grid-cols-4">
+              <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                 <div>
                   <img
                     src="/product-cards/product-of-the-day.svg"
@@ -494,7 +494,7 @@ export default function Signup({
                   />
                 </div>
               </div>
-              <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-3 lg:grid-cols-4">
+              <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                 <div>
                   <img
                     src="/product-cards/producthunt.svg"
@@ -521,13 +521,13 @@ export default function Signup({
             </>
           )}
           <div
-            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border-dashed lg:block lg:py-[6px] lg:pl-[6px]"
+            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:border-0 lg:block lg:py-[6px] lg:pl-[6px]"
             style={{
               backgroundColor: "rgba(236,237,239,0.9)",
             }}>
             <img src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
           </div>
-          <div className="mr-12 mt-8 h-full w-full grid-cols-3 gap-4 overflow-hidden sm:grid">
+          <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
             {FEATURES.map((feature) => (
               <>
                 <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
