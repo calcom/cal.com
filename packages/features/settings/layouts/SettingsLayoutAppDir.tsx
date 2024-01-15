@@ -143,7 +143,6 @@ const useTabs = () => {
   const orgBranding = useOrgBranding();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
   tabs.map((tab) => {
     if (tab.href === "/settings/my-account") {
       tab.name = user?.name || "my_account";

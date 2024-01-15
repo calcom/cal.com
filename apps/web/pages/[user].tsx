@@ -25,11 +25,13 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { User } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
+import { RedirectType, type EventType, type User as UserType } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { RelevantProfile } from "@calcom/types/RelevantProfile";
 import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
 import { Verified, ArrowRight } from "@calcom/ui/components/icon";
@@ -42,6 +44,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 import { getTemporaryOrgRedirect } from "../lib/getTemporaryOrgRedirect";
 
+const log = logger.getSubLogger({ prefix: ["[[user.tsx]]"] });
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
   const searchParams = useSearchParams();
@@ -49,7 +52,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
   const { t } = useLocale();
-
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
   const isEmbed = useIsEmbed(props.isEmbed);
@@ -131,19 +133,11 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             <UserAvatar
               size="xl"
               user={{
-                organizationId: profile.organization?.id,
+                avatarUrl: user.avatarUrl,
+                relevantProfile: user.relevantProfile,
                 name: profile.name,
                 username: profile.username,
               }}
-              organization={
-                profile.organization?.id
-                  ? {
-                      id: profile.organization.id,
-                      slug: profile.organization.slug,
-                      requestedSlug: null,
-                    }
-                  : null
-              }
             />
             <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}
@@ -256,7 +250,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return eventTypes.reduce<typeof eventTypes>((eventTypes, eventType) => {
     const parsedMetadata = EventTypeMetaDataSchema.safeParse(eventType.metadata);
     if (!parsedMetadata.success) {
-      logger.error(parsedMetadata.error);
+      log.error(parsedMetadata.error);
       return eventTypes;
     }
     eventTypes.push({
@@ -283,7 +277,9 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl">[];
+  users: (Pick<UserType, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
+    relevantProfile: RelevantProfile;
+  })[];
   themeBasis: string | null;
   markdownStrippedBio: string;
   safeBio: string;
@@ -379,10 +375,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const users = usersWithoutAvatar.map((user) => ({
     ...user,
-    organization: {
-      ...user.organization,
-      metadata: user.organization?.metadata ? teamMetadataSchema.parse(user.organization.metadata) : null,
-    },
     avatar: `/${user.username}/avatar.png`,
   }));
 
@@ -399,7 +391,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
   }
 
-  if (!users.length || (!isValidOrgDomain && !users.some((user) => user.organizationId === null))) {
+  const isNonOrgUser = (user: { orgProfile: unknown }) => {
+    return !user.orgProfile;
+  };
+
+  if (!users.length || (!isValidOrgDomain && !users.some(isNonOrgUser))) {
     return {
       notFound: true,
     } as {
@@ -419,9 +415,9 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: {
-      id: user.organizationId,
-      slug: user.organization?.slug ?? null,
-      requestedSlug: user.organization?.metadata?.requestedSlug ?? null,
+      id: user.orgProfile?.organization.id ?? null,
+      slug: user.orgProfile?.organization?.slug ?? null,
+      requestedSlug: user.orgProfile?.organization?.metadata?.requestedSlug ?? null,
     },
   };
 
@@ -456,7 +452,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const safeBio = markdownToSafeHTML(user.bio) || "";
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
-  const org = usersWithoutAvatar[0].organization;
+  const org = usersWithoutAvatar[0].orgProfile?.organization;
 
   return {
     props: {
@@ -467,6 +463,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         avatarUrl: user.avatarUrl,
         away: usernameList.length === 1 ? outOfOffice : user.away,
         verified: user.verified,
+        relevantProfile: user.relevantProfile,
       })),
       entity: {
         isUnpublished: org?.slug === null,

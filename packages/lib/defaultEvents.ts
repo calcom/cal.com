@@ -49,7 +49,6 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
-  organizationId: null,
 };
 
 const customInputs: CustomInputSchema[] = [];

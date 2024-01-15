@@ -257,11 +257,19 @@ export const getServerSideProps = async function getServerSideProps(
     where: {
       id: formId,
       user: {
-        organization: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
+        profiles: {
+          ...(isValidOrgDomain
+            ? {
+                some: {
+                  organization: {
+                    slug: currentOrgDomain,
+                  },
+                },
+              }
+            : {
+                none: {},
+              }),
+        },
       },
     },
     include: {

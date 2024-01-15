@@ -98,12 +98,28 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       }
     }
 
+    const organization = await prisma.team.create({
+      data: {
+        name,
+        ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
+        metadata: {
+          ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
+          isOrganization: true,
+          isOrganizationVerified: true,
+          isOrganizationConfigured,
+          orgAutoAcceptEmail: emailDomain,
+        },
+      },
+    });
+
     const createOwnerOrg = await prisma.user.create({
       data: {
         username: slugify(adminUsername),
         email: adminEmail,
         emailVerified: new Date(),
         password: hashedPassword,
+        // @ts-expect-error - Temporary
+        organizationId: organization.id,
         // Default schedule
         schedules: {
           create: {
@@ -119,34 +135,21 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
             },
           },
         },
-        organization: {
-          create: {
-            name,
-            ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
-            metadata: {
-              ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
-              isOrganization: true,
-              isOrganizationVerified: true,
-              isOrganizationConfigured,
-              orgAutoAcceptEmail: emailDomain,
-            },
-          },
-        },
       },
     });
 
-    if (!createOwnerOrg.organizationId) throw Error("User not created");
+    if (!organization.id) throw Error("User not created");
 
     await prisma.membership.create({
       data: {
         userId: createOwnerOrg.id,
         role: MembershipRole.OWNER,
         accepted: true,
-        teamId: createOwnerOrg.organizationId,
+        teamId: organization.id,
       },
     });
 
-    return { user: { ...createOwnerOrg, password } };
+    return { user: { ...createOwnerOrg, organizationId: organization.id, password } };
   } else {
     const language = await getTranslation(input.language ?? "en", "common");
 

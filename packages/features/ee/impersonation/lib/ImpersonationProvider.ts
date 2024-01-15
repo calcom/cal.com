@@ -4,15 +4,28 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 import { getSession } from "@calcom/features/auth/lib/getSession";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
 });
 
+type ProfileType =
+  | (Awaited<ReturnType<typeof Profile.getOrgProfilesForUser>>[number] & {
+      organization: {
+        members: Membership[];
+      };
+    })
+  | null;
+
 const auditAndReturnNextUser = async (
-  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "organizationId" | "locale">,
+  impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "locale"> & {
+    organizationId: number | null;
+    profile: ProfileType;
+  },
   impersonatedByUID: number,
   hasTeam?: boolean
 ) => {
@@ -42,6 +55,7 @@ const auditAndReturnNextUser = async (
     belongsToActiveTeam: hasTeam,
     organizationId: impersonatedUser.organizationId,
     locale: impersonatedUser.locale,
+    profile: impersonatedUser.profile,
   };
 
   return obj;
@@ -112,7 +126,6 @@ async function getImpersonatedUser({
       role: true,
       name: true,
       email: true,
-      organizationId: true,
       disableImpersonation: true,
       locale: true,
       teams: {
@@ -130,7 +143,28 @@ async function getImpersonatedUser({
     throw new Error("This user does not exist");
   }
 
-  return impersonatedUser;
+  const allOrgProfiles = await Profile.getOrgProfilesForUser({ id: impersonatedUser.id });
+  const firstOrgProfile = allOrgProfiles[0] as undefined | (typeof allOrgProfiles)[number];
+  const orgMembers = firstOrgProfile
+    ? await prisma.membership.findMany({
+        where: {
+          teamId: firstOrgProfile.organizationId,
+        },
+      })
+    : [];
+  return {
+    ...impersonatedUser,
+    organizationId: firstOrgProfile?.organizationId ?? null,
+    profile: firstOrgProfile
+      ? {
+          ...firstOrgProfile,
+          organization: {
+            ...firstOrgProfile.organization,
+            members: orgMembers,
+          },
+        }
+      : null,
+  };
 }
 
 const ImpersonationProvider = CredentialsProvider({

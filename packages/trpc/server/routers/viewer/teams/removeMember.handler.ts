@@ -26,8 +26,8 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   });
 
   const isAdmin = await isTeamAdmin(ctx.user.id, input.teamId);
-  const isOrgAdmin = ctx.user.organizationId
-    ? await isTeamAdmin(ctx.user.id, ctx.user.organizationId)
+  const isOrgAdmin = ctx.user.profile?.organizationId
+    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
     : false;
   if (!(isAdmin || isOrgAdmin) && ctx.user.id !== input.memberId)
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -114,6 +114,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
 
     await ctx.prisma.user.update({
       where: { id: membership.userId },
+      // @ts-expect-error - // Let organizationId be updated for backward compatibility
       data: { organizationId: null },
     });
   }

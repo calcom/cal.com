@@ -84,6 +84,7 @@ const usernameCheck = async (usernameRaw: string) => {
   const username = slugify(usernameRaw);
 
   const user = await prisma.user.findFirst({
+    //@ts-expect-error Keep it till we remove organizationId from user table. When that happens, all usernames in User table will be non-org usernames only
     where: { username, organizationId: null },
     select: {
       username: true,

@@ -1,21 +1,27 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 import type { User, Team } from "@calcom/prisma/client";
+import type { RelevantProfile } from "@calcom/types/RelevantProfile";
 
 /**
  * Gives an organization aware avatar url for a user
  * It ensures that the wrong avatar isn't fetched by ensuring that organizationId is always passed
  */
 export const getUserAvatarUrl = (
-  user: (Pick<User, "username" | "organizationId"> & { avatarUrl?: string | null }) | undefined
+  user:
+    | (Pick<User, "username"> & {
+        relevantProfile: RelevantProfile;
+        avatarUrl: string | null;
+      })
+    | undefined
 ) => {
   if (user?.avatarUrl) {
     return user.avatarUrl;
   }
   if (!user?.username) return AVATAR_FALLBACK;
   // avatar.png automatically redirects to fallback avatar if user doesn't have one
-  return `${WEBAPP_URL}/${user.username}/avatar.png${
-    user.organizationId ? `?orgId=${user.organizationId}` : ""
+  return `${WEBAPP_URL}/${user.relevantProfile?.username}/avatar.png${
+    user.relevantProfile?.organizationId ? `?orgId=${user.relevantProfile.organizationId}` : ""
   }`;
 };
 

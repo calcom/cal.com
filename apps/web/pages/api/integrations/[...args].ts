@@ -27,6 +27,7 @@ const defaultIntegrationAddHandler = async ({
   if (!user?.id) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
+
   if (!supportsMultipleInstalls) {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
@@ -35,9 +36,9 @@ const defaultIntegrationAddHandler = async ({
           ? {
               AND: [
                 { userId: user.id },
-                {
-                  ownedByOrganizationId: user.profile?.organizationId,
-                },
+                // {
+                //   ownedByOrganizationId: user.profile?.organizationId ?? null,
+                // },
                 { teamId },
               ],
             }

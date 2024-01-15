@@ -26,7 +26,7 @@ function Teams() {
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
-        (!user.organizationId || user.organization.isOrgAdmin) && (
+        (!user.organizationId || user.organization?.isOrgAdmin) && (
           <Button
             data-testid="new-team-btn"
             variant="fab"

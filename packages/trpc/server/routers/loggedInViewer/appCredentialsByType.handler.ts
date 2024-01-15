@@ -31,6 +31,8 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
           },
         },
       ],
+      // TODO: OrgNewSchema-later
+      // ownedByOrganizationId: user.profile?.organizationId ?? null,
       type: input.appType,
     },
   });

@@ -21,6 +21,7 @@ export const createOrUpdateMemberships = async ({
           id: user.id,
         },
         data: {
+          // @ts-expect-error Keep it till we remove organizationId from user table
           organizationId: team.id,
         },
       });

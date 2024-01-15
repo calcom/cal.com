@@ -2,7 +2,7 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import type { Maybe } from "@trpc/server";
@@ -16,18 +16,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   if (!session?.user?.id) {
     return null;
   }
-  console.log("getUserFromSession", session?.profileId);
 
-  const profile = session?.profileId
-    ? await prisma.profile.findUnique({
-        where: {
-          id: session?.profileId,
-        },
-        include: {
-          organization: true,
-        },
-      })
-    : null;
+  const profile = session?.profileId ? await Profile.getProfile(session.profileId) : null;
 
   const user = await prisma.user.findUnique({
     where: {
@@ -71,25 +61,9 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       trialEndsAt: true,
       metadata: true,
       role: true,
-      organizationId: true,
       allowDynamicBooking: true,
       allowSEOIndexing: true,
       receiveMonthlyDigestEmail: true,
-      organization: {
-        select: {
-          id: true,
-          slug: true,
-          metadata: true,
-          name: true,
-          members: {
-            select: { userId: true },
-            where: {
-              userId: session.user.id,
-              OR: [{ role: MembershipRole.ADMIN }, { role: MembershipRole.OWNER }],
-            },
-          },
-        },
-      },
     },
   });
 
@@ -104,32 +78,43 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   }
 
   const userMetaData = userMetadata.parse(user.metadata || {});
-  const orgMetadata = teamMetadataSchema.parse(user.organization?.metadata || {});
+  const orgMetadata = teamMetadataSchema.parse(profile?.organization?.metadata || {});
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
   const locale = user?.locale ?? ctx.locale;
 
-  const isOrgAdmin = !!user.organization?.members.length;
+  const isOrgAdmin = !!profile?.organization?.members.length;
   // Want to reduce the amount of data being sent
-  if (isOrgAdmin && user.organization?.members) {
-    user.organization.members = [];
+  if (isOrgAdmin && profile?.organization?.members) {
+    profile.organization.members = [];
   }
+  const organization = {
+    ...profile?.organization,
+    id: profile?.organization?.id ?? null,
+    isOrgAdmin,
+    metadata: orgMetadata,
+    requestedSlug: orgMetadata?.requestedSlug ?? null,
+  };
   return {
     ...user,
-    avatar:
-      `${WEBAPP_URL}/${user.username}/avatar.png?${user.organizationId}` && `orgId=${user.organizationId}`,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png?${organization.id}` && `orgId=${organization.id}`,
     // FIXME: Remove this
-    organization: {
-      ...user.organization,
-      isOrgAdmin,
-      metadata: orgMetadata,
-    },
+    organization,
+    organizationId: organization.id,
     id,
     email,
     username,
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
-    profile,
+    profile: profile
+      ? {
+          ...profile,
+          organization: {
+            ...profile.organization,
+            requestedSlug: organization.requestedSlug,
+          },
+        }
+      : null,
   };
 }
 

@@ -4,7 +4,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
-import { createProfile } from "@calcom/lib/server/repository/profile";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -165,7 +165,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     } else {
       for (const user of existingUsersWithMembersips) {
         // FIXME: Don't rely on user input
-        await createProfile({
+        await Profile.createProfile({
           userId: user.id,
           organizationId: team.id,
           username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),

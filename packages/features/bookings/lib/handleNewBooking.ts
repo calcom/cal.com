@@ -43,7 +43,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -72,6 +72,8 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@c
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -102,7 +104,7 @@ import getBookingDataSchema from "./getBookingDataSchema";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type UserType = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -157,7 +159,7 @@ async function refreshCredentials(credentials: Array<CredentialPayload>): Promis
  *
  */
 const getAllCredentials = async (
-  user: User & { credentials: CredentialPayload[] },
+  user: UserType & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
   const allCredentials = user.credentials;
@@ -194,11 +196,15 @@ const getAllCredentials = async (
     }
   }
 
+  const orgProfile = await Profile.getRelevantOrgProfile({
+    userId: user.id,
+    ownedByOrganizationId: null,
+  });
   // If the user is a part of an organization, query for the organization's credentials
-  if (user?.organizationId) {
+  if (orgProfile) {
     const org = await prisma.team.findUnique({
       where: {
-        id: user.organizationId,
+        id: orgProfile.organizationId,
       },
       select: {
         credentials: {
@@ -336,11 +342,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
                 select: credentialForCalendarServiceSelect,
               },
               ...userSelect.select,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
@@ -367,7 +368,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & {
+type IsFixedAwareUser = UserType & {
   isFixed: boolean;
   credentials: CredentialPayload[];
   organization: { slug: string };
@@ -379,18 +380,10 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
-      const users = await prisma.user.findMany({
-        where: {
-          username: { in: dynamicUserList },
-          organization: userOrgQuery(req),
-        },
-        select: {
-          ...userSelect.select,
-          credentials: {
-            select: credentialForCalendarServiceSelect,
-          },
-          metadata: true,
-        },
+
+      const users = await getUsersFromUsernameInOrgContext({
+        usernameList: dynamicUserList,
+        ...orgDomainConfig(req),
       });
 
       return users;
@@ -1138,7 +1131,6 @@ async function handler(
   const [organizerUser] = users;
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
-
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
   const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
@@ -1267,11 +1259,17 @@ async function handler(
   });
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = getICalSequence(originalRescheduledBooking);
-
+  const organizerOrganizationProfile = await prisma.profile.findFirst({
+    where: {
+      userId: organizerUser.id,
+      username: dynamicUserList[0],
+    },
+  });
+  const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
   let evt: CalendarEvent = {
     bookerUrl: eventType.team
-      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
-      : await getBookerBaseUrl(organizerUser),
+      ? await getBookerBaseUrl(eventType.team.parentId)
+      : await getBookerBaseUrl(organizerOrganizationId ?? null),
     type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -2956,4 +2954,40 @@ const findBookingQuery = async (bookingId: number) => {
 
   // Don't leak any sensitive data
   return foundBooking;
+};
+
+export const getUsersFromUsernameInOrgContext = async ({
+  isValidOrgDomain,
+  currentOrgDomain,
+  usernameList,
+}: {
+  isValidOrgDomain: boolean;
+  currentOrgDomain: string | null;
+  usernameList: string[];
+}) => {
+  const { where, profiles } = await User._getWhereClauseForGettingUsers({
+    isValidOrgDomain,
+    currentOrgDomain,
+    usernameList,
+  });
+  logger.debug("Querying User", { where });
+  return (
+    await prisma.user.findMany({
+      where,
+      select: {
+        ...userSelect.select,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        metadata: true,
+      },
+    })
+  ).map((user) => {
+    const orgProfile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
+    return {
+      ...user,
+      organizationId: orgProfile?.organizationId ?? null,
+      orgProfile,
+    };
+  });
 };

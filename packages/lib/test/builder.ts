@@ -112,6 +112,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     successRedirectUrl: null,
     bookingFields: [],
     parentId: null,
+    // ownedByOrganizationId: null,
     ...eventType,
   };
 };
@@ -129,6 +130,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     active: true,
     eventTriggers: [],
     teamId: null,
+    // ownedByOrganizationId: null,
     ...webhook,
   };
 };
@@ -232,6 +234,7 @@ export const buildUser = <T extends Partial<UserPayload>>(user?: T): UserPayload
     twoFactorSecret: null,
     verified: false,
     weekStart: "",
+    //@ts-expect-error - Temporary
     organizationId: null,
     allowSEOIndexing: null,
     receiveMonthlyDigestEmail: null,

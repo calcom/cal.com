@@ -41,6 +41,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       role: membership.role,
       accepted: membership.accepted,
       ..._team,
+      metadata: teamMetadataSchema.parse(_team.metadata),
       /** To prevent breaking we only return non-email attached token here, if we have one */
       inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
     }));

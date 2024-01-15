@@ -112,7 +112,9 @@ export const ONBOARDING_NEXT_REDIRECT = {
 } as const;
 
 export const shouldShowOnboarding = (
-  user: Pick<User, "createdDate" | "completedOnboarding" | "organizationId">
+  user: Pick<User, "createdDate" | "completedOnboarding"> & {
+    organizationId: number | null;
+  }
 ) => {
   return (
     !user.completedOnboarding &&

@@ -1,9 +1,11 @@
 import type { Session } from "next-auth";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getAllProfiles } from "@calcom/lib/server/repository/profile";
-import { getOrganizationForUser, getOrganizationProfile } from "@calcom/lib/server/repository/user";
+import { Profile } from "@calcom/lib/server/repository/profile";
+import { User } from "@calcom/lib/server/repository/user";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 type MeOptions = {
   ctx: {
@@ -17,9 +19,9 @@ export const meHandler = async ({ ctx }: MeOptions) => {
 
   const { user, session } = ctx;
 
-  const allUserEnrichedProfiles = await getAllProfiles(user);
+  const allUserEnrichedProfiles = await Profile.getAllProfilesForUser(user);
 
-  const organizationProfile = await getOrganizationProfile({
+  const organizationProfile = await User.getOrganizationProfile({
     profileId: session.profileId ?? null,
     userId: user.id,
   });
@@ -27,11 +29,32 @@ export const meHandler = async ({ ctx }: MeOptions) => {
   let chosenOrganization;
 
   if (organizationProfile) {
-    chosenOrganization = await getOrganizationForUser({
+    chosenOrganization = await User.getOrganizationForUser({
       userId: user.id,
       organizationId: organizationProfile.organizationId,
     });
+    if (!chosenOrganization) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Organization not found for the profile",
+      });
+    }
   }
+
+  const userWithRelevantProfile = {
+    ...user,
+    relevantProfile:
+      organizationProfile && chosenOrganization
+        ? {
+            ...organizationProfile,
+            organization: {
+              id: chosenOrganization.id,
+              slug: chosenOrganization.slug,
+              requestedSlug: chosenOrganization.requestedSlug,
+            },
+          }
+        : null,
+  };
 
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
@@ -46,7 +69,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     locale: user.locale,
     timeFormat: user.timeFormat,
     timeZone: user.timeZone,
-    avatar: getUserAvatarUrl(user),
+    avatar: getUserAvatarUrl(userWithRelevantProfile),
     avatarUrl: user.avatarUrl,
     createdDate: user.createdDate,
     trialEndsAt: user.trialEndsAt,
@@ -68,8 +91,9 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     organizationId: chosenOrganization?.id ?? null,
-    organization: chosenOrganization ?? null,
+    organization: user.organization,
     username: organizationProfile?.username ?? user.username ?? null,
+    relevantProfile: organizationProfile ?? null,
     profiles: allUserEnrichedProfiles,
   };
 };

@@ -38,6 +38,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     },
     select: {
       id: true,
+      // ownedByOrganizationId: true,
       type: true,
       key: true,
       userId: true,
@@ -71,6 +72,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       ...calendar,
       userId: user.id,
       integration: credential.type,
+      // ownedByOrganizationId: credential.ownedByOrganizationId,
     };
   });
 

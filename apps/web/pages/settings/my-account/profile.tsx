@@ -230,12 +230,16 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: getUserAvatarUrl(user),
+    avatar: getUserAvatarUrl({
+      ...user,
+      relevantProfile: user.relevantProfile,
+    }),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
   };
 
+  user.relevantProfile?.organization.requestedSlug;
   return (
     <>
       <Meta
@@ -443,7 +447,7 @@ const ProfileForm = ({
               const organization =
                 userOrganization && userOrganization.id
                   ? {
-                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      ...(userOrganization as Ensure<NonNullable<typeof user.organization>, "id">),
                       slug: userOrganization.slug || null,
                       requestedSlug: userOrganization.metadata?.requestedSlug || null,
                     }

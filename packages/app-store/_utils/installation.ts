@@ -17,7 +17,12 @@ export async function checkInstalled(slug: string, userId: number) {
 
 type InstallationArgs = {
   appType: string;
-  userId: number;
+  user: {
+    id: number;
+    profile: {
+      organizationId: number;
+    } | null;
+  };
   slug: string;
   key?: Prisma.InputJsonValue;
   teamId?: number;
@@ -28,7 +33,7 @@ type InstallationArgs = {
 
 export async function createDefaultInstallation({
   appType,
-  userId,
+  user,
   slug,
   key = {},
   teamId,
@@ -40,11 +45,12 @@ export async function createDefaultInstallation({
     data: {
       type: appType,
       key,
-      ...(teamId ? { teamId } : { userId }),
+      ...(teamId ? { teamId } : { userId: user.id }),
       appId: slug,
       subscriptionId,
       paymentStatus,
       billingCycleStart,
+      // ownedByOrganizationId: user.profile?.organizationId ?? null,
     },
   });
   if (!installation) {

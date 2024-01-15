@@ -96,6 +96,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         accepted: true,
       },
     }),
+    // FIXME: OrgNewSchema - I think we should update the profile as well here.
     prisma.user.updateMany({
       where: {
         id: {
@@ -103,6 +104,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
         },
       },
       data: {
+        //@ts-expect-error - Temporary
         organizationId: input.orgId,
       },
     }),

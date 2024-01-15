@@ -43,7 +43,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(ctx.user.id);
+    const credentials = await getUsersCredentials(ctx.user);
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
@@ -91,7 +91,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         ...data,
         ...(profile?.organizationId
           ? {
-              organization: {
+              ownedByOrganization: {
                 connect: {
                   id: profile.organizationId,
                 },

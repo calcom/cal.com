@@ -46,6 +46,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
         id: userId,
         username: "" /* Not used in this context */,
         role: UserPermissionRole.USER,
+        // FIXME: OrgNewSchema - How to identify the correct profile here ?
+        profile: null,
       },
       hasValidLicense: true,
       expires: "" /* Not used in this context */,

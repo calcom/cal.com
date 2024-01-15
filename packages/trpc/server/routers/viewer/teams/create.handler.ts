@@ -47,10 +47,10 @@ const generateCheckoutSession = async ({
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
   const { slug, name, logo } = input;
-  const isOrgChildTeam = !!user.organizationId;
+  const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
-  if (user.organizationId && !user.organization.isOrgAdmin) {
+  if (user.profile?.organizationId && !user.organization.isOrgAdmin) {
     throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
   }
 
@@ -58,15 +58,16 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     where: {
       slug: slug,
       // If this is under an org, check that the team doesn't already exist
-      parentId: isOrgChildTeam ? user.organizationId : null,
+      parentId: isOrgChildTeam ? user.profile?.organizationId : null,
     },
   });
 
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
 
-  if (user.organizationId) {
+  if (user.profile?.organizationId) {
     const nameCollisions = await prisma.user.findFirst({
       where: {
+        // @ts-expect-error - // Let organizationId be updated for backward compatibility
         organizationId: user.organization.id,
         username: slug,
       },
@@ -104,7 +105,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           accepted: true,
         },
       },
-      ...(isOrgChildTeam && { parentId: user.organizationId }),
+      ...(isOrgChildTeam && { parentId: user.profile?.organizationId }),
     },
   });
 

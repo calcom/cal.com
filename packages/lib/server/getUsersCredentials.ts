@@ -6,7 +6,7 @@ export async function getUsersCredentials(user: NonNullable<TrpcSessionUser>) {
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
-      ownedByOrganizationId: user.profile?.organizationId ?? null,
+      // ownedByOrganizationId: user.profile?.organizationId ?? null,
     },
     select: credentialForCalendarServiceSelect,
     orderBy: {

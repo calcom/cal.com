@@ -12,6 +12,7 @@ export async function joinOrganization({
       id: userId,
     },
     data: {
+      // @ts-expect-error Keep it till we remove organizationId from user table
       organizationId: organizationId,
     },
   });
@@ -24,6 +25,7 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
         id: userId,
       },
       data: {
+        //@ts-expect-error Keep it till we remove organizationId from user table
         organizationId: orgId,
       },
     }),

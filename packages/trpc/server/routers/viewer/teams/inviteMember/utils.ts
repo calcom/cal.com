@@ -1,15 +1,17 @@
 import { randomBytes } from "crypto";
 import type { TFunction } from "next-i18next";
+import { v4 as uuidv4 } from "uuid";
 
 import { sendTeamInviteEmail, sendOrganizationAutoJoinEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, Team } from "@calcom/prisma/client";
-import { Prisma, type User } from "@calcom/prisma/client";
+import type { Membership, Profile, Team } from "@calcom/prisma/client";
+import { Prisma, type User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -20,12 +22,13 @@ import { isEmail } from "../util";
 import type { InviteMemberOptions, TeamWithParent } from "./types";
 
 export type Invitee = Pick<
-  User,
-  "id" | "email" | "organizationId" | "username" | "password" | "identityProvider" | "completedOnboarding"
+  UserType,
+  "id" | "email" | "username" | "password" | "identityProvider" | "completedOnboarding"
 >;
 
 export type UserWithMembership = Invitee & {
   teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
+  profiles: Profile[];
 };
 
 export async function checkPermissions({
@@ -100,7 +103,7 @@ export function validateInviteeEligibility(
 
   const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
   // invitee is invited to the org's team and is already part of the organization
-  if (invitee.organizationId && team.parentId && invitee.organizationId === team.parentId) {
+  if (team.parentId && User.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return;
   }
 
@@ -144,9 +147,6 @@ export async function getUsersToInvite({
   isInvitedToOrg: boolean;
   team: TeamWithParent;
 }): Promise<UserWithMembership[]> {
-  const orgWhere = isInvitedToOrg && {
-    organizationId: team.id,
-  };
   const memberships = [];
   if (isInvitedToOrg) {
     memberships.push({ teamId: team.id });
@@ -157,16 +157,26 @@ export async function getUsersToInvite({
 
   const invitees: UserWithMembership[] = await prisma.user.findMany({
     where: {
-      OR: [{ username: { in: usernamesOrEmails }, ...orgWhere }, { email: { in: usernamesOrEmails } }],
+      OR: [
+        {
+          username: { in: usernamesOrEmails },
+          profiles: {
+            some: {
+              organizationId: team.id,
+            },
+          },
+        },
+        { email: { in: usernamesOrEmails } },
+      ],
     },
     select: {
       id: true,
       email: true,
-      organizationId: true,
       username: true,
       password: true,
       completedOnboarding: true,
       identityProvider: true,
+      profiles: true,
       teams: {
         select: { teamId: true, userId: true, accepted: true, role: true },
         where: {
@@ -246,6 +256,7 @@ export async function createNewUsersConnectToOrgIfExists({
             email: usernameOrEmail,
             verified: true,
             invitedTo: input.teamId,
+            // @ts-expect-error - // Let organizationId be updated for backward compatibility
             organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
             teams: {
               create: {
@@ -421,12 +432,13 @@ export function shouldAutoJoinIfInOrg({
   team: TeamWithParent;
   invitee: UserWithMembership;
 }) {
-  // Not a member of the org
-  if (invitee.organizationId && invitee.organizationId !== team.parentId) {
-    return false;
-  }
   // team is an Org
   if (!team.parentId) {
+    return false;
+  }
+
+  // Not a member of the org
+  if (!User.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return false;
   }
 

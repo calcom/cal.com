@@ -9,7 +9,11 @@ import { UserAvatar } from "@calcom/ui";
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
 type MembersType = TeamType["members"];
-type MemberType = Pick<MembersType[number], "id" | "name" | "bio" | "username" | "organizationId"> & {
+type MemberType = Pick<
+  MembersType[number],
+  "id" | "name" | "bio" | "username" | "organizationId" | "avatarUrl"
+> & {
+  relevantProfile: RelevantProfile;
   safeBio: string | null;
   bookerUrl: string;
 };

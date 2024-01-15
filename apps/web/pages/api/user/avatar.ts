@@ -45,7 +45,16 @@ async function getIdentityData(req: NextApiRequest) {
     const user = await prisma.user.findFirst({
       where: {
         username,
-        organization: orgQuery,
+        profiles: orgQuery
+          ? {
+              some: {
+                organization: orgQuery,
+              },
+            }
+          : {
+              // TODO: Verify Non org user avatar
+              none: {},
+            },
       },
       select: { avatar: true, email: true },
     });

@@ -2,11 +2,13 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
+import { Profile } from "../../repository/profile";
 import { getTeam, getOrg } from "../../repository/team";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
@@ -18,12 +20,13 @@ export async function getTeamWithMembers(args: {
   orgSlug?: string | null;
   includeTeamLogo?: boolean;
   isTeamView?: boolean;
+  currentOrg?: Team | null;
   /**
    * If true, means that you are fetching an organization and not a team
    */
   isOrgView?: boolean;
 }) {
-  const { id, slug, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
+  const { id, slug, currentOrg, userId, orgSlug, isTeamView, isOrgView, includeTeamLogo } = args;
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
@@ -31,14 +34,9 @@ export async function getTeamWithMembers(args: {
     username: true,
     email: true,
     name: true,
+    avatarUrl: true,
     id: true,
     bio: true,
-    organizationId: true,
-    organization: {
-      select: {
-        slug: true,
-      },
-    },
     teams: {
       select: {
         team: {
@@ -144,12 +142,29 @@ export async function getTeamWithMembers(args: {
   const teamOrOrg = isOrgView ? await getOrg(arg) : await getTeam(arg);
 
   if (!teamOrOrg) return null;
+  const currentOrgId = currentOrg?.id ?? (isOrgView ? teamOrOrg.id : teamOrOrg.parent?.id) ?? null;
 
-  const members = teamOrOrg.members.map((m) => {
+  const teamOrOrgMembers = [];
+  for (const member of teamOrOrg.members) {
+    teamOrOrgMembers.push({
+      ...member,
+      relevantOrgProfile: currentOrgId
+        ? await Profile.getProfileByUserIdAndOrgId({
+            userId: member.user.id,
+            organizationId: currentOrgId,
+          })
+        : null,
+    });
+  }
+  const members = teamOrOrgMembers.map((m) => {
     const { credentials, ...restUser } = m.user;
     return {
       ...restUser,
+      username: m.relevantOrgProfile?.username ?? restUser.username,
       role: m.role,
+      relevantProfile: m.relevantOrgProfile,
+      organizationId: m.relevantOrgProfile?.id ?? null,
+      organization: m.relevantOrgProfile?.organization,
       accepted: m.accepted,
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
@@ -158,7 +173,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(m.relevantOrgProfile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -182,10 +197,28 @@ export async function getTeamWithMembers(args: {
     };
   });
 
-  const eventTypes = teamOrOrg.eventTypes.map((eventType) => ({
+  const eventTypesWithUsersRelevantProfile = [];
+  for (const eventType of teamOrOrg.eventTypes) {
+    const usersWithRelevantProfile = [];
+    for (const user of eventType.users) {
+      usersWithRelevantProfile.push({
+        ...user,
+        relevantProfile: await Profile.getRelevantOrgProfile({
+          userId: user.id,
+          ownedByOrganizationId: currentOrgId,
+        }),
+      });
+    }
+    eventTypesWithUsersRelevantProfile.push({
+      ...eventType,
+      users: usersWithRelevantProfile,
+    });
+  }
+  const eventTypes = eventTypesWithUsersRelevantProfile.map((eventType) => ({
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
   }));
+
   // Don't leak invite tokens to the frontend
   const { inviteTokens, ...teamWithoutInviteTokens } = teamOrOrg;
 

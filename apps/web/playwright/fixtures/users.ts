@@ -4,6 +4,7 @@ import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
+import { v4 } from "uuid";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -122,7 +123,21 @@ const createTeamAndAddUser = async (
     await createTeamEventType(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
-  data.orgUsers = isOrg ? { connect: [{ id: user.id }] } : undefined;
+  data.orgProfiles = isOrg
+    ? {
+        create: [
+          {
+            uid: v4(),
+            username: user.username ?? user.email.split("@")[0],
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        ],
+      }
+    : undefined;
   data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
   const team = await prisma.team.create({
     data,
@@ -166,7 +181,11 @@ export const createUsersFixture = (
       };
     },
     create: async (
-      opts?: CustomUserOpts | null,
+      opts?:
+        | (CustomUserOpts & {
+            organizationId?: number | null;
+          })
+        | null,
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
@@ -337,7 +356,7 @@ export const createUsersFixture = (
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
-          const teamMatesIds = [];
+          const teamMates = [];
           for (const teammateObj of scenario.teammates) {
             const teamUser = await prisma.user.create({
               data: createUser(workerInfo, teammateObj),
@@ -369,7 +388,7 @@ export const createUsersFixture = (
               }),
               store.page
             );
-            teamMatesIds.push(teamUser.id);
+            teamMates.push(teamUser);
             store.users.push(teammateFixture);
           }
           // Add Teammates to OrgUsers
@@ -379,8 +398,24 @@ export const createUsersFixture = (
                 id: team.id,
               },
               data: {
-                orgUsers: {
-                  connect: teamMatesIds.map((userId) => ({ id: userId })).concat([{ id: user.id }]),
+                orgProfiles: {
+                  create: teamMates
+                    .map((teamUser) => ({
+                      user: {
+                        connect: {
+                          id: teamUser.id,
+                        },
+                      },
+                      uid: v4(),
+                      username: teamUser.username || teamUser.email.split("@")[0],
+                    }))
+                    .concat([
+                      {
+                        user: { connect: { id: user.id } },
+                        uid: v4(),
+                        username: user.username || user.email.split("@")[0],
+                      },
+                    ]),
                 },
               },
             });
@@ -562,7 +597,6 @@ type CustomUserOptsKeys =
   | "locale"
   | "name"
   | "email"
-  | "organizationId"
   | "role";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
@@ -576,7 +610,11 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
 // creates the actual user in the db.
 const createUser = (
   workerInfo: WorkerInfo,
-  opts?: CustomUserOpts | null
+  opts?:
+    | (CustomUserOpts & {
+        organizationId?: number | null;
+      })
+    | null
 ): PrismaType.UserUncheckedCreateInput => {
   // build a unique name for our user
   const uname =

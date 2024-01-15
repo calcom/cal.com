@@ -116,7 +116,11 @@ const usernameCheck = async (usernameRaw: string) => {
   const username = slugify(usernameRaw);
 
   const user = await prisma.user.findFirst({
-    where: { username, organizationId: null },
+    where: {
+      username,
+      // @ts-expect-error - Once we remove organizationId it can be removed safely
+      organizationId: null,
+    },
     select: {
       username: true,
     },

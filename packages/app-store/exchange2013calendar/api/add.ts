@@ -37,6 +37,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     teamId: null,
     appId: "exchange2013-calendar",
     invalid: false,
+    ownedByOrganizationId: req.session?.user.profile?.organizationId ?? null,
   };
 
   try {

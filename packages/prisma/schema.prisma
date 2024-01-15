@@ -255,8 +255,8 @@ model User {
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
   hosts                Host[]
-  organizationId       Int?
-  organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
+  // organizationId       Int?
+  // organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
@@ -316,9 +316,7 @@ model Team {
   hideBookATeamMember  Boolean                 @default(false)
   members              Membership[]
   eventTypes           EventType[]
-  orgEventTypes        EventType[]             @relation("orgEventTypes")
   workflows            Workflow[]
-  orgWorkflows         Workflow[]              @relation("orgWorkflows")
   createdAt            DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
   metadata             Json?
@@ -329,15 +327,12 @@ model Team {
   parentId             Int?
   parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
   children             Team[]                  @relation("organization")
-  orgUsers             User[]                  @relation("scope")
   inviteTokens         VerificationToken[]
   webhooks             Webhook[]
-  orgWebhooks          Webhook[]               @relation("orgWebhooks")
   timeFormat           Int?
   timeZone             String                  @default("Europe/London")
   weekStart            String                  @default("Sunday")
   routingForms         App_RoutingForms_Form[]
-  orgForms             App_RoutingForms_Form[] @relation("orgForms")
   apiKeys              ApiKey[]
   credentials          Credential[]            
   accessCodes          AccessCode[]
@@ -625,8 +620,6 @@ enum WebhookTriggerEvents {
 model Webhook {
   id              String                 @id @unique
   userId          Int?
-  ownedByOrganizationId  Int?
-  ownedByOrganization    Team?                  @relation("orgWebhooks", fields: [ownedByOrganizationId], references: [id], onDelete: Cascade)
   teamId          Int?
   eventTypeId     Int?
   /// @zod.url()

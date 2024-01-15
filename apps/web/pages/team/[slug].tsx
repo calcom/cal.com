@@ -22,6 +22,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -353,13 +354,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
-
+  const membersWithRelevantProfile = [];
+  for (const member of team.members) {
+    membersWithRelevantProfile.push({
+      ...member,
+      relevantProfile: await Profile.getRelevantOrgProfile({
+        userId: member.id,
+        ownedByOrganizationId: null,
+      }),
+    });
+  }
   const members = !team.isPrivate
-    ? team.members.map((member) => {
+    ? membersWithRelevantProfile.map((member) => {
         return {
           name: member.name,
+          avatarUrl: member.avatarUrl,
           id: member.id,
           bio: member.bio,
+          relevantProfile: member.relevantProfile,
           subteams: member.subteams,
           username: member.username,
           accepted: member.accepted,

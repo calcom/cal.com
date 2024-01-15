@@ -2,7 +2,6 @@ import Head from "next/head";
 import { stringify } from "querystring";
 import z from "zod";
 
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { TRPCError } from "@calcom/trpc";
@@ -60,7 +59,19 @@ export const getServerSideProps = async function getServerSideProps(
     where: {
       id: formId,
       user: {
-        organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+        profiles: {
+          ...(isValidOrgDomain
+            ? {
+                some: {
+                  organization: {
+                    slug: currentOrgDomain,
+                  },
+                },
+              }
+            : {
+                none: {},
+              }),
+        },
       },
     },
   });

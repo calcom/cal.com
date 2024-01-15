@@ -39,6 +39,8 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
+  // TODO: Should we delete profile here or will it be automatic ?
+
   const removeOrgrelation = prisma.user.updateMany({
     where: {
       id: {
@@ -46,7 +48,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
       },
     },
     data: {
-      // Remove organization relation
+      // @ts-expect-error // Remove organization relation
       organizationId: null,
       // Set username to null - to make sure there is no conflicts
       username: null,
