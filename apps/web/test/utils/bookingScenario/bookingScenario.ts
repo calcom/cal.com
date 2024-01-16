@@ -19,6 +19,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
@@ -128,6 +129,8 @@ export type InputEventType = {
   durationLimits?: IntervalLimit;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
+type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
+
 type WhiteListedBookingProps = {
   id?: number;
   uid?: string;
@@ -137,11 +140,15 @@ type WhiteListedBookingProps = {
   endTime: string;
   title?: string;
   status: BookingStatus;
-  attendees?: { email: string }[];
+  attendees?: {
+    email: string;
+    bookingSeat?: AttendeeBookingSeatInput | null;
+  }[];
   references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  bookingSeat?: Prisma.BookingSeatCreateInput[];
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
@@ -334,7 +341,7 @@ async function addBookings(bookings: InputBooking[]) {
       );
     }
     return {
-      uid: uuidv4(),
+      uid: booking.uid || uuidv4(),
       workflowReminders: [],
       references: [],
       title: "Test Booking Title",
@@ -361,10 +368,23 @@ async function addBookings(bookings: InputBooking[]) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           createMany: {
-            data: booking.attendees,
+            data: booking.attendees.map((attendee) => {
+              if (attendee.bookingSeat) {
+                const { bookingSeat, ...attendeeWithoutBookingSeat } = attendee;
+                return {
+                  ...attendeeWithoutBookingSeat,
+                  bookingSeat: {
+                    create: { ...bookingSeat, bookingId: booking.id },
+                  },
+                };
+              } else {
+                return attendee;
+              }
+            }),
           },
         };
       }
+
       return bookingCreate;
     })
   );
@@ -887,6 +907,7 @@ export function getOrganizer({
   weekStart = "Sunday",
   teams,
   organizationId,
+  metadata,
 }: {
   name: string;
   email: string;
@@ -899,6 +920,7 @@ export function getOrganizer({
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: WeekDays;
   teams?: InputUser["teams"];
+  metadata?: userMetadataType;
 }) {
   return {
     ...TestData.users.example,
@@ -913,6 +935,7 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
+    metadata,
   };
 }
 
@@ -1394,13 +1417,18 @@ export function getMockBookingReference(
   };
 }
 
-export function getMockBookingAttendee(attendee: Omit<Attendee, "bookingId">) {
+export function getMockBookingAttendee(
+  attendee: Omit<Attendee, "bookingId"> & {
+    bookingSeat?: AttendeeBookingSeatInput;
+  }
+) {
   return {
     id: attendee.id,
     timeZone: attendee.timeZone,
     name: attendee.name,
     email: attendee.email,
     locale: attendee.locale,
+    bookingSeat: attendee.bookingSeat || null,
   };
 }
 
