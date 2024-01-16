@@ -1,5 +1,4 @@
 import { prisma } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -20,9 +19,15 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     },
     include: {
       team: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logo: true,
+          isOrganization: true,
           inviteTokens: true,
           parent: true,
+          parentId: true,
         },
       },
     },
@@ -31,8 +36,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   return memberships
     .filter((mmship) => {
-      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-      return !metadata?.isOrganization;
+      return !mmship.team.isOrganization;
     })
     .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
       role: membership.role,

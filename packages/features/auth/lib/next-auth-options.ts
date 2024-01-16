@@ -61,20 +61,10 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
-      AND: [
-        {
-          metadata: {
-            path: ["isOrganizationVerified"],
-            equals: true,
-          },
-        },
-        {
-          metadata: {
-            path: ["orgAutoAcceptEmail"],
-            equals: apexDomain,
-          },
-        },
-      ],
+      organizationSettings: {
+        isOrganizationVerified: true,
+        orgAutoAcceptEmail: apexDomain,
+      },
     },
     select: {
       id: true,
@@ -508,7 +498,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: user?.impersonatedByUID,
+          impersonatedBy: user.impersonatedBy,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
@@ -547,7 +537,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
-          impersonatedByUID: token.impersonatedByUID as number,
+          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
@@ -567,7 +557,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           name: token.name,
           username: token.username as string,
           role: token.role as UserPermissionRole,
-          impersonatedByUID: token.impersonatedByUID as number,
+          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,

@@ -1,4 +1,4 @@
-import { isOrganization, withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
+import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils";
 import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -34,6 +34,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           team: {
             select: {
               id: true,
+              isOrganization: true,
               name: true,
               slug: true,
               metadata: true,
@@ -55,7 +56,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
   }
 
   const nonOrgTeams = user.teams
-    .filter((membership) => !isOrganization({ team: membership.team }))
+    .filter((membership) => !membership.team.isOrganization)
     .map((membership) => ({
       ...membership,
       team: {
