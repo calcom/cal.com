@@ -4,6 +4,7 @@ import z from "zod";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   org: z.string({ required_error: "org slug is required" }),
@@ -19,16 +20,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   } = parsedQuery;
   if (!slug) return res.status(400).json({ message: "Org is needed" });
 
-  const org = await prisma.team.findFirst({
-    where: { slug },
-    select: { children: true, isOrganization: true },
-  });
+  const org = await prisma.team.findFirst({ where: { slug }, select: { children: true, metadata: true } });
 
   if (!org) return res.status(400).json({ message: "Org doesn't exist" });
 
-  const isOrganization = org.isOrganization;
+  const metadata = teamMetadataSchema.parse(org?.metadata);
 
-  if (!isOrganization) return res.status(400).json({ message: "Team is not an org" });
+  if (!metadata?.isOrganization) return res.status(400).json({ message: "Team is not an org" });
 
   return res.status(200).json({ slugs: org.children.map((ch) => ch.slug) });
 }

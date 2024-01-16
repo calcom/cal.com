@@ -1,4 +1,5 @@
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -16,7 +17,10 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
   const foundOrg = await prisma.team.findFirst({
     where: {
       id: input.orgId,
-      isOrganization: true,
+      metadata: {
+        path: ["isOrganization"],
+        equals: true,
+      },
     },
     include: {
       members: {
@@ -38,12 +42,17 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
-  await prisma.organizationSettings.update({
+  const existingMetadataParsed = teamMetadataSchema.parse(foundOrg.metadata);
+
+  await prisma.team.update({
     where: {
-      organizationId: input.orgId,
+      id: input.orgId,
     },
     data: {
-      isOrganizationVerified: true,
+      metadata: {
+        ...existingMetadataParsed,
+        isOrganizationVerified: true,
+      },
     },
   });
 
