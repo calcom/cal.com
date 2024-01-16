@@ -1,20 +1,20 @@
-import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import type { PrismaClient } from "@calcom/prisma";
+import { EventService } from "@calcom/features/eventtypes/lib/event-service";
+import { prisma } from "@calcom/prisma";
 
 import type { TEventInputSchema } from "./event.schema";
 
 interface EventHandlerOptions {
-  ctx: { prisma: PrismaClient };
   input: TEventInputSchema;
 }
 
-export const eventHandler = async ({ ctx, input }: EventHandlerOptions) => {
-  const event = await getPublicEvent(
+const eventService = new EventService(prisma);
+
+export const eventHandler = async ({ input }: EventHandlerOptions) => {
+  const event = await eventService.getPublicEvent(
     input.username,
     input.eventSlug,
     input.isTeamEvent,
-    input.org,
-    ctx.prisma
+    input.org
   );
   return event;
 };
