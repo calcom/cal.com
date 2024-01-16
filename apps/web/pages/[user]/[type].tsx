@@ -90,6 +90,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const org = isValidOrgDomain ? currentOrgDomain : null;
   if (!org) {
     const redirect = await getTemporaryOrgRedirect({
       slugs: usernames,
@@ -102,6 +103,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       return redirect;
     }
   }
+
   const usersInOrgContext = await User.getUsersFromUsernameInOrgContext({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
