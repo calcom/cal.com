@@ -332,6 +332,8 @@ export const userMetadata = z
   })
   .nullable();
 
+export type userMetadataType = z.infer<typeof userMetadata>;
+
 export const teamMetadataSchema = z
   .object({
     requestedSlug: z.string(),

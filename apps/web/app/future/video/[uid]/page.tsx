@@ -1,14 +1,15 @@
 import OldPage from "@pages/video/[uid]";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import MarkdownIt from "markdown-it";
-import { type GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -18,8 +19,8 @@ export const generateMetadata = async () =>
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
-async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolvedUrl">) {
-  const ssr = await ssrInit();
+async function getData(context: GetServerSidePropsContext) {
+  const ssr = await ssrInit(context);
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -80,7 +81,7 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {
-    bookingObj.references.forEach((bookRef: any) => {
+    bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = null;
     });
   }
@@ -94,9 +95,8 @@ async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolve
       ...bookingObj,
       ...(bookingObj.description && { description: md.render(bookingObj.description) }),
     },
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
   };
 }
 
-// @ts-expect-error getData arg
 export default WithLayout({ getData, Page: OldPage, getLayout: null })<"P">;

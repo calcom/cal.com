@@ -1,7 +1,7 @@
 import AppsPage from "@pages/apps";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
+import { WithLayout } from "app/layoutHOC";
+import type { GetServerSidePropsContext } from "next";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
@@ -11,7 +11,7 @@ import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { APP_NAME } from "@calcom/lib/constants";
 import type { AppCategories } from "@calcom/prisma/enums";
 
-import PageWrapper from "@components/PageWrapperAppDir";
+import { ssrInit } from "@server/lib/ssr";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -20,12 +20,10 @@ export const generateMetadata = async () => {
   );
 };
 
-const getPageProps = async () => {
-  const ssr = await ssrInit();
-  const req = { headers: headers(), cookies: cookies() };
+const getData = async (ctx: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(ctx);
 
-  // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: ctx.req });
 
   let appStore, userAdminTeams: UserAdminTeams;
   if (session?.user?.id) {
@@ -58,24 +56,8 @@ const getPageProps = async () => {
       }),
     appStore,
     userAdminTeams,
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
   };
 };
 
-export default async function AppPageAppDir() {
-  const { categories, appStore, userAdminTeams, dehydratedState } = await getPageProps();
-
-  const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-
-  return (
-    <PageWrapper
-      getLayout={getLayout}
-      requiresLicense={false}
-      nonce={nonce}
-      themeBasis={null}
-      dehydratedState={dehydratedState}>
-      <AppsPage categories={categories} appStore={appStore} userAdminTeams={userAdminTeams} />
-    </PageWrapper>
-  );
-}
+export default WithLayout({ getLayout, getData, Page: AppsPage });

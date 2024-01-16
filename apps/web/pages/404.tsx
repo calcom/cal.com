@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

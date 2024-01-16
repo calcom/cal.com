@@ -1,12 +1,13 @@
 import LegacyPage from "@pages/apps/categories/index";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { cookies, headers } from "next/headers";
+import type { GetServerSidePropsContext } from "next";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -15,12 +16,10 @@ export const generateMetadata = async () => {
   );
 };
 
-async function getPageProps() {
-  const ssr = await ssrInit();
-  const req = { headers: headers(), cookies: cookies() };
+const getData = async (ctx: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(ctx);
 
-  // @ts-expect-error Type '{ headers: ReadonlyHeaders; cookies: ReadonlyRequestCookies; }' is not assignable to type 'NextApiRequest | IncomingMessage
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: ctx.req });
 
   let appStore;
   if (session?.user?.id) {
@@ -38,8 +37,8 @@ async function getPageProps() {
 
   return {
     categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
   };
-}
+};
 
-export default WithLayout({ getData: getPageProps, Page: LegacyPage, getLayout: null })<"P">;
+export default WithLayout({ getData, Page: LegacyPage, getLayout: null })<"P">;
