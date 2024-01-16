@@ -25,7 +25,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   noEmail?: boolean;
   recurringCount?: number;
   appsStatus?: AppsStatus[] | undefined;
-  allRecurringDates?: string[];
+  allRecurringDates?: Record<string, string>[];
   currentRecurringIndex?: number;
 };
 
