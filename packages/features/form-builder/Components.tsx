@@ -397,6 +397,28 @@ export const Components: Record<FieldType, Component> = {
       }, [options, setValue, value]);
 
       const { t } = useLocale();
+
+      const getCleanLabel = (option: { label: string; value: string }): string | JSX.Element => {
+        if (!option.label) {
+          return "";
+        }
+
+        const getDomain = (url: string): string => {
+          const urlParts: string[] = new URL(url).hostname.split(".");
+          const partsToKeep: number = urlParts.length === 4 ? 3 : 2;
+          return urlParts.slice(-partsToKeep).join(".");
+        };
+
+        return option.label.search(/^http?:/) !== -1 ? (
+          <a href={option.label} target="_blank">
+            {" "}
+            {getDomain(option.label)}{" "}
+          </a>
+        ) : (
+          option.label
+        );
+      };
+
       return (
         <div>
           <div>
@@ -419,7 +441,7 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                      <span className="text-emphasis me-2 ms-2 text-sm">{getCleanLabel(option) ?? ""}</span>
                       <span>
                         {option.value === "phone" && (
                           <InfoBadge content={t("number_in_international_format")} />

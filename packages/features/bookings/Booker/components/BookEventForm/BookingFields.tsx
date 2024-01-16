@@ -115,17 +115,6 @@ export const BookingFields = ({
           field.options = options.filter(
             (location): location is NonNullable<(typeof options)[number]> => !!location
           );
-
-          field.options.map((option) => {
-            option.label =
-              option.label.search(/^https?:/) !== -1 ? (
-                <a href={option.label} target="_blank">
-                  {getDomain(option.label)}{" "}
-                </a>
-              ) : (
-                option.label
-              );
-          });
         }
 
         if (field?.options) {
