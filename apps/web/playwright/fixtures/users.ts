@@ -118,18 +118,21 @@ const createTeamAndAddUser = async (
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
+    isOrganization: isOrg,
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
-    ...(isOrg
-      ? {
-          isOrganization: true,
-          isOrganizationVerified: !!isOrgVerified,
-          orgAutoAcceptEmail: user.email.split("@")[1],
-          isOrganizationConfigured: false,
-        }
-      : {}),
   };
+  if (isOrg) {
+    data.organizationSettings = {
+      create: {
+        isOrganizationVerified: !!isOrgVerified,
+        orgAutoAcceptEmail: user.email.split("@")[1],
+        isOrganizationConfigured: false,
+      },
+    };
+  }
+
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
@@ -534,7 +537,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           };
         })
-        .find((membership) => !membership.team?.metadata?.isOrganization);
+        .find((membership) => !membership.team.isOrganization);
       if (!membership) {
         throw new Error("No team found for user");
       }
@@ -545,10 +548,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         where: {
           userId: user.id,
           team: {
-            metadata: {
-              path: ["isOrganization"],
-              equals: true,
-            },
+            isOrganization: true,
           },
         },
         include: { team: { include: { children: true } } },
@@ -599,6 +599,8 @@ type CustomUserOptsKeys =
   | "name"
   | "email"
   | "organizationId"
+  | "twoFactorEnabled"
+  | "disableImpersonation"
   | "role";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
@@ -631,6 +633,8 @@ const createUser = (
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
     role: opts?.role ?? "USER",
+    twoFactorEnabled: opts?.twoFactorEnabled ?? false,
+    disableImpersonation: opts?.disableImpersonation ?? false,
     ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true

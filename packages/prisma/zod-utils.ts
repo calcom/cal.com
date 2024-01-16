@@ -250,7 +250,14 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
-    allRecurringDates: z.string().array().optional(),
+    allRecurringDates: z
+      .array(
+        z.object({
+          start: z.string(),
+          end: z.string(),
+        })
+      )
+      .optional(),
     currentRecurringIndex: z.number().optional(),
     appsStatus: z
       .array(
@@ -301,6 +308,7 @@ export const vitalSettingsUpdateSchema = z.object({
 export const createdEventSchema = z
   .object({
     id: z.string(),
+    thirdPartyRecurringEventId: z.string(),
     password: z.union([z.string(), z.undefined()]),
     onlineMeetingUrl: z.string().nullable(),
     iCalUID: z.string().optional(),
@@ -324,16 +332,21 @@ export const userMetadata = z
   })
   .nullable();
 
+export const orgSettingsSchema = z
+  .object({
+    isOrganizationVerified: z.boolean().optional(),
+    isOrganizationConfigured: z.boolean().optional(),
+    orgAutoAcceptEmail: z.string().optional(),
+  })
+  .nullable();
+export type userMetadataType = z.infer<typeof userMetadata>;
+
 export const teamMetadataSchema = z
   .object({
     requestedSlug: z.string(),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
-    isOrganization: z.boolean().nullable(),
-    isOrganizationVerified: z.boolean().nullable(),
-    isOrganizationConfigured: z.boolean().nullable(),
-    orgAutoAcceptEmail: z.string().nullable(),
     migratedToOrgFrom: z
       .object({
         teamSlug: z.string().or(z.null()).optional(),

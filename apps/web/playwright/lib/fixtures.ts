@@ -7,6 +7,7 @@ import type { ExpectedUrlDetails } from "../../../../playwright.config";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmailsFixture } from "../fixtures/emails";
 import { createEmbedsFixture } from "../fixtures/embeds";
+import { createEventTypeFixture } from "../fixtures/eventTypes";
 import { createFeatureFixture } from "../fixtures/features";
 import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
@@ -31,6 +32,7 @@ export interface Fixtures {
   clipboard: ReturnType<typeof createClipboardFixture>;
   workflowPage: ReturnType<typeof createWorkflowPageFixture>;
   features: ReturnType<typeof createFeatureFixture>;
+  eventTypePage: ReturnType<typeof createEventTypeFixture>;
 }
 
 declare global {
@@ -98,5 +100,9 @@ export const test = base.extend<Fixtures>({
   workflowPage: async ({ page }, use) => {
     const workflowPage = createWorkflowPageFixture(page);
     await use(workflowPage);
+  },
+  eventTypePage: async ({ page }, use) => {
+    const eventTypePage = createEventTypeFixture(page);
+    await use(eventTypePage);
   },
 });

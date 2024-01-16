@@ -1,21 +1,16 @@
-import type z from "zod";
-
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export const createOrUpdateMemberships = async ({
-  teamMetadata,
   user,
   team,
 }: {
   user: Pick<User, "id">;
-  team: Pick<Team, "id" | "parentId">;
-  teamMetadata: z.infer<typeof teamMetadataSchema>;
+  team: Pick<Team, "id" | "parentId" | "isOrganization">;
 }) => {
   return await prisma.$transaction(async (tx) => {
-    if (teamMetadata?.isOrganization) {
+    if (team.isOrganization) {
       await tx.user.update({
         where: {
           id: user.id,
