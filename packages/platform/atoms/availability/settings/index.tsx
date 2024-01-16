@@ -1,12 +1,13 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { Timezone } from "availability/components/timezone";
 import { LargeScreenCTA } from "availability/cta/large-screen";
 import { SmallScreenCTA } from "availability/cta/small-screen";
 import { DateOverride } from "availability/date-overrides";
 import useClientSchedule from "availability/hooks/useClientSchedule";
 import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
 import { useProfileInfo } from "availability/hooks/useProfileInfo";
-import { Timezone } from "availability/timezone";
 import { Troubleshooter } from "availability/troubleshooter";
+import type { AvailabilityFormValues } from "availability/types";
 import { useApiKey } from "cal-provider";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -14,18 +15,9 @@ import { useForm, Controller } from "react-hook-form";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
-import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
 import { SkeletonText, VerticalDivider, Button, Form, showToast } from "@calcom/ui";
 import { MoreVertical } from "@calcom/ui/components/icon";
 import EditableHeading from "@calcom/web/components/ui/EditableHeading";
-
-export type AvailabilityFormValues = {
-  name: string;
-  schedule: ScheduleType;
-  dateOverrides: { ranges: TimeRange[] }[];
-  timeZone: string;
-  isDefault: boolean;
-};
 
 type AvailabilitySettingsProps = {
   id?: string;
