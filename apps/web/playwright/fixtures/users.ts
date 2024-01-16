@@ -563,6 +563,8 @@ type CustomUserOptsKeys =
   | "name"
   | "email"
   | "organizationId"
+  | "twoFactorEnabled"
+  | "disableImpersonation"
   | "role";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
@@ -594,6 +596,8 @@ const createUser = (
     timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
     locale: opts?.locale ?? "en",
     role: opts?.role ?? "USER",
+    twoFactorEnabled: opts?.twoFactorEnabled ?? false,
+    disableImpersonation: opts?.disableImpersonation ?? false,
     ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
     schedules:
       opts?.completedOnboarding ?? true
