@@ -314,7 +314,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
   let outOfOffice = false;
-
+  const isDynamicGroup = usernameList.length > 1;
   if (usernameList.length === 1) {
     const result = await handleUserRedirection({ username: usernameList[0] });
     if (result && result.outOfOffice) {
@@ -322,6 +322,19 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
     if (result && result.redirect?.destination) {
       return result;
+    }
+  }
+
+  if (!isOrgContext) {
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
     }
   }
 
@@ -358,12 +371,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     },
   });
 
-  const isDynamicGroup = usersWithoutAvatar.length > 1;
+  const users = usersWithoutAvatar.map((user) => ({
+    ...user,
+    avatar: `/${user.username}/avatar.png`,
+  }));
+
   if (isDynamicGroup) {
+    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    logger.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
       redirect: {
         permanent: false,
-        destination: `/${usernameList.join("+")}/dynamic`,
+        destination: destinationUrl,
       },
     } as {
       redirect: {
@@ -371,24 +390,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         destination: string;
       };
     };
-  }
-
-  const users = usersWithoutAvatar.map((user) => ({
-    ...user,
-    avatar: `/${user.username}/avatar.png`,
-  }));
-
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slug: usernameList[0],
-      redirectType: RedirectType.User,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return redirect;
-    }
   }
 
   const isNonOrgUser = (user: { profile: UserProfile }) => {

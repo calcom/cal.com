@@ -234,9 +234,13 @@ export async function moveTeamToOrg({
  */
 export async function removeTeamFromOrg({ targetOrgId, teamId }: { targetOrgId: number; teamId: number }) {
   const removedTeam = await dbRemoveTeamFromOrg({ teamId });
-
   await removeTeamRedirect(removedTeam.slug);
-
+  for (const membership of removedTeam.members) {
+    await removeUserFromOrg({
+      userId: membership.userId,
+      targetOrgId,
+    });
+  }
   log.debug(`Successfully removed team ${teamId} from org ${targetOrgId}`);
 }
 
@@ -747,8 +751,8 @@ async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
           },
         },
       },
-      select: {
-        slug: true,
+      include: {
+        members: true,
       },
     });
   } catch (e) {
