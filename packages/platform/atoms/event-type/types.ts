@@ -6,8 +6,6 @@ import type { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 
-import type { AvailabilityOption } from "../../../../apps/web/components/eventtype/EventAvailabilityTab";
-
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type FormValues = {
@@ -99,4 +97,11 @@ export type Option = {
   disabled?: boolean | undefined;
   icon?: string | undefined;
   slug?: string | undefined;
+};
+
+export type AvailabilityOption = {
+  label: string;
+  value: number;
+  isDefault: boolean;
+  isManaged?: boolean;
 };
