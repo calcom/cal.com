@@ -2359,7 +2359,7 @@ function handleCustomInputs(
   });
 }
 
-const getUsersFromUsernameInOrgContext = async ({
+export const getUsersFromUsernameInOrgContext = async ({
   usernameList,
   orgSlug,
 }: {
