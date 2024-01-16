@@ -119,13 +119,13 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  * @returns An object that represents the WHERE clause for the findMany/findUnique operation.
  */
 function buildWhereClause(
-  userId: number,
+  userId: number | null,
   attendeeEmails: string[],
   userIds: number[] = [],
   userEmails: string[] = []
 ) {
   const filterByAttendeeEmails = attendeeEmails.length > 0;
-  const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : { userId };
+  const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : !!userId ? { userId } : {};
   let whereClause = {};
   if (filterByAttendeeEmails) {
     whereClause = {
@@ -189,7 +189,7 @@ async function handler(req: NextApiRequest) {
       const userEmails = users.map((u) => u.email);
       args.where = buildWhereClause(userId, attendeeEmails, userIds, userEmails);
     } else if (filterByAttendeeEmails) {
-      args.where = buildWhereClause(userId, attendeeEmails, [], []);
+      args.where = buildWhereClause(null, attendeeEmails, [], []);
     }
   } else {
     const user = await prisma.user.findUnique({
