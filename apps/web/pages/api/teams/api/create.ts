@@ -29,16 +29,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const checkoutSessionSubscription = getCheckoutSessionSubscription(checkoutSession);
   const checkoutSessionMetadata = getCheckoutSessionMetadata(checkoutSession);
 
-  const activatedTeam = await prisma.team.update({
-    where: { id: checkoutSessionMetadata.pendingPaymentTeamId },
-    data: {
-      pendingPayment: false,
-    },
-  });
-
   const finalizedTeam = await prisma.team.update({
     where: { id: checkoutSessionMetadata.pendingPaymentTeamId },
     data: {
+      pendingPayment: false,
       members: {
         create: {
           userId: checkoutSessionMetadata.ownerId as number,
@@ -47,7 +41,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
       metadata: {
-        ...(typeof activatedTeam.metadata === "object" ? activatedTeam.metadata : {}),
         paymentId: checkoutSession.id,
         subscriptionId: checkoutSessionSubscription.id || null,
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id || null,
