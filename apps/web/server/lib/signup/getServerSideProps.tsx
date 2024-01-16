@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
@@ -21,17 +22,11 @@ const querySchema = z.object({
     .transform((val) => val || ""),
   email: z.string().email().optional(),
 });
-
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const flags = await getFeatureFlagMap(prisma);
-  const token = z.string().optional().parse(ctx.query.token);
-
-  // somehow it used to work before the refactoring
-  // if imported normally, it fails client-side b/c of the prisma import
-  const { isSAMLLoginEnabled } = await import("@calcom/features/ee/sso/lib/saml");
-
   const ssr = await ssrInit(ctx);
+  const token = z.string().optional().parse(ctx.query.token);
 
   const props = {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
@@ -46,7 +41,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   // no token given, treat as a normal signup without verification token
@@ -61,7 +56,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
           },
         })
       ),
-    } as const;
+    };
   }
 
   const verificationToken = await prisma.verificationToken.findUnique({
@@ -72,14 +67,16 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       team: {
         select: {
           metadata: true,
+          isOrganization: true,
           parentId: true,
           parent: {
             select: {
               slug: true,
-              metadata: true,
+              organizationSettings: true,
             },
           },
           slug: true,
+          organizationSettings: true,
         },
       },
     },
@@ -88,7 +85,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
-    } as const;
+    };
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -112,7 +109,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         permanent: false,
         destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
       },
-    } as const;
+    };
   }
 
   const guessUsernameFromEmail = (email: string) => {
@@ -128,8 +125,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;
-  const isOrganization = tokenTeam.metadata?.isOrganization;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
+  const isOrganization = tokenTeam.isOrganization;
   const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganizationOrATeamInOrganization
@@ -146,9 +143,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
-  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
-    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
-    : null;
+  const parentOrgSettings = tokenTeam?.parent?.organizationSettings ?? null;
 
   return {
     props: {
@@ -161,16 +156,16 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
               ? getOrgUsernameFromEmail(
                   verificationToken.identifier,
                   (isOrganization
-                    ? tokenTeam.metadata?.orgAutoAcceptEmail
-                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                    ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
+                    : parentOrgSettings?.orgAutoAcceptEmail) || ""
                 )
               : slugify(username),
           }
         : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
+        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
         : null,
     },
-  } as const;
+  };
 };
