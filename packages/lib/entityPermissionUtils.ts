@@ -19,7 +19,7 @@ export function canEditEntity(
   );
 }
 
-export function isOrganization({ team }: { team: Team }) {
+export function isOrganization({ team }: { team: Pick<Team, "isOrganization"> }) {
   return team.isOrganization;
 }
 
