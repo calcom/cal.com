@@ -1,4 +1,4 @@
-import { EventTypeScheduleDetails } from "event-type/components/event-type-schedule/details";
+import EventTypeScheduleDetails from "event-type/components/event-type-schedule/details";
 import { SingleValue } from "event-type/components/single-value";
 import type { FormValues } from "event-type/types";
 import type { AvailabilityOption } from "event-type/types";
