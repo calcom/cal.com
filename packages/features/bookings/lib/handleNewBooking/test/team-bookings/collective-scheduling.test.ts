@@ -3,10 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
