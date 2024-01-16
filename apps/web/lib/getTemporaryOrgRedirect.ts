@@ -7,45 +7,65 @@ import type { RedirectType } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["lib", "getTemporaryOrgRedirect"] });
 export const getTemporaryOrgRedirect = async ({
-  slug,
+  slugs,
   redirectType,
   eventTypeSlug,
   currentQuery,
 }: {
-  slug: string;
+  slugs: string[] | string;
   redirectType: RedirectType;
   eventTypeSlug: string | null;
   currentQuery: ParsedUrlQuery;
 }) => {
   const prisma = (await import("@calcom/prisma")).default;
+  slugs = slugs instanceof Array ? slugs : [slugs];
   log.debug(
     `Looking for redirect for`,
     safeStringify({
-      slug,
+      slugs,
       redirectType,
       eventTypeSlug,
     })
   );
-  const redirect = await prisma.tempOrgRedirect.findUnique({
+
+  const redirects = await prisma.tempOrgRedirect.findMany({
     where: {
-      from_type_fromOrgId: {
-        type: redirectType,
-        from: slug,
-        fromOrgId: 0,
+      type: redirectType,
+      from: {
+        in: slugs,
       },
+      fromOrgId: 0,
     },
   });
 
-  if (redirect) {
-    log.debug(`Redirecting ${slug} to ${redirect.toUrl}`);
-    const newDestinationWithoutQuery = eventTypeSlug ? `${redirect.toUrl}/${eventTypeSlug}` : redirect.toUrl;
-    const currentQueryString = stringify(currentQuery);
-    return {
-      redirect: {
-        permanent: false,
-        destination: `${newDestinationWithoutQuery}${currentQueryString ? `?${currentQueryString}` : ""}`,
-      },
-    } as const;
+  const currentQueryString = stringify(currentQuery);
+  if (!redirects.length) {
+    return null;
   }
-  return null;
+
+  // Use the first redirect origin as the new origin as we aren't supposed to handle different org usernames in a group
+  const newOrigin = new URL(redirects[0].toUrl).origin;
+  const query = currentQueryString ? `?${currentQueryString}` : "";
+  // Use the same order as in input slugs - It is important from Dynamic Group perspective as the first user's settings are used for various things
+  const newSlugs = slugs.map((slug) => {
+    const redirect = redirects.find((redirect) => redirect.from === slug);
+    if (!redirect) {
+      return slug;
+    }
+    const newSlug = new URL(redirect.toUrl).pathname.slice(1);
+    return newSlug;
+  });
+
+  const newSlug = newSlugs.join("+");
+  const newPath = newSlug ? `/${newSlug}` : "";
+
+  const newDestination = `${newOrigin}${newPath}${eventTypeSlug ? `/${eventTypeSlug}` : ""}${query}`;
+  log.debug(`Suggesting redirect from ${slugs} to ${newDestination}`);
+
+  return {
+    redirect: {
+      permanent: false,
+      destination: newDestination,
+    },
+  } as const;
 };

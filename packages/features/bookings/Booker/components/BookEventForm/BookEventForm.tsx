@@ -25,7 +25,6 @@ import {
 import getBookingResponsesSchema, {
   getBookingResponsesPartialSchema,
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import { Spinner } from "@calcom/features/calendars/weeklyview/components/spinner/Spinner";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
@@ -531,10 +530,22 @@ const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) =>
               </Button>
             </div>
           ) : (
-            <div>
+            <div className="text-center">
               <p className="font-medium">{t("connecting_you_to_someone")}</p>
+              {/* TODO: Add countdown from 60 seconds
+                  We are connecting you!
+                  Please schedule a future call if we're not available in XX seconds.
+              */}
+
+              {/* Once countdown ends: 
+                  Oops, we couldn't connect you this time.
+                  Please schedule a future call instead. We value your time.  
+              */}
+
               <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
-              <Spinner className="relative mt-8" />
+              <div className="h-[450px]">
+                <iframe className="mx-auto h-full" src="https://cal.games/" />
+              </div>
             </div>
           )}
         </div>
