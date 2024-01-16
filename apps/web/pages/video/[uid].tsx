@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
@@ -332,15 +333,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookRef.meetingPassword = null;
     });
   }
-
-  const videoReferences = bookingObj.references.filter((reference) => reference.type.includes("_video"));
-  const latestVideoReference = videoReferences[videoReferences.length - 1];
+  const videoReference = getCalVideoReference(bookingObj.references);
 
   return {
     props: {
-      meetingUrl: latestVideoReference.meetingUrl ?? "",
-      ...(typeof latestVideoReference.meetingPassword === "string" && {
-        meetingPassword: latestVideoReference.meetingPassword,
+      meetingUrl: videoReference.meetingUrl ?? "",
+      ...(typeof videoReference.meetingPassword === "string" && {
+        meetingPassword: videoReference.meetingPassword,
       }),
       booking: {
         ...bookingObj,
