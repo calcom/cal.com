@@ -185,12 +185,7 @@ const DateOverrideForm = ({
           );
         }
 
-        onChange(
-          dates.map((date) => ({
-            start: date.ranges[0].start,
-            end: date.ranges[0].end,
-          }))
-        );
+        onChange(dates.flatMap((date) => date.ranges));
 
         setSelectedDates([]);
       }}
