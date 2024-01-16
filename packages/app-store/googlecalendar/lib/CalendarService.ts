@@ -2,6 +2,7 @@
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
+import { RRule } from "rrule";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -209,6 +210,16 @@ export default class GoogleCalendarService implements Calendar {
       payload["location"] = getLocation(calEventRaw);
     }
 
+    if (calEventRaw.recurringEvent) {
+      const rule = new RRule({
+        freq: calEventRaw.recurringEvent.freq,
+        interval: calEventRaw.recurringEvent.interval,
+        count: calEventRaw.recurringEvent.count,
+      });
+
+      payload["recurrence"] = [rule.toString()];
+    }
+
     if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
       payload["conferenceData"] = calEventRaw.conferenceData;
     }
@@ -220,22 +231,70 @@ export default class GoogleCalendarService implements Calendar {
       "primary";
 
     try {
-      const event = await calendar.events.insert({
-        calendarId: selectedCalendar,
-        requestBody: payload,
-        conferenceDataVersion: 1,
-        sendUpdates: "none",
-      });
+      let event;
+      let recurringEventId = null;
+      if (calEventRaw.existingRecurringEvent) {
+        recurringEventId = calEventRaw.existingRecurringEvent.recurringEventId;
+        const recurringEventInstances = await calendar.events.instances({
+          calendarId: selectedCalendar,
+          eventId: calEventRaw.existingRecurringEvent.recurringEventId,
+        });
+        if (recurringEventInstances.data.items) {
+          const calComEventStartTime = dayjs(calEventRaw.startTime).format();
+          for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
+            const instance = recurringEventInstances.data.items[i];
+            const instanceStartTime = dayjs(instance.start?.dateTime)
+              .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
+              .format();
 
-      if (event && event.data.id && event.data.hangoutLink) {
+            if (instanceStartTime === calComEventStartTime) {
+              event = instance;
+              break;
+            }
+          }
+
+          if (!event) {
+            event = recurringEventInstances.data.items[0];
+            this.log.error(
+              "Unable to find matching event amongst recurring event instances",
+              safeStringify({ selectedCalendar, credentialId })
+            );
+          }
+          await calendar.events.patch({
+            calendarId: selectedCalendar,
+            eventId: event.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...calEventRaw,
+              }),
+            },
+          });
+        }
+      } else {
+        const eventResponse = await calendar.events.insert({
+          calendarId: selectedCalendar,
+          requestBody: payload,
+          conferenceDataVersion: 1,
+          sendUpdates: "none",
+        });
+        event = eventResponse.data;
+        if (event.recurrence) {
+          if (event.recurrence.length > 0) {
+            recurringEventId = event.id;
+            event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
+          }
+        }
+      }
+
+      if (event && event.id && event.hangoutLink) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
-          eventId: event.data.id || "",
+          eventId: event.id || "",
           requestBody: {
             description: getRichDescription({
               ...calEventRaw,
-              additionalInformation: { hangoutLink: event.data.hangoutLink },
+              additionalInformation: { hangoutLink: event.hangoutLink },
             }),
           },
         });
@@ -243,14 +302,16 @@ export default class GoogleCalendarService implements Calendar {
 
       return {
         uid: "",
-        ...event.data,
-        id: event.data.id || "",
+        ...event,
+        id: event?.id || "",
+        thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
-          hangoutLink: event.data.hangoutLink || "",
+          hangoutLink: event?.hangoutLink || "",
         },
         type: "google_calendar",
         password: "",
         url: "",
+        iCalUID: event?.iCalUID,
       };
     } catch (error) {
       this.log.error(
@@ -258,6 +319,22 @@ export default class GoogleCalendarService implements Calendar {
         safeStringify({ error, selectedCalendar, credentialId })
       );
       throw error;
+    }
+  }
+  async getFirstEventInRecurrence(
+    recurringEventId: string | null | undefined,
+    selectedCalendar: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<calendar_v3.Schema$Event> {
+    const recurringEventInstances = await calendar.events.instances({
+      calendarId: selectedCalendar,
+      eventId: recurringEventId || "",
+    });
+
+    if (recurringEventInstances.data.items) {
+      return recurringEventInstances.data.items[0];
+    } else {
+      return {} as calendar_v3.Schema$Event;
     }
   }
 

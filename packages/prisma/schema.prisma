@@ -373,19 +373,20 @@ model InstantMeetingToken {
 }
 
 model BookingReference {
-  id                 Int      @id @default(autoincrement())
+  id                         Int      @id @default(autoincrement())
   /// @zod.min(1)
-  type               String
+  type                       String
   /// @zod.min(1)
-  uid                String
-  meetingId          String?
-  meetingPassword    String?
-  meetingUrl         String?
-  booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId          Int?
-  externalCalendarId String?
-  deleted            Boolean?
-  credentialId       Int?
+  uid                        String
+  meetingId                  String?
+  thirdPartyRecurringEventId String?
+  meetingPassword            String?
+  meetingUrl                 String?
+  booking                    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId                  Int?
+  externalCalendarId         String?
+  deleted                    Boolean?
+  credentialId               Int?
 
   @@index([bookingId])
   @@index([credentialId])
