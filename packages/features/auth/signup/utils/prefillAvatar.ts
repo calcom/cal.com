@@ -57,6 +57,7 @@ export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
 const getImageUrlAvatarAPI = async (email: string) => {
   if (!process.env.AVATARAPI_USERNAME || !process.env.AVATARAPI_PASSWORD) {
     console.info("No avatar api credentials found");
+    return null;
   }
 
   const response = await fetch("https://avatarapi.com/v2/api.aspx", {
