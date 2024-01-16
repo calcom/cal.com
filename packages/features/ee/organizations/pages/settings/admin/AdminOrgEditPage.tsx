@@ -6,7 +6,7 @@ import { z } from "zod";
 import NoSSR from "@calcom/core/components/NoSSR";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import type { orgSettingsSchema } from "@calcom/prisma/zod-utils";
+import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, Meta, TextField, showToast } from "@calcom/ui";
 
@@ -43,7 +43,7 @@ const OrgEditView = ({ orgId }: { orgId: number }) => {
 type FormValues = {
   name: Team["name"];
   slug: Team["slug"];
-  organizationSettings: z.infer<typeof orgSettingsSchema>;
+  metadata: z.infer<typeof teamMetadataSchema>;
 };
 
 const OrgForm = ({
@@ -81,10 +81,6 @@ const OrgForm = ({
     mutation.mutate({
       id: org.id,
       ...values,
-      organizationSettings: {
-        ...org.organizationSettings,
-        orgAutoAcceptEmail: values.organizationSettings?.orgAutoAcceptEmail,
-      },
     });
   };
 
@@ -100,7 +96,7 @@ const OrgForm = ({
         label="Domain for which invitations are auto-accepted"
         placeholder="abc.com"
         required
-        {...form.register("organizationSettings.orgAutoAcceptEmail")}
+        {...form.register("metadata.orgAutoAcceptEmail")}
       />
       <Button type="submit" color="primary" loading={mutation.isLoading}>
         {t("save")}

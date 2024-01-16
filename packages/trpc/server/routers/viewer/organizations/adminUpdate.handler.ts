@@ -17,13 +17,10 @@ type AdminUpdateOptions = {
 };
 
 export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
-  const { id, organizationSettings, ...restInput } = input;
+  const { id, ...restInput } = input;
   const existingOrg = await prisma.team.findUnique({
     where: {
       id: id,
-    },
-    include: {
-      organizationSettings: true,
     },
   });
 
@@ -35,8 +32,10 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   }
 
   const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), existingOrg.metadata);
-
-  const data: Prisma.TeamUpdateArgs["data"] = restInput;
+  const data: Prisma.TeamUpdateArgs["data"] = {
+    ...restInput,
+    metadata: mergeMetadata({ ...restInput.metadata }),
+  };
 
   if (restInput.slug) {
     await throwIfSlugConflicts({ id, slug: restInput.slug });
@@ -50,33 +49,13 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     data.metadata = mergeMetadata({
       // If we save slug, we don't need the requestedSlug anymore
       requestedSlug: undefined,
+      ...input.metadata,
     });
   }
 
-  const updatedOrganisation = await prisma.$transaction(async (tx) => {
-    const updatedOrganisation = await tx.team.update({
-      where: { id },
-      data,
-    });
-
-    if (organizationSettings || existingOrg.organizationSettings) {
-      await tx.organizationSettings.update({
-        where: {
-          organizationId: updatedOrganisation.id,
-        },
-        data: {
-          isOrganizationConfigured:
-            organizationSettings?.isOrganizationConfigured ||
-            existingOrg.organizationSettings?.isOrganizationConfigured,
-          isOrganizationVerified:
-            organizationSettings?.isOrganizationVerified ||
-            existingOrg.organizationSettings?.isOrganizationVerified,
-          orgAutoAcceptEmail:
-            organizationSettings?.orgAutoAcceptEmail || existingOrg.organizationSettings?.orgAutoAcceptEmail,
-        },
-      });
-    }
-    return updatedOrganisation;
+  const updatedOrganisation = await prisma.team.update({
+    where: { id },
+    data,
   });
 
   return updatedOrganisation;

@@ -61,8 +61,6 @@ const mockedTeam: TeamWithParent = {
   parent: null,
   isPrivate: false,
   logoUrl: "",
-  isOrganization: false,
-  calVideoLogo: "",
 };
 
 const mockUser: Invitee = {
@@ -210,10 +208,7 @@ describe("Invite Member Utils", () => {
   describe("getIsOrgVerified", () => {
     it("should return the correct values when isOrg is true and teamMetadata.orgAutoAcceptEmail is true", () => {
       const team = {
-        organizationSettings: {
-          id: 1,
-          teamId: 1,
-          isOrganizationConfigured: false,
+        metadata: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "example.com",
         },
@@ -232,10 +227,7 @@ describe("Invite Member Utils", () => {
         metadata: {},
         parent: {
           ...mockedTeam,
-          organizationSettings: {
-            id: 1,
-            teamId: 1,
-            isOrganizationConfigured: false,
+          metadata: {
             isOrganizationVerified: false,
             orgAutoAcceptEmail: "example.com",
           },
