@@ -525,7 +525,12 @@ export default function Signup({
             style={{
               backgroundColor: "rgba(236,237,239,0.9)",
             }}>
-            <img src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+            <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+            <img
+              className="hidden dark:block"
+              src="/mock-event-type-list-dark.svg"
+              alt="Cal.com Booking Page"
+            />
           </div>
           <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
             {FEATURES.map((feature) => (
