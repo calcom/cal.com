@@ -73,4 +73,13 @@ export class UsersRepository {
 
     return sanitizedUser;
   }
+
+  setDefaultSchedule(userId: number, scheduleId: number) {
+    return this.dbWrite.prisma.user.update({
+      where: { id: userId },
+      data: {
+        defaultScheduleId: scheduleId,
+      },
+    });
+  }
 }
