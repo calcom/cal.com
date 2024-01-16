@@ -184,29 +184,6 @@ async function createOrganizationAndAddMembersAndTeams({
       },
     });
 
-    // await prisma.eventType.create({
-    //   data: {
-    //     title: `${member.name} Organization Event`,
-    //     slug: `${member.username}-organization-event`,
-    //     length: 15,
-    //     ownedByOrganization: {
-    //       connect: {
-    //         id: orgInDb.id,
-    //       },
-    //     },
-    //     owner: {
-    //       connect: {
-    //         id: member.id,
-    //       },
-    //     },
-    //     users: {
-    //       connect: {
-    //         id: member.id,
-    //       },
-    //     },
-    //   },
-    // });
-
     // Create schedule for every member
     await prisma.schedule.create({
       data: {

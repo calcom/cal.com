@@ -1,3 +1,4 @@
+import type { User as PrismaUser } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
@@ -6,6 +7,7 @@ import type { PersonalProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
+import { User } from "./user";
 
 const organizationSelect = {
   id: true,
@@ -15,9 +17,41 @@ const organizationSelect = {
   calVideoLogo: true,
 };
 
+export enum LookupTarget {
+  User,
+  Profile,
+}
+
 export class Profile {
   static generateProfileUid() {
     return uuidv4();
+  }
+
+  private static getInheritedDataFromUser({ user }: { user: PrismaUser }) {
+    return {
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      startTime: user.startTime,
+      endTime: user.endTime,
+      bufferTime: user.bufferTime,
+      avatar: user.avatar,
+    };
+  }
+
+  static getLookupTarget(id: string) {
+    if (id.startsWith("usr-")) {
+      return {
+        type: LookupTarget.User,
+        id: parseInt(id.replace("usr-", "")),
+      } as const;
+    }
+    if (id.startsWith("pfl")) {
+      return {
+        type: LookupTarget.Profile,
+        id: parseInt(id.replace("pfl-", "")),
+      } as const;
+    }
+    throw new Error(`Invalid lookup id: ${id}`);
   }
 
   private static async _create({
@@ -46,11 +80,16 @@ export class Profile {
             id: organizationId,
           },
         },
-        movedFromUser: {
-          connect: {
-            id: movedFromUserId,
-          },
-        },
+        ...(movedFromUserId
+          ? {
+              movedFromUser: {
+                connect: {
+                  id: movedFromUserId,
+                },
+              },
+            }
+          : null),
+
         username: username || email.split("@")[0],
       },
     });
@@ -187,6 +226,34 @@ export class Profile {
     return profile;
   }
 
+  static async findByIdWithLegacySupport(id: string) {
+    const lookupTarget = Profile.getLookupTarget(id);
+    if (lookupTarget.type === LookupTarget.User) {
+      const user = await User.getUserById({ id: lookupTarget.id });
+      if (!user) {
+        return null;
+      }
+      return {
+        username: user.username,
+        legacyId: id,
+        id: user.id,
+        ...Profile.getInheritedDataFromUser({ user }),
+      };
+    } else {
+      const profile = await Profile.getProfile(lookupTarget.id);
+      if (!profile) {
+        return null;
+      }
+      const user = profile.user;
+      return {
+        id: profile.id,
+        legacyId: id,
+        username: profile.username,
+        ...Profile.getInheritedDataFromUser({ user }),
+      };
+    }
+  }
+
   static async getProfile(id: number | null) {
     if (!id) {
       return null;
@@ -302,8 +369,10 @@ export class Profile {
     });
   }
 
-  static getPersonalProfile({ user }: { user: { username: string | null } }): PersonalProfile {
+  static getPersonalProfile({ user }: { user: { username: string | null; id: number } }): PersonalProfile {
     return {
+      id: null,
+      legacyId: `usr-${user.id}`,
       username: user.username,
       organizationId: null,
       organization: null,
@@ -313,6 +382,7 @@ export class Profile {
 
 export const enrichProfile = <
   T extends {
+    id: number;
     organization: Pick<Team, keyof typeof organizationSelect>;
     createdAt: Date;
     updatedAt: Date;
@@ -322,6 +392,7 @@ export const enrichProfile = <
 ) => {
   return {
     ...profile,
+    legacyId: `pfl-${profile.id}`,
     organization: getParsedTeam(profile.organization),
     createdAt: profile.createdAt.toISOString(),
     updatedAt: profile.updatedAt.toISOString(),

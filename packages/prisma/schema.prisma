@@ -64,6 +64,8 @@ model EventType {
   users                           User[]                  @relation("user_eventtype")
   owner                           User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                          Int?
+  profileId                       Int?
+  profile                         Profile?                @relation(fields: [profileId], references: [id], onDelete: Cascade)
   team                            Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                          Int?
   hashedLink                      HashedLink?
@@ -288,6 +290,7 @@ model Profile {
   organizationId     Int
   organization       Team                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   username           String
+  eventTypes         EventType[]             
   memberships        Membership[]
   bookings           Booking[]
   schedules          Schedule[]

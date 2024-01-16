@@ -180,18 +180,21 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       }
     } else {
       for (const user of existingUsersWithMembersips) {
-        // FIXME: Don't rely on user input
-        await Profile.create({
-          userId: user.id,
-          organizationId: team.id,
-          username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),
-          email: user.email,
-        });
+        const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
+        if (shouldAutoAccept) {
+          await Profile.create({
+            userId: user.id,
+            organizationId: team.id,
+            username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),
+            email: user.email,
+          });
+        }
+
         await prisma.membership.create({
           data: {
             userId: user.id,
             teamId: team.id,
-            accepted: true,
+            accepted: shouldAutoAccept,
             role: input.role,
           },
         });

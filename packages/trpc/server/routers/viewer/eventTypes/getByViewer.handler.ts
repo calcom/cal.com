@@ -9,7 +9,9 @@ import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { _getPrismaWhereClauseForUserTeams } from "@calcom/lib/server/repository/team";
+import { EventType } from "@calcom/lib/server/repository/eventType";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { Profile } from "@calcom/lib/server/repository/profile";
 import { ORGANIZATION_ID_UNKNOWN, User } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma";
@@ -42,7 +44,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     identifier: `eventTypes:getByViewer:${ctx.user.id}`,
     rateLimitingType: "common",
   });
-  const profile = ctx.user.profile;
+  const lightProfile = ctx.user.profile;
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     id: true,
     username: true,
@@ -104,75 +106,104 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     },
   });
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: ctx.user.id,
-    },
-    select: {
-      id: true,
-      avatarUrl: true,
-      username: true,
-      name: true,
-      startTime: true,
-      endTime: true,
-      bufferTime: true,
-      avatar: true,
-      teams: {
+  // 1. Get me the profile
+  // 1.1 If the profileId starts with pr- then get the profile from Profile table
+  // 1.2 Else get the profile from User table
+  // 2. Get me the teams Profile is used in
+  // 2.1 If Profile is retrieved
+  // 2.1.1 If profile.movedFromUser is set then get the memberships from profile.user.teams
+  // 2.1.2 Else get the memberships from profile.memberships
+  // 2.2 Else get the memberships from user.teams
+  // 3. Get me the those teams' members
+  // 4. Get me the eventTypes for the Profile/user
+
+  const profile = await Profile.findByIdWithLegacySupport(lightProfile.legacyId);
+  const [profileMemberships, profileEventTypes] = await Promise.all([
+    MembershipRepository.findAllByProfileIdIncludeTeam(
+      {
+        profileLegacyId: lightProfile.legacyId,
+      },
+      {
         where: {
           accepted: true,
-          team: _getPrismaWhereClauseForUserTeams({ organizationId: profile?.organizationId ?? null }),
+          // TODO: How to handle a profile that is of type User as it would fetch all the teams of the user across all organizations
         },
-        select: {
-          role: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              parentId: true,
-              metadata: true,
-              parent: true,
-              members: {
-                select: {
-                  userId: true,
-                },
-              },
-              eventTypes: {
-                select: teamEventTypeSelect,
-                orderBy: [
-                  {
-                    position: "desc",
-                  },
-                  {
-                    id: "asc",
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-      eventTypes: {
-        where: {
-          teamId: null,
-          userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-        },
-        select: {
-          ...userEventTypeSelect,
-        },
-        orderBy: [
-          {
-            position: "desc",
-          },
-          {
-            id: "asc",
-          },
-        ],
-      },
-    },
-  });
+      }
+    ),
+    EventType.findAllByProfileLegacyId({
+      profileLegacyId: lightProfile.legacyId,
+    }),
+  ]);
 
-  if (!user) {
+  // const user = await prisma.user.findUnique({
+  //   where: {
+  //     id: ctx.user.id,
+  //   },
+  //   select: {
+  //     id: true,
+  //     avatarUrl: true,
+  //     username: true,
+  //     name: true,
+  //     startTime: true,
+  //     endTime: true,
+  //     bufferTime: true,
+  //     avatar: true,
+  //     teams: {
+  //       where: {
+  //         accepted: true,
+  //         team: _getPrismaWhereClauseForUserTeams({ organizationId: profile?.organizationId ?? null }),
+  //       },
+  //       select: {
+  //         role: true,
+  //         team: {
+  //           select: {
+  //             id: true,
+  //             name: true,
+  //             slug: true,
+  //             parentId: true,
+  //             metadata: true,
+  //             parent: true,
+  //             members: {
+  //               select: {
+  //                 userId: true,
+  //               },
+  //             },
+  //             eventTypes: {
+  //               select: teamEventTypeSelect,
+  //               orderBy: [
+  //                 {
+  //                   position: "desc",
+  //                 },
+  //                 {
+  //                   id: "asc",
+  //                 },
+  //               ],
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //     eventTypes: {
+  //       where: {
+  //         teamId: null,
+  //         userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
+  //       },
+  //       select: {
+  //         ...userEventTypeSelect,
+  //       },
+  //       orderBy: [
+  //         {
+  //           position: "desc",
+  //         },
+  //         {
+  //           id: "asc",
+  //         },
+  //       ],
+  //     },
+  //   },
+  // });
+
+  if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 

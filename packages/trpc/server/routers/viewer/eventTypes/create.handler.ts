@@ -5,6 +5,7 @@ import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { EventType } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -86,19 +87,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const profile = ctx.user.profile;
   try {
-    const eventType = await ctx.prisma.eventType.create({
-      data: {
-        ...data,
-        ...(profile.organizationId
-          ? {
-              ownedByOrganization: {
-                connect: {
-                  id: profile.organizationId,
-                },
-              },
-            }
-          : null),
-      },
+    const eventType = await EventType.create({
+      ...data,
+      profileId: profile.id,
     });
     return { eventType };
   } catch (e) {

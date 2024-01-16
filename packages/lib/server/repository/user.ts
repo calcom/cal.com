@@ -232,6 +232,7 @@ export class User {
     if (!user) {
       return null;
     }
+    return user;
   }
 
   static async getAllUsersForOrganization({ organizationId }: { organizationId: number }) {
@@ -254,7 +255,7 @@ export class User {
     return orgProfiles.length > 0;
   }
 
-  static async enrichUserWithProfile<T extends { username: string | null }>({
+  static async enrichUserWithProfile<T extends { username: string | null; id: number }>({
     user,
     profileId,
   }: {
@@ -310,7 +311,6 @@ export class User {
     const orgProfiles = await Profile.getOrgProfilesForUser({ id: user.id });
 
     if (orgProfiles.length > 1) {
-      // We need to have `ownedByOrganizationId` on the entity to support this
       throw new Error("User having more than one organization profile isn't supported yet");
     }
 
