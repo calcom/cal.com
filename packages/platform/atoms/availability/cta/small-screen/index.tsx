@@ -1,5 +1,5 @@
-import type { AvailabilityFormValues } from "availability";
 import { Troubleshooter } from "availability/troubleshooter";
+import type { AvailabilityFormValues } from "availability/types";
 import { Controller } from "react-hook-form";
 import type { Control } from "react-hook-form";
 
@@ -15,8 +15,7 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 import { ArrowLeft, Trash } from "@calcom/ui/components/icon";
-
-import { SelectSkeletonLoader } from "../../../../../../apps/web/components/availability/SkeletonLoader";
+import { SelectSkeletonLoader } from "@calcom/web/components/availability/SkeletonLoader";
 
 type SmallScreenCTAProps = {
   isSidebarOpen: boolean;

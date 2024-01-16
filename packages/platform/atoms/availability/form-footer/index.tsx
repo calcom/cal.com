@@ -1,4 +1,4 @@
-import { Timezone } from "availability/timezone";
+import { Timezone } from "availability/components/timezone";
 import { Troubleshooter } from "availability/troubleshooter";
 
 export function FormFooter() {
