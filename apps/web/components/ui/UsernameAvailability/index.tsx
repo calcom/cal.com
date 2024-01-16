@@ -12,6 +12,7 @@ import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 interface UsernameAvailabilityFieldProps {
+  isLoading: boolean;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
@@ -23,6 +24,7 @@ export const getUsernameAvailabilityComponent = (isPremium: boolean) => {
 };
 
 export const UsernameAvailabilityField = ({
+  isLoading,
   onSuccessMutation,
   onErrorMutation,
 }: UsernameAvailabilityFieldProps) => {
@@ -61,7 +63,7 @@ export const UsernameAvailabilityField = ({
             setInputUsernameValue={onChange}
             onSuccessMutation={onSuccessMutation}
             onErrorMutation={onErrorMutation}
-            disabled={!!user.organization?.id}
+            disabled={!!user.organization?.id || isLoading}
             addOnLeading={`${usernamePrefix}/`}
           />
         );

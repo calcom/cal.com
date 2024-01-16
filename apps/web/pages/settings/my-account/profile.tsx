@@ -265,6 +265,7 @@ const ProfileView = () => {
         extraField={
           <div className="mt-6">
             <UsernameAvailabilityField
+              isLoading={updateProfileMutation.isLoading}
               onSuccessMutation={async () => {
                 showToast(t("settings_updated_successfully"), "success");
                 await utils.viewer.me.invalidate();
@@ -463,6 +464,7 @@ const ProfileForm = ({
                       <ImageUploader
                         target="avatar"
                         id="avatar-upload"
+                        disabled={isLoading}
                         buttonMsg={t("upload_avatar")}
                         handleAvatarChange={(newAvatar) => {
                           formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
@@ -474,6 +476,7 @@ const ProfileForm = ({
                       {showRemoveAvatarButton && (
                         <Button
                           color="secondary"
+                          disabled={isLoading}
                           onClick={() => {
                             formMethods.setValue("avatar", "", { shouldDirty: true });
                           }}>
@@ -489,10 +492,15 @@ const ProfileForm = ({
         </div>
         {extraField}
         <div className="mt-6">
-          <TextField label={t("full_name")} {...formMethods.register("name")} />
+          <TextField disabled={isLoading} label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
-          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+          <TextField
+            disabled={isLoading}
+            label={t("email")}
+            hint={t("change_email_hint")}
+            {...formMethods.register("email")}
+          />
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>
