@@ -1,4 +1,4 @@
-import Page from "@pages/video/[uid]";
+import Page, { type JoinCallPageProps } from "@pages/video/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -13,6 +13,6 @@ export const generateMetadata = async () =>
     (t) => t("quick_video_meeting")
   );
 
-const getData = withAppDirSsr(getServerSideProps);
+const getData = withAppDirSsr<JoinCallPageProps>(getServerSideProps);
 
 export default WithLayout({ getData, Page, getLayout: null })<"P">;
