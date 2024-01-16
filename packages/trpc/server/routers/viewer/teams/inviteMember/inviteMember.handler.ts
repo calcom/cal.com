@@ -2,6 +2,8 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { Profile } from "@calcom/lib/server/repository/profile";
@@ -179,48 +181,26 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     } else {
       for (const user of existingUsersWithMembersips) {
         // FIXME: Don't rely on user input
-        await Profile.createProfile({
+        await Profile.create({
           userId: user.id,
           organizationId: team.id,
           username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),
           email: user.email,
         });
-        const orgConnectionInfo =
-          orgConnectInfoByUsernameOrEmail[user.email] || orgConnectInfoByUsernameOrEmail[user.username || ""];
         await prisma.membership.create({
           data: {
             userId: user.id,
             teamId: team.id,
             accepted: true,
-            role:
-              organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
-                ? organizationRole
-                : input.role,
-          };
-        }),
-      });
+            role: input.role,
+          },
+        });
+      }
 
       await sendTeamInviteEmails({
         currentUserName: ctx?.user?.name,
         currentUserTeamName: team?.name,
-        existingUsersWithMembersips: autoJoinUsers,
-        language: translation,
-        isOrg: input.isOrg,
-        teamId: team.id,
-        currentUserParentTeamName: team?.parent?.name,
-      });
-    }
-
-    // invited users cannot autojoin, create provisional memberships and send email
-    if (regularUsers.length) {
-      await createProvisionalMemberships({
-        input,
-        invitees: regularUsers,
-      });
-      await sendTeamInviteEmails({
-        currentUserName: ctx?.user?.name,
-        currentUserTeamName: team?.name,
-        existingUsersWithMembersips: regularUsers,
+        existingUsersWithMembersips,
         language: translation,
         isOrg: input.isOrg,
         teamId: team.id,
