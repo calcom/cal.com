@@ -98,11 +98,6 @@ async function postHandler(req: NextApiRequest) {
       },
     });
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
-    // Setting slug in metadata, so it can be published later
-    data.metadata = {
-      requestedSlug: data.slug,
-    };
-    delete data.slug;
   }
 
   // Check if parentId is related to this user
