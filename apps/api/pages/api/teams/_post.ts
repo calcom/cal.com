@@ -88,7 +88,10 @@ async function postHandler(req: NextApiRequest) {
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
       where: {
-        slug: data.slug,
+        slug: {
+          mode: "insensitive",
+          equals: data.slug,
+        },
       },
     });
     if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
