@@ -412,7 +412,17 @@ export const Components: Record<FieldType, Component> = {
         return option.label.search(/^http?:/) !== -1 ? (
           <a href={option.label} target="_blank" style={{ textDecoration: "none" }}>
             {" "}
-            <span style={{ textDecoration: "underline" }}>{getDomain(option.label)}</span>{" "}
+            <span
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                borderBottom: "1px solid transparent",
+                transition: "border-color 0.3s ease-in-out",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.borderColor = "white")}
+              onMouseOut={(e) => (e.currentTarget.style.borderColor = "transparent")}>
+              {getDomain(option.label)}
+            </span>{" "}
           </a>
         ) : (
           option.label
