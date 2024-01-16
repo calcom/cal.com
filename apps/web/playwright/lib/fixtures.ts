@@ -29,7 +29,6 @@ export interface Fixtures {
   emails: ReturnType<typeof createEmailsFixture>;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
-  clipboard: ReturnType<typeof createClipboardFixture>;
   workflowPage: ReturnType<typeof createWorkflowPageFixture>;
   features: ReturnType<typeof createFeatureFixture>;
   eventTypePage: ReturnType<typeof createEventTypeFixture>;
