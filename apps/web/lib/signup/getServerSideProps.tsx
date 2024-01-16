@@ -9,9 +9,8 @@ import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
-
-import { IS_GOOGLE_LOGIN_ENABLED } from "../constants";
 
 const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 

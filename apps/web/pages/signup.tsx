@@ -27,9 +27,9 @@ import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
 
-import PageWrapper from "@components/PageWrapper";
+import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
-import { getServerSideProps } from "../server/lib/signup/getServerSideProps";
+import PageWrapper from "@components/PageWrapper";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -37,7 +37,7 @@ const signupSchema = apiSignupSchema.extend({
 
 type FormValues = z.infer<typeof signupSchema>;
 
-type SignupProps = inferSSRProps<typeof getServerSideProps>;
+export type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
 const FEATURES = [
   {

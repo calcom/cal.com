@@ -1,9 +1,9 @@
-import LegacyPage from "@pages/signup";
+import LegacyPage, { type SignupProps } from "@pages/signup";
 import { withAppDir } from "app/AppDirSSRHOC";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSideProps } from "@server/lib/signup/getServerSideProps";
+import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,5 +14,5 @@ export const generateMetadata = async () =>
 export default WithLayout({
   Page: LegacyPage,
   getLayout: null,
-  getData: withAppDir(getServerSideProps),
+  getData: withAppDir<SignupProps>(getServerSideProps),
 })<"P">;
