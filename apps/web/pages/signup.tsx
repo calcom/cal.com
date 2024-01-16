@@ -685,7 +685,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
-  const parentMetaDataForSubteam = tokenTeam?.parent?.organizationSettings ?? null;
+  const parentOrgSettings = tokenTeam?.parent?.organizationSettings ?? null;
 
   return {
     props: {
@@ -699,16 +699,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
                   verificationToken.identifier,
                   (isOrganization
                     ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
-                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                    : parentOrgSettings?.orgAutoAcceptEmail) || ""
                 )
               : slugify(username),
           }
         : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ??
-          parentMetaDataForSubteam?.orgAutoAcceptEmail ??
-          null
+        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
         : null,
     },
   };
