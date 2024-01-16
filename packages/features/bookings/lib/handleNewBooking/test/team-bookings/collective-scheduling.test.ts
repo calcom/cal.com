@@ -3,7 +3,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1082,6 +1085,212 @@ describe("handleNewBooking", () => {
             location: BookingLocations.ZoomVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `http://mock-zoomvideo.example.com/meeting-1`,
+          });
+        },
+        timeout
+      );
+
+      test(
+        `When event type location is Organizer Default App and user metadata is empty, default to Cal Video`,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const otherTeamMembers = [
+            {
+              name: "Other Team Member 1",
+              username: "other-team-member-1",
+              timeZone: Timezones["+5:30"],
+              defaultScheduleId: 1001,
+              email: "other-team-member-1@example.com",
+              id: 102,
+              schedules: [
+                {
+                  ...TestData.schedules.IstWorkHours,
+                  // Specify an ID directly here because we want to be able to use that ID in defaultScheduleId above.
+                  id: 1001,
+                },
+              ],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [TestData.selectedCalendars.google],
+              destinationCalendar: {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "other-team-member-1@google-calendar.com",
+              },
+            },
+          ];
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [
+              {
+                id: 2,
+                ...getGoogleCalendarCredential(),
+              },
+              {
+                id: 1,
+                ...getZoomAppCredential(),
+              },
+            ],
+            metadata: {},
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: TestData.apps["google-calendar"].type,
+              externalId: "organizer@google-calendar.com",
+            },
+          });
+
+          const { eventTypes } = await createBookingScenario(
+            getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 45,
+                  schedulingType: SchedulingType.COLLECTIVE,
+                  length: 45,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                    {
+                      id: 102,
+                    },
+                  ],
+                  locations: [
+                    {
+                      type: "conferencing",
+                    },
+                  ],
+                  destinationCalendar: {
+                    integration: TestData.apps["google-calendar"].type,
+                    externalId: "event-type-1@google-calendar.com",
+                  },
+                },
+              ],
+              organizer,
+              usersApartFromOrganizer: otherTeamMembers,
+              apps: [
+                TestData.apps["google-calendar"],
+                TestData.apps["daily-video"],
+                TestData.apps["zoomvideo"],
+              ],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+              end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: OrganizerDefaultConferencingAppType },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          const createdBooking = await handleNewBooking(req);
+
+          await expectBookingToBeInDatabase({
+            description: "",
+            location: BookingLocations.CalVideo,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            uid: createdBooking.uid!,
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.ACCEPTED,
+            references: [
+              {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
+              },
+              {
+                type: TestData.apps["google-calendar"].type,
+                uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+                meetingPassword: "MOCK_PASSWORD",
+                meetingUrl: "https://UNUSED_URL",
+              },
+            ],
+          });
+
+          // expectWorkflowToBeTriggered();
+
+          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+            destinationCalendars: [
+              {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "event-type-1@google-calendar.com",
+              },
+              {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "other-team-member-1@google-calendar.com",
+              },
+            ],
+            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
+          });
+
+          expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
+            booker,
+            organizer,
+            otherTeamMembers,
+            emails,
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          });
+
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: OrganizerDefaultConferencingAppType,
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout

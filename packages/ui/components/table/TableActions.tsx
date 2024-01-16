@@ -21,6 +21,7 @@ export type ActionType = {
   label: string;
   disabled?: boolean;
   color?: ButtonBaseProps["color"];
+  bookingId?: number;
 } & (
   | { href: string; onClick?: never; actions?: never }
   | { href?: never; onClick: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void; actions?: never }
@@ -61,6 +62,7 @@ export const DropdownActions = ({
                 data-testid={action.id}
                 StartIcon={action.icon}
                 href={action.href}
+                data-bookingid={action.bookingId}
                 onClick={action.onClick || defaultAction}>
                 {action.label}
               </DropdownItem>
@@ -87,6 +89,7 @@ export const TableActions: FC<Props> = ({ actions }) => {
               StartIcon={action.icon}
               {...(action?.actions ? { EndIcon: ChevronDown } : null)}
               disabled={action.disabled}
+              data-bookingid={action.bookingId}
               color={action.color || "secondary"}>
               {action.label}
             </Button>
