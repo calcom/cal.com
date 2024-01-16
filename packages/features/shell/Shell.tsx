@@ -995,11 +995,11 @@ export function ShellMain(props: LayoutProps) {
     <>
       {(props.heading || !!props.backPath) && (
         <div
-          className={`${classNames(
-            "flex items-center md:mb-6 md:mt-0",
+          className={classNames(
+            "flex items-center px-2 md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
             props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-          )} px-2`}>
+          )}>
           {!!props.backPath && (
             <Button
               variant="icon"
@@ -1053,7 +1053,7 @@ export function ShellMain(props: LayoutProps) {
         </div>
       )}
       {props.afterHeading && <>{props.afterHeading}</>}
-      <div className={`${classNames(props.flexChildrenContainer && "flex flex-1 flex-col")} px-2`}>
+      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col px-2")}>
         {props.children}
       </div>
     </>
