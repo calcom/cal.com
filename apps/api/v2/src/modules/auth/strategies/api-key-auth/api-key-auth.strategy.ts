@@ -1,13 +1,9 @@
+import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeyService } from "@/modules/api-key/api-key.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
-
-class BaseStrategy {
-  success!: (user: unknown) => void;
-  error!: (error: Error) => void;
-}
 
 @Injectable()
 export class ApiKeyAuthStrategy extends PassportStrategy(BaseStrategy, "api-key") {

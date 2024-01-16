@@ -4,15 +4,16 @@ import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 
 @Injectable()
-export class NextAuthMockStrategy extends PassportStrategy(BaseStrategy, "next-auth") {
-  constructor(private readonly email: string, private readonly userRepository: UsersRepository) {
+export class AccessTokenMockStrategy extends PassportStrategy(BaseStrategy, "access-token") {
+  constructor(private readonly email: string, private readonly usersRepository: UsersRepository) {
     super();
   }
+
   async authenticate() {
     try {
-      const user = await this.userRepository.findByEmail(this.email);
+      const user = await this.usersRepository.findByEmail(this.email);
       if (!user) {
-        throw new Error("User with the provided email not found");
+        throw new Error("User with the provided ID not found");
       }
 
       return this.success(user);

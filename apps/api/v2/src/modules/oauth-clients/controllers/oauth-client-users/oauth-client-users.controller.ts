@@ -66,8 +66,8 @@ export class OAuthClientUsersController {
           id: user.id,
           email: user.email,
         },
-        accessToken: accessToken,
-        refreshToken: refreshToken,
+        accessToken,
+        refreshToken,
       },
     };
   }
