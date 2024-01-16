@@ -72,12 +72,29 @@ export async function getServerSession(options: {
       email_verified: user.emailVerified !== null,
       role: user.role,
       image: `${CAL_URL}/${user.username}/avatar.png`,
-      impersonatedByUID: token.impersonatedByUID ?? undefined,
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,
     },
   };
+
+  if (token?.impersonatedBy?.id) {
+    const impersonatedByUser = await prisma.user.findUnique({
+      where: {
+        id: token.impersonatedBy.id,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+    if (impersonatedByUser) {
+      session.user.impersonatedBy = {
+        id: impersonatedByUser?.id,
+        role: impersonatedByUser.role,
+      };
+    }
+  }
 
   CACHE.set(JSON.stringify(token), session);
 

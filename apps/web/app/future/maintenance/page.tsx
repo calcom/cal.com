@@ -10,5 +10,4 @@ export const generateMetadata = async () =>
     (t) => t("under_maintenance_description", { appName: APP_NAME })
   );
 
-// @ts-expect-error Page type
 export default WithLayout({ getLayout: null, Page: LegacyPage })<"P">;
