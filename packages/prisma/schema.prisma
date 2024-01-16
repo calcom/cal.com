@@ -318,6 +318,7 @@ model Team {
   isOrganization       Boolean                 @default(false)
   organizationSettings OrganizationSettings?
   instantMeetingTokens InstantMeetingToken[]
+  pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
   @@unique([slug, isOrganization])
