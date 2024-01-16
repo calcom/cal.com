@@ -1,32 +1,15 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { AvailabilityDropdown } from "availability/components/availability-dropdown";
+import { availabilityAsString } from "availability/lib/availabilityAsString";
 import { Fragment } from "react";
 
-import { availabilityAsString } from "@calcom/lib/availability";
-import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
-import {
-  Badge,
-  Button,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuTrigger,
-  showToast,
-} from "@calcom/ui";
-import { Globe, MoreHorizontal, Star, Copy, Trash } from "@calcom/ui/components/icon";
+import { Badge, showToast } from "@calcom/ui";
+import { Globe } from "@calcom/ui/components/icon";
 
 import { useApiKey } from "../cal-provider";
 import useClientSchedule from "./hooks/useClientSchedule";
 import useDeleteSchedule from "./hooks/useDeleteSchedule";
 import { useProfileInfo } from "./hooks/useProfileInfo";
-
-export type AvailabilityFormValues = {
-  name: string;
-  schedule: ScheduleType;
-  dateOverrides: { ranges: TimeRange[] }[];
-  timeZone: string;
-  isDefault: boolean;
-};
 
 type AvailabilityProps = {
   id?: string;
@@ -39,8 +22,12 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
   const { key, error } = useApiKey();
   // if user doesnt provide a scheduleId we use the default schedule id
   // since we know there will always be one default schedule so schedule cant be empty
-  const { isLoading, data: schedule } = useClientSchedule(id ? id : "1", key);
+  const { isLoading, data: schedule } = useClientSchedule(key, id);
   const user = useProfileInfo(key);
+  const displayOptions = {
+    hour12: user.data?.timeFormat ? user.data.timeFormat === 12 : undefined,
+    timeZone: user.data?.timeZone,
+  };
 
   const { mutateAsync } = useDeleteSchedule({
     onSuccess: () => {
@@ -49,12 +36,15 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
   });
 
   const handleDelete = async (id: string | undefined) => {
-    await mutateAsync({ id: id ? id : "1", key });
+    if (!isDeletable || schedule.id === user.defaultScheduleId) {
+      showToast("You are required to have at least one schedule", "error");
+    } else if (isDeletable && schedule.id !== user.defaultScheduleId) {
+      await mutateAsync({ id, key });
+    }
   };
 
-  const displayOptions = {
-    hour12: user.data?.timeFormat ? user.data.timeFormat === 12 : undefined,
-    timeZone: user.data?.timeZone,
+  const handleDuplicate = async () => {
+    // duplication function goes here
   };
 
   if (error === "no_key") return <>You havent entered a key</>;
@@ -69,7 +59,7 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
         <div className="group flex w-full items-center justify-between sm:px-6">
           <div className="space-x-2 rtl:space-x-reverse">
             <span className="text-emphasis truncate font-medium">{schedule.name}</span>
-            {schedule.isDefault && (
+            {schedule.id === user.defaultScheduleId && (
               <Badge variant="success" className="text-xs">
                 Default
               </Badge>
@@ -81,6 +71,7 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
               .map((availability: any) => (
                 <Fragment key={availability.id}>
                   {availabilityAsString(availability, {
+                    locale: "en",
                     hour12: displayOptions?.hour12,
                   })}
                   <br />
@@ -94,62 +85,14 @@ export function Availability({ id, isDeletable = true }: AvailabilityProps) {
             )}
           </p>
         </div>
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button
-              data-testid="schedule-more"
-              className="mx-5"
-              type="button"
-              variant="icon"
-              color="secondary"
-              StartIcon={MoreHorizontal}
-            />
-          </DropdownMenuTrigger>
-          {!isLoading && schedule && (
-            <DropdownMenuContent>
-              <DropdownMenuItem className="focus:ring-muted min-w-40">
-                {!schedule.isDefault && (
-                  <DropdownItem
-                    type="button"
-                    StartIcon={Star}
-                    onClick={() => {
-                      // set to default function goes here
-                    }}>
-                    Set as default
-                  </DropdownItem>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem className="outline-none">
-                <DropdownItem
-                  type="button"
-                  data-testid={`schedule-duplicate${schedule.id}`}
-                  StartIcon={Copy}
-                  onClick={() => {
-                    // duplication function goes here
-                  }}>
-                  Duplicate
-                </DropdownItem>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-muted min-w-40">
-                <DropdownItem
-                  type="button"
-                  color="destructive"
-                  StartIcon={Trash}
-                  data-testid="delete-schedule"
-                  onClick={() => {
-                    if (!isDeletable) {
-                      showToast("You are required to have at least one schedule", "error");
-                    } else {
-                      // deletion function goes here
-                      handleDelete(id);
-                    }
-                  }}>
-                  Delete
-                </DropdownItem>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          )}
-        </Dropdown>
+        <AvailabilityDropdown
+          schedule={schedule}
+          isLoading={isLoading}
+          onDelete={() => {
+            handleDelete(schedule.id);
+          }}
+          onDuplicate={handleDuplicate}
+        />
       </div>
     </QueryClientProvider>
   );
