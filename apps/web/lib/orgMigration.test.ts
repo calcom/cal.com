@@ -696,7 +696,7 @@ describe("orgMigration", () => {
     });
 
     describe("when user email matches orgAutoAcceptEmail", () => {
-      const orgMetadata = {
+      const orgSettings = {
         orgAutoAcceptEmail: "org1.com",
       } as const;
 
@@ -727,7 +727,7 @@ describe("orgMigration", () => {
           name: data.targetOrg.name,
           organizationSettings: {
             create: {
-              ...orgMetadata,
+              ...orgSettings,
             },
           },
         });
@@ -788,7 +788,7 @@ describe("orgMigration", () => {
           name: data.targetOrg.name,
           organizationSettings: {
             create: {
-              ...orgMetadata,
+              ...orgSettings,
             },
           },
         });
@@ -844,7 +844,7 @@ describe("orgMigration", () => {
           },
           organizationSettings: {
             create: {
-              ...orgMetadata,
+              ...orgSettings,
             },
           },
         });
