@@ -10,7 +10,7 @@ export const createOrUpdateMemberships = async ({
   team: Pick<Team, "id" | "parentId" | "isOrganization">;
 }) => {
   return await prisma.$transaction(async (tx) => {
-    if (team?.isOrganization) {
+    if (team.isOrganization) {
       await tx.user.update({
         where: {
           id: user.id,
