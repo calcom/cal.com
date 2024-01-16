@@ -765,7 +765,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -995,11 +995,11 @@ export function ShellMain(props: LayoutProps) {
     <>
       {(props.heading || !!props.backPath) && (
         <div
-          className={classNames(
+          className={`${classNames(
             "flex items-center md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
             props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-          )}>
+          )} px-2`}>
           {!!props.backPath && (
             <Button
               variant="icon"
@@ -1053,7 +1053,7 @@ export function ShellMain(props: LayoutProps) {
         </div>
       )}
       {props.afterHeading && <>{props.afterHeading}</>}
-      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
+      <div className={`${classNames(props.flexChildrenContainer && "flex flex-1 flex-col")} px-2`}>
         {props.children}
       </div>
     </>
@@ -1069,7 +1069,7 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-2 py-4 lg:px-6">
+      <div className="max-w-full py-4 lg:px-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
