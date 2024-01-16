@@ -118,7 +118,6 @@ async function postHandler(req: NextApiRequest) {
     const team = await prisma.team.create({
       data: {
         ...cloneData,
-        createdAt: new Date(),
         members: {
           create: { userId: effectiveUserId, role: MembershipRole.OWNER, accepted: true },
         },
