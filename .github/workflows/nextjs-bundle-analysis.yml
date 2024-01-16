@@ -69,7 +69,7 @@ jobs:
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
-          echo "{body}=${body}" >> $GITHUB_OUTPUT
+          echo ::set-output name=body::$body
 
       - name: Find Comment
         uses: peter-evans/find-comment@v2
