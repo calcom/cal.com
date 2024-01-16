@@ -1,6 +1,7 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { UseFormReturn, FieldValues } from "react-hook-form";
 import StickyBox from "react-sticky-box";
@@ -8,6 +9,7 @@ import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import dayjs from "@calcom/dayjs";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
@@ -62,6 +64,8 @@ const BookerComponent = ({
   hashedLink,
   isInstantMeeting = false,
 }: BookerProps) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   // const seatedEventData = useBookerStore((state) => state.seatedEventData);
@@ -69,20 +73,9 @@ const BookerComponent = ({
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
-
-  /**
-   * Prioritize dateSchedule load
-   * Component will render but use data already fetched from here, and no duplicate requests will be made
-   * */
-  const schedule = useScheduleForEvent({
-    prefetchNextMonth: false,
-    username,
-    eventSlug,
-    month,
-    duration,
-  });
   const event = useEvent();
   const { selectedTimeslot, setSelectedTimeslot } = useSlots(event);
+
   const {
     shouldShowFormInDialog,
     hasDarkBackground,
@@ -95,19 +88,54 @@ const BookerComponent = ({
     isEmbed,
     bookerLayouts,
   } = useBookerLayout(event.data);
-  const animationScope = useBookerResizeAnimation(layout, bookerState);
-
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
-  const largeCalendarSchedule = useScheduleForEvent({
-    prefetchNextMonth:
-      layout === BookerLayouts.WEEK_VIEW &&
+
+  const prefetchNextMonth =
+    (layout === BookerLayouts.WEEK_VIEW &&
       !!extraDays &&
-      dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
+      dayjs(date).month() !== dayjs(date).add(extraDays, "day").month()) ||
+    (layout === BookerLayouts.COLUMN_VIEW &&
+      dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month());
+
+  const monthCount =
+    ((layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
+      layout === BookerLayouts.COLUMN_VIEW) &&
+    dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
+      ? 2
+      : undefined;
+
+  /**
+   * Prioritize dateSchedule load
+   * Component will render but use data already fetched from here, and no duplicate requests will be made
+   * */
+  const schedule = useScheduleForEvent({
+    prefetchNextMonth,
+    username,
+    monthCount,
+    eventSlug,
+    month,
+    duration,
   });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
+  const totalWeekDays = 7;
+  const addonDays =
+    nonEmptyScheduleDays.length < extraDays
+      ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
+      : nonEmptyScheduleDays.length === extraDays
+      ? totalWeekDays
+      : 0;
+  // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
+  const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
+  if (nonEmptyScheduleDays.length !== 0)
+    columnViewExtraDays.current =
+      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+  const nextSlots =
+    Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
+
+  const animationScope = useBookerResizeAnimation(layout, bookerState);
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
@@ -121,28 +149,6 @@ const BookerComponent = ({
   const searchParams = useSearchParams();
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
-
-  const totalWeekDays = 7;
-  const addonDays =
-    nonEmptyScheduleDays.length < extraDays
-      ? (extraDays - nonEmptyScheduleDays.length + 1) * totalWeekDays
-      : nonEmptyScheduleDays.length === extraDays
-      ? totalWeekDays
-      : 0;
-  // Taking one more available slot(extraDays + 1) to calculate the no of days in between, that next and prev button need to shift.
-  const availableSlots = nonEmptyScheduleDays.slice(0, extraDays + 1);
-  if (nonEmptyScheduleDays.length !== 0)
-    columnViewExtraDays.current =
-      Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
-  const prefetchNextMonth =
-    layout === BookerLayouts.COLUMN_VIEW &&
-    dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month();
-  const monthCount =
-    dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
-  const nextSlots =
-    Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
   useBrandColors({
     brandColor: event.data?.profile.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
@@ -255,7 +261,14 @@ const BookerComponent = ({
           }}
           isUserSessionRequiredToVerify={false}
         />
-        <RedirectToInstantMeetingModal hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired} />
+        <RedirectToInstantMeetingModal
+          hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
+          bookingId={parseInt(getQueryParam("bookingId") || "0")}
+          onGoBack={() => {
+            // Prevent null on app directory
+            if (pathname) window.location.href = pathname;
+          }}
+        />
       </>
     </BookEventForm>
   );
@@ -268,7 +281,12 @@ const BookerComponent = ({
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
           style={{ animationDelay: "2s" }}>
-          <InstantBooking />
+          <InstantBooking
+            onConnectNow={() => {
+              const newPath = `${pathname}?isInstantMeeting=true`;
+              router.push(newPath);
+            }}
+          />
         </div>
       )}
       <div
@@ -342,6 +360,9 @@ const BookerComponent = ({
                           onClose={handleCloseSettingsModal}
                           isLoading={loadingConnectedCalendar}
                           onToggleConnectedCalendar={handleToggleConnectedCalendar}
+                          onClickNoCalendar={() => {
+                            router.push("/apps/categories/calendar");
+                          }}
                         />
                       </>
                     )
@@ -363,7 +384,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker event={event} />
+                      <DatePicker event={event} schedule={schedule} />
                     </div>
                   )}
               </BookerSection>
@@ -385,7 +406,7 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker event={event} />
+              <DatePicker event={event} schedule={schedule} />
             </BookerSection>
 
             <BookerSection
@@ -394,7 +415,7 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} schedule={largeCalendarSchedule} />
+              <LargeCalendar extraDays={extraDays} schedule={schedule} />
             </BookerSection>
 
             <BookerSection
@@ -415,8 +436,7 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                prefetchNextMonth={prefetchNextMonth}
-                monthCount={monthCount}
+                schedule={schedule}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
                 event={event}

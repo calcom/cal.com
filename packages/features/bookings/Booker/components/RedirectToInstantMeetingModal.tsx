@@ -1,18 +1,17 @@
-import { usePathname } from "next/navigation";
-
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 
 export const RedirectToInstantMeetingModal = ({
   hasInstantMeetingTokenExpired,
+  bookingId,
+  onGoBack,
 }: {
   hasInstantMeetingTokenExpired: boolean;
+  bookingId: number;
+  onGoBack: () => void;
 }) => {
   const { t } = useLocale();
-  const pathname = usePathname();
-  const bookingId = parseInt(getQueryParam("bookingId") || "0");
 
   return (
     <Dialog open={!!bookingId}>
@@ -24,8 +23,7 @@ export const RedirectToInstantMeetingModal = ({
               <Button
                 className="mt-4"
                 onClick={() => {
-                  // Prevent null on app directory
-                  if (pathname) window.location.href = pathname;
+                  onGoBack();
                 }}
                 color="primary">
                 {t("go_back")}

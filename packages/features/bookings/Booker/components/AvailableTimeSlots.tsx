@@ -1,24 +1,20 @@
 import { useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
-import type { useEventReturnType } from "../utils/event";
-import { useScheduleForEvent } from "../utils/event";
+import type { useEventReturnType, useScheduleForEventReturnType } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  prefetchNextMonth: boolean;
-  monthCount: number | undefined;
+  schedule: useScheduleForEventReturnType;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
   event: useEventReturnType;
@@ -36,15 +32,12 @@ export const AvailableTimeSlots = ({
   limitHeight,
   seatsPerTimeSlot,
   showAvailableSeatsCount,
-  prefetchNextMonth,
-  monthCount,
+  schedule,
   event,
 }: AvailableTimeSlotsProps) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
-  const isEmbed = useIsEmbed();
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
@@ -74,10 +67,6 @@ export const AvailableTimeSlots = ({
     if (!event.data) return;
   };
 
-  const schedule = useScheduleForEvent({
-    prefetchNextMonth,
-    monthCount,
-  });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0

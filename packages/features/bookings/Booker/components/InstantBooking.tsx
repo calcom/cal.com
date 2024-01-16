@@ -1,12 +1,12 @@
-import { usePathname, useRouter } from "next/navigation";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
-export const InstantBooking = () => {
+interface IInstantBookingProps {
+  onConnectNow: () => void;
+}
+
+export const InstantBooking = ({ onConnectNow }: IInstantBookingProps) => {
   const { t } = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
 
   return (
     <div className=" bg-default border-subtle mx-2 block items-center gap-3 rounded-xl border p-[6px] text-sm shadow-sm delay-1000 sm:flex">
@@ -42,8 +42,7 @@ export const InstantBooking = () => {
         <Button
           color="primary"
           onClick={() => {
-            const newPath = `${pathname}?isInstantMeeting=true`;
-            router.push(newPath);
+            onConnectNow();
           }}
           size="sm"
           className="w-full justify-center rounded-lg sm:w-auto">

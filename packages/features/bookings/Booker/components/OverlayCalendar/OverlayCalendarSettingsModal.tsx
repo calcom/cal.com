@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -25,6 +24,7 @@ import type { useOverlayCalendarReturnType } from "../hooks/useOverlayCalendar";
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
+  onClickNoCalendar?: () => void;
   isLoading: boolean;
   connectedCalendars: useOverlayCalendarReturnType["connectedCalendars"];
   onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
@@ -48,6 +48,7 @@ export function OverlayCalendarSettingsModal({
   isLoading,
   open,
   onClose,
+  onClickNoCalendar,
   onToggleConnectedCalendar,
 }: IOverlayCalendarContinueModalProps) {
   const { hasItem } = useLocalSet<{
@@ -55,7 +56,6 @@ export function OverlayCalendarSettingsModal({
     externalId: string;
   }>("toggledConnectedCalendars", []);
 
-  const router = useRouter();
   const { t } = useLocale();
 
   return (
@@ -78,7 +78,7 @@ export function OverlayCalendarSettingsModal({
                     headline={t("no_calendar_installed")}
                     description={t("no_calendar_installed_description")}
                     buttonText={t("add_a_calendar")}
-                    buttonOnClick={() => router.push("/apps/categories/calendar")}
+                    buttonOnClick={onClickNoCalendar}
                   />
                 ) : (
                   <>
