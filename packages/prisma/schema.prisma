@@ -316,35 +316,7 @@ model Team {
   credentials          Credential[]
   accessCodes          AccessCode[]
   instantMeetingTokens InstantMeetingToken[]
-
-  @@unique([slug, parentId])
-}
-
-model AwaitingPaymentTeam {
-  id                  Int      @id @default(autoincrement())
-  /// @zod.min(1)
-  name                String
-  /// @zod.min(1)
-  slug                String?
-  logo                String?
-  logoUrl             String?
-  calVideoLogo        String?
-  appLogo             String?
-  appIconLogo         String?
-  bio                 String?
-  hideBranding        Boolean  @default(false)
-  isPrivate           Boolean  @default(false)
-  hideBookATeamMember Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  /// @zod.custom(imports.teamMetadataSchema)
-  metadata            Json?
-  theme               String?
-  brandColor          String?
-  darkBrandColor      String?
-  parentId            Int?
-  timeFormat          Int?
-  timeZone            String   @default("Europe/London")
-  weekStart           String   @default("Sunday")
+  pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
 }

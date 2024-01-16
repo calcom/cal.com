@@ -14,7 +14,7 @@ const querySchema = z.object({
 });
 
 const checkoutSessionMetadataSchema = z.object({
-  awaitingPaymentTeamId: z.string().transform(Number),
+  pendingPaymentTeamId: z.string().transform(Number),
   ownerId: z.string().transform(Number),
 });
 
@@ -29,11 +29,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const checkoutSessionSubscription = getCheckoutSessionSubscription(checkoutSession);
   const checkoutSessionMetadata = getCheckoutSessionMetadata(checkoutSession);
 
-  const newTeamData = await getNewTeamData(checkoutSessionMetadata.awaitingPaymentTeamId);
-
-  const team = await prisma.team.create({
+  const activatedTeam = await prisma.team.update({
+    where: { id: checkoutSessionMetadata.pendingPaymentTeamId },
     data: {
-      ...newTeamData,
+      pendingPayment: false,
+    },
+  });
+
+  const finalizedTeam = await prisma.team.update({
+    where: { id: checkoutSessionMetadata.pendingPaymentTeamId },
+    data: {
       members: {
         create: {
           userId: checkoutSessionMetadata.ownerId as number,
@@ -42,7 +47,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       },
       metadata: {
-        ...(typeof newTeamData.metadata === "object" ? newTeamData.metadata : {}),
+        ...(typeof activatedTeam.metadata === "object" ? activatedTeam.metadata : {}),
         paymentId: checkoutSession.id,
         subscriptionId: checkoutSessionSubscription.id || null,
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id || null,
@@ -51,15 +56,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     include: { members: true },
   });
 
-  await prisma.awaitingPaymentTeam.delete({
-    where: { id: checkoutSessionMetadata.awaitingPaymentTeamId },
-  });
-
   const response = JSON.stringify(
     {
       message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,
-      team: schemaTeamReadPublic.parse(team),
-      owner: schemaMembershipPublic.parse(team.members[0]),
+      team: schemaTeamReadPublic.parse(finalizedTeam),
+      owner: schemaMembershipPublic.parse(finalizedTeam.members[0]),
     },
     null,
     2
@@ -110,21 +111,6 @@ function getCheckoutSessionMetadata(
   const checkoutSessionMetadata = parseCheckoutSessionMetadata.data;
 
   return checkoutSessionMetadata;
-}
-
-async function getNewTeamData(awaitingPaymentTeamId: number) {
-  const awaitingPaymentTeam = await prisma.awaitingPaymentTeam.findUnique({
-    where: { id: awaitingPaymentTeamId },
-  });
-
-  if (!awaitingPaymentTeam) {
-    throw new HttpError({ statusCode: 404, message: "Awaiting payment team not found" });
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, createdAt, ...awaitingPaymentTeamData } = awaitingPaymentTeam;
-
-  return awaitingPaymentTeamData;
 }
 
 export default defaultHandler({

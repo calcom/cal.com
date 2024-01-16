@@ -6,7 +6,7 @@ import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaTeamCreateBodyParams } from "~/lib/validations/team";
+import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
 
 /**
  * @swagger
@@ -124,22 +124,26 @@ async function postHandler(req: NextApiRequest) {
     ...data,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
-  const awaitingPaymentTeam = await prisma.awaitingPaymentTeam.create({
+
+  const pendingPaymentTeam = await prisma.team.create({
     data: {
       ...cloneData,
-      createdAt: new Date(),
+      pendingPayment: true,
     },
   });
 
   const checkoutSession = await generateTeamCheckoutSession({
-    awaitingPaymentTeamId: awaitingPaymentTeam.id,
+    pendingPaymentTeamId: pendingPaymentTeam.id,
     ownerId: effectiveUserId,
   });
 
   return {
     message:
-      "Your team will be created once we receive your payment. Please complete the payment using the provided link.",
+      "Your team will be created once we receive your payment. Please complete the payment using the payment link.",
     paymentLink: checkoutSession.url,
+    pendingTeam: {
+      ...schemaTeamReadPublic.parse(pendingPaymentTeam),
+    },
   };
 }
 
@@ -156,10 +160,10 @@ async function checkPermissions(req: NextApiRequest) {
 }
 
 const generateTeamCheckoutSession = async ({
-  awaitingPaymentTeamId,
+  pendingPaymentTeamId,
   ownerId,
 }: {
-  awaitingPaymentTeamId: number;
+  pendingPaymentTeamId: number;
   ownerId: number;
 }) => {
   const customer = await getStripeCustomerIdFromUserId(ownerId);
@@ -184,7 +188,7 @@ const generateTeamCheckoutSession = async ({
       enabled: true,
     },
     metadata: {
-      awaitingPaymentTeamId,
+      pendingPaymentTeamId,
       ownerId,
     },
   });
