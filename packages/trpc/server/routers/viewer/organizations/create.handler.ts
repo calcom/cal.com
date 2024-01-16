@@ -129,7 +129,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
             },
             organizationSettings: {
               create: {
-                isOrganizationVerified: false,
+                isOrganizationVerified: true,
                 isOrganizationConfigured,
                 orgAutoAcceptEmail: emailDomain,
               },
