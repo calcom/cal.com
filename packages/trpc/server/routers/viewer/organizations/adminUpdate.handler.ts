@@ -54,13 +54,13 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   }
 
   const updatedOrganisation = await prisma.$transaction(async (tx) => {
-    const updatedOrganisation = await prisma.team.update({
+    const updatedOrganisation = await tx.team.update({
       where: { id },
       data,
     });
 
     if (organizationSettings || existingOrg.organizationSettings) {
-      await prisma.organizationSettings.update({
+      await tx.organizationSettings.update({
         where: {
           organizationId: updatedOrganisation.id,
         },
