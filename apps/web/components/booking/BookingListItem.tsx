@@ -147,6 +147,7 @@ function BookingListItem(booking: BookingItemProps) {
       ? [
           {
             id: "confirm",
+            bookingId: booking.id,
             label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
             onClick: () => {
               bookingConfirm(true);
@@ -384,7 +385,7 @@ function BookingListItem(booking: BookingItemProps) {
                         target="_blank"
                         title={locationToDisplay}
                         rel="noreferrer"
-                        className="text-sm leading-6 text-blue-600 hover:underline">
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                         <div className="flex items-center gap-2">
                           {provider?.iconUrl && (
                             <img

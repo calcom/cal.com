@@ -6,7 +6,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
-  NotFoundPageText,
+  NotFoundPageTextAppDir,
   bookTimeSlot,
   doOnOrgDomain,
   fillStripeTestCheckout,
@@ -40,7 +40,7 @@ test.describe("Teams A/B tests", () => {
 
     expect(dataNextJsRouter).toEqual("app");
 
-    const locator = page.getByRole("heading", { name: "teams" });
+    const locator = page.getByRole("heading", { name: "Teams", exact: true });
 
     await expect(locator).toBeVisible();
   });
@@ -268,8 +268,13 @@ test.describe("Teams - NonOrg", () => {
 
     // Mark team as private
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.click("[data-testid=make-team-private-check]");
-    await expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible();
+    await Promise.all([
+      page.click("[data-testid=make-team-private-check]"),
+      expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible(),
+      // according to switch implementation, checked state can be set before mutation is resolved
+      // so we need to await for req to resolve
+      page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
+    ]);
 
     // Go to Team's page
     await page.goto(`/team/${team.slug}`);
@@ -325,15 +330,19 @@ test.describe("Teams - Org", () => {
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
       await page.getByTestId("invite-new-member-button").click();
       await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
-      expect(await page.getByTestId("pending-member-item").count()).toBe(2);
+
+      // locator.count() does not await for the expected number of elements
+      // https://github.com/microsoft/playwright/issues/14278
+      // using toHaveCount() is more reliable
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
     });
 
     await test.step("Can remove members", async () => {
-      expect(await page.getByTestId("pending-member-item").count()).toBe(2);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
       await page.waitForLoadState("networkidle");
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       // Cleanup here since this user is created without our fixtures.
       await prisma.user.delete({ where: { email: inviteeEmail } });
@@ -382,7 +391,7 @@ test.describe("Teams - Org", () => {
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
+    await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,

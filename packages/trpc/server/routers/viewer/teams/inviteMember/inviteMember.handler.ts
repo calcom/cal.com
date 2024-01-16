@@ -130,6 +130,16 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           };
         }),
       });
+
+      await sendTeamInviteEmails({
+        currentUserName: ctx?.user?.name,
+        currentUserTeamName: team?.name,
+        existingUsersWithMembersips: autoJoinUsers,
+        language: translation,
+        isOrg: input.isOrg,
+        teamId: team.id,
+        currentUserParentTeamName: team?.parent?.name,
+      });
     }
 
     // invited users cannot autojoin, create provisional memberships and send email
