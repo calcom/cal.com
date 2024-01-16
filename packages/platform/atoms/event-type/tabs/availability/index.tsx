@@ -10,8 +10,8 @@ type AvailabilityProps = {
 
 export function Availability({ eventType, isTeamEvent }: AvailabilityProps) {
   if (isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED) {
-    return <UseCommonScheduleSettingsToggle />;
+    return <UseCommonScheduleSettingsToggle eventType={eventType} />;
   }
 
-  return <EventTypeSchedule />;
+  return <EventTypeSchedule eventType={eventType} />;
 }
