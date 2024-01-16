@@ -14,7 +14,8 @@ async function downloadImageDataFromUrl(url: string) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      console.log("Error fetching image");
+      console.log("Error fetching image from: ", url);
+      return null;
     }
 
     const imageBuffer = await response.buffer();
