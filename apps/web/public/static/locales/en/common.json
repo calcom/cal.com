@@ -112,7 +112,7 @@
   "requested_to_reschedule_subject_attendee": "Action Required Reschedule: Please book a new time for {{eventType}} with {{name}}",
   "hi_user_name": "Hi {{name}}",
   "ics_event_title": "{{eventType}} with {{name}}",
-  "please_book_a_time_sometime_later":"No one was available at the moment. Please book for sometime later",
+  "please_book_a_time_sometime_later":"Oops, we couldn't connect you this time. Please schedule a future call instead",
   "new_event_subject": "New event: {{attendeeName}} - {{date}} - {{eventType}}",
   "join_by_entrypoint": "Join by {{entryPoint}}",
   "notes": "Notes",

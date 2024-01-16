@@ -25,8 +25,6 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
-  console.log("entity.orgSlug ", entity.orgSlug);
-
   return (
     <>
       {entity.orgSlug ? (
