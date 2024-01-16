@@ -1,3 +1,4 @@
+import { EventTypeSchedule } from "event-type/components/event-type-schedule";
 import type { FormValues } from "event-type/types";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -24,7 +25,7 @@ export function UseCommonScheduleSettingsToggle({ eventType }: UseCommonSchedule
           }}
           title="Choose a common schedule"
           description="Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.">
-          {/* <EventTypeSchedule eventType={eventType} /> */}
+          <EventTypeSchedule eventType={eventType} />
         </SettingsToggle>
       )}
     />
