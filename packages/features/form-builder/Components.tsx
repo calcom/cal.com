@@ -410,9 +410,9 @@ export const Components: Record<FieldType, Component> = {
         };
 
         return option.label.search(/^http?:/) !== -1 ? (
-          <a href={option.label} target="_blank">
+          <a href={option.label} target="_blank" style={{ textDecoration: "none" }}>
             {" "}
-            {getDomain(option.label)}{" "}
+            <span style={{ textDecoration: "underline" }}>{getDomain(option.label)}</span>{" "}
           </a>
         ) : (
           option.label
