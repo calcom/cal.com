@@ -12,7 +12,7 @@ import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 interface UsernameAvailabilityFieldProps {
-  isLoading: boolean;
+  isLoading?:boolean;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
