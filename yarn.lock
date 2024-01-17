@@ -4233,6 +4233,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app":
+  version: 0.0.0-use.local
+  resolution: "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/n8n@workspace:packages/app-store/n8n":
   version: 0.0.0-use.local
   resolution: "@calcom/n8n@workspace:packages/app-store/n8n"
@@ -4592,7 +4601,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
-    "@formkit/auto-animate": ^0.8.1
+    "@formkit/auto-animate": 1.0.0-beta.5
     "@radix-ui/react-checkbox": ^1.0.4
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-popover": ^1.0.2
@@ -4675,7 +4684,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@daily-co/daily-js": ^0.37.0
-    "@formkit/auto-animate": ^0.8.1
+    "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
     "@hookform/error-message": ^2.0.0
     "@hookform/resolvers": ^2.9.7
@@ -6237,10 +6246,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@formkit/auto-animate@npm:^0.8.1":
-  version: 0.8.1
-  resolution: "@formkit/auto-animate@npm:0.8.1"
-  checksum: ffc1a3432ce81bcf7abd4360fabf05b7aee01005e64ce519f57d134e68a5e15a81f295a7b2979678896bfd7d2048202a9fa2dbd09781267899e9056e918120c1
+"@formkit/auto-animate@npm:1.0.0-beta.5":
+  version: 1.0.0-beta.5
+  resolution: "@formkit/auto-animate@npm:1.0.0-beta.5"
+  checksum: 479a4f694d91e7272b2d8bdf2051fd1ae2dd5fbb522612406eaef55d88b7131402a7d5f683df8eb4e7c00810ebec8d3048483a774b0864c299d2d7af81262eb2
   languageName: node
   linkType: hard
 
