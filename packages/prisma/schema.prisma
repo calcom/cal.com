@@ -316,6 +316,7 @@ model Team {
   credentials          Credential[]
   accessCodes          AccessCode[]
   instantMeetingTokens InstantMeetingToken[]
+  pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
 }

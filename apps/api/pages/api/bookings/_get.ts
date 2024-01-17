@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
@@ -162,6 +162,9 @@ function buildWhereClause(
 
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
+
+  const { dateFrom, dateTo } = schemaBookingGetParams.parse(req.query);
+
   const args: Prisma.BookingFindManyArgs = {};
   args.include = {
     attendees: true,
@@ -203,6 +206,20 @@ async function handler(req: NextApiRequest) {
     }
     args.where = buildWhereClause(userId, attendeeEmails, [], []);
   }
+
+  if (dateFrom) {
+    args.where = {
+      ...args.where,
+      startTime: { gte: dateFrom },
+    };
+  }
+  if (dateTo) {
+    args.where = {
+      ...args.where,
+      endTime: { lte: dateTo },
+    };
+  }
+
   const data = await prisma.booking.findMany(args);
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
