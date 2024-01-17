@@ -24,7 +24,6 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
@@ -361,7 +360,58 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
+  const watchedFields = formMethods.watch();
+  const isEqual = <T extends Record<string, unknown>>(x: T, y: T): boolean => {
+    if (typeof x !== "object" || typeof y !== "object" || x === null || y === null) {
+      return x === y;
+    }
+    const xKeys = Object.keys(x);
+    const yKeys = Object.keys(y);
 
+    if (xKeys.length !== yKeys.length) {
+      return false;
+    }
+
+    for (const key of xKeys) {
+      if (!y.hasOwnProperty(key)) {
+        return false;
+      }
+
+      const xValue = x[key];
+      const yValue = y[key];
+
+      // Check if values are objects, if so, recursively call isEqual
+      if (typeof xValue === "object" && typeof yValue === "object" && xValue !== null && yValue !== null) {
+        if (!isEqual(xValue as Record<string, unknown>, yValue as Record<string, unknown>)) {
+          return false;
+        }
+      } else if (xValue !== yValue) {
+        // If not objects, check for equality directly
+        return false;
+      }
+    }
+
+    return true;
+  };
+  const getUpdatedFields = () => {
+    const changedFields: Partial<{ [K in keyof FormValues]: FormValues[K] | null }> = {};
+
+    // Iterate over watched fields and compare with initial values
+    Object.keys(watchedFields).forEach((key) => {
+      const typedKey = key as keyof FormValues;
+      if (!isEqual(watchedFields[typedKey], defaultValues[typedKey])) {
+        // changedFields[typedKey] = watchedFields[typedKey];
+        // if (!(typedKey in changedFields)) {
+        Object.assign(changedFields, { [typedKey]: watchedFields[typedKey] });
+        // }
+      }
+    });
+
+    console.log("def->", defaultValues);
+    console.log("watched->", watchedFields);
+    console.log("changed->", changedFields);
+    return changedFields;
+  };
   const handleSubmit = async (values: FormValues) => {
     const {
       periodDates,
@@ -391,6 +441,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       length,
       ...input
     } = values;
+
     if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
@@ -523,59 +574,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               ...input
             } = values;
 
-            const isEqual = <T extends Record<string, unknown>>(x: T, y: T): boolean => {
-              if (typeof x !== "object" || typeof y !== "object" || x === null || y === null) {
-                return x === y;
-              }
-              const xKeys = Object.keys(x);
-              const yKeys = Object.keys(y);
-
-              if (xKeys.length !== yKeys.length) {
-                return false;
-              }
-
-              for (const key of xKeys) {
-                if (!y.hasOwnProperty(key)) {
-                  return false;
-                }
-
-                const xValue = x[key];
-                const yValue = y[key];
-
-                // Check if values are objects, if so, recursively call isEqual
-                if (
-                  typeof xValue === "object" &&
-                  typeof yValue === "object" &&
-                  xValue !== null &&
-                  yValue !== null
-                ) {
-                  if (!isEqual(xValue as Record<string, unknown>, yValue as Record<string, unknown>)) {
-                    return false;
-                  }
-                } else if (xValue !== yValue) {
-                  // If not objects, check for equality directly
-                  return false;
-                }
-              }
-
-              return true;
-            };
-            const getUpdatedFields = (): Partial<FormValues> => {
-              const changedFields: Partial<{ [K in keyof FormValues]: FormValues[K] }> = {};
-              const watchedFields = values;
-              console.log(typeof watchedFields.length);
-
-              // Iterate over watched fields and compare with initial values
-              Object.keys(watchedFields).forEach((key) => {
-                const typedKey = key as keyof FormValues;
-                if (!isEqual(watchedFields[typedKey], defaultValues[typedKey])) {
-                  Object.assign(changedFields, { [typedKey]: watchedFields[typedKey] });
-                }
-              });
-
-              return changedFields;
-            };
-
             if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
@@ -609,10 +607,27 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             const updatedFields = getUpdatedFields();
-            console.log(updatedFields.periodCountCalendarDays);
+            console.log("updatedFields 2", updatedFields);
+
             updateMutation.mutate({
-              ...updatedFields,
+              ...rest,
+              length,
+              locations,
+              recurringEvent,
+              periodStartDate: periodDates.startDate,
+              periodEndDate: periodDates.endDate,
+              periodCountCalendarDays: periodCountCalendarDays === "1",
               id: eventType.id,
+              beforeEventBuffer: beforeBufferTime,
+              afterEventBuffer: afterBufferTime,
+              bookingLimits,
+              onlyShowFirstAvailableSlot,
+              durationLimits,
+              seatsPerTimeSlot,
+              seatsShowAttendees,
+              seatsShowAvailabilityCount,
+              metadata,
+              customInputs,
             });
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>

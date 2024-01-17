@@ -28,7 +28,6 @@ type UpdateOptions = {
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
-  console.log("updateHandler->", input);
   const {
     schedule,
     periodType,
