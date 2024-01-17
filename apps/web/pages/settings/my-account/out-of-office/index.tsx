@@ -27,6 +27,7 @@ import PageWrapper from "@components/PageWrapper";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
+  offset: number;
   toTeamUserId: number | null;
 };
 
@@ -140,6 +141,7 @@ const OutOfOfficeSection = () => {
                     startDate={getValues("dateRange").startDate}
                     endDate={getValues("dateRange").endDate}
                     onDatesChange={({ startDate, endDate }) => {
+                      setValue("offset", dayjs().utcOffset());
                       setValue("dateRange", {
                         startDate,
                         endDate,
