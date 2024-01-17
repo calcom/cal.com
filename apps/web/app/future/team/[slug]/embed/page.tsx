@@ -1,9 +1,9 @@
-import LegacyPage from "@pages/team/[slug]/embed";
+import LegacyPage, { type PageProps, getServerSideProps } from "@pages/team/[slug]";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
-import { getData } from "../page";
-
+const getData = withAppDirSsr<PageProps>(getServerSideProps);
 const getEmbedData = withEmbedSsrAppDir(getData);
 
 export default WithLayout({ getLayout: null, getData: getEmbedData, Page: LegacyPage })<"P">;
