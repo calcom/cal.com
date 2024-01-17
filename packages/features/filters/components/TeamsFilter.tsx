@@ -6,6 +6,7 @@ import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, Divider, Tooltip, VerticalDivider } from "@calcom/ui";
@@ -87,7 +88,7 @@ export const TeamsFilter = ({
           />
           <Divider />
           {teams
-            ?.filter((team) => !team?.isOrganization)
+            ?.filter((team) => !teamMetadataSchema.parse(team.metadata)?.isOrganization)
             .map((team) => (
               <FilterCheckboxField
                 key={team.id}

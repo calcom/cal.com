@@ -520,12 +520,13 @@ export default function Signup({
               </div>
             </>
           )}
-          <div
-            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:border-0 lg:block lg:py-[6px] lg:pl-[6px]"
-            style={{
-              backgroundColor: "rgba(236,237,239,0.9)",
-            }}>
-            <img src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+          <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+            <img
+              className="hidden dark:block"
+              src="/mock-event-type-list-dark.svg"
+              alt="Cal.com Booking Page"
+            />
           </div>
           <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
             {FEATURES.map((feature) => (
@@ -609,16 +610,14 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       team: {
         select: {
           metadata: true,
-          isOrganization: true,
           parentId: true,
           parent: {
             select: {
               slug: true,
-              organizationSettings: true,
+              metadata: true,
             },
           },
           slug: true,
-          organizationSettings: true,
         },
       },
     },
@@ -667,8 +666,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;
+  const isOrganization = tokenTeam.metadata?.isOrganization;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.isOrganization;
   const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganizationOrATeamInOrganization
@@ -685,7 +684,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
-  const parentOrgSettings = tokenTeam?.parent?.organizationSettings ?? null;
+  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
+    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
+    : null;
 
   return {
     props: {
@@ -698,15 +699,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
               ? getOrgUsernameFromEmail(
                   verificationToken.identifier,
                   (isOrganization
-                    ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
-                    : parentOrgSettings?.orgAutoAcceptEmail) || ""
+                    ? tokenTeam.metadata?.orgAutoAcceptEmail
+                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
                 )
               : slugify(username),
           }
         : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
+        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
         : null,
     },
   };

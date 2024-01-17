@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";

@@ -61,10 +61,20 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: apexDomain,
-      },
+      AND: [
+        {
+          metadata: {
+            path: ["isOrganizationVerified"],
+            equals: true,
+          },
+        },
+        {
+          metadata: {
+            path: ["orgAutoAcceptEmail"],
+            equals: apexDomain,
+          },
+        },
+      ],
     },
     select: {
       id: true,
