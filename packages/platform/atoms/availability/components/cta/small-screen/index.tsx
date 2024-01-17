@@ -1,4 +1,4 @@
-import { Troubleshooter } from "availability/troubleshooter";
+import { Troubleshooter } from "availability/components/troubleshooter";
 import type { AvailabilityFormValues } from "availability/types";
 import { Controller } from "react-hook-form";
 import type { Control } from "react-hook-form";
