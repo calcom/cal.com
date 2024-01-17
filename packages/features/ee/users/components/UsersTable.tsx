@@ -14,7 +14,7 @@ import {
   TextField,
   Avatar,
 } from "@calcom/ui";
-import { Edit, Trash, Lock } from "@calcom/ui/components/icon";
+import { Edit, Trash, Lock, VenetianMask } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -205,16 +205,17 @@ function UsersTableBare() {
                           icon: Lock,
                         },
                         {
+                          id: "impersonation",
+                          label: "Impersonate",
+                          onClick: () => signIn("impersonation-auth", { username: user.username }),
+                          icon: VenetianMask,
+                        },
+                        {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
                           icon: Trash,
-                        },
-                        {
-                          id: "impersonation",
-                          label: "Impersonation",
-                          onClick: () => signIn("impersonation-auth", { username: user.username }),
                         },
                       ]}
                     />
