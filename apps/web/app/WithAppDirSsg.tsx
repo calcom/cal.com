@@ -1,11 +1,9 @@
-import type { GetStaticProps } from "next";
+import type { GetStaticProps, GetStaticPropsContext } from "next";
 import { notFound, redirect } from "next/navigation";
-
-import type { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 export const withAppDirSsg =
   <T extends Record<string, any>>(getStaticProps: GetStaticProps<T>) =>
-  async (context: ReturnType<typeof buildLegacyCtx>) => {
+  async (context: GetStaticPropsContext) => {
     const ssgResponse = await getStaticProps(context);
 
     if ("redirect" in ssgResponse) {
