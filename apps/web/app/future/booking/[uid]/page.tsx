@@ -41,7 +41,7 @@ export const generateMetadata = async () =>
     () => ""
   );
 
-export const getData = async (context: GetServerSidePropsContext) => {
+const getData = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
   const session = await getServerSession(context);
   let tz: string | null = null;
