@@ -9,6 +9,6 @@ items:
 
 {DESCRIPTION}
 
-## A MEETING PLATFORM THAT CONNECTS THE DOTS AND MOVES DEALS FORWARD
+### A meeting platform that connects the dots and moves deals forward
 
 Salesroom helps you to ace your virtual meetings, increase buyer engagement and stay productive call after call.

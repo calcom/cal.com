@@ -4,7 +4,7 @@
   "slug": "salesroom",
   "type": "salesroom_conferencing",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://salesroom.com/",
   "variant": "conferencing",
   "categories": ["conferencing"],
   "publisher": "Cal.com, Inc.",
@@ -14,7 +14,7 @@
       "type": "integrations:{SLUG}_video",
       "label": "{TITLE}",
       "linkType": "static",
-      "organizerInputPlaceholder": "https://video.app/mylink",
+      "organizerInputPlaceholder": "https://user.sr.chat",
       "urlRegExp": "^https:\\/\\/.+\\.sr\\.chat"
     }
   },
