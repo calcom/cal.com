@@ -1,36 +1,30 @@
 import { Trash } from "lucide-react";
 
-import {
-  Skeleton,
-  Label,
-  Switch,
-  VerticalDivider,
-  Dialog,
-  DialogTrigger,
-  Button,
-  ConfirmationDialogContent,
-} from "@calcom/ui";
+import { Dialog, DialogTrigger, Button, ConfirmationDialogContent } from "@calcom/ui";
 
 type LargeScreenCTAProps = {
-  isSwitchDisabled: boolean;
-  isSwitchChecked: boolean;
-  onSwitchCheckedChange: (e: any) => void;
+  // isSwitchDisabled: boolean;
+  // isSwitchChecked: boolean;
+  // onSwitchCheckedChange: (e: any) => void;
   isButtonDisabled: boolean;
   isConfirmationDialogLoading: boolean;
   onDeleteConfirmation: () => void;
 };
 
+// TODO: add ability to set any schedule as default
+// cant do it now since we don't take PATCH requests at the moment
+
 export function LargeScreenCTA({
-  isSwitchDisabled,
-  isSwitchChecked,
-  onSwitchCheckedChange,
+  // isSwitchDisabled,
+  // isSwitchChecked,
+  // onSwitchCheckedChange,
   isButtonDisabled,
   isConfirmationDialogLoading,
   onDeleteConfirmation,
 }: LargeScreenCTAProps) {
   return (
     <>
-      <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
+      {/* <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 sm:flex">
         <Skeleton
           as={Label}
           htmlFor="hiddenSwitch"
@@ -45,7 +39,7 @@ export function LargeScreenCTA({
           onCheckedChange={onSwitchCheckedChange}
         />
       </div>
-      <VerticalDivider className="hidden sm:inline" />
+      <VerticalDivider className="hidden sm:inline" /> */}
       <Dialog>
         <DialogTrigger asChild>
           <Button

@@ -11,7 +11,6 @@ import {
   ConfirmationDialogContent,
   Skeleton,
   Label,
-  Switch,
   TimezoneSelect,
 } from "@calcom/ui";
 import { ArrowLeft, Trash } from "@calcom/ui/components/icon";
@@ -24,21 +23,24 @@ type SmallScreenCTAProps = {
   isDeleteDialogLoading: boolean;
   onDeleteConfirmation: () => void;
   formControl: Control<AvailabilityFormValues> | undefined;
-  isSwitchDisabled: boolean;
-  isSwitchChecked: boolean;
-  onSwitchCheckedChange: (e: any) => void;
+  // isSwitchDisabled: boolean;
+  // isSwitchChecked: boolean;
+  // onSwitchCheckedChange: (e: any) => void;
 };
 
+// TODO: add ability to set any schedule as default
+// cant do it now since we don't take PATCH requests at the moment
+
 export function SmallScreenCTA({
+  // isSwitchDisabled,
+  // isSwitchChecked,
+  //  onSwitchCheckedChange,
   isSidebarOpen,
   toggleSidebar,
   isDeleteButtonDisabled,
   isDeleteDialogLoading,
   onDeleteConfirmation,
   formControl,
-  isSwitchDisabled,
-  isSwitchChecked,
-  onSwitchCheckedChange,
 }: SmallScreenCTAProps) {
   return (
     <div
@@ -91,7 +93,7 @@ export function SmallScreenCTA({
             )}
           />
         </div>
-        <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
+        {/* <div className="flex h-9 flex-row-reverse items-center justify-end gap-3 px-2">
           <Skeleton
             as={Label}
             htmlFor="hiddenSwitch"
@@ -104,7 +106,7 @@ export function SmallScreenCTA({
             checked={isSwitchChecked}
             onCheckedChange={onSwitchCheckedChange}
           />
-        </div>
+        </div> */}
         <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
           <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
             <div>
