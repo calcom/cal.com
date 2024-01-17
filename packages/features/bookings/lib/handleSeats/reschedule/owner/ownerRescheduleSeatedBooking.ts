@@ -21,8 +21,7 @@ const ownerRescheduleSeatedBooking = async (
 ) => {
   const { originalRescheduledBooking, tAttendees } = rescheduleSeatedBookingObject;
   const { evt } = rescheduleSeatedBookingObject;
-  // Moving forward in this block is the owner making changes to the booking. All attendees should be affected
-  evt.attendees = originalRescheduledBooking.attendees.map((attendee) => {
+  evt.attendees = originalRescheduledBooking?.attendees.map((attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,

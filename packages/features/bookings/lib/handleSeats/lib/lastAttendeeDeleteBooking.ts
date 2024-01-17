@@ -14,11 +14,11 @@ import type { OriginalRescheduledBooking } from "../../handleNewBooking";
   and any calendar or video integrations */
 const lastAttendeeDeleteBooking = async (
   originalRescheduledBooking: OriginalRescheduledBooking,
-  filteredAttendees: Partial<Attendee>[],
+  filteredAttendees: Partial<Attendee>[] | undefined,
   originalBookingEvt?: CalendarEvent
 ) => {
   let deletedReferences = false;
-  if (filteredAttendees && filteredAttendees.length === 0 && originalRescheduledBooking) {
+  if ((!filteredAttendees || filteredAttendees.length === 0) && originalRescheduledBooking) {
     const integrationsToDelete = [];
 
     for (const reference of originalRescheduledBooking.references) {

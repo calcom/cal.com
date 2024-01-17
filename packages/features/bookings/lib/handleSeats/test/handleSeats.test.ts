@@ -3,6 +3,7 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, test, vi, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
   getBooker,
@@ -612,7 +613,7 @@ describe("handleSeats", () => {
           body: mockBookingData,
         });
 
-        await expect(() => handleNewBooking(req)).rejects.toThrowError("Already signed up for this booking.");
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.AlreadySignedUpForBooking);
       });
 
       test("If event is already full, fail", async () => {
@@ -734,7 +735,7 @@ describe("handleSeats", () => {
           body: mockBookingData,
         });
 
-        await expect(() => handleNewBooking(req)).rejects.toThrowError("Booking seats are full");
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.BookingSeatsFull);
       });
     });
 
@@ -924,11 +925,11 @@ describe("handleSeats", () => {
             bookingId: secondBookingId,
           },
           select: {
-            id: true,
+            email: true,
           },
         });
 
-        expect(newBookingAttendees).toContainEqual({ id: attendeeToReschedule.id });
+        expect(newBookingAttendees).toContainEqual({ email: attendeeToReschedule.email });
         expect(newBookingAttendees).toHaveLength(2);
 
         // Ensure that the attendeeSeat is also updated to the new booking
@@ -1910,7 +1911,6 @@ describe("handleSeats", () => {
 
         expect(originalBooking?.status).toEqual(BookingStatus.CANCELLED);
       });
-
       test("When merging more attendees than seats, fail ", async () => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
@@ -2086,14 +2086,12 @@ describe("handleSeats", () => {
         req.userId = organizer.id;
 
         // const rescheduledBooking = await handleNewBooking(req);
-        await expect(() => handleNewBooking(req)).rejects.toThrowError(
-          "Booking does not have enough available seats"
-        );
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
       });
     });
 
     describe("Cancelling a booking", () => {
-      test("When owner cancels booking, cancel booking for whole attendees", async () => {
+      test("When owner cancels booking, cancel booking for all attendees", async () => {
         const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking"))
           .default;
 

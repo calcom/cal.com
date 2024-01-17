@@ -19,6 +19,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
+import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
@@ -129,6 +130,8 @@ export type InputEventType = {
   owner?: number;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
+type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
+
 type WhiteListedBookingProps = {
   id?: number;
   uid?: string;
@@ -138,7 +141,10 @@ type WhiteListedBookingProps = {
   endTime: string;
   title?: string;
   status: BookingStatus;
-  attendees?: { email: string }[];
+  attendees?: {
+    email: string;
+    bookingSeat?: AttendeeBookingSeatInput | null;
+  }[];
   references?: (Omit<ReturnType<typeof getMockBookingReference>, "credentialId"> & {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
@@ -904,6 +910,7 @@ export function getOrganizer({
   weekStart = "Sunday",
   teams,
   organizationId,
+  metadata,
 }: {
   name: string;
   email: string;
@@ -916,6 +923,7 @@ export function getOrganizer({
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: WeekDays;
   teams?: InputUser["teams"];
+  metadata?: userMetadataType;
 }) {
   return {
     ...TestData.users.example,
@@ -930,6 +938,7 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
+    metadata,
   };
 }
 
@@ -1063,72 +1072,77 @@ export function mockCalendar(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deleteEventCalls: any[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
-  appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default].mockResolvedValue({
-    lib: {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      CalendarService: function MockCalendarService() {
-        return {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
-            if (calendarData?.creationCrash) {
-              throw new Error("MockCalendarService.createEvent fake error");
-            }
-            const [calEvent, credentialId] = rest;
-            log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
-            createEventCalls.push(rest);
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {},
-              uid: "PROBABLY_UNUSED_UID",
-              // A Calendar is always expected to return an id.
-              id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
-              iCalUID: normalizedCalendarData.create?.iCalUID,
-              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-              password: "MOCK_PASSWORD",
-              url: "https://UNUSED_URL",
-            });
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
-            if (calendarData?.updationCrash) {
-              throw new Error("MockCalendarService.updateEvent fake error");
-            }
-            const [uid, event, externalCalendarId] = rest;
-            log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-            // eslint-disable-next-line prefer-rest-params
-            updateEventCalls.push(rest);
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {},
-              uid: "PROBABLY_UNUSED_UID",
-              iCalUID: normalizedCalendarData.update?.iCalUID,
 
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
-              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-              password: "MOCK_PASSWORD",
-              url: "https://UNUSED_URL",
-            });
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          deleteEvent: async (...rest: any[]) => {
-            log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-            // eslint-disable-next-line prefer-rest-params
-            deleteEventCalls.push(rest);
-          },
-          getAvailability: async (): Promise<EventBusyDate[]> => {
-            if (calendarData?.getAvailabilityCrash) {
-              throw new Error("MockCalendarService.getAvailability fake error");
-            }
-            return new Promise((resolve) => {
-              resolve(calendarData?.busySlots || []);
-            });
-          },
-        };
+  const appMock = appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default];
+
+  appMock &&
+    `mockResolvedValue` in appMock &&
+    appMock.mockResolvedValue({
+      lib: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        CalendarService: function MockCalendarService() {
+          return {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+              if (calendarData?.creationCrash) {
+                throw new Error("MockCalendarService.createEvent fake error");
+              }
+              const [calEvent, credentialId] = rest;
+              log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
+              createEventCalls.push(rest);
+              return Promise.resolve({
+                type: app.type,
+                additionalInfo: {},
+                uid: "PROBABLY_UNUSED_UID",
+                // A Calendar is always expected to return an id.
+                id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
+                iCalUID: normalizedCalendarData.create?.iCalUID,
+                // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                password: "MOCK_PASSWORD",
+                url: "https://UNUSED_URL",
+              });
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            updateEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
+              if (calendarData?.updationCrash) {
+                throw new Error("MockCalendarService.updateEvent fake error");
+              }
+              const [uid, event, externalCalendarId] = rest;
+              log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
+              // eslint-disable-next-line prefer-rest-params
+              updateEventCalls.push(rest);
+              return Promise.resolve({
+                type: app.type,
+                additionalInfo: {},
+                uid: "PROBABLY_UNUSED_UID",
+                iCalUID: normalizedCalendarData.update?.iCalUID,
+
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+                // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+                password: "MOCK_PASSWORD",
+                url: "https://UNUSED_URL",
+              });
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            deleteEvent: async (...rest: any[]) => {
+              log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
+              // eslint-disable-next-line prefer-rest-params
+              deleteEventCalls.push(rest);
+            },
+            getAvailability: async (): Promise<EventBusyDate[]> => {
+              if (calendarData?.getAvailabilityCrash) {
+                throw new Error("MockCalendarService.getAvailability fake error");
+              }
+              return new Promise((resolve) => {
+                resolve(calendarData?.busySlots || []);
+              });
+            },
+          };
+        },
       },
-    },
-  });
+    });
   return {
     createEventCalls,
     deleteEventCalls,
@@ -1408,7 +1422,7 @@ export function getMockBookingReference(
 
 export function getMockBookingAttendee(
   attendee: Omit<Attendee, "bookingId"> & {
-    bookingSeat?: Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
+    bookingSeat?: AttendeeBookingSeatInput;
   }
 ) {
   return {

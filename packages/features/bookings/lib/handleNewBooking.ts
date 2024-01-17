@@ -858,7 +858,7 @@ export function getCustomInputsResponses(
  *
  * @returns updated evt with video call data
  */
-export const addVideoCallDataToEvt = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
+export const addVideoCallDataToEvent = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
   const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
 
   if (videoCallReference) {
@@ -889,7 +889,7 @@ export function handleAppsStatus(
   reqAppsStatus: ReqAppsStatus
 ) {
   // Taking care of apps status
-  let resultStatus: AppsStatus[] = results.map((app) => ({
+  const resultStatus: AppsStatus[] = results.map((app) => ({
     appName: app.appName,
     type: app.type,
     success: app.success ? 1 : 0,
@@ -917,8 +917,7 @@ export function handleAppsStatus(
     }
     return prev;
   }, {} as { [key: string]: AppsStatus });
-  resultStatus = Object.values(calcAppsStatus);
-  return resultStatus;
+  return Object.values(calcAppsStatus);
 }
 
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
@@ -986,13 +985,10 @@ async function handler(
   req: NextApiRequest & { userId?: number | undefined },
   {
     isNotAnApiCall = false,
-    skipAvailabilityCheck = false,
   }: {
     isNotAnApiCall?: boolean;
-    skipAvailabilityCheck?: boolean;
   } = {
     isNotAnApiCall: false,
-    skipAvailabilityCheck: false,
   }
 ) {
   const { userId } = req;
@@ -1062,7 +1058,6 @@ async function handler(
       isTeamEventType,
       eventType: getPiiFreeEventType(eventType),
       dynamicUserList,
-      skipAvailabilityCheck,
       paymentAppData: {
         enabled: paymentAppData.enabled,
         price: paymentAppData.price,
@@ -1221,61 +1216,95 @@ async function handler(
     if (!originalRescheduledBooking) {
       throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
     }
+
+    if (
+      originalRescheduledBooking.status === BookingStatus.CANCELLED &&
+      !originalRescheduledBooking.rescheduled
+    ) {
+      throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
+    }
   }
 
   //checks what users are available
-  if (!eventType.seatsPerTimeSlot && !skipAvailabilityCheck) {
-    const availableUsers = await ensureAvailableUsers(
-      {
-        ...eventType,
-        users: users as IsFixedAwareUser[],
-        ...(eventType.recurringEvent && {
-          recurringEvent: {
-            ...eventType.recurringEvent,
-            count: recurringCount || eventType.recurringEvent.count,
-          },
-        }),
-      },
-      {
-        dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-        dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-        timeZone: reqBody.timeZone,
-        originalRescheduledBooking,
-      },
-      loggerWithEventDetails
-    );
-
-    const luckyUsers: typeof users = [];
-    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
-    loggerWithEventDetails.debug(
-      "Computed available users",
-      safeStringify({
-        availableUsers: availableUsers.map((user) => user.id),
-        luckyUserPool: luckyUserPool.map((user) => user.id),
-      })
-    );
-    // loop through all non-fixed hosts and get the lucky users
-    while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-      const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-        // find a lucky user that is not already in the luckyUsers array
-        availableUsers: luckyUserPool.filter(
-          (user) => !luckyUsers.find((existing) => existing.id === user.id)
-        ),
-        eventTypeId: eventType.id,
-      });
-      if (!newLuckyUser) {
-        break; // prevent infinite loop
+  if (!eventType.seatsPerTimeSlot) {
+    const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
+      users: IsFixedAwareUser[];
+    } = {
+      ...eventType,
+      users: users as IsFixedAwareUser[],
+      ...(eventType.recurringEvent && {
+        recurringEvent: {
+          ...eventType.recurringEvent,
+          count: recurringCount || eventType.recurringEvent.count,
+        },
+      }),
+    };
+    if (req.body.allRecurringDates) {
+      if (req.body.isFirstRecurringSlot) {
+        for (
+          let i = 0;
+          i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+          i++
+        ) {
+          const start = req.body.allRecurringDates[i].start;
+          const end = req.body.allRecurringDates[i].end;
+          await ensureAvailableUsers(
+            eventTypeWithUsers,
+            {
+              dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+              dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+              timeZone: reqBody.timeZone,
+              originalRescheduledBooking,
+            },
+            loggerWithEventDetails
+          );
+        }
       }
-      luckyUsers.push(newLuckyUser);
     }
-    // ALL fixed users must be available
-    if (
-      availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-    ) {
-      throw new Error(ErrorCode.HostsUnavailableForBooking);
+    if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
+      const availableUsers = await ensureAvailableUsers(
+        eventTypeWithUsers,
+        {
+          dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+          dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+          timeZone: reqBody.timeZone,
+          originalRescheduledBooking,
+        },
+        loggerWithEventDetails
+      );
+
+      const luckyUsers: typeof users = [];
+      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      loggerWithEventDetails.debug(
+        "Computed available users",
+        safeStringify({
+          availableUsers: availableUsers.map((user) => user.id),
+          luckyUserPool: luckyUserPool.map((user) => user.id),
+        })
+      );
+      // loop through all non-fixed hosts and get the lucky users
+      while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
+        const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+          // find a lucky user that is not already in the luckyUsers array
+          availableUsers: luckyUserPool.filter(
+            (user) => !luckyUsers.find((existing) => existing.id === user.id)
+          ),
+          eventTypeId: eventType.id,
+        });
+        if (!newLuckyUser) {
+          break; // prevent infinite loop
+        }
+        luckyUsers.push(newLuckyUser);
+      }
+      // ALL fixed users must be available
+      if (
+        availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
+      ) {
+        throw new Error(ErrorCode.HostsUnavailableForBooking);
+      }
+      // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
+      users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
     }
-    // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-    users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
   }
 
   const [organizerUser] = users;
@@ -1315,7 +1344,7 @@ async function handler(
       organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
         organizerMetadata?.defaultConferencingApp?.appLink;
     } else {
-      locationBodyString = "";
+      locationBodyString = "integrations:daily";
     }
   }
 
@@ -1411,7 +1440,7 @@ async function handler(
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = getICalSequence(originalRescheduledBooking);
 
-  const evt: CalendarEvent = {
+  let evt: CalendarEvent = {
     bookerUrl: eventType.team
       ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
       : await getBookerBaseUrl(organizerUser),
@@ -1452,6 +1481,12 @@ async function handler(
     iCalUID,
     iCalSequence,
   };
+
+  if (req.body.thirdPartyRecurringEventId) {
+    evt.existingRecurringEvent = {
+      recurringEventId: req.body.thirdPartyRecurringEventId,
+    };
+  }
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
     evt.destinationCalendar?.push(...teamDestinationCalendars);
@@ -1557,7 +1592,9 @@ async function handler(
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
-  let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
+  let booking: (Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number }) | null =
+    null;
+
   loggerWithEventDetails.debug(
     "Going to create booking in DB now",
     safeStringify({
@@ -1659,7 +1696,7 @@ async function handler(
       );
     }
 
-    addVideoCallDataToEvt(originalRescheduledBooking.references, evt);
+    evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
     //update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot) {
@@ -2232,7 +2269,7 @@ async function handler(
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
-      isNotConfirmed: !isConfirmedByDefault,
+      isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
@@ -2247,6 +2284,7 @@ async function handler(
   req.statusCode = 201;
   return {
     ...booking,
+    references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
   };
 }

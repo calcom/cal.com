@@ -62,6 +62,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           type: true,
           externalCalendarId: true,
           credentialId: true,
+          thirdPartyRecurringEventId: true,
         },
       },
       payment: true,
@@ -440,24 +441,37 @@ async function handler(req: CustomRequest) {
             bookingToDelete.recurringEventId &&
             allRemainingBookings
           ) {
-            const promises = bookingToDelete.user.credentials
-              .filter((credential) => credential.type.endsWith("_calendar"))
-              .map(async (credential) => {
-                const calendar = await getCalendar(credential);
-                for (const updBooking of updatedBookings) {
-                  const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
-                  if (bookingRef) {
-                    const { uid, externalCalendarId } = bookingRef;
-                    const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
-                    apiDeletes.push(deletedEvent);
+            let thirdPartyRecurringEventId;
+            for (const reference of bookingToDelete.references) {
+              if (reference.thirdPartyRecurringEventId) {
+                thirdPartyRecurringEventId = reference.thirdPartyRecurringEventId;
+                break;
+              }
+            }
+            if (thirdPartyRecurringEventId) {
+              apiDeletes.push(
+                calendar?.deleteEvent(thirdPartyRecurringEventId, evt, externalCalendarId) as Promise<unknown>
+              );
+            } else {
+              const promises = bookingToDelete.user.credentials
+                .filter((credential) => credential.type.endsWith("_calendar"))
+                .map(async (credential) => {
+                  const calendar = await getCalendar(credential);
+                  for (const updBooking of updatedBookings) {
+                    const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
+                    if (bookingRef) {
+                      const { uid, externalCalendarId } = bookingRef;
+                      const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
+                      apiDeletes.push(deletedEvent);
+                    }
                   }
+                });
+              try {
+                await Promise.all(promises);
+              } catch (error) {
+                if (error instanceof Error) {
+                  logger.error(error.message);
                 }
-              });
-            try {
-              await Promise.all(promises);
-            } catch (error) {
-              if (error instanceof Error) {
-                logger.error(error.message);
               }
             }
           } else {
@@ -579,7 +593,8 @@ async function handler(req: CustomRequest) {
     // Posible to refactor TODO:
     const paymentApp = (await appStore[
       paymentAppCredential?.app?.dirName as keyof typeof appStore
-    ]()) as PaymentApp;
+    ]?.()) as PaymentApp;
+
     if (!paymentApp?.lib?.PaymentService) {
       console.warn(`payment App service of type ${paymentApp} is not implemented`);
       return null;
@@ -647,7 +662,8 @@ async function handler(req: CustomRequest) {
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 
   try {
-    const settled = await Promise.allSettled(prismaPromises.concat(apiDeletes));
+    const temp = prismaPromises.concat(apiDeletes);
+    const settled = await Promise.allSettled(temp);
     const rejected = settled.filter(({ status }) => status === "rejected") as PromiseRejectedResult[];
     if (rejected.length) {
       throw new Error(`Reasons: ${rejected.map(({ reason }) => reason)}`);

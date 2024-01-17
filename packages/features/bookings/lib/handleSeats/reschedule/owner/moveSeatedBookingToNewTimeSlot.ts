@@ -6,7 +6,7 @@ import { sendRescheduledEmails } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import { addVideoCallDataToEvt, handleAppsStatus, findBookingQuery } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent, handleAppsStatus, findBookingQuery } from "../../../handleNewBooking";
 import type { Booking, createLoggerWithEventDetails } from "../../../handleNewBooking";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
@@ -45,7 +45,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     },
   });
 
-  evt = addVideoCallDataToEvt(newBooking.references, evt);
+  evt = addVideoCallDataToEvent(newBooking.references, evt);
 
   const copyEvent = cloneDeep(evt);
 

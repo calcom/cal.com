@@ -8,6 +8,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
@@ -45,7 +46,7 @@ const createNewSeat = async (
   evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
   if (eventType.seatsPerTimeSlot && eventType.seatsPerTimeSlot <= seatedBooking.attendees.length) {
-    throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
+    throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
   }
 
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
@@ -61,6 +62,8 @@ const createNewSeat = async (
 
   const attendeeUniqueId = uuid();
 
+  const inviteeToAdd = invitee[0];
+
   await prisma.booking.update({
     where: {
       uid: reqBookingUid,
@@ -71,10 +74,10 @@ const createNewSeat = async (
     data: {
       attendees: {
         create: {
-          email: invitee[0].email,
-          name: invitee[0].name,
-          timeZone: invitee[0].timeZone,
-          locale: invitee[0].language.locale,
+          email: inviteeToAdd.email,
+          name: inviteeToAdd.name,
+          timeZone: inviteeToAdd.timeZone,
+          locale: inviteeToAdd.language.locale,
           bookingSeat: {
             create: {
               referenceUid: attendeeUniqueId,
@@ -130,7 +133,7 @@ const createNewSeat = async (
     }
     await sendScheduledSeatsEmails(
       copyEvent,
-      invitee[0],
+      inviteeToAdd,
       newSeat,
       !!eventType.seatsShowAttendees,
       isHostConfirmationEmailsDisabled,
@@ -170,10 +173,10 @@ const createNewSeat = async (
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentCredential });
     }
     if (!eventTypePaymentAppCredential?.appId) {
-      throw new HttpError({ statusCode: 400, message: "Missing payment app id" });
+      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
     }
 
     const payment = await handlePayment(

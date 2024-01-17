@@ -1,7 +1,9 @@
 import LegacyPage from "@pages/video/no-meeting-found";
-import { ssrInit } from "app/_trpc/ssrInit";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import type { GetServerSidePropsContext } from "next";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -9,11 +11,12 @@ export const generateMetadata = async () =>
     (t) => t("no_meeting_found")
   );
 
-const getData = async () => {
-  const ssr = await ssrInit();
+// ssr was added by Intuita, legacy page does not have it
+const getData = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
 
   return {
-    dehydratedState: await ssr.dehydrate(),
+    dehydratedState: ssr.dehydrate(),
   };
 };
 

@@ -224,8 +224,8 @@ model User {
   availability        Availability[]
   invitedTo           Int?
   webhooks            Webhook[]
-  brandColor          String               @default("#292929")
-  darkBrandColor      String               @default("#fafafa")
+  brandColor          String?
+  darkBrandColor      String?
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
   away                Boolean              @default(false)
@@ -257,6 +257,8 @@ model User {
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
+  bookingRedirects     OutOfOfficeEntry[]
+  bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
   // Linking account code for orgs v2
   //linkedByUserId       Int?
   //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
@@ -297,8 +299,8 @@ model Team {
   /// @zod.custom(imports.teamMetadataSchema)
   metadata             Json?
   theme                String?
-  brandColor           String                  @default("#292929")
-  darkBrandColor       String                  @default("#fafafa")
+  brandColor           String?
+  darkBrandColor       String?
   verifiedNumbers      VerifiedNumber[]
   parentId             Int?
   parent               Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
@@ -314,6 +316,7 @@ model Team {
   credentials          Credential[]
   accessCodes          AccessCode[]
   instantMeetingTokens InstantMeetingToken[]
+  pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
 }
@@ -371,19 +374,20 @@ model InstantMeetingToken {
 }
 
 model BookingReference {
-  id                 Int      @id @default(autoincrement())
+  id                         Int      @id @default(autoincrement())
   /// @zod.min(1)
-  type               String
+  type                       String
   /// @zod.min(1)
-  uid                String
-  meetingId          String?
-  meetingPassword    String?
-  meetingUrl         String?
-  booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId          Int?
-  externalCalendarId String?
-  deleted            Boolean?
-  credentialId       Int?
+  uid                        String
+  meetingId                  String?
+  thirdPartyRecurringEventId String?
+  meetingPassword            String?
+  meetingUrl                 String?
+  booking                    Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId                  Int?
+  externalCalendarId         String?
+  deleted                    Boolean?
+  credentialId               Int?
 
   @@index([bookingId])
   @@index([credentialId])
@@ -1052,4 +1056,23 @@ model Avatar {
 
   @@unique([teamId, userId])
   @@map(name: "avatars")
+}
+
+model OutOfOfficeEntry {
+  id       Int      @id @default(autoincrement())
+  uuid     String   @unique
+  start    DateTime
+  end      DateTime
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId Int?
+  toUser   User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([uuid])
+  @@index([userId])
+  @@index([toUserId])
+  @@index([start, end])
 }

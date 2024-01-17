@@ -6,7 +6,7 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
-  NotFoundPageText,
+  NotFoundPageTextAppDir,
   bookTimeSlot,
   doOnOrgDomain,
   fillStripeTestCheckout,
@@ -40,7 +40,7 @@ test.describe("Teams A/B tests", () => {
 
     expect(dataNextJsRouter).toEqual("app");
 
-    const locator = page.getByRole("heading", { name: "teams" });
+    const locator = page.getByRole("heading", { name: "Teams", exact: true });
 
     await expect(locator).toBeVisible();
   });
@@ -268,11 +268,13 @@ test.describe("Teams - NonOrg", () => {
 
     // Mark team as private
     await page.goto(`/settings/teams/${team.id}/members`);
-    await page.click("[data-testid=make-team-private-check]");
-    await expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible();
-    // according to switch implementation, checked state can be set before mutation is resolved
-    // so we need to await for req to resolve
-    await page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update"));
+    await Promise.all([
+      page.click("[data-testid=make-team-private-check]"),
+      expect(page.locator(`[data-testid=make-team-private-check][data-state="checked"]`)).toBeVisible(),
+      // according to switch implementation, checked state can be set before mutation is resolved
+      // so we need to await for req to resolve
+      page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
+    ]);
 
     // Go to Team's page
     await page.goto(`/team/${team.slug}`);
@@ -389,7 +391,7 @@ test.describe("Teams - Org", () => {
 
     await page.goto(`/team/${team.slug}/${teamEventSlug}`);
 
-    await expect(page.locator(`text=${NotFoundPageText}`)).toBeVisible();
+    await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
     await doOnOrgDomain(
       {
         orgSlug: org.slug,

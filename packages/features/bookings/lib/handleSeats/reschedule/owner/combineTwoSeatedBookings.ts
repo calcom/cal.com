@@ -4,12 +4,13 @@ import { uuid } from "short-uuid";
 
 import type EventManager from "@calcom/core/EventManager";
 import { sendRescheduledEmails } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
-import { addVideoCallDataToEvt, findBookingQuery } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent, findBookingQuery } from "../../../handleNewBooking";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
@@ -52,7 +53,7 @@ const combineTwoSeatedBookings = async (
     attendeesToMove.length + newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
       eventType.seatsPerTimeSlot
   ) {
-    throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
+    throw new HttpError({ statusCode: 409, message: ErrorCode.NotEnoughAvailableSeats });
   }
 
   const moveAttendeeCalls = [];
@@ -80,7 +81,7 @@ const combineTwoSeatedBookings = async (
     );
   }
 
-  await Promise.all([
+  await prisma.$transaction([
     ...moveAttendeeCalls,
     // Delete any attendees that are already a part of that new time slot booking
     prisma.attendee.deleteMany({
@@ -117,7 +118,7 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = addVideoCallDataToEvt(updatedNewBooking.references, evt);
+  evt = addVideoCallDataToEvent(updatedNewBooking.references, evt);
 
   const copyEvent = cloneDeep(evt);
 
