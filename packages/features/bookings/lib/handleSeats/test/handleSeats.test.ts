@@ -1878,8 +1878,8 @@ describe("handleSeats", () => {
         const rescheduledBooking = await handleNewBooking(req);
 
         // Ensure that the booking has been moved
-        expect(rescheduledBooking?.startTime).toEqual(secondBookingStartTime);
-        expect(rescheduledBooking?.endTime).toEqual(secondBookingEndTime);
+        expect(rescheduledBooking?.startTime).toEqual(new Date(secondBookingStartTime));
+        expect(rescheduledBooking?.endTime).toEqual(new Date(secondBookingEndTime));
 
         // Ensure that the attendees are still a part of the event
         const attendees = await prismaMock.attendee.findMany({
