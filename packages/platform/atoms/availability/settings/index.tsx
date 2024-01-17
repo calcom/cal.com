@@ -1,13 +1,13 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { LargeScreenCTA } from "availability/components/cta/large-screen";
+import { SmallScreenCTA } from "availability/components/cta/small-screen";
+import { DateOverride } from "availability/components/date-overrides";
 import { Timezone } from "availability/components/timezone";
-import { LargeScreenCTA } from "availability/cta/large-screen";
-import { SmallScreenCTA } from "availability/cta/small-screen";
-import { DateOverride } from "availability/date-overrides";
+import { Troubleshooter } from "availability/components/troubleshooter";
 import useClientSchedule from "availability/hooks/useClientSchedule";
 import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
 import { useProfileInfo } from "availability/hooks/useProfileInfo";
-import { daysInAWeek } from "availability/lib/weekDays";
-import { Troubleshooter } from "availability/troubleshooter";
+import { daysInAWeek } from "availability/lib/daysInAWeek";
 import type { AvailabilityFormValues } from "availability/types";
 import { useApiKey } from "cal-provider";
 import { useState } from "react";
@@ -28,23 +28,29 @@ const queryClient = new QueryClient();
 
 export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
   const { key, error } = useApiKey();
-  // if user doesnt provide a scheduleId we use the default schedule id
-  // since we know there will always be one default schedule so schedule cant be empty
-  const { isLoading, data: schedule } = useClientSchedule(id, key);
+  const { isLoading, data: schedule } = useClientSchedule(key, id);
   const user = useProfileInfo(key);
 
   const userWeekStart = daysInAWeek.indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const { timeFormat } = user.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  const { mutateAsync } = useDeleteSchedule({
+  const { mutateAsync, isLoading: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: () => {
       showToast("Scheduled deleted successfully", "success");
     },
   });
 
   const handleDelete = async (id: string) => {
-    await mutateAsync({ id: id ? id : "1", key });
+    if (schedule.id === user.defaultScheduleId) {
+      showToast("You are required to have at least one schedule", "error");
+    } else {
+      await mutateAsync({ id, key });
+    }
+  };
+
+  const handleDuplicate = async () => {
+    // duplication function goes here
   };
 
   const form = useForm<AvailabilityFormValues>({
@@ -95,14 +101,19 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
               // onSwitchCheckedChange={(e) => {
               //   form.setValue("isDefault", e);
               // }}
+              isButtonDisabled={schedule?.isLastSchedule}
+              isConfirmationDialogLoading={isDeletionInProgress}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
             />
             <VerticalDivider className="hidden sm:inline" />
             <SmallScreenCTA
+              formControl={form.control}
               isSidebarOpen={openSidebar}
               toggleSidebar={() => setOpenSidebar(false)}
+              isDeleteButtonDisabled={schedule?.isLastSchedule}
+              isDeleteDialogLoading={isDeletionInProgress}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
