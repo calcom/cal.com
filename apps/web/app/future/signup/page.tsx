@@ -11,8 +11,10 @@ export const generateMetadata = async () =>
     (t) => t("sign_up")
   );
 
+const getData = withAppDir<SignupProps>(getServerSideProps);
+
 export default WithLayout({
   Page: LegacyPage,
   getLayout: null,
-  getData: withAppDir<SignupProps>(getServerSideProps),
+  getData,
 })<"P">;

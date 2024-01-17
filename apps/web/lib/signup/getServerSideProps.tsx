@@ -41,7 +41,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // no token given, treat as a normal signup without verification token
@@ -83,7 +83,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const existingUser = await prisma.user.findFirst({
