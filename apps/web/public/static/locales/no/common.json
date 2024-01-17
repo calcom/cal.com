@@ -1157,7 +1157,9 @@
   "event_name_info": "Navnet på hendelsestypen",
   "event_date_info": "Dato for hendelse",
   "event_time_info": "Start-tidspunkt for hendelsen",
+  "location_variable": "Sted",
   "location_info": "Hendelsessted",
+  "additional_notes_variable": "Tilleggsinformasjon",
   "additional_notes_info": "Tilleggsinformasjonen om bookingen",
   "attendee_name_info": "Navnet på personen som booker",
   "to": "Til",
@@ -1385,5 +1387,6 @@
   "configure": "Konfigurer",
   "sso_configuration": "Enkel Pålogging",
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
+  "timezone_variable": "Tidssone",
   "need_help": "Trenger du hjelp?"
 }

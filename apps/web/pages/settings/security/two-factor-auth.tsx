@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
