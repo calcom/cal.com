@@ -32,6 +32,15 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
   const { isLoading, data: schedule } = useClientSchedule(id, key);
   const user = useProfileInfo(key);
 
+  const userWeekStart = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ].indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const { timeFormat } = user.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
 
@@ -88,11 +97,11 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
         CTA={
           <div className="flex items-center justify-end">
             <LargeScreenCTA
-              isSwitchDisabled={isLoading || schedule?.isDefault}
-              isSwitchChecked={form.watch("isDefault")}
-              onSwitchCheckedChange={(e) => {
-                form.setValue("isDefault", e);
-              }}
+              // isSwitchDisabled={isLoading || schedule?.isDefault}
+              // isSwitchChecked={form.watch("isDefault")}
+              // onSwitchCheckedChange={(e) => {
+              //   form.setValue("isDefault", e);
+              // }}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
@@ -124,21 +133,7 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
               <div className="border-subtle mb-6 rounded-md border">
                 <div>
                   {typeof user.data?.weekStart === "string" && (
-                    <Schedule
-                      control={form.control}
-                      name="schedule"
-                      weekStart={
-                        [
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                      }
-                    />
+                    <Schedule control={form.control} name="schedule" weekStart={userWeekStart} />
                   )}
                 </div>
               </div>
