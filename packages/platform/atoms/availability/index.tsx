@@ -1,15 +1,15 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { AvailabilityDropdown } from "availability/components/availability-dropdown";
-import { availabilityAsString } from "availability/lib/availabilityAsString";
 import { Fragment } from "react";
 
 import { Badge, showToast } from "@calcom/ui";
 import { Globe } from "@calcom/ui/components/icon";
 
-import { useApiKey } from "../cal-provider";
+import { useApiKey } from "../hooks/useApiKeys";
+import { AvailabilityDropdown } from "./components/availability-dropdown/index";
 import useClientSchedule from "./hooks/useClientSchedule";
 import useDeleteSchedule from "./hooks/useDeleteSchedule";
 import { useProfileInfo } from "./hooks/useProfileInfo";
+import { availabilityAsString } from "./lib/availabilityAsString";
 
 type AvailabilityProps = {
   id?: string;
@@ -20,8 +20,6 @@ const queryClient = new QueryClient();
 
 export function Availability({ id, isDeletable = true }: AvailabilityProps) {
   const { key, error } = useApiKey();
-  // if user doesnt provide a scheduleId we use the default schedule id
-  // since we know there will always be one default schedule so schedule cant be empty
   const { isLoading, data: schedule } = useClientSchedule(key, id);
   const user = useProfileInfo(key);
   const displayOptions = {

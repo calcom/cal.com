@@ -1,5 +1,5 @@
-import { nameOfDay } from "availability/lib/nameOfDay";
-import type { Availability } from "availability/types";
+import { nameOfDay } from "../lib/nameOfDay";
+import type { Availability } from "../types";
 
 export function availabilityAsString(
   availability: Availability,

@@ -1,11 +1,4 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { LargeScreenCTA } from "availability/components/cta/large-screen";
-import { SmallScreenCTA } from "availability/components/cta/small-screen";
-import { DateOverride } from "availability/components/date-overrides";
-import { Timezone } from "availability/components/timezone";
-import { Troubleshooter } from "availability/components/troubleshooter";
-import { availabilityAsString } from "availability/lib/availabilityAsString";
-import type { AvailabilityFormValues } from "availability/types";
 import { useState } from "react";
 import type { FieldValues, Control, UseFormReturn, SubmitHandler } from "react-hook-form";
 import { useForm, Controller } from "react-hook-form";
@@ -14,9 +7,17 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import type { WorkingHours } from "@calcom/types/schedule";
 import type { TimeRange } from "@calcom/types/schedule";
-import { SkeletonText, VerticalDivider, Button, Form } from "@calcom/ui";
+import { VerticalDivider, Button, Form, SkeletonText } from "@calcom/ui";
 import { MoreVertical } from "@calcom/ui/components/icon";
 import EditableHeading from "@calcom/web/components/ui/EditableHeading";
+
+import { SmallScreenCTA } from "..//components/cta/small-screen/index";
+import { LargeScreenCTA } from "../components/cta/large-screen/index";
+import { DateOverride } from "../components/date-overrides/index";
+import { Timezone } from "../components/timezone/index";
+import { Troubleshooter } from "../components/troubleshooter/index";
+import { availabilityAsString } from "../lib/availabilityAsString";
+import type { AvailabilityFormValues } from "../types";
 
 type AvailabilitySettingsProps = {
   id?: string;
@@ -72,6 +73,7 @@ export function AvailabilitySettings({
             )}
           />
         }
+        // TODO: resolve subtitle logic which is causing some errors at the moment
         subtitle={
           schedule ? (
             schedule.availability
