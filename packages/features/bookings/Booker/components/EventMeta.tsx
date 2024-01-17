@@ -15,9 +15,12 @@ import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
 import { useEvent } from "../utils/event";
 
-const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
-  ssr: false,
-});
+const TimezoneSelect = dynamic(
+  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  {
+    ssr: false,
+  }
+);
 
 export const EventMeta = () => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();

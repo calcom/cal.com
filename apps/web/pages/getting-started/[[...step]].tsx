@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
@@ -51,13 +53,18 @@ const stepRouteSchema = z.object({
 const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const result = stepRouteSchema.safeParse(params);
+
+  const result = stepRouteSchema.safeParse({
+    ...params,
+    step: Array.isArray(params.step) ? params.step : [params.step],
+  });
+
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-
   const headers = [
     {
       title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
@@ -218,7 +225,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { redirect: { permanent: false, destination: "/event-types" } };
   }
   const locale = await getLocale(context.req);
-
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),

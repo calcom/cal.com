@@ -333,11 +333,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
+  const videoReferences = bookingObj.references.filter((reference) => reference.type.includes("_video"));
+  const latestVideoReference = videoReferences[videoReferences.length - 1];
+
   return {
     props: {
-      meetingUrl: bookingObj.references[0].meetingUrl ?? "",
-      ...(typeof bookingObj.references[0].meetingPassword === "string" && {
-        meetingPassword: bookingObj.references[0].meetingPassword,
+      meetingUrl: latestVideoReference.meetingUrl ?? "",
+      ...(typeof latestVideoReference.meetingPassword === "string" && {
+        meetingPassword: latestVideoReference.meetingPassword,
       }),
       booking: {
         ...bookingObj,
