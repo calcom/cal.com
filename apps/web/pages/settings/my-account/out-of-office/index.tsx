@@ -104,20 +104,17 @@ const OutOfOfficeSection = () => {
               </div>
             )}
           </div>
-          <div className="mt-4 flex flex-row">
+          <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
             {profileRedirect && (
-              <div className="mr-2 w-1/2 lg:w-1/3">
+              <div className="mr-2">
                 <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
                 <Select
-                  className="mt-1 h-4 max-w-[350px] text-white"
+                  className="mt-1 h-4 text-white"
                   name="toTeamUsername"
                   data-testid="team_username_select"
                   value={selectedMember}
                   placeholder={t("select_team_member")}
                   isSearchable
-                  innerClassNames={{
-                    control: "h-[38px]",
-                  }}
                   options={memberListOptions}
                   onChange={(selectedOption) => {
                     if (selectedOption?.value) {
@@ -128,25 +125,27 @@ const OutOfOfficeSection = () => {
                 />
               </div>
             )}
-            <div className="w-1/2 lg:w-1/3">
+            <div className="">
               <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
-              <Controller
-                name="dateRange"
-                control={control}
-                defaultValue={dateRange}
-                render={() => (
-                  <DateRangePicker
-                    startDate={getValues("dateRange").startDate}
-                    endDate={getValues("dateRange").endDate}
-                    onDatesChange={({ startDate, endDate }) => {
-                      setValue("dateRange", {
-                        startDate,
-                        endDate,
-                      });
-                    }}
-                  />
-                )}
-              />
+              <div>
+                <Controller
+                  name="dateRange"
+                  control={control}
+                  defaultValue={dateRange}
+                  render={() => (
+                    <DateRangePicker
+                      startDate={getValues("dateRange").startDate}
+                      endDate={getValues("dateRange").endDate}
+                      onDatesChange={({ startDate, endDate }) => {
+                        setValue("dateRange", {
+                          startDate,
+                          endDate,
+                        });
+                      }}
+                    />
+                  )}
+                />
+              </div>
             </div>
           </div>
         </div>
