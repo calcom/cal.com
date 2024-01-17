@@ -1,3 +1,4 @@
+import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
@@ -5,10 +6,15 @@ import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { WebhookForm } from "@calcom/features/webhooks/components";
+import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
+import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
+import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmptyScreen, SettingsToggle } from "@calcom/ui";
-import { PhoneCall } from "@calcom/ui/components/icon";
+import { trpc } from "@calcom/trpc/react";
+import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, showToast } from "@calcom/ui";
+import { PhoneCall, Plus, Lock, Webhook as TbWebhook } from "@calcom/ui/components/icon";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
@@ -82,11 +88,7 @@ export default function InstantEventController({
                     }
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    {instantEventState && (
-                      <div data-testid="instant-event-collapsible" className="flex flex-col gap-2 text-sm">
-                        <p>{t("warning_payment_instant_meeting_event")}</p>
-                      </div>
-                    )}
+                    {instantEventState && <InstantMeetingWebhooks eventType={eventType} />}
                   </div>
                 </SettingsToggle>
               </>
@@ -97,3 +99,193 @@ export default function InstantEventController({
     </LicenseRequired>
   );
 }
+
+const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
+  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
+    variant: "other",
+    onlyInstalled: true,
+  });
+
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
+
+  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+    async onSuccess() {
+      setEditModalOpen(false);
+      await utils.viewer.webhook.list.invalidate();
+      showToast(t("webhook_updated_successfully"), "success");
+    },
+    onError(error) {
+      showToast(`${error.message}`, "error");
+    },
+  });
+
+  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
+    async onSuccess() {
+      showToast(t("webhook_created_successfully"), "success");
+      await utils.viewer.webhook.list.invalidate();
+      setCreateModalOpen(false);
+    },
+    onError(error) {
+      showToast(`${error.message}`, "error");
+    },
+  });
+
+  const onCreateWebhook = async (values: WebhookFormSubmitData) => {
+    if (
+      subscriberUrlReserved({
+        subscriberUrl: values.subscriberUrl,
+        id: values.id,
+        webhooks,
+        eventTypeId: eventType.id,
+      })
+    ) {
+      showToast(t("webhook_subscriber_url_reserved"), "error");
+      return;
+    }
+
+    if (!values.payloadTemplate) {
+      values.payloadTemplate = null;
+    }
+
+    createWebhookMutation.mutate({
+      subscriberUrl: values.subscriberUrl,
+      eventTriggers: values.eventTriggers,
+      active: values.active,
+      payloadTemplate: values.payloadTemplate,
+      secret: values.secret,
+      eventTypeId: eventType.id,
+    });
+  };
+
+  const NewWebhookButton = () => {
+    const { t } = useLocale();
+    return (
+      <Button
+        color="secondary"
+        data-testid="new_webhook"
+        StartIcon={Plus}
+        onClick={() => setCreateModalOpen(true)}>
+        {t("new_webhook")}
+      </Button>
+    );
+  };
+
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+    eventType,
+    t("locked_fields_admin_description"),
+    t("locked_fields_member_description")
+  );
+  const webhookLockedStatus = shouldLockDisableProps("webhooks");
+
+  return (
+    <div>
+      {webhooks && !isLoading && (
+        <>
+          <div>
+            {webhooks.length ? (
+              <>
+                <div className="border-subtle my-2 rounded-md border">
+                  {webhooks.map((webhook, index) => {
+                    return (
+                      <WebhookListItem
+                        key={webhook.id}
+                        webhook={webhook}
+                        lastItem={webhooks.length === index + 1}
+                        canEditWebhook={!webhookLockedStatus.disabled}
+                        onEditWebhook={() => {
+                          setEditModalOpen(true);
+                          setWebhookToEdit(webhook);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+                <p className="text-default text-sm font-normal">
+                  {t("warning_payment_instant_meeting_event")}
+                </p>
+              </>
+            ) : (
+              <EmptyScreen
+                Icon={TbWebhook}
+                headline={t("create_your_first_webhook")}
+                description={t("create_instant_meeting_webhook_description")}
+                buttonRaw={
+                  isChildrenManagedEventType && !isManagedEventType ? (
+                    <Button StartIcon={Lock} color="secondary" disabled>
+                      {t("locked_by_admin")}
+                    </Button>
+                  ) : (
+                    <NewWebhookButton />
+                  )
+                }
+              />
+            )}
+          </div>
+
+          {/* New webhook dialog */}
+          <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
+            <DialogContent
+              enableOverflow
+              title={t("create_webhook")}
+              description={t("create_webhook_team_event_type")}>
+              <WebhookForm
+                noRoutingFormTriggers={true}
+                onSubmit={onCreateWebhook}
+                onCancel={() => setCreateModalOpen(false)}
+                apps={installedApps?.items.map((app) => app.slug)}
+                selectOnlyInstantMeetingOption={true}
+              />
+            </DialogContent>
+          </Dialog>
+          {/* Edit webhook dialog */}
+          <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
+            <DialogContent enableOverflow title={t("edit_webhook")}>
+              <WebhookForm
+                noRoutingFormTriggers={true}
+                webhook={webhookToEdit}
+                apps={installedApps?.items.map((app) => app.slug)}
+                onCancel={() => setEditModalOpen(false)}
+                onSubmit={(values: WebhookFormSubmitData) => {
+                  if (
+                    subscriberUrlReserved({
+                      subscriberUrl: values.subscriberUrl,
+                      id: webhookToEdit?.id,
+                      webhooks,
+                      eventTypeId: eventType.id,
+                    })
+                  ) {
+                    showToast(t("webhook_subscriber_url_reserved"), "error");
+                    return;
+                  }
+
+                  if (values.changeSecret) {
+                    values.secret = values.newSecret.length ? values.newSecret : null;
+                  }
+
+                  if (!values.payloadTemplate) {
+                    values.payloadTemplate = null;
+                  }
+
+                  editWebhookMutation.mutate({
+                    id: webhookToEdit?.id || "",
+                    subscriberUrl: values.subscriberUrl,
+                    eventTriggers: values.eventTriggers,
+                    active: values.active,
+                    payloadTemplate: values.payloadTemplate,
+                    secret: values.secret,
+                    eventTypeId: webhookToEdit?.eventTypeId || undefined,
+                  });
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+    </div>
+  );
+};
