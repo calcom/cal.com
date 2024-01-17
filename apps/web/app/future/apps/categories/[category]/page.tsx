@@ -2,7 +2,6 @@ import CategoryPage from "@pages/apps/categories/[category]";
 import { Prisma } from "@prisma/client";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 import z from "zod";
 
@@ -39,8 +38,8 @@ const querySchema = z.object({
   category: z.nativeEnum(AppCategories),
 });
 
-const getPageProps = async (context: GetServerSidePropsContext) => {
-  const p = querySchema.safeParse(context.params);
+const getPageProps = async ({ params }: { params: Record<string, string | string[]> }) => {
+  const p = querySchema.safeParse(params);
 
   if (!p.success) {
     return notFound();
@@ -67,5 +66,6 @@ const getPageProps = async (context: GetServerSidePropsContext) => {
   };
 };
 
-export default WithLayout({ getData: getPageProps, Page: CategoryPage, getLayout: null })<"P">;
+// @ts-expect-error getData arg
+export default WithLayout({ getData: getPageProps, Page: CategoryPage })<"P">;
 export const dynamic = "force-static";
