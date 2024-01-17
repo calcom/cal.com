@@ -106,7 +106,7 @@ const OutOfOfficeSection = () => {
           </div>
           <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
             {profileRedirect && (
-              <div className="mr-2">
+              <div className="">
                 <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
                 <Select
                   className="mt-1 h-4 text-white"
