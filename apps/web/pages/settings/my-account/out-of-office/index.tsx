@@ -19,6 +19,7 @@ import {
   UpgradeTeamsBadge,
   Switch,
   DateRangePicker,
+  Label,
 } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
@@ -104,12 +105,12 @@ const OutOfOfficeSection = () => {
               </div>
             )}
           </div>
-          <div className="mt-4 flex flex-row">
+          <div className="mt-5 md:flex">
             {profileRedirect && (
-              <div className="mr-2 w-1/2 lg:w-1/3">
-                <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
+              <div className="mb-2 md:mb-0 md:mr-2 md:max-w-[190px] md:flex-grow">
+                <Label>{t("team_member")}</Label>
                 <Select
-                  className="mt-1 h-4 max-w-[350px] text-white"
+                  className="w-full max-w-[360px]"
                   name="toTeamUsername"
                   data-testid="team_username_select"
                   value={selectedMember}
@@ -128,8 +129,8 @@ const OutOfOfficeSection = () => {
                 />
               </div>
             )}
-            <div className="w-1/2 lg:w-1/3">
-              <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
+            <div className="md:flex-row">
+              <Label>{t("time_range")}</Label>
               <Controller
                 name="dateRange"
                 control={control}
