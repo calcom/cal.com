@@ -6,6 +6,7 @@ import { DateOverride } from "availability/date-overrides";
 import useClientSchedule from "availability/hooks/useClientSchedule";
 import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
 import { useProfileInfo } from "availability/hooks/useProfileInfo";
+import { daysInAWeek } from "availability/lib/weekDays";
 import { Troubleshooter } from "availability/troubleshooter";
 import type { AvailabilityFormValues } from "availability/types";
 import { useApiKey } from "cal-provider";
@@ -32,15 +33,7 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
   const { isLoading, data: schedule } = useClientSchedule(id, key);
   const user = useProfileInfo(key);
 
-  const userWeekStart = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ].indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const userWeekStart = daysInAWeek.indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const { timeFormat } = user.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
 
