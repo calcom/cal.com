@@ -520,12 +520,13 @@ export default function Signup({
               </div>
             </>
           )}
-          <div
-            className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed dark:border-0 lg:block lg:py-[6px] lg:pl-[6px]"
-            style={{
-              backgroundColor: "rgba(236,237,239,0.9)",
-            }}>
-            <img src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+          <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+            <img
+              className="hidden dark:block"
+              src="/mock-event-type-list-dark.svg"
+              alt="Cal.com Booking Page"
+            />
           </div>
           <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
             {FEATURES.map((feature) => (
