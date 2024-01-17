@@ -8,9 +8,10 @@ import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
+import type { Membership, Team } from "@calcom/prisma/client";
 import { Prisma, type User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -53,26 +54,18 @@ export function checkInputEmailIsValid(email: string) {
     });
 }
 
-export async function getTeamOrThrow(teamId: number) {
+export async function getTeamOrThrow(teamId: number, isOrg?: boolean) {
   const team = await prisma.team.findFirst({
     where: {
       id: teamId,
     },
     include: {
-      organizationSettings: true,
-      parent: {
-        include: {
-          organizationSettings: true,
-        },
-      },
+      parent: true,
     },
   });
 
   if (!team)
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Team not found`,
-    });
+    throw new TRPCError({ code: "NOT_FOUND", message: `${isOrg ? "Organization" : "Team"} not found` });
 
   return team;
 }
@@ -392,29 +385,27 @@ export async function sendVerificationEmail({
   }
 }
 
-type TeamAndOrganizationSettings = Team & {
-  organizationSettings?: OrganizationSettings | null;
-};
-
 export function getIsOrgVerified(
   isOrg: boolean,
-  team: TeamAndOrganizationSettings & {
-    parent: TeamAndOrganizationSettings | null;
+  team: Team & {
+    parent: Team | null;
   }
 ) {
-  const parentSettings = team.parent?.organizationSettings;
+  const teamMetadata = teamMetadataSchema.parse(team.metadata);
+  const orgMetadataSafeParse = teamMetadataSchema.safeParse(team.parent?.metadata);
+  const orgMetadataIfExists = orgMetadataSafeParse.success ? orgMetadataSafeParse.data : null;
 
-  if (isOrg && team.organizationSettings?.orgAutoAcceptEmail) {
+  if (isOrg && teamMetadata?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
-      orgVerified: team.organizationSettings.isOrganizationVerified,
-      autoAcceptEmailDomain: team.organizationSettings.orgAutoAcceptEmail,
+      orgVerified: teamMetadata.isOrganizationVerified,
+      autoAcceptEmailDomain: teamMetadata.orgAutoAcceptEmail,
     };
-  } else if (parentSettings?.orgAutoAcceptEmail) {
+  } else if (orgMetadataIfExists?.orgAutoAcceptEmail) {
     return {
       isInOrgScope: true,
-      orgVerified: parentSettings.isOrganizationVerified,
-      autoAcceptEmailDomain: parentSettings.orgAutoAcceptEmail,
+      orgVerified: orgMetadataIfExists.isOrganizationVerified,
+      autoAcceptEmailDomain: orgMetadataIfExists.orgAutoAcceptEmail,
     };
   }
 

@@ -74,7 +74,7 @@ function TeamPage({
     return (
       <div className="flex h-full min-h-[100dvh] items-center justify-center">
         <UnpublishedEntity
-          {...(team?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
+          {...(metadata?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
           name={teamName}
         />
       </div>
@@ -178,7 +178,7 @@ function TeamPage({
           title: markdownStrippedBio,
           profile: {
             name: `${team.name}`,
-            image: `${WEBAPP_URL}/${team.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`,
+            image: `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`,
           },
         }}
       />
@@ -190,7 +190,7 @@ function TeamPage({
               imageSrc={
                 isValidOrgDomain
                   ? `/org/${currentOrgDomain}/avatar.png`
-                  : `${WEBAPP_URL}/${team.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
+                  : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
               }
               size="lg"
             />
@@ -208,7 +208,7 @@ function TeamPage({
             </>
           )}
         </div>
-        {team?.isOrganization ? (
+        {metadata?.isOrganization ? (
           <SubTeams />
         ) : (
           <>
@@ -311,7 +311,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!team?.isOrganization) ||
+    (!isValidOrgDomain && !!metadata?.isOrganization) ||
     !isOrganizationFeatureEnabled
   ) {
     return { notFound: true } as const;

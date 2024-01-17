@@ -15,7 +15,7 @@ type InviteMemberOptions = {
 };
 
 export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOptions) => {
-  const team = await getTeamOrThrow(input.teamId);
+  const team = await getTeamOrThrow(input.teamId, input.isOrg);
 
   await checkPermissions({
     userId: ctx.user.id,

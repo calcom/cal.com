@@ -37,23 +37,23 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${ctx.user.id}`,
   });
-  const team = await getTeamOrThrow(input.teamId);
-
-  const isOrg = team.isOrganization;
-
-  if (isOrg && input.role === MembershipRole.OWNER && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-
   await checkPermissions({
     userId: ctx.user.id,
     teamId:
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
-    isOrg,
+    isOrg: input.isOrg,
   });
 
-  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(isOrg, team);
   // Only owners can award owner role in an organization.
+  if (
+    input.isOrg &&
+    input.role === MembershipRole.OWNER &&
+    !(await isOrganisationOwner(ctx.user.id, input.teamId))
+  )
+    throw new TRPCError({ code: "UNAUTHORIZED" });
 
+  const team = await getTeamOrThrow(input.teamId, input.isOrg);
+  const { autoAcceptEmailDomain, orgVerified } = getIsOrgVerified(input.isOrg, team);
   const usernameOrEmailsToInvite = await getUsernameOrEmailsToInvite(input.usernameOrEmail);
   const orgConnectInfoByUsernameOrEmail = usernameOrEmailsToInvite.reduce((acc, usernameOrEmail) => {
     return {
@@ -63,13 +63,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         orgAutoAcceptDomain: autoAcceptEmailDomain,
         usersEmail: usernameOrEmail,
         team,
-        isOrg: isOrg,
+        isOrg: input.isOrg,
       }),
     };
   }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
   const existingUsersWithMembersips = await getUsersToInvite({
     usernamesOrEmails: usernameOrEmailsToInvite,
-    isInvitedToOrg: isOrg,
+    isInvitedToOrg: input.isOrg,
     team,
   });
   const existingUsersEmailsAndUsernames = existingUsersWithMembersips.reduce(
@@ -153,7 +153,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         currentUserTeamName: team?.name,
         existingUsersWithMembersips: regularUsers,
         language: translation,
-        isOrg: isOrg,
+        isOrg: input.isOrg,
         teamId: team.id,
         currentUserParentTeamName: team?.parent?.name,
       });
