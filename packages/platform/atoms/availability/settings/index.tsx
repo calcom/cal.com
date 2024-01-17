@@ -4,54 +4,53 @@ import { SmallScreenCTA } from "availability/components/cta/small-screen";
 import { DateOverride } from "availability/components/date-overrides";
 import { Timezone } from "availability/components/timezone";
 import { Troubleshooter } from "availability/components/troubleshooter";
-import useClientSchedule from "availability/hooks/useClientSchedule";
-import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
-import { useProfileInfo } from "availability/hooks/useProfileInfo";
 import { availabilityAsString } from "availability/lib/availabilityAsString";
-import { daysInAWeek } from "availability/lib/daysInAWeek";
 import type { AvailabilityFormValues } from "availability/types";
-import { useApiKey } from "cal-provider";
 import { useState } from "react";
+import type { FieldValues, Control, UseFormReturn, SubmitHandler } from "react-hook-form";
 import { useForm, Controller } from "react-hook-form";
 
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
-import { SkeletonText, VerticalDivider, Button, Form, showToast } from "@calcom/ui";
+import type { WorkingHours } from "@calcom/types/schedule";
+import type { TimeRange } from "@calcom/types/schedule";
+import { SkeletonText, VerticalDivider, Button, Form } from "@calcom/ui";
 import { MoreVertical } from "@calcom/ui/components/icon";
 import EditableHeading from "@calcom/web/components/ui/EditableHeading";
 
 type AvailabilitySettingsProps = {
   id?: string;
+  schedule: {
+    name: string;
+    id: number;
+    availability: TimeRange[][];
+    isLastSchedule: boolean;
+    isDefault: boolean;
+    workingHours: WorkingHours[];
+    dateOverrides: { ranges: TimeRange[] }[];
+    timeZone: string;
+  };
+  handleDelete: (id: string) => void;
+  isDeleting: boolean;
+  isLoading: boolean;
+  timeFormat: number;
+  weekStart?: number;
+  handleSubmit: (data: SubmitHandler<AvailabilityFormValues>) => Promise<void>;
 };
 
 const queryClient = new QueryClient();
 
-export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
-  const { key, error } = useApiKey();
-  const { isLoading, data: schedule } = useClientSchedule(key, id);
-  const user = useProfileInfo(key);
-
-  const userWeekStart = daysInAWeek.indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  const { timeFormat } = user.data || { timeFormat: null };
+export function AvailabilitySettings({
+  id,
+  schedule,
+  handleDelete,
+  isDeleting,
+  isLoading,
+  timeFormat,
+  weekStart,
+  handleSubmit,
+}: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
-
-  const { mutateAsync, isLoading: isDeletionInProgress } = useDeleteSchedule({
-    onSuccess: () => {
-      showToast("Scheduled deleted successfully", "success");
-    },
-  });
-
-  const handleDelete = async (id: string) => {
-    if (schedule.id === user.defaultScheduleId) {
-      showToast("You are required to have at least one schedule", "error");
-    } else {
-      await mutateAsync({ id, key });
-    }
-  };
-
-  const handleDuplicate = async () => {
-    // duplication function goes here
-  };
 
   const form = useForm<AvailabilityFormValues>({
     values: schedule && {
@@ -59,12 +58,6 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
       schedule: schedule?.availability || [],
     },
   });
-
-  if (error === "no_key") return <>You havent entered a key</>;
-
-  if (error === "invalid_key") return <>This is not a valid key, please enter a valid key</>;
-
-  if (isLoading) return <>Loading...</>;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -81,7 +74,7 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
         }
         subtitle={
           schedule ? (
-            schedule.schedule
+            schedule.availability
               .filter((availability: any) => !!availability.days.length)
               .map((availability: any) => (
                 <span key={availability.id}>
@@ -102,7 +95,7 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
               //   form.setValue("isDefault", e);
               // }}
               isButtonDisabled={schedule?.isLastSchedule}
-              isConfirmationDialogLoading={isDeletionInProgress}
+              isConfirmationDialogLoading={isDeleting}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
@@ -113,7 +106,7 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
               isSidebarOpen={openSidebar}
               toggleSidebar={() => setOpenSidebar(false)}
               isDeleteButtonDisabled={schedule?.isLastSchedule}
-              isDeleteDialogLoading={isDeletionInProgress}
+              isDeleteDialogLoading={isDeleting}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
@@ -132,12 +125,20 @@ export function AvailabilitySettings({ id }: AvailabilitySettingsProps) {
           </div>
         }>
         <div className="mt-4 w-full md:mt-0">
-          <Form form={form} id="availability-form" className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
+          <Form
+            form={form as unknown as UseFormReturn<FieldValues, any>}
+            id="availability-form"
+            handleSubmit={handleSubmit}
+            className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
             <div className="flex-1 flex-row xl:mr-0">
               <div className="border-subtle mb-6 rounded-md border">
                 <div>
-                  {typeof user.data?.weekStart === "string" && (
-                    <Schedule control={form.control} name="schedule" weekStart={userWeekStart} />
+                  {weekStart && (
+                    <Schedule
+                      control={form.control as unknown as Control<FieldValues, any>}
+                      name="schedule"
+                      weekStart={weekStart}
+                    />
                   )}
                 </div>
               </div>
