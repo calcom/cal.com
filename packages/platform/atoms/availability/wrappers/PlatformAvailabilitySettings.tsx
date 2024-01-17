@@ -3,11 +3,13 @@ import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
 import { useProfileInfo } from "availability/hooks/useProfileInfo";
 import { daysInAWeek } from "availability/lib/daysInAWeek";
 import type { AvailabilityFormValues } from "availability/types";
-import { useApiKey } from "cal-provider";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { showToast } from "@calcom/ui";
+
+import { useApiKey } from "../../hooks/useApiKeys";
+import { AvailabilitySettings } from "../settings/index";
 
 type AvailabilitySettingsProps = {
   id?: string;
@@ -52,5 +54,5 @@ export const PlatformAvailabilitySettingsWrapper = () => {
   if (error === "invalid_key") return <>This is not a valid key, please enter a valid key</>;
 
   if (isLoading) return <>Loading...</>;
-  return <div>PlatformAvailabilitySettingsWrapper</div>;
+  return <AvailabilitySettings />;
 };
