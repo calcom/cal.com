@@ -7,6 +7,7 @@ import { Troubleshooter } from "availability/components/troubleshooter";
 import useClientSchedule from "availability/hooks/useClientSchedule";
 import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
 import { useProfileInfo } from "availability/hooks/useProfileInfo";
+import { availabilityAsString } from "availability/lib/availabilityAsString";
 import { daysInAWeek } from "availability/lib/daysInAWeek";
 import type { AvailabilityFormValues } from "availability/types";
 import { useApiKey } from "cal-provider";
@@ -15,7 +16,6 @@ import { useForm, Controller } from "react-hook-form";
 
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
-import { availabilityAsString } from "@calcom/lib/availability";
 import { SkeletonText, VerticalDivider, Button, Form, showToast } from "@calcom/ui";
 import { MoreVertical } from "@calcom/ui/components/icon";
 import EditableHeading from "@calcom/web/components/ui/EditableHeading";
