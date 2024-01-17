@@ -1,3 +1,4 @@
+import { signIn } from "next-auth/react";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -209,6 +210,11 @@ function UsersTableBare() {
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
                           icon: Trash,
+                        },
+                        {
+                          id: "impersonation",
+                          label: "Impersonation",
+                          onClick: () => signIn("impersonation-auth", { username: user.username }),
                         },
                       ]}
                     />
