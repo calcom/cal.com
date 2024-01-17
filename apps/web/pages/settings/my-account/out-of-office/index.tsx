@@ -195,7 +195,7 @@ const OutOfOfficeEntriesList = () => {
             <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
               <TableCell>
                 <p className="px-2">
-                  {dayjs(item.start).format("ll")} - {dayjs(item.end).format("ll")}
+                  {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
                 </p>
               </TableCell>
               <TableCell>
