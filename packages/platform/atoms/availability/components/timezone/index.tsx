@@ -1,7 +1,6 @@
 import { Controller } from "react-hook-form";
 
 import { Skeleton, Label, TimezoneSelect } from "@calcom/ui";
-// TODO: find a better way(path) to import skeleton loader
 import { SelectSkeletonLoader } from "@calcom/web/components/availability/SkeletonLoader";
 
 export function Timezone() {

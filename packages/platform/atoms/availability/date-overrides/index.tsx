@@ -1,4 +1,4 @@
-import type { AvailabilityFormValues } from "availability";
+import type { AvailabilityFormValues } from "availability/types";
 import { useFieldArray } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
