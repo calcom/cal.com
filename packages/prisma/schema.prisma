@@ -321,7 +321,6 @@ model Team {
   pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
-  @@unique([slug, isOrganization])
 }
 
 model OrganizationSettings {
