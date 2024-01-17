@@ -610,14 +610,16 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       team: {
         select: {
           metadata: true,
+          isOrganization: true,
           parentId: true,
           parent: {
             select: {
               slug: true,
-              metadata: true,
+              organizationSettings: true,
             },
           },
           slug: true,
+          organizationSettings: true,
         },
       },
     },
@@ -666,8 +668,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;
-  const isOrganization = tokenTeam.metadata?.isOrganization;
   // Detect if the team is an org by either the metadata flag or if it has a parent team
+  const isOrganization = tokenTeam.isOrganization;
   const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
   // If we are dealing with an org, the slug may come from the team itself or its parent
   const orgSlug = isOrganizationOrATeamInOrganization
@@ -684,9 +686,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
-  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
-    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
-    : null;
+  const parentOrgSettings = tokenTeam?.parent?.organizationSettings ?? null;
 
   return {
     props: {
@@ -699,15 +699,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
               ? getOrgUsernameFromEmail(
                   verificationToken.identifier,
                   (isOrganization
-                    ? tokenTeam.metadata?.orgAutoAcceptEmail
-                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
+                    ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
+                    : parentOrgSettings?.orgAutoAcceptEmail) || ""
                 )
               : slugify(username),
           }
         : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
+        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
         : null,
     },
   };
