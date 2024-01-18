@@ -1,7 +1,7 @@
-import type { Payment } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -9,7 +9,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
 
-export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
+export type PaymentPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 
 const querySchema = z.object({
   uid: z.string(),
@@ -145,23 +145,3 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   };
 };
-
-function hasStringProp<T extends string>(x: unknown, key: T): x is { [key in T]: string } {
-  return !!x && typeof x === "object" && key in x;
-}
-
-function getClientSecretFromPayment(
-  payment: Omit<Partial<Payment>, "data"> & { data: Record<string, unknown> }
-) {
-  if (
-    payment.paymentOption === "HOLD" &&
-    hasStringProp(payment.data, "setupIntent") &&
-    hasStringProp(payment.data.setupIntent, "client_secret")
-  ) {
-    return payment.data.setupIntent.client_secret;
-  }
-  if (hasStringProp(payment.data, "client_secret")) {
-    return payment.data.client_secret;
-  }
-  return "";
-}
