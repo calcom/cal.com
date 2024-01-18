@@ -19,6 +19,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import isEqual from "@calcom/lib/isEqual";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
@@ -568,6 +569,20 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
+            const getDirtyFields = (): Partial<FormValues> => {
+              const dirtyFields: Partial<{ [K in keyof FormValues]: FormValues[K] }> = {};
+              const watchedFields = values;
+
+              // Iterate over watched fields and compare with initial values
+              Object.keys(watchedFields).forEach((key) => {
+                const typedKey = key as keyof FormValues;
+                if (!isEqual(watchedFields[typedKey], defaultValues[typedKey])) {
+                  Object.assign(dirtyFields, { [typedKey]: watchedFields[typedKey] });
+                }
+              });
+              return dirtyFields;
+            };
+            const dirtyFields = getDirtyFields();
             const {
               periodDates,
               periodCountCalendarDays,
@@ -590,7 +605,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               multipleDurationEnabled,
               length,
               ...input
-            } = values;
+            } = dirtyFields;
 
             if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
@@ -624,13 +639,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
+
             updateMutation.mutate({
               ...rest,
               length,
               locations,
               recurringEvent,
-              periodStartDate: periodDates.startDate,
-              periodEndDate: periodDates.endDate,
+              periodStartDate: periodDates ? periodDates.startDate : undefined,
+              periodEndDate: periodDates ? periodDates.endDate : undefined,
               periodCountCalendarDays: periodCountCalendarDays === "1",
               id: eventType.id,
               beforeEventBuffer: beforeBufferTime,
