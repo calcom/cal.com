@@ -602,7 +602,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               ...input
             } = dirtyFields;
 
-            if (!Number(length)) throw new Error(t("event_setup_length_error"));
+            if (!Number(values.length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -621,7 +621,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (length !== undefined && !length && !metadata?.multipleDuration?.includes(length)) {
+                if (!values.length && !metadata?.multipleDuration?.includes(values.length)) {
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
