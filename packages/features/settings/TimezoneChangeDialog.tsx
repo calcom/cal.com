@@ -56,7 +56,7 @@ export default function TimezoneChangeDialog() {
 
   const { data } = useSession();
 
-  if (data?.user.impersonatedByUID) return null;
+  if (data?.user.impersonatedBy) return null;
 
   const ONE_DAY = 60 * 60 * 24; // 1 day in seconds (60 seconds * 60 minutes * 24 hours)
   const THREE_MONTHS = ONE_DAY * 90; // 90 days in seconds (90 days * 1 day in seconds)
