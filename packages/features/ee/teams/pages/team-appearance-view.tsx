@@ -61,7 +61,10 @@ const ProfileView = ({ team }: ProfileViewProps) => {
       await utils.viewer.teams.get.invalidate();
       if (res) {
         resetTheme({ theme: res.theme });
-        resetBrandColors({ brandColor: res.brandColor, darkBrandColor: res.darkBrandColor });
+        resetBrandColors({
+          brandColor: res.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+          darkBrandColor: res.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+        });
       }
 
       showToast(t("your_team_updated_successfully"), "success");
@@ -139,8 +142,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             }}>
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
-              brandColor={team?.brandColor}
-              darkBrandColor={team?.darkBrandColor}
+              brandColor={team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+              darkBrandColor={team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
             />
           </Form>
 
