@@ -3,7 +3,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { MembershipRole } from "@prisma/client";
 
-import getEventTypeById from "@calcom/lib/getEventTypeById";
+import getEventTypeById from "@calcom/lib/dist";
 
 @Injectable()
 export class EventTypesService {

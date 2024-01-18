@@ -5,11 +5,16 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts",
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json",
+    "build": "tsc --build --force tsconfig.json",
+    "build:watch": "tsc --build --force tsconfig.json --watch"
   },
   "dependencies": {
     "@calcom/config": "*",

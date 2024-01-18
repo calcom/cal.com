@@ -1,6 +1,8 @@
+import type { LocationOption } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { App } from "@calcom/types/App";
 
 import { TRPCError } from "@trpc/server";
 
@@ -13,7 +15,9 @@ type AppByIdOptions = {
   input: TAppByIdInputSchema;
 };
 
-export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
+export type AppByIdHandlerReturn = App & { isInstalled: number; locationOption: LocationOption | null };
+
+export const appByIdHandler = async ({ ctx, input }: AppByIdOptions): Promise<AppByIdHandlerReturn> => {
   const { user } = ctx;
   const appId = input.appId;
   const credentials = await getUsersCredentials(user.id);

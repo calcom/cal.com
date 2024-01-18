@@ -1,10 +1,12 @@
 {
   "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2021",
+    "module": "ESNext",
     "jsx": "preserve",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "outDir": "./dist"
   },
-  "include": [".", "../types/next-auth.d.ts"],
+  "include": [".", "../types/*.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }
