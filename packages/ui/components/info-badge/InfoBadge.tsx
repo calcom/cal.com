@@ -1,5 +1,5 @@
-import { Tooltip } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
+import { Info } from "../icon";
+import { Tooltip } from "../tooltip/Tooltip";
 
 export default function InfoBadge({ content }: { content: string }) {
   return (

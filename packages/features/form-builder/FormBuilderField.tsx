@@ -7,7 +7,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
-import InfoBadge from "@calcom/web/components/ui/InfoBadge";
+import InfoBadge from "../../ui/components/info-badge/InfoBadge";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";

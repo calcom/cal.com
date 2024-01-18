@@ -58,6 +58,6 @@
     "@calcom/tsconfig": "*",
     "@types/react": "18.2.48",
     "@types/react-dom": "^18.2.18",
-    "typescript": "^5.3.3"
+    "typescript": "^4.9.4"
   }
 }

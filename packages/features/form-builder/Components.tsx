@@ -20,7 +20,7 @@ import {
   CheckboxField,
 } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
-import InfoBadge from "@calcom/web/components/ui/InfoBadge";
+import InfoBadge from "../../ui/components/info-badge/InfoBadge";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";

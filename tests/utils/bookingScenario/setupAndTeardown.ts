@@ -1,9 +1,6 @@
 import { beforeEach, afterEach } from "vitest";
 
-import {
-  enableEmailFeature,
-  mockNoTranslations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { enableEmailFeature, mockNoTranslations } from "./bookingScenario";
 
 export function setupAndTeardown() {
   beforeEach(() => {
