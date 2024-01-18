@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { localize } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
@@ -176,6 +177,14 @@ const fillAllQuestions = async (eventTypePage: Page, questions: string[], option
 
 export async function loginUser(users: UserFixture) {
   const pro = await users.create({ name: "testuser" });
+  await pro.apiLogin();
+}
+
+export async function loginUserWithTeam(users: UserFixture, role: MembershipRole) {
+  const pro = await users.create(
+    { name: "testuser" },
+    { hasTeam: true, teamRole: role, isOrg: true, hasSubteam: true }
+  );
   await pro.apiLogin();
 }
 
