@@ -469,7 +469,7 @@ export default function Signup({
           </div>
         </div>
         <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
-          {!IS_CALCOM && (
+          {IS_CALCOM && (
             <>
               <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
                 <div>
