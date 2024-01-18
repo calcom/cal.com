@@ -626,7 +626,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!length && length !== undefined && !metadata?.multipleDuration?.includes(length)) {
+                if (length !== undefined && !length && !metadata?.multipleDuration?.includes(length)) {
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
