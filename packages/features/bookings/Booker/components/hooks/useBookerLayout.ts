@@ -54,7 +54,7 @@ export const useBookerLayout = (event: useEventReturnType["data"]) => {
       const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
       validLayout && setLayout(validLayout);
     }
-  }, [bookerLayouts, validateLayout, setLayout, _layout]);
+  }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile]);
 
   // In Embed, a Dialog doesn't look good, we disable it intentionally for the layouts that support showing Form without Dialog(i.e. no-dialog Form)
   const shouldShowFormInDialogMap: Record<BookerLayout, boolean> = {
