@@ -1,4 +1,5 @@
 import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -8,6 +9,7 @@ import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomain
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, TextField, Alert } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
@@ -25,11 +27,14 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
+  const session = useSession();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [showVerifyCode, setShowVerifyCode] = useState(false);
 
   const newOrganizationFormMethods = useForm<{
     name: string;
+    seats: number;
+    pricePerSeat: number;
     slug: string;
     adminEmail: string;
     adminUsername: string;
@@ -74,10 +79,14 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
     },
   });
 
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isImpersonated = session.data?.user.impersonatedBy;
+
   return (
     <>
       <Form
         form={newOrganizationFormMethods}
+        className="space-y-5"
         id="createOrg"
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isLoading) {
@@ -85,13 +94,12 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
             createOrganizationMutation.mutate(v);
           }
         }}>
-        <div className="mb-5">
+        <div>
           {serverErrorMessage && (
             <div className="mb-4">
               <Alert severity="error" message={serverErrorMessage} />
             </div>
           )}
-
           <Controller
             name="adminEmail"
             control={newOrganizationFormMethods.control}
@@ -128,7 +136,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
             )}
           />
         </div>
-        <div className="mb-5">
+        <div>
           <Controller
             name="name"
             control={newOrganizationFormMethods.control}
@@ -157,7 +165,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
           />
         </div>
 
-        <div className="mb-5">
+        <div>
           <Controller
             name="slug"
             control={newOrganizationFormMethods.control}
@@ -182,6 +190,68 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
             )}
           />
         </div>
+
+        {(isAdmin || isImpersonated) && (
+          <>
+            <section className="grid grid-cols-2 gap-2">
+              <div className="w-full">
+                {serverErrorMessage && (
+                  <div className="mb-4">
+                    <Alert severity="error" message={serverErrorMessage} />
+                  </div>
+                )}
+                <Controller
+                  name="seats"
+                  control={newOrganizationFormMethods.control}
+                  render={({ field: { value } }) => (
+                    <div className="flex">
+                      <TextField
+                        containerClassName="w-full"
+                        placeholder="37"
+                        name="seats"
+                        type="number"
+                        label="Seats (optional)"
+                        defaultValue={value}
+                        onChange={(e) => {
+                          null;
+                        }}
+                        autoComplete="off"
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+              <div className="w-full">
+                {serverErrorMessage && (
+                  <div className="mb-4">
+                    <Alert severity="error" message={serverErrorMessage} />
+                  </div>
+                )}
+                <Controller
+                  name="pricePerSeat"
+                  control={newOrganizationFormMethods.control}
+                  render={({ field: { value } }) => (
+                    <div className="flex">
+                      <TextField
+                        containerClassName="w-full"
+                        placeholder="30"
+                        name="pricePerSeat"
+                        type="number"
+                        addOnSuffix="$"
+                        label="Price per seat (optional)"
+                        defaultValue={value}
+                        onChange={(e) => {
+                          null;
+                        }}
+                        autoComplete="off"
+                      />
+                    </div>
+                  )}
+                />
+              </div>
+            </section>
+          </>
+        )}
 
         <input hidden {...newOrganizationFormMethods.register("adminUsername")} />
 
