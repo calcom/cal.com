@@ -259,7 +259,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
       team: { id: teamId },
       assignAllTeamMembers: true,
     },
-    select: allManagedEventTypeProps,
+    select: { ...allManagedEventTypeProps, id: true },
   });
 
   const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
@@ -267,41 +267,46 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
-        const managedEventTypeValues = allManagedEventTypePropsZod
-          .omit(unlockedManagedEventTypeProps)
-          .parse(eventType);
+        if (eventType.schedulingType === "MANAGED") {
+          const managedEventTypeValues = allManagedEventTypePropsZod
+            .omit(unlockedManagedEventTypeProps)
+            .parse(eventType);
 
-        // Define the values for unlocked properties to use on creation, not updation
-        const unlockedEventTypeValues = allManagedEventTypePropsZod
-          .pick(unlockedManagedEventTypeProps)
-          .parse(eventType);
+          // Define the values for unlocked properties to use on creation, not updation
+          const unlockedEventTypeValues = allManagedEventTypePropsZod
+            .pick(unlockedManagedEventTypeProps)
+            .parse(eventType);
 
-        // Calculate if there are new workflows for which assigned members will get too
-        const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
+          // Calculate if there are new workflows for which assigned members will get too
+          const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
-        return prisma.eventType.create({
-          data: {
-            ...managedEventTypeValues,
-            ...unlockedEventTypeValues,
-            bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-            recurringEvent:
-              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-            metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-            bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-            userId,
-            users: {
-              connect: [{ id: userId }],
+          return prisma.eventType.create({
+            data: {
+              ...managedEventTypeValues,
+              ...unlockedEventTypeValues,
+              bookingLimits:
+                (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+              recurringEvent:
+                (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+              metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+              bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
+              durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+              onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+              userId,
+              users: {
+                connect: [{ id: userId }],
+              },
+              parentId: eventType.parentId,
+              hidden: false,
+              workflows: currentWorkflowIds && {
+                create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+              },
             },
-            parentId: eventType.parentId,
-            hidden: false,
-            workflows: currentWorkflowIds && {
-              create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-            },
-          },
-        });
+          });
+        } else {
+          const hosts = [...eventType.hosts, { userId, isFixed: true }];
+          return prisma.eventType.update({ where: { id: eventType.id }, data: { hosts: { create: hosts } } });
+        }
       })
     ));
 }
