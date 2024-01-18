@@ -1,3 +1,5 @@
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -26,6 +28,7 @@ function UsersTableBare() {
   const utils = trpc.useContext();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const router = useRouter();
 
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
@@ -100,6 +103,11 @@ function UsersTableBare() {
       });
     },
   });
+
+  const handleImpersonateUser = async (username) => {
+    await signIn("impersonation-auth", { redirect: false, username: username });
+    router.push(`/event-types`);
+  };
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
@@ -196,6 +204,12 @@ function UsersTableBare() {
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
                           icon: Lock,
+                        },
+                        {
+                          id: "impersonate-user",
+                          label: "Impersonate",
+                          onClick: () => handleImpersonateUser(user.username),
+                          // icon: /
                         },
                         {
                           id: "lock-user",
