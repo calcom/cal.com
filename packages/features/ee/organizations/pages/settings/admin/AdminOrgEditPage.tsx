@@ -32,12 +32,9 @@ const OrgEditView = ({ orgId }: { orgId: number }) => {
       <Meta
         title={`Editing organization: ${org.name}`}
         description="Here you can edit a current organization."
-        borderInShellHeader
       />
       <NoSSR>
-        <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
-          <OrgForm org={org} />
-        </div>
+        <OrgForm org={org} />
       </NoSSR>
     </LicenseRequired>
   );

@@ -129,7 +129,6 @@ const MembersView = () => {
       <Meta
         title={t("team_members")}
         description={t("members_team_description")}
-        borderInShellHeader
         CTA={
           isOrgAdminOrOwner ? (
             <Button
@@ -146,13 +145,12 @@ const MembersView = () => {
           )
         }
       />
-      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
-        {!isLoading && (
-          <>
-            <div>
-              <>
-                {/* Currently failing due to re render and loose focus */}
-                {/* <TextField
+      {!isLoading && (
+        <>
+          <div>
+            <>
+              {/* Currently failing due to re render and loose focus */}
+              {/* <TextField
                 type="search"
                 autoComplete="false"
                 onChange={(e) => {
@@ -162,74 +160,73 @@ const MembersView = () => {
                 value={query}
                 placeholder={`${t("search")}...`}
               /> */}
-                <MembersList
-                  members={members}
-                  team={team}
-                  fetchNextPage={fetchNextPage}
-                  hasNextPage={hasNextPage}
-                  isFetchingNextPage={isFetchingNextPage}
-                />
-              </>
-
-              {team && (
-                <>
-                  <hr className="border-subtle my-8" />
-                  <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={false} />
-                </>
-              )}
-            </div>
-            {showMemberInvitationModal && team && (
-              <MemberInvitationModal
-                isLoading={inviteMemberMutation.isLoading}
-                isOpen={showMemberInvitationModal}
-                orgMembers={orgMembersNotInThisTeam}
-                teamId={team.id}
-                disableCopyLink={true}
-                onExit={() => setShowMemberInvitationModal(false)}
-                onSubmit={(values, resetFields) => {
-                  inviteMemberMutation.mutate(
-                    {
-                      teamId,
-                      language: i18n.language,
-                      role: values.role,
-                      usernameOrEmail: values.emailOrUsername,
-                    },
-                    {
-                      onSuccess: async (data) => {
-                        await utils.viewer.teams.get.invalidate();
-                        setShowMemberInvitationModal(false);
-
-                        if (Array.isArray(data.usernameOrEmail)) {
-                          showToast(
-                            t("email_invite_team_bulk", {
-                              userCount: data.usernameOrEmail.length,
-                            }),
-                            "success"
-                          );
-                          resetFields();
-                        } else {
-                          showToast(
-                            t("email_invite_team", {
-                              email: data.usernameOrEmail,
-                            }),
-                            "success"
-                          );
-                        }
-                      },
-                      onError: (error) => {
-                        showToast(error.message, "error");
-                      },
-                    }
-                  );
-                }}
-                onSettingsOpen={() => {
-                  setShowMemberInvitationModal(false);
-                }}
+              <MembersList
+                members={members}
+                team={team}
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
               />
+            </>
+
+            {team && (
+              <>
+                <hr className="border-subtle my-8" />
+                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={false} />
+              </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+          {showMemberInvitationModal && team && (
+            <MemberInvitationModal
+              isLoading={inviteMemberMutation.isLoading}
+              isOpen={showMemberInvitationModal}
+              orgMembers={orgMembersNotInThisTeam}
+              teamId={team.id}
+              disableCopyLink={true}
+              onExit={() => setShowMemberInvitationModal(false)}
+              onSubmit={(values, resetFields) => {
+                inviteMemberMutation.mutate(
+                  {
+                    teamId,
+                    language: i18n.language,
+                    role: values.role,
+                    usernameOrEmail: values.emailOrUsername,
+                  },
+                  {
+                    onSuccess: async (data) => {
+                      await utils.viewer.teams.get.invalidate();
+                      setShowMemberInvitationModal(false);
+
+                      if (Array.isArray(data.usernameOrEmail)) {
+                        showToast(
+                          t("email_invite_team_bulk", {
+                            userCount: data.usernameOrEmail.length,
+                          }),
+                          "success"
+                        );
+                        resetFields();
+                      } else {
+                        showToast(
+                          t("email_invite_team", {
+                            email: data.usernameOrEmail,
+                          }),
+                          "success"
+                        );
+                      }
+                    },
+                    onError: (error) => {
+                      showToast(error.message, "error");
+                    },
+                  }
+                );
+              }}
+              onSettingsOpen={() => {
+                setShowMemberInvitationModal(false);
+              }}
+            />
+          )}
+        </>
+      )}
     </>
   );
 };

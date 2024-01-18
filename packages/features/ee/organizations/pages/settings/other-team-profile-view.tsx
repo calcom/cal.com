@@ -154,208 +154,202 @@ const OtherTeamProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} borderInShellHeader />
-      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
-        {!isLoading ? (
-          <>
-            {isAdmin ? (
-              <Form
-                form={form}
-                handleSubmit={(values) => {
-                  if (team) {
-                    const variables = {
-                      logo: values.logo,
-                      name: values.name,
-                      slug: values.slug,
-                      bio: values.bio,
-                    };
-                    objectKeys(variables).forEach((key) => {
-                      if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
-                    });
-                    mutation.mutate({ id: team.id, ...variables });
-                  }
-                }}>
-                <div className="flex items-center">
-                  <Controller
-                    control={form.control}
-                    name="logo"
-                    render={({ field: { value } }) => (
-                      <>
-                        <Avatar
-                          alt=""
-                          imageSrc={getPlaceholderAvatar(value, team?.name as string)}
-                          size="lg"
-                        />
-                        <div className="ms-4">
-                          <ImageUploader
-                            target="avatar"
-                            id="avatar-upload"
-                            buttonMsg={t("update")}
-                            handleAvatarChange={(newLogo) => {
-                              form.setValue("logo", newLogo);
-                            }}
-                            imageSrc={value}
-                          />
-                        </div>
-                      </>
-                    )}
-                  />
-                </div>
-
-                <hr className="border-subtle my-8" />
-
+      <Meta title={t("profile")} description={t("profile_team_description")} />
+      {!isLoading ? (
+        <>
+          {isAdmin ? (
+            <Form
+              form={form}
+              handleSubmit={(values) => {
+                if (team) {
+                  const variables = {
+                    logo: values.logo,
+                    name: values.name,
+                    slug: values.slug,
+                    bio: values.bio,
+                  };
+                  objectKeys(variables).forEach((key) => {
+                    if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
+                  });
+                  mutation.mutate({ id: team.id, ...variables });
+                }
+              }}>
+              <div className="flex items-center">
                 <Controller
                   control={form.control}
-                  name="name"
+                  name="logo"
                   render={({ field: { value } }) => (
-                    <div className="mt-8">
-                      <TextField
-                        name="name"
-                        label={t("team_name")}
-                        value={value}
-                        onChange={(e) => {
-                          form.setValue("name", e?.target.value);
-                        }}
-                      />
-                    </div>
-                  )}
-                />
-                <Controller
-                  control={form.control}
-                  name="slug"
-                  render={({ field: { value } }) => (
-                    <div className="mt-8">
-                      <TextField
-                        name="slug"
-                        label={t("team_url")}
-                        value={value}
-                        addOnLeading={
-                          team?.parent ? `${team.parent.slug}.${subdomainSuffix()}/` : `${WEBAPP_URL}/team/`
-                        }
-                        onChange={(e) => {
-                          form.clearErrors("slug");
-                          form.setValue("slug", slugify(e?.target.value, true));
-                        }}
-                      />
-                    </div>
-                  )}
-                />
-                <div className="mt-8">
-                  <Label>{t("about")}</Label>
-                  <Editor
-                    getText={() => md.render(form.getValues("bio") || "")}
-                    setText={(value: string) => form.setValue("bio", turndown(value))}
-                    excludedToolbarItems={["blockType"]}
-                    disableLists
-                    firstRender={firstRender}
-                    setFirstRender={setFirstRender}
-                  />
-                </div>
-                <p className="text-default mt-2 text-sm">{t("team_description")}</p>
-                <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
-                  {t("update")}
-                </Button>
-                {IS_TEAM_BILLING_ENABLED &&
-                  team.slug === null &&
-                  (team.metadata as Prisma.JsonObject)?.requestedSlug && (
-                    <Button
-                      color="secondary"
-                      className="ml-2 mt-8"
-                      type="button"
-                      onClick={() => {
-                        publishMutation.mutate({ teamId: team.id });
-                      }}>
-                      Publish
-                    </Button>
-                  )}
-              </Form>
-            ) : (
-              <div className="flex">
-                <div className="flex-grow">
-                  <div>
-                    <Label className="text-emphasis">{t("team_name")}</Label>
-                    <p className="text-default text-sm">{team?.name}</p>
-                  </div>
-                  {team && !isBioEmpty && (
                     <>
-                      <Label className="text-emphasis mt-5">{t("about")}</Label>
-                      <div
-                        className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                        dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
-                      />
+                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
+                      <div className="ms-4">
+                        <ImageUploader
+                          target="avatar"
+                          id="avatar-upload"
+                          buttonMsg={t("update")}
+                          handleAvatarChange={(newLogo) => {
+                            form.setValue("logo", newLogo);
+                          }}
+                          imageSrc={value}
+                        />
+                      </div>
                     </>
                   )}
-                </div>
-                <div className="">
-                  <Link href={permalink} passHref={true} target="_blank">
-                    <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
-                  </Link>
-                  <LinkIconButton
-                    Icon={LinkIcon}
-                    onClick={() => {
-                      navigator.clipboard.writeText(permalink);
-                      showToast("Copied to clipboard", "success");
-                    }}>
-                    {t("copy_link_team")}
-                  </LinkIconButton>
-                </div>
+                />
               </div>
-            )}
-            <hr className="border-subtle my-8 border" />
 
-            <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button color="destructive" className="border" StartIcon={Trash2}>
-                  {t("disband_team")}
-                </Button>
-              </DialogTrigger>
-              <ConfirmationDialogContent
-                variety="danger"
-                title={t("disband_team")}
-                confirmBtnText={t("confirm_disband_team")}
-                onConfirm={deleteTeam}>
-                {t("disband_team_confirmation_message")}
-              </ConfirmationDialogContent>
-            </Dialog>
-          </>
-        ) : (
-          <>
-            <SkeletonContainer as="form">
-              <div className="flex items-center">
-                <div className="ms-4">
-                  <SkeletonContainer>
-                    <div className="bg-emphasis h-16 w-16 rounded-full" />
-                  </SkeletonContainer>
-                </div>
-              </div>
               <hr className="border-subtle my-8" />
-              <SkeletonContainer>
-                <div className="mt-8">
-                  <SkeletonText className="h-6 w-48" />
-                </div>
-              </SkeletonContainer>
-              <SkeletonContainer>
-                <div className="mt-8">
-                  <SkeletonText className="h-6 w-48" />
-                </div>
-              </SkeletonContainer>
+
+              <Controller
+                control={form.control}
+                name="name"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="name"
+                      label={t("team_name")}
+                      value={value}
+                      onChange={(e) => {
+                        form.setValue("name", e?.target.value);
+                      }}
+                    />
+                  </div>
+                )}
+              />
+              <Controller
+                control={form.control}
+                name="slug"
+                render={({ field: { value } }) => (
+                  <div className="mt-8">
+                    <TextField
+                      name="slug"
+                      label={t("team_url")}
+                      value={value}
+                      addOnLeading={
+                        team?.parent ? `${team.parent.slug}.${subdomainSuffix()}/` : `${WEBAPP_URL}/team/`
+                      }
+                      onChange={(e) => {
+                        form.clearErrors("slug");
+                        form.setValue("slug", slugify(e?.target.value, true));
+                      }}
+                    />
+                  </div>
+                )}
+              />
               <div className="mt-8">
-                <SkeletonContainer>
-                  <div className="bg-emphasis h-24 rounded-md" />
-                </SkeletonContainer>
-                <SkeletonText className="mt-4 h-12 w-32" />
+                <Label>{t("about")}</Label>
+                <Editor
+                  getText={() => md.render(form.getValues("bio") || "")}
+                  setText={(value: string) => form.setValue("bio", turndown(value))}
+                  excludedToolbarItems={["blockType"]}
+                  disableLists
+                  firstRender={firstRender}
+                  setFirstRender={setFirstRender}
+                />
               </div>
-              <SkeletonContainer>
-                <div className="mt-8">
-                  <SkeletonText className="h-9 w-24" />
+              <p className="text-default mt-2 text-sm">{t("team_description")}</p>
+              <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
+                {t("update")}
+              </Button>
+              {IS_TEAM_BILLING_ENABLED &&
+                team.slug === null &&
+                (team.metadata as Prisma.JsonObject)?.requestedSlug && (
+                  <Button
+                    color="secondary"
+                    className="ml-2 mt-8"
+                    type="button"
+                    onClick={() => {
+                      publishMutation.mutate({ teamId: team.id });
+                    }}>
+                    Publish
+                  </Button>
+                )}
+            </Form>
+          ) : (
+            <div className="flex">
+              <div className="flex-grow">
+                <div>
+                  <Label className="text-emphasis">{t("team_name")}</Label>
+                  <p className="text-default text-sm">{team?.name}</p>
                 </div>
-              </SkeletonContainer>
+                {team && !isBioEmpty && (
+                  <>
+                    <Label className="text-emphasis mt-5">{t("about")}</Label>
+                    <div
+                      className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                      dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                    />
+                  </>
+                )}
+              </div>
+              <div className="">
+                <Link href={permalink} passHref={true} target="_blank">
+                  <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
+                </Link>
+                <LinkIconButton
+                  Icon={LinkIcon}
+                  onClick={() => {
+                    navigator.clipboard.writeText(permalink);
+                    showToast("Copied to clipboard", "success");
+                  }}>
+                  {t("copy_link_team")}
+                </LinkIconButton>
+              </div>
+            </div>
+          )}
+          <hr className="border-subtle my-8 border" />
+
+          <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button color="destructive" className="border" StartIcon={Trash2}>
+                {t("disband_team")}
+              </Button>
+            </DialogTrigger>
+            <ConfirmationDialogContent
+              variety="danger"
+              title={t("disband_team")}
+              confirmBtnText={t("confirm_disband_team")}
+              onConfirm={deleteTeam}>
+              {t("disband_team_confirmation_message")}
+            </ConfirmationDialogContent>
+          </Dialog>
+        </>
+      ) : (
+        <>
+          <SkeletonContainer as="form">
+            <div className="flex items-center">
+              <div className="ms-4">
+                <SkeletonContainer>
+                  <div className="bg-emphasis h-16 w-16 rounded-full" />
+                </SkeletonContainer>
+              </div>
+            </div>
+            <hr className="border-subtle my-8" />
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-6 w-48" />
+              </div>
             </SkeletonContainer>
-          </>
-        )}
-      </div>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-6 w-48" />
+              </div>
+            </SkeletonContainer>
+            <div className="mt-8">
+              <SkeletonContainer>
+                <div className="bg-emphasis h-24 rounded-md" />
+              </SkeletonContainer>
+              <SkeletonText className="mt-4 h-12 w-32" />
+            </div>
+            <SkeletonContainer>
+              <div className="mt-8">
+                <SkeletonText className="h-9 w-24" />
+              </div>
+            </SkeletonContainer>
+          </SkeletonContainer>
+        </>
+      )}
     </>
   );
 };

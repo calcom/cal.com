@@ -9,12 +9,8 @@ const MembersView = () => {
 
   return (
     <LicenseRequired>
-      <Meta
-        title={t("organization_members")}
-        description={t("organization_description")}
-        borderInShellHeader
-      />
-      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
+      <Meta title={t("organization_members")} description={t("organization_description")} />
+      <div>
         <UserListTable />
       </div>
     </LicenseRequired>

@@ -77,130 +77,132 @@ const OrgAppearanceView = ({
 
   return (
     <LicenseRequired>
-      <Meta title={t("appearance")} description={t("appearance_org_description")} borderInShellHeader />
-      <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-6 py-8">
-        {isAdminOrOwner ? (
-          <div>
-            <div className="my-6">
-              <div className="flex items-center text-sm">
-                <Avatar
-                  alt="calVideoLogo"
-                  imageSrc={currentOrg?.calVideoLogo}
-                  fallback={<Plus className="text-subtle h-6 w-6" />}
-                  size="lg"
-                />
-                <div className="ms-4">
-                  <div className="flex gap-2">
-                    <ImageUploader
-                      target="avatar"
-                      id="cal-video-logo-upload"
-                      buttonMsg={
-                        currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")
-                      }
-                      handleAvatarChange={(newLogo) => {
-                        mutation.mutate({
-                          calVideoLogo: newLogo,
-                        });
-                      }}
+      <Meta
+        title={t("appearance")}
+        description={t("appearance_org_description")}
+        borderInShellHeader={false}
+      />
+      {isAdminOrOwner ? (
+        <div>
+          <div className="my-6">
+            <div className="flex items-center text-sm">
+              <Avatar
+                alt="calVideoLogo"
+                imageSrc={currentOrg?.calVideoLogo}
+                fallback={<Plus className="text-subtle h-6 w-6" />}
+                size="lg"
+              />
+              <div className="ms-4">
+                <div className="flex gap-2">
+                  <ImageUploader
+                    target="avatar"
+                    id="cal-video-logo-upload"
+                    buttonMsg={
+                      currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")
+                    }
+                    handleAvatarChange={(newLogo) => {
+                      mutation.mutate({
+                        calVideoLogo: newLogo,
+                      });
+                    }}
+                    disabled={mutation.isLoading}
+                    imageSrc={currentOrg?.calVideoLogo ?? undefined}
+                    uploadInstruction={t("cal_video_logo_upload_instruction")}
+                    triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
+                  />
+                  {currentOrg?.calVideoLogo && (
+                    <Button
+                      color="destructive"
                       disabled={mutation.isLoading}
-                      imageSrc={currentOrg?.calVideoLogo ?? undefined}
-                      uploadInstruction={t("cal_video_logo_upload_instruction")}
-                      triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
-                    />
-                    {currentOrg?.calVideoLogo && (
-                      <Button
-                        color="destructive"
-                        disabled={mutation.isLoading}
-                        onClick={() => {
-                          mutation.mutate({
-                            calVideoLogo: null,
-                          });
-                        }}>
-                        {t("remove")}
-                      </Button>
-                    )}
-                  </div>
+                      onClick={() => {
+                        mutation.mutate({
+                          calVideoLogo: null,
+                        });
+                      }}>
+                      {t("remove")}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
-            <Form
-              form={themeForm}
-              handleSubmit={(value) => {
-                mutation.mutate({
-                  theme: value.theme ?? null,
-                });
-              }}>
-              <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
-                <div>
-                  <p className="text-default text-base font-semibold">{t("theme")}</p>
-                  <p className="text-default">{t("theme_applies_note")}</p>
-                </div>
+          </div>
+          <Form
+            form={themeForm}
+            handleSubmit={(value) => {
+              mutation.mutate({
+                theme: value.theme ?? null,
+              });
+            }}>
+            <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
+              <div>
+                <p className="text-default text-base font-semibold">{t("theme")}</p>
+                <p className="text-default">{t("theme_applies_note")}</p>
               </div>
-              <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
-                <ThemeLabel
-                  variant="system"
-                  value={undefined}
-                  label={t("theme_system")}
-                  defaultChecked={currentOrg.theme === null}
-                  register={themeForm.register}
-                />
-                <ThemeLabel
-                  variant="light"
-                  value="light"
-                  label={t("light")}
-                  defaultChecked={currentOrg.theme === "light"}
-                  register={themeForm.register}
-                />
-                <ThemeLabel
-                  variant="dark"
-                  value="dark"
-                  label={t("dark")}
-                  defaultChecked={currentOrg.theme === "dark"}
-                  register={themeForm.register}
-                />
-              </div>
-              <SectionBottomActions className="mb-6" align="end">
-                <Button
-                  disabled={isOrgThemeSubmitting || !isOrgThemeDirty}
-                  type="submit"
-                  data-testid="update-org-theme-btn"
-                  color="primary">
-                  {t("update")}
-                </Button>
-              </SectionBottomActions>
-            </Form>
-
-            <Form
-              form={brandColorsFormMethods}
-              handleSubmit={(values) => {
-                onBrandColorsFormSubmit(values);
-              }}>
-              <BrandColorsForm
-                onSubmit={onBrandColorsFormSubmit}
-                brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
-                darkBrandColor={currentOrg?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
+            </div>
+            <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
+              <ThemeLabel
+                variant="system"
+                value={undefined}
+                label={t("theme_system")}
+                defaultChecked={currentOrg.theme === null}
+                register={themeForm.register}
               />
-            </Form>
+              <ThemeLabel
+                variant="light"
+                value="light"
+                label={t("light")}
+                defaultChecked={currentOrg.theme === "light"}
+                register={themeForm.register}
+              />
+              <ThemeLabel
+                variant="dark"
+                value="dark"
+                label={t("dark")}
+                defaultChecked={currentOrg.theme === "dark"}
+                register={themeForm.register}
+              />
+            </div>
+            <SectionBottomActions className="mb-6" align="end">
+              <Button
+                disabled={isOrgThemeSubmitting || !isOrgThemeDirty}
+                type="submit"
+                data-testid="update-org-theme-btn"
+                color="primary">
+                {t("update")}
+              </Button>
+            </SectionBottomActions>
+          </Form>
 
-            <SettingsToggle
-              toggleSwitchAtTheEnd={true}
-              title={t("disable_cal_branding", { appName: APP_NAME })}
-              disabled={mutation?.isLoading}
-              description={t("removes_cal_branding", { appName: APP_NAME })}
-              checked={hideBrandingValue}
-              onCheckedChange={(checked) => {
-                setHideBrandingValue(checked);
-                mutation.mutate({ hideBranding: checked });
-              }}
-              switchContainerClassName="mt-6"
+          <Form
+            form={brandColorsFormMethods}
+            handleSubmit={(values) => {
+              onBrandColorsFormSubmit(values);
+            }}>
+            <BrandColorsForm
+              onSubmit={onBrandColorsFormSubmit}
+              brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+              darkBrandColor={currentOrg?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
             />
-          </div>
-        ) : (
-          <div className="py-5">
-            <span className="text-default text-sm">{t("only_owner_change")}</span>
-          </div>
-        )}
-      </div>
+          </Form>
+
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("disable_cal_branding", { appName: APP_NAME })}
+            disabled={mutation?.isLoading}
+            description={t("removes_cal_branding", { appName: APP_NAME })}
+            checked={hideBrandingValue}
+            onCheckedChange={(checked) => {
+              setHideBrandingValue(checked);
+              mutation.mutate({ hideBranding: checked });
+            }}
+            switchContainerClassName="mt-6"
+          />
+        </div>
+      ) : (
+        <div className="py-5">
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
+        </div>
+      )}
     </LicenseRequired>
   );
 };
