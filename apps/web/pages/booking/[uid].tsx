@@ -54,6 +54,8 @@ import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 export { getServerSideProps };
 
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
 const stringToBoolean = z
   .string()
   .optional()
