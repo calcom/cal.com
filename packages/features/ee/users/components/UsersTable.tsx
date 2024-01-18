@@ -112,6 +112,11 @@ function UsersTableBare() {
     },
   });
 
+  const handleImpersonateUser = async (username) => {
+    await signIn("impersonation-auth", { redirect: false, username: username });
+    router.push(`/event-types`);
+  };
+
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
   const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
@@ -207,6 +212,12 @@ function UsersTableBare() {
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
                           icon: Lock,
+                        },
+                        {
+                          id: "impersonate-user",
+                          label: "Impersonate",
+                          onClick: () => handleImpersonateUser(user.username),
+                          // icon: /
                         },
                         {
                           id: "lock-user",
