@@ -1,4 +1,5 @@
 import type { TFunction } from "next-i18next";
+import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -34,6 +35,8 @@ const getDurationFormatted = (mins: number, t: TFunction) => {
 };
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
+  const router = useRouter();
+
   const { t } = useLocale();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
