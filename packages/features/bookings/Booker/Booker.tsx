@@ -2,7 +2,7 @@ import { LazyMotion, m, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import type { UseFormReturn, FieldValues } from "react-hook-form";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -24,16 +24,14 @@ import { EventMeta } from "./components/EventMeta";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
-import { OverlayCalendarContinueModal } from "./components/OverlayCalendar/OverlayCalendarContinueModal";
-import { OverlayCalendarSettingsModal } from "./components/OverlayCalendar/OverlayCalendarSettingsModal";
-import { OverlayCalendarSwitch } from "./components/OverlayCalendar/OverlayCalendarSwitch";
+import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { Away, NotFound } from "./components/Unavailable";
 import { useBookerLayout } from "./components/hooks/useBookerLayout";
 import { useBookingForm } from "./components/hooks/useBookingForm";
 import { useBookings } from "./components/hooks/useBookings";
-import { useOverlayCalendar } from "./components/hooks/useOverlayCalendar";
+import { useCalendars } from "./components/hooks/useCalendars";
 import { useSlots } from "./components/hooks/useSlots";
 import { useVerifyEmail } from "./components/hooks/useVerifyEmail";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
@@ -203,15 +201,12 @@ const BookerComponent = ({
   });
 
   const {
+    overlayBusyDates,
     isOverlayCalendarEnabled,
     connectedCalendars,
     loadingConnectedCalendar,
-    handleCloseContinueModal,
-    handleCloseSettingsModal,
-    isOpenOverlayContinueModal,
-    isOpenOverlaySettingsModal,
-    handleToggleConnectedCalendar,
-  } = useOverlayCalendar();
+    onToggleCalendar,
+  } = useCalendars();
 
   useEffect(() => {
     if (event.isLoading) return setBookerState("loading");
@@ -219,6 +214,71 @@ const BookerComponent = ({
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
+
+  const EventBooker = useMemo(
+    () => (
+      <BookEventForm
+        key={key}
+        onCancel={() => {
+          setSelectedTimeslot(null);
+          if (seatedEventData.bookingUid) {
+            setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+          }
+        }}
+        onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
+        errorRef={bookerFormErrorRef}
+        errors={{ ...formErrors, ...errors }}
+        loadingStates={loadingStates}
+        renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+        bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
+        eventQuery={event}
+        rescheduleUid={rescheduleUid}>
+        <>
+          <VerifyCodeDialog
+            isOpenDialog={isEmailVerificationModalVisible}
+            setIsOpenDialog={setEmailVerificationModalVisible}
+            email={formEmail}
+            onSuccess={() => {
+              setVerifiedEmail(formEmail);
+              setEmailVerificationModalVisible(false);
+              handleBookEvent();
+            }}
+            isUserSessionRequiredToVerify={false}
+          />
+          <RedirectToInstantMeetingModal
+            hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
+            bookingId={parseInt(getQueryParam("bookingId") || "0")}
+            onGoBack={() => {
+              // Prevent null on app directory
+              if (pathname) window.location.href = pathname;
+            }}
+          />
+        </>
+      </BookEventForm>
+    ),
+    [
+      bookerFormErrorRef,
+      bookingForm,
+      errors,
+      event,
+      formEmail,
+      formErrors,
+      handleBookEvent,
+      handleVerifyEmail,
+      hasInstantMeetingTokenExpired,
+      isEmailVerificationModalVisible,
+      key,
+      loadingStates,
+      pathname,
+      renderConfirmNotVerifyEmailButtonCond,
+      rescheduleUid,
+      seatedEventData,
+      setEmailVerificationModalVisible,
+      setSeatedEventData,
+      setSelectedTimeslot,
+      setVerifiedEmail,
+    ]
+  );
 
   if (entity.isUnpublished) {
     return <UnpublishedEntity {...entity} />;
@@ -231,47 +291,6 @@ const BookerComponent = ({
   if (bookerState === "loading") {
     return null;
   }
-
-  const EventBooker = (
-    <BookEventForm
-      key={key}
-      onCancel={() => {
-        setSelectedTimeslot(null);
-        if (seatedEventData.bookingUid) {
-          setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
-        }
-      }}
-      onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
-      errorRef={bookerFormErrorRef}
-      errors={{ ...formErrors, ...errors }}
-      loadingStates={loadingStates}
-      renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-      bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
-      eventQuery={event}
-      rescheduleUid={rescheduleUid}>
-      <>
-        <VerifyCodeDialog
-          isOpenDialog={isEmailVerificationModalVisible}
-          setIsOpenDialog={setEmailVerificationModalVisible}
-          email={formEmail}
-          onSuccess={() => {
-            setVerifiedEmail(formEmail);
-            setEmailVerificationModalVisible(false);
-            handleBookEvent();
-          }}
-          isUserSessionRequiredToVerify={false}
-        />
-        <RedirectToInstantMeetingModal
-          hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
-          bookingId={parseInt(getQueryParam("bookingId") || "0")}
-          onGoBack={() => {
-            // Prevent null on app directory
-            if (pathname) window.location.href = pathname;
-          }}
-        />
-      </>
-    </BookEventForm>
-  );
 
   return (
     <>
@@ -349,18 +368,13 @@ const BookerComponent = ({
                       <></>
                     ) : (
                       <>
-                        <OverlayCalendarSwitch enabled={isOverlayCalendarEnabled} />
-                        <OverlayCalendarContinueModal
-                          open={isOpenOverlayContinueModal}
-                          onClose={handleCloseContinueModal}
-                        />
-                        <OverlayCalendarSettingsModal
+                        <OverlayCalendar
+                          isOverlayCalendarEnabled={isOverlayCalendarEnabled}
                           connectedCalendars={connectedCalendars}
-                          open={isOpenOverlaySettingsModal}
-                          onClose={handleCloseSettingsModal}
-                          isLoading={loadingConnectedCalendar}
-                          onToggleConnectedCalendar={handleToggleConnectedCalendar}
-                          onClickNoCalendar={() => {
+                          loadingConnectedCalendar={loadingConnectedCalendar}
+                          overlayBusyDates={overlayBusyDates}
+                          onToggleCalendar={onToggleCalendar}
+                          handleClickNoCalendar={() => {
                             router.push("/apps/categories/calendar");
                           }}
                         />
