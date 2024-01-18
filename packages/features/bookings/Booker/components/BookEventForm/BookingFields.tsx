@@ -30,13 +30,6 @@ export const BookingFields = ({
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
-  const getDomain = (url: string): string => {
-    const urlParts: string[] = new URL(url).hostname.split(".");
-    const partsToKeep: number = urlParts.length === 4 ? 3 : 2;
-    const domainWithoutSubdomain: string = urlParts.slice(-partsToKeep).join(".");
-    return domainWithoutSubdomain;
-  };
-
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form

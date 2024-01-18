@@ -403,26 +403,9 @@ export const Components: Record<FieldType, Component> = {
           return "";
         }
 
-        const getDomain = (url: string): string => {
-          const urlParts: string[] = new URL(url).hostname.split(".");
-          const partsToKeep: number = urlParts.length === 4 ? 3 : 2;
-          return urlParts.slice(-partsToKeep).join(".");
-        };
-
-        return option.label.search(/^http?:/) !== -1 ? (
-          <a href={option.label} target="_blank" style={{ textDecoration: "none" }}>
-            {" "}
-            <span
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                borderBottom: "1px solid transparent",
-                transition: "border-color 0.3s ease-in-out",
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.borderColor = "white")}
-              onMouseOut={(e) => (e.currentTarget.style.borderColor = "transparent")}>
-              {getDomain(option.label)}
-            </span>{" "}
+        return option.label.search(/^https?:\/\//) !== -1 ? (
+          <a href={option.label} target="_blank">
+            <span className="underline">{option.label}</span>
           </a>
         ) : (
           option.label
