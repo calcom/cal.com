@@ -12,6 +12,7 @@ import WebhookListItem from "@calcom/features/webhooks/components/WebhookListIte
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, showToast } from "@calcom/ui";
 import { PhoneCall, Plus, Lock, Webhook as TbWebhook } from "@calcom/ui/components/icon";
@@ -103,7 +104,10 @@ export default function InstantEventController({
 const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery({
+    eventTypeId: eventType.id,
+    eventTriggers: [WebhookTriggerEvents.INSTANT_MEETING],
+  });
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
@@ -210,20 +214,25 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                 </p>
               </>
             ) : (
-              <EmptyScreen
-                Icon={TbWebhook}
-                headline={t("create_your_first_webhook")}
-                description={t("create_instant_meeting_webhook_description")}
-                buttonRaw={
-                  isChildrenManagedEventType && !isManagedEventType ? (
-                    <Button StartIcon={Lock} color="secondary" disabled>
-                      {t("locked_by_admin")}
-                    </Button>
-                  ) : (
-                    <NewWebhookButton />
-                  )
-                }
-              />
+              <>
+                <p className="text-default mb-4 text-sm font-normal">
+                  {t("warning_payment_instant_meeting_event")}
+                </p>
+                <EmptyScreen
+                  Icon={TbWebhook}
+                  headline={t("create_your_first_webhook")}
+                  description={t("create_instant_meeting_webhook_description")}
+                  buttonRaw={
+                    isChildrenManagedEventType && !isManagedEventType ? (
+                      <Button StartIcon={Lock} color="secondary" disabled>
+                        {t("locked_by_admin")}
+                      </Button>
+                    ) : (
+                      <NewWebhookButton />
+                    )
+                  }
+                />
+              </>
             )}
           </div>
 
