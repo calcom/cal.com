@@ -5,7 +5,7 @@ import React from "react";
 
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen } from "@calcom/ui";
+import { EmptyScreen, HeadSeo } from "@calcom/ui";
 import { AlertCircle } from "@calcom/ui/components/icon";
 
 type AppsLayoutProps = {
@@ -22,7 +22,8 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
 
   if (session.status === "loading") return <></>;
   return (
-    <ShellMain {...rest} actions={actions?.("block")} hideHeadingOnMobile>
+    <ShellMain {...rest} actions={actions?.("block")} withoutSeo hideHeadingOnMobile>
+      <HeadSeo title="App Store" description="Connecting people, technology and the workplace." />
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (

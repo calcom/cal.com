@@ -46,7 +46,7 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+      <ShellMain withoutSeo heading="Insights" subtitle={t("insights_subtitle")}>
         <HeadSeo title="Insights" description="View booking insights across your events." />
         <UpgradeTip
           plan="team"

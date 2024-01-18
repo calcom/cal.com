@@ -159,6 +159,7 @@ export default function AvailabilityPage() {
   return (
     <div>
       <ShellMain
+        withoutSeo
         heading={t("availability")}
         hideHeadingOnMobile
         subtitle={t("configure_availability")}

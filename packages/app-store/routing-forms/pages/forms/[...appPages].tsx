@@ -171,6 +171,7 @@ export default function RoutingForms({
   return (
     <LicenseRequired>
       <ShellMain
+        withoutSeo
         heading="Routing Forms"
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
         subtitle={t("routing_forms_description")}>

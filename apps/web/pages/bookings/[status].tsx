@@ -153,7 +153,7 @@ export default function Bookings() {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMain withoutSeo hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
       <HeadSeo title="Bookings" description="Create events to share for people to book on your calendar." />
       <div className="flex flex-col">
         <div className="flex flex-row flex-wrap justify-between">

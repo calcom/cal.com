@@ -22,6 +22,7 @@ function Teams() {
 
   return (
     <ShellMain
+      withoutSeo
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
