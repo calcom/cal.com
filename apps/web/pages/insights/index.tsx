@@ -17,7 +17,7 @@ import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, ButtonGroup } from "@calcom/ui";
+import { Button, ButtonGroup, HeadSeo } from "@calcom/ui";
 import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -47,6 +47,7 @@ export default function InsightsPage() {
   return (
     <div>
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+        <HeadSeo title="Insights" description="View booking insights across your events." />
         <UpgradeTip
           plan="team"
           title={t("make_informed_decisions")}
