@@ -112,7 +112,7 @@ function UsersTableBare() {
     },
   });
 
-  const handleImpersonateUser = async (username) => {
+  const handleImpersonateUser = async (username: string) => {
     await signIn("impersonation-auth", { redirect: false, username: username });
     router.push(`/event-types`);
   };
@@ -215,9 +215,9 @@ function UsersTableBare() {
                         },
                         {
                           id: "impersonate-user",
-                          label: "Impersonate",
+                          label: "Impersonate User",
                           onClick: () => handleImpersonateUser(user.username),
-                          // icon: /
+                          icon: User,
                         },
                         {
                           id: "lock-user",
