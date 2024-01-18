@@ -19,7 +19,6 @@ import {
   UpgradeTeamsBadge,
   Switch,
   DateRangePicker,
-  Label,
 } from "@calcom/ui";
 import { TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
@@ -106,20 +105,17 @@ const OutOfOfficeSection = () => {
               </div>
             )}
           </div>
-          <div className="mt-5 md:flex">
+          <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
             {profileRedirect && (
-              <div className="mb-2 md:mb-0 md:mr-2 md:max-w-[190px] md:flex-grow">
-                <Label>{t("team_member")}</Label>
+              <div className="">
+                <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
                 <Select
-                  className="w-full max-w-[360px]"
+                  className="mt-1 h-4 text-white"
                   name="toTeamUsername"
                   data-testid="team_username_select"
                   value={selectedMember}
                   placeholder={t("select_team_member")}
                   isSearchable
-                  innerClassNames={{
-                    control: "h-[38px]",
-                  }}
                   options={memberListOptions}
                   onChange={(selectedOption) => {
                     if (selectedOption?.value) {
@@ -130,26 +126,27 @@ const OutOfOfficeSection = () => {
                 />
               </div>
             )}
-            <div className="md:flex-row">
-              <Label>{t("time_range")}</Label>
-              <Controller
-                name="dateRange"
-                control={control}
-                defaultValue={dateRange}
-                render={() => (
-                  <DateRangePicker
-                    startDate={getValues("dateRange").startDate}
-                    endDate={getValues("dateRange").endDate}
-                    onDatesChange={({ startDate, endDate }) => {
-                      setValue("offset", dayjs().utcOffset());
-                      setValue("dateRange", {
-                        startDate,
-                        endDate,
-                      });
-                    }}
-                  />
-                )}
-              />
+            <div className="">
+              <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
+              <div>
+                <Controller
+                  name="dateRange"
+                  control={control}
+                  defaultValue={dateRange}
+                  render={() => (
+                    <DateRangePicker
+                      startDate={getValues("dateRange").startDate}
+                      endDate={getValues("dateRange").endDate}
+                      onDatesChange={({ startDate, endDate }) => {
+                        setValue("dateRange", {
+                          startDate,
+                          endDate,
+                        });
+                      }}
+                    />
+                  )}
+                />
+              </div>
             </div>
           </div>
         </div>
