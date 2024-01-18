@@ -126,3 +126,4 @@ export const IS_PREMIUM_USERNAME_ENABLED =
 export const MAX_NB_INVITES = 100;
 
 export const URL_PROTOCOL_REGEX = /(^\w+:|^)\/\//;
+export const FUTURE_OVERRIDE_COOKIE_NAME = "x-calcom-future-routes-override";

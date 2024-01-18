@@ -29,6 +29,7 @@ import AdminPasswordBanner, {
 import CalendarCredentialBanner, {
   type CalendarCredentialBannerProps,
 } from "@calcom/features/users/components/CalendarCredentialBanner";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -241,6 +242,7 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
+        <UserV2OptInBanner />
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             {Object.keys(banners).map((key) => {

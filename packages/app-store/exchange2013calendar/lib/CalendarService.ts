@@ -187,40 +187,37 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async listCalendars() {
+  async listCalendars(): Promise<IntegrationCalendar[]> {
     try {
       const allFolders: IntegrationCalendar[] = [];
-      return this.getExchangeService()
-        .FindFolders(WellKnownFolderName.MsgFolderRoot, new FolderView(1000))
-        .then(async (res) => {
-          for (const k in res.Folders) {
-            const f = res.Folders[k];
-            if (f.FolderClass == "IPF.Appointment") {
-              //Select parent folder for all calendars
-              allFolders.push({
-                externalId: f.Id.UniqueId,
-                name: f.DisplayName ?? "",
-                primary: true, //The first one is prime
-                integration: this.integrationName,
-              });
-              return await this.getExchangeService()
-                .FindFolders(f.Id, new FolderView(1000))
-                .then((res) => {
-                  //Find all calendars inside calendar folder
-                  res.Folders.forEach((fs) => {
-                    allFolders.push({
-                      externalId: fs.Id.UniqueId,
-                      name: fs.DisplayName ?? "",
-                      primary: false,
-                      integration: this.integrationName,
-                    });
-                  });
-                  return allFolders;
-                });
-            }
-          }
-          return allFolders;
-        });
+      const res = await this.getExchangeService().FindFolders(
+        WellKnownFolderName.MsgFolderRoot,
+        new FolderView(1000)
+      );
+      for (const k in res.Folders) {
+        const f = res.Folders[k];
+        if (f.FolderClass == "IPF.Appointment") {
+          //Select parent folder for all calendars
+          allFolders.push({
+            externalId: f.Id.UniqueId,
+            name: f.DisplayName ?? "",
+            primary: true, //The first one is prime
+            integration: this.integrationName,
+          });
+          const res2 = await this.getExchangeService().FindFolders(f.Id, new FolderView(1000));
+          //Find all calendars inside calendar folder
+          res2.Folders.forEach((fs) => {
+            allFolders.push({
+              externalId: fs.Id.UniqueId,
+              name: fs.DisplayName ?? "",
+              primary: false,
+              integration: this.integrationName,
+            });
+            return allFolders;
+          });
+        }
+      }
+      return allFolders;
     } catch (reason) {
       this.log.error(reason);
       throw reason;

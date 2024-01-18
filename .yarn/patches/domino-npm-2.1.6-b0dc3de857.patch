@@ -1,0 +1,26 @@
+diff --git a/lib/sloppy.js b/lib/sloppy.js
+index b5d8950a8ea98d2d58723c1f96eeabb260699e24..e920db18fa3f595bc18c6c128161501510669875 100644
+--- a/lib/sloppy.js
++++ b/lib/sloppy.js
+@@ -6,19 +6,9 @@
+ /* jshint -W085 */
+ module.exports = {
+   Window_run: function _run(code, file) {
+-    if (file) code += '\n//@ sourceURL=' + file;
+-    with(this) eval(code);
++    console.log("Window_run removed")
+   },
+   EventHandlerBuilder_build: function build() {
+-    try {
+-      with(this.document.defaultView || Object.create(null))
+-        with(this.document)
+-          with(this.form)
+-            with(this.element)
+-              return eval("(function(event){" + this.body + "})");
+-    }
+-    catch (err) {
+-      return function() { throw err; };
+-    }
++    console.log("EventHandlerBuilder_build removed")
+   }
+ };

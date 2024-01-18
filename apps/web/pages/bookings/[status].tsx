@@ -3,7 +3,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import { Fragment, useState } from "react";
-import React from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -18,9 +17,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { HorizontalTabs } from "@calcom/ui";
-import type { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
-import { Alert, Button, EmptyScreen } from "@calcom/ui";
+import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
@@ -29,8 +27,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
-
-import { ssgInit } from "@server/lib/ssg";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -262,6 +258,7 @@ Bookings.getLayout = getLayout;
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
+  const { ssgInit } = await import("@server/lib/ssg");
   const ssg = await ssgInit(ctx);
 
   if (!params.success) return { notFound: true };

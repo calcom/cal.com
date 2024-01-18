@@ -1,4 +1,3 @@
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 
@@ -11,7 +10,7 @@ export const handler = async () => {
         connectionExists: null,
       };
     }
-
+    const jackson = (await import("@calcom/features/ee/sso/lib/jackson")).default;
     const { connectionController } = await jackson();
 
     const connections = await connectionController.getConnections({
