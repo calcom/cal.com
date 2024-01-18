@@ -180,13 +180,13 @@ export default async function handleChildrenEventTypes({
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
             bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+              (unlockedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             recurringEvent:
               (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+            durationLimits: (unlockedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            onlyShowFirstAvailableSlot: unlockedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
             userId,
             users: {
               connect: [{ id: userId }],
@@ -234,14 +234,10 @@ export default async function handleChildrenEventTypes({
           data: {
             ...managedEventTypeValues,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
             recurringEvent:
               (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
             hashedLink: hashedLinkQuery(userId),
           },
         });

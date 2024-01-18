@@ -609,6 +609,19 @@ export const unlockedManagedEventTypeProps = {
   locations: allManagedEventTypeProps.locations,
   scheduleId: allManagedEventTypeProps.scheduleId,
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
+  beforeEventBuffer: allManagedEventTypeProps.beforeEventBuffer,
+  afterEventBuffer: allManagedEventTypeProps.afterEventBuffer,
+  bookingLimits: allManagedEventTypeProps.bookingLimits,
+  minimumBookingNotice: allManagedEventTypeProps.minimumBookingNotice,
+  slotInterval: allManagedEventTypeProps.slotInterval,
+  onlyShowFirstAvailableSlot: allManagedEventTypeProps.onlyShowFirstAvailableSlot,
+  durationLimits: allManagedEventTypeProps.durationLimits,
+  periodType: allManagedEventTypeProps.periodType,
+  periodDays: allManagedEventTypeProps.periodDays,
+  periodCountCalendarDays: allManagedEventTypeProps.periodCountCalendarDays,
+  periodStartDate: allManagedEventTypeProps.periodStartDate,
+  periodEndDate: allManagedEventTypeProps.periodEndDate,
+  offsetStart: allManagedEventTypeProps.offsetStart,
 };
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
