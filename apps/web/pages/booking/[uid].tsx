@@ -88,9 +88,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-type SuccessProps = inferSSRProps<typeof getServerSideProps>;
-
-export default function Success(props: SuccessProps) {
+export default function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -829,8 +827,8 @@ Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
-  eventType: SuccessProps["eventType"];
-  recurringBookings: SuccessProps["recurringBookings"];
+  eventType: PageProps["eventType"];
+  recurringBookings: PageProps["recurringBookings"];
   date: dayjs.Dayjs;
   duration: number | undefined;
   is24h: boolean;
