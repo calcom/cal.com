@@ -15,9 +15,11 @@ import { useOverlayCalendarStore } from "./OverlayCalendar/store";
 export const LargeCalendar = ({
   extraDays,
   schedule,
+  isLoading,
 }: {
   extraDays: number;
-  schedule: useScheduleForEventReturnType;
+  schedule?: useScheduleForEventReturnType["data"];
+  isLoading: boolean;
 }) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -31,11 +33,11 @@ export const LargeCalendar = ({
 
   const availableSlots = useMemo(() => {
     const availableTimeslots: CalendarAvailableTimeslots = {};
-    if (!schedule.data) return availableTimeslots;
-    if (!schedule.data.slots) return availableTimeslots;
+    if (!schedule) return availableTimeslots;
+    if (!schedule.slots) return availableTimeslots;
 
-    for (const day in schedule.data.slots) {
-      availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
+    for (const day in schedule.slots) {
+      availableTimeslots[day] = schedule.slots[day].map((slot) => ({
         start: dayjs(slot.time).toDate(),
         end: dayjs(slot.time).add(eventDuration, "minutes").toDate(),
       }));
@@ -72,7 +74,7 @@ export const LargeCalendar = ({
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
-        isLoading={schedule.isLoading}
+        isLoading={isLoading}
         availableTimeslots={availableSlots}
         startHour={0}
         endHour={23}
