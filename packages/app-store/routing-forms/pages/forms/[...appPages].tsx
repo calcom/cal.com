@@ -32,6 +32,7 @@ import {
   ListLinkItem,
   Tooltip,
   ArrowButton,
+  HeadSeo,
 } from "@calcom/ui";
 import {
   BarChart,
@@ -173,6 +174,10 @@ export default function RoutingForms({
         heading="Routing Forms"
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
         subtitle={t("routing_forms_description")}>
+        <HeadSeo
+          title="Routing Forms"
+          description="Create forms to direct attendees to the correct destinations."
+        />
         <UpgradeTip
           plan="team"
           title={t("teams_plan_required")}
