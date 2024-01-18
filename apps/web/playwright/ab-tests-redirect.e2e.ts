@@ -86,7 +86,8 @@ test.describe("apps/ A/B tests", () => {
     await expect(locator).toBeVisible();
   });
 
-  test("should point to the /future/apps/categories", async ({ page, users, context }) => {
+  // TODO: Revert until OOM issue is resolved
+  test.skip("should point to the /future/apps/categories", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",
@@ -167,7 +168,8 @@ test.describe("apps/ A/B tests", () => {
     await expect(locator).toHaveClass(/bg-emphasis/);
   });
 
-  test("should point to the /future/getting-started", async ({ page, users, context }) => {
+  // TODO: Revert until OOM issue is resolved
+  test.skip("should point to the /future/getting-started", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",

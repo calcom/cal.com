@@ -8,7 +8,8 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("App Store - Authed", () => {
-  test("should point to the /future/apps/", async ({ page, users, context }) => {
+  // TODO: Revert until OOM issue is resolved
+  test.skip("should point to the /future/apps/", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",
