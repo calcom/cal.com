@@ -117,7 +117,18 @@ export function useInitialFormValues({
       };
       setDefaultValues(defaults);
     })();
-  }, [eventType?.bookingFields, formValues, isRescheduling, bookingData, rescheduleUid]);
+  }, [
+    eventType?.bookingFields,
+    formValues,
+    isRescheduling,
+    bookingData,
+    rescheduleUid,
+    searchParams,
+    routerQuery,
+    session.data?.user?.email,
+    session.data?.user?.name,
+    session.data?.user?.username,
+  ]);
 
   // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
   const key = `${Object.keys(initialValues).length}_${session ? 1 : 0}`;
