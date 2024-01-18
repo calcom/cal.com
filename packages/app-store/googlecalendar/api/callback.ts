@@ -68,6 +68,20 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
+      const existingCalendar = await prisma.selectedCalendar.findUnique({
+        where: {
+          userId_integration_externalId: {
+            userId: req.session.user.id,
+            externalId: primaryCal.id,
+            integration: "google_calendar",
+          },
+        },
+      });
+
+      if (existingCalendar) {
+        throw new HttpError({ statusCode: 409, message: "Account is already linked." });
+      }
+
       await prisma.selectedCalendar.create({
         data: {
           userId: req.session.user.id,

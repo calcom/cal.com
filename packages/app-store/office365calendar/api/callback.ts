@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -110,6 +111,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
+    const existingCalendar = await prisma.selectedCalendar.findUnique({
+      where: {
+        userId_integration_externalId: {
+          userId: req.session?.user.id,
+          integration: "office365_calendar",
+          externalId: defaultCalendar.id,
+        },
+      },
+    });
+
+    if (existingCalendar) {
+      throw new HttpError({ statusCode: 409, message: "Account is already linked." });
+    }
     await prisma.selectedCalendar.create({
       data: {
         userId: req.session?.user.id,

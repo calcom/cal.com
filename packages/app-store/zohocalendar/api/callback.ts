@@ -3,6 +3,7 @@ import { stringify } from "querystring";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -85,6 +86,19 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
+    const existingCalendar = await prisma.selectedCalendar.findUnique({
+      where: {
+        userId_integration_externalId: {
+          userId: req.session.user.id,
+          integration: config.type,
+          externalId: primaryCalendar.uid,
+        },
+      },
+    });
+
+    if (existingCalendar) {
+      throw new HttpError({ statusCode: 409, message: "Account is already linked." });
+    }
     await prisma.selectedCalendar.create({
       data: {
         userId: req.session.user.id,
