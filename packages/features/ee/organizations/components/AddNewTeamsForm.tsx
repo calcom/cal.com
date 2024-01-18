@@ -7,7 +7,7 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, TextField } from "@calcom/ui";
+import { Button, showToast, TextField, CheckboxField } from "@calcom/ui";
 import { ArrowRight, Plus, X } from "@calcom/ui/components/icon";
 
 const querySchema = z.object({
@@ -101,6 +101,21 @@ export const AddNewTeamsForm = () => {
   return (
     <>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
+        <label className="text-emphasis mb-2 block text-sm font-medium leading-none">
+          Move existing teams
+        </label>
+        <ul className="mb-8 space-y-4">
+          <li>
+            <CheckboxField description="Team #1" />
+          </li>
+          <li>
+            <CheckboxField description="Team #2" />
+          </li>
+          <li>
+            <CheckboxField description="Team #3" />
+          </li>
+        </ul>
+
         {fields.map((field, index) => (
           <div className={classNames("relative", index > 0 ? "mb-2" : "")} key={field.id}>
             <TextField

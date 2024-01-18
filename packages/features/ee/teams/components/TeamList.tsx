@@ -70,7 +70,7 @@ export default function TeamList(props: Props) {
                             child: t("contact_sales"),
                           }
                         : {
-                            href: `/settings/organizations/move-teams`,
+                            href: `/settings/organizations/new`,
                             child: t("set_up_your_organization"),
                           }
                     }
