@@ -43,22 +43,33 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
 
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
 
+  // Function to extract duration from URL
+  const getDurationFromURL = () => {
+    const pathParts = router.asPath.split("/");
+    const lastPart = pathParts[pathParts.length - 1];
+    return isNaN(parseInt(lastPart)) ? null : parseInt(lastPart);
+  };
+
   // Sets initial value of selected duration to the default duration.
   useEffect(() => {
-    // Only store event duration in url if event has multiple durations.
-    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
-      setSelectedDuration(event.length);
+    const urlDuration = getDurationFromURL();
+    const defaultDurations = event?.metadata?.multipleDuration || [15, 30, 60];
+    const durationToSet = urlDuration && defaultDurations.includes(urlDuration) ? urlDuration : event.length;
+    if (!selectedDuration) setSelectedDuration(durationToSet);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60];
+  const urlDuration = getDurationFromURL();
 
   return (
     <div className="flex flex-wrap gap-2">
       {durations
-        .filter((dur) => state !== "booking" || dur === selectedDuration)
+        .filter((dur) =>
+          urlDuration ? dur === urlDuration : state !== "booking" || dur === selectedDuration
+        )
         .map((duration) => (
           <Badge
             variant="gray"
