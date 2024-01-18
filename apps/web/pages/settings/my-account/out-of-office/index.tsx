@@ -48,6 +48,7 @@ const OutOfOfficeSection = () => {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       },
+      offset: dayjs().utcOffset(),
       toTeamUserId: null,
     },
   });
