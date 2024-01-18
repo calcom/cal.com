@@ -1,3 +1,4 @@
+import { type SearchParams } from "app/_types";
 import { type GetServerSidePropsContext } from "next";
 import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
@@ -22,10 +23,11 @@ const getPageProps = async (context: GetServerSidePropsContext) => {
 
 type PageProps = Readonly<{
   params: Params;
+  searchParams: SearchParams;
 }>;
 
-const Page = async ({ params }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params);
+const Page = async ({ params, searchParams }: PageProps) => {
+  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   await getPageProps(legacyCtx as unknown as GetServerSidePropsContext);
 
   return null;

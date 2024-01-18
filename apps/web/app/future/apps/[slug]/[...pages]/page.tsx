@@ -1,7 +1,8 @@
 import LegacyPage, { getLayout } from "@pages/apps/[slug]/[...pages]";
-import type { PageProps } from "app/_types";
+import type { PageProps, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import type { GetServerSidePropsContext } from "next";
+import type { Params } from "next/dist/shared/lib/router/utils/route-matcher";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import z from "zod";
@@ -47,7 +48,13 @@ const paramsSchema = z.object({
   pages: z.array(z.string()),
 });
 
-export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
+export const generateMetadata = async ({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) => {
   const p = paramsSchema.safeParse(params);
 
   if (!p.success) {
@@ -63,7 +70,12 @@ export const generateMetadata = async ({ params }: { params: Record<string, stri
     );
   }
 
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext;
+  const legacyContext = buildLegacyCtx(
+    headers(),
+    cookies(),
+    params,
+    searchParams
+  ) as unknown as GetServerSidePropsContext;
   const { form } = await getPageProps(legacyContext);
 
   return await _generateMetadata(
@@ -166,11 +178,16 @@ const getPageProps = async ({ params, query, req }: GetServerSidePropsContext) =
   }
 };
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
 
-  const legacyContext = buildLegacyCtx(h, cookies(), params) as unknown as GetServerSidePropsContext;
+  const legacyContext = buildLegacyCtx(
+    h,
+    cookies(),
+    params,
+    searchParams
+  ) as unknown as GetServerSidePropsContext;
   const props = await getPageProps(legacyContext);
   return (
     <PageWrapper getLayout={getLayout} requiresLicense={false} nonce={nonce} themeBasis={null} {...props}>
