@@ -152,6 +152,19 @@ describe("handleChildrenEventTypes", () => {
         scheduleId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        beforeEventBuffer,
+        afterEventBuffer,
+        bookingLimits,
+        minimumBookingNotice,
+        slotInterval,
+        onlyShowFirstAvailableSlot,
+        durationLimits,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
+        offsetStart,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -170,8 +183,6 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: { create: { link: expect.any(String) } },
         },
@@ -290,6 +301,19 @@ describe("handleChildrenEventTypes", () => {
         userId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        beforeEventBuffer,
+        afterEventBuffer,
+        bookingLimits,
+        minimumBookingNotice,
+        slotInterval,
+        onlyShowFirstAvailableSlot,
+        durationLimits,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
+        offsetStart,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -309,8 +333,6 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
           recurringEvent: undefined,
           scheduleId: undefined,
         },
@@ -341,6 +363,19 @@ describe("handleChildrenEventTypes", () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
+        beforeEventBuffer,
+        afterEventBuffer,
+        bookingLimits,
+        minimumBookingNotice,
+        slotInterval,
+        onlyShowFirstAvailableSlot,
+        durationLimits,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
+        offsetStart,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -368,6 +403,17 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
+          beforeEventBuffer,
+          afterEventBuffer,
+          minimumBookingNotice,
+          slotInterval,
+          onlyShowFirstAvailableSlot,
+          periodType,
+          periodDays,
+          periodCountCalendarDays,
+          periodStartDate,
+          periodEndDate,
+          offsetStart,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -390,8 +436,6 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...evType,
-          bookingLimits: undefined,
-          durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: undefined,
           workflows: undefined,
