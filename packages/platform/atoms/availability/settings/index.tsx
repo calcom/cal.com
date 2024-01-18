@@ -73,6 +73,7 @@ export function AvailabilitySettings({
             )}
           />
         }
+        SidebarContainer={<></>}
         // TODO: resolve subtitle logic which is causing some errors at the moment
         subtitle={
           schedule ? (
