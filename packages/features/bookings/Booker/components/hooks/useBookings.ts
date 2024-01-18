@@ -24,7 +24,6 @@ import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
 import type { useBookingFormReturnType } from "./useBookingForm";
-import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookings {
   event: useEventReturnType;
@@ -64,12 +63,6 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
   const searchParams = useSearchParams();
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
-
-  const { initialValues, key } = useInitialFormValues({
-    eventType: event.data,
-    rescheduleUid,
-    isRescheduling,
-  });
 
   const bookingId = parseInt(getQueryParam("bookingId") || "0");
   const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
@@ -270,8 +263,6 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
     expiryTime,
     bookingForm,
     bookerFormErrorRef,
-    initialValues,
-    key,
     errors,
     loadingStates,
     hasInstantMeetingTokenExpired: Boolean(hasInstantMeetingTokenExpired),
