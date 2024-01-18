@@ -55,7 +55,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0" data-testid={weekday}>
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
@@ -107,6 +107,7 @@ const CopyButton = ({
             "text-default",
             open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
+          data-testid="copy-button"
           type="button"
           tooltip={t("copy_times_to_tooltip")}
           color="minimal"
@@ -192,6 +193,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 disabled={disabled}
+                data-testid="add-time-availability"
                 tooltip={t("add_time_availability")}
                 className="text-default mx-2 "
                 type="button"
