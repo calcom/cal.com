@@ -9,7 +9,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
 
@@ -27,6 +27,7 @@ type UserFixture = ReturnType<typeof createUserFixture>;
 
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
+  workflows: true,
   credentials: true,
   routingForms: true,
 });
@@ -41,6 +42,19 @@ const seededForm = {
 };
 
 type UserWithIncludes = PrismaType.UserGetPayload<typeof userWithEventTypes>;
+
+const createTeamWorkflow = async (user: { id: number }, team: { id: number }) => {
+  return await prisma.workflow.create({
+    data: {
+      name: "Team Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: user.id,
+      teamId: team.id,
+    },
+  });
+};
 
 const createTeamEventType = async (
   user: { id: number },
@@ -104,25 +118,23 @@ const createTeamAndAddUser = async (
   const slug = `${isOrg ? "org" : "team"}-${workerInfo.workerIndex}-${Date.now()}`;
   const data: PrismaType.TeamCreateInput = {
     name: `user-id-${user.id}'s ${isOrg ? "Org" : "Team"}`,
-    isOrganization: isOrg,
   };
   data.metadata = {
     ...(isUnpublished ? { requestedSlug: slug } : {}),
+    ...(isOrg
+      ? {
+          isOrganization: true,
+          isOrganizationVerified: !!isOrgVerified,
+          orgAutoAcceptEmail: user.email.split("@")[1],
+          isOrganizationConfigured: false,
+        }
+      : {}),
   };
-  if (isOrg) {
-    data.organizationSettings = {
-      create: {
-        isOrganizationVerified: !!isOrgVerified,
-        orgAutoAcceptEmail: user.email.split("@")[1],
-        isOrganizationConfigured: false,
-      },
-    };
-  }
-
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
     await createTeamEventType(user, team);
+    await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
   data.orgUsers = isOrg ? { connect: [{ id: user.id }] } : undefined;
@@ -173,6 +185,7 @@ export const createUsersFixture = (
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
+        teamRole?: MembershipRole;
         teammates?: CustomUserOpts[];
         schedulingType?: SchedulingType;
         teamEventTitle?: string;
@@ -201,6 +214,18 @@ export const createUsersFixture = (
         eventTypeData.users = { connect: { id: _user.id } };
         await prisma.eventType.create({
           data: eventTypeData,
+        });
+      }
+
+      const workflows: SupportedTestWorkflows[] = [
+        { name: "Default Workflow", trigger: "NEW_EVENT" },
+        { name: "Test Workflow", trigger: "EVENT_CANCELLED" },
+        ...(opts?.workflows || []),
+      ];
+      for (const workflowData of workflows) {
+        workflowData.user = { connect: { id: _user.id } };
+        await prisma.workflow.create({
+          data: workflowData,
         });
       }
 
@@ -327,7 +352,12 @@ export const createUsersFixture = (
       if (scenario.hasTeam) {
         const team = await createTeamAndAddUser(
           {
-            user: { id: user.id, email: user.email, username: user.username, role: "OWNER" },
+            user: {
+              id: user.id,
+              email: user.email,
+              username: user.username,
+              role: scenario.teamRole || "OWNER",
+            },
             isUnpublished: scenario.isUnpublished,
             isOrg: scenario.isOrg,
             isOrgVerified: scenario.isOrgVerified,
@@ -504,7 +534,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
             },
           };
         })
-        .find((membership) => !membership.team.isOrganization);
+        .find((membership) => !membership.team?.metadata?.isOrganization);
       if (!membership) {
         throw new Error("No team found for user");
       }
@@ -515,7 +545,10 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         where: {
           userId: user.id,
           team: {
-            isOrganization: true,
+            metadata: {
+              path: ["isOrganization"],
+              equals: true,
+            },
           },
         },
         include: { team: { include: { children: true } } },
@@ -555,6 +588,9 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 type SupportedTestEventTypes = PrismaType.EventTypeCreateInput & {
   _bookings?: PrismaType.BookingCreateInput[];
 };
+
+type SupportedTestWorkflows = PrismaType.WorkflowCreateInput;
+
 type CustomUserOptsKeys =
   | "username"
   | "password"
@@ -569,6 +605,7 @@ type CustomUserOptsKeys =
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
+  workflows?: SupportedTestWorkflows[];
   // ignores adding the worker-index after username
   useExactUsername?: boolean;
   roleInOrganization?: MembershipRole;

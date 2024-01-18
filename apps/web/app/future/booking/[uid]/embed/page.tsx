@@ -1,10 +1,11 @@
-import OldPage from "@pages/booking/[uid]";
+import { type PageProps, getServerSideProps } from "@pages/booking/[uid]";
+import OldPage from "@pages/booking/[uid]/embed";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
-import { getData } from "../page";
+const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
 const getEmbedData = withEmbedSsrAppDir(getData);
 
-// @ts-expect-error Type '(context: GetServerSidePropsContext) => Promise<any>' is not assignable to type '(arg: {
 export default WithLayout({ getLayout: null, getData: getEmbedData, Page: OldPage });

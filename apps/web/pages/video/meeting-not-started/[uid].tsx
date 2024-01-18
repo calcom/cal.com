@@ -1,14 +1,13 @@
 "use client";
 
-import type { NextPageContext } from "next";
-
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, EmptyScreen } from "@calcom/ui";
 import { ArrowRight, Calendar, Clock } from "@calcom/ui/components/icon";
+
+import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -41,33 +40,6 @@ export default function MeetingNotStarted(props: inferSSRProps<typeof getServerS
   );
 }
 
+export { getServerSideProps };
+
 MeetingNotStarted.PageWrapper = PageWrapper;
-
-export async function getServerSideProps(context: NextPageContext) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: context.query.uid as string,
-    },
-    select: bookingMinimalSelect,
-  });
-
-  if (!booking) {
-    return {
-      redirect: {
-        destination: "/video/no-meeting-found",
-        permanent: false,
-      },
-    };
-  }
-
-  const bookingObj = Object.assign({}, booking, {
-    startTime: booking.startTime.toString(),
-    endTime: booking.endTime.toString(),
-  });
-
-  return {
-    props: {
-      booking: bookingObj,
-    },
-  };
-}
