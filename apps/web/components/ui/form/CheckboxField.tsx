@@ -2,8 +2,7 @@ import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
-
-import InfoBadge from "../../../../../packages/ui/components/info-badge/InfoBadge";
+import InfoBadge from "@calcom/ui/components/info-badge/InfoBadge";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
