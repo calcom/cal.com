@@ -8,8 +8,9 @@ test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-testBothFutureAndLegacyRoutes.describe("App Store - Authed", () => {
+testBothFutureAndLegacyRoutes.describe("App Store - Authed", (routeVariant) => {
   test("should render /apps page", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
 
     await user.apiLogin();

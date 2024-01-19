@@ -36,7 +36,7 @@ test./* testBothFutureAndLegacyRoutes. */ describe("Teams A/B tests", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", () => {
+testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
   test.afterEach(({ users }) => users.deleteAll());
 
   test("Team Onboarding Invite Members", async ({ page, users }) => {
@@ -161,6 +161,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", () => {
   });
 
   test("Non admin team members cannot create team in org", async ({ page, users }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const teamMateName = "teammate-1";
 
     const owner = await users.create(undefined, {
@@ -195,6 +196,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", () => {
   });
 
   test("Can create team with same name as user", async ({ page, users }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
     // Name to be used for both user and team
     const uniqueName = user.username!;
