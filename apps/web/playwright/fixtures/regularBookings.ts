@@ -396,5 +396,99 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
+
+    checkBufferTime: async () => {
+      const minutes = (await localize("en"))("minutes");
+      const fieldPlaceholder = page.getByPlaceholder("0");
+
+      await page
+        .locator("div")
+        .filter({ hasText: /^No buffer time$/ })
+        .nth(1)
+        .click();
+      await page.getByTestId("select-option-15").click();
+      await expect(page.getByText(`15 ${minutes}`, { exact: true })).toBeVisible();
+
+      await page
+        .locator("div")
+        .filter({ hasText: /^No buffer time$/ })
+        .nth(2)
+        .click();
+      await page.getByTestId("select-option-10").click();
+      await expect(page.getByText(`10 ${minutes}`, { exact: true })).toBeVisible();
+
+      await fieldPlaceholder.fill("10");
+      await expect(fieldPlaceholder).toHaveValue("10");
+
+      await page
+        .locator("div")
+        .filter({ hasText: /^Use event length \(default\)$/ })
+        .first()
+        .click();
+
+      // select a large interval to check if the time slots for a day reduce on the preview page
+      await page.getByTestId("select-option-60").click();
+      await expect(page.getByText(`60 ${minutes}`, { exact: true })).toBeVisible();
+    },
+
+    checkLimitBookingFrequency: async () => {
+      const fieldPlaceholder = page.getByPlaceholder("1").nth(1);
+      const limitFrequency = (await localize("en"))("limit_booking_frequency");
+      const addlimit = (await localize("en"))("add_limit");
+      const limitFrequencySwitch = page
+        .locator("fieldset")
+        .filter({ hasText: limitFrequency })
+        .getByRole("switch");
+
+      await limitFrequencySwitch.click();
+      await page.getByRole("button", { name: addlimit }).click();
+      await fieldPlaceholder.fill("12");
+      await expect(fieldPlaceholder).toHaveValue("12");
+      await limitFrequencySwitch.click();
+    },
+
+    checkLimitBookingDuration: async () => {
+      const limitDuration = (await localize("en"))("limit_total_booking_duration");
+      const addlimit = (await localize("en"))("add_limit");
+      const limitDurationSwitch = page
+        .locator("fieldset")
+        .filter({ hasText: limitDuration })
+        .getByRole("switch");
+
+      await limitDurationSwitch.click();
+      await page.getByRole("button", { name: addlimit }).click();
+      await expect(page.getByTestId("add-limit")).toHaveCount(2);
+      await limitDurationSwitch.click();
+    },
+
+    checkLimitFutureBookings: async () => {
+      const limitFutureBookings = (await localize("en"))("limit_future_bookings");
+      const limitBookingsSwitch = page
+        .locator("fieldset")
+        .filter({ hasText: limitFutureBookings })
+        .getByRole("switch");
+
+      await limitBookingsSwitch.click();
+      await page.locator("#RANGE").click();
+      await expect(page.locator("#RANGE")).toBeChecked();
+      await limitBookingsSwitch.click();
+    },
+
+    checkOffsetTimes: async () => {
+      const offsetStart = (await localize("en"))("offset_start");
+      const offsetStartTimes = (await localize("en"))("offset_toggle");
+      const offsetLabel = page.getByLabel(offsetStart);
+
+      await page.locator("fieldset").filter({ hasText: offsetStartTimes }).getByRole("switch").click();
+      await offsetLabel.fill("10");
+      await expect(offsetLabel).toHaveValue("10");
+      await expect(
+        page.getByText("e.g. this will show time slots to your bookers at 9:10 AM instead of 9:00 AM")
+      ).toBeVisible();
+    },
+
+    checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
+      await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
+    },
   };
 }
