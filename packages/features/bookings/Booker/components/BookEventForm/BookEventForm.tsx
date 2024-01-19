@@ -439,13 +439,14 @@ export const BookEventFormChild = ({
         <div className="text-subtle my-3 w-full text-xs opacity-80">
           <Trans i18nKey="signing_up_terms">
             By proceeding, you agree to our{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
-              Terms{" "}
-            </Link>
+            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
+              <a>Terms</a>
+            </Link>{" "}
             and{" "}
-            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
-              Privacy Policy.
+            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
+              <a>Privacy Policy</a>
             </Link>
+            .
           </Trans>
         </div>
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
@@ -561,9 +562,9 @@ const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) =>
                   Please schedule a future call if we're not available in XX seconds.
               */}
 
-              {/* Once countdown ends: 
+              {/* Once countdown ends:
                   Oops, we couldn't connect you this time.
-                  Please schedule a future call instead. We value your time.  
+                  Please schedule a future call instead. We value your time.
               */}
 
               <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
