@@ -116,6 +116,7 @@ export const config = {
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+
     "/event-types",
     "/future/event-types/",
     "/settings/admin/:path*",

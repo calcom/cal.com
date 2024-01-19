@@ -1,7 +1,6 @@
 "use client";
 
-import type { AppProps as NextAppProps } from "next/app";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 import { AddNewTeamsForm } from "@calcom/features/ee/organizations/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,8 +21,11 @@ const AddNewTeamsPage = () => {
   );
 };
 
-AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextAppProps["router"]) => (
-  <>
+AddNewTeamsPage.getLayout = (page: React.ReactElement) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const router = useRouter();
+
+  return (
     <WizardLayout
       currentStep={5}
       maxSteps={5}
@@ -32,8 +34,8 @@ AddNewTeamsPage.getLayout = (page: React.ReactElement, router: NextAppProps["rou
       }}>
       {page}
     </WizardLayout>
-  </>
-);
+  );
+};
 
 AddNewTeamsPage.PageWrapper = PageWrapper;
 
