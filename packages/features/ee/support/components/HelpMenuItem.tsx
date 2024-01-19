@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
+import { JOIN_DISCORD } from "@calcom/lib/constants";
+import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast, TextArea } from "@calcom/ui";
@@ -43,6 +45,8 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ rating: rating, comment: comment });
   };
+
+  const { hasPaidPlan } = useHasPaidPlan();
 
   return (
     <div className="bg-default border-default w-full rounded-md">
@@ -185,22 +189,31 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
       </div>
       <div className="text-subtle bg-muted w-full p-5">
         <p className="">{t("specific_issue")}</p>
-        <button
-          className="hover:text-emphasis text-defualt font-medium underline"
-          onClick={async () => {
-            setActive(true);
-            if (isFreshChatEnabled) {
-              setFreshChat(true);
-            } else if (isInterComEnabled) {
-              await open();
-            } else {
-              loadChat({ open: true });
-            }
+        {hasPaidPlan ? (
+          <button
+            className="hover:text-emphasis text-defualt font-medium underline"
+            onClick={async () => {
+              setActive(true);
+              if (isFreshChatEnabled) {
+                setFreshChat(true);
+              } else if (isInterComEnabled) {
+                await open();
+              } else {
+                loadChat({ open: true });
+              }
 
-            onHelpItemSelect();
-          }}>
-          {t("contact_support")}
-        </button>
+              onHelpItemSelect();
+            }}>
+            {t("contact_support")}
+          </button>
+        ) : (
+          <a
+            href={JOIN_DISCORD}
+            target="_blank"
+            className="hover:text-emphasis text-defualt font-medium underline">
+            {t("community_support")}
+          </a>
+        )}
         <span> {t("or").toLowerCase()} </span>
         <a
           onClick={() => onHelpItemSelect()}
