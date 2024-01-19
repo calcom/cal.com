@@ -39,7 +39,7 @@ export function TimezoneSelect({
     <BaseSelect
       value={value}
       className={className}
-      isPending={isPending}
+      isLoading={isPending}
       isDisabled={isPending}
       {...reactSelectProps}
       timezones={{

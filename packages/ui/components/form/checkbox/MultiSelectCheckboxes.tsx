@@ -84,7 +84,7 @@ export default function MultiSelectCheckboxes({
       isSearchable={false}
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
-      isPending={isPending}
+      isLoading={isPending}
       components={{
         ...additonalComponents,
         Option: InputOption,
