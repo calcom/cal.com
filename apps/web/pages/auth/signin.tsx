@@ -30,9 +30,9 @@ signin.PageWrapper = PageWrapper;
 export default signin;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   const csrfToken = await getCsrfToken(context);
   const providers = await getProviders();
   if (session) {
