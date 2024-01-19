@@ -26,6 +26,7 @@ import PageWrapper from "@components/PageWrapper";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
+  offset: number;
   toTeamUserId: number | null;
 };
 
@@ -47,6 +48,7 @@ const OutOfOfficeSection = () => {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       },
+      offset: dayjs().utcOffset(),
       toTeamUserId: null,
     },
   });
@@ -106,7 +108,7 @@ const OutOfOfficeSection = () => {
           </div>
           <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
             {profileRedirect && (
-              <div className="">
+              <div>
                 <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
                 <Select
                   className="mt-1 h-4 text-white"
@@ -125,7 +127,7 @@ const OutOfOfficeSection = () => {
                 />
               </div>
             )}
-            <div className="">
+            <div>
               <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
               <div>
                 <Controller
@@ -194,7 +196,7 @@ const OutOfOfficeEntriesList = () => {
             <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
               <TableCell>
                 <p className="px-2">
-                  {dayjs(item.start).format("ll")} - {dayjs(item.end).format("ll")}
+                  {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
                 </p>
               </TableCell>
               <TableCell>
