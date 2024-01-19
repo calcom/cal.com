@@ -9,9 +9,11 @@ import { createTRPCNext } from "../next";
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
 import type { TRPCClientErrorLike } from "../react";
-import type { inferRouterInputs, inferRouterOutputs, Maybe } from "../server";
+import type { inferRouterInputs, inferRouterOutputs } from "../server";
 import type { AppRouter } from "../server/routers/_app";
 import { ENDPOINTS } from "./shared";
+
+type Maybe<T> = T | null | undefined;
 
 /**
  * We deploy our tRPC router on multiple lambdas to keep number of imports as small as possible
