@@ -86,7 +86,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  if (!rawPayment) return { notFound: true };
+  if (!rawPayment) return { notFound: true } as const;
 
   const { data, booking: _booking, ...restPayment } = rawPayment;
 
@@ -95,7 +95,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     data: data as Record<string, unknown>,
   };
 
-  if (!_booking) return { notFound: true };
+  if (!_booking) return { notFound: true } as const;
 
   const { startTime, endTime, eventType, ...restBooking } = _booking;
   const booking = {
@@ -104,9 +104,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     endTime: endTime.toString(),
   };
 
-  if (!eventType) return { notFound: true };
+  if (!eventType) return { notFound: true } as const;
 
-  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true };
+  if (eventType.users.length === 0 && !!!eventType.team) return { notFound: true } as const;
 
   const [user] = eventType?.users.length
     ? eventType.users

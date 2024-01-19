@@ -9,7 +9,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (flags["organizations"] !== true) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const querySlug = context.query.slug as string;

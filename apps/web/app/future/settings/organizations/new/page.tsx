@@ -14,6 +14,5 @@ export const generateMetadata = async () =>
 export default WithLayout({
   getLayout: LayoutWrapperAppDir,
   Page: LegacyPage,
-  // @ts-expect-error TODO: fix this
   getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
 });

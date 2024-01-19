@@ -8,10 +8,8 @@ export const getServerSideProps = async () => {
   if (flags.insights === false) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
-  return {
-    props: {},
-  };
+  return { props: {} };
 };

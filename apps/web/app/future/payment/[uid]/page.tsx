@@ -13,7 +13,6 @@ export const generateMetadata = async () =>
     () => ""
   );
 
-// @ts-expect-error TODO: fix this
 const getData = withAppDirSsr<PaymentPageProps>(getServerSideProps);
 
 export default WithLayout({ getLayout: null, getData, Page: PaymentPage });
