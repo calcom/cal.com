@@ -126,6 +126,7 @@ export async function createBooking({
         },
         dynamicEventSlugRef,
         dynamicGroupSlugRef,
+        iCalUID: evt.iCalUID ?? "",
         user: {
             connect: {
                 id: organizerUser.id,
@@ -198,5 +199,7 @@ export async function createBooking({
         });
     }
 
+    return prisma.booking.create(createBookingObj);
+}
     return prisma.booking.create(createBookingObj);
 }
