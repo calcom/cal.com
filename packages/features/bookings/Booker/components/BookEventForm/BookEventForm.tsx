@@ -436,13 +436,13 @@ export const BookEventFormChild = ({
             />
           </div>
         )}
-        <div className="text-subtle">
+        <div className="text-subtle my-3 w-full text-xs opacity-80">
           <Trans i18nKey="signing_up_terms">
             By proceeding, you agree to our{" "}
             <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
               Terms{" "}
             </Link>
-            <span>&</span>{" "}
+            and{" "}
             <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
               Privacy Policy.
             </Link>

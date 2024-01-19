@@ -456,7 +456,7 @@ export default function Signup({
                   {t("sign_in")}
                 </Link>
               </div>
-              <div className="text-subtle">
+              <div className="text-subtle ">
                 <Trans i18nKey="signing_up_terms">
                   By proceeding, you agree to our{" "}
                   <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
