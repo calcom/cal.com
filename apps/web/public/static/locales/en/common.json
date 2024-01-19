@@ -2194,6 +2194,7 @@
   "uprade_to_create_instant_bookings": "Upgrade to Enterprise and let guests join an instant call that attendees can jump straight into. This is only for team event types",
   "dont_want_to_wait": "Don't want to wait?",
   "meeting_started": "Meeting Started",
+  "pay_and_book": "Pay to book",
   "booking_not_found_error": "Could not find booking",
   "booking_seats_full_error": "Booking seats are full",
   "missing_payment_credential_error": "Missing payment credentials",
