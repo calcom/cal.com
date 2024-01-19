@@ -29,12 +29,6 @@ export default function UpgradePage() {
     },
   });
 
-  /* TODO: figure out how data works 
-  if (!data) return null;
-
-  const [membership] = data;
-  if (!membership) return null; */
-
   const membership = false;
 
   return (
