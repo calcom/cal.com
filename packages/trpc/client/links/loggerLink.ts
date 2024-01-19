@@ -1,1 +1,1 @@
-export * from "@trpc/client/links/loggerLink";
+export * from "@trpc/client";

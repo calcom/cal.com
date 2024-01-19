@@ -1,1 +1,1 @@
-export * from "@trpc/client/links/httpLink";
+export * from "@trpc/client";

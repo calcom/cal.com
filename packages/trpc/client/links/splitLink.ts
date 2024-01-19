@@ -1,1 +1,1 @@
-export * from "@trpc/client/links/splitLink";
+export * from "@trpc/client";

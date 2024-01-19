@@ -1,1 +1,1 @@
-export * from "@trpc/client/links/httpBatchLink";
+export * from "@trpc/client";

@@ -173,7 +173,7 @@ const DestinationCalendarSelector = ({
             externalId,
           });
         }}
-        isPending={isPending}
+        isLoading={isPending}
         value={selectedOption}
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}
