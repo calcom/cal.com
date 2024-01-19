@@ -33,7 +33,7 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
-const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
+export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
   const objectKey = uuidv4();
 
   await prisma.avatar.upsert({
