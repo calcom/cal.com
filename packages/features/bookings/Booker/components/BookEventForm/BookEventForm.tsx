@@ -3,6 +3,8 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
@@ -27,6 +29,7 @@ import getBookingResponsesSchema, {
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -433,6 +436,18 @@ export const BookEventFormChild = ({
             />
           </div>
         )}
+        <div className="text-subtle">
+          <Trans i18nKey="signing_up_terms">
+            By proceeding, you agree to our{" "}
+            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
+              Terms{" "}
+            </Link>
+            <span>&</span>{" "}
+            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
+              Privacy Policy.
+            </Link>
+          </Trans>
+        </div>
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={createInstantBookingMutation.isLoading}>

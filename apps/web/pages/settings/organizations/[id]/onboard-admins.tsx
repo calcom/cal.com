@@ -20,6 +20,8 @@ const OnboardTeamMembersPage = () => {
         title={t("invite_organization_admins")}
         description={t("invite_organization_admins_description")}
       />
+      <div className="mt-8 h-[414px]" />
+      <iframe className="mx-auto h-full w-[276px]" src="https://cal.games/" />
       <AddNewOrgAdminsForm />
     </>
   );
