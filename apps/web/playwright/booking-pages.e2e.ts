@@ -5,6 +5,7 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
@@ -21,7 +22,7 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-test.describe("free user", () => {
+testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
     await page.goto(`/${free.username}`);
@@ -62,7 +63,7 @@ test.describe("free user", () => {
   });
 });
 
-test.describe("pro user", () => {
+testBothFutureAndLegacyRoutes.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
@@ -262,7 +263,7 @@ test.describe("pro user", () => {
   });
 });
 
-test.describe("prefill", () => {
+testBothFutureAndLegacyRoutes.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
     const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
@@ -319,7 +320,7 @@ test.describe("prefill", () => {
   });
 });
 
-test.describe("Booking on different layouts", () => {
+testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await page.goto(`/${user.username}`);
@@ -376,7 +377,7 @@ test.describe("Booking on different layouts", () => {
   });
 });
 
-test.describe("Booking round robin event", () => {
+testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
   test.beforeEach(async ({ page, users }) => {
     const teamMatesObj = [{ name: "teammate-1" }];
 
