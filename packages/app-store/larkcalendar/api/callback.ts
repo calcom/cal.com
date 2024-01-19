@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -105,19 +104,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       const primaryCalendar = await primaryCalendarResponse.json();
 
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
-        const existingCalendar = await prisma.selectedCalendar.findUnique({
-          where: {
-            userId_integration_externalId: {
-              userId: req.session?.user.id,
-              integration: "lark_calendar",
-              externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
-            },
-          },
-        });
-
-        if (existingCalendar) {
-          throw new HttpError({ statusCode: 409, message: "Account is already linked." });
-        }
         await prisma.selectedCalendar.create({
           data: {
             userId: req.session?.user.id,
