@@ -18,15 +18,15 @@ import {
 } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
+import type { UseCalendarsReturnType } from "../hooks/useCalendars";
 import { useLocalSet } from "../hooks/useLocalSet";
-import type { useOverlayCalendarReturnType } from "../hooks/useOverlayCalendar";
 
 interface IOverlayCalendarContinueModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
   onClickNoCalendar?: () => void;
   isLoading: boolean;
-  connectedCalendars: useOverlayCalendarReturnType["connectedCalendars"];
+  connectedCalendars: UseCalendarsReturnType["connectedCalendars"];
   onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
 }
 

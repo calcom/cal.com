@@ -117,6 +117,8 @@ export function useInitialFormValues({
       };
       setDefaultValues(defaults);
     })();
+    // do not add routerQuery as a dependency, it will cause infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     eventType?.bookingFields,
     formValues,
@@ -124,7 +126,6 @@ export function useInitialFormValues({
     bookingData,
     rescheduleUid,
     searchParams,
-    routerQuery,
     session.data?.user?.email,
     session.data?.user?.name,
     session.data?.user?.username,

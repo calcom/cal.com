@@ -9,15 +9,15 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import { useBookerStore } from "../store";
-import type { useEventReturnType, useScheduleForEventReturnType } from "../utils/event";
+import type { useScheduleForEventReturnType } from "../utils/event";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  schedule: useScheduleForEventReturnType;
+  schedule?: useScheduleForEventReturnType["data"];
+  isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
-  event: useEventReturnType;
 };
 
 /**
@@ -33,7 +33,7 @@ export const AvailableTimeSlots = ({
   seatsPerTimeSlot,
   showAvailableSeatsCount,
   schedule,
-  event,
+  isLoading,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -50,7 +50,6 @@ export const AvailableTimeSlots = ({
     bookingUid?: string
   ) => {
     setSelectedTimeslot(time);
-
     if (seatsPerTimeSlot) {
       setSeatedEventData({
         seatsPerTimeSlot,
@@ -58,16 +57,11 @@ export const AvailableTimeSlots = ({
         bookingUid,
         showAvailableSeatsCount,
       });
-
-      if (seatsPerTimeSlot && seatsPerTimeSlot - attendees > 1) {
-        return;
-      }
     }
-
-    if (!event.data) return;
+    return;
   };
 
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
@@ -80,12 +74,12 @@ export const AvailableTimeSlots = ({
     ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
     : [];
 
-  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.data?.slots);
+  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
 
   return (
     <>
       <div className="flex">
-        {schedule.isLoading ? (
+        {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
@@ -109,7 +103,7 @@ export const AvailableTimeSlots = ({
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4"
         )}>
-        {schedule.isLoading
+        {isLoading
           ? // Shows exact amount of days as skeleton.
             Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
           : slotsPerDay.length > 0 &&

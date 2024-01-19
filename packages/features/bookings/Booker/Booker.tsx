@@ -215,48 +215,52 @@ const BookerComponent = ({
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
   const EventBooker = useMemo(
-    () => (
-      <BookEventForm
-        key={key}
-        onCancel={() => {
-          setSelectedTimeslot(null);
-          if (seatedEventData.bookingUid) {
-            setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
-          }
-        }}
-        onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
-        errorRef={bookerFormErrorRef}
-        errors={{ ...formErrors, ...errors }}
-        loadingStates={loadingStates}
-        renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-        bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
-        eventQuery={event}
-        rescheduleUid={rescheduleUid}>
-        <>
-          <VerifyCodeDialog
-            isOpenDialog={isEmailVerificationModalVisible}
-            setIsOpenDialog={setEmailVerificationModalVisible}
-            email={formEmail}
-            onSuccess={() => {
-              setVerifiedEmail(formEmail);
-              setEmailVerificationModalVisible(false);
-              handleBookEvent();
-            }}
-            isUserSessionRequiredToVerify={false}
-          />
-          <RedirectToInstantMeetingModal
-            hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
-            bookingId={parseInt(getQueryParam("bookingId") || "0")}
-            onGoBack={() => {
-              // Prevent null on app directory
-              if (pathname) window.location.href = pathname;
-            }}
-          />
-        </>
-      </BookEventForm>
-    ),
+    () =>
+      bookerState === "booking" ? (
+        <BookEventForm
+          key={key}
+          onCancel={() => {
+            setSelectedTimeslot(null);
+            if (seatedEventData.bookingUid) {
+              setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+            }
+          }}
+          onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
+          errorRef={bookerFormErrorRef}
+          errors={{ ...formErrors, ...errors }}
+          loadingStates={loadingStates}
+          renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+          bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
+          eventQuery={event}
+          rescheduleUid={rescheduleUid}>
+          <>
+            <VerifyCodeDialog
+              isOpenDialog={isEmailVerificationModalVisible}
+              setIsOpenDialog={setEmailVerificationModalVisible}
+              email={formEmail}
+              onSuccess={() => {
+                setVerifiedEmail(formEmail);
+                setEmailVerificationModalVisible(false);
+                handleBookEvent();
+              }}
+              isUserSessionRequiredToVerify={false}
+            />
+            <RedirectToInstantMeetingModal
+              hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
+              bookingId={parseInt(getQueryParam("bookingId") || "0")}
+              onGoBack={() => {
+                // Prevent null on app directory
+                if (pathname) window.location.href = pathname;
+              }}
+            />
+          </>
+        </BookEventForm>
+      ) : (
+        <></>
+      ),
     [
       bookerFormErrorRef,
+      bookerState,
       bookingForm,
       errors,
       event,
@@ -449,10 +453,10 @@ const BookerComponent = ({
               <AvailableTimeSlots
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                schedule={schedule}
+                schedule={schedule?.data}
+                isLoading={schedule.isLoading}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
-                event={event}
               />
             </BookerSection>
           </AnimatePresence>
