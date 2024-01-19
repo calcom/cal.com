@@ -1,5 +1,6 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -81,6 +82,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
+  if (url.pathname.startsWith("/future/auth/logout")) {
+    cookies().delete("next-auth.session-token");
+  }
+
   requestHeaders.set("x-pathname", url.pathname);
 
   const locale = await getLocale(req);
@@ -112,10 +117,12 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
+    "/future/auth/login",
     /**
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+
     "/event-types",
     "/future/event-types/",
     "/settings/admin/:path*",
