@@ -97,6 +97,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (existingCalendar) {
+      await prisma.credential.delete({
+        where: {
+          id: credential.id,
+        },
+      });
+
       throw new HttpError({ statusCode: 409, message: "Account is already linked." });
     }
     await prisma.selectedCalendar.create({
