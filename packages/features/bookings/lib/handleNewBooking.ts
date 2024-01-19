@@ -1,11 +1,9 @@
-import type { App, Attendee, DestinationCalendar } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import type { App, Attendee, DestinationCalendar, Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import type z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
@@ -20,6 +18,7 @@ import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -31,6 +30,7 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
+import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
@@ -77,7 +77,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-
 import { ensureAvailableUsers } from "../../../../modules/availability/ensureAvailableUsers";
 import { createBooking } from "../../../../modules/booking/createBooking";
 import { getBookingData } from "../../../../modules/booking/getBookingData";
@@ -91,14 +90,12 @@ import { getEventTypesFromDB } from "../../../../modules/eventTypes/getEventType
 import { loadUsers } from "../../../../modules/userLoader/loadUsers";
 import { getVideoCallDetails } from "../../../../modules/videoCall/getVideoCallDetails";
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import type getBookingDataSchema from "./getBookingDataSchema";
+import { getICalSequence } from "../../../../modules/Sequence/getICalSequence"
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 type User = Prisma.UserGetPayload<typeof userSelect>;
-// Work with Typescript to require reqBody.end
-type ReqBodyWithoutEnd = z.infer<ReturnType<typeof getBookingDataSchema>>;
 
 type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 
@@ -490,9 +487,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-        conferenceCredentialId: undefined,
-      }
+      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+      conferenceCredentialId: undefined,
+    }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
@@ -541,6 +538,13 @@ async function handler(
   const calEventUserFieldsResponses =
     "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
+  const iCalUID = getICalUID({
+    event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },
+    uid,
+  });
+  // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
+  const iCalSequence = getICalSequence(originalRescheduledBooking);
+
   let evt: CalendarEvent = {
     bookerUrl: await getBookerUrl(organizerUser),
     type: eventType.slug,
@@ -567,8 +571,8 @@ async function handler(
     destinationCalendar: eventType.destinationCalendar
       ? [eventType.destinationCalendar]
       : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null,
+        ? [organizerUser.destinationCalendar]
+        : null,
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: !isConfirmedByDefault,
     eventTypeId: eventType.id,
@@ -577,6 +581,8 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
+    iCalUID,
+    iCalSequence,
   };
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
@@ -684,12 +690,12 @@ async function handler(
   const handleSeats = async () => {
     let resultBooking:
       | (Partial<Booking> & {
-          appsStatus?: AppsStatus[];
-          seatReferenceUid?: string;
-          paymentUid?: string;
-          message?: string;
-          paymentId?: number;
-        })
+        appsStatus?: AppsStatus[];
+        seatReferenceUid?: string;
+        paymentUid?: string;
+        message?: string;
+        paymentId?: number;
+      })
       | null = null;
 
     const booking = await prisma.booking.findFirst({
@@ -914,8 +920,8 @@ async function handler(
           if (
             !eventType.seatsPerTimeSlot ||
             attendeesToMove.length +
-              newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
-              eventType.seatsPerTimeSlot
+            newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
+            eventType.seatsPerTimeSlot
           ) {
             throw new HttpError({ statusCode: 409, message: "Booking does not have enough available seats" });
           }
@@ -1502,8 +1508,8 @@ async function handler(
     evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
       : originalRescheduledBooking?.user?.destinationCalendar
-      ? [originalRescheduledBooking?.user.destinationCalendar]
-      : evt.destinationCalendar;
+        ? [originalRescheduledBooking?.user.destinationCalendar]
+        : evt.destinationCalendar;
 
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
@@ -1782,6 +1788,18 @@ async function handler(
         evt.appsStatus = handleAppsStatus(results, booking);
         videoCallUrl =
           metadata.hangoutLink || organizerOrFirstDynamicGroupMemberDefaultLocationUrl || videoCallUrl;
+
+        if (evt.iCalUID !== booking.iCalUID) {
+          // The eventManager could change the iCalUID. At this point we can update the DB record
+          await prisma.booking.update({
+            where: {
+              id: booking.id,
+            },
+            data: {
+              iCalUID: evt.iCalUID || booking.iCalUID,
+            },
+          });
+        }
       }
       if (noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;
@@ -1854,8 +1872,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
+      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+    }
     : undefined;
 
   const webhookData = {
@@ -2013,15 +2031,21 @@ async function handler(
   }
 
   const metadataFromEvent = videoCallUrl ? { videoCallUrl } : undefined;
+  const evtWithMetadata = { ...evt, metadata: metadataFromEvent, eventType: { slug: eventType.slug } };
+
+  await scheduleMandatoryReminder(
+    evtWithMetadata,
+    eventType.workflows || [],
+    !isConfirmedByDefault,
+    !!eventType.owner?.hideBranding,
+    evt.attendeeSeatId
+  );
 
   try {
     await scheduleWorkflowReminders({
       workflows: eventType.workflows,
       smsReminderNumber: smsReminderNumber || null,
-      calendarEvent: {
-        ...evt,
-        ...{ metadata: metadataFromEvent, eventType: { slug: eventType.slug } },
-      },
+      calendarEvent: evtWithMetadata,
       isNotConfirmed: !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
       isFirstRecurringEvent: true,
