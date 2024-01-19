@@ -85,6 +85,8 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
             scheduledJobs: true,
             seatsReferences: true,
             responses: true,
+            iCalUID: true,
+            iCalSequence: true,
         },
     });
 }
