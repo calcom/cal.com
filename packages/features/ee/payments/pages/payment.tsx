@@ -9,7 +9,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "../../../../../apps/web/server/lib/ssr";
 
-export type PaymentPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
+export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
 const querySchema = z.object({
   uid: z.string(),
