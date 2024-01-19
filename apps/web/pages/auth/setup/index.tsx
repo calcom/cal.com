@@ -153,12 +153,12 @@ Setup.PageWrapper = PageWrapper;
 export default Setup;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
+  const { req } = context;
 
   const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {

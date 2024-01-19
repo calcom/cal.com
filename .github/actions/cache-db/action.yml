@@ -24,7 +24,6 @@ runs:
       with:
         path: ${{ inputs.path }}
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ inputs.path }}-${{ env.key-1 }}-${{ env.key-2 }}
-        DATABASE_URL: ${{ inputs.DATABASE_URL }}
     - run: echo ${{ env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }} && yarn db-seed
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
