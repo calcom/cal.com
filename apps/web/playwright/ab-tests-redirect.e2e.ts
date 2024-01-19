@@ -9,20 +9,11 @@ test.describe.configure({ mode: "parallel" });
 // TODO Fix /apps/categories and /getting-started first
 test./* testBothFutureAndLegacyRoutes. */ describe("apps/ A/B tests", () => {
   test("should render the /apps/installed/[category]", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/apps/installed/messaging");
-
-    await page.waitForLoadState();
 
     const locator = page.getByRole("heading", { name: "Messaging" });
 
