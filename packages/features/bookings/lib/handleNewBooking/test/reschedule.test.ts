@@ -850,7 +850,7 @@ describe("handleNewBooking", () => {
               },
             });
 
-            // expectWorkflowToBeTriggered({emails, organizer});
+            expectWorkflowToBeTriggered({ emails, organizer });
 
             expectBookingRequestedEmails({
               booker,

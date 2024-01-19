@@ -113,7 +113,10 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
-export async function bookEventOnThisPage(page: Page) {
+export async function bookEventOnThisPage(page: Page, goTo?: string) {
+  if (goTo) {
+    await page.goto(goTo);
+  }
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
 
@@ -360,5 +363,5 @@ export async function doOnOrgDomain(
 }
 
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
-export const NotFoundPageText = "This page could not be found";
+export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
