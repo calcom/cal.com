@@ -18,7 +18,7 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-testBothFutureAndLegacyRoutes.describe("Teams A/B tests", () => {
+testBothFutureAndLegacyRoutes.describe("Teams A/B tests", (routeVariant) => {
   test("should render the /teams page", async ({ page, users, context }) => {
     // TODO: Revert until OOM issue is resolved
     test.skip(routeVariant === "future", "Future route not ready yet");
