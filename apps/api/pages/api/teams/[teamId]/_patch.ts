@@ -58,12 +58,25 @@ export async function patchHandler(req: NextApiRequest) {
   const { prisma, body, userId } = req;
   const data = schemaTeamUpdateBodyParams.parse(body);
   const { teamId } = schemaQueryTeamId.parse(req.query);
+
   /** Only OWNERS and ADMINS can edit teams */
   const _team = await prisma.team.findFirst({
     include: { members: true },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
   if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
+
+  const slugAlreadyExists = await prisma.team.findFirst({
+    where: {
+      slug: {
+        mode: "insensitive",
+        equals: data.slug,
+      },
+    },
+  });
+
+  if (slugAlreadyExists && data.slug !== _team.slug)
+    throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
 
   // Check if parentId is related to this user
   if (data.parentId && data.parentId === teamId) {
