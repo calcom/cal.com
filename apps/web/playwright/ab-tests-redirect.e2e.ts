@@ -1,13 +1,11 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
-
-// import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-// TODO Fix /apps/categories and /getting-started first
-test./* testBothFutureAndLegacyRoutes. */ describe("apps/ A/B tests", () => {
+testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
   test("should render the /apps/installed/[category]", async ({ page, users, context }) => {
     const user = await users.create();
 
@@ -45,6 +43,7 @@ test./* testBothFutureAndLegacyRoutes. */ describe("apps/ A/B tests", () => {
   });
 
   test("should render the /apps/categories", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
 
     await user.apiLogin();
@@ -81,6 +80,7 @@ test./* testBothFutureAndLegacyRoutes. */ describe("apps/ A/B tests", () => {
   });
 
   test("should render the /getting-started", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create({ completedOnboarding: false, name: null });
 
     await user.apiLogin();

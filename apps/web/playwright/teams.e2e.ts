@@ -7,10 +7,10 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
-  NotFoundPageTextAppDir,
   bookTimeSlot,
   doOnOrgDomain,
   fillStripeTestCheckout,
+  NotFoundPageTextAppDir,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
   todo,
@@ -18,10 +18,10 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-// TODO: Future route not ready yet
-test./* testBothFutureAndLegacyRoutes. */ describe("Teams A/B tests", () => {
-  // TODO: Revert until OOM issue is resolved
+testBothFutureAndLegacyRoutes.describe("Teams A/B tests", () => {
   test("should render the /teams page", async ({ page, users, context }) => {
+    // TODO: Revert until OOM issue is resolved
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
 
     await user.apiLogin();

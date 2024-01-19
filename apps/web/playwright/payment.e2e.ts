@@ -3,19 +3,18 @@ import { expect } from "@playwright/test";
 import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import { test } from "./lib/fixtures";
-
-// import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-// TODO: Future route not ready yet
-test./* testBothFutureAndLegacyRoutes. */ describe("Payment", () => {
+testBothFutureAndLegacyRoutes.describe("Payment", (routeVariant) => {
   test.describe("user", () => {
     test.afterEach(async ({ users }) => {
       await users.deleteAll();
     });
 
     test("should create a mock payment for a user", async ({ context, users, page }) => {
+      test.skip(routeVariant === "future", "Future route not ready yet");
       test.skip(process.env.MOCK_PAYMENT_APP_ENABLED === undefined, "Skipped as Stripe is not installed");
 
       const user = await users.create();
