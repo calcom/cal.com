@@ -528,7 +528,10 @@ const IntervalLimitItem = ({
   onIntervalSelect,
 }: IntervalLimitItemProps) => {
   return (
-    <div className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
+    <div
+      data-testid="add-limit"
+      className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse"
+      key={limitKey}>
       <TextField
         required
         type="number"
