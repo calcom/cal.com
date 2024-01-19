@@ -1,4 +1,5 @@
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -27,6 +28,7 @@ function UsersTableBare() {
   const utils = trpc.useContext();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const router = useRouter();
 
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
@@ -207,7 +209,10 @@ function UsersTableBare() {
                         {
                           id: "impersonation",
                           label: "Impersonate",
-                          onClick: () => signIn("impersonation-auth", { username: user.username }),
+                          onClick: async () => {
+                            await signIn("impersonation-auth", { redirect: false, username: user.username });
+                            router.replace("/settings/my-account/profile");
+                          },
                           icon: VenetianMask,
                         },
                         {
