@@ -1,26 +1,26 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Avatar,
   Badge,
   Button,
   ConfirmationDialogContent,
   Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
   DropdownActions,
   showToast,
   Table,
   TextField,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  Avatar,
 } from "@calcom/ui";
-import { Edit, Trash, Lock, VenetianMask } from "@calcom/ui/components/icon";
+import { Edit, Lock, Trash, User, VenetianMask } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
