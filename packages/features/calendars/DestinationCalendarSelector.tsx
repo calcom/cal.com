@@ -92,6 +92,8 @@ const DestinationCalendarSelector = ({
         integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
       );
 
+      console.log(query.data?.connectedCalendars);
+
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
         label: `${selected.name} ` || "",

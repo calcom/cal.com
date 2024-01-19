@@ -1,5 +1,6 @@
 {
   "name": "ICS Feed",
+  "title": "ICS Feed",
   "slug": "ics-feed",
   "type": "ics-feed_calendar",
   "logo": "icon.svg",

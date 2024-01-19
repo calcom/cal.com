@@ -40,6 +40,7 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 export default class ICSFeedCalendarService implements Calendar {
   private urls: string[] = [];
+  protected integrationName = "ics-feed_calendar";
 
   constructor(credential: CredentialPayload) {
     const { urls } = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
@@ -133,8 +134,12 @@ export default class ICSFeedCalendarService implements Calendar {
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
-        // if event status is free or transparent, return
-        if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
+        // if event status is free or transparent, DON'T return (unlike usual getAvailability)
+        //
+        // commented out because a lot of public ICS feeds that describe stuff like
+        // public holidays have them marked as transparent. if that is explicitly
+        // added to cal.com as an ICS feed, it should probably not be ignored.
+        // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
         const event = new ICAL.Event(vevent);
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
@@ -260,6 +265,7 @@ export default class ICSFeedCalendarService implements Calendar {
         name,
         readOnly: true,
         externalId: url,
+        integrationName: this.integrationName,
       };
     });
   }

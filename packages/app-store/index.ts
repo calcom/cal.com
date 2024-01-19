@@ -10,7 +10,7 @@ const appStore = {
   googlevideo: () => import("./googlevideo"),
   hubspot: () => import("./hubspot"),
   huddle01video: () => import("./huddle01video"),
-  "ics-feed": import("./ics-feed"),
+  "ics-feedcalendar": () => import("./ics-feedcalendar"),
   jitsivideo: () => import("./jitsivideo"),
   larkcalendar: () => import("./larkcalendar"),
   office365calendar: () => import("./office365calendar"),

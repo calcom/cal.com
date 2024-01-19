@@ -3795,12 +3795,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/ics-feed@workspace:packages/app-store/ics-feed":
+"@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar":
   version: 0.0.0-use.local
-  resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feed"
+  resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar"
   dependencies:
+    "@calcom/core": "*"
     "@calcom/lib": "*"
+    "@calcom/prisma": "*"
     "@calcom/types": "*"
+    "@calcom/ui": "*"
+    react-hook-form: ^7.43.3
   languageName: unknown
   linkType: soft
 

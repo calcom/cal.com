@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
+import { Trash } from "@calcom/ui/components/icon";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();
@@ -33,7 +34,7 @@ export default function ICSFeedSetup() {
                 form={form}
                 handleSubmit={async (_) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/caldavcalendar/add", {
+                  const res = await fetch("/api/integrations/ics-feed/add", {
                     method: "POST",
                     body: JSON.stringify({ urls }),
                     headers: {
@@ -52,24 +53,39 @@ export default function ICSFeedSetup() {
                 }}>
                 <fieldset className="space-y-2" disabled={form.formState.isSubmitting}>
                   {urls.map((url, i) => (
-                    <TextField
-                      required
-                      key={i}
-                      type="text"
-                      label={t("calendar_url")}
-                      value={url}
-                      onChange={() =>
-                        setUrls((urls) => {
-                          urls[i] = url;
-                          return urls;
-                        })
-                      }
-                      placeholder="https://example.com/calendar.ics"
-                    />
+                    <div key={i} className="flex w-full items-center gap-2">
+                      <TextField
+                        required
+                        type="text"
+                        label={t("calendar_url")}
+                        value={url}
+                        containerClassName={`w-full ${i === 0 ? "mr-6" : ""}`}
+                        onChange={(e) => {
+                          const newVal = e.target.value as string;
+                          setUrls((urls) => urls.map((x, ii) => (ii === i ? newVal : x)));
+                        }}
+                        placeholder="https://example.com/calendar.ics"
+                      />
+                      {i !== 0 ? (
+                        <button
+                          type="button"
+                          className="mb-2 h-min text-sm"
+                          onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
+                          <Trash size={16} />
+                        </button>
+                      ) : null}
+                    </div>
                   ))}
                 </fieldset>
 
-                <button type="button">+</button>
+                <button
+                  className="text-sm"
+                  type="button"
+                  onClick={() => {
+                    setUrls((urls) => urls.concat(""));
+                  }}>
+                  Add +
+                </button>
 
                 {errorMessage && (
                   <Alert
