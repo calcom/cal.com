@@ -12,13 +12,13 @@ export function OtherTeamsListing() {
 
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data: teams, isLoading } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+  const { data: teams, isPending } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     onError: (e) => {
       setErrorMessage(e.message);
     },
   });
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoaderTeamList />;
   }
 

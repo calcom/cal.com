@@ -25,7 +25,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
   const [errorMessage, setErrorMessage] = useState("");
   const { t } = useLocale();
 
-  const { data: connection, isLoading } = trpc.viewer.saml.get.useQuery(
+  const { data: connection, isPending } = trpc.viewer.saml.get.useQuery(
     { teamId },
     {
       onError: (err) => {
@@ -34,7 +34,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
     }
   );
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("sso_configuration")} description={t("sso_configuration_description")} />;
   }
 

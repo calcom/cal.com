@@ -93,7 +93,7 @@ const ProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: team, isPending } = trpc.viewer.teams.get.useQuery(
     { teamId, includeTeamLogo: true },
     {
       enabled: !!teamId,
@@ -142,7 +142,7 @@ const ProfileView = () => {
       });
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
   }
 
@@ -405,7 +405,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

@@ -42,7 +42,7 @@ function VerifyEmailPage() {
               <Button
                 color="minimal"
                 className="underline"
-                loading={mutation.isLoading}
+                loading={mutation.isPending}
                 onClick={() => {
                   showToast("Send email", "success");
                   mutation.mutate();

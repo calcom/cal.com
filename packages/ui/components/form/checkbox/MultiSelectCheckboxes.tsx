@@ -59,7 +59,7 @@ const MultiValue = ({ index, getValue }: { index: number; getValue: () => { leng
 
 export default function MultiSelectCheckboxes({
   options,
-  isLoading,
+  isPending,
   selected,
   setSelected,
   setValue,
@@ -84,7 +84,7 @@ export default function MultiSelectCheckboxes({
       isSearchable={false}
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
-      isLoading={isLoading}
+      isPending={isPending}
       components={{
         ...additonalComponents,
         Option: InputOption,

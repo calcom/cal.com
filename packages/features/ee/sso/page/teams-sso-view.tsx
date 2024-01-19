@@ -19,7 +19,7 @@ const SAMLSSO = () => {
 
   const teamId = Number(params.id);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: team, isPending } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       onError: () => {
@@ -34,7 +34,7 @@ const SAMLSSO = () => {
     }
   }, []);
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader />;
   }
 

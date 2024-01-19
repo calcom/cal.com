@@ -96,7 +96,7 @@ export const AvailableTimeSlots = ({
   return (
     <>
       <div className="flex">
-        {schedule.isLoading ? (
+        {schedule.isPending ? (
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
@@ -120,7 +120,7 @@ export const AvailableTimeSlots = ({
           limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4"
         )}>
-        {schedule.isLoading
+        {schedule.isPending
           ? // Shows exact amount of days as skeleton.
             Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)
           : slotsPerDay.length > 0 &&

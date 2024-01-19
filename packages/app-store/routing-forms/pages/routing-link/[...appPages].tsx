@@ -153,7 +153,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                       <Button
                         className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
-                        loading={responseMutation.isLoading}
+                        loading={responseMutation.isPending}
                         type="submit"
                         color="primary">
                         {t("submit")}

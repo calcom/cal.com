@@ -50,14 +50,14 @@ const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     onError: () => {
       router.push("/settings");
     },
   });
   const { data: user } = trpc.viewer.me.useQuery();
 
-  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!currentOrg) {
     return null;
   }

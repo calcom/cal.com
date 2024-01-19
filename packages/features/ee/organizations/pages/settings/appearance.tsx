@@ -107,7 +107,7 @@ const OrgAppearanceView = ({
                         calVideoLogo: newLogo,
                       });
                     }}
-                    disabled={mutation.isLoading}
+                    disabled={mutation.isPending}
                     imageSrc={currentOrg?.calVideoLogo ?? undefined}
                     uploadInstruction={t("cal_video_logo_upload_instruction")}
                     triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
@@ -115,7 +115,7 @@ const OrgAppearanceView = ({
                   {currentOrg?.calVideoLogo && (
                     <Button
                       color="destructive"
-                      disabled={mutation.isLoading}
+                      disabled={mutation.isPending}
                       onClick={() => {
                         mutation.mutate({
                           calVideoLogo: null,
@@ -190,7 +190,7 @@ const OrgAppearanceView = ({
           <SettingsToggle
             toggleSwitchAtTheEnd={true}
             title={t("disable_cal_branding", { appName: APP_NAME })}
-            disabled={mutation?.isLoading}
+            disabled={mutation?.isPending}
             description={t("removes_cal_branding", { appName: APP_NAME })}
             checked={hideBrandingValue}
             onCheckedChange={(checked) => {
@@ -212,13 +212,13 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { t } = useLocale();
-  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     onError: () => {
       router.push("/settings");
     },
   });
 
-  if (isLoading) {
+  if (isPending) {
     return <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_org_description")} />;
   }
 

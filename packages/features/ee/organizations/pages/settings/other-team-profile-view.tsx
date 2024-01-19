@@ -81,7 +81,7 @@ const OtherTeamProfileView = () => {
   });
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
-  const { data: team, isLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
+  const { data: team, isPending } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId: teamId },
     {
       enabled: !Number.isNaN(teamId),
@@ -157,7 +157,7 @@ const OtherTeamProfileView = () => {
   return (
     <>
       <Meta title={t("profile")} description={t("profile_team_description")} />
-      {!isLoading ? (
+      {!isPending ? (
         <>
           {isAdmin ? (
             <Form
@@ -249,7 +249,7 @@ const OtherTeamProfileView = () => {
                 />
               </div>
               <p className="text-default mt-2 text-sm">{t("team_description")}</p>
-              <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
+              <Button color="primary" className="mt-8" type="submit" loading={mutation.isPending}>
                 {t("update")}
               </Button>
               {IS_TEAM_BILLING_ENABLED &&

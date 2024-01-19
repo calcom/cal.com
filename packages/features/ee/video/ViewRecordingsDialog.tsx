@@ -157,7 +157,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
 
-  const { hasTeamPlan, isLoading: isTeamPlanStatusLoading } = useHasTeamPlan();
+  const { hasTeamPlan, isPending: isTeamPlanStatusLoading } = useHasTeamPlan();
 
   const roomName =
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??

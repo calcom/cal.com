@@ -69,7 +69,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
             mutation.mutate({ disableImpersonation: !checked });
           }}
           switchContainerClassName="rounded-t-none border-t-0"
-          disabled={mutation.isLoading}
+          disabled={mutation.isPending}
         />
       </div>
     </>
@@ -77,10 +77,10 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 };
 
 const ProfileImpersonationViewWrapper = () => {
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
   const { t } = useLocale();
 
-  if (isLoading || !user)
+  if (isPending || !user)
     return <SkeletonLoader title={t("impersonation")} description={t("impersonation_description")} />;
 
   return <ProfileImpersonationView user={user} />;

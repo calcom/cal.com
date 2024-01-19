@@ -46,7 +46,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
   const [initalised, setInitalised] = useState(false);
   const searchParams = useSearchParams();
   const setOverlayBusyDates = useOverlayCalendarStore((state) => state.setOverlayBusyDates);
-  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.connectedCalendars.useQuery(undefined, {
     enabled: !!props.open || Boolean(searchParams?.get("overlayCalendar")),
   });
   const { toggleValue, hasItem, set } = useLocalSet<{
@@ -82,7 +82,7 @@ export function OverlayCalendarSettingsModal(props: IOverlayCalendarContinueModa
           className="pb-4"
           description={t("view_overlay_calendar_events")}>
           <div className="no-scrollbar max-h-full overflow-y-scroll ">
-            {isLoading ? (
+            {isPending ? (
               <SkeletonLoader />
             ) : (
               <>

@@ -94,7 +94,7 @@ export const AddNewOrgAdminsForm = () => {
           color="primary"
           type="submit"
           className="mt-6 w-full justify-center"
-          disabled={inviteMemberMutation.isLoading}>
+          disabled={inviteMemberMutation.isPending}>
           Continue
         </Button>
       </div>

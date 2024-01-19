@@ -79,13 +79,13 @@ const OrgProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: currentOrganisation, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+  const { data: currentOrganisation, isPending } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     onError: () => {
       router.push("/settings");
     },
   });
 
-  if (isLoading || !orgBranding || !currentOrganisation) {
+  if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
 
@@ -286,7 +286,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <p className="text-default mt-2 text-sm">{t("org_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
       </SectionBottomActions>

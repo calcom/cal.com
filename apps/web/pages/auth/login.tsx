@@ -162,7 +162,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
-  const { data, isLoading } = trpc.viewer.public.ssoConnections.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.public.ssoConnections.useQuery(undefined, {
     onError: (err) => {
       setErrorMessage(err.message);
     },
@@ -170,7 +170,7 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
 
   const displaySSOLogin = HOSTED_CAL_FEATURES
     ? true
-    : isSAMLLoginEnabled && !isLoading && data?.connectionExists;
+    : isSAMLLoginEnabled && !isPending && data?.connectionExists;
 
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">

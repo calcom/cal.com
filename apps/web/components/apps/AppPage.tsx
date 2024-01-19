@@ -190,7 +190,7 @@ export const AppPage = ({
             )}
           </header>
         </div>
-        {!appDbQuery.isLoading ? (
+        {!appDbQuery.isPending ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
@@ -211,7 +211,7 @@ export const AppPage = ({
                         onClick: () => {
                           mutation.mutate({ type, variant, slug });
                         },
-                        loading: mutation.isLoading,
+                        loading: mutation.isPending,
                       };
                     }
                     return (
@@ -250,7 +250,7 @@ export const AppPage = ({
                     onClick: () => {
                       mutation.mutate({ type, variant, slug });
                     },
-                    loading: mutation.isLoading,
+                    loading: mutation.isPending,
                   };
                 }
                 return (
@@ -272,7 +272,7 @@ export const AppPage = ({
         )}
 
         {dependencies &&
-          (!dependencyData.isLoading ? (
+          (!dependencyData.isPending ? (
             <div className="mt-6">
               <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
             </div>

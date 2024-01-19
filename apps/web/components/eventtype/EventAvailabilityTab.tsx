@@ -85,7 +85,7 @@ const EventTypeScheduleDetails = memo(
     const { watch } = useFormContext<FormValues>();
 
     const scheduleId = watch("schedule");
-    const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
+    const { isPending, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
       {
         scheduleId:
           scheduleId || loggedInUser?.defaultScheduleId || selectedScheduleValue?.value || undefined,
@@ -112,7 +112,7 @@ const EventTypeScheduleDetails = memo(
                     )}>
                     {day}
                   </span>
-                  {isLoading ? (
+                  {isPending ? (
                     <SkeletonText className="block h-5 w-60" />
                   ) : isAvailable ? (
                     <div className="space-y-3 text-right">
@@ -142,7 +142,7 @@ const EventTypeScheduleDetails = memo(
           {!!schedule?.id && !schedule.isManaged && !schedule.readOnly && (
             <Button
               href={`/availability/${schedule.id}`}
-              disabled={isLoading}
+              disabled={isPending}
               color="minimal"
               EndIcon={ExternalLink}
               target="_blank"
@@ -169,7 +169,7 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const watchSchedule = watch("schedule");
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
-  const { isLoading } = trpc.viewer.availability.list.useQuery(undefined, {
+  const { isPending } = trpc.viewer.availability.list.useQuery(undefined, {
     onSuccess: ({ schedules }) => {
       const options = schedules.map((schedule) => ({
         value: schedule.id,
@@ -241,8 +241,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           {t("availability")}
           {shouldLockIndicator("availability")}
         </label>
-        {isLoading && <SelectSkeletonLoader />}
-        {!isLoading && (
+        {isPending && <SelectSkeletonLoader />}
+        {!isPending && (
           <Controller
             name="schedule"
             render={({ field }) => {

@@ -114,7 +114,7 @@ export function UserListTable() {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
 
-  const { data, isLoading, fetchNextPage, isFetching } =
+  const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
@@ -329,7 +329,7 @@ export function UserListTable() {
         }
         columns={memorisedColumns}
         data={flatData}
-        isLoading={isLoading}
+        isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         filterableItems={[
           {

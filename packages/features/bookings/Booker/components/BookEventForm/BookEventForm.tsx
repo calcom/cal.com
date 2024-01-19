@@ -319,7 +319,7 @@ export const BookEventFormChild = ({
   };
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
-  if (eventQuery.isLoading || !eventQuery.data) return <FormSkeleton />;
+  if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
     return (
       <EmptyScreen
@@ -435,7 +435,7 @@ export const BookEventFormChild = ({
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
-            <Button type="submit" color="primary" loading={createInstantBookingMutation.isLoading}>
+            <Button type="submit" color="primary" loading={createInstantBookingMutation.isPending}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
@@ -450,8 +450,8 @@ export const BookEventFormChild = ({
                 color="primary"
                 loading={
                   bookingForm.formState.isSubmitting ||
-                  createBookingMutation.isLoading ||
-                  createRecurringBookingMutation.isLoading ||
+                  createBookingMutation.isPending ||
+                  createRecurringBookingMutation.isPending ||
                   // A redirect is triggered on mutation success, so keep the button disabled as this is happening.
                   createBookingMutation.isSuccess ||
                   createRecurringBookingMutation.isSuccess

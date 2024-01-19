@@ -5,11 +5,12 @@ import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
-import type { Maybe } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
 
 import type { TRPCContextInner } from "../createContext";
 import { middleware } from "../trpc";
+
+type Maybe<T> = T | null | undefined;
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
   const { prisma } = ctx;

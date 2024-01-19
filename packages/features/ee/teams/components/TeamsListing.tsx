@@ -22,7 +22,7 @@ export function TeamsListing() {
   const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.teams.list.useQuery(undefined, {
     enabled: inviteTokenChecked,
     onError: (e) => {
       setErrorMessage(e.message);
@@ -88,7 +88,7 @@ export function TeamsListing() {
     else setInviteTokenChecked(true);
   }, [router, inviteMemberByToken, setInviteTokenChecked, token]);
 
-  if (isLoading || !inviteTokenChecked) {
+  if (isPending || !inviteTokenChecked) {
     return <SkeletonLoaderTeamList />;
   }
 

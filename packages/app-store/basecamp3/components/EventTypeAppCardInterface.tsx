@@ -51,7 +51,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Select
             placeholder="Select project"
             options={projects}
-            isLoading={!projects}
+            isPending={!projects}
             className="md:min-w-[120px]"
             onChange={(project) => {
               if (project) {

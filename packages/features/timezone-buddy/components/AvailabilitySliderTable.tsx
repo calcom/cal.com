@@ -62,7 +62,7 @@ export function AvailabilitySliderTable() {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
-  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
       loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
@@ -203,7 +203,7 @@ export function AvailabilitySliderTable() {
               setSelectedUser(row.original);
             }}
             data={flatData}
-            isLoading={isLoading}
+            isPending={isPending}
             // tableOverlay={<HoverOverview />}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
           />

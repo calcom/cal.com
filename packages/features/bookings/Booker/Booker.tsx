@@ -189,7 +189,7 @@ const BookerComponent = ({
   }, [bookerLayouts, validateLayout, setLayout, _layout]);
 
   useEffect(() => {
-    if (event.isLoading) return setBookerState("loading");
+    if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");

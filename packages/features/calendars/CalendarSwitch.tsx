@@ -77,7 +77,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         <Switch
           id={externalId}
           checked={checkedInternal}
-          disabled={mutation.isLoading}
+          disabled={mutation.isPending}
           onCheckedChange={async (isOn: boolean) => {
             setCheckedInternal(isOn);
             await mutation.mutate({ isOn });
@@ -93,7 +93,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           {t("adding_events_to")}
         </span>
       )}
-      {mutation.isLoading && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {mutation.isPending && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
     </div>
   );
 };

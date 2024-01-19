@@ -111,7 +111,7 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
-    isLoading,
+    isPending,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -131,7 +131,7 @@ function WorkflowPage() {
     MembershipRole.MEMBER;
 
   useEffect(() => {
-    if (workflow && !isLoading) {
+    if (workflow && !isPending) {
       if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
@@ -181,7 +181,7 @@ function WorkflowPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [isLoading]);
+  }, [isPending]);
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -271,7 +271,7 @@ function WorkflowPage() {
         CTA={
           !readOnly && (
             <div>
-              <Button data-testid="save-workflow" type="submit" loading={updateMutation.isLoading}>
+              <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
                 {t("save")}
               </Button>
             </div>

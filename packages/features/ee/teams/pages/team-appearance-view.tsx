@@ -151,7 +151,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               title={t("disable_cal_branding", { appName: APP_NAME })}
-              disabled={mutation?.isLoading}
+              disabled={mutation?.isPending}
               description={t("removes_cal_branding", { appName: APP_NAME })}
               checked={hideBrandingValue}
               onCheckedChange={(checked) => {
@@ -163,7 +163,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               title={t("hide_book_a_team_member")}
-              disabled={mutation?.isLoading}
+              disabled={mutation?.isPending}
               description={t("hide_book_a_team_member_description", { appName: APP_NAME })}
               checked={hideBookATeamMember ?? false}
               onCheckedChange={(checked) => {
@@ -188,7 +188,7 @@ const ProfileViewWrapper = () => {
 
   const { t } = useLocale();
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: team, isPending } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(params.id) },
     {
       onError: () => {
@@ -197,7 +197,7 @@ const ProfileViewWrapper = () => {
     }
   );
 
-  if (isLoading)
+  if (isPending)
     return (
       <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />
     );

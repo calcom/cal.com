@@ -41,7 +41,7 @@ type MemberInvitationModalProps = {
   teamId: number;
   members?: PendingMember[];
   token?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
   disableCopyLink?: boolean;
   isOrg?: boolean;
 };
@@ -427,7 +427,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              loading={props.isLoading || createInviteMutation.isLoading}
+              loading={props.isPending || createInviteMutation.isPending}
               type="submit"
               color="primary"
               className="me-2 ms-2"

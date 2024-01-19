@@ -94,7 +94,7 @@ const MembersView = () => {
     enabled: !!session.data?.user?.org,
   });
 
-  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
@@ -105,7 +105,7 @@ const MembersView = () => {
       }
     );
 
-  const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
+  const { data: team, isPending: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
@@ -115,7 +115,7 @@ const MembersView = () => {
     }
   );
 
-  const isLoading = isOrgListLoading || isTeamsLoading;
+  const isPending = isOrgListLoading || isTeamsLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
@@ -149,7 +149,7 @@ const MembersView = () => {
           )
         }
       />
-      {!isLoading && (
+      {!isPending && (
         <>
           <div>
             {team && (
@@ -190,7 +190,7 @@ const MembersView = () => {
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
-              isLoading={inviteMemberMutation.isLoading}
+              isPending={inviteMemberMutation.isPending}
               isOpen={showMemberInvitationModal}
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
