@@ -149,7 +149,6 @@ const AppearanceView = ({
       <Form
         form={userThemeFormMethods}
         handleSubmit={(values) => {
-          console.log("userthemeformemthods", isUserThemeSubmitting);
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
