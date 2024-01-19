@@ -460,9 +460,9 @@ export default function Signup({
                 <Trans i18nKey="signing_up_terms">
                   By proceeding, you agree to our{" "}
                   <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
-                    Terms{" "}
-                  </Link>
-                  <span>&</span>{" "}
+                    Terms
+                  </Link>{" "}
+                  and{" "}
                   <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
                     Privacy Policy.
                   </Link>
