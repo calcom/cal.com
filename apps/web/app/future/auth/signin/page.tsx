@@ -8,5 +8,6 @@ import { getServerSideProps } from "@server/lib/auth/signin/getServerSideProps";
 export default WithLayout({
   getLayout: null,
   Page: signin,
+  // @ts-expect-error TODO: fix this
   getData: withAppDirSsr<InferGetServerSidePropsType<typeof getServerSideProps>>(getServerSideProps),
 })<"P">;
