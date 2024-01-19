@@ -9,7 +9,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { WEBAPP_URL } from "../../../constants";
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
-import { User } from "../../repository/user";
+import { UserRepository } from "../../repository/user";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -105,6 +105,11 @@ export async function getTeamWithMembers(args: {
           accepted: true,
           role: true,
           disableImpersonation: true,
+          profile: {
+            include: {
+              organization: true,
+            },
+          },
           user: {
             select: userSelect,
           },
@@ -145,24 +150,25 @@ export async function getTeamWithMembers(args: {
   const currentOrgId = currentOrg?.id ?? (isOrgView ? teamOrOrg.id : teamOrOrg.parent?.id) ?? null;
 
   const teamOrOrgMemberships = [];
+
   for (const membership of teamOrOrg.members) {
-    teamOrOrgMemberships.push({
-      ...membership,
-      user: await User.enrichUserWithOrganizationProfile({
-        user: membership.user,
-        organizationId: currentOrgId,
-      }),
-    });
+    const enrichedMembership = await UserRepository.enrichEntityWithProfile(membership);
+    if (!enrichedMembership.profile) {
+      throw new Error(`Team ${teamOrOrg.slug} has a membership without a profile`);
+    }
+    const profile = enrichedMembership.profile;
+    teamOrOrgMemberships.push({ ...enrichedMembership, profile });
   }
+
   const members = teamOrOrgMemberships.map((m) => {
     const { credentials, ...restUser } = m.user;
     return {
       ...restUser,
-      username: m.user.profile?.username ?? restUser.username,
+      username: m.profile?.username ?? restUser.username,
       role: m.role,
-      profile: m.user.profile,
-      organizationId: m.user.profile?.organizationId ?? null,
-      organization: m.user.profile?.organization,
+      profile: m.profile,
+      organizationId: m.profile?.organizationId ?? null,
+      organization: m.profile?.organization,
       accepted: m.accepted,
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
@@ -171,7 +177,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(m.profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -200,7 +206,7 @@ export async function getTeamWithMembers(args: {
     const usersWithUserProfile = [];
     for (const user of eventType.users) {
       usersWithUserProfile.push(
-        await User.enrichUserWithOrganizationProfile({
+        await UserRepository.enrichUserWithOrganizationProfile({
           user: user,
           organizationId: currentOrgId,
         })

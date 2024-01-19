@@ -10,7 +10,7 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 export const getUserAvatarUrl = (
   user:
     | (Pick<User, "username"> & {
-        profile: UserProfile;
+        profile: Omit<UserProfile, "upId">;
         avatarUrl: string | null;
       })
     | undefined

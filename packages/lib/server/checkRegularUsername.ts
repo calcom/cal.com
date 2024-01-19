@@ -1,13 +1,13 @@
 import slugify from "@calcom/lib/slugify";
 
-import { Profile } from "./repository/profile";
+import { ProfileRepository } from "./repository/profile";
 
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {
   const username = slugify(_username);
   const premium = !!process.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
 
   const profiles = currentOrgDomain
-    ? await Profile.getProfilesBySlugs({
+    ? await ProfileRepository.getProfilesBySlugs({
         orgSlug: currentOrgDomain,
         usernames: [username],
       })

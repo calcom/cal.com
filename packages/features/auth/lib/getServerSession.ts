@@ -5,9 +5,11 @@ import { getToken } from "next-auth/jwt";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { CAL_URL } from "@calcom/lib/constants";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import logger from "@calcom/lib/logger";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 
+const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
  * Stores the session in memory using the stringified token as the key.
  *
@@ -60,7 +62,17 @@ export async function getServerSession(options: {
   }
 
   const hasValidLicense = await checkLicense(prisma);
-  const profile = await Profile.getProfile(token.profileId ?? null);
+  const profile = await ProfileRepository.getProfile(token.profileId ?? null);
+  let upId = token.upId;
+  if (!upId) {
+    upId = profile?.upId ?? `usr-${user?.id}`;
+  }
+
+  if (!upId) {
+    log.error("No upId found for session", { profileId: token.profileId, userId: user?.id });
+    return null;
+  }
+
   const session: Session = {
     hasValidLicense,
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
@@ -80,6 +92,7 @@ export async function getServerSession(options: {
       profile,
     },
     profileId: token.profileId,
+    upId,
   };
 
   CACHE.set(JSON.stringify(token), session);

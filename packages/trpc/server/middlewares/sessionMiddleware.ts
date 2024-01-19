@@ -2,7 +2,8 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { User } from "@calcom/lib/server/repository/user";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import type { Maybe } from "@trpc/server";
@@ -74,8 +75,16 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const user = await User.enrichUserWithProfile({ user: userFromDb, profileId: session.profileId ?? null });
+  const profileId = session.profileId ?? null;
+  const upId = session.upId;
 
+  logger.debug("getUserFromSession: enriching user with profile", { userFromDb, profileId, upId });
+  const user = await UserRepository.enrichUserWithProfile({
+    user: userFromDb,
+    upId,
+  });
+
+  logger.debug("getUserFromSession-Result", { user: user.id, profile: user.profile, session });
   const { email, username, id } = user;
   if (!email || !id) {
     return null;
@@ -87,7 +96,10 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const locale = user?.locale ?? ctx.locale;
 
-  const isOrgAdmin = !!user.profile?.organization?.members.length;
+  const isOrgAdmin = !!user.profile?.organization?.members.filter(
+    (member) => (member.role === "ADMIN" || member.role === "OWNER") && member.userId === user.id
+  ).length;
+
   // Want to reduce the amount of data being sent
   if (isOrgAdmin && user.profile?.organization?.members) {
     user.profile.organization.members = [];
@@ -131,20 +143,35 @@ const getUserSession = async (ctx: TRPCContextInner) => {
   const session = ctx.session || (await getSession(ctx));
   const user = session ? await getUserFromSession(ctx, session) : null;
   let foundProfile = null;
-  if (session?.profileId) {
-    foundProfile = await ctx.prisma.profile.findUnique({
-      where: {
-        id: session.profileId,
-        userId: user?.id,
-      },
+  // Check authorization for profile
+  if (session?.profileId && user?.id) {
+    foundProfile = await ProfileRepository.getProfileByUserIdAndProfileId({
+      userId: user.id,
+      profileId: session.profileId,
     });
     if (!foundProfile) {
-      logger.error("Profile not found", { profileId: session.profileId, userId: user?.id });
+      logger.error("Profile not found or not authorized", { profileId: session.profileId, userId: user?.id });
       // TODO: Test that logout should happen automatically
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
   }
-  return { user, session };
+
+  let sessionWithUpId = null;
+  if (session) {
+    let upId = session.upId;
+    if (!upId) {
+      upId = foundProfile?.upId ?? `usr-${user?.id}`;
+    }
+
+    if (!upId) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No upId found for session" });
+    }
+    sessionWithUpId = {
+      ...session,
+      upId,
+    };
+  }
+  return { user, session: sessionWithUpId };
 };
 
 const sessionMiddleware = middleware(async ({ ctx, next }) => {

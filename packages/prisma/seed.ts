@@ -110,7 +110,7 @@ async function createOrganizationAndAddMembersAndTeams({
   // Create all users first
   try {
     for (const member of orgMembers) {
-      orgMembersInDb.push({
+      const orgMemberInDb = {
         ...(await prisma.user.create({
           data: {
             ...member.memberData,
@@ -120,7 +120,9 @@ async function createOrganizationAndAddMembersAndTeams({
         inTeams: member.inTeams,
         orgMembership: member.orgMembership,
         orgProfile: member.orgProfile,
-      });
+      };
+
+      orgMembersInDb.push(orgMemberInDb);
     }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -162,10 +164,25 @@ async function createOrganizationAndAddMembersAndTeams({
         })),
       },
     },
+    select: {
+      id: true,
+      members: true,
+      orgProfiles: true,
+    },
   });
 
-  // For each member create one event in personal as well as org profile
-  for (const member of orgMembersInDb) {
+  const orgMembersInDBWithProfileId = await Promise.all(
+    orgMembersInDb.map(async (member) => ({
+      ...member,
+      profile: {
+        ...member.orgProfile,
+        id: orgInDb.orgProfiles.find((p) => p.userId === member.id)?.id,
+      },
+    }))
+  );
+
+  // For each member create one event
+  for (const member of orgMembersInDBWithProfileId) {
     await prisma.eventType.create({
       data: {
         title: `${member.name} Event`,
@@ -174,6 +191,11 @@ async function createOrganizationAndAddMembersAndTeams({
         owner: {
           connect: {
             id: member.id,
+          },
+        },
+        profile: {
+          connect: {
+            id: member.profile.id,
           },
         },
         users: {
@@ -241,7 +263,7 @@ async function createOrganizationAndAddMembersAndTeams({
       })
     );
 
-    const ownerForEvent = orgMembersInDb[0];
+    const ownerForEvent = orgMembersInDBWithProfileId[0];
     // Create event for each team
     await prisma.eventType.create({
       data: {
@@ -258,6 +280,11 @@ async function createOrganizationAndAddMembersAndTeams({
             id: ownerForEvent.id,
           },
         },
+        profile: {
+          connect: {
+            id: ownerForEvent.profile.id,
+          },
+        },
         users: {
           connect: {
             id: ownerForEvent.id,
@@ -268,7 +295,7 @@ async function createOrganizationAndAddMembersAndTeams({
   }
 
   // Create memberships for all the organization members with the respective teams
-  for (const member of orgMembersInDb) {
+  for (const member of orgMembersInDBWithProfileId) {
     for (const { slug: teamSlug, role: role } of member.inTeams) {
       const team = organizationTeams.find((t) => t.slug === teamSlug);
       if (!team) {
@@ -280,6 +307,7 @@ async function createOrganizationAndAddMembersAndTeams({
           userId: member.id,
           role: role,
           accepted: true,
+          profileId: member.profile.id,
         },
       });
     }

@@ -13,7 +13,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { User } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -226,7 +226,7 @@ export async function getDynamicEventType(
     });
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
-  const { where } = await User._getWhereClauseForGettingUsers({
+  const { where } = await UserRepository._getWhereClauseForGettingUsers({
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     usernameList: Array.isArray(input.usernameList)
       ? input.usernameList
@@ -620,7 +620,7 @@ async function getUserIdFromUsername(
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
 
-  const [user] = await User.getUsersFromUsernameInOrgContext({
+  const [user] = await UserRepository.getUsersFromUsernameInOrgContext({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });

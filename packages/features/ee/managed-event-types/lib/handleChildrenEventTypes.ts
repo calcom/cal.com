@@ -5,7 +5,7 @@ import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { EventType } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import type { PrismaPromise } from "@calcom/prisma/client";
 import type { EventType as EventTypePrisma } from "@calcom/prisma/client";
@@ -178,7 +178,7 @@ export default async function handleChildrenEventTypes({
     // Create event types for new users added
     await prisma.$transaction(
       newUserIds.map((userId) => {
-        return EventType.create({
+        return EventTypeRepository.create({
           ...managedEventTypeValues,
           ...unlockedEventTypeValues,
           bookingLimits:

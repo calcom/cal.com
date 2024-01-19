@@ -5,6 +5,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui";
 
 type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
@@ -13,7 +14,7 @@ type MemberType = Pick<
   MembersType[number],
   "id" | "name" | "bio" | "username" | "organizationId" | "avatarUrl"
 > & {
-  profile: UserProfile;
+  profile: Omit<UserProfile, "upId">;
   safeBio: string | null;
   bookerUrl: string;
 };

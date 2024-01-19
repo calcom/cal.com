@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 import { getSession } from "@calcom/features/auth/lib/getSession";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
@@ -14,7 +14,7 @@ const teamIdschema = z.object({
 });
 
 type ProfileType =
-  | (Awaited<ReturnType<typeof Profile.getOrgProfilesForUser>>[number] & {
+  | (Awaited<ReturnType<typeof ProfileRepository.getOrgProfilesForUser>>[number] & {
       organization: {
         members: Membership[];
       };
@@ -143,7 +143,7 @@ async function getImpersonatedUser({
     throw new Error("This user does not exist");
   }
 
-  const allOrgProfiles = await Profile.getOrgProfilesForUser({ id: impersonatedUser.id });
+  const allOrgProfiles = await ProfileRepository.getOrgProfilesForUser({ id: impersonatedUser.id });
   const firstOrgProfile = allOrgProfiles[0] as undefined | (typeof allOrgProfiles)[number];
   const orgMembers = firstOrgProfile
     ? await prisma.membership.findMany({

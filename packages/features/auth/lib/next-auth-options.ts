@@ -16,9 +16,10 @@ import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@c
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
+import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
-import { Profile } from "@calcom/lib/server/repository/profile";
-import { User } from "@calcom/lib/server/repository/user";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -29,6 +30,7 @@ import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
+const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
 const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
@@ -103,7 +105,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await User.getUserByEmail({ email: credentials.email });
+      const user = await UserRepository.getUserByEmail({ email: credentials.email });
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
@@ -408,9 +410,11 @@ export const AUTH_OPTIONS: AuthOptions = {
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
       if (trigger === "update") {
+        log.debug("callbacks:jwt:update", { token, user, account, trigger, session });
         return {
           ...token,
-          profileId: session?.profileId ?? null,
+          profileId: session?.user.profileId ?? session?.profileId ?? null,
+          upId: session?.user.upId ?? session.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
@@ -428,6 +432,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             email: true,
             role: true,
             locale: true,
+            movedToProfileId: true,
             teams: {
               include: {
                 team: true,
@@ -443,41 +448,33 @@ export const AUTH_OPTIONS: AuthOptions = {
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
-        const allOrgProfiles = await Profile.getOrgProfilesForUser(existingUser);
-        const profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : token.profileId;
-
-        let parsedOrgMetadata;
-        // FIXME: Send the switched organization here
-        const organizationProfile = await User.getOrganizationProfile({
-          userId: existingUser.id,
-          profileId: profileId ?? null,
+        const allProfiles = await ProfileRepository.getAllProfilesForUser(existingUser);
+        log.debug("callbacks:jwt:autoMergeIdentities", {
+          allProfiles,
         });
-        let chosenOrganization;
+        const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        if (organizationProfile) {
-          chosenOrganization = await User.getOrganizationForUser({
-            userId: existingUser.id,
-            organizationId: organizationProfile.organizationId,
-          });
-          parsedOrgMetadata = teamMetadataSchema.parse(chosenOrganization?.metadata ?? {});
+        const profile = await ProfileRepository.findById(upId);
+        if (!profile) {
+          throw new Error("Profile not found");
         }
+
+        const profileOrg = profile?.organization;
 
         return {
           ...existingUserWithoutTeamsField,
           ...token,
-          profileId,
+          profileId: profile.id,
+          upId,
           belongsToActiveTeam,
           // All organizations in the token would be too big to store. It breaks the sessions request.
-          // Ideally we send the currently switched organization only here.
-          // orgs: organizations,
-          org: chosenOrganization
+          // So, we just set the currently switched organization only here.
+          org: profileOrg
             ? {
-                id: chosenOrganization.id,
-                name: chosenOrganization.name,
-                slug: chosenOrganization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullOrigin(
-                  chosenOrganization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""
-                ),
+                id: profileOrg.id,
+                name: profileOrg.name,
+                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
               }
             : null,
@@ -507,6 +504,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
+          profileId: user.profile?.id ?? null,
         } as JWT;
       }
 
@@ -551,23 +549,24 @@ export const AUTH_OPTIONS: AuthOptions = {
 
       return token;
     },
-    async session({ session, token }) {
-      console.log("Session callback", session, token);
+    async session({ session, token, user }) {
+      log.debug("callbacks:session - Session callback called", { session, token, user });
       const hasValidLicense = await checkLicense(prisma);
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          email: token?.email as string,
-        },
-      });
-      let profileId = token.profileId;
-      if (existingUser) {
-        const allOrgProfiles = await Profile.getOrgProfilesForUser(existingUser);
-        profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : profileId;
-      }
+      // const existingUser = await prisma.user.findFirst({
+      //   where: {
+      //     email: token?.email as string,
+      //   },
+      // });
+      const profileId = token.profileId;
+      // if (existingUser) {
+      //   const allOrgProfiles = await ProfileRepository.getOrgProfilesForUser(existingUser);
+      //   profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : profileId;
+      // }
 
       const calendsoSession: Session = {
         ...session,
         profileId,
+        upId: token.upId || session.upId,
         hasValidLicense,
         user: {
           ...session.user,
@@ -829,4 +828,28 @@ export const AUTH_OPTIONS: AuthOptions = {
       return baseUrl;
     },
   },
+};
+
+/**
+ * Identifies the profile the user should be logged into.
+ */
+const determineProfile = ({
+  token,
+  profiles,
+}: {
+  token: JWT;
+  profiles: { id: number | null; upId: string }[];
+}) => {
+  // If profile switcher is disabled, we can only show the first profile.
+  if (!ENABLE_PROFILE_SWITCHER) {
+    return profiles[0];
+  }
+
+  if (token.upId) {
+    // Otherwise use what's in the token
+    return { profileId: token.profileId, upId: token.upId as string };
+  }
+
+  // If there is just one profile it has to be the one we want to log into.
+  return profiles[0];
 };

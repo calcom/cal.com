@@ -1,4 +1,4 @@
-import { User } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -71,7 +71,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const [teamSlugs, userSlugs] = [
     await prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
-    await User.getAllUsersForOrganization({ organizationId: orgId }),
+    await UserRepository.getAllUsersForOrganization({ organizationId: orgId }),
   ];
 
   const existingSlugs = teamSlugs

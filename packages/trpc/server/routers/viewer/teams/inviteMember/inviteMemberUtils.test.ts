@@ -300,18 +300,6 @@ describe("Invite Member Utils", () => {
       expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).not.toThrow();
     });
 
-    it("should throw a TRPCError when inviting a user who is already a member of the org", () => {
-      const inviteeWithOrg: UserWithMembership = {
-        ...invitee,
-        profiles: [getSampleProfile()],
-      };
-      const teamWithOrg = {
-        ...mockedTeam,
-        id: 1,
-      };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
-    });
-
     it("should throw a TRPCError when inviting a user who is already a member of the team", () => {
       const inviteeWithOrg: UserWithMembership = {
         ...invitee,
@@ -321,22 +309,6 @@ describe("Invite Member Utils", () => {
       const teamWithOrg = {
         ...mockedTeam,
         id: 1,
-      };
-      expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
-    });
-
-    it("should throw a TRPCError with code FORBIDDEN if the invitee is already a member of another organization", () => {
-      const inviteeWithOrg: UserWithMembership = {
-        ...invitee,
-        profiles: [
-          getSampleProfile({
-            organizationId: 2,
-          }),
-        ],
-      };
-      const teamWithOrg = {
-        ...mockedTeam,
-        parentId: 3,
       };
       expect(() => validateInviteeEligibility(inviteeWithOrg, teamWithOrg)).toThrow(TRPCError);
     });

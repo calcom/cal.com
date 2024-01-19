@@ -22,7 +22,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
-import { ORGANIZATION_ID_UNKNOWN, User } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -357,11 +356,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const members = await Promise.all(
     !team.isPrivate
-      ? team.members.map(async (m) => {
-          const member = await User.enrichUserWithOrganizationProfile({
-            user: m,
-            organizationId: ORGANIZATION_ID_UNKNOWN,
-          });
+      ? team.members.map(async (member) => {
           return {
             name: member.name,
             avatarUrl: member.avatarUrl,

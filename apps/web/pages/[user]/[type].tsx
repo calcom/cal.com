@@ -11,7 +11,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { User } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { RedirectType } from "@calcom/prisma/client";
 
@@ -90,21 +90,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const org = isValidOrgDomain ? currentOrgDomain : null;
-  if (!org) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return redirect;
-    }
-  }
-
-  const usersInOrgContext = await User.getUsersFromUsernameInOrgContext({
+  const usersInOrgContext = await UserRepository.getUsersFromUsernameInOrgContext({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
@@ -116,6 +102,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       notFound: true,
     } as const;
   }
+  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -170,6 +157,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   let outOfOffice = false;
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
+
   if (!isOrgContext) {
     const redirect = await getTemporaryOrgRedirect({
       slugs: usernames,
@@ -185,16 +173,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const user = await prisma.user.findFirst({
-    where: {
-      username,
-      organization: userOrgQuery(context.req, context.params?.orgSlug),
-    },
-    select: {
-      id: true,
-      hideBranding: true,
-      allowSEOIndexing: true,
-    },
+  const [user] = await UserRepository.getUsersFromUsernameInOrgContext({
+    usernameList: [username],
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
 
   console.log("[type] - getUsersFromUsernameInOrgContext", user);

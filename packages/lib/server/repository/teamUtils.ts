@@ -4,8 +4,9 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 export const getParsedTeam = <T extends { metadata: Team["metadata"] }>(team: T) => {
   const metadata = teamMetadataSchema.parse(team.metadata);
   const requestedSlug = metadata?.requestedSlug ?? null;
+  const { metadata: _1, ...rest } = team;
   return {
-    ...team,
+    ...rest,
     requestedSlug,
     metadata: {
       ...metadata,

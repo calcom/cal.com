@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -125,13 +125,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     sendEmails(sendVerifEmailsPromises);
   }
 
-  console.log({
-    existingUsersWithMembersips,
-    newUsersEmailsOrUsernames,
-    orgConnectInfoByUsernameOrEmail,
-    autoAcceptEmailDomain,
-    orgVerified,
-  });
   // deal with existing users invited to join the team/org
   if (existingUsersWithMembersips.length) {
     if (!team.metadata?.isOrganization) {
@@ -140,10 +133,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         team,
       });
 
-      console.log({
-        autoJoinUsers,
-        regularUsers,
-      });
       // invited users can autojoin, create their memberships in org
       if (autoJoinUsers.length) {
         await prisma.membership.createMany({
@@ -182,7 +171,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       for (const user of existingUsersWithMembersips) {
         const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
         if (shouldAutoAccept) {
-          await Profile.create({
+          await ProfileRepository.create({
             userId: user.id,
             organizationId: team.id,
             username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),

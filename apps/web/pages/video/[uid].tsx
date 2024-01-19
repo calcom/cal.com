@@ -14,7 +14,7 @@ import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constant
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
@@ -270,6 +270,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       uid: true,
       description: true,
       isRecorded: true,
+      profile: {
+        include: {
+          organization: true,
+        },
+      },
       user: {
         select: {
           username: true,
@@ -301,15 +306,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
+  const user = booking.user;
+  const bookingProfile = booking.profile;
 
-  const profile = booking.user
-    ? (
-        await User.enrichUserWithOrganizationProfile({
-          user: booking.user,
-          organizationId: ORGANIZATION_ID_UNKNOWN,
-        })
-      ).profile
+  const bookingWithProfile = user
+    ? await UserRepository.enrichEntityWithProfile({ ...booking, user })
+    : bookingProfile
+    ? await UserRepository.enrichEntityWithProfile({ ...booking, profile: bookingProfile })
     : null;
+
+  const profile = bookingWithProfile?.profile ?? null;
 
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();

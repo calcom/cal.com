@@ -63,6 +63,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     isRecorded: false,
     iCalUID: getICalUID({ uid }),
     iCalSequence: 0,
+    profileId: null,
     ...booking,
   };
 };
@@ -112,6 +113,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     successRedirectUrl: null,
     bookingFields: [],
     parentId: null,
+    profileId: null,
     ...eventType,
   };
 };
@@ -129,6 +131,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     active: true,
     eventTriggers: [],
     teamId: null,
+    profileId: null,
     ...webhook,
   };
 };

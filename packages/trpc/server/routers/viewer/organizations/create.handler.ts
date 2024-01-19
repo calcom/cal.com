@@ -9,7 +9,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -99,22 +99,22 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       }
     }
 
-    const organization = await prisma.team.create({
-      data: {
-        name,
-        ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
-        metadata: {
-          ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
-          isOrganization: true,
-          isOrganizationVerified: true,
-          isOrganizationConfigured,
-          orgAutoAcceptEmail: emailDomain,
+    const { user: createOwnerOrg, organization } = await prisma.$transaction(async (tx) => {
+      const organization = await tx.team.create({
+        data: {
+          name,
+          ...(!IS_TEAM_BILLING_ENABLED ? { slug } : {}),
+          metadata: {
+            ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
+            isOrganization: true,
+            isOrganizationVerified: true,
+            isOrganizationConfigured,
+            orgAutoAcceptEmail: emailDomain,
+          },
         },
-      },
-    });
+      });
 
-    const createOwnerOrg = await prisma.$transaction(async () => {
-      const user = await prisma.user.create({
+      const user = await tx.user.create({
         data: {
           username: slugify(adminUsername),
           email: adminEmail,
@@ -136,28 +136,28 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
               },
             },
           },
+          profiles: {
+            create: {
+              username: slugify(adminUsername),
+              organizationId: organization.id,
+              uid: ProfileRepository.generateProfileUid(),
+            },
+          },
         },
       });
 
-      await Profile.createProfile({
-        userId: createOwnerOrg.id,
-        username: slugify(adminUsername),
-        organizationId: organization.id,
-        email: createOwnerOrg.email,
+      await tx.membership.create({
+        data: {
+          userId: user.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+          teamId: organization.id,
+        },
       });
-      return user;
+      return { user, organization };
     });
 
     if (!organization.id) throw Error("User not created");
-
-    await prisma.membership.create({
-      data: {
-        userId: createOwnerOrg.id,
-        role: MembershipRole.OWNER,
-        accepted: true,
-        teamId: organization.id,
-      },
-    });
 
     return { user: { ...createOwnerOrg, organizationId: organization.id, password } };
   } else {

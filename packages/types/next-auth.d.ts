@@ -9,6 +9,7 @@ declare module "next-auth" {
   interface Session {
     hasValidLicense: boolean;
     profileId?: number | null;
+    upId: string;
     user: User;
   }
 
@@ -38,6 +39,7 @@ declare module "next-auth/jwt" {
     name?: string | null;
     username?: string | null;
     email?: string | null;
+    upId?: string;
     profileId?: number | null;
     role?: UserPermissionRole | "INACTIVE_ADMIN" | null;
     impersonatedByUID?: number | null;

@@ -1,4 +1,4 @@
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -111,7 +111,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
       },
     }),
 
-    Profile.createMany({
+    ProfileRepository.createMany({
       users: users.map((user) => {
         return {
           id: user.id,

@@ -59,7 +59,6 @@ import {
   ErrorBoundary,
   HeadSeo,
   Logo,
-  SelectField,
   showToast,
   SkeletonText,
   Tooltip,
@@ -87,6 +86,7 @@ import {
   User as UserIcon,
   Users,
   Zap,
+  Check,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
@@ -895,18 +895,22 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="w-full px-1.5">
-                <div className="flex items-center gap-2 font-medium">
-                  <Avatar
-                    alt={`${orgBranding.name} logo`}
-                    imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
-                    size="xsm"
-                  />
-                  <p className="text line-clamp-1 text-sm">
-                    <span>{orgBranding.name}</span>
-                  </p>
-                </div>
-              </Link>
+              !ENABLE_PROFILE_SWITCHER ? (
+                <Link href="/settings/organizations/profile" className="w-full px-1.5">
+                  <div className="flex items-center gap-2 font-medium">
+                    <Avatar
+                      alt={`${orgBranding.name} logo`}
+                      imageSrc={`${orgBranding.fullDomain}/org/${orgBranding.slug}/avatar.png`}
+                      size="xsm"
+                    />
+                    <p className="text line-clamp-1 text-sm">
+                      <span>{orgBranding.name}</span>
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <ProfileDropdown />
+              )
             ) : (
               <div data-testid="user-dropdown-trigger" className="todesktop:mt-4 w-full">
                 <span className="hidden lg:inline">
@@ -917,7 +921,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex w-full justify-end space-x-2 rtl:space-x-reverse">
+            <div className="flex justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -1128,26 +1132,91 @@ export const MobileNavigationMoreItems = () => (
 function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
   const { data } = trpc.viewer.me.useQuery();
-  if (!data || !ENABLE_PROFILE_SWITCHER) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  if (!data || !ENABLE_PROFILE_SWITCHER || !sessionData) {
     return null;
   }
-  const options = data.profiles.map((profile) => ({
-    label: profile.name,
-    value: profile.id,
-  }));
+  const options = data.profiles.map((profile) => {
+    let label;
+    if (profile.organization) {
+      label = profile.organization.name;
+    } else {
+      label = sessionData.user.name;
+    }
+
+    return {
+      label,
+      value: profile.upId,
+    };
+  });
+
+  const currentOption = options.find((option) => option.value === sessionData.upId) || options[0];
+
   return (
-    <SelectField
-      containerClassName="w-full"
-      options={options}
-      value={options.find((option) => option.value === (sessionData?.profileId ?? null))}
-      onChange={(option) => {
-        if (!option) {
-          return;
-        }
-        update({ profileId: option.value }).then(() => {
-          window.location.reload();
-        });
-      }}
-    />
+    <Dropdown open={menuOpen}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+        <button
+          data-testid="user-dropdown-trigger-button"
+          className={classNames(
+            "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
+          )}>
+          <span className="flex w-full flex-grow items-center justify-around gap-2 text-sm font-medium leading-none">
+            <Avatar alt={currentOption.label || ""} size="xsm" />
+            <span className="block w-20 overflow-hidden overflow-ellipsis whitespace-nowrap">
+              {currentOption.label}
+            </span>
+            <ChevronDown
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              aria-hidden="true"
+            />
+          </span>
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuPortal>
+        <DropdownMenuContent
+          align="start"
+          onInteractOutside={() => {
+            setMenuOpen(false);
+          }}
+          className="min-w-56 hariom group overflow-hidden rounded-md">
+          <DropdownMenuItem className="p-3 uppercase">
+            <span>Switch to</span>
+          </DropdownMenuItem>
+          {options.map((option) => {
+            const isSelected = currentOption.value === option.value;
+            return (
+              <DropdownMenuItem
+                key={option.value}
+                onClick={() => {
+                  setMenuOpen(false);
+                  if (isSelected) return;
+                  update({
+                    user: {
+                      upId: option.value,
+                    },
+                  }).then(() => {
+                    window.location.reload();
+                  });
+                }}
+                className={classNames("flex w-full", isSelected ? "bg-subtle text-emphasis" : "")}>
+                <DropdownItem
+                  type="button"
+                  childrenClassName={classNames("flex w-full justify-between items-center")}>
+                  <span>
+                    <Avatar alt={option.label || ""} size="xsm" />
+                    <span className="ml-2">{option.label}</span>
+                  </span>
+                  {isSelected ? <Check className="ml-2 inline h-4 w-4" aria-hidden="true" /> : null}
+                </DropdownItem>
+              </DropdownMenuItem>
+            );
+          })}
+
+          {/* <DropdownMenuSeparator /> */}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
+    </Dropdown>
   );
 }

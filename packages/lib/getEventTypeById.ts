@@ -7,7 +7,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { User } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -247,7 +247,7 @@ export default async function getEventTypeById({
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: await User.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithOrganizationProfile({
         user: eventTeamMembership.user,
         organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
       }),
@@ -259,7 +259,7 @@ export default async function getEventTypeById({
     childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? await User.enrichUserWithOrganizationProfile({
+        ? await UserRepository.enrichUserWithOrganizationProfile({
             user: child.owner,
             organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
           })
@@ -270,7 +270,7 @@ export default async function getEventTypeById({
   const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
     eventTypeUsersWithUserProfile.push(
-      await User.enrichUserWithOrganizationProfile({
+      await UserRepository.enrichUserWithOrganizationProfile({
         user: eventTypeUser,
         organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
       })
@@ -300,9 +300,9 @@ export default async function getEventTypeById({
     bookerUrl: restEventType.team
       ? await getBookerBaseUrl(restEventType.team.parentId)
       : restEventType.owner
-      ? await getBookerBaseUrl(restEventType.owner)
+      ? await getBookerBaseUrl(currentOrganizationId)
       : CAL_URL,
-    children: restEventType.children.flatMap((ch) =>
+    children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
             ...ch,

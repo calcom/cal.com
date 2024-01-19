@@ -69,7 +69,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@c
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -224,7 +224,7 @@ const getAllCredentials = async (
     }
   }
 
-  const { profile } = await User.enrichUserWithOrganizationProfile({
+  const { profile } = await UserRepository.enrichUserWithOrganizationProfile({
     user: user,
     organizationId: ORGANIZATION_ID_UNKNOWN,
   });
@@ -2366,7 +2366,7 @@ export const getUsersFromUsernameInOrgContext = async ({
   orgSlug: string | null;
   usernameList: string[];
 }) => {
-  const { where, profiles } = await User._getWhereClauseForGettingUsers({
+  const { where, profiles } = await UserRepository._getWhereClauseForGettingUsers({
     orgSlug,
     usernameList,
   });

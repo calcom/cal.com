@@ -2,7 +2,7 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
 import type { PrismaClient } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -119,7 +119,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         where: { id: membership.userId },
         data: { organizationId: null },
       }),
-      Profile.delete({
+      ProfileRepository.delete({
         userId: membership.userId,
         organizationId: orgInfo.id,
       }),

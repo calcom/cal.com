@@ -162,7 +162,7 @@ export const _getPrismaWhereClauseForUserTeams = ({ organizationId }: { organiza
   }
 };
 
-export class Team {
+export class TeamRepository {
   static async findById({ id }: { id: number }) {
     const team = await prisma.team.findUnique({
       where: {

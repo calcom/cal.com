@@ -5,14 +5,15 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 import { isOrganization } from "../../entityPermissionUtils";
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
-import { Profile } from "./profile";
+import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
-import type { User as UserType } from ".prisma/client";
+import type { User as UserType, Prisma } from ".prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 type ProfileId = number | null;
+type UpId = string;
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
-export class User {
+export class UserRepository {
   static async getTeamsFromUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
       where: {
@@ -35,7 +36,7 @@ export class User {
   }
 
   static async getOrganizations({ userId }: { userId: UserType["id"] }) {
-    const { acceptedTeamMemberships } = await User.getTeamsFromUserId({
+    const { acceptedTeamMemberships } = await UserRepository.getTeamsFromUserId({
       userId,
     });
 
@@ -50,7 +51,7 @@ export class User {
     };
   }
 
-  static async getOrganizationProfile({ profileId, userId }: { profileId: ProfileId; userId: number }) {
+  static async getProfile({ profileId, userId }: { profileId: ProfileId; userId: number }) {
     if (!profileId) {
       return null;
     }
@@ -92,6 +93,7 @@ export class User {
       where: {
         userId: userId,
         teamId: organizationId,
+        accepted: true,
       },
       include: {
         team: true,
@@ -117,7 +119,7 @@ export class User {
     orgSlug: string | null;
     usernameList: string[];
   }) {
-    const { where, profiles } = await User._getWhereClauseForGettingUsers({
+    const { where, profiles } = await UserRepository._getWhereClauseForGettingUsers({
       orgSlug,
       usernameList,
     });
@@ -131,7 +133,7 @@ export class User {
       if (!profiles) {
         return {
           ...user,
-          profile: Profile.getPersonalProfile({ user }),
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
         };
       }
       const profile = profiles.find((profile) => profile.user.id === user.id) ?? null;
@@ -158,7 +160,7 @@ export class User {
     // Lookup in profiles because that's where the organization usernames exist
     const profiles = orgSlug
       ? (
-          await Profile.getProfilesBySlugs({
+          await ProfileRepository.getProfilesBySlugs({
             orgSlug: orgSlug,
             usernames: usernameList,
           })
@@ -215,7 +217,7 @@ export class User {
       return null;
     }
 
-    const orgProfiles = await Profile.getOrgProfilesForUser(user);
+    const orgProfiles = await ProfileRepository.getOrgProfilesForUser(user);
     return {
       ...user,
       orgProfiles,
@@ -236,7 +238,7 @@ export class User {
   }
 
   static async getAllUsersForOrganization({ organizationId }: { organizationId: number }) {
-    const profiles = await Profile.getAllProfilesForOrg({ organizationId });
+    const profiles = await ProfileRepository.getAllProfilesForOrg({ organizationId });
     return profiles.map((profile) => profile.user);
   }
 
@@ -251,22 +253,23 @@ export class User {
   }
 
   static async isUserAMemberOfAnyOrganization({ userId }: { userId: number }) {
-    const orgProfiles = await Profile.getOrgProfilesForUser({ id: userId });
+    const orgProfiles = await ProfileRepository.getOrgProfilesForUser({ id: userId });
     return orgProfiles.length > 0;
   }
 
   static async enrichUserWithProfile<T extends { username: string | null; id: number }>({
     user,
-    profileId,
+    upId,
   }: {
     user: T;
-    profileId: ProfileId;
+    upId: UpId;
   }) {
-    const profile = await Profile.getProfile(profileId);
+    log.debug("enrichUserWithProfile", safeStringify({ user, upId }));
+    const profile = await ProfileRepository.findById(upId);
     if (!profile) {
       return {
         ...user,
-        profile: Profile.getPersonalProfile({ user }),
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
       };
     }
     return {
@@ -288,10 +291,16 @@ export class User {
     organizationId: number | null | typeof ORGANIZATION_ID_UNKNOWN;
   }): Promise<T & { profile: UserProfile }> {
     if (typeof organizationId === "number") {
-      const profile = await Profile.getProfileByUserIdAndOrgId({
+      const profile = await ProfileRepository.getProfileByUserIdAndOrgId({
         userId: user.id,
         organizationId: organizationId,
       });
+      if (!profile) {
+        return {
+          ...user,
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        };
+      }
       return {
         ...user,
         profile,
@@ -302,16 +311,18 @@ export class User {
     if (organizationId === null) {
       return {
         ...user,
-        profile: Profile.getPersonalProfile({ user }),
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
       };
     }
 
     // TODO: OrgNewSchema - later -> Correctly determine the organizationId at the caller level and then pass that.
     // organizationId not specified Get the first organization profile for now
-    const orgProfiles = await Profile.getOrgProfilesForUser({ id: user.id });
+    const orgProfiles = await ProfileRepository.getOrgProfilesForUser({ id: user.id });
 
     if (orgProfiles.length > 1) {
-      throw new Error("User having more than one organization profile isn't supported yet");
+      logger.error(
+        "User having more than one organization profile doesnt work. You need to pass profileId direcctly"
+      );
     }
 
     if (orgProfiles.length) {
@@ -325,8 +336,66 @@ export class User {
     // If no organization profile exists use the personal profile
     return {
       ...user,
-      profile: Profile.getPersonalProfile({ user }),
+      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
     };
+  }
+
+  static async enrichEntityWithProfile<
+    T extends
+      | {
+          profile: {
+            id: number;
+            username: string | null;
+            organizationId: number | null;
+            organization?: {
+              id: number;
+              name: string;
+              calVideoLogo: string | null;
+              slug: string | null;
+              metadata: Prisma.JsonValue;
+            };
+          };
+        }
+      | {
+          user: {
+            username: string | null;
+            id: number;
+          };
+        }
+  >(entity: T) {
+    if ("profile" in entity) {
+      const { profile, ...entityWithoutProfile } = entity;
+      const { organization, ...profileWithoutOrganization } = profile || {};
+      const parsedOrg = organization ? getParsedTeam(organization) : null;
+
+      const ret = {
+        ...entityWithoutProfile,
+        profile: {
+          ...profileWithoutOrganization,
+          ...(parsedOrg
+            ? {
+                organization: parsedOrg,
+              }
+            : {
+                organization: null,
+              }),
+        },
+      };
+      return ret;
+    } else {
+      const profiles = await ProfileRepository.getOrgProfilesForUser(entity.user);
+      if (!profiles.length) {
+        return {
+          ...entity,
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user: entity.user }),
+        };
+      } else {
+        return {
+          ...entity,
+          profile: profiles[0],
+        };
+      }
+    }
   }
 
   static async updateWhereId({

@@ -14,7 +14,6 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { handleUserRedirection } from "@calcom/features/booking-redirect/handle-user";
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
@@ -25,7 +24,8 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { User } from "@calcom/lib/server/repository/user";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User as UserType } from "@calcom/prisma/client";
@@ -314,7 +314,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
   const dataFetchStart = Date.now();
   let outOfOffice = false;
-  const isDynamicGroup = usernameList.length > 1;
+
   if (usernameList.length === 1) {
     const result = await handleUserRedirection({ username: usernameList[0] });
     if (result && result.outOfOffice) {
@@ -324,6 +324,37 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       return result;
     }
   }
+  const usersInOrgContext = await UserRepository.getUsersFromUsernameInOrgContext({
+    usernameList,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+  });
+
+  log.debug("[user]", safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain }));
+
+  const usersWithoutAvatar = usersInOrgContext.map((user) => {
+    const { avatar: _1, ...rest } = user;
+    return rest;
+  });
+
+  const isDynamicGroup = usersWithoutAvatar.length > 1;
+  if (isDynamicGroup) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/${usernameList.join("+")}/dynamic`,
+      },
+    } as {
+      redirect: {
+        permanent: false;
+        destination: string;
+      };
+    };
+  }
+
+  const users = usersWithoutAvatar.map((user) => ({
+    ...user,
+    avatar: `/${user.username}/avatar.png`,
+  }));
 
   if (!isOrgContext) {
     const redirect = await getTemporaryOrgRedirect({
@@ -336,60 +367,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     if (redirect) {
       return redirect;
     }
-  }
-
-  const usersWithoutAvatar = await prisma.user.findMany({
-    where: {
-      username: {
-        in: usernameList,
-      },
-      organization: isOrgContext ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      name: true,
-      bio: true,
-      metadata: true,
-      brandColor: true,
-      darkBrandColor: true,
-      avatarUrl: true,
-      organizationId: true,
-      organization: {
-        select: {
-          slug: true,
-          name: true,
-          metadata: true,
-        },
-      },
-      theme: true,
-      away: true,
-      verified: true,
-      allowDynamicBooking: true,
-      allowSEOIndexing: true,
-    },
-  });
-
-  const users = usersWithoutAvatar.map((user) => ({
-    ...user,
-    avatar: `/${user.username}/avatar.png`,
-  }));
-
-  if (isDynamicGroup) {
-    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
-    logger.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
-    return {
-      redirect: {
-        permanent: false,
-        destination: destinationUrl,
-      },
-    } as {
-      redirect: {
-        permanent: false;
-        destination: string;
-      };
-    };
   }
 
   const isNonOrgUser = (user: { profile: UserProfile }) => {
@@ -436,7 +413,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   // if profile only has one public event-type, redirect to it
   if (eventTypes.length === 1 && context.query.redirect !== "false" && !outOfOffice) {
     // Redirect but don't change the URL
-    const urlDestination = `/${user.username}/${eventTypes[0].slug}`;
+    const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
     const { query } = context;
     const urlQuery = new URLSearchParams(encode(query));
 

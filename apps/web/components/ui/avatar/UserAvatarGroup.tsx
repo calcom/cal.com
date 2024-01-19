@@ -6,7 +6,7 @@ import { AvatarGroup } from "@calcom/ui";
 
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
   users: (Pick<User, "name" | "username" | "avatarUrl"> & {
-    profile: UserProfile;
+    profile: Omit<UserProfile, "upId">;
   })[];
 };
 export function UserAvatarGroup(props: UserAvatarProps) {

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { EventType } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -95,7 +95,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
     };
 
-    const newEventType = await EventType.create(data);
+    const newEventType = await EventTypeRepository.create(data);
 
     // Create custom inputs
     if (customInputs) {

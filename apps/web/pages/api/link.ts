@@ -49,6 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
         // FIXME: OrgNewSchema - How to identify the correct profile here ?
         profile: null,
       },
+      upId: "",
       hasValidLicense: true,
       expires: "" /* Not used in this context */,
     };

@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { User } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -109,7 +109,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
   for (const membership of members) {
     enrichedMemberships.push({
       ...membership,
-      user: await User.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithOrganizationProfile({
         user: membership.user,
         organizationId: team.parentId,
       }),

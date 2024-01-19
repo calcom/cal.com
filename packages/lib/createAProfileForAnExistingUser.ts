@@ -1,7 +1,7 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { Profile } from "@calcom/lib/server/repository/profile";
-import { Team } from "@calcom/lib/server/repository/team";
-import { User } from "@calcom/lib/server/repository/user";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
@@ -21,12 +21,12 @@ export const createAProfileForAnExistingUser = async ({
   };
   organizationId: number;
 }) => {
-  const org = await Team.findById({ id: organizationId });
+  const org = await TeamRepository.findById({ id: organizationId });
   if (!org) {
     throw new Error(`Organization with id ${organizationId} not found`);
   }
   const usernameInOrg = getOrgUsernameFromEmail(user.email, org.metadata.orgAutoAcceptEmail ?? null);
-  const profile = await Profile.createForExistingUser({
+  const profile = await ProfileRepository.createForExistingUser({
     userId: user.id,
     organizationId,
     // Use the personal username as the username for the org
@@ -35,7 +35,7 @@ export const createAProfileForAnExistingUser = async ({
     movedFromUserId: user.id,
   });
 
-  await User.updateWhereId({
+  await UserRepository.updateWhereId({
     whereId: user.id,
     data: {
       movedToProfileId: profile.id,

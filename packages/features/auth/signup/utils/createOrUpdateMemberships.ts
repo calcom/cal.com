@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -30,7 +30,7 @@ export const createOrUpdateMemberships = async ({
       });
       await tx.profile.create({
         data: {
-          uid: Profile.generateProfileUid(),
+          uid: ProfileRepository.generateProfileUid(),
           userId: user.id,
           organizationId: team.id,
           username: dbUser.username || "",

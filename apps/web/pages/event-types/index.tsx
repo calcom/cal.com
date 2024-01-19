@@ -817,7 +817,7 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
@@ -854,7 +854,6 @@ const Main = ({
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
-  const orgBranding = useOrgBranding();
 
   if (!data || status === "loading") {
     return <SkeletonLoader />;

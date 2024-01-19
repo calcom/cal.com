@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { orderBy } from "lodash";
 
@@ -8,13 +7,14 @@ import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getTeamAvatarUrl, getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { EventType } from "@calcom/lib/server/repository/eventType";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { Profile } from "@calcom/lib/server/repository/profile";
-import { ORGANIZATION_ID_UNKNOWN, User } from "@calcom/lib/server/repository/user";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ORGANIZATION_ID_UNKNOWN, UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import { baseEventTypeSelect } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -24,6 +24,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TEventTypeInputSchema } from "./getByViewer.schema";
 
+const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 type GetByViewerOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -39,175 +40,54 @@ export const compareMembership = (mship1: MembershipRole, mship2: MembershipRole
 };
 
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
-  const { prisma } = ctx;
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getByViewer:${ctx.user.id}`,
     rateLimitingType: "common",
   });
   const lightProfile = ctx.user.profile;
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
-    id: true,
-    username: true,
-    name: true,
-    avatarUrl: true,
-    profiles: {
-      ...(profile?.organization?.id ? { where: { organizationId: profile?.organization?.id } } : {}),
-      include: {
-        organization: {
-          select: {
-            id: true,
-            slug: true,
-          },
-        },
-      },
-    },
-  });
 
-  const userEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
-    position: true,
-    hashedLink: true,
-    destinationCalendar: true,
-    userId: true,
-    team: {
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        // logo: true, // Skipping to avoid 4mb limit
-        bio: true,
-        hideBranding: true,
-      },
-    },
-    metadata: true,
-    users: {
-      select: userSelect,
-    },
-    parentId: true,
-    hosts: {
-      select: {
-        user: {
-          select: userSelect,
-        },
-      },
-    },
-    seatsPerTimeSlot: true,
-    ...baseEventTypeSelect,
-  });
-
-  const teamEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-    ...userEventTypeSelect,
-    children: {
-      include: {
-        users: {
-          select: userSelect,
-        },
-      },
-    },
-  });
-
-  // 1. Get me the profile
-  // 1.1 If the profileId starts with pr- then get the profile from Profile table
-  // 1.2 Else get the profile from User table
-  // 2. Get me the teams Profile is used in
-  // 2.1 If Profile is retrieved
-  // 2.1.1 If profile.movedFromUser is set then get the memberships from profile.user.teams
-  // 2.1.2 Else get the memberships from profile.memberships
-  // 2.2 Else get the memberships from user.teams
-  // 3. Get me the those teams' members
-  // 4. Get me the eventTypes for the Profile/user
-
-  const profile = await Profile.findByIdWithLegacySupport(lightProfile.legacyId);
+  const profile = await ProfileRepository.findById(lightProfile.upId);
+  const isFilterSet = input?.filters && hasFilter(input.filters);
+  const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
+  const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    MembershipRepository.findAllByProfileIdIncludeTeam(
+    MembershipRepository.findAllByProfileIdIncludeTeamWithMembersAndEventTypes(
       {
-        profileLegacyId: lightProfile.legacyId,
+        upId: lightProfile.upId,
       },
       {
         where: {
           accepted: true,
-          // TODO: How to handle a profile that is of type User as it would fetch all the teams of the user across all organizations
         },
       }
     ),
-    EventType.findAllByProfileLegacyId({
-      profileLegacyId: lightProfile.legacyId,
-    }),
+    shouldListUserEvents
+      ? EventTypeRepository.findAllByProfileId(
+          {
+            upId: lightProfile.upId,
+          },
+          {
+            where: {
+              teamId: null,
+            },
+            orderBy: [
+              {
+                position: "desc",
+              },
+              {
+                id: "asc",
+              },
+            ],
+          }
+        )
+      : [],
   ]);
-
-  // const user = await prisma.user.findUnique({
-  //   where: {
-  //     id: ctx.user.id,
-  //   },
-  //   select: {
-  //     id: true,
-  //     avatarUrl: true,
-  //     username: true,
-  //     name: true,
-  //     startTime: true,
-  //     endTime: true,
-  //     bufferTime: true,
-  //     avatar: true,
-  //     teams: {
-  //       where: {
-  //         accepted: true,
-  //         team: _getPrismaWhereClauseForUserTeams({ organizationId: profile?.organizationId ?? null }),
-  //       },
-  //       select: {
-  //         role: true,
-  //         team: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             slug: true,
-  //             parentId: true,
-  //             metadata: true,
-  //             parent: true,
-  //             members: {
-  //               select: {
-  //                 userId: true,
-  //               },
-  //             },
-  //             eventTypes: {
-  //               select: teamEventTypeSelect,
-  //               orderBy: [
-  //                 {
-  //                   position: "desc",
-  //                 },
-  //                 {
-  //                   id: "asc",
-  //                 },
-  //               ],
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //     eventTypes: {
-  //       where: {
-  //         teamId: null,
-  //         userId: getPrismaWhereUserIdFromFilter(ctx.user.id, input?.filters),
-  //       },
-  //       select: {
-  //         ...userEventTypeSelect,
-  //       },
-  //       orderBy: [
-  //         {
-  //           position: "desc",
-  //         },
-  //         {
-  //           id: "asc",
-  //         },
-  //       ],
-  //     },
-  //   },
-  // });
 
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const memberships = user.teams.map((membership) => ({
+  const memberships = profileMemberships.map((membership) => ({
     ...membership,
     team: {
       ...membership.team,
@@ -215,15 +95,18 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     },
   }));
 
-  type UserEventTypes = (typeof user.eventTypes)[number];
-  type TeamEventTypeChildren = (typeof user.teams)[number]["team"]["eventTypes"][number];
+  type UserEventTypes = (typeof profileEventTypes)[number];
+  type TeamEventTypeChildren = NonNullable<(typeof profileEventTypes)[number]["team"]>["eventTypes"][number];
   const mapEventType = async (eventType: UserEventTypes & Partial<TeamEventTypeChildren>) => ({
     ...eventType,
     safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
     users: await Promise.all(
       (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
         async (u) =>
-          await User.enrichUserWithOrganizationProfile({ user: u, organizationId: ORGANIZATION_ID_UNKNOWN })
+          await UserRepository.enrichUserWithOrganizationProfile({
+            user: u,
+            organizationId: ORGANIZATION_ID_UNKNOWN,
+          })
       )
     ),
     metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : undefined,
@@ -233,7 +116,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         users: await Promise.all(
           c.users.map(
             async (u) =>
-              await User.enrichUserWithOrganizationProfile({
+              await UserRepository.enrichUserWithOrganizationProfile({
                 user: u,
                 organizationId: ORGANIZATION_ID_UNKNOWN,
               })
@@ -243,7 +126,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     ),
   });
 
-  const userEventTypes = await Promise.all(user.eventTypes.map(mapEventType));
+  const userEventTypes = await Promise.all(profileEventTypes.map(mapEventType));
 
   type EventTypeGroup = {
     teamId?: number | null;
@@ -251,8 +134,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     bookerUrl: string;
     membershipRole?: MembershipRole | null;
     profile: {
-      slug: (typeof user)["username"];
-      name: (typeof user)["name"];
+      slug: (typeof profile)["username"] | null;
+      name: (typeof profile)["name"];
       image: string;
     };
     metadata: {
@@ -268,17 +151,25 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     (evType) => evType.schedulingType !== SchedulingType.MANAGED
   );
 
-  if (!input?.filters || !hasFilter(input?.filters) || input?.filters?.userIds?.includes(user.id)) {
+  log.debug(safeStringify({ profileMemberships, profileEventTypes, profile }));
+
+  log.debug("Filter Settings", {
+    isFilterSet,
+    isProfileIdInFilter: isUpIdInFilter,
+  });
+
+  if (!isFilterSet || isUpIdInFilter) {
     const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);
     eventTypeGroups.push({
       teamId: null,
       bookerUrl,
       membershipRole: null,
       profile: {
-        slug: profile.username || user.username,
-        name: user.name,
+        slug: profile.username,
+        name: profile.name,
         image: getUserAvatarUrl({
-          ...user,
+          username: profile.username,
+          avatarUrl: profile.avatarUrl,
           profile: profile,
         }),
       },
@@ -290,7 +181,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     });
   }
 
-  const teamMemberships = user.teams.map((membership) => ({
+  const teamMemberships = profileMemberships.map((membership) => ({
     teamId: membership.team.id,
     membershipRole: membership.role,
   }));
@@ -337,7 +228,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
           }
 
           const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
-          console.log("getByViewerHandler:EventTypes", eventTypes);
           return {
             teamId: team.id,
             parentId: team.parentId,
@@ -393,15 +283,3 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     })),
   };
 };
-
-export function getPrismaWhereUserIdFromFilter(
-  userId: number,
-  filters: NonNullable<TEventTypeInputSchema>["filters"] | undefined
-) {
-  if (!filters || !hasFilter(filters)) {
-    return userId;
-  } else if (filters.userIds?.[0] === userId) {
-    return userId;
-  }
-  return 0;
-}

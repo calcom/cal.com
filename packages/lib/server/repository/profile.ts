@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
-import type { PersonalProfile } from "@calcom/types/UserProfile";
+import type { UserAsPersonalProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
-import { User } from "./user";
+import { UserRepository } from "./user";
 
 const organizationSelect = {
   id: true,
@@ -22,7 +22,7 @@ export enum LookupTarget {
   Profile,
 }
 
-export class Profile {
+export class ProfileRepository {
   static generateProfileUid() {
     return uuidv4();
   }
@@ -38,20 +38,17 @@ export class Profile {
     };
   }
 
-  static getLookupTarget(id: string) {
-    if (id.startsWith("usr-")) {
+  static getLookupTarget(upId: string) {
+    if (upId.startsWith("usr-")) {
       return {
         type: LookupTarget.User,
-        id: parseInt(id.replace("usr-", "")),
+        id: parseInt(upId.replace("usr-", "")),
       } as const;
     }
-    if (id.startsWith("pfl")) {
-      return {
-        type: LookupTarget.Profile,
-        id: parseInt(id.replace("pfl-", "")),
-      } as const;
-    }
-    throw new Error(`Invalid lookup id: ${id}`);
+    return {
+      type: LookupTarget.Profile,
+      id: parseInt(upId),
+    } as const;
   }
 
   private static async _create({
@@ -67,9 +64,10 @@ export class Profile {
     email: string;
     movedFromUserId?: number;
   }) {
+    logger.debug("Creating profile", { userId, organizationId, username, email });
     return prisma.profile.create({
       data: {
-        uid: Profile.generateProfileUid(),
+        uid: ProfileRepository.generateProfileUid(),
         user: {
           connect: {
             id: userId,
@@ -110,7 +108,7 @@ export class Profile {
     username: string | null;
     email: string;
   }) {
-    return Profile._create({ userId, organizationId, username, email });
+    return ProfileRepository._create({ userId, organizationId, username, email });
   }
 
   static async createForExistingUser({
@@ -126,7 +124,7 @@ export class Profile {
     email: string;
     movedFromUserId: number;
   }) {
-    return await Profile._create({
+    return await ProfileRepository._create({
       userId,
       organizationId,
       username,
@@ -144,7 +142,7 @@ export class Profile {
   }) {
     return prisma.profile.createMany({
       data: users.map((user) => ({
-        uid: Profile.generateProfileUid(),
+        uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
         username: user.username || user.email.split("@")[0],
@@ -194,14 +192,14 @@ export class Profile {
     }
 
     const organization = getParsedTeam(profile.organization);
-    return {
+    return enrichProfile({
       ...profile,
       organization: {
         ...organization,
         requestedSlug: organization.metadata?.requestedSlug ?? null,
         metadata: organization.metadata,
       },
-    };
+    });
   }
 
   static async getProfileByOrgIdAndUsername({
@@ -226,32 +224,33 @@ export class Profile {
     return profile;
   }
 
-  static async findByIdWithLegacySupport(id: string) {
-    const lookupTarget = Profile.getLookupTarget(id);
+  static async findById(upId: string) {
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    logger.debug("findById", { upId, lookupTarget });
     if (lookupTarget.type === LookupTarget.User) {
-      const user = await User.getUserById({ id: lookupTarget.id });
+      const user = await UserRepository.getUserById({ id: lookupTarget.id });
       if (!user) {
         return null;
       }
       return {
         username: user.username,
-        legacyId: id,
-        id: user.id,
-        ...Profile.getInheritedDataFromUser({ user }),
-      };
-    } else {
-      const profile = await Profile.getProfile(lookupTarget.id);
-      if (!profile) {
-        return null;
-      }
-      const user = profile.user;
-      return {
-        id: profile.id,
-        legacyId: id,
-        username: profile.username,
-        ...Profile.getInheritedDataFromUser({ user }),
+        upId: `usr-${user.id}`,
+        id: null,
+        organizationId: null,
+        organization: null,
+        ...ProfileRepository.getInheritedDataFromUser({ user }),
       };
     }
+
+    const profile = await ProfileRepository.getProfile(lookupTarget.id);
+    if (!profile) {
+      return null;
+    }
+    const user = profile.user;
+    return {
+      ...profile,
+      ...ProfileRepository.getInheritedDataFromUser({ user }),
+    };
   }
 
   static async getProfile(id: number | null) {
@@ -302,18 +301,22 @@ export class Profile {
     return profiles.map(enrichProfile);
   }
 
-  static async getAllProfilesForUser(user: { id: number; username: string | null }) {
-    const allProfiles = [
-      {
-        username: user.username,
-        name: "Personal",
-        id: null as number | null,
-        organization: null as { id: number; name: string } | null,
-      },
-      ...(await Profile.getOrgProfilesForUser(user)),
-    ];
+  static async getAllProfilesForUser(user: {
+    id: number;
+    username: string | null;
+    // movedToProfileId: number | null;
+  }) {
+    const profiles = await ProfileRepository.getOrgProfilesForUser(user);
+    // User isn't member of any organization. Also, he has no user profile. We build the profile from user table
+    if (!profiles.length) {
+      return [
+        ProfileRepository.buildPersonalProfileFromUser({
+          user,
+        }),
+      ];
+    }
 
-    return allProfiles;
+    return profiles;
   }
 
   static async getOrgProfilesForUser(user: { id: number }) {
@@ -337,7 +340,7 @@ export class Profile {
         };
       })
       .map((profile) => {
-        return {
+        return enrichProfile({
           username: profile.username,
           id: profile.id,
           userId: profile.userId,
@@ -350,7 +353,7 @@ export class Profile {
             metadata: profile.organization.metadata,
           },
           user: profile.user,
-        };
+        });
       });
     return profiles;
   }
@@ -369,10 +372,36 @@ export class Profile {
     });
   }
 
-  static getPersonalProfile({ user }: { user: { username: string | null; id: number } }): PersonalProfile {
+  static async getProfileByUserIdAndProfileId({ userId, profileId }: { userId: number; profileId: number }) {
+    const profile = await prisma.profile.findUnique({
+      where: {
+        userId,
+        id: profileId,
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+        user: true,
+      },
+    });
+    if (!profile) {
+      return profile;
+    }
+    return enrichProfile(profile);
+  }
+
+  /**
+   * Personal profile should come from Profile table only
+   */
+  static buildPersonalProfileFromUser({
+    user,
+  }: {
+    user: { username: string | null; id: number };
+  }): UserAsPersonalProfile {
     return {
       id: null,
-      legacyId: `usr-${user.id}`,
+      upId: `usr-${user.id}`,
       username: user.username,
       organizationId: null,
       organization: null,
@@ -384,17 +413,17 @@ export const enrichProfile = <
   T extends {
     id: number;
     organization: Pick<Team, keyof typeof organizationSelect>;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
   }
 >(
   profile: T
 ) => {
   return {
     ...profile,
-    legacyId: `pfl-${profile.id}`,
+    upId: profile.id.toString(),
     organization: getParsedTeam(profile.organization),
-    createdAt: profile.createdAt.toISOString(),
-    updatedAt: profile.updatedAt.toISOString(),
+    createdAt: profile.createdAt?.toISOString(),
+    updatedAt: profile.updatedAt?.toISOString(),
   };
 };

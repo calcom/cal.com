@@ -7,8 +7,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { Profile } from "@calcom/lib/server/repository/profile";
-import { User } from "@calcom/lib/server/repository/user";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
@@ -102,7 +102,7 @@ export function validateInviteeEligibility(invitee: UserWithMembership, team: Te
 
   const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
   // invitee is invited to the org's team and is already part of the organization
-  if (team.parentId && User.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
+  if (team.parentId && UserRepository.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return;
   }
 
@@ -115,12 +115,12 @@ export function validateInviteeEligibility(invitee: UserWithMembership, team: Te
   }
 
   // user is invited to join a team in an organization where he isn't a member
-  if (invitee.profiles.find((profile) => profile.organizationId != team.parentId)) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: `User ${invitee.username} is already a member of another organization.`,
-    });
-  }
+  // if (invitee.profiles.find((profile) => profile.organizationId != team.parentId)) {
+  //   throw new TRPCError({
+  //     code: "FORBIDDEN",
+  //     message: `User ${invitee.username} is already a member of another organization.`,
+  //   });
+  // }
 }
 
 export async function getUsersToInvite({
@@ -250,7 +250,7 @@ export async function createNewUsersConnectToOrgIfExists({
                     createMany: {
                       data: [
                         {
-                          uid: Profile.generateProfileUid(),
+                          uid: ProfileRepository.generateProfileUid(),
                           username,
                           organizationId: orgId,
                         },
@@ -439,7 +439,7 @@ export function shouldAutoJoinIfInOrg({
   }
 
   // Not a member of the org
-  if (!User.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
+  if (!UserRepository.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return false;
   }
 
@@ -513,8 +513,15 @@ export const sendTeamInviteEmails = async ({
 
     log.debug("Sending team invite email to", safeStringify({ user, currentUserName, currentUserTeamName }));
 
+    if (!currentUserTeamName) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "The team doesn't have a name",
+      });
+    }
+
     // inform user of membership by email
-    if (currentUserName && currentUserTeamName) {
+    if (currentUserTeamName) {
       const inviteTeamOptions = {
         joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
         isCalcomMember: true,
@@ -544,7 +551,7 @@ export const sendTeamInviteEmails = async ({
 
       return sendTeamInviteEmail({
         language,
-        from: currentUserName,
+        from: currentUserName ?? `${currentUserTeamName}'s admin`,
         to: sendTo,
         teamName: currentUserTeamName,
         ...inviteTeamOptions,
@@ -556,22 +563,3 @@ export const sendTeamInviteEmails = async ({
 
   await sendEmails(sendEmailsPromises);
 };
-
-export function createOrganizationProfile({
-  userId,
-  organizationId,
-  username,
-  email,
-}: {
-  userId: number;
-  organizationId: number;
-  username: string;
-  email: string;
-}) {
-  return Profile.createProfile({
-    userId: userId,
-    organizationId,
-    username,
-    email,
-  });
-}

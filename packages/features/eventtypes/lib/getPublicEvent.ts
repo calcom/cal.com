@@ -10,7 +10,7 @@ import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { User, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
@@ -118,7 +118,7 @@ export const getPublicEvent = async (
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await User.getUsersFromUsernameInOrgContext({
+    const usersInOrgContext = await UserRepository.getUsersFromUsernameInOrgContext({
       usernameList,
       orgSlug: org,
     });
@@ -224,7 +224,7 @@ export const getPublicEvent = async (
   for (const host of event.hosts) {
     hosts.push({
       ...host,
-      user: await User.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithOrganizationProfile({
         user: host.user,
         organizationId: ORGANIZATION_ID_UNKNOWN,
       }),
@@ -234,7 +234,7 @@ export const getPublicEvent = async (
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await User.enrichUserWithOrganizationProfile({
+      ? await UserRepository.enrichUserWithOrganizationProfile({
           user: event.owner,
           organizationId: ORGANIZATION_ID_UNKNOWN,
         })
@@ -366,7 +366,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   if (!users.length) return null;
   const usersWithUserProfile = [];
   for (const user of users) {
-    const { profile } = await User.enrichUserWithOrganizationProfile({
+    const { profile } = await UserRepository.enrichUserWithOrganizationProfile({
       user: user,
       organizationId: ORGANIZATION_ID_UNKNOWN,
     });

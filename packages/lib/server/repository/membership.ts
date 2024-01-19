@@ -1,53 +1,82 @@
 import { prisma } from "@calcom/prisma";
 
-import { LookupTarget, Profile } from "./profile";
+import logger from "../../logger";
+import { LookupTarget, ProfileRepository } from "./profile";
 import type { Prisma } from ".prisma/client";
 
+const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 export class MembershipRepository {
-  static async findAllByProfileId({ profileLegacyId }: { profileLegacyId: string }) {
-    const lookupTarget = Profile.getLookupTarget(profileLegacyId);
-    if (lookupTarget.type === LookupTarget.User)
-      return await prisma.membership.findMany({
-        where: {
-          userId: lookupTarget.id,
-        },
-      });
-
-    if (lookupTarget.type === LookupTarget.Profile)
-      return await prisma.membership.findMany({
-        where: {
-          profileId: lookupTarget.id,
-        },
-      });
+  static async findAllByProfileId({ id }: { id: number }) {
+    return await prisma.membership.findMany({
+      where: {
+        profileId: id,
+      },
+    });
   }
 
-  static async findAllByProfileIdIncludeTeam(
-    { profileLegacyId }: { profileLegacyId: string },
+  /**
+   * TODO: Using a specific function for specific tasks so that we don't have to focus on TS magic at the moment. May be try to make it a a generic findAllByProfileId with various options.
+   */
+  static async findAllByProfileIdIncludeTeamWithMembersAndEventTypes(
+    { upId }: { upId: string },
     { where }: { where?: Prisma.MembershipWhereInput } = {}
   ) {
-    const lookupTarget = Profile.getLookupTarget(profileLegacyId);
-    if (lookupTarget.type === LookupTarget.User)
-      return await prisma.membership.findMany({
-        where: {
-          userId: lookupTarget.id,
-          ...where,
-        },
-        include: {
-          team: true,
-        },
-      });
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    const prismaWhere = {
+      ...(lookupTarget.type === LookupTarget.User
+        ? {
+            userId: lookupTarget.id,
+          }
+        : {
+            profileId: lookupTarget.id,
+          }),
+      ...where,
+    };
 
-    if (lookupTarget.type === LookupTarget.Profile)
-      return await prisma.membership.findMany({
-        where: {
-          profileId: lookupTarget.id,
-          ...where,
-        },
-        include: {
-          team: true,
-        },
-      });
+    log.debug("findAllByProfileIdIncludeTeamWithMembersAndEventTypes", {
+      prismaWhere,
+    });
 
-    throw new Error("Invalid lookup target");
+    return await prisma.membership.findMany({
+      where: prismaWhere,
+      include: {
+        team: {
+          include: {
+            members: true,
+            parent: true,
+            eventTypes: {
+              include: {
+                team: {
+                  include: {
+                    eventTypes: true,
+                  },
+                },
+                hashedLink: true,
+                users: true,
+                hosts: {
+                  include: {
+                    user: true,
+                  },
+                },
+                children: {
+                  include: {
+                    users: true,
+                  },
+                },
+              },
+              // As required by getByViewHandler - Make it configurable
+              orderBy: [
+                {
+                  position: "desc",
+                },
+                {
+                  id: "asc",
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
   }
 }

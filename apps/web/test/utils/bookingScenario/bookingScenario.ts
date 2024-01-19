@@ -16,7 +16,7 @@ import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -985,7 +985,7 @@ export function getScenarioData(
         {
           organizationId: orgId,
           username: user.username || "",
-          uid: Profile.generateProfileUid(),
+          uid: ProfileRepository.generateProfileUid(),
         },
       ];
     });

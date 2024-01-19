@@ -1,6 +1,6 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -124,7 +124,7 @@ async function isSlugTakenBySomeUserInTheOrganization({
   organizationId: number;
   slug: string;
 }) {
-  return await Profile.getProfileByOrgIdAndUsername({
+  return await ProfileRepository.getProfileByOrgIdAndUsername({
     organizationId: organizationId,
     username: slug,
   });

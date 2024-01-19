@@ -1,5 +1,5 @@
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { Profile } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -57,7 +57,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     },
   });
 
-  const removeProfiles = Profile.deleteMany({
+  const removeProfiles = ProfileRepository.deleteMany({
     userIds: input.userIds,
   });
 

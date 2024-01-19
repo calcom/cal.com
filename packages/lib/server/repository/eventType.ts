@@ -3,7 +3,7 @@ import type { Prisma, EventType as PrismaEventType } from "@prisma/client";
 import { prisma } from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
-import { LookupTarget, Profile } from "./profile";
+import { LookupTarget, ProfileRepository } from "./profile";
 
 type NotSupportedProps = "locations";
 type IEventType = Ensure<
@@ -19,7 +19,7 @@ type IEventType = Ensure<
   "title" | "slug" | "length"
 >;
 
-export class EventType {
+export class EventTypeRepository {
   static async create(data: IEventType) {
     const {
       userId,
@@ -75,21 +75,47 @@ export class EventType {
     });
   }
 
-  static async findAllByProfileLegacyId({ profileLegacyId }: { profileLegacyId: string }) {
-    const lookupTarget = Profile.getLookupTarget(profileLegacyId);
-
-    if (lookupTarget.type === LookupTarget.User)
-      return await prisma.eventType.findMany({
-        where: {
-          userId: lookupTarget.id,
+  static async findAllByProfileId(
+    { upId }: { upId: string },
+    {
+      orderBy,
+      where = {},
+    }: { orderBy?: Prisma.EventTypeOrderByWithRelationInput[]; where?: Prisma.EventTypeWhereInput } = {}
+  ) {
+    if (!upId) return [];
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    return await prisma.eventType.findMany({
+      where: {
+        ...(lookupTarget.type === LookupTarget.User
+          ? {
+              userId: lookupTarget.id,
+            }
+          : {
+              profileId: lookupTarget.id,
+            }),
+        ...where,
+      },
+      include: {
+        // TODO:  As required by getByViewHandler - Make it configurable
+        team: {
+          include: {
+            eventTypes: true,
+          },
         },
-      });
-
-    if (lookupTarget.type === LookupTarget.Profile)
-      return await prisma.eventType.findMany({
-        where: {
-          profileId: lookupTarget.id,
+        hashedLink: true,
+        users: true,
+        children: {
+          include: {
+            users: true,
+          },
         },
-      });
+        hosts: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy,
+    });
   }
 }
