@@ -1,8 +1,9 @@
 import type { TFunction } from "next-i18next";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 import type { UseFormReturn, FieldValues } from "react-hook-form";
 
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
@@ -49,8 +50,14 @@ export const BookEventForm = ({
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
-  const [responseVercelIdHeader, setResponseVercelIdHeader] = useState<string | null>(null);
+  const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
+
+  const isPaidEvent = useMemo(() => {
+    if (!eventType?.price) return false;
+    const paymentAppData = getPaymentAppData(eventType);
+    return eventType?.price > 0 || paymentAppData.price > 0;
+  }, [eventType]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isLoading || !eventQuery.data) return <FormSkeleton />;
@@ -105,7 +112,7 @@ export const BookEventForm = ({
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
-              {t("confirm")}
+              {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
             <>
@@ -124,7 +131,9 @@ export const BookEventForm = ({
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
-                  ? t("confirm")
+                  ? isPaidEvent
+                    ? t("pay_and_book")
+                    : t("confirm")
                   : t("verify_email_email_button")}
               </Button>
             </>
