@@ -148,8 +148,9 @@ ForgotPassword.PageWrapper = PageWrapper;
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
+  // @TODO res will not be available in future pages (app dir)
   if (session) {
     res.writeHead(302, { Location: "/" });
     res.end();
