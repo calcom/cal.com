@@ -5,6 +5,7 @@ export const ZOutOfOfficeInputSchema = z.object({
     startDate: z.date(),
     endDate: z.date(),
   }),
+  offset: z.number(),
   toTeamUserId: z.number().nullable(),
 });
 
