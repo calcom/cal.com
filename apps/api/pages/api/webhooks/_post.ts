@@ -92,7 +92,7 @@ async function postHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
-  if (args.data.eventTriggers) {
+  if (eventTriggers) {
     const eventTriggersSet = new Set(eventTriggers);
     args.data.eventTriggers = Array.from(eventTriggersSet);
   }
