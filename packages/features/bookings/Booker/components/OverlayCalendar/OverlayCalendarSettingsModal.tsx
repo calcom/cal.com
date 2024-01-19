@@ -19,15 +19,15 @@ import {
 import { Calendar } from "@calcom/ui/components/icon";
 
 import type { UseCalendarsReturnType } from "../hooks/useCalendars";
-import { useLocalSet } from "../hooks/useLocalSet";
 
-interface IOverlayCalendarContinueModalProps {
+interface IOverlayCalendarSettingsModalProps {
   open?: boolean;
   onClose?: (state: boolean) => void;
   onClickNoCalendar?: () => void;
   isLoading: boolean;
   connectedCalendars: UseCalendarsReturnType["connectedCalendars"];
   onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
+  checkIsCalendarToggled: (externalCalendarId: string, credentialId: number) => boolean;
 }
 
 const SkeletonLoader = () => {
@@ -50,12 +50,8 @@ export function OverlayCalendarSettingsModal({
   onClose,
   onClickNoCalendar,
   onToggleConnectedCalendar,
-}: IOverlayCalendarContinueModalProps) {
-  const { hasItem } = useLocalSet<{
-    credentialId: number;
-    externalId: string;
-  }>("toggledConnectedCalendars", []);
-
+  checkIsCalendarToggled,
+}: IOverlayCalendarSettingsModalProps) {
   const { t } = useLocale();
 
   return (
@@ -120,10 +116,7 @@ export function OverlayCalendarSettingsModal({
                                     <li className="flex gap-3" key={id}>
                                       <Switch
                                         id={id}
-                                        checked={hasItem({
-                                          credentialId: item.credentialId,
-                                          externalId: cal.externalId,
-                                        })}
+                                        checked={checkIsCalendarToggled(cal.externalId, item.credentialId)}
                                         onCheckedChange={() => {
                                           onToggleConnectedCalendar(cal.externalId, item.credentialId);
                                         }}

@@ -78,5 +78,11 @@ export const useOverlayCalendar = ({
     handleCloseContinueModal: (val: boolean) => setContinueWithProvider(val),
     handleCloseSettingsModal: (val: boolean) => setCalendarSettingsOverlay(val),
     handleToggleConnectedCalendar,
+    checkIsCalendarToggled: (externalId: string, credentialId: number) => {
+      return hasItem({
+        credentialId: credentialId,
+        externalId: externalId,
+      });
+    },
   };
 };

@@ -27,6 +27,7 @@ export const OverlayCalendar = ({
     isOpenOverlayContinueModal,
     isOpenOverlaySettingsModal,
     handleToggleConnectedCalendar,
+    checkIsCalendarToggled,
   } = useOverlayCalendar({ connectedCalendars, overlayBusyDates, onToggleCalendar });
   return (
     <>
@@ -41,6 +42,7 @@ export const OverlayCalendar = ({
         onClickNoCalendar={() => {
           handleClickNoCalendar();
         }}
+        checkIsCalendarToggled={checkIsCalendarToggled}
       />
     </>
   );
