@@ -18,7 +18,8 @@ import {
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Teams A/B tests", () => {
-  test("should point to the /future/teams page", async ({ page, users, context }) => {
+  // TODO: Revert until OOM issue is resolved
+  test.skip("should point to the /future/teams page", async ({ page, users, context }) => {
     await context.addCookies([
       {
         name: "x-calcom-future-routes-override",
