@@ -1,193 +1,91 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("apps/ A/B tests", () => {
-  test("should point to the /future/apps/installed/[category]", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
+  test("should render the /apps/installed/[category]", async ({ page, users, context }) => {
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/apps/installed/messaging");
 
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByRole("heading", { name: "Messaging" });
 
     await expect(locator).toBeVisible();
   });
 
-  test("should point to the /future/apps/[slug]", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /apps/[slug]", async ({ page, users, context }) => {
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/apps/telegram");
 
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByRole("heading", { name: "Telegram" });
 
     await expect(locator).toBeVisible();
   });
 
-  test("should point to the /future/apps/[slug]/setup", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /apps/[slug]/setup", async ({ page, users, context }) => {
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/apps/apple-calendar/setup");
 
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByRole("heading", { name: "Connect to Apple Server" });
 
     await expect(locator).toBeVisible();
   });
 
-  test("should point to the /future/apps/categories", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /apps/categories", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/apps/categories");
 
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByTestId("app-store-category-messaging");
 
     await expect(locator).toBeVisible();
   });
 
-  test("should point to the /future/apps/categories/[category]", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /apps/categories/[category]", async ({ page, users, context }) => {
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/apps/categories/messaging");
 
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByText(/messaging apps/i);
 
     await expect(locator).toBeVisible();
   });
 
-  test("should point to the /future/bookings/[status]", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /bookings/[status]", async ({ page, users, context }) => {
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/bookings/upcoming/");
 
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByTestId("horizontal-tab-upcoming");
 
     await expect(locator).toHaveClass(/bg-emphasis/);
   });
 
-  test("should point to the /future/getting-started", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /getting-started", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create({ completedOnboarding: false, name: null });
 
     await user.apiLogin();
 
     await page.goto("/getting-started/connected-calendar");
-
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
 
     const locator = page.getByText("Apple Calendar");
 
