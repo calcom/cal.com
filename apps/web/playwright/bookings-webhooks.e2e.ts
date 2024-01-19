@@ -13,7 +13,7 @@ const bodyProps = {
   createdAt: "[redacted/dynamic]",
   payload: {
     title: "30 min between testuser and Test Testson",
-    type: "30 min",
+    type: "30-min",
     customInputs: {},
     userFieldsResponses: {},
     responses: {
@@ -105,7 +105,11 @@ test.describe("Add webhook on event type config", async () => {
     const [_, bookingCreatedRequest] = webhookReceiver.requestList;
     const body = updateBody(bookingCreatedRequest.body);
 
-    expect(body).toMatchObject({ ...bodyProps, triggerEvent: "BOOKING_CREATED" });
+    expect(body).toMatchObject({
+      ...bodyProps,
+      payload: { ...bodyProps.payload, location: "integrations:daily" },
+      triggerEvent: "BOOKING_CREATED",
+    });
     webhookReceiver.close();
   });
 
@@ -145,7 +149,7 @@ test.describe("Add webhook on event type config", async () => {
       triggerEvent: "BOOKING_CANCELLED",
       payload: {
         ...bodyProps.payload,
-        team: { name: "", members: [] },
+        team: { name: "Nameless", members: [] },
         cancellationReason: "Test cancel",
         destinationCalendar: [],
         seatsShowAttendees: false,
