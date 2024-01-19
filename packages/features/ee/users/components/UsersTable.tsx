@@ -4,15 +4,20 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Badge,
+  Button,
   ConfirmationDialogContent,
   Dialog,
   DropdownActions,
   showToast,
   Table,
   TextField,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
   Avatar,
 } from "@calcom/ui";
 import { Edit, Trash, Lock, VenetianMask } from "@calcom/ui/components/icon";
@@ -24,9 +29,12 @@ const { Cell, ColumnTitle, Header, Row } = Table;
 const FETCH_LIMIT = 25;
 
 function UsersTableBare() {
+  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useContext();
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const router = useRouter();
 
@@ -209,9 +217,9 @@ function UsersTableBare() {
                         {
                           id: "impersonation",
                           label: "Impersonate",
-                          onClick: async () => {
-                            await signIn("impersonation-auth", { redirect: false, username: user.username });
-                            router.replace("/settings/my-account/profile");
+                          onClick: () => {
+                            setSelectedUser(user.username);
+                            setShowImpersonateModal(true);
                           },
                           icon: VenetianMask,
                         },
@@ -239,6 +247,26 @@ function UsersTableBare() {
           }}
         />
       </div>
+      {showImpersonateModal && selectedUser && (
+        <Dialog open={showImpersonateModal} onOpenChange={() => setShowImpersonateModal(false)}>
+          <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await signIn("impersonation-auth", { redirect: false, username: selectedUser });
+                setShowImpersonateModal(false);
+                router.replace("/settings/my-account/profile");
+              }}>
+              <DialogFooter showDivider className="mt-8">
+                <DialogClose color="secondary">{t("cancel")}</DialogClose>
+                <Button color="primary" type="submit">
+                  {t("impersonate")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
