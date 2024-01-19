@@ -9,12 +9,15 @@ import React from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
 
+import { type inferSSRProps } from "@lib/types/inferSSRProps";
+
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
 import { getServerSideProps } from "@server/lib/forgot-password/getServerSideProps";
 
-export default function ForgotPassword({ csrfToken }: { csrfToken: string | undefined }) {
+export default function ForgotPassword(props: inferSSRProps<typeof getServerSideProps>) {
+  const csrfToken = "csrfToken" in props ? (props.csrfToken as string) : undefined;
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<{ message: string } | null>(null);
