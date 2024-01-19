@@ -33,7 +33,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: boolean
  *        description: Delete all remaining bookings
  *      - in: query
- *        name: reason
+ *        name: cancellationReason
  *        required: false
  *        schema:
  *          type: string
