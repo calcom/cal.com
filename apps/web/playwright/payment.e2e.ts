@@ -4,9 +4,12 @@ import { bookTimeSlot, selectFirstAvailableTimeSlotNextMonth } from "@calcom/web
 
 import { test } from "./lib/fixtures";
 
+// import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
+
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Payment", () => {
+// TODO: Future route not ready yet
+test./* testBothFutureAndLegacyRoutes. */ describe("Payment", () => {
   test.describe("user", () => {
     test.afterEach(async ({ users }) => {
       await users.deleteAll();
@@ -17,15 +20,6 @@ test.describe("Payment", () => {
 
       const user = await users.create();
       await user.apiLogin();
-
-      await context.addCookies([
-        {
-          name: "x-calcom-future-routes-override",
-          value: "1",
-          url: "http://localhost:3000",
-        },
-      ]);
-
       await page.goto("/apps");
 
       await page.getByPlaceholder("Search").click();

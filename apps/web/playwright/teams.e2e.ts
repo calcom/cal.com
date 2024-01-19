@@ -5,6 +5,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   NotFoundPageTextAppDir,
   bookTimeSlot,
@@ -17,16 +18,10 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Teams A/B tests", () => {
+// TODO: Future route not ready yet
+test./* testBothFutureAndLegacyRoutes. */ describe("Teams A/B tests", () => {
   // TODO: Revert until OOM issue is resolved
-  test.skip("should point to the /future/teams page", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+  test("should render the /teams page", async ({ page, users, context }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -35,19 +30,13 @@ test.describe("Teams A/B tests", () => {
 
     await page.waitForLoadState();
 
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
-
     const locator = page.getByRole("heading", { name: "Teams", exact: true });
 
     await expect(locator).toBeVisible();
   });
 });
 
-test.describe("Teams - NonOrg", () => {
+testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", () => {
   test.afterEach(({ users }) => users.deleteAll());
 
   test("Team Onboarding Invite Members", async ({ page, users }) => {
