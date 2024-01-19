@@ -63,9 +63,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error(`File is not named sso/[provider]`);
   }
 
-  const { req, res } = context;
+  const { req } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   const ssr = await ssrInit(context);
   const { currentOrgDomain } = orgDomainConfig(context.req);
 

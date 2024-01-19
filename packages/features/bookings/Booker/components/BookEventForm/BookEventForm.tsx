@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,6 +28,7 @@ import getBookingResponsesSchema, {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -173,6 +174,12 @@ export const BookEventFormChild = ({
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
   const [expiryTime, setExpiryTime] = useState<Date | undefined>();
+
+  const isPaidEvent = useMemo(() => {
+    if (!eventType?.price) return false;
+    const paymentAppData = getPaymentAppData(eventType);
+    return eventType?.price > 0 || paymentAppData.price > 0;
+  }, [eventType]);
 
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
@@ -429,7 +436,7 @@ export const BookEventFormChild = ({
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={createInstantBookingMutation.isLoading}>
-              {t("confirm")}
+              {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
             <>
@@ -455,7 +462,9 @@ export const BookEventFormChild = ({
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
-                  ? t("confirm")
+                  ? isPaidEvent
+                    ? t("pay_and_book")
+                    : t("confirm")
                   : t("verify_email_email_button")}
               </Button>
             </>
