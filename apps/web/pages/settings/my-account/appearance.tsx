@@ -71,7 +71,6 @@ const AppearanceView = ({
   const utils = trpc.useContext();
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
-  const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isCustomBrandColorChecked, setIsCustomBranColorChecked] = useState(
     user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
@@ -135,7 +134,6 @@ const AppearanceView = ({
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
-      setIsUpdateBtnLoading(false);
     },
   });
 
@@ -151,7 +149,7 @@ const AppearanceView = ({
       <Form
         form={userThemeFormMethods}
         handleSubmit={(values) => {
-          setIsUpdateBtnLoading(true);
+          console.log("userthemeformemthods", isUserThemeSubmitting);
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
@@ -183,7 +181,7 @@ const AppearanceView = ({
         </div>
         <SectionBottomActions className="mb-6" align="end">
           <Button
-            loading={isUpdateBtnLoading}
+            loading={mutation.isLoading}
             disabled={isUserThemeSubmitting || !isUserThemeDirty}
             type="submit"
             data-testid="update-theme-btn"
@@ -196,7 +194,6 @@ const AppearanceView = ({
       <Form
         form={bookerLayoutFormMethods}
         handleSubmit={(values) => {
-          setIsUpdateBtnLoading(true);
           const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
           if (layoutError) {
             showToast(t(layoutError), "error");
@@ -211,14 +208,13 @@ const AppearanceView = ({
           title={t("bookerlayout_user_settings_title")}
           description={t("bookerlayout_user_settings_description")}
           isDisabled={isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty}
-          isUpdateBtnLoading={isUpdateBtnLoading}
+          isLoading={mutation.isLoading}
         />
       </Form>
 
       <Form
         form={brandColorsFormMethods}
         handleSubmit={(values) => {
-          setIsUpdateBtnLoading(true);
           mutation.mutate(values);
         }}>
         <div className="mt-6">
@@ -298,7 +294,7 @@ const AppearanceView = ({
             </div>
             <SectionBottomActions align="end">
               <Button
-                loading={isUpdateBtnLoading}
+                loading={mutation.isLoading}
                 disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
                 color="primary"
                 type="submit">
