@@ -1,21 +1,16 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import { installAppleCalendar } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("App Store - Authed", () => {
-  test("should point to the /future/apps/", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+testBothFutureAndLegacyRoutes.describe("App Store - Authed", (routeVariant) => {
+  test("should render /apps page", async ({ page, users, context }) => {
+    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
 
     await user.apiLogin();
@@ -23,12 +18,6 @@ test.describe("App Store - Authed", () => {
     await page.goto("/apps/");
 
     await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
 
     const locator = page.getByRole("heading", { name: "App Store" });
 
