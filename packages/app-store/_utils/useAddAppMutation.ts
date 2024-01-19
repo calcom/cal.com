@@ -1,6 +1,6 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -38,8 +38,8 @@ type useAddAppMutationVariables = {
 
 function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMutationOptions) {
   const { returnTo, ...options } = allOptions || {};
-  const router = useRouter();
-  const onErrorReturnTo = `${WEBAPP_URL}${router.asPath}`;
+  const pathname = usePathname();
+  const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
 
   const mutation = useMutation<AddAppMutationData, Error, useAddAppMutationVariables | "">(
     async (variables) => {
