@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
-import { Trash } from "@calcom/ui/components/icon";
+import { Plus, Trash } from "@calcom/ui/components/icon";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();
@@ -84,7 +84,7 @@ export default function ICSFeedSetup() {
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  Add +
+                  {t("add")} <Plus size={16} />
                 </button>
 
                 {errorMessage && (
