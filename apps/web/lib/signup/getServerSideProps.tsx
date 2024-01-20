@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -24,7 +25,9 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const session = await getServerSession({ req: ctx.req });
+
+  const flags = await getFeatureFlagMap(prisma, session?.user.id);
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 

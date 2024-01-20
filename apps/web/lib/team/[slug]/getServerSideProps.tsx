@@ -1,5 +1,6 @@
 import type { GetServerSidePropsContext } from "next";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -25,7 +26,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const flags = await getFeatureFlagMap(prisma);
+  const session = await getServerSession({ req: context.req });
+  const flags = await getFeatureFlagMap(prisma, session?.user.id);
   const isOrganizationFeatureEnabled = flags["organizations"];
 
   log.debug("getServerSideProps", {

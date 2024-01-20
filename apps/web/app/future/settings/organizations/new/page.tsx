@@ -4,6 +4,7 @@ import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
 import { notFound } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 
 export const generateMetadata = async () =>
@@ -14,7 +15,8 @@ export const generateMetadata = async () =>
 
 const getPageProps = async (context: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const session = await getServerSession({ req: context.req });
+  const flags = await getFeatureFlagMap(prisma, session?.user.id);
   // Check if organizations are enabled
   if (flags["organizations"] !== true) {
     return notFound();
