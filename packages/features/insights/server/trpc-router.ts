@@ -17,8 +17,8 @@ const UserBelongsToTeamInput = z.object({
   isAll: z.boolean().optional(),
 });
 
-const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, rawInput }) => {
-  const parse = UserBelongsToTeamInput.safeParse(rawInput);
+const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRawInput }) => {
+  const parse = UserBelongsToTeamInput.safeParse(await getRawInput());
   if (!parse.success) {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
@@ -152,6 +152,7 @@ export const insightsRouter = router({
       }
 
       if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
+        //              ^?
         const teamsFromOrg = await ctx.insightsDb.team.findMany({
           where: {
             parentId: ctx.user.organizationId,
