@@ -19,7 +19,6 @@ export default function CalDavCalendarSetup() {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [errorActionUrl, setErrorActionUrl] = useState("");
-  console.log("CALDAV SETUP RENDERED");
 
   return (
     <div className="bg-emphasis flex h-screen">
