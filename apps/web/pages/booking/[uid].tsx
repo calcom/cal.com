@@ -1,7 +1,8 @@
+"use client";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
-import type { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,35 +23,28 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SMS_REMINDER_NUMBER_FIELD, SystemField } from "@calcom/features/bookings/lib/SystemField";
-import { getBookingWithResponses } from "@calcom/features/bookings/lib/get-booking";
-import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { parseRecurringEvent } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
+import { getServerSideProps } from "@lib/booking/[uid]/getServerSideProps";
 import { timeZone } from "@lib/clock";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -58,23 +52,9 @@ import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
-import { ssrInit } from "@server/lib/ssr";
+export { getServerSideProps };
 
-const useBrandColors = ({
-  brandColor,
-  darkBrandColor,
-}: {
-  brandColor?: string | null;
-  darkBrandColor?: string | null;
-}) => {
-  const brandTheme = useGetBrandingColours({
-    lightVal: brandColor,
-    darkVal: darkBrandColor,
-  });
-  useCalcomTheme(brandTheme);
-};
-
-type SuccessProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const stringToBoolean = z
   .string()
@@ -94,7 +74,21 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
 });
 
-export default function Success(props: SuccessProps) {
+const useBrandColors = ({
+  brandColor,
+  darkBrandColor,
+}: {
+  brandColor?: string | null;
+  darkBrandColor?: string | null;
+}) => {
+  const brandTheme = useGetBrandingColours({
+    lightVal: brandColor,
+    darkVal: darkBrandColor,
+  });
+  useCalcomTheme(brandTheme);
+};
+
+export default function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -486,48 +480,24 @@ export default function Success(props: SuccessProps) {
                         <div className="mt-3 font-medium">{t("where")}</div>
                         <div className="col-span-2 mt-3" data-testid="where">
                           {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
-                            locationToDisplay.startsWith("http") ? (
-                              <a
-                                href={locationToDisplay}
-                                target="_blank"
-                                title={locationToDisplay}
-                                className="text-default flex items-center gap-2"
-                                rel="noreferrer">
-                                {providerName || "Link"}
-                                <ExternalLink className="text-default inline h-4 w-4" />
-                              </a>
-                            ) : (
-                              locationToDisplay
-                            )
+                            <DisplayLocation
+                              locationToDisplay={locationToDisplay}
+                              providerName={providerName}
+                            />
                           ) : (
                             <>
-                              {!!formerTime &&
-                                (locationToDisplay.startsWith("http") ? (
-                                  <a
-                                    href={locationToDisplay}
-                                    target="_blank"
-                                    title={locationToDisplay}
-                                    className="text-default flex items-center gap-2 line-through"
-                                    rel="noreferrer">
-                                    {providerName || "Link"}
-                                    <ExternalLink className="text-default inline h-4 w-4" />
-                                  </a>
-                                ) : (
-                                  <p className="line-through">{locationToDisplay}</p>
-                                ))}
-                              {rescheduleLocationToDisplay.startsWith("http") ? (
-                                <a
-                                  href={rescheduleLocationToDisplay}
-                                  target="_blank"
-                                  title={rescheduleLocationToDisplay}
-                                  className="text-default flex items-center gap-2"
-                                  rel="noreferrer">
-                                  {rescheduleProviderName || "Link"}
-                                  <ExternalLink className="text-default inline h-4 w-4" />
-                                </a>
-                              ) : (
-                                rescheduleLocationToDisplay
+                              {!!formerTime && (
+                                <DisplayLocation
+                                  locationToDisplay={locationToDisplay}
+                                  providerName={providerName}
+                                  className="line-through"
+                                />
                               )}
+
+                              <DisplayLocation
+                                locationToDisplay={rescheduleLocationToDisplay}
+                                providerName={rescheduleProviderName}
+                              />
                             </>
                           )}
                         </div>
@@ -575,7 +545,7 @@ export default function Success(props: SuccessProps) {
                             className="text-default break-words"
                             data-testid="field-response"
                             data-fob-field={field.name}>
-                            {response.toString()}
+                            {field.type === "boolean" ? (response ? t("yes") : t("no")) : response.toString()}
                           </p>
                         </>
                       );
@@ -787,7 +757,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email}
-                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black  sm:text-sm"
+                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button
@@ -830,12 +800,35 @@ export default function Success(props: SuccessProps) {
   );
 }
 
+const DisplayLocation = ({
+  locationToDisplay,
+  providerName,
+  className,
+}: {
+  locationToDisplay: string;
+  providerName?: string;
+  className?: string;
+}) =>
+  locationToDisplay.startsWith("http") ? (
+    <a
+      href={locationToDisplay}
+      target="_blank"
+      title={locationToDisplay}
+      className={classNames("text-default flex items-center gap-2", className)}
+      rel="noreferrer">
+      {providerName || "Link"}
+      <ExternalLink className="text-default inline h-4 w-4" />
+    </a>
+  ) : (
+    <p className={className}>{locationToDisplay}</p>
+  );
+
 Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
-  eventType: SuccessProps["eventType"];
-  recurringBookings: SuccessProps["recurringBookings"];
+  eventType: PageProps["eventType"];
+  recurringBookings: PageProps["recurringBookings"];
   date: dayjs.Dayjs;
   duration: number | undefined;
   is24h: boolean;
@@ -900,10 +893,16 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(date, tz), language, "full", tz)}
+                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
                     <br />
-                    {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
-                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+                    {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+                    {formatToLocalizedTime(
+                      dayjs(dateStr).add(duration, "m"),
+                      language,
+                      undefined,
+                      !is24h,
+                      tz
+                    )}{" "}
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>
@@ -925,330 +924,4 @@ export function RecurringBookings({
       <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );
-}
-
-const getEventTypesFromDB = async (id: number) => {
-  const userSelect = {
-    id: true,
-    name: true,
-    username: true,
-    hideBranding: true,
-    theme: true,
-    brandColor: true,
-    darkBrandColor: true,
-    email: true,
-    timeZone: true,
-  };
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      length: true,
-      eventName: true,
-      recurringEvent: true,
-      requiresConfirmation: true,
-      userId: true,
-      successRedirectUrl: true,
-      customInputs: true,
-      locations: true,
-      price: true,
-      currency: true,
-      bookingFields: true,
-      disableGuests: true,
-      timeZone: true,
-      owner: {
-        select: userSelect,
-      },
-      users: {
-        select: userSelect,
-      },
-      hosts: {
-        select: {
-          user: {
-            select: userSelect,
-          },
-        },
-      },
-      team: {
-        select: {
-          slug: true,
-          name: true,
-          hideBranding: true,
-        },
-      },
-      workflows: {
-        select: {
-          workflow: {
-            select: {
-              id: true,
-              steps: true,
-            },
-          },
-        },
-      },
-      metadata: true,
-      seatsPerTimeSlot: true,
-      seatsShowAttendees: true,
-      seatsShowAvailabilityCount: true,
-      periodStartDate: true,
-      periodEndDate: true,
-    },
-  });
-
-  if (!eventType) {
-    return eventType;
-  }
-
-  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-
-  return {
-    isDynamic: false,
-    ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
-    metadata,
-  };
-};
-
-const handleSeatsEventTypeOnBooking = async (
-  eventType: {
-    seatsPerTimeSlot?: number | null;
-    seatsShowAttendees: boolean | null;
-    seatsShowAvailabilityCount: boolean | null;
-    [x: string | number | symbol]: unknown;
-  },
-  bookingInfo: Partial<
-    Prisma.BookingGetPayload<{
-      include: {
-        attendees: { select: { name: true; email: true } };
-        seatsReferences: { select: { referenceUid: true } };
-        user: {
-          select: {
-            id: true;
-            name: true;
-            email: true;
-            username: true;
-            timeZone: true;
-          };
-        };
-      };
-    }>
-  >,
-  seatReferenceUid?: string,
-  userId?: number
-) => {
-  if (eventType?.seatsPerTimeSlot !== null) {
-    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
-    delete bookingInfo.description;
-  } else {
-    return;
-  }
-  // @TODO: If handling teams, we need to do more check ups for this.
-  if (bookingInfo?.user?.id === userId) {
-    return;
-  }
-
-  if (!eventType.seatsShowAttendees) {
-    const seatAttendee = await prisma.bookingSeat.findFirst({
-      where: {
-        referenceUid: seatReferenceUid,
-      },
-      include: {
-        attendee: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-
-    if (seatAttendee) {
-      const attendee = bookingInfo?.attendees?.find((a) => {
-        return a.email === seatAttendee.attendee?.email;
-      });
-      bookingInfo["attendees"] = attendee ? [attendee] : [];
-    } else {
-      bookingInfo["attendees"] = [];
-    }
-  }
-  return bookingInfo;
-};
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-  const session = await getServerSession(context);
-  let tz: string | null = null;
-  let userTimeFormat: number | null = null;
-  let requiresLoginToUpdate = false;
-  if (session) {
-    const user = await ssr.viewer.me.fetch();
-    tz = user.timeZone;
-    userTimeFormat = user.timeFormat;
-  }
-
-  const parsedQuery = querySchema.safeParse(context.query);
-
-  if (!parsedQuery.success) return { notFound: true } as const;
-  const { uid, eventTypeSlug, seatReferenceUid } = parsedQuery.data;
-
-  const { uid: maybeUid } = await maybeGetBookingUidFromSeat(prisma, uid);
-  const bookingInfoRaw = await prisma.booking.findFirst({
-    where: {
-      uid: maybeUid,
-    },
-    select: {
-      title: true,
-      id: true,
-      uid: true,
-      description: true,
-      customInputs: true,
-      smsReminderNumber: true,
-      recurringEventId: true,
-      startTime: true,
-      endTime: true,
-      location: true,
-      status: true,
-      metadata: true,
-      cancellationReason: true,
-      responses: true,
-      rejectionReason: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          username: true,
-          timeZone: true,
-        },
-      },
-      attendees: {
-        select: {
-          name: true,
-          email: true,
-          timeZone: true,
-        },
-      },
-      eventTypeId: true,
-      eventType: {
-        select: {
-          eventName: true,
-          slug: true,
-          timeZone: true,
-        },
-      },
-      seatsReferences: {
-        select: {
-          referenceUid: true,
-        },
-      },
-    },
-  });
-  if (!bookingInfoRaw) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
-  const eventTypeRaw = !bookingInfoRaw.eventTypeId
-    ? getDefaultEvent(eventTypeSlug || "")
-    : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
-  if (!eventTypeRaw) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
-  if (eventTypeRaw.seatsPerTimeSlot && !seatReferenceUid && !session) {
-    requiresLoginToUpdate = true;
-  }
-
-  const bookingInfo = getBookingWithResponses(bookingInfoRaw);
-  // @NOTE: had to do this because Server side cant return [Object objects]
-  // probably fixable with json.stringify -> json.parse
-  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
-  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
-
-  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
-    ? eventTypeRaw.hosts.map((host) => host.user)
-    : eventTypeRaw.users;
-
-  if (!eventTypeRaw.users.length) {
-    if (!eventTypeRaw.owner)
-      return {
-        notFound: true,
-      } as const;
-    eventTypeRaw.users.push({
-      ...eventTypeRaw.owner,
-    });
-  }
-
-  const eventType = {
-    ...eventTypeRaw,
-    periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
-    periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
-    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
-    recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
-    customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
-  };
-
-  const profile = {
-    name: eventType.team?.name || eventType.users[0]?.name || null,
-    email: eventType.team ? null : eventType.users[0].email || null,
-    theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
-    slug: eventType.team?.slug || eventType.users[0]?.username || null,
-  };
-
-  if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, session?.user.id);
-  }
-
-  const payment = await prisma.payment.findFirst({
-    where: {
-      bookingId: bookingInfo.id,
-    },
-    select: {
-      success: true,
-      refunded: true,
-      currency: true,
-      amount: true,
-      paymentOption: true,
-    },
-  });
-
-  return {
-    props: {
-      themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
-      hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
-      profile,
-      eventType,
-      recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
-      trpcState: ssr.dehydrate(),
-      dynamicEventName: bookingInfo?.eventType?.eventName || "",
-      bookingInfo,
-      paymentStatus: payment,
-      ...(tz && { tz }),
-      userTimeFormat,
-      requiresLoginToUpdate,
-    },
-  };
-}
-
-async function getRecurringBookings(recurringEventId: string | null) {
-  if (!recurringEventId) return null;
-  const recurringBookings = await prisma.booking.findMany({
-    where: {
-      recurringEventId,
-      status: BookingStatus.ACCEPTED,
-    },
-    select: {
-      startTime: true,
-    },
-  });
-  return recurringBookings.map((obj) => obj.startTime.toString());
 }

@@ -1,5 +1,6 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -64,6 +65,27 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
+  if (url.pathname.startsWith("/future/apps/installed")) {
+    const returnTo = req.cookies.get("return-to")?.value;
+    if (returnTo !== undefined) {
+      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+
+      let validPathname = returnTo;
+
+      try {
+        validPathname = new URL(returnTo).pathname;
+      } catch (e) {}
+
+      const nextUrl = url.clone();
+      nextUrl.pathname = validPathname;
+      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+    }
+  }
+
+  if (url.pathname.startsWith("/future/auth/logout")) {
+    cookies().delete("next-auth.session-token");
+  }
+
   requestHeaders.set("x-pathname", url.pathname);
 
   const locale = await getLocale(req);
@@ -95,14 +117,40 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
+    "/future/auth/login",
     /**
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
+
     "/event-types",
     "/future/event-types/",
     "/settings/admin/:path*",
     "/future/settings/admin/:path*",
+    "/apps/installed/:category/",
+    "/future/apps/installed/:category/",
+    "/apps/:slug/",
+    "/future/apps/:slug/",
+    "/apps/:slug/setup/",
+    "/future/apps/:slug/setup/",
+    "/apps/categories/",
+    "/future/apps/categories/",
+    "/apps/categories/:category/",
+    "/future/apps/categories/:category/",
+    "/workflows/:path*",
+    "/future/workflows/:path*",
+    "/settings/teams/:path*",
+    "/future/settings/teams/:path*",
+    "/getting-started/:step/",
+    "/future/getting-started/:step/",
+    "/apps",
+    "/future/apps",
+    "/bookings/:status/",
+    "/future/bookings/:status/",
+    "/video/:path*",
+    "/future/video/:path*",
+    "/teams",
+    "/future/teams/",
   ],
 };
 

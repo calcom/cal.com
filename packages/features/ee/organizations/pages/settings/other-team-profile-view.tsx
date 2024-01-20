@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -37,7 +39,7 @@ import {
 import { ExternalLink, Link as LinkIcon, Trash2 } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
-import { extractDomainFromWebsiteUrl } from "../../../organizations/lib/utils";
+import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -225,9 +227,7 @@ const OtherTeamProfileView = () => {
                       label={t("team_url")}
                       value={value}
                       addOnLeading={
-                        team?.parent
-                          ? `${team.parent.slug}.${extractDomainFromWebsiteUrl}/`
-                          : `${WEBAPP_URL}/team/`
+                        team?.parent ? `${team.parent.slug}.${subdomainSuffix()}/` : `${WEBAPP_URL}/team/`
                       }
                       onChange={(e) => {
                         form.clearErrors("slug");

@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -14,7 +16,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Button, Form, Meta, showToast, SettingsToggle, Avatar, ImageUploader } from "@calcom/ui";
+import { Plus } from "@calcom/ui/components/icon";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -83,6 +86,48 @@ const OrgAppearanceView = ({
       />
       {isAdminOrOwner ? (
         <div>
+          <div className="my-6">
+            <div className="flex items-center text-sm">
+              <Avatar
+                alt="calVideoLogo"
+                imageSrc={currentOrg?.calVideoLogo}
+                fallback={<Plus className="text-subtle h-6 w-6" />}
+                size="lg"
+              />
+              <div className="ms-4">
+                <div className="flex gap-2">
+                  <ImageUploader
+                    target="avatar"
+                    id="cal-video-logo-upload"
+                    buttonMsg={
+                      currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")
+                    }
+                    handleAvatarChange={(newLogo) => {
+                      mutation.mutate({
+                        calVideoLogo: newLogo,
+                      });
+                    }}
+                    disabled={mutation.isLoading}
+                    imageSrc={currentOrg?.calVideoLogo ?? undefined}
+                    uploadInstruction={t("cal_video_logo_upload_instruction")}
+                    triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
+                  />
+                  {currentOrg?.calVideoLogo && (
+                    <Button
+                      color="destructive"
+                      disabled={mutation.isLoading}
+                      onClick={() => {
+                        mutation.mutate({
+                          calVideoLogo: null,
+                        });
+                      }}>
+                      {t("remove")}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
           <Form
             form={themeForm}
             handleSubmit={(value) => {
@@ -137,8 +182,8 @@ const OrgAppearanceView = ({
             }}>
             <BrandColorsForm
               onSubmit={onBrandColorsFormSubmit}
-              brandColor={currentOrg?.brandColor}
-              darkBrandColor={currentOrg?.darkBrandColor}
+              brandColor={currentOrg?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+              darkBrandColor={currentOrg?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
             />
           </Form>
 

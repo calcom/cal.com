@@ -74,7 +74,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const debouncedApiCall = useMemo(
     () =>
       debounce(async (username: string) => {
-        const { data } = await fetchUsername(username);
+        // TODO: Support orgSlug
+        const { data } = await fetchUsername(username, null);
         setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
         setIsInputUsernamePremium(data.premium);
         setUsernameIsAvailable(data.available);

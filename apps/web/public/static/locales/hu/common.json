@@ -123,8 +123,8 @@
   "your_name": "Neved",
   "email_address": "Email cím",
   "location": "Helyszín",
-  "yes": "igen",
-  "no": "nem",
+  "yes": "Igen",
+  "no": "Nem",
   "additional_notes": "Egyéb jegyzetek",
   "phone_number": "Telefonszám",
   "or": "VAGY",
@@ -205,5 +205,8 @@
   "minute_timeUnit": "Perc",
   "remove_app": "Alkalmazás eltávolítása",
   "yes_remove_app": "Igen, távolítsd el az alkalmazást",
-  "web_conference": "Online konferencia"
+  "web_conference": "Online konferencia",
+  "location_variable": "Helyszín",
+  "additional_notes_variable": "Egyéb jegyzetek",
+  "timezone_variable": "Időzóna"
 }
