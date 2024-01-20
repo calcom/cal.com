@@ -101,10 +101,12 @@ const AssignAllTeamMembers = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   onActive,
+  onInactive,
 }: {
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   onActive: () => void;
+  onInactive?: () => void;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -122,6 +124,8 @@ const AssignAllTeamMembers = ({
             setAssignAllTeamMembers(active);
             if (active) {
               onActive();
+            } else if (!!onInactive) {
+              onInactive();
             }
           }}
         />
@@ -140,7 +144,7 @@ const CheckedHostField = ({
   helperText,
   ...rest
 }: {
-  labelText: string;
+  labelText?: string;
   placeholder: string;
   isFixed: boolean;
   value: { isFixed: boolean; userId: number }[];
@@ -151,7 +155,7 @@ const CheckedHostField = ({
   return (
     <div className="bg-muted flex flex-col space-y-5 p-4">
       <div>
-        <Label>{labelText}</Label>
+        {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
           isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
           onChange={(options) => {
@@ -216,35 +220,40 @@ const RoundRobinHosts = ({
 
   return (
     <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
-      <div className="flex flex-col gap-4">
-        <AssignAllTeamMembers
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          onActive={() =>
-            formMethods.setValue(
-              "hosts",
-              teamMembers.map((teamMember) => ({
-                isFixed: true,
-                userId: parseInt(teamMember.value, 10),
-              }))
-            )
-          }
+      <div className="flex flex-col gap-8">
+        <CheckedHostField
+          options={teamMembers.sort(sortByLabel)}
+          isFixed={true}
+          onChange={(changeValue) => {
+            onChange([...value.filter(({ isFixed }) => !isFixed), ...changeValue]);
+          }}
+          value={value}
+          placeholder={t("add_fixed_hosts")}
+          labelText={t("fixed_hosts")}
+          helperText={FixedHostHelper}
         />
-        {assignAllTeamMembers ? (
-          <></>
-        ) : (
-          <div>
-            <CheckedHostField
-              options={teamMembers.sort(sortByLabel)}
-              isFixed={true}
-              onChange={(changeValue) => {
-                onChange([...value.filter(({ isFixed }) => !isFixed), ...changeValue]);
-              }}
-              value={value}
-              placeholder={t("add_fixed_hosts")}
-              labelText={t("fixed_hosts")}
-              helperText={FixedHostHelper}
+
+        <div className="bg-muted flex flex-col">
+          <Label className="p-4">{t("round_robin_hosts")}</Label>
+          <div className="px-4 pb-2">
+            <AssignAllTeamMembers
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              onActive={() =>
+                formMethods.setValue(
+                  "hosts",
+                  teamMembers.map((teamMember) => ({
+                    isFixed: false,
+                    userId: parseInt(teamMember.value, 10),
+                  }))
+                )
+              }
+              onInactive={() => formMethods.setValue("hosts", [])}
             />
+          </div>
+          {assignAllTeamMembers ? (
+            <></>
+          ) : (
             <CheckedHostField
               options={teamMembers.sort(sortByLabel)}
               onChange={(changeValue) =>
@@ -253,11 +262,10 @@ const RoundRobinHosts = ({
               value={value}
               isFixed={false}
               placeholder={t("add_attendees")}
-              labelText={t("round_robin_hosts")}
               helperText={t("round_robin_helper")}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -359,6 +367,7 @@ const Hosts = ({
                       }))
                     )
                   }
+                  onInactive={() => formMethods.setValue("hosts", [])}
                 />
                 {assignAllTeamMembers ? (
                   <></>
