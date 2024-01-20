@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
@@ -188,13 +188,15 @@ const ProfileViewWrapper = () => {
 
   const { t } = useLocale();
 
-  const { data: team, isPending } = trpc.viewer.teams.get.useQuery(
-    { teamId: Number(params.id) },
-    {
-      onError: () => {
+  const { data: team, isPending, error } = trpc.viewer.teams.get.useQuery({ teamId: Number(params.id) });
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
         router.push("/settings");
-      },
-    }
+      }
+    },
+    [error]
   );
 
   if (isPending)
