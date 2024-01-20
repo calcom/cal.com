@@ -1,3 +1,4 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -65,7 +66,7 @@ function UsersTableBare() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
       refetchOnWindowFocus: false,
     }
   );

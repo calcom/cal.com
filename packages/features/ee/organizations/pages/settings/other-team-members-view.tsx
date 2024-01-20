@@ -1,6 +1,7 @@
 "use client";
 
 // import { debounce } from "lodash";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -108,7 +109,7 @@ const MembersView = () => {
           router.push("/settings");
         },
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
+        placeholderData: keepPreviousData,
       }
     );
 

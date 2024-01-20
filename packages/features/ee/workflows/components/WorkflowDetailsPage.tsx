@@ -138,7 +138,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <MultiSelectCheckboxes
                   options={allEventTypeOptions}
                   isDisabled={props.readOnly}
-                  isPending={isPending}
+                  isLoading={isPending}
                   className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
                   selected={selectedEventTypes}
