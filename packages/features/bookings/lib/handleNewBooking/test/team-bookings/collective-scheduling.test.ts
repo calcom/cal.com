@@ -1159,9 +1159,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 30,
                   schedulingType: SchedulingType.COLLECTIVE,
-                  length: 45,
+                  length: 30,
                   users: [
                     {
                       id: 101,
