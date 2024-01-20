@@ -259,7 +259,11 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
       team: { id: teamId },
       assignAllTeamMembers: true,
     },
-    select: { ...allManagedEventTypeProps, id: true },
+    select: {
+      ...allManagedEventTypeProps,
+      id: true,
+      schedulingType: true,
+    },
   });
 
   const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
@@ -304,8 +308,10 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
             },
           });
         } else {
-          const hosts = [...eventType.hosts, { userId, isFixed: true }];
-          return prisma.eventType.update({ where: { id: eventType.id }, data: { hosts: { create: hosts } } });
+          return prisma.eventType.update({
+            where: { id: eventType.id },
+            data: { hosts: { create: [{ userId, isFixed: true }] } },
+          });
         }
       })
     ));
