@@ -23,6 +23,10 @@ jobs:
         shard: [1, 2]
 
     steps:
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v3
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install

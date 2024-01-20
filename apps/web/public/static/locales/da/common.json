@@ -1175,7 +1175,9 @@
   "event_name_info": "Navn på begivenhedstypen",
   "event_date_info": "Dato for begivenheden",
   "event_time_info": "Starttidspunkt for begivenheden",
+  "location_variable": "Placering",
   "location_info": "Begivenhedens placering",
+  "additional_notes_variable": "Yderligere bemærkninger",
   "additional_notes_info": "De yderligere noter til booking",
   "attendee_name_info": "Navn på personen der booker",
   "to": "Til",
@@ -1529,6 +1531,7 @@
   "this_will_be_the_placeholder": "Dette vil være pladsholderen",
   "verification_code": "Bekræftelseskode",
   "verify": "Bekræft",
+  "timezone_variable": "Tidszone",
   "confirm_your_details": "Bekræft dine oplysninger",
   "overlay_my_calendar": "Vis min kalender",
   "need_help": "Brug for hjælp?"

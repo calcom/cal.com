@@ -1,3 +1,5 @@
+"use client";
+
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 
