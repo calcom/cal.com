@@ -3,8 +3,10 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import type { FieldError } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +29,9 @@ import getBookingResponsesSchema, {
 } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -173,6 +177,12 @@ export const BookEventFormChild = ({
   const recurringEventCount = useBookerStore((state) => state.recurringEventCount);
   const username = useBookerStore((state) => state.username);
   const [expiryTime, setExpiryTime] = useState<Date | undefined>();
+
+  const isPaidEvent = useMemo(() => {
+    if (!eventType?.price) return false;
+    const paymentAppData = getPaymentAppData(eventType);
+    return eventType?.price > 0 || paymentAppData.price > 0;
+  }, [eventType]);
 
   type BookingFormValues = {
     locationType?: EventLocationType["type"];
@@ -426,10 +436,23 @@ export const BookEventFormChild = ({
             />
           </div>
         )}
+        <div className="text-subtle my-3 w-full text-xs opacity-80">
+          <Trans i18nKey="signing_up_terms">
+            By proceeding, you agree to our{" "}
+            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
+              <a>Terms</a>
+            </Link>{" "}
+            and{" "}
+            <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
+              <a>Privacy Policy</a>
+            </Link>
+            .
+          </Trans>
+        </div>
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={createInstantBookingMutation.isLoading}>
-              {t("confirm")}
+              {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
             <>
@@ -455,7 +478,9 @@ export const BookEventFormChild = ({
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
-                  ? t("confirm")
+                  ? isPaidEvent
+                    ? t("pay_and_book")
+                    : t("confirm")
                   : t("verify_email_email_button")}
               </Button>
             </>
@@ -537,14 +562,14 @@ const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) =>
                   Please schedule a future call if we're not available in XX seconds.
               */}
 
-              {/* Once countdown ends: 
+              {/* Once countdown ends:
                   Oops, we couldn't connect you this time.
-                  Please schedule a future call instead. We value your time.  
+                  Please schedule a future call instead. We value your time.
               */}
 
               <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
-              <div className="h-[450px]">
-                <iframe className="mx-auto h-full" src="https://cal.games/" />
+              <div className="h-[414px]">
+                <iframe className="mx-auto h-full w-[276px] rounded-lg" src="https://cal.games/" />
               </div>
             </div>
           )}

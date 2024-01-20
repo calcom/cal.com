@@ -7,8 +7,8 @@ import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
-import { ZGetInputSchema } from "./get.schema";
 import { ZEventTypeInputSchema } from "./getByViewer.schema";
+import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
 
@@ -101,21 +101,7 @@ export const eventTypesRouter = router({
     });
   }),
 
-  get: eventOwnerProcedure.input(ZGetInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      UNSTABLE_HANDLER_CACHE.get = await import("./get.handler").then((mod) => mod.getHandler);
-    }
-
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.get) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.get({
-      ctx,
-      input,
-    });
-  }),
+  get,
 
   update: eventOwnerProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.update) {
