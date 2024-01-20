@@ -13,9 +13,15 @@ const querySchema = z.object({
   workflow: z.string(),
 });
 
-export const generateMetadata = async ({ params }: { params: Record<string, string | string[]> }) => {
+export const generateMetadata = async ({
+  params,
+  searchParams,
+}: {
+  params: Record<string, string | string[]>;
+  searchParams: { [key: string]: string | string[] | undefined };
+}) => {
   const { workflow } = await getProps(
-    buildLegacyCtx(headers(), cookies(), params) as unknown as GetServerSidePropsContext
+    buildLegacyCtx(headers(), cookies(), params, searchParams) as unknown as GetServerSidePropsContext
   );
   return await _generateMetadata(
     () => workflow ?? "Untitled",
@@ -35,7 +41,6 @@ async function getProps(context: GetServerSidePropsContext) {
 
 export const generateStaticParams = () => [];
 
-// @ts-expect-error getData arg
 export default WithLayout({ getLayout: null, getData: getProps, Page: LegacyPage })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand
