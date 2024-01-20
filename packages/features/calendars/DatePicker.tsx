@@ -192,10 +192,15 @@ const Days = ({
       // If selected date not available in the month, select the first available date of the month
       props.onChange(firstAvailableDateOfTheMonth);
     }
-
+    if (isSelectedDateAvailable) {
+      props.onChange(dayjs(selected));
+    }
     if (!firstAvailableDateOfTheMonth) {
       props.onChange(null);
     }
+    return () => {
+      props.onChange(null);
+    };
   };
 
   useEffect(useHandleInitialDateSelection);

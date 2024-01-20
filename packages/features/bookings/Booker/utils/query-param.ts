@@ -7,8 +7,7 @@ export const updateQueryParam = (param: string, value: string | number) => {
   } else {
     url.searchParams.set(param, `${value}`);
   }
-
-  window.history.pushState({}, "", url.href);
+  window.history.replaceState(window.history.state, "", url.href);
 };
 
 export const getQueryParam = (param: string) => {
@@ -22,5 +21,5 @@ export const removeQueryParam = (param: string) => {
 
   const url = new URL(window.location.href);
   url.searchParams.delete(param);
-  window.history.pushState({}, "", url.href);
+  window.history.replaceState(window.history.state, "", url.href);
 };
