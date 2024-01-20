@@ -78,7 +78,6 @@
   "cannot_repackage_codebase": "You can not repackage or sell the codebase",
   "acquire_license": "Acquire a commercial license to remove these terms by emailing",
   "terms_summary": "Summary of terms",
-  "signing_up_terms":"By signing up you agree to our <2>Terms</2> & <3>Privacy Policy</3>.",
   "open_env": "Open .env and agree to our License",
   "env_changed": "I've changed my .env",
   "accept_license": "Accept License",

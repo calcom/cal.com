@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
@@ -5,8 +6,16 @@ import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
+const ensureAppDir = async (page: Page) => {
+  const dataNextJsRouter = await page.evaluate(() =>
+    window.document.documentElement.getAttribute("data-nextjs-router")
+  );
+
+  expect(dataNextJsRouter).toEqual("app");
+};
+
 testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
-  test("should render the /apps/installed/[category]", async ({ page, users, context }) => {
+  test("should render the /apps/installed/[category]", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -15,10 +24,14 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByRole("heading", { name: "Messaging" });
 
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
+
     await expect(locator).toBeVisible();
   });
 
-  test("should render the /apps/[slug]", async ({ page, users, context }) => {
+  test("should render the /apps/[slug]", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -27,10 +40,14 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByRole("heading", { name: "Telegram" });
 
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
+
     await expect(locator).toBeVisible();
   });
 
-  test("should render the /apps/[slug]/setup", async ({ page, users, context }) => {
+  test("should render the /apps/[slug]/setup", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -39,11 +56,14 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByRole("heading", { name: "Connect to Apple Server" });
 
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
+
     await expect(locator).toBeVisible();
   });
 
-  test("should render the /apps/categories", async ({ page, users, context }) => {
-    test.skip(routeVariant === "future", "Future route not ready yet");
+  test("should render the /apps/categories", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -52,10 +72,14 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByTestId("app-store-category-messaging");
 
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
+
     await expect(locator).toBeVisible();
   });
 
-  test("should render the /apps/categories/[category]", async ({ page, users, context }) => {
+  test("should render the /apps/categories/[category]", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -64,10 +88,14 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByText(/messaging apps/i);
 
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
+
     await expect(locator).toBeVisible();
   });
 
-  test("should render the /bookings/[status]", async ({ page, users, context }) => {
+  test("should render the /bookings/[status]", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -76,11 +104,14 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
 
     const locator = page.getByTestId("horizontal-tab-upcoming");
 
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
+
     await expect(locator).toHaveClass(/bg-emphasis/);
   });
 
-  test("should render the /getting-started", async ({ page, users, context }) => {
-    test.skip(routeVariant === "future", "Future route not ready yet");
+  test("should render the /getting-started", async ({ page, users }) => {
     const user = await users.create({ completedOnboarding: false, name: null });
 
     await user.apiLogin();
@@ -88,6 +119,10 @@ testBothFutureAndLegacyRoutes.describe("apps/ A/B tests", (routeVariant) => {
     await page.goto("/getting-started/connected-calendar");
 
     const locator = page.getByText("Apple Calendar");
+
+    if (routeVariant === "future") {
+      await ensureAppDir(page);
+    }
 
     await expect(locator).toBeVisible();
   });

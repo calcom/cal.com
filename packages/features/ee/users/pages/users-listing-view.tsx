@@ -4,12 +4,11 @@ import NoSSR from "@calcom/core/components/NoSSR";
 import { Button, Meta } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
-import LicenseRequired from "../../common/components/LicenseRequired";
 import { UsersTable } from "../components/UsersTable";
 
 const DeploymentUsersListPage = () => {
   return (
-    <LicenseRequired>
+    <>
       <Meta
         title="Users"
         description="A list of all the users in your account including their name, title, email and role."
@@ -24,7 +23,7 @@ const DeploymentUsersListPage = () => {
       <NoSSR>
         <UsersTable />
       </NoSSR>
-    </LicenseRequired>
+    </>
   );
 };
 
