@@ -59,7 +59,6 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
 
     return next({
       ctx: {
-        ...ctx,
         user: {
           ...ctx.user,
           isOwnerAdminOfParentTeam: true,

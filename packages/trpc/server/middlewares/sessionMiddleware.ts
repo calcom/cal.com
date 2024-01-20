@@ -162,7 +162,7 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
   }
 
   return next({
-    ctx: { ...ctx, user, session },
+    ctx: { user, session },
   });
 });
 
@@ -171,7 +171,7 @@ export const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   if (user?.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  return next({ ctx: { ...ctx, user: user } });
+  return next({ ctx: { user: user } });
 });
 
 // Org admins can be admins or owners
@@ -180,7 +180,7 @@ export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   if (!user?.organization?.isOrgAdmin) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  return next({ ctx: { ...ctx, user: user } });
+  return next({ ctx: { user: user } });
 });
 
 export default sessionMiddleware;
