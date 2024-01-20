@@ -105,14 +105,23 @@ const MembersView = () => {
       }
     );
 
-  const { data: team, isPending: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending: isTeamsLoading,
+    error,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
+  );
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
   );
 
   const isPending = isOrgListLoading || isTeamsLoading;
