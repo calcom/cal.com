@@ -64,18 +64,21 @@ const useRecordingDownload = () => {
     },
     {
       enabled: !!recordingId,
-      cacheTime: 0,
+      gcTime: 0,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: false,
-      onSuccess: (data) => {
-        if (data && data.download_link) {
-          window.location.href = data.download_link;
-        }
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (data && data.download_link) {
+        window.location.href = data.download_link;
+      }
+    },
+    [data]
+  );
   return {
     setRecordingId: (newRecordingId: string) => {
       // may be a way to do this by default, but this is easy enough.
