@@ -1,15 +1,12 @@
-import OldPage from "@pages/video/meeting-not-started/[uid]";
-import { type Params } from "app/_types";
+import Page from "@pages/video/meeting-not-started/[uid]";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { type GetServerSidePropsContext } from "next";
-import { redirect } from "next/navigation";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
-type PageProps = Readonly<{
-  params: Params;
-}>;
+import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
 export const generateMetadata = async ({ params }: PageProps) => {
   const booking = await prisma.booking.findUnique({
@@ -25,26 +22,6 @@ export const generateMetadata = async ({ params }: PageProps) => {
   );
 };
 
-async function getData(context: Omit<GetServerSidePropsContext, "res" | "resolvedUrl">) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: typeof context?.params?.uid === "string" ? context.params.uid : "",
-    },
-    select: bookingMinimalSelect,
-  });
+const getData = withAppDirSsr(getServerSideProps);
 
-  if (!booking) {
-    return redirect("/video/no-meeting-found");
-  }
-
-  const bookingObj = Object.assign({}, booking, {
-    startTime: booking.startTime.toString(),
-    endTime: booking.endTime.toString(),
-  });
-
-  return {
-    booking: bookingObj,
-  };
-}
-
-export default WithLayout({ getData, Page: OldPage, getLayout: null })<"P">;
+export default WithLayout({ getData, Page, getLayout: null })<"P">;
