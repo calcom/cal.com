@@ -201,5 +201,3 @@ export async function createBooking({
 
     return prisma.booking.create(createBookingObj);
 }
-    return prisma.booking.create(createBookingObj);
-}
