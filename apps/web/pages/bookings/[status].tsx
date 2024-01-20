@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetStaticPaths, GetStaticProps } from "next";
+import type { GetStaticPaths } from "next";
 import { Fragment, useState } from "react";
 import React from "react";
 import { z } from "zod";
@@ -23,14 +23,13 @@ import type { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
+import { getStaticProps } from "@lib/bookings/[status]/getStaticProps";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
-
-import { ssgInit } from "@server/lib/ssg";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -260,20 +259,6 @@ export default function Bookings() {
 Bookings.PageWrapper = PageWrapper;
 Bookings.getLayout = getLayout;
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
-  const params = querySchema.safeParse(ctx.params);
-  const ssg = await ssgInit(ctx);
-
-  if (!params.success) return { notFound: true };
-
-  return {
-    props: {
-      status: params.data.status,
-      trpcState: ssg.dehydrate(),
-    },
-  };
-};
-
 export const getStaticPaths: GetStaticPaths = () => {
   return {
     paths: validStatuses.map((status) => ({
@@ -283,3 +268,5 @@ export const getStaticPaths: GetStaticPaths = () => {
     fallback: "blocking",
   };
 };
+
+export { getStaticProps };
