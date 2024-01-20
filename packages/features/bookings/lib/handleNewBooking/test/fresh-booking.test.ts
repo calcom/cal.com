@@ -1167,6 +1167,66 @@ describe("handleNewBooking", () => {
       );
     });
 
+    describe("Event length check during booking", () => {
+      test(
+        `should fail if the time difference between a booking's start and end times is not equal to the event length.`,
+        async () => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          });
+
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              organizer,
+            })
+          );
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+              end: `${getDate({ dateIncrement: 1 }).dateString}T05:15:00.000Z`,
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "New York" },
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: mockBookingData,
+          });
+
+          await expect(async () => await handleNewBooking(req)).rejects.toThrowError("Invalid event length");
+        },
+        timeout
+      );
+    });
+
     describe(
       "Availability Check during booking",
       () => {
