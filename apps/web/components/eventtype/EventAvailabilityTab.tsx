@@ -169,8 +169,15 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const watchSchedule = watch("schedule");
   const [options, setOptions] = useState<AvailabilityOption[]>([]);
 
-  const { isPending } = trpc.viewer.availability.list.useQuery(undefined, {
-    onSuccess: ({ schedules }) => {
+  const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (!data) {
+        return;
+      }
+      const schedules = data.schedules;
+
       const options = schedules.map((schedule) => ({
         value: schedule.id,
         label: schedule.name,
@@ -225,8 +232,8 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
       setValue("availability", value);
     },
-  });
-
+    [data]
+  );
   const availabilityValue = watch("availability");
 
   useEffect(() => {
