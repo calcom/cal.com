@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "3.6.1",
+  "version": "3.7.2",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -39,7 +39,7 @@
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@daily-co/daily-js": "^0.37.0",
-    "@formkit/auto-animate": "^1.0.0-beta.5",
+    "@formkit/auto-animate": "1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
     "@hookform/error-message": "^2.0.0",
     "@hookform/resolvers": "^2.9.7",
@@ -91,7 +91,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^10.0.1",
     "mime-types": "^2.1.35",
-    "next": "^13.4.6",
+    "next": "^13.5.4",
     "next-auth": "^4.22.1",
     "next-axiom": "^0.17.0",
     "next-collect": "^0.2.1",

@@ -12,10 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   Tooltip,
+  UserAvatar,
 } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal } from "@calcom/ui/components/icon";
-
-import { UserAvatar } from "@components/ui/avatar/UserAvatar";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];
