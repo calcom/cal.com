@@ -107,7 +107,13 @@ export const AddNewTeamMembersForm = ({
         {defaultValues.members.length > 0 && (
           <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
             {defaultValues.members.map((member, index) => (
-              <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
+              <PendingMemberItem
+                key={member.email}
+                member={member}
+                index={index}
+                teamId={teamId}
+                isOrg={isOrg}
+              />
             ))}
           </ul>
         )}
@@ -226,7 +232,7 @@ const AddNewTeamMemberSkeleton = () => {
   );
 };
 
-const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number }) => {
+const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number; isOrg?: boolean }) => {
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -289,6 +295,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             removeMemberMutation.mutate({
               teamId: teamId,
               memberId: member.id,
+              isOrg: !!props.isOrg,
             });
           }}
         />
