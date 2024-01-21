@@ -31,7 +31,7 @@ export const VerifyCodeDialog = ({
 }) => {
   const { t } = useLocale();
   // Not using the mutation isPending flag because after verifying we submit the underlying org creation form
-  const [isPending, setisPending] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
   const [value, setValue] = useState("");
   const [hasVerified, setHasVerified] = useState(false);
@@ -49,11 +49,11 @@ export const VerifyCodeDialog = ({
 
   const verifyCodeMutationUserSessionRequired = trpc.viewer.organizations.verifyCode.useMutation({
     onSuccess: (data) => {
-      setisPending(false);
+      setIsPending(false);
       onSuccess(data);
     },
     onError: (err) => {
-      setisPending(false);
+      setIsPending(false);
       setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
@@ -63,11 +63,11 @@ export const VerifyCodeDialog = ({
 
   const verifyCodeMutationUserSessionNotRequired = trpc.viewer.auth.verifyCodeUnAuthenticated.useMutation({
     onSuccess: (data) => {
-      setisPending(false);
+      setIsPending(false);
       onSuccess(data);
     },
     onError: (err) => {
-      setisPending(false);
+      setIsPending(false);
       setHasVerified(false);
       if (err.message === "invalid_code") {
         setError(t("code_provided_invalid"));
@@ -77,7 +77,7 @@ export const VerifyCodeDialog = ({
 
   const verifyCode = useCallback(() => {
     setError("");
-    setisPending(true);
+    setIsPending(true);
     if (isUserSessionRequiredToVerify) {
       verifyCodeMutationUserSessionRequired.mutate({
         code: value,

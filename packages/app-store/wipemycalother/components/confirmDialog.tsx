@@ -44,7 +44,7 @@ const wipeMyCalAction = async (props: IWipeMyCalAction) => {
 export const ConfirmDialog = (props: IConfirmDialogWipe) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog } = props;
-  const [isPending, setisPending] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const today = dayjs();
   const initialDate = today.startOf("day");
   const endDate = today.endOf("day");
@@ -54,7 +54,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
 
   const rescheduleApi = useMutation({
     mutationFn: async () => {
-      setisPending(true);
+      setIsPending(true);
       try {
         const result = await wipeMyCalAction({
           initialDate: initialDate.toISOString(),
@@ -68,7 +68,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
         showToast(t("unexpected_error_try_again"), "error");
         // @TODO: notify
       }
-      setisPending(false);
+      setIsPending(false);
     },
     async onSettled() {
       await utils.viewer.bookings.invalidate();

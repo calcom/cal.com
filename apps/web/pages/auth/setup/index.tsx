@@ -44,16 +44,16 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     {
       title: t("administrator_user"),
       description: t("lets_create_first_administrator_user"),
-      content: (setisPending) => (
+      content: (setIsPending) => (
         <AdminUser
           onSubmit={() => {
-            setisPending(true);
+            setIsPending(true);
           }}
           onSuccess={() => {
             setStep(2);
           }}
           onError={() => {
-            setisPending(false);
+            setIsPending(false);
           }}
           userCount={props.userCount}
         />
@@ -62,7 +62,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     {
       title: t("choose_a_license"),
       description: t("choose_license_description"),
-      content: (setisPending) => {
+      content: (setIsPending) => {
         return (
           <ChooseLicense
             id="wizard-step-2"
@@ -70,7 +70,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
             value={value}
             onChange={setValue}
             onSubmit={() => {
-              setisPending(true);
+              setIsPending(true);
               setStep(3);
             }}
           />
@@ -83,14 +83,14 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     steps.push({
       title: t("step_enterprise_license"),
       description: t("step_enterprise_license_description"),
-      content: (setisPending) => {
+      content: (setIsPending) => {
         const currentStep = 3;
         return (
           <EnterpriseLicense
             id={`wizard-step-${currentStep}`}
             name={`wizard-step-${currentStep}`}
             onSubmit={() => {
-              setisPending(true);
+              setIsPending(true);
             }}
             onSuccess={() => {
               setStep(currentStep + 1);
@@ -109,7 +109,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     title: t("enable_apps"),
     description: t("enable_apps_description", { appName: APP_NAME }),
     contentClassname: "!pb-0 mb-[-1px]",
-    content: (setisPending) => {
+    content: (setIsPending) => {
       const currentStep = isFreeLicense ? 3 : 4;
       return (
         <AdminAppsList
@@ -123,7 +123,7 @@ export function Setup(props: inferSSRProps<typeof getServerSideProps>) {
           baseURL={`/auth/setup?step=${currentStep}`}
           useQueryParam={true}
           onSubmit={() => {
-            setisPending(true);
+            setIsPending(true);
             router.replace("/");
           }}
         />

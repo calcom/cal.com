@@ -14,7 +14,7 @@ type DefaultStep = {
   containerClassname?: string;
   contentClassname?: string;
   description: string;
-  content?: ((setisPending: Dispatch<SetStateAction<boolean>>) => JSX.Element) | JSX.Element;
+  content?: ((setIsPending: Dispatch<SetStateAction<boolean>>) => JSX.Element) | JSX.Element;
   isEnabled?: boolean;
   isPending?: boolean;
 };

@@ -23,7 +23,7 @@ export const SearchDialog = (props: ISearchDialog) => {
   const [nextOffset, setNextOffset] = useState<number>(0);
   const [keyword, setKeyword] = useState<string>("");
   const { isOpenDialog, setIsOpenDialog } = props;
-  const [isPending, setisPending] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedMode, setSelectedMode] = useState<Mode>(MODE_SEARCH);
 
@@ -31,7 +31,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     if (isPending) {
       return;
     }
-    setisPending(true);
+    setIsPending(true);
     setErrorMessage("");
     const res = await fetch("/api/integrations/giphy/search", {
       method: "POST",
@@ -53,7 +53,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         setErrorMessage("No Result found");
       }
     }
-    setisPending(false);
+    setIsPending(false);
     return null;
   };
 
@@ -61,7 +61,7 @@ export const SearchDialog = (props: ISearchDialog) => {
     if (isPending) {
       return;
     }
-    setisPending(true);
+    setIsPending(true);
     setErrorMessage("");
     const res = await fetch("/api/integrations/giphy/get", {
       method: "POST",
@@ -81,7 +81,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         setErrorMessage("No Result found");
       }
     }
-    setisPending(false);
+    setIsPending(false);
     return null;
   };
 
