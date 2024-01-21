@@ -1,9 +1,9 @@
 "use client";
 
-import type { AppProps as NextAppProps } from "next/app";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta, WizardLayout, WizardLayoutAppDir } from "@calcom/ui";
 
@@ -25,16 +25,23 @@ const OnboardTeamMembersPage = () => {
   );
 };
 
-OnboardTeamMembersPage.getLayout = (page: React.ReactElement, router: NextAppProps["router"]) => (
-  <WizardLayout
-    currentStep={4}
-    maxSteps={5}
-    isOptionalCallback={() => {
-      router.push(`/settings/organizations/${router.query.id}/add-teams`);
-    }}>
-    {page}
-  </WizardLayout>
-);
+OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const router = useRouter();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const query = useCompatSearchParams();
+
+  return (
+    <WizardLayout
+      currentStep={4}
+      maxSteps={5}
+      isOptionalCallback={() => {
+        router.push(`/settings/organizations/${query.get("id")}/add-teams`);
+      }}>
+      {page}
+    </WizardLayout>
+  );
+};
 
 export const buildWrappedOnboardTeamMembersPage = (
   id: string | string[] | undefined,
