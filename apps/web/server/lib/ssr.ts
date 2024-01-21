@@ -4,7 +4,7 @@ import superjson from "superjson";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
+import { createProxySSGHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 

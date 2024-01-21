@@ -5,7 +5,7 @@ import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 import { z } from "zod";
@@ -162,11 +162,16 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
-  const { data, isPending } = trpc.viewer.public.ssoConnections.useQuery(undefined, {
-    onError: (err) => {
-      setErrorMessage(err.message);
+  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        setErrorMessage(error.message);
+      }
     },
-  });
+    [error]
+  );
 
   const displaySSOLogin = HOSTED_CAL_FEATURES
     ? true

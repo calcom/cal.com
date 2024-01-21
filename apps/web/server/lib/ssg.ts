@@ -4,7 +4,7 @@ import superjson from "superjson";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import prisma, { readonlyPrisma } from "@calcom/prisma";
-import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
+import { createProxySSGHelpers } from "@calcom/trpc/react/server";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
