@@ -11,6 +11,7 @@ export type CheckedSelectOption = {
   label: string;
   value: string;
   disabled?: boolean;
+  profileId: number | null;
 };
 
 export const CheckedTeamSelect = ({
@@ -24,7 +25,6 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
 
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
-
   return (
     <>
       <Select

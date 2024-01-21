@@ -2,6 +2,7 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
@@ -78,7 +79,10 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   const profileId = session.profileId ?? null;
   const upId = session.upId;
 
-  logger.debug("getUserFromSession: enriching user with profile", { userFromDb, profileId, upId });
+  logger.debug(
+    "getUserFromSession: enriching user with profile",
+    safeStringify({ userFromDb, profileId, upId })
+  );
   const user = await UserRepository.enrichUserWithProfile({
     user: userFromDb,
     upId,

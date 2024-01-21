@@ -196,10 +196,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => ({
-        ...host,
-        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-      })),
+      create: hosts.map((host) => {
+        const { profileId, ...rest } = host;
+        return {
+          ...rest,
+          profileId,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+        };
+      }),
     };
   }
 

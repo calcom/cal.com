@@ -19,10 +19,15 @@ interface IUserToValue {
   username: string | null;
   avatar: string;
   email: string;
+  profileId: number | null;
 }
 
-const mapUserToValue = ({ id, name, username, avatar, email }: IUserToValue, pendingString: string) => ({
+const mapUserToValue = (
+  { id, name, username, avatar, email, profileId }: IUserToValue,
+  pendingString: string
+) => ({
   value: `${id || ""}`,
+  profileId,
   label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
   avatar,
   email,
@@ -110,8 +115,8 @@ const CheckedHostField = ({
   labelText: string;
   placeholder: string;
   isFixed: boolean;
-  value: { isFixed: boolean; userId: number }[];
-  onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
+  value: { isFixed: boolean; userId: number; profileId: number | null }[];
+  onChange?: (options: { isFixed: boolean; userId: number; profileId: number | null }[]) => void;
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
@@ -126,6 +131,7 @@ const CheckedHostField = ({
               onChange(
                 options.map((option) => ({
                   isFixed,
+                  profileId: option.profileId,
                   userId: parseInt(option.value, 10),
                 }))
               );
@@ -166,13 +172,14 @@ const RoundRobinHosts = ({
   value,
   onChange,
 }: {
-  value: { isFixed: boolean; userId: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  value: { isFixed: boolean; userId: number; profileId: number | null }[];
+  onChange: (hosts: { isFixed: boolean; userId: number; profileId: number | null }[]) => void;
   teamMembers: {
     value: string;
     label: string;
     avatar: string;
     email: string;
+    profileId: number | null;
   }[];
 }) => {
   const { t } = useLocale();
@@ -225,6 +232,7 @@ const Hosts = ({
     label: string;
     avatar: string;
     email: string;
+    profileId: number | null;
   }[];
 }) => {
   const { t } = useLocale();

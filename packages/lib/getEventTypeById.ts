@@ -395,6 +395,7 @@ export default async function getEventTypeById({
           };
           return {
             ...user,
+            profileId: user.profile.id,
             eventTypes: user.eventTypes.map((evTy) => evTy.slug),
             membership: member.role,
           };

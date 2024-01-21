@@ -37,6 +37,8 @@ enum PeriodType {
 model Host {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
+  profileId   Int?
+  profile     Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
@@ -316,6 +318,7 @@ model Profile {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   Credential      Credential[]
+  Host            Host[]
 
   @@unique([userId, organizationId])
   @@unique([movedFromUserId])
