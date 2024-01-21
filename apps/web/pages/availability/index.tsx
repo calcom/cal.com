@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { EmptyScreen, showToast, ToggleGroup, HeadSeo } from "@calcom/ui";
+import { EmptyScreen, showToast, ToggleGroup } from "@calcom/ui";
 import { Clock } from "@calcom/ui/components/icon";
 
 import { withQuery } from "@lib/QueryCell";
@@ -159,8 +159,9 @@ export default function AvailabilityPage() {
   return (
     <div>
       <ShellMain
-        withoutSeo
         heading={t("availability")}
+        title="Availability"
+        description="Configure times when you are available for bookings."
         hideHeadingOnMobile
         subtitle={t("configure_availability")}
         CTA={
@@ -180,7 +181,6 @@ export default function AvailabilityPage() {
             <NewScheduleButton />
           </div>
         }>
-        <HeadSeo title="Availability" description="Configure times when you are available for bookings." />
         {searchParams?.get("type") === "team" ? (
           <AvailabilitySliderTable />
         ) : (

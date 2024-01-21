@@ -13,7 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast, HeadSeo } from "@calcom/ui";
+import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -53,9 +53,10 @@ function WorkflowsPage() {
 
   return (
     <ShellMain
-      withoutSeo
       heading={t("workflows")}
       subtitle={t("workflows_to_automate_notifications")}
+      title="Workflows"
+      description="Create workflows to automate notifications and reminders."
       hideHeadingOnMobile
       CTA={
         session.data?.hasValidLicense ? (
@@ -70,7 +71,6 @@ function WorkflowsPage() {
           />
         ) : null
       }>
-      <HeadSeo title="Workflows" description="Create workflows to automate notifications and reminders." />
       <LicenseRequired>
         <>
           {queryRes.data?.totalCount ? (

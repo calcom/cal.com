@@ -46,7 +46,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   EmptyScreen,
-  HeadSeo,
   HorizontalTabs,
   Label,
   showToast,
@@ -953,16 +952,13 @@ const EventTypesPage = () => {
 
   return (
     <ShellMain
-      withoutSeo
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       beforeCTAactions={<Actions />}
+      title="Event Types"
+      description="Create events to share for people to book on your calendar."
       CTA={<CTA data={data} />}>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
       <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
     </ShellMain>
   );

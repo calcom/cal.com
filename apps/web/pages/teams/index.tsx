@@ -9,7 +9,7 @@ import { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, HeadSeo } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -22,8 +22,9 @@ function Teams() {
 
   return (
     <ShellMain
-      withoutSeo
       heading={t("teams")}
+      title="Teams"
+      description="Create and manage teams to use collaborative features."
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
@@ -38,7 +39,6 @@ function Teams() {
           </Button>
         )
       }>
-      <HeadSeo title="Teams" description="Create and manage teams to use collaborative features." />
       <TeamsListing />
     </ShellMain>
   );

@@ -228,7 +228,7 @@ const OutOfOfficePage = () => {
   return (
     <>
       <Meta title={t("out_of_office")} description={t("out_of_office_description")} borderInShellHeader />
-      <ShellMain>
+      <ShellMain withoutSeo>
         <OutOfOfficeSection />
       </ShellMain>
     </>
