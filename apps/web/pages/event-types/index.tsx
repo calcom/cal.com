@@ -856,7 +856,7 @@ const Main = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
 
-  if (!data || status === "loading") {
+  if (!data || status === "pending") {
     return <SkeletonLoader />;
   }
 
