@@ -168,7 +168,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]()) as PaymentApp | null;
+        const paymentApp = (await appStore[app.dirName as keyof typeof appStore]?.()) as PaymentApp | null;
         if (paymentApp && "lib" in paymentApp && paymentApp?.lib && "PaymentService" in paymentApp?.lib) {
           const PaymentService = paymentApp.lib.PaymentService;
           const paymentInstance = new PaymentService(credential);
