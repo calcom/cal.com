@@ -2,8 +2,6 @@ import { expect } from "@playwright/test";
 import path from "path";
 import { uuid } from "short-uuid";
 
-import { prisma } from "@calcom/prisma";
-
 import { test } from "../lib/fixtures";
 import { generateTotpCode } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
@@ -134,9 +132,6 @@ test.describe("Organization", () => {
       await lastRemoveMemberButton.click();
       await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
-      // Cleanup here since this user is created without our fixtures.
-      await prisma.user.delete({ where: { email: adminEmail } });
-
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
       await page.waitForURL("/settings/organizations/*/add-teams");
