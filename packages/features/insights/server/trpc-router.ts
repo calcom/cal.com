@@ -39,6 +39,7 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     where: membershipWhereConditional,
   });
 
+  let isOwnerAdminOfParentTeam = false;
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
@@ -56,18 +57,17 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
     if (!membershipOrg) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
-
-    return next({
-      ctx: {
-        user: {
-          ...ctx.user,
-          isOwnerAdminOfParentTeam: true,
-        },
-      },
-    });
+    isOwnerAdminOfParentTeam = true;
   }
 
-  return next();
+  return next({
+    ctx: {
+      user: {
+        ...ctx.user,
+        isOwnerAdminOfParentTeam,
+      },
+    },
+  });
 });
 
 const UserSelect = {
