@@ -9,12 +9,6 @@ import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type {
-  AppGetServerSidePropsContext,
-  AppPrisma,
-  AppSsrInit,
-  AppUser,
-} from "@calcom/types/AppGetServerSideProps";
 import {
   Alert,
   Badge,
@@ -45,13 +39,13 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { RoutingPages } from "../lib/RoutingPages";
-import { getSerializableForm } from "../lib/getSerializableForm";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { processRoute } from "../lib/processRoute";
 import type { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
+import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
@@ -548,70 +542,4 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   );
 }
 
-export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma,
-  user: AppUser,
-  ssrInit: AppSsrInit
-) {
-  const ssr = await ssrInit(context);
-
-  if (!user) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-  const { params } = context;
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 1) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
-  if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const form = await prisma.app_RoutingForms_Form.findUnique({
-    where: {
-      id: formId,
-    },
-    include: {
-      team: {
-        select: {
-          name: true,
-          slug: true,
-        },
-      },
-      _count: {
-        select: {
-          responses: true,
-        },
-      },
-    },
-  });
-  if (!form) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-      form: await getSerializableForm({ form }),
-    },
-  };
-};
+export { getServerSidePropsForSingleFormView };

@@ -3728,6 +3728,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/feishucalendar@workspace:packages/app-store/feishucalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/feishucalendar@workspace:packages/app-store/feishucalendar"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ga4@workspace:packages/app-store/ga4":
   version: 0.0.0-use.local
   resolution: "@calcom/ga4@workspace:packages/app-store/ga4"
