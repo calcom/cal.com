@@ -4,7 +4,7 @@ import superjson from "superjson";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
-import { createSSGHelpers } from "@calcom/trpc/react/server";
+import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
@@ -19,7 +19,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
   const locale = await getLocale(context.req);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
 
-  const ssr = createSSGHelpers({
+  const ssr = createServerSideHelpers({
     router: appRouter,
     transformer: superjson,
     ctx: { ...ctx, locale, i18n },

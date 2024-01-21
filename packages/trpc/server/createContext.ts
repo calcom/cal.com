@@ -52,7 +52,7 @@ export type GetSessionFn =
  *
  * Also useful for:
  * - testing, so you don't have to mock Next.js' `req`/`res`
- * - tRPC's `createSSGHelpers` where we don't have `req`/`res`
+ * - tRPC's `createServerSideHelpers` where we don't have `req`/`res`
  *
  * @see https://trpc.io/docs/context#inner-and-outer-context
  */
