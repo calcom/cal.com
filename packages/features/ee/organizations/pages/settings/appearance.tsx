@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -212,11 +212,16 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { t } = useLocale();
-  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
+  const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
     },
-  });
+    [error]
+  );
 
   if (isPending) {
     return <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_org_description")} />;

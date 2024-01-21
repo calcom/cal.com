@@ -151,7 +151,6 @@ export const insightsRouter = router({
       }
 
       if (isAll && ctx.user.isOwnerAdminOfParentTeam && ctx.user.organizationId) {
-        //              ^?
         const teamsFromOrg = await ctx.insightsDb.team.findMany({
           where: {
             parentId: ctx.user.organizationId,
