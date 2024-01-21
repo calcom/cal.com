@@ -88,8 +88,8 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 recurringEvent: recurrence,
                 users: [
                   {
@@ -294,8 +294,8 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 recurringEvent: recurrence,
                 users: [
                   {
@@ -426,8 +426,8 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 recurringEvent: recurrence,
                 users: [
                   {
@@ -641,8 +641,8 @@ describe("handleNewBooking", () => {
             eventTypes: [
               {
                 id: 1,
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 recurringEvent: recurrence,
                 users: [
                   {

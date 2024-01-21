@@ -1,7 +1,9 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
-import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
+import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -13,35 +15,22 @@ import { z } from "zod";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import {
-  APP_NAME,
-  URL_PROTOCOL_REGEX,
-  IS_CALCOM,
-  IS_SELF_HOSTED,
-  WEBAPP_URL,
-  WEBSITE_URL,
-} from "@calcom/lib/constants";
+import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
 
-import PageWrapper from "@components/PageWrapper";
+import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
-import { ssrInit } from "../server/lib/ssr";
+import PageWrapper from "@components/PageWrapper";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -49,7 +38,7 @@ const signupSchema = apiSignupSchema.extend({
 
 type FormValues = z.infer<typeof signupSchema>;
 
-type SignupProps = inferSSRProps<typeof getServerSideProps>;
+export type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
 const FEATURES = [
   {
@@ -156,8 +145,6 @@ function UsernameField({
     </div>
   );
 }
-
-const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
@@ -455,15 +442,24 @@ export default function Signup({
                   {t("sign_in")}
                 </Link>
               </div>
-              <div className="text-subtle">
-                By signing up, you agree to our{" "}
-                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
-                  Terms{" "}
-                </Link>
-                <span>&</span>{" "}
-                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
-                  Privacy Policy.
-                </Link>
+              <div className="text-subtle ">
+                <Trans i18nKey="signing_up_terms">
+                  By proceeding, you agree to our{" "}
+                  <Link
+                    className="text-emphasis hover:underline"
+                    href={`${WEBSITE_URL}/terms`}
+                    target="_blank">
+                    <a>Terms</a>
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    className="text-emphasis hover:underline"
+                    href={`${WEBSITE_URL}/privacy`}
+                    target="_blank">
+                    <a>Privacy Policy</a>
+                  </Link>
+                  .
+                </Trans>
               </div>
             </div>
           </div>
@@ -557,160 +553,6 @@ export default function Signup({
   );
 }
 
-const querySchema = z.object({
-  username: z
-    .string()
-    .optional()
-    .transform((val) => val || ""),
-  email: z.string().email().optional(),
-});
-
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-  const ssr = await ssrInit(ctx);
-  const token = z.string().optional().parse(ctx.query.token);
-
-  const props = {
-    isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-    isSAMLLoginEnabled,
-    trpcState: ssr.dehydrate(),
-    prepopulateFormValues: undefined,
-  };
-
-  // username + email prepopulated from query params
-  const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
-
-  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
-    return {
-      notFound: true,
-    };
-  }
-
-  // no token given, treat as a normal signup without verification token
-  if (!token) {
-    return {
-      props: JSON.parse(
-        JSON.stringify({
-          ...props,
-          prepopulateFormValues: {
-            username: preFillusername || null,
-            email: prefilEmail || null,
-          },
-        })
-      ),
-    };
-  }
-
-  const verificationToken = await prisma.verificationToken.findUnique({
-    where: {
-      token,
-    },
-    include: {
-      team: {
-        select: {
-          metadata: true,
-          parentId: true,
-          parent: {
-            select: {
-              slug: true,
-              metadata: true,
-            },
-          },
-          slug: true,
-        },
-      },
-    },
-  });
-
-  if (!verificationToken || verificationToken.expires < new Date()) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        {
-          email: verificationToken?.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
-      },
-    };
-  }
-
-  const guessUsernameFromEmail = (email: string) => {
-    const [username] = email.split("@");
-    return username;
-  };
-
-  let username = guessUsernameFromEmail(verificationToken.identifier);
-
-  const tokenTeam = {
-    ...verificationToken?.team,
-    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
-  };
-
-  const isATeamInOrganization = tokenTeam?.parentId !== null;
-  const isOrganization = tokenTeam.metadata?.isOrganization;
-  // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganizationOrATeamInOrganization = isOrganization || isATeamInOrganization;
-  // If we are dealing with an org, the slug may come from the team itself or its parent
-  const orgSlug = isOrganizationOrATeamInOrganization
-    ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
-    : null;
-
-  // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization) {
-    // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
-    const { available, suggestion } = await checkPremiumUsername(username);
-
-    username = available ? username : suggestion || username;
-  }
-
-  const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
-  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
-    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
-    : null;
-
-  return {
-    props: {
-      ...props,
-      token,
-      prepopulateFormValues: !isOrgInviteByLink
-        ? {
-            email: verificationToken.identifier,
-            username: isOrganizationOrATeamInOrganization
-              ? getOrgUsernameFromEmail(
-                  verificationToken.identifier,
-                  (isOrganization
-                    ? tokenTeam.metadata?.orgAutoAcceptEmail
-                    : parentMetaDataForSubteam?.orgAutoAcceptEmail) || ""
-                )
-              : slugify(username),
-          }
-        : null,
-      orgSlug,
-      orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
-        : null,
-    },
-  };
-};
+export { getServerSideProps };
 
 Signup.PageWrapper = PageWrapper;

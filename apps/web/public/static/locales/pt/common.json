@@ -78,7 +78,6 @@
   "cannot_repackage_codebase": "Não pode redistribuir ou vender o código",
   "acquire_license": "Adquira uma licença comercial para remover estes termos através do envio de um email",
   "terms_summary": "Resumo dos termos",
-  "signing_up_terms": "Ao se cadastrar você concorda com nossos <2>Termos</2> & <3>Política de Privacidade</3>.",
   "open_env": "Abra o .env e concorde com a nossa licença",
   "env_changed": "Alterei o meu .env",
   "accept_license": "Aceitar licença",
