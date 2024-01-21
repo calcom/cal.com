@@ -134,7 +134,7 @@ export function OverlayCalendarContainer() {
     externalId: string;
   }>("toggledConnectedCalendars", []);
 
-  const { data: overlayBusyDates } = trpc.viewer.availability.calendarOverlay.useQuery(
+  const { data: overlayBusyDates, error } = trpc.viewer.availability.calendarOverlay.useQuery(
     {
       loggedInUsersTz: timezone || "Europe/London",
       dateFrom: selectedDate,
@@ -146,10 +146,16 @@ export function OverlayCalendarContainer() {
     },
     {
       enabled: !!session && set.size > 0 && switchEnabled,
-      onError: () => {
-        clearSet();
-      },
     }
+  );
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        clearSet();
+      }
+    },
+    [error]
   );
 
   useEffect(() => {

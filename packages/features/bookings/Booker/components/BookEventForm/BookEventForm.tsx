@@ -201,7 +201,8 @@ export const BookEventFormChild = ({
       }
     ),
   });
-  const createBookingMutation = useMutation(createBooking, {
+  const createBookingMutation = useMutation({
+    mutationFn: createBooking,
     onSuccess: (responseData) => {
       const { uid, paymentUid } = responseData;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
@@ -248,7 +249,8 @@ export const BookEventFormChild = ({
     },
   });
 
-  const createInstantBookingMutation = useMutation(createInstantBooking, {
+  const createInstantBookingMutation = useMutation({
+    mutationFn: createInstantBooking,
     onSuccess: (responseData) => {
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
@@ -260,7 +262,8 @@ export const BookEventFormChild = ({
     },
   });
 
-  const createRecurringBookingMutation = useMutation(createRecurringBooking, {
+  const createRecurringBookingMutation = useMutation({
+    mutationFn: createRecurringBooking,
     onSuccess: async (responseData) => {
       const booking = responseData[0] || {};
       const { uid } = booking;
@@ -494,31 +497,34 @@ const RedirectToInstantMeetingModal = ({ expiryTime }: { expiryTime?: Date }) =>
   const bookingId = parseInt(getQueryParam("bookingId") || "0");
   const hasInstantMeetingTokenExpired = expiryTime && new Date(expiryTime) < new Date();
 
-  const instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
-    {
-      bookingId: bookingId,
-    },
-    {
-      enabled: !!bookingId && !hasInstantMeetingTokenExpired,
-      refetchInterval: 2000,
-      onSuccess: (data) => {
-        try {
-          showToast(t("something_went_wrong_on_our_end"), "error");
+  const instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery({
+    bookingId: bookingId,
+  });
 
-          const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-            data.booking?.metadata || {}
-          )?.videoCallUrl;
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = instantBooking.data;
+      if (!data) {
+        return;
+      }
 
-          if (locationVideoCallUrl) {
-            router.push(locationVideoCallUrl);
-          } else {
-            showToast(t("something_went_wrong_on_our_end"), "error");
-          }
-        } catch (err) {
+      try {
+        showToast(t("something_went_wrong_on_our_end"), "error");
+
+        const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+          data.booking?.metadata || {}
+        )?.videoCallUrl;
+
+        if (locationVideoCallUrl) {
+          router.push(locationVideoCallUrl);
+        } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
-      },
-    }
+      } catch (err) {
+        showToast(t("something_went_wrong_on_our_end"), "error");
+      }
+    },
+    [instantBooking.data]
   );
 
   return (
