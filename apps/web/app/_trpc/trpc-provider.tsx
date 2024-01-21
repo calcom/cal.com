@@ -4,10 +4,7 @@ import { trpc } from "app/_trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { httpBatchLink } from "@calcom/trpc/client";
-import { httpLink } from "@calcom/trpc/client";
-import { loggerLink } from "@calcom/trpc/client";
-import { splitLink } from "@calcom/trpc/client";
+import { httpBatchLink, httpLink, loggerLink, splitLink } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
 
 export type Endpoint = (typeof ENDPOINTS)[number];
