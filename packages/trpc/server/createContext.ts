@@ -10,7 +10,11 @@ import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client
 
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-type CreateContextOptions = CreateNextContextOptions | GetServerSidePropsContext;
+type CreateContextOptions =
+  | (Omit<CreateNextContextOptions, "info"> & {
+      info?: CreateNextContextOptions["info"];
+    })
+  | GetServerSidePropsContext;
 
 export type CreateInnerContextOptions = {
   sourceIp?: string;

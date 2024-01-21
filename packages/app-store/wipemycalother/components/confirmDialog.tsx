@@ -52,8 +52,8 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
 
   const utils = trpc.useContext();
 
-  const rescheduleApi = useMutation(
-    async () => {
+  const rescheduleApi = useMutation({
+    mutationFn: async () => {
       setisPending(true);
       try {
         const result = await wipeMyCalAction({
@@ -70,12 +70,10 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
       }
       setisPending(false);
     },
-    {
-      async onSettled() {
-        await utils.viewer.bookings.invalidate();
-      },
-    }
-  );
+    async onSettled() {
+      await utils.viewer.bookings.invalidate();
+    },
+  });
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
