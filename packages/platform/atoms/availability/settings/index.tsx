@@ -17,7 +17,20 @@ import { DateOverride } from "../components/date-overrides/index";
 import { Timezone } from "../components/timezone/index";
 import { Troubleshooter } from "../components/troubleshooter/index";
 import { availabilityAsString } from "../lib/availabilityAsString";
+import type { daysInNumbers } from "../lib/daysInAWeek";
+import { daysInAWeek } from "../lib/daysInAWeek";
 import type { AvailabilityFormValues } from "../types";
+
+export type Schedule = {
+  id: number;
+  startTime: Date;
+  endTime: Date;
+  userId: number | null;
+  eventTypeId: number | null;
+  date: Date | null;
+  scheduleId: number | null;
+  days: number[];
+};
 
 type AvailabilitySettingsProps = {
   id?: string;
@@ -30,12 +43,14 @@ type AvailabilitySettingsProps = {
     workingHours: WorkingHours[];
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
+    schedule: Schedule[] | [];
   };
   handleDelete: (id: string) => void;
   isDeleting: boolean;
   isLoading: boolean;
   timeFormat: number;
-  weekStart?: number;
+  weekStart: string;
+  backPath: boolean;
   handleSubmit: (data: SubmitHandler<AvailabilityFormValues>) => Promise<void>;
 };
 
@@ -49,9 +64,11 @@ export function AvailabilitySettings({
   isLoading,
   timeFormat,
   weekStart,
+  backPath,
   handleSubmit,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
+  const userWeekStart = daysInAWeek.indexOf(weekStart) as typeof daysInNumbers;
 
   const form = useForm<AvailabilityFormValues>({
     values: schedule && {
@@ -59,6 +76,15 @@ export function AvailabilitySettings({
       schedule: schedule?.availability || [],
     },
   });
+
+  const subtitle = schedule.schedule
+    .filter((availability) => !!availability.days.length)
+    .map((availability) => (
+      <span key={availability.id}>
+        {availabilityAsString(availability, { hour12: timeFormat === 12 })}
+        <br />
+      </span>
+    ));
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -73,22 +99,9 @@ export function AvailabilitySettings({
             )}
           />
         }
+        backPath={backPath}
         SidebarContainer={<></>}
-        // TODO: resolve subtitle logic which is causing some errors at the moment
-        subtitle={
-          schedule ? (
-            schedule.availability
-              .filter((availability: any) => !!availability.days.length)
-              .map((availability: any) => (
-                <span key={availability.id}>
-                  {availabilityAsString(availability, { hour12: timeFormat === 12 })}
-                  <br />
-                </span>
-              ))
-          ) : (
-            <SkeletonText className="h-4 w-48" />
-          )
-        }
+        subtitle={schedule ? subtitle : <SkeletonText className="h-4 w-48" />}
         CTA={
           <div className="flex items-center justify-end">
             <LargeScreenCTA
@@ -140,7 +153,7 @@ export function AvailabilitySettings({
                     <Schedule
                       control={form.control as unknown as Control<FieldValues, any>}
                       name="schedule"
-                      weekStart={weekStart}
+                      weekStart={userWeekStart}
                     />
                   )}
                 </div>
