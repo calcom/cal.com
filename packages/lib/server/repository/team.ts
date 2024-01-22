@@ -7,9 +7,8 @@ import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
-  | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
+  | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata"> & {
       metadata: z.infer<typeof teamMetadataSchema>;
-      isOrganization: boolean;
     })
   | null;
 
@@ -50,8 +49,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   teamSelect = {
     ...teamSelect,
     metadata: true,
-    isOrganization: true,
-  } satisfies TeamSelect;
+  };
   if (lookupBy.havingMemberWithId) where.members = { some: { userId: lookupBy.havingMemberWithId } };
 
   if ("id" in lookupBy) {
@@ -65,7 +63,10 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
     // Note that an organization and a team that doesn't belong to an organization, both have parentId null
     // If the organization has null slug(but requestedSlug is 'test') and the team also has slug 'test', we can't distinguish them without explicitly checking the metadata.isOrganization
     // Note that, this isn't possible now to have same requestedSlug as the slug of a team not part of an organization. This is legacy teams handling mostly. But it is still safer to be sure that you are fetching an Organization only in case of isOrgView
-    where.isOrganization = true;
+    where.metadata = {
+      path: ["isOrganization"],
+      equals: true,
+    };
     // We must fetch only the team here.
   } else {
     if (forOrgWithSlug) {
@@ -82,32 +83,21 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
 
   // teamSelect extends Prisma.TeamSelect but still teams doesn't contain a valid team as per TypeScript and thus it doesn't consider it having team.metadata, team.id and other fields
   // This is the reason below code is using a lot of assertions.
-  const select = teamSelect;
-
   const teams = await prisma.team.findMany({
     where,
     select: teamSelect,
   });
 
   const teamsWithParsedMetadata = teams
-    .map((team) => {
-      const teamX = team;
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore ts types are way too complciated for this now
-      const parsedMetadata = teamMetadataSchema.parse(team.metadata ?? {});
-      return {
-        ...team,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore It does exist
-        isOrganization: team.isOrganization as boolean,
-        metadata: parsedMetadata,
-      };
-    })
+    .map((team) => ({
+      ...team,
+      // Using Type assertion here because we know that the metadata is present and Prisma and TypeScript aren't playing well together
+      metadata: teamMetadataSchema.parse((team as { metadata: z.infer<typeof teamMetadataSchema> }).metadata),
+    }))
     // In cases where there are many teams with the same slug, we need to find out the one and only one that matches our criteria
     .filter((team) => {
       // We need an org if isOrgView otherwise we need a team
-      return isOrg ? team.isOrganization : !team.isOrganization;
+      return isOrg ? team.metadata?.isOrganization : !team.metadata?.isOrganization;
     });
 
   if (teamsWithParsedMetadata.length > 1) {

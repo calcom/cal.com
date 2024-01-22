@@ -2,6 +2,7 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -67,7 +68,6 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
           team: {
             select: {
               id: true,
-              isOrganization: true,
               name: true,
               slug: true,
               parentId: true,
@@ -115,7 +115,8 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
 
   const teamWebhookGroups: WebhookGroup[] = user.teams
     .filter((mmship) => {
-      return !mmship.team.isOrganization;
+      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
+      return !metadata?.isOrganization;
     })
     .map((membership) => {
       const orgMembership = teamMemberships.find(

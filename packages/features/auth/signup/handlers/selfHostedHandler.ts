@@ -12,8 +12,10 @@ import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUse
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { prefillAvatar } from "../utils/prefillAvatar";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -68,6 +70,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
     if (team) {
+      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
@@ -85,6 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       const { membership } = await createOrUpdateMemberships({
+        teamMetadata,
         user,
         team,
       });
@@ -131,6 +136,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         identityProvider: IdentityProvider.CAL,
       },
     });
+
+    if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
+      await prefillAvatar({ email: userEmail });
+    }
+
     await sendEmailVerification({
       email: userEmail,
       username: correctedUsername,

@@ -2,7 +2,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import type { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,7 +11,6 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -34,14 +32,11 @@ import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { getServerSideProps, type PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
-
-import { ssrInit } from "@server/lib/ssr";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
@@ -669,45 +664,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   );
 };
 
-const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
+const EventTypePageWrapper = (props: PageProps) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
   if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res, query } = context;
-
-  const session = await getServerSession({ req, res });
-
-  const typeParam = parseInt(asStringOrThrow(query.type));
-  const ssr = await ssrInit(context);
-
-  if (Number.isNaN(typeParam)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  if (!session?.user?.id) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-
-  await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
-  return {
-    props: {
-      type: typeParam,
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
-
 EventTypePageWrapper.PageWrapper = PageWrapper;
 
+export { getServerSideProps };
 export default EventTypePageWrapper;

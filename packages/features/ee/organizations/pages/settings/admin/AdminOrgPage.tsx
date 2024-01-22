@@ -107,7 +107,7 @@ function AdminOrgTable() {
               </Cell>
               <Cell>
                 <div className="space-x-2">
-                  {!org.organizationSettings?.isOrganizationVerified ? (
+                  {!org.metadata?.isOrganizationVerified ? (
                     <Badge variant="red">{t("unverified")}</Badge>
                   ) : (
                     <Badge variant="blue">{t("verified")}</Badge>
@@ -116,7 +116,7 @@ function AdminOrgTable() {
               </Cell>
               <Cell>
                 <div className="space-x-2">
-                  {org.organizationSettings?.isOrganizationConfigured ? (
+                  {org.metadata?.isOrganizationConfigured ? (
                     <Badge variant="blue">{t("dns_configured")}</Badge>
                   ) : (
                     <Badge variant="red">{t("dns_missing")}</Badge>
@@ -136,7 +136,7 @@ function AdminOrgTable() {
                 <div className="flex w-full justify-end">
                   <DropdownActions
                     actions={[
-                      ...(!org.organizationSettings?.isOrganizationVerified
+                      ...(!org.metadata?.isOrganizationVerified
                         ? [
                             {
                               id: "verify",
@@ -150,7 +150,7 @@ function AdminOrgTable() {
                             },
                           ]
                         : []),
-                      ...(!org.organizationSettings?.isOrganizationConfigured
+                      ...(!org.metadata?.isOrganizationConfigured
                         ? [
                             {
                               id: "dns",
@@ -158,7 +158,7 @@ function AdminOrgTable() {
                               onClick: () => {
                                 updateMutation.mutate({
                                   id: org.id,
-                                  organizationSettings: {
+                                  metadata: {
                                     isOrganizationConfigured: true,
                                   },
                                 });

@@ -4,6 +4,7 @@ import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,7 +36,9 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
   });
 
-  if (deletedTeam?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
+  const deletedTeamMetadata = teamMetadataSchema.parse(deletedTeam.metadata);
+
+  if (deletedTeamMetadata?.isOrganization && deletedTeam.slug) deleteDomain(deletedTeam.slug);
 
   // Sync Services: Close.cm
   closeComDeleteTeam(deletedTeam);

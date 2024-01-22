@@ -1,23 +1,49 @@
+import type { SearchParams } from "app/_types";
 import { type Params } from "app/_types";
+import type { GetServerSidePropsContext } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
-// returns query object same as ctx.query but for app dir
-export const getQuery = (url: string, params: Params) => {
-  if (!url.length) {
-    return params;
-  }
+const createProxifiedObject = (object: Record<string, string>) =>
+  new Proxy(object, {
+    set: () => {
+      throw new Error("You are trying to modify 'headers' or 'cookies', which is not supported in app dir");
+    },
+  });
 
-  const { searchParams } = new URL(url);
-  const searchParamsObj = Object.fromEntries(searchParams.entries());
+const buildLegacyHeaders = (headers: ReadonlyHeaders) => {
+  const headersObject = Object.fromEntries(headers.entries());
 
-  return { ...searchParamsObj, ...params };
+  return createProxifiedObject(headersObject);
 };
 
-export const buildLegacyCtx = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies, params: Params) => {
+const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
+  const cookiesObject = cookies.getAll().reduce<Record<string, string>>((acc, { name, value }) => {
+    acc[name] = value;
+    return acc;
+  }, {});
+
+  return createProxifiedObject(cookiesObject);
+};
+
+export const buildLegacyCtx = (
+  headers: ReadonlyHeaders,
+  cookies: ReadonlyRequestCookies,
+  params: Params,
+  searchParams: SearchParams
+) => {
   return {
-    query: getQuery(headers.get("x-url") ?? "", params),
+    query: { ...searchParams, ...params },
     params,
-    req: { headers, cookies },
-  };
+    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
+    res: new Proxy(Object.create(null), {
+      // const { req, res } = ctx - valid
+      // res.anything - throw
+      get() {
+        throw new Error(
+          "You are trying to access the 'res' property of the context, which is not supported in app dir"
+        );
+      },
+    }),
+  } as unknown as GetServerSidePropsContext;
 };

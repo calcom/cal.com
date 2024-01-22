@@ -696,7 +696,7 @@ describe("orgMigration", () => {
     });
 
     describe("when user email matches orgAutoAcceptEmail", () => {
-      const orgSettings = {
+      const orgMetadata = {
         orgAutoAcceptEmail: "org1.com",
       } as const;
 
@@ -725,10 +725,8 @@ describe("orgMigration", () => {
         const dbOrg = await createOrg({
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
-          organizationSettings: {
-            create: {
-              ...orgSettings,
-            },
+          metadata: {
+            ...orgMetadata,
           },
         });
 
@@ -786,10 +784,8 @@ describe("orgMigration", () => {
         const dbOrg = await createOrg({
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
-          organizationSettings: {
-            create: {
-              ...orgSettings,
-            },
+          metadata: {
+            ...orgMetadata,
           },
         });
 
@@ -841,11 +837,7 @@ describe("orgMigration", () => {
           name: data.targetOrg.name,
           metadata: {
             requestedSlug: data.targetOrg.requestedSlug,
-          },
-          organizationSettings: {
-            create: {
-              ...orgSettings,
-            },
+            ...orgMetadata,
           },
         });
 
@@ -909,7 +901,9 @@ describe("orgMigration", () => {
           id: data.targetOrg.id,
           slug: data.targetOrg.slug,
           name: data.targetOrg.name,
-          isOrganization: true,
+          metadata: {
+            isOrganization: true,
+          },
         },
       });
 
@@ -1570,9 +1564,9 @@ async function createOrg(
   return await prismock.team.create({
     data: {
       ...data,
-      isOrganization: true,
       metadata: {
         ...(data.metadata || {}),
+        isOrganization: true,
       },
     },
   });
