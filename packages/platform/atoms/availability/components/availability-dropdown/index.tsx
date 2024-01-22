@@ -9,10 +9,10 @@ import {
 import { MoreHorizontal, Copy, Trash } from "@calcom/ui/components/icon";
 
 type AvailabilityDropdownProps = {
-  schedule: any;
+  schedule: { name: string; id: number; timeZone: string };
   isLoading: boolean;
-  onDelete: () => void;
-  onDuplicate: () => void;
+  onDelete: (id: number) => void;
+  onDuplicate: (id: number) => void;
 };
 
 export function AvailabilityDropdown({
@@ -55,7 +55,7 @@ export function AvailabilityDropdown({
               type="button"
               data-testid={`schedule-duplicate${schedule.id}`}
               StartIcon={Copy}
-              onClick={onDuplicate}>
+              onClick={() => onDuplicate(schedule.id)}>
               Duplicate
             </DropdownItem>
           </DropdownMenuItem>
@@ -65,7 +65,7 @@ export function AvailabilityDropdown({
               color="destructive"
               StartIcon={Trash}
               data-testid="delete-schedule"
-              onClick={onDelete}>
+              onClick={() => onDelete(schedule.id)}>
               Delete
             </DropdownItem>
           </DropdownMenuItem>
