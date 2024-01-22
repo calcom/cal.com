@@ -73,6 +73,7 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
     {
       enabled: !!bookingId && !hasInstantMeetingTokenExpired,
       refetchInterval: 2000,
+      refetchIntervalInBackground: true,
     }
   );
   useEffect(

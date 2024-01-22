@@ -179,7 +179,7 @@ const BookerComponent = ({
     event,
   });
 
-  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates } = useBookings({
+  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = useBookings({
     event,
     hashedLink,
     bookingForm,
@@ -245,6 +245,7 @@ const BookerComponent = ({
               isUserSessionRequiredToVerify={false}
             />
             <RedirectToInstantMeetingModal
+              expiryTime={expiryTime}
               hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
               bookingId={parseInt(getQueryParam("bookingId") || "0")}
               onGoBack={() => {
@@ -279,6 +280,7 @@ const BookerComponent = ({
       setSeatedEventData,
       setSelectedTimeslot,
       setVerifiedEmail,
+      expiryTime,
     ]
   );
 
@@ -301,8 +303,9 @@ const BookerComponent = ({
       {bookerState !== "booking" && event.data?.isInstantEvent && (
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "2s" }}>
+          style={{ animationDelay: "1s" }}>
           <InstantBooking
+            event={event.data}
             onConnectNow={() => {
               const newPath = `${pathname}?isInstantMeeting=true`;
               router.push(newPath);

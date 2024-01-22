@@ -51,6 +51,7 @@ export const BookEventForm = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
