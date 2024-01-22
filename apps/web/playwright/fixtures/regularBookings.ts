@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import { randomString } from "@calcom/lib/random";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { localize } from "../lib/testUtils";
@@ -20,6 +21,8 @@ type BookingOptions = {
   isAllRequired?: boolean;
   isMultiSelect?: boolean;
 };
+
+type teamBookingtypes = { isManagedType?: boolean; isRoundRobinType?: boolean; isCollectiveType?: boolean };
 
 interface QuestionActions {
   [key: string]: () => Promise<void>;
@@ -300,14 +303,6 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      await eventTypePage.waitForTimeout(400);
-      if (
-        await eventTypePage.getByRole("heading", { name: "Could not reschedule the meeting." }).isVisible()
-      ) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      }
     },
 
     assertBookingRescheduled: async (page: Page) => {
@@ -366,19 +361,17 @@ export function createBookingPageFixture(page: Page) {
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
       await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(400);
-      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await fillQuestion(eventTypePage, question, customLocators);
-        options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
-        await eventTypePage.getByTestId(confirmButton).click();
-      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    checkField: async (question: string) => {
+
+    checkField: async (question: string, options?: { isOptional: boolean }) => {
+      if (options?.isOptional) {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Optional")).toBeVisible();
+      } else {
+        await expect(page.getByTestId(`field-${question}-test`).getByText("Required")).toBeVisible();
+      }
       await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
     },
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
@@ -396,7 +389,113 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
+    createTeam: async (name: string) => {
+      const teamsText = (await localize("en"))("teams");
+      const continueText = (await localize("en"))("continue");
+      const publishTeamText = (await localize("en"))("team_publish");
 
+      await page.getByRole("link", { name: teamsText }).click();
+      await page.getByTestId("new-team-btn").click();
+      await page.getByPlaceholder("Acme Inc.").click();
+      await page.getByPlaceholder("Acme Inc.").fill(`${name}-${randomString(3)}`);
+      await page.getByRole("button", { name: continueText }).click();
+      await page.getByRole("button", { name: publishTeamText }).click();
+
+      await page.getByTestId("vertical-tab-Back").click();
+    },
+    createTeamEventType: async (name: string, options: teamBookingtypes) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-0").click();
+
+      // We first simulate to create a default event type to check if managed option is not available
+
+      const managedEventDescription = (await localize("en"))("managed_event_description");
+      const roundRobinEventDescription = (await localize("en"))("round_robin_description");
+      const collectiveEventDescription = (await localize("en"))("collective_description");
+      const quickChatText = (await localize("en"))("quick_chat");
+      await expect(page.locator("div").filter({ hasText: managedEventDescription })).toBeHidden();
+      await page.getByTestId("dialog-rejection").click();
+
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-team-1").click();
+      await page.getByPlaceholder(quickChatText).fill(name);
+      if (options.isCollectiveType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Collective${collectiveEventDescription}` })
+          .getByRole("radio")
+          .first()
+          .click();
+      }
+
+      if (options.isRoundRobinType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Round Robin${roundRobinEventDescription}` })
+          .getByRole("radio")
+          .nth(1)
+          .click();
+      }
+
+      if (options.isManagedType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Managed Event${managedEventDescription}` })
+          .getByRole("radio")
+          .last()
+          .click();
+
+        const managedEventClarification = (await localize("en"))("managed_event_url_clarification");
+        await expect(page.getByText(managedEventClarification)).toBeVisible();
+      }
+
+      const continueText = (await localize("en"))("continue");
+
+      await page.getByRole("button", { name: continueText }).click();
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
+      expect(toast).toBeTruthy();
+      await page.getByTestId("update-eventtype").click();
+    },
+    removeManagedEventType: async () => {
+      await page
+        .locator("header")
+        .filter({ hasText: "Test Managed Event TypeSave" })
+        .getByRole("button")
+        .first()
+        .click();
+
+      // Check if the correct messages is showed in the dialog
+      const deleteManagedEventTypeDescription = (await localize("en"))(
+        "delete_managed_event_type_description"
+      );
+      const confirmDeleteEventTypeText = (await localize("en"))("confirm_delete_event_type");
+      await expect(page.getByText(deleteManagedEventTypeDescription)).toBeVisible();
+      await page.getByRole("button", { name: confirmDeleteEventTypeText }).click();
+
+      // Check if the correct image is showed when there is no event type
+      await expect(page.getByTestId("empty-screen")).toBeVisible();
+    },
+    assertManagedEventTypeDeleted: async () => {
+      const eventTypeDeletedText = (await localize("en"))("event_type_deleted_successfully");
+      await expect(page.getByRole("button", { name: eventTypeDeletedText })).toBeVisible();
+    },
+    deleteTeam: async () => {
+      const teamsText = (await localize("en"))("teams");
+      const teamLogoText = (await localize("en"))("team_logo");
+      const disbandTeamText = (await localize("en"))("disband_team");
+      const confirmDisbandTeamText = (await localize("en"))("confirm_disband_team");
+      await page.getByRole("link", { name: teamsText }).click();
+      await page.getByRole("link", { name: `${teamLogoText} Test Team` }).click();
+      await page.getByRole("button", { name: disbandTeamText }).click();
+      await page.getByRole("button", { name: confirmDisbandTeamText }).click();
+
+      // Check if the correct image is showed when there is no team
+      await expect(page.getByRole("img", { name: "Cal.com is better with teams" })).toBeVisible();
+    },
+    assertTeamDeleted: async () => {
+      const teamDisbandedText = (await localize("en"))("your_team_disbanded_successfully");
+      await expect(page.getByRole("button", { name: teamDisbandedText })).toBeVisible();
+    },
     checkBufferTime: async () => {
       const minutes = (await localize("en"))("minutes");
       const fieldPlaceholder = page.getByPlaceholder("0");
