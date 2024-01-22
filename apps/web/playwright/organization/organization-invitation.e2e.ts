@@ -395,11 +395,11 @@ async function signupFromEmailInviteLink({
   signupPage.goto(inviteLink);
   await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
-  expect(await signupPage.locator(`[data-testid="signup-usernamefield"]`).inputValue()).toBe(
-    expectedUsername
-  );
+  // await for value. initial value is ""
+  await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toHaveValue(expectedUsername);
+
   await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
-  expect(await signupPage.locator(`[data-testid="signup-emailfield"]`).inputValue()).toBe(expectedEmail);
+  await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
 
   await signupPage.waitForLoadState("networkidle");
   // Check required fields
