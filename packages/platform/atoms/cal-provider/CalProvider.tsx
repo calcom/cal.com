@@ -1,9 +1,8 @@
 import { useUpdateUserTimezone } from "hooks/useUpdateUserTimezone";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
-import { useGetUserTimezone } from "../hooks/useGetUserTimezone";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
 import http from "../lib/http";
@@ -17,8 +16,12 @@ type CalProviderProps = {
 
 export function CalProvider({ clientId, accessToken, options, children }: CalProviderProps) {
   const [error, setError] = useState<string>("");
-  const userPreferredTimezone = useGetUserTimezone(clientId);
   const currentUserTimezone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const { mutateAsync } = useUpdateUserTimezone();
+  const handleTimezoneChange = async () => {
+    await mutateAsync({ key: clientId, timeZone: currentUserTimezone });
+  };
 
   const { isInit } = useOAuthClient({
     clientId,
@@ -33,21 +36,6 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
     onError: setError,
     clientId,
   });
-
-  const { mutateAsync } = useUpdateUserTimezone();
-
-  const updateUserTimezone = useCallback(
-    async (preferredTimezone: string, currentTimezone: string) => {
-      if (preferredTimezone !== currentTimezone) {
-        await mutateAsync({ key: clientId, timeZone: currentTimezone });
-      }
-    },
-    [clientId, mutateAsync]
-  );
-
-  useEffect(() => {
-    updateUserTimezone(userPreferredTimezone, currentUserTimezone);
-  }, [userPreferredTimezone, currentUserTimezone, updateUserTimezone]);
 
   return isInit ? (
     <AtomsContext.Provider
