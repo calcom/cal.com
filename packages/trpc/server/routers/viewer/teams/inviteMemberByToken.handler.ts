@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { updateQuantitySubscriptionFromStripe } from "@calcom/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
@@ -41,13 +42,12 @@ export const inviteMemberByTokenHandler = async ({ ctx, input }: InviteMemberByT
     });
 
   try {
-    await prisma.membership.create({
-      data: {
-        teamId: verificationToken.teamId,
-        userId: ctx.user.id,
-        role: MembershipRole.MEMBER,
-        accepted: false,
-      },
+    await MembershipRepository.create({
+      teamId: verificationToken.teamId,
+      userId: ctx.user.id,
+      role: MembershipRole.MEMBER,
+      accepted: false,
+      profileId: ctx.user.profile.id,
     });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

@@ -152,6 +152,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
           role: MembershipRole.OWNER,
           accepted: true,
           teamId: organization.id,
+          profileId: "UNKNOWN",
         },
       });
       return { user, organization };
