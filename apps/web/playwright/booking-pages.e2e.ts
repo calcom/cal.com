@@ -403,7 +403,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
   test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
     const [testUser] = users.get();
-    testUser.apiLogin();
+    await testUser.apiLogin();
 
     const team = await testUser.getFirstTeamMembership();
 
