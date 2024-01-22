@@ -4,14 +4,27 @@ import { useEffect } from "react";
 
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
-export const initFormbricks = ({ userId, attributes }: { userId: string; attributes: any }) => {
+export const initFormbricks = ({
+  userId,
+  attributes,
+}: {
+  userId: string;
+  attributes: { [key: string]: string | null | undefined };
+}) => {
+  const filteredAttributes: Record<string, string | number> = {};
+  Object.entries(attributes).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      filteredAttributes[key] = value;
+    }
+  });
+
   if (process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL && process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID) {
     formbricks.init({
       environmentId: process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID,
       apiHost: process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL,
-      debug: true,
+      debug: process.env.NODE_ENV === "development",
       userId,
-      attributes,
+      attributes: filteredAttributes,
     });
   }
 };
@@ -35,7 +48,7 @@ export const useFormbricks = () => {
           email: user.email,
           username: user?.username,
           belongsToActiveTeam: session.user.belongsToActiveTeam?.toString(),
-          isOrganizationAdmin: user.organization?.isOrgAdmin.toString(),
+          isOrganizationAdmin: user.organization?.isOrgAdmin?.toString(),
         },
       });
     }

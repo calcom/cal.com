@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
@@ -21,7 +20,6 @@ export default function OtherTeamList(props: Props) {
     switch (action) {
       case "disband":
         deleteTeam(teamId);
-        trackFormbricksAction("team_disbanded");
         break;
     }
   }
