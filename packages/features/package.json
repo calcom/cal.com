@@ -6,10 +6,15 @@
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",
   "main": "index.ts",
+  "scripts": {
+    "build": "tsc --build --force tsconfig.json",
+    "build:watch": "tsc --build --force ./tsconfig.json --watch"
+  },
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
+    "@calcom/types": "*",
     "@calcom/ui": "*",
     "@lexical/react": "^0.9.0",
     "@tanstack/react-table": "^8.9.3",

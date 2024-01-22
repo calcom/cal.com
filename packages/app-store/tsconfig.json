@@ -12,12 +12,5 @@
     },
     "resolveJsonModule": true
   },
-  "include": [
-    "next-env.d.ts",
-    "@calcom/types",
-    "../types/*.d.ts",
-    "../types/next-auth.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["next-env.d.ts", "../types/*.d.ts", "**/*.ts", "**/*.tsx"]
 }
