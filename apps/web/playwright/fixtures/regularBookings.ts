@@ -450,9 +450,9 @@ export function createBookingPageFixture(page: Page) {
       }
 
       const continueText = (await localize("en"))("continue");
+      const toast = page.getByTestId("toast-success");
 
       await page.getByRole("button", { name: continueText }).click();
-      const toast = await page.waitForSelector('[data-testid="toast-success"]');
       expect(toast).toBeTruthy();
       await page.getByTestId("update-eventtype").click();
     },
