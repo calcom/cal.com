@@ -14,8 +14,6 @@ import classNames from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -181,7 +179,7 @@ const BookerComponent = ({
     event,
   });
 
-  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates } = useBookings({
+  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = useBookings({
     event,
     hashedLink,
     bookingForm,
@@ -247,6 +245,7 @@ const BookerComponent = ({
               isUserSessionRequiredToVerify={false}
             />
             <RedirectToInstantMeetingModal
+              expiryTime={expiryTime}
               hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
               bookingId={parseInt(getQueryParam("bookingId") || "0")}
               onGoBack={() => {
@@ -281,6 +280,7 @@ const BookerComponent = ({
       setSeatedEventData,
       setSelectedTimeslot,
       setVerifiedEmail,
+      expiryTime,
     ]
   );
 
