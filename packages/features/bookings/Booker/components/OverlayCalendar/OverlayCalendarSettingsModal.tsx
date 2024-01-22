@@ -64,7 +64,7 @@ export function OverlayCalendarSettingsModal({
           className="pb-4"
           description={t("view_overlay_calendar_events")}>
           <div className="no-scrollbar max-h-full overflow-y-scroll ">
-            {isPending ? (
+            {isLoading ? (
               <SkeletonLoader />
             ) : (
               <>

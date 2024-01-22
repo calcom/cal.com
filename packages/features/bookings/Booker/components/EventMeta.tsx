@@ -24,10 +24,10 @@ const TimezoneSelect = dynamic(
 
 export const EventMeta = ({
   event,
-  isLoading,
+  isPending,
 }: {
   event: useEventReturnType["data"];
-  isLoading: useEventReturnType["isLoading"];
+  isPending: useEventReturnType["isPending"];
 }) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -65,12 +65,12 @@ export const EventMeta = ({
 
   return (
     <div className="relative z-10 p-6" data-testid="event-meta">
-      {isLoading && (
+      {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
         </m.div>
       )}
-      {!isLoading && !!event && (
+      {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
