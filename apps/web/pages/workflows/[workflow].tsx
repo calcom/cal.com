@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetStaticPaths } from "next";
 
 import Workflow from "@calcom/features/ee/workflows/pages/workflow";

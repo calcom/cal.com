@@ -1,11 +1,9 @@
-import { getStaticProps } from "@pages/workflows/[workflow]";
+import LegacyPage, { getStaticProps } from "@pages/workflows/[workflow]";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
-
-import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -29,6 +27,7 @@ const getData = withAppDirSsg(getStaticProps);
 
 export const generateStaticParams = () => [];
 
+// @ts-expect-error TODO: fix this
 export default WithLayout({ getLayout: null, getData, Page: LegacyPage })<"P">;
 export const dynamic = "force-static";
 // generate segments on demand
