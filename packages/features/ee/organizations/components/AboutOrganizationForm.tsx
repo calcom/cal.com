@@ -29,7 +29,7 @@ export const AboutOrganizationForm = () => {
   const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: (data) => {
       if (data.update) {
-        router.push(`/settings/organizations/${orgId}/onboard-admins`);
+        router.push(`/settings/organizations/${orgId}/onboard-members`);
       }
     },
     onError: (err) => {

@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -14,25 +13,25 @@ import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
 import type { BookerLayout } from "../types";
-import { OverlayCalendarContainer } from "./OverlayCalendar/OverlayCalendarContainer";
 
 export function Header({
   extraDays,
   isMobile,
   enabledLayouts,
   nextSlots,
-  username,
   eventSlug,
+  isMyLink,
+  renderOverlay,
 }: {
   extraDays: number;
   isMobile: boolean;
   enabledLayouts: BookerLayouts[];
   nextSlots: number;
-  username: string;
   eventSlug: string;
+  isMyLink: boolean;
+  renderOverlay?: () => JSX.Element | null;
 }) {
   const { t, i18n } = useLocale();
-  const session = useSession();
   const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStore((state) => state.selectedDate);
@@ -63,8 +62,6 @@ export function Header({
       <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
     );
   };
-  const isMyLink = username === session?.data?.user.username; // TODO: check for if the user is the owner of the link
-
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
@@ -79,7 +76,7 @@ export function Header({
             </Button>
           </Tooltip>
         ) : (
-          <OverlayCalendarContainer />
+          renderOverlay?.()
         )}
         <LayoutToggleWithData />
       </div>
@@ -140,7 +137,7 @@ export function Header({
         </ButtonGroup>
       </div>
       <div className="ml-auto flex gap-2">
-        <OverlayCalendarContainer />
+        {renderOverlay?.()}
         <TimeFormatToggle />
         <div className="fixed top-4 ltr:right-4 rtl:left-4">
           <LayoutToggleWithData />
