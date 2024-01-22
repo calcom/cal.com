@@ -1,6 +1,7 @@
 import type { DestinationCalendar } from "@prisma/client";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -73,13 +74,13 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
         };
       }
     }
-    user.destinationCalendar = await prisma.destinationCalendar.create({
-      data: {
-        userId: user.id,
-        integration,
-        externalId,
-        credentialId,
-      },
+
+    user.destinationCalendar = await DestinationCalendarRepository.create({
+      userId: user.id,
+      profileId: user.profile.id,
+      integration,
+      externalId,
+      credentialId: credentialId ?? null,
     });
   } else {
     /* There are connected calendars and a destination calendar */
