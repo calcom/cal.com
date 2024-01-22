@@ -1,5 +1,4 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import {
@@ -144,7 +143,6 @@ export default function OtherTeamListItem(props: Props) {
                         isPending={props.isPending}
                         onConfirm={() => {
                           props.onActionSelect("disband");
-                          trackFormbricksAction("team_disbanded");
                         }}>
                         {t("disband_team_confirmation_message")}
                       </ConfirmationDialogContent>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui";
@@ -27,6 +28,7 @@ export default function TeamInviteList(props: Props) {
     switch (action) {
       case "disband":
         deleteTeam(teamId);
+        trackFormbricksAction("team_disbanded");
         break;
     }
   }

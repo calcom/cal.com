@@ -6,7 +6,6 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -326,7 +325,6 @@ export default function TeamListItem(props: Props) {
                             isPending={props.isPending}
                             onConfirm={() => {
                               props.onActionSelect("disband");
-                              trackFormbricksAction("team_disbanded");
                             }}>
                             {t("disband_team_confirmation_message")}
                           </ConfirmationDialogContent>
