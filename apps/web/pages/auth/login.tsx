@@ -1,8 +1,8 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
-import { jwtVerify } from "jose";
-import type { GetServerSidePropsContext } from "next";
-import { getCsrfToken, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,21 +12,17 @@ import { z } from "zod";
 
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL, WEBSITE_URL, HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 import { ArrowLeft, Lock } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { WithNonceProps } from "@lib/withNonce";
-import withNonce from "@lib/withNonce";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
@@ -34,8 +30,7 @@ import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
-import { ssrInit } from "@server/lib/ssr";
+import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
 interface LoginValues {
   email: string;
@@ -52,7 +47,7 @@ export default function Login({
   samlProductID,
   totpEmail,
 }: // eslint-disable-next-line @typescript-eslint/ban-types
-inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
+inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -269,97 +264,6 @@ inferSSRProps<typeof _getServerSideProps> & WithNonceProps<{}>) {
   );
 }
 
-// TODO: Once we understand how to retrieve prop types automatically from getServerSideProps, remove this temporary variable
-const _getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res, query } = context;
-
-  const session = await getServerSession({ req, res });
-  const ssr = await ssrInit(context);
-
-  const verifyJwt = (jwt: string) => {
-    const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);
-
-    return jwtVerify(jwt, secret, {
-      issuer: WEBSITE_URL,
-      audience: `${WEBSITE_URL}/auth/login`,
-      algorithms: ["HS256"],
-    });
-  };
-
-  let totpEmail = null;
-  if (context.query.totp) {
-    try {
-      const decryptedJwt = await verifyJwt(context.query.totp as string);
-      if (decryptedJwt.payload) {
-        totpEmail = decryptedJwt.payload.email as string;
-      } else {
-        return {
-          redirect: {
-            destination: "/auth/error?error=JWT%20Invalid%20Payload",
-            permanent: false,
-          },
-        };
-      }
-    } catch (e) {
-      return {
-        redirect: {
-          destination: "/auth/error?error=Invalid%20JWT%3A%20Please%20try%20again",
-          permanent: false,
-        },
-      };
-    }
-  }
-
-  if (session) {
-    const { callbackUrl } = query;
-
-    if (callbackUrl) {
-      try {
-        const destination = getSafeRedirectUrl(callbackUrl as string);
-        if (destination) {
-          return {
-            redirect: {
-              destination,
-              permanent: false,
-            },
-          };
-        }
-      } catch (e) {
-        console.warn(e);
-      }
-    }
-
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-
-  const userCount = await prisma.user.count();
-  if (userCount === 0) {
-    // Proceed to new onboarding to create first admin user
-    return {
-      redirect: {
-        destination: "/auth/setup",
-        permanent: false,
-      },
-    };
-  }
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-      trpcState: ssr.dehydrate(),
-      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-      isSAMLLoginEnabled,
-      samlTenantID,
-      samlProductID,
-      totpEmail,
-    },
-  };
-};
+export { getServerSideProps };
 
 Login.PageWrapper = PageWrapper;
-
-export const getServerSideProps = withNonce(_getServerSideProps);

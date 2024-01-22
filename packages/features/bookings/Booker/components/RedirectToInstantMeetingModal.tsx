@@ -37,14 +37,14 @@ export const RedirectToInstantMeetingModal = ({
                   Please schedule a future call if we're not available in XX seconds.
               */}
 
-              {/* Once countdown ends: 
+              {/* Once countdown ends:
                   Oops, we couldn't connect you this time.
-                  Please schedule a future call instead. We value your time.  
+                  Please schedule a future call instead. We value your time.
               */}
 
               <p className="font-medium">{t("please_do_not_close_this_tab")}</p>
-              <div className="h-[450px]">
-                <iframe className="mx-auto h-full" src="https://cal.games/" />
+              <div className="h-[414px]">
+                <iframe className="mx-auto h-full w-[276px] rounded-lg" src="https://cal.games/" />
               </div>
             </div>
           )}

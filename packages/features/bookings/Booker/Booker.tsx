@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useMemo } from "react";
-import type { UseFormReturn, FieldValues } from "react-hook-form";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -230,7 +229,7 @@ const BookerComponent = ({
           errors={{ ...formErrors, ...errors }}
           loadingStates={loadingStates}
           renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
-          bookingForm={bookingForm as unknown as UseFormReturn<FieldValues, any>}
+          bookingForm={bookingForm}
           eventQuery={event}
           rescheduleUid={rescheduleUid}>
           <>

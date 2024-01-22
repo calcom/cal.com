@@ -8,9 +8,9 @@ import prisma from "@calcom/prisma";
 import { ssrInit } from "@server/lib/ssr";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
+  const { req } = context;
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
