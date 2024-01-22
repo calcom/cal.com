@@ -6,7 +6,7 @@ import { getToken } from "next-auth/jwt";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { CAL_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
@@ -49,7 +49,7 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const user = await prisma.user.findUnique({
+  const userFromDb = await prisma.user.findUnique({
     where: {
       email: token.email.toLowerCase(),
     },
@@ -57,21 +57,27 @@ export async function getServerSession(options: {
     // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
-  if (!user) {
+  if (!userFromDb) {
     return null;
   }
 
   const hasValidLicense = await checkLicense(prisma);
-  const profile = await ProfileRepository.getProfile(token.profileId ?? null);
+
   let upId = token.upId;
+
   if (!upId) {
-    upId = profile?.upId ?? `usr-${user?.id}`;
+    upId = `usr-${userFromDb?.id}`;
   }
 
   if (!upId) {
-    log.error("No upId found for session", { profileId: token.profileId, userId: user?.id });
+    log.error("No upId found for session", { userId: userFromDb.id });
     return null;
   }
+
+  const user = await UserRepository.enrichUserWithProfile({
+    user: userFromDb,
+    upId,
+  });
 
   const session: Session = {
     hasValidLicense,
@@ -89,7 +95,7 @@ export async function getServerSession(options: {
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,
-      profile,
+      profile: user.profile,
     },
     profileId: token.profileId,
     upId,

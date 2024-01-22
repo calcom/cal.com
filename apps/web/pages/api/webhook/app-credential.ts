@@ -4,11 +4,14 @@ import z from "zod";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 
 const appCredentialWebhookRequestBodySchema = z.object({
   // UserId of the cal.com user
   userId: z.number().int(),
+  profileId: z.union([z.number(), z.null()]),
   appSlug: z.string(),
   // Keys should be AES256 encrypted with the CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY
   keys: z.string(),
@@ -32,6 +35,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
+  }
+
+  if (reqBody.profileId) {
+    const profile = ProfileRepository.findByUserIdAndProfileId({
+      userId: reqBody.userId,
+      profileId: reqBody.profileId,
+    });
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
   }
 
   const app = await prisma.app.findUnique({
@@ -75,13 +88,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     return res.status(200).json({ message: `Credentials updated for userId: ${reqBody.userId}` });
   } else {
-    await prisma.credential.create({
-      data: {
-        key: keys,
-        userId: reqBody.userId,
-        appId: appMetadata.slug,
-        type: appMetadata.type,
-      },
+    await CredentialRepository.create({
+      key: keys,
+      userId: reqBody.userId,
+      appId: appMetadata.slug,
+      type: appMetadata.type,
+      profileId: reqBody.profileId,
     });
     return res.status(200).json({ message: `Credentials created for userId: ${reqBody.userId}` });
   }

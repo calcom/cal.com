@@ -124,7 +124,7 @@ async function isSlugTakenBySomeUserInTheOrganization({
   organizationId: number;
   slug: string;
 }) {
-  return await ProfileRepository.getProfileByOrgIdAndUsername({
+  return await ProfileRepository.findByOrgIdAndUsername({
     organizationId: organizationId,
     username: slug,
   });

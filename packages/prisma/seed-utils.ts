@@ -4,6 +4,7 @@ import { uuid } from "short-uuid";
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 
 import prisma from ".";
 
@@ -154,11 +155,10 @@ export async function createUserAndEventType({
   if (credentials) {
     for (const credential of credentials) {
       if (credential) {
-        await prisma.credential.create({
-          data: {
-            ...credential,
-            userId: theUser.id,
-          },
+        await CredentialRepository.create({
+          ...credential,
+          userId: theUser.id,
+          profileId: null,
         });
 
         console.log(`🔑 ${credential.type} credentials created for ${theUser.email}`);

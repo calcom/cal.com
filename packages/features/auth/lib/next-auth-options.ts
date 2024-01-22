@@ -277,8 +277,13 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        // FIXME: OrgNewSchema - How do we set profile here.
-        profile: null,
+        profile: {
+          id: profile.profileId || null,
+          organizationId: profile.organizationId || null,
+          organization: profile.organization || null,
+          username: profile.username || "",
+          upId: profile.upId || "",
+        },
       };
     },
     options: {
@@ -339,7 +344,13 @@ if (isSAMLLoginEnabled) {
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
           // FIXME: OrgNewSchema - How do we set profile here.
-          profile: null,
+          profile: {
+            id: null,
+            organizationId: null,
+            organization: null,
+            username: "",
+            upId: "",
+          },
         };
       },
     })
@@ -552,17 +563,7 @@ export const AUTH_OPTIONS: AuthOptions = {
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", { session, token, user });
       const hasValidLicense = await checkLicense(prisma);
-      // const existingUser = await prisma.user.findFirst({
-      //   where: {
-      //     email: token?.email as string,
-      //   },
-      // });
       const profileId = token.profileId;
-      // if (existingUser) {
-      //   const allOrgProfiles = await ProfileRepository.getOrgProfilesForUser(existingUser);
-      //   profileId = !ENABLE_PROFILE_SWITCHER ? allOrgProfiles[0]?.id : profileId;
-      // }
-
       const calendsoSession: Session = {
         ...session,
         profileId,

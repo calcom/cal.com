@@ -8,18 +8,20 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
+import type { OrgProfile, PersonalProfile, UserAsPersonalProfile } from "@calcom/types/UserProfile";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
 });
 
 type ProfileType =
-  | (Awaited<ReturnType<typeof ProfileRepository.getOrgProfilesForUser>>[number] & {
-      organization: {
+  | UserAsPersonalProfile
+  | PersonalProfile
+  | (Omit<OrgProfile, "organization"> & {
+      organization: OrgProfile["organization"] & {
         members: Membership[];
       };
-    })
-  | null;
+    });
 
 const auditAndReturnNextUser = async (
   impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role" | "locale"> & {
@@ -143,27 +145,34 @@ async function getImpersonatedUser({
     throw new Error("This user does not exist");
   }
 
-  const allOrgProfiles = await ProfileRepository.getOrgProfilesForUser({ id: impersonatedUser.id });
-  const firstOrgProfile = allOrgProfiles[0] as undefined | (typeof allOrgProfiles)[number];
-  const orgMembers = firstOrgProfile
+  const allOrgProfiles = await ProfileRepository.getAllProfilesForUser({
+    id: impersonatedUser.id,
+    username: impersonatedUser.username,
+  });
+
+  const firstOrgProfile = allOrgProfiles[0];
+  const orgMembers = firstOrgProfile.organizationId
     ? await prisma.membership.findMany({
         where: {
           teamId: firstOrgProfile.organizationId,
         },
       })
     : [];
+
+  const profile = !firstOrgProfile.organization
+    ? firstOrgProfile
+    : {
+        ...firstOrgProfile,
+        organization: {
+          ...firstOrgProfile.organization,
+          members: orgMembers,
+        },
+      };
+
   return {
     ...impersonatedUser,
     organizationId: firstOrgProfile?.organizationId ?? null,
-    profile: firstOrgProfile
-      ? {
-          ...firstOrgProfile,
-          organization: {
-            ...firstOrgProfile.organization,
-            members: orgMembers,
-          },
-        }
-      : null,
+    profile,
   };
 }
 
@@ -185,7 +194,6 @@ const ImpersonationProvider = CredentialsProvider({
     checkPermission(session);
 
     const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
-
     if (session?.user.role === "ADMIN") {
       if (impersonatedUser.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");

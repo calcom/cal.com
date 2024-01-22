@@ -5,6 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -64,13 +65,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
   };
 
-  const credential = await prisma.credential.create({
-    data: {
-      type: config.type,
-      key,
-      userId: req.session.user.id,
-      appId: config.slug,
-    },
+  const credential = await CredentialRepository.create({
+    type: config.type,
+    key,
+    userId: req.session.user.id,
+    profileId: req.session.user.profile.id,
+    appId: config.slug,
   });
 
   const calendarResponse = await fetch("https://calendar.zoho.com/api/v1/calendars", {

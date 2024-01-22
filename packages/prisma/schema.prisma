@@ -179,6 +179,8 @@ model DestinationCalendar {
   externalId   String
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
+  profileId    Int?
+  profile      Profile?    @relation(fields: [profileId], references: [id], onDelete: Cascade)
   booking      Booking[]
   eventType    EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId  Int?        @unique
@@ -313,12 +315,13 @@ model Profile {
   bookingRedirects   OutOfOfficeEntry[]
   bookingRedirectsTo OutOfOfficeEntry[]      @relation(name: "toProfile")
 
-  movedFromUserId Int?
-  movedFromUser   User?        @relation("moved_to_profile")
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  Credential      Credential[]
-  Host            Host[]
+  movedFromUserId     Int?
+  movedFromUser       User?                 @relation("moved_to_profile")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  Credential          Credential[]
+  Host                Host[]
+  DestinationCalendar DestinationCalendar[]
 
   @@unique([userId, organizationId])
   @@unique([movedFromUserId])

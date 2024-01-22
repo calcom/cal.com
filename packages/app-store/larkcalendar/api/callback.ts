@@ -1,9 +1,11 @@
+import checkSession from "../../_utils/auth";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -21,7 +23,7 @@ const callbackQuerySchema = z.object({
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = callbackQuerySchema.parse(req.query);
   const state = decodeOAuthState(req);
-
+  const session = checkSession(req);
   try {
     const appAccessToken = await getAppAccessToken();
 
@@ -67,13 +69,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!currentCredential) {
-      await prisma.credential.create({
-        data: {
-          type: "lark_calendar",
-          key,
-          userId: req.session?.user.id,
-          appId: "lark-calendar",
-        },
+      await CredentialRepository.create({
+        type: "lark_calendar",
+        key,
+        userId: session.user.id,
+        profileId: session.user.profile.id,
+        appId: "lark-calendar",
       });
     } else {
       await prisma.credential.update({

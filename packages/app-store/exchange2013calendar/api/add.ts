@@ -4,6 +4,7 @@ import { z } from "zod";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -19,6 +20,9 @@ const bodySchema = z
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const body = bodySchema.parse(req.body);
+  if (!req.session) {
+    return res.status(401).json({ message: "You must be logged in to do this" });
+  }
   // Get user
   const user = await prisma.user.findFirstOrThrow({
     where: {
@@ -35,6 +39,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     key: symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY || ""),
     userId: user.id,
     teamId: null,
+    profileId: req.session.user.profile.id,
     appId: "exchange2013-calendar",
     invalid: false,
   };
@@ -46,9 +51,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       user: { email: user.email },
     });
     await dav?.listCalendars();
-    await prisma.credential.create({
-      data,
-    });
+    await CredentialRepository.create(data);
   } catch (reason) {
     logger.error("Could not add this exchange account", reason);
     return res.status(500).json({ message: "Could not add this exchange account" });

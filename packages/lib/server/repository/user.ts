@@ -217,7 +217,7 @@ export class UserRepository {
       return null;
     }
 
-    const orgProfiles = await ProfileRepository.getOrgProfilesForUser(user);
+    const orgProfiles = await ProfileRepository.getAllProfilesForUser(user);
     return {
       ...user,
       orgProfiles,
@@ -291,7 +291,7 @@ export class UserRepository {
     organizationId: number | null | typeof ORGANIZATION_ID_UNKNOWN;
   }): Promise<T & { profile: UserProfile }> {
     if (typeof organizationId === "number") {
-      const profile = await ProfileRepository.getProfileByUserIdAndOrgId({
+      const profile = await ProfileRepository.findByUserIdAndOrgId({
         userId: user.id,
         organizationId: organizationId,
       });

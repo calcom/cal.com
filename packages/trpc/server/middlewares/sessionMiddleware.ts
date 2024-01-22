@@ -149,7 +149,7 @@ const getUserSession = async (ctx: TRPCContextInner) => {
   let foundProfile = null;
   // Check authorization for profile
   if (session?.profileId && user?.id) {
-    foundProfile = await ProfileRepository.getProfileByUserIdAndProfileId({
+    foundProfile = await ProfileRepository.findByUserIdAndProfileId({
       userId: user.id,
       profileId: session.profileId,
     });

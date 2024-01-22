@@ -1,13 +1,15 @@
 import type { Team } from "@calcom/prisma/client";
 
+type OrganizationWithRequestedSlug = Pick<Team, "name" | "id" | "slug" | "calVideoLogo"> & {
+  requestedSlug: string | null;
+};
+
 export type OrgProfile = {
   id: number;
   upId: string;
   username: string;
   organizationId: number;
-  organization: Pick<Team, "name" | "id" | "slug" | "calVideoLogo"> & {
-    requestedSlug: string | null;
-  };
+  organization: OrganizationWithRequestedSlug;
 };
 
 export type PersonalProfile = {

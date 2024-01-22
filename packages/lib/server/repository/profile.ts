@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
-import type { UserAsPersonalProfile } from "@calcom/types/UserProfile";
+import type { UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
@@ -164,7 +164,7 @@ export class ProfileRepository {
     });
   }
 
-  static async getProfileByUserIdAndOrgId({
+  static async findByUserIdAndOrgId({
     userId,
     organizationId,
   }: {
@@ -202,7 +202,7 @@ export class ProfileRepository {
     });
   }
 
-  static async getProfileByOrgIdAndUsername({
+  static async findByOrgIdAndUsername({
     organizationId,
     username,
   }: {
@@ -242,7 +242,7 @@ export class ProfileRepository {
       };
     }
 
-    const profile = await ProfileRepository.getProfile(lookupTarget.id);
+    const profile = await ProfileRepository.find(lookupTarget.id);
     if (!profile) {
       return null;
     }
@@ -253,7 +253,7 @@ export class ProfileRepository {
     };
   }
 
-  static async getProfile(id: number | null) {
+  static async find(id: number | null) {
     if (!id) {
       return null;
     }
@@ -301,11 +301,7 @@ export class ProfileRepository {
     return profiles.map(enrichProfile);
   }
 
-  static async getAllProfilesForUser(user: {
-    id: number;
-    username: string | null;
-    // movedToProfileId: number | null;
-  }) {
+  static async getAllProfilesForUser(user: { id: number; username: string | null }): Promise<UserProfile[]> {
     const profiles = await ProfileRepository.getOrgProfilesForUser(user);
     // User isn't member of any organization. Also, he has no user profile. We build the profile from user table
     if (!profiles.length) {
@@ -372,7 +368,7 @@ export class ProfileRepository {
     });
   }
 
-  static async getProfileByUserIdAndProfileId({ userId, profileId }: { userId: number; profileId: number }) {
+  static async findByUserIdAndProfileId({ userId, profileId }: { userId: number; profileId: number }) {
     const profile = await prisma.profile.findUnique({
       where: {
         userId,
