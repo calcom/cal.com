@@ -1,21 +1,21 @@
-import useClientSchedule from "availability/hooks/useClientSchedule";
-import useDeleteSchedule from "availability/hooks/useDeleteSchedule";
-import { useProfileInfo } from "availability/hooks/useProfileInfo";
-import { daysInAWeek } from "availability/lib/daysInAWeek";
-import type { AvailabilityFormValues } from "availability/types";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { showToast } from "@calcom/ui";
 
 import { useApiKey } from "../../hooks/useApiKeys";
+import useClientSchedule from "../hooks/useClientSchedule";
+import useDeleteSchedule from "../hooks/useDeleteSchedule";
+import { useProfileInfo } from "../hooks/useProfileInfo";
+import { daysInAWeek } from "../lib/daysInAWeek";
 import { AvailabilitySettings } from "../settings/index";
+import type { AvailabilityFormValues } from "../types";
 
-type AvailabilitySettingsProps = {
+type PlatformAvailabilitySettingsWrapperProps = {
   id?: string;
 };
 
-export const PlatformAvailabilitySettingsWrapper = () => {
+export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailabilitySettingsWrapperProps) => {
   const { key, error } = useApiKey();
   const { isLoading, data: schedule } = useClientSchedule(key, id);
   const user = useProfileInfo(key);
