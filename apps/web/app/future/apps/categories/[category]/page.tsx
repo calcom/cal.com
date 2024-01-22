@@ -1,4 +1,4 @@
-import CategoryPage, { getStaticProps, type PageProps } from "@pages/apps/categories/[category]";
+import CategoryPage, { type PageProps } from "@pages/apps/categories/[category]";
 import { Prisma } from "@prisma/client";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
@@ -7,6 +7,8 @@ import { WithLayout } from "app/layoutHOC";
 import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+
+import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
