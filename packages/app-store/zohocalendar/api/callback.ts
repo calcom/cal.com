@@ -8,6 +8,7 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { checkDuplicateCalendar } from "../../_utils/checkDuplicateCalendar";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -65,15 +66,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
   };
 
-  const credential = await prisma.credential.create({
-    data: {
-      type: config.type,
-      key,
-      userId: req.session.user.id,
-      appId: config.slug,
-    },
-  });
-
   const calendarResponse = await fetch("https://calendar.zoho.com/api/v1/calendars", {
     method: "GET",
     headers: {
@@ -86,25 +78,21 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
-    const existingCalendar = await prisma.selectedCalendar.findUnique({
-      where: {
-        userId_integration_externalId: {
-          userId: req.session.user.id,
-          integration: config.type,
-          externalId: primaryCalendar.uid,
-        },
+    const existingCalendar = await checkDuplicateCalendar(
+      req.session.user.id,
+      primaryCalendar.id,
+      config.type
+    );
+    if (existingCalendar) throw new HttpError({ statusCode: 409, message: "Account is already linked." });
+
+    const credential = await prisma.credential.create({
+      data: {
+        type: config.type,
+        key,
+        userId: req.session.user.id,
+        appId: config.slug,
       },
     });
-
-    if (existingCalendar) {
-      await prisma.credential.delete({
-        where: {
-          id: credential.id,
-        },
-      });
-
-      throw new HttpError({ statusCode: 409, message: "Account is already linked." });
-    }
     await prisma.selectedCalendar.create({
       data: {
         userId: req.session.user.id,

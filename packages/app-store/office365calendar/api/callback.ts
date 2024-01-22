@@ -7,6 +7,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
+import { checkDuplicateCalendar } from "../../_utils/checkDuplicateCalendar";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -68,15 +69,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  const credential = await prisma.credential.create({
-    data: {
-      type: "office365_calendar",
-      key: responseBody,
-      userId: req.session?.user.id,
-      appId: "office365-calendar",
-    },
-  });
-
   // Set the isDefaultCalendar as selectedCalendar
   // If a user has multiple calendars, keep on making calls until we find the default calendar
   let defaultCalendar: OfficeCalendar | undefined = undefined;
@@ -111,25 +103,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    const existingCalendar = await prisma.selectedCalendar.findUnique({
-      where: {
-        userId_integration_externalId: {
-          userId: req.session?.user.id,
-          integration: "office365_calendar",
-          externalId: defaultCalendar.id,
-        },
+    const existingCalendar = await checkDuplicateCalendar(
+      req.session.user.id,
+      defaultCalendar.id,
+      "office365_calendar"
+    );
+    if (existingCalendar) throw new HttpError({ statusCode: 409, message: "Account is already linked." });
+
+    const credential = await prisma.credential.create({
+      data: {
+        type: "office365_calendar",
+        key: responseBody,
+        userId: req.session?.user.id,
+        appId: "office365-calendar",
       },
     });
-
-    if (existingCalendar) {
-      await prisma.credential.delete({
-        where: {
-          id: credential.id,
-        },
-      });
-
-      throw new HttpError({ statusCode: 409, message: "Account is already linked." });
-    }
     await prisma.selectedCalendar.create({
       data: {
         userId: req.session?.user.id,

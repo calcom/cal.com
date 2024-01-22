@@ -7,6 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { checkDuplicateCalendar } from "../../_utils/checkDuplicateCalendar";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -42,15 +43,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
 
-    const credential = await prisma.credential.create({
-      data: {
-        type: "google_calendar",
-        key,
-        userId: req.session.user.id,
-        appId: "google-calendar",
-      },
-    });
-
     // Set the primary calendar as the first selected calendar
 
     // We can ignore this type error because we just validated the key when we init oAuth2Client
@@ -68,24 +60,22 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
-      const existingCalendar = await prisma.selectedCalendar.findUnique({
-        where: {
-          userId_integration_externalId: {
-            userId: req.session.user.id,
-            externalId: primaryCal.id,
-            integration: "google_calendar",
-          },
+      const existingCalendar = await checkDuplicateCalendar(
+        req.session.user.id,
+        primaryCal.id,
+        "google_calendar"
+      );
+
+      if (existingCalendar) throw new HttpError({ statusCode: 409, message: "Account is already linked." });
+
+      const credential = await prisma.credential.create({
+        data: {
+          type: "google_calendar",
+          key,
+          userId: req.session.user.id,
+          appId: "google-calendar",
         },
       });
-
-      if (existingCalendar) {
-        await prisma.credential.delete({
-          where: {
-            id: credential.id,
-          },
-        });
-        throw new HttpError({ statusCode: 409, message: "Account is already linked." });
-      }
 
       await prisma.selectedCalendar.create({
         data: {
