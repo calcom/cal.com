@@ -17,7 +17,6 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import isEqual from "@calcom/lib/isEqual";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
@@ -377,13 +376,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
   });
 
-  useEffect(() => {
-    if (!formMethods.formState.isDirty) {
-      //TODO: What's the best way to sync the form with backend
-      formMethods.setValue("bookingFields", defaultValues.bookingFields);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultValues]);
+  // useEffect(() => {
+  //   if (!formMethods.formState.isDirty) {
+  //     //TODO: What's the best way to sync the form with backend
+  //     formMethods.setValue("bookingFields", defaultValues.bookingFields);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [defaultValues]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
@@ -425,6 +424,24 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
+  const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    if (formMethods.formState.isDirty) {
+      const updatedFields: Partial<FormValues> = {};
+      Object.keys(formMethods.formState.dirtyFields).forEach((key) => {
+        const typedKey = key as keyof FormValues;
+        if (formMethods.formState.dirtyFields[typedKey]) {
+          updatedFields[typedKey] = values[typedKey];
+        } else {
+          updatedFields[typedKey] = undefined;
+        }
+      });
+
+      return updatedFields;
+      // Here you would send updatedFields to your backend API
+      // axios.post('/api/update', updatedFields);
+    }
+    return {};
+  };
 
   const handleSubmit = async (values: FormValues) => {
     const {
@@ -564,20 +581,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
-            const getDirtyFields = (): Partial<FormValues> => {
-              const dirtyFields: Partial<{ [K in keyof FormValues]: FormValues[K] }> = {};
-              const watchedFields = values;
+            const dirtyValues = getDirtyFields(values);
 
-              // Iterate over watched fields and compare with initial values
-              Object.keys(watchedFields).forEach((key) => {
-                const typedKey = key as keyof FormValues;
-                if (!isEqual(watchedFields[typedKey], defaultValues[typedKey])) {
-                  Object.assign(dirtyFields, { [typedKey]: watchedFields[typedKey] });
-                }
-              });
-              return dirtyFields;
-            };
-            const dirtyFields = getDirtyFields();
             const {
               periodDates,
               periodCountCalendarDays,
@@ -600,9 +605,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               multipleDurationEnabled,
               length,
               ...input
-            } = dirtyFields;
+            } = values;
 
-            if (!Number(values.length)) throw new Error(t("event_setup_length_error"));
+            if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -621,7 +626,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!values.length && !metadata?.multipleDuration?.includes(values.length)) {
+                if (!length && !metadata?.multipleDuration?.includes(length)) {
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
@@ -634,14 +639,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
-
             updateMutation.mutate({
               ...rest,
               length,
               locations,
               recurringEvent,
-              periodStartDate: periodDates ? periodDates.startDate : undefined,
-              periodEndDate: periodDates ? periodDates.endDate : undefined,
+              periodStartDate: periodDates.startDate,
+              periodEndDate: periodDates.endDate,
               periodCountCalendarDays: periodCountCalendarDays === "1",
               id: eventType.id,
               beforeEventBuffer: beforeBufferTime,
