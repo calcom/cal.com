@@ -315,21 +315,10 @@ model Team {
   apiKeys              ApiKey[]
   credentials          Credential[]
   accessCodes          AccessCode[]
-  isOrganization       Boolean                 @default(false)
-  organizationSettings OrganizationSettings?
   instantMeetingTokens InstantMeetingToken[]
+  pendingPayment       Boolean                 @default(false)
 
   @@unique([slug, parentId])
-  @@unique([slug, isOrganization])
-}
-
-model OrganizationSettings {
-  id                       Int     @id @default(autoincrement())
-  organization             Team    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId           Int     @unique
-  isOrganizationConfigured Boolean @default(false)
-  isOrganizationVerified   Boolean @default(false)
-  orgAutoAcceptEmail       String
 }
 
 enum MembershipRole {

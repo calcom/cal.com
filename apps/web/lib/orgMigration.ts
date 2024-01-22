@@ -1,6 +1,5 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -47,7 +46,7 @@ export async function moveUserToOrg({
 
   const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
-  if (!isOrganization({ team })) {
+  if (!teamMetadata?.isOrganization) {
     throw new Error(`Team with ID:${targetOrgId} is not an Org`);
   }
 
@@ -61,7 +60,7 @@ export async function moveUserToOrg({
   if (!targetOrgUsername) {
     targetOrgUsername = getOrgUsernameFromEmail(
       userToMoveToOrg.email,
-      team.organizationSettings?.orgAutoAcceptEmail || ""
+      targetOrganization.metadata.orgAutoAcceptEmail || ""
     );
   }
 
@@ -196,7 +195,7 @@ export async function moveTeamToOrg({
 
   const teamMetadata = teamMetadataSchema.parse(possibleOrg?.metadata);
 
-  if (!isOrganization({ team: possibleOrg })) {
+  if (!teamMetadata?.isOrganization) {
     throw new Error(`${targetOrg.id} is not an Org`);
   }
 
@@ -205,7 +204,7 @@ export async function moveTeamToOrg({
   await addTeamRedirect({
     oldTeamSlug,
     teamSlug: updatedTeam.slug,
-    orgSlug: targetOrganization.slug || orgMetadata?.requestedSlug || null,
+    orgSlug: targetOrganization.slug || orgMetadata.requestedSlug || null,
   });
   await setOrgSlugIfNotSet({ slug: targetOrganization.slug }, orgMetadata, targetOrg.id);
   if (moveMembers) {
@@ -329,14 +328,13 @@ async function setOrgSlugIfNotSet(
   },
   orgMetadata: {
     requestedSlug?: string | undefined;
-  } | null,
+  },
   targetOrgId: number
 ) {
   if (targetOrganization.slug) {
     return;
   }
-
-  if (!orgMetadata?.requestedSlug) {
+  if (!orgMetadata.requestedSlug) {
     throw new HttpError({
       statusCode: 400,
       message: `Org with id: ${targetOrgId} doesn't have a slug. Tried using requestedSlug but that's also not present. So, all migration done but failed to set the Organization slug. Please set it manually`,
@@ -372,9 +370,6 @@ async function getTeamOrThrowError(targetOrgId: number) {
   const team = await prisma.team.findUnique({
     where: {
       id: targetOrgId,
-    },
-    include: {
-      organizationSettings: true,
     },
   });
 
@@ -625,7 +620,6 @@ async function moveTeamsWithoutMembersToOrg({
       id: true,
       slug: true,
       metadata: true,
-      isOrganization: true,
     },
   });
 
@@ -637,7 +631,7 @@ async function moveTeamsWithoutMembersToOrg({
       };
     })
     // Remove Orgs from the list
-    .filter((team) => !isOrganization({ team }));
+    .filter((team) => !team.metadata?.isOrganization);
 
   const teamIdsToBeMovedToOrg = teamsToBeMovedToOrg.map((t) => t.id);
 
@@ -790,7 +784,6 @@ async function removeTeamsWithoutItsMemberFromOrg({ userToRemoveFromOrg }: { use
       id: true,
       slug: true,
       metadata: true,
-      isOrganization: true,
     },
   });
 
@@ -802,7 +795,7 @@ async function removeTeamsWithoutItsMemberFromOrg({ userToRemoveFromOrg }: { use
       };
     })
     // Remove Orgs from the list
-    .filter((team) => !isOrganization({ team }));
+    .filter((team) => !team.metadata?.isOrganization);
 
   const teamIdsToBeRemovedFromOrg = teamsToBeRemovedFromOrg.map((t) => t.id);
 

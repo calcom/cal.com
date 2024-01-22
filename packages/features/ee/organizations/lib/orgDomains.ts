@@ -139,7 +139,10 @@ export function whereClauseForOrgWithSlugOrRequestedSlug(slug: string) {
         },
       },
     ],
-    isOrganization: true,
+    metadata: {
+      path: ["isOrganization"],
+      equals: true,
+    },
   } satisfies Prisma.TeamWhereInput;
 }
 
