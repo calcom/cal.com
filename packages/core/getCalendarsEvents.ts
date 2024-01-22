@@ -33,6 +33,7 @@ const getCalendarsEvents = async (
     const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
     if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
+
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
     performance.mark("eventBusyDatesStart");
@@ -51,7 +52,10 @@ const getCalendarsEvents = async (
       "eventBusyDatesEnd"
     );
 
-    return eventBusyDates.map((a) => ({ ...a, source: `${appId}` }));
+    return eventBusyDates.map((a) => ({
+      ...a,
+      source: `${appId}`,
+    }));
   });
   const awaitedResults = await Promise.all(results);
   performance.mark("getBusyCalendarTimesEnd");

@@ -1,39 +1,27 @@
-import type { DailyEventObjectRecordingStarted } from "@daily-co/daily-js";
+"use client";
+
 import DailyIframe from "@daily-co/daily-js";
-import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
-import z from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
+import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+
 import PageWrapper from "@components/PageWrapper";
 
-import { ssrInit } from "@server/lib/ssr";
-
-const recordingStartedEventResponse = z
-  .object({
-    recordingId: z.string(),
-  })
-  .passthrough();
-
-export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+export type JoinCallPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking } = props;
-  const recordingId = useRef<string | null>(null);
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -61,30 +49,11 @@ export default function JoinCall(props: JoinCallPageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
     callFrame.join();
-    callFrame.on("recording-started", onRecordingStarted).on("recording-stopped", onRecordingStopped);
     return () => {
       callFrame.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const onRecordingStopped = () => {
-    const data = { recordingId: recordingId.current, bookingUID: booking.uid };
-
-    fetch("/api/recorded-daily-video", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }).catch((err) => {
-      console.log(err);
-    });
-
-    recordingId.current = null;
-  };
-
-  const onRecordingStarted = (event?: DailyEventObjectRecordingStarted | undefined) => {
-    const response = recordingStartedEventResponse.parse(event);
-    recordingId.current = response.recordingId;
-  };
 
   const title = `${APP_NAME} Video`;
   return (
@@ -104,15 +73,27 @@ export default function JoinCall(props: JoinCallPageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>
-        <img
-          className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-          src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-          alt="Cal.com Logo"
-          style={{
-            top: 46,
-            left: 24,
-          }}
-        />
+        {booking?.user?.organization?.calVideoLogo ? (
+          <img
+            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+            src={booking.user.organization.calVideoLogo}
+            alt="My Org Logo"
+            style={{
+              top: 32,
+              left: 32,
+            }}
+          />
+        ) : (
+          <img
+            className="fixed z-10 hidden sm:inline-block"
+            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+            alt="Logo"
+            style={{
+              top: 32,
+              left: 32,
+            }}
+          />
+        )}
       </div>
       <VideoMeetingInfo booking={booking} />
     </>
@@ -214,7 +195,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("invitee_timezone")}:</h3>
           <p>{booking.user?.timeZone}</p>
           <h3>{t("when")}:</h3>
-          <p>
+          <p suppressHydrationWarning={true}>
             {formatToLocalizedDate(startTime)} <br />
             {formatToLocalizedTime(startTime)}
           </p>
@@ -267,92 +248,3 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 }
 
 JoinCall.PageWrapper = PageWrapper;
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
-
-  const ssr = await ssrInit(context);
-
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: context.query.uid as string,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      uid: true,
-      description: true,
-      isRecorded: true,
-      user: {
-        select: {
-          id: true,
-          timeZone: true,
-          name: true,
-          email: true,
-        },
-      },
-      references: {
-        select: {
-          uid: true,
-          type: true,
-          meetingUrl: true,
-          meetingPassword: true,
-        },
-        where: {
-          type: "daily_video",
-        },
-      },
-    },
-  });
-
-  if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
-    return {
-      redirect: {
-        destination: "/video/no-meeting-found",
-        permanent: false,
-      },
-    };
-  }
-
-  //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
-  const now = new Date();
-  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
-
-  //find out if the meeting is in the past
-  const isPast = booking?.endTime <= exitDate;
-  if (isPast) {
-    return {
-      redirect: {
-        destination: `/video/meeting-ended/${booking?.uid}`,
-        permanent: false,
-      },
-    };
-  }
-
-  const bookingObj = Object.assign({}, booking, {
-    startTime: booking.startTime.toString(),
-    endTime: booking.endTime.toString(),
-  });
-
-  const session = await getServerSession({ req, res });
-
-  // set meetingPassword to null for guests
-  if (session?.user.id !== bookingObj.user?.id) {
-    bookingObj.references.forEach((bookRef) => {
-      bookRef.meetingPassword = null;
-    });
-  }
-
-  return {
-    props: {
-      meetingUrl: bookingObj.references[0].meetingUrl ?? "",
-      ...(typeof bookingObj.references[0].meetingPassword === "string" && {
-        meetingPassword: bookingObj.references[0].meetingPassword,
-      }),
-      booking: {
-        ...bookingObj,
-        ...(bookingObj.description && { description: md.render(bookingObj.description) }),
-      },
-      trpcState: ssr.dehydrate(),
-    },
-  };
-}

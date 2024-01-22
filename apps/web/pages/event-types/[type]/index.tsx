@@ -2,16 +2,15 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import type { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { EventLocationType } from "@calcom/core/location";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -33,14 +32,11 @@ import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { getServerSideProps, type PageProps } from "@lib/event-types/[type]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
-
-import { ssrInit } from "@server/lib/ssr";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
@@ -61,6 +57,10 @@ const EventLimitsTab = dynamic(() =>
 
 const EventAdvancedTab = dynamic(() =>
   import("@components/eventtype/EventAdvancedTab").then((mod) => mod.EventAdvancedTab)
+);
+
+const EventInstantTab = dynamic(() =>
+  import("@components/eventtype/EventInstantTab").then((mod) => mod.EventInstantTab)
 );
 
 const EventRecurringTab = dynamic(() =>
@@ -84,6 +84,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  isInstantEvent: boolean;
   length: number;
   offsetStart: number;
   description: string;
@@ -131,6 +132,7 @@ export type FormValues = {
   successRedirectUrl: string;
   durationLimits?: IntervalLimit;
   bookingLimits?: IntervalLimit;
+  onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
   hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
@@ -148,6 +150,7 @@ const querySchema = z.object({
       "availability",
       "apps",
       "limits",
+      "instant",
       "recurring",
       "team",
       "advanced",
@@ -247,9 +250,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       title: eventType.title,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
+      isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
+      onlyShowFirstAvailableSlot: eventType.onlyShowFirstAvailableSlot || undefined,
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
@@ -408,6 +413,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (
@@ -429,6 +435,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsShowAttendees,
       seatsShowAvailabilityCount,
       bookingLimits,
+      onlyShowFirstAvailableSlot,
       durationLimits,
       recurringEvent,
       locations,
@@ -473,6 +480,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       }
     }
 
+    // Prevent two payment apps to be enabled
+    // Ok to cast type here because this metadata will be updated as the event type metadata
+    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
+
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
@@ -491,6 +503,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       beforeEventBuffer: beforeBufferTime,
       afterEventBuffer: afterBufferTime,
       bookingLimits,
+      onlyShowFirstAvailableSlot,
       durationLimits,
       seatsPerTimeSlot,
       seatsShowAttendees,
@@ -504,6 +517,32 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const slug = formMethods.watch("slug") ?? eventType.slug;
 
+  // Optional prerender all tabs after 300 ms on mount
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const Components = [
+        EventSetupTab,
+        EventAvailabilityTab,
+        EventTeamTab,
+        EventLimitsTab,
+        EventAdvancedTab,
+        EventInstantTab,
+        EventRecurringTab,
+        EventAppsTab,
+        EventWorkflowsTab,
+        EventWebhooksTab,
+      ];
+
+      Components.forEach((C) => {
+        // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
+        C.render.preload();
+      });
+    }, 300);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
   return (
     <>
       <EventTypeSingleLayout
@@ -518,6 +557,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
         disableBorder={true}
         currentUserMembership={currentUserMembership}
+        bookerUrl={eventType.bookerUrl}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
         <Form
           form={formMethods}
@@ -532,6 +572,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAttendees,
               seatsShowAvailabilityCount,
               bookingLimits,
+              onlyShowFirstAvailableSlot,
               durationLimits,
               recurringEvent,
               locations,
@@ -570,6 +611,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 }
               }
             }
+
+            // Prevent two payment apps to be enabled
+            // Ok to cast type here because this metadata will be updated as the event type metadata
+            if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
+              throw new Error(t("event_setup_multiple_payment_apps_error"));
+
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
             updateMutation.mutate({
@@ -584,6 +631,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               beforeEventBuffer: beforeBufferTime,
               afterEventBuffer: afterBufferTime,
               bookingLimits,
+              onlyShowFirstAvailableSlot,
               durationLimits,
               seatsPerTimeSlot,
               seatsShowAttendees,
@@ -616,45 +664,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   );
 };
 
-const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
+const EventTypePageWrapper = (props: PageProps) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
   if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res, query } = context;
-
-  const session = await getServerSession({ req, res });
-
-  const typeParam = parseInt(asStringOrThrow(query.type));
-  const ssr = await ssrInit(context);
-
-  if (Number.isNaN(typeParam)) {
-    return {
-      notFound: true,
-    };
-  }
-
-  if (!session?.user?.id) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-
-  await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
-  return {
-    props: {
-      type: typeParam,
-      trpcState: ssr.dehydrate(),
-    },
-  };
-};
-
 EventTypePageWrapper.PageWrapper = PageWrapper;
 
+export { getServerSideProps };
 export default EventTypePageWrapper;

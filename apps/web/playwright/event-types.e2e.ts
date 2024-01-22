@@ -5,16 +5,32 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Event Types tests", () => {
+testBothFutureAndLegacyRoutes.describe("Event Types A/B tests", () => {
+  test("should render the /future/event-types page", async ({ page, users }) => {
+    const user = await users.create();
+
+    await user.apiLogin();
+
+    await page.goto("/event-types");
+
+    const locator = page.getByRole("heading", { name: "Event Types" });
+
+    await expect(locator).toBeVisible();
+  });
+});
+
+testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
   test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       await page.goto("/event-types");
+
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');
     });

@@ -13,16 +13,24 @@ import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
-import { useEvent } from "../utils/event";
+import type { useEventReturnType } from "../utils/event";
 
-const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
-  ssr: false,
-});
+const TimezoneSelect = dynamic(
+  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  {
+    ssr: false,
+  }
+);
 
-export const EventMeta = () => {
+export const EventMeta = ({
+  event,
+  isLoading,
+}: {
+  event: useEventReturnType["data"];
+  isLoading: useEventReturnType["isLoading"];
+}) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -32,7 +40,7 @@ export const EventMeta = () => {
     shallow
   );
   const { i18n, t } = useLocale();
-  const { data: event, isLoading } = useEvent();
+
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
@@ -57,7 +65,7 @@ export const EventMeta = () => {
     : "text-bookinghighlight";
 
   return (
-    <div className="relative z-10 p-6">
+    <div className="relative z-10 p-6" data-testid="event-meta">
       {isLoading && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />

@@ -20,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       response_type: "code",
       scope: scopes.join(" "),
       client_id,
+      prompt: "select_account",
       redirect_uri: `${WEBAPP_URL}/api/integrations/office365calendar/callback`,
       state,
     };

@@ -299,6 +299,29 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         }}
       />
       <Controller
+        name="onlyShowFirstAvailableSlot"
+        control={formMethods.control}
+        render={({ field: { value } }) => {
+          const isChecked = value;
+          return (
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              labelClassName="text-sm"
+              title={t("limit_booking_only_first_slot")}
+              description={t("limit_booking_only_first_slot_description")}
+              checked={isChecked}
+              onCheckedChange={(active) => {
+                formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false);
+              }}
+              switchContainerClassName={classNames(
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                isChecked && "rounded-b-none"
+              )}
+            />
+          );
+        }}
+      />
+      <Controller
         name="durationLimits"
         control={formMethods.control}
         render={({ field: { value } }) => {
@@ -505,7 +528,10 @@ const IntervalLimitItem = ({
   onIntervalSelect,
 }: IntervalLimitItemProps) => {
   return (
-    <div className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse" key={limitKey}>
+    <div
+      data-testid="add-limit"
+      className="mb-4 flex max-h-9 items-center space-x-2 text-sm rtl:space-x-reverse"
+      key={limitKey}>
       <TextField
         required
         type="number"

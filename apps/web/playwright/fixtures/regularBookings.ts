@@ -1,7 +1,9 @@
 import { expect, type Page } from "@playwright/test";
 
 import dayjs from "@calcom/dayjs";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
+import { localize } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";
 
 const reschedulePlaceholderText = "Let others know why you need to reschedule";
@@ -73,10 +75,10 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     multiselect: async () => {
       if (customLocators.shouldChangeMultiSelectLocator) {
-        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByLabel("multi-select-dropdown").click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
-        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByLabel("multi-select-dropdown").last().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       }
     },
@@ -88,10 +90,10 @@ const fillQuestion = async (eventTypePage: Page, questionType: string, customLoc
     },
     select: async () => {
       if (customLocators.shouldChangeSelectLocator) {
-        await eventTypePage.locator("form svg").nth(1).click();
+        await eventTypePage.getByLabel("select-dropdown").first().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       } else {
-        await eventTypePage.locator("form svg").last().click();
+        await eventTypePage.getByLabel("select-dropdown").last().click();
         await eventTypePage.getByTestId("select-option-Option 1").click();
       }
     },
@@ -138,11 +140,12 @@ const fillAllQuestions = async (eventTypePage: Page, questions: string[], option
           await eventTypePage.getByPlaceholder("Textarea test").fill("This is a sample text for textarea.");
           break;
         case "select":
-          await eventTypePage.locator("form svg").last().click();
+          await eventTypePage.getByLabel("select-dropdown").last().click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "multiselect":
-          await eventTypePage.locator("form svg").nth(4).click();
+          // select-dropdown
+          await eventTypePage.getByLabel("multi-select-dropdown").click();
           await eventTypePage.getByTestId("select-option-Option 1").click();
           break;
         case "number":
@@ -177,6 +180,14 @@ export async function loginUser(users: UserFixture) {
   await pro.apiLogin();
 }
 
+export async function loginUserWithTeam(users: UserFixture, role: MembershipRole) {
+  const pro = await users.create(
+    { name: "testuser" },
+    { hasTeam: true, teamRole: role, isOrg: true, hasSubteam: true }
+  );
+  await pro.apiLogin();
+}
+
 const goToNextMonthIfNoAvailabilities = async (eventTypePage: Page) => {
   try {
     if (isLastDayOfMonth()) {
@@ -204,7 +215,7 @@ export function createBookingPageFixture(page: Page) {
       placeholder?: string
     ) => {
       await page.getByTestId("add-field").click();
-      await page.locator("#test-field-type > .bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("test-field-type").click();
       await page.getByTestId(`select-option-${questionType}`).click();
       await page.getByLabel("Identifier").dblclick();
       await page.getByLabel("Identifier").fill(identifier);
@@ -218,6 +229,23 @@ export function createBookingPageFixture(page: Page) {
         await page.getByRole("radio", { name: "No" }).click();
       }
       await page.getByTestId("field-add-save").click();
+    },
+    updateRecurringTab: async (repeatWeek: string, maxEvents: string) => {
+      const repeatText = (await localize("en"))("repeats_every");
+      const maximumOf = (await localize("en"))("for_a_maximum_of");
+      await page.getByTestId("recurring-event-check").click();
+      await page
+        .getByTestId("recurring-event-collapsible")
+        .locator("div")
+        .filter({ hasText: repeatText })
+        .getByRole("spinbutton")
+        .fill(repeatWeek);
+      await page
+        .getByTestId("recurring-event-collapsible")
+        .locator("div")
+        .filter({ hasText: maximumOf })
+        .getByRole("spinbutton")
+        .fill(maxEvents);
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
@@ -243,6 +271,14 @@ export function createBookingPageFixture(page: Page) {
       await page.getByPlaceholder(reschedulePlaceholderText).click();
       await page.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await page.getByTestId("confirm-reschedule-button").click();
+    },
+
+    fillRecurringFieldAndConfirm: async (eventTypePage: Page) => {
+      await eventTypePage.getByTestId("occurrence-input").click();
+      await eventTypePage.getByTestId("occurrence-input").fill("2");
+      await goToNextMonthIfNoAvailabilities(eventTypePage);
+      await eventTypePage.getByTestId("time").first().click();
+      await expect(eventTypePage.getByTestId("recurring-dates")).toBeVisible();
     },
 
     cancelBookingWithReason: async (page: Page) => {
@@ -276,6 +312,10 @@ export function createBookingPageFixture(page: Page) {
 
     assertBookingRescheduled: async (page: Page) => {
       await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+    },
+
+    assertRepeatEventType: async () => {
+      await expect(page.getByTestId("repeat-eventtype")).toBeVisible();
     },
 
     cancelBooking: async (eventTypePage: Page) => {
@@ -355,6 +395,100 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+
+    checkBufferTime: async () => {
+      const minutes = (await localize("en"))("minutes");
+      const fieldPlaceholder = page.getByPlaceholder("0");
+
+      await page
+        .locator("div")
+        .filter({ hasText: /^No buffer time$/ })
+        .nth(1)
+        .click();
+      await page.getByTestId("select-option-15").click();
+      await expect(page.getByText(`15 ${minutes}`, { exact: true })).toBeVisible();
+
+      await page
+        .locator("div")
+        .filter({ hasText: /^No buffer time$/ })
+        .nth(2)
+        .click();
+      await page.getByTestId("select-option-10").click();
+      await expect(page.getByText(`10 ${minutes}`, { exact: true })).toBeVisible();
+
+      await fieldPlaceholder.fill("10");
+      await expect(fieldPlaceholder).toHaveValue("10");
+
+      await page
+        .locator("div")
+        .filter({ hasText: /^Use event length \(default\)$/ })
+        .first()
+        .click();
+
+      // select a large interval to check if the time slots for a day reduce on the preview page
+      await page.getByTestId("select-option-60").click();
+      await expect(page.getByText(`60 ${minutes}`, { exact: true })).toBeVisible();
+    },
+
+    checkLimitBookingFrequency: async () => {
+      const fieldPlaceholder = page.getByPlaceholder("1").nth(1);
+      const limitFrequency = (await localize("en"))("limit_booking_frequency");
+      const addlimit = (await localize("en"))("add_limit");
+      const limitFrequencySwitch = page
+        .locator("fieldset")
+        .filter({ hasText: limitFrequency })
+        .getByRole("switch");
+
+      await limitFrequencySwitch.click();
+      await page.getByRole("button", { name: addlimit }).click();
+      await fieldPlaceholder.fill("12");
+      await expect(fieldPlaceholder).toHaveValue("12");
+      await limitFrequencySwitch.click();
+    },
+
+    checkLimitBookingDuration: async () => {
+      const limitDuration = (await localize("en"))("limit_total_booking_duration");
+      const addlimit = (await localize("en"))("add_limit");
+      const limitDurationSwitch = page
+        .locator("fieldset")
+        .filter({ hasText: limitDuration })
+        .getByRole("switch");
+
+      await limitDurationSwitch.click();
+      await page.getByRole("button", { name: addlimit }).click();
+      await expect(page.getByTestId("add-limit")).toHaveCount(2);
+      await limitDurationSwitch.click();
+    },
+
+    checkLimitFutureBookings: async () => {
+      const limitFutureBookings = (await localize("en"))("limit_future_bookings");
+      const limitBookingsSwitch = page
+        .locator("fieldset")
+        .filter({ hasText: limitFutureBookings })
+        .getByRole("switch");
+
+      await limitBookingsSwitch.click();
+      await page.locator("#RANGE").click();
+      await expect(page.locator("#RANGE")).toBeChecked();
+      await limitBookingsSwitch.click();
+    },
+
+    checkOffsetTimes: async () => {
+      const offsetStart = (await localize("en"))("offset_start");
+      const offsetStartTimes = (await localize("en"))("offset_toggle");
+      const offsetLabel = page.getByLabel(offsetStart);
+
+      await page.locator("fieldset").filter({ hasText: offsetStartTimes }).getByRole("switch").click();
+      await offsetLabel.fill("10");
+      await expect(offsetLabel).toHaveValue("10");
+      await expect(
+        page.getByText("e.g. this will show time slots to your bookers at 9:10 AM instead of 9:00 AM")
+      ).toBeVisible();
+    },
+
+    checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
+      await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
     },
   };
 }

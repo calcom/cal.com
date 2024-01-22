@@ -2,6 +2,7 @@
 import type { Prisma } from "@prisma/client";
 import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
+import { RRule } from "rrule";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -9,6 +10,7 @@ import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
@@ -106,6 +108,7 @@ export default class GoogleCalendarService implements Calendar {
         });
         myGoogleAuth.setCredentials(googleCredentials);
       } catch (err) {
+        this.log.error("Error Refreshing Google Token", safeStringify(err));
         let message;
         if (err instanceof Error) message = err.message;
         else message = String(err);
@@ -132,7 +135,7 @@ export default class GoogleCalendarService implements Calendar {
     };
   };
 
-  private authedCalendar = async () => {
+  public authedCalendar = async () => {
     const myGoogleAuth = await this.auth.getToken();
     const calendar = google.calendar({
       version: "v3",
@@ -200,10 +203,21 @@ export default class GoogleCalendarService implements Calendar {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!calEventRaw.seatsPerTimeSlot ? calEventRaw.seatsShowAttendees : true,
+      iCalUID: calEventRaw.iCalUID,
     };
 
     if (calEventRaw.location) {
       payload["location"] = getLocation(calEventRaw);
+    }
+
+    if (calEventRaw.recurringEvent) {
+      const rule = new RRule({
+        freq: calEventRaw.recurringEvent.freq,
+        interval: calEventRaw.recurringEvent.interval,
+        count: calEventRaw.recurringEvent.count,
+      });
+
+      payload["recurrence"] = [rule.toString()];
     }
 
     if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
@@ -217,22 +231,70 @@ export default class GoogleCalendarService implements Calendar {
       "primary";
 
     try {
-      const event = await calendar.events.insert({
-        calendarId: selectedCalendar,
-        requestBody: payload,
-        conferenceDataVersion: 1,
-        sendUpdates: "none",
-      });
+      let event;
+      let recurringEventId = null;
+      if (calEventRaw.existingRecurringEvent) {
+        recurringEventId = calEventRaw.existingRecurringEvent.recurringEventId;
+        const recurringEventInstances = await calendar.events.instances({
+          calendarId: selectedCalendar,
+          eventId: calEventRaw.existingRecurringEvent.recurringEventId,
+        });
+        if (recurringEventInstances.data.items) {
+          const calComEventStartTime = dayjs(calEventRaw.startTime).format();
+          for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
+            const instance = recurringEventInstances.data.items[i];
+            const instanceStartTime = dayjs(instance.start?.dateTime)
+              .tz(instance.start?.timeZone == null ? undefined : instance.start?.timeZone)
+              .format();
 
-      if (event && event.data.id && event.data.hangoutLink) {
+            if (instanceStartTime === calComEventStartTime) {
+              event = instance;
+              break;
+            }
+          }
+
+          if (!event) {
+            event = recurringEventInstances.data.items[0];
+            this.log.error(
+              "Unable to find matching event amongst recurring event instances",
+              safeStringify({ selectedCalendar, credentialId })
+            );
+          }
+          await calendar.events.patch({
+            calendarId: selectedCalendar,
+            eventId: event.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...calEventRaw,
+              }),
+            },
+          });
+        }
+      } else {
+        const eventResponse = await calendar.events.insert({
+          calendarId: selectedCalendar,
+          requestBody: payload,
+          conferenceDataVersion: 1,
+          sendUpdates: "none",
+        });
+        event = eventResponse.data;
+        if (event.recurrence) {
+          if (event.recurrence.length > 0) {
+            recurringEventId = event.id;
+            event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
+          }
+        }
+      }
+
+      if (event && event.id && event.hangoutLink) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
-          eventId: event.data.id || "",
+          eventId: event.id || "",
           requestBody: {
             description: getRichDescription({
               ...calEventRaw,
-              additionalInformation: { hangoutLink: event.data.hangoutLink },
+              additionalInformation: { hangoutLink: event.hangoutLink },
             }),
           },
         });
@@ -240,19 +302,39 @@ export default class GoogleCalendarService implements Calendar {
 
       return {
         uid: "",
-        ...event.data,
-        id: event.data.id || "",
+        ...event,
+        id: event?.id || "",
+        thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
-          hangoutLink: event.data.hangoutLink || "",
+          hangoutLink: event?.hangoutLink || "",
         },
         type: "google_calendar",
         password: "",
         url: "",
-        iCalUID: event.data.iCalUID,
+        iCalUID: event?.iCalUID,
       };
     } catch (error) {
-      console.error("There was an error contacting google calendar service: ", error);
+      this.log.error(
+        "There was an error creating event in google calendar: ",
+        safeStringify({ error, selectedCalendar, credentialId })
+      );
       throw error;
+    }
+  }
+  async getFirstEventInRecurrence(
+    recurringEventId: string | null | undefined,
+    selectedCalendar: string,
+    calendar: calendar_v3.Calendar
+  ): Promise<calendar_v3.Schema$Event> {
+    const recurringEventInstances = await calendar.events.instances({
+      calendarId: selectedCalendar,
+      eventId: recurringEventId || "",
+    });
+
+    if (recurringEventInstances.data.items) {
+      return recurringEventInstances.data.items[0];
+    } else {
+      return {} as calendar_v3.Schema$Event;
     }
   }
 
@@ -332,7 +414,10 @@ export default class GoogleCalendarService implements Calendar {
       }
       return evt?.data;
     } catch (error) {
-      console.error("There was an error contacting google calendar service: ", error);
+      this.log.error(
+        "There was an error updating event in google calendar: ",
+        safeStringify({ error, event, uid })
+      );
       throw error;
     }
   }
@@ -354,6 +439,10 @@ export default class GoogleCalendarService implements Calendar {
       });
       return event?.data;
     } catch (error) {
+      this.log.error(
+        "There was an error deleting event from google calendar: ",
+        safeStringify({ error, event, externalCalendarId })
+      );
       const err = error as GoogleCalError;
       /**
        *  410 is when an event is already deleted on the Google cal before on cal.com
@@ -502,7 +591,10 @@ export default class GoogleCalendarService implements Calendar {
         return busyData;
       }
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", error);
+      this.log.error(
+        "There was an error getting availability from google calendar: ",
+        safeStringify({ error, selectedCalendars })
+      );
       throw error;
     }
   }
@@ -524,7 +616,7 @@ export default class GoogleCalendarService implements Calendar {
           } satisfies IntegrationCalendar)
       );
     } catch (error) {
-      this.log.error("There was an error contacting google calendar service: ", error);
+      this.log.error("There was an error getting calendars: ", safeStringify(error));
       throw error;
     }
   }

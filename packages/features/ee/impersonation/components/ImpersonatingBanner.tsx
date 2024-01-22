@@ -1,13 +1,18 @@
-import { useSession } from "next-auth/react";
+import type { SessionContextValue } from "next-auth/react";
+import { signIn } from "next-auth/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui";
 
-function ImpersonatingBanner() {
-  const { t } = useLocale();
-  const { data } = useSession();
+export type ImpersonatingBannerProps = { data: SessionContextValue["data"] };
 
-  if (!data?.user.impersonatedByUID) return null;
+function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
+  const { t } = useLocale();
+
+  if (!data?.user.impersonatedBy) return null;
+  const returnToId = data.user.impersonatedBy.id;
+
+  const canReturnToSelf = data.user.impersonatedBy.role == "ADMIN" || data.user?.org?.id;
 
   return (
     <>
@@ -15,9 +20,21 @@ function ImpersonatingBanner() {
         text={t("impersonating_user_warning", { user: data.user.username })}
         variant="warning"
         actions={
-          <a className="border-b border-b-black" href="/auth/logout">
-            {t("impersonating_stop_instructions")}
-          </a>
+          canReturnToSelf ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                signIn("impersonation-auth", { returnToId });
+              }}>
+              <button className="text-emphasis hover:underline" data-testid="stop-impersonating-button">
+                {t("impersonating_stop_instructions")}
+              </button>
+            </form>
+          ) : (
+            <a className="border-b border-b-black" href="/auth/logout">
+              {t("impersonating_stop_instructions")}
+            </a>
+          )
         }
       />
     </>
