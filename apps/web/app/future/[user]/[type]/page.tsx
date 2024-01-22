@@ -20,7 +20,7 @@ export const generateMetadata = async ({
 
   const { eventData, booking, user, slug } = props;
   const rescheduleUid = booking?.uid;
-  const { trpc } = await import("@calcom/trpc/react");
+  const { trpc } = await import("@calcom/trpc");
   const { data: event } = trpc.viewer.public.event.useQuery(
     { username: user, eventSlug: slug, isTeamEvent: false, org: eventData.entity.orgSlug ?? null },
     { refetchOnWindowFocus: false }
