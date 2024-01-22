@@ -195,6 +195,10 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
+  const slot = getQueryParam("slot");
+  useEffect(() => {
+    setSelectedTimeslot(slot || null);
+  }, [slot, setSelectedTimeslot]);
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
 
   if (entity.isUnpublished) {

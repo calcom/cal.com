@@ -2,12 +2,19 @@ export const updateQueryParam = (param: string, value: string | number) => {
   if (typeof window === "undefined") return;
 
   const url = new URL(window.location.href);
+  if (url.searchParams.get(param) === value) return;
+
   if (value === "" || value === "null") {
-    url.searchParams.delete(param);
+    removeQueryParam(param);
+    return;
   } else {
     url.searchParams.set(param, `${value}`);
   }
-  window.history.replaceState(window.history.state, "", url.href);
+  if (param == "slot") {
+    window.history.pushState({ ...window.history.state, as: url.href }, "", url.href);
+  } else {
+    window.history.replaceState({ ...window.history.state, as: url.href }, "", url.href);
+  }
 };
 
 export const getQueryParam = (param: string) => {
@@ -20,6 +27,12 @@ export const removeQueryParam = (param: string) => {
   if (typeof window === "undefined") return;
 
   const url = new URL(window.location.href);
+  if (!url.searchParams.get(param)) return;
+
   url.searchParams.delete(param);
-  window.history.replaceState(window.history.state, "", url.href);
+  if (param == "slot") {
+    window.history.pushState({ ...window.history.state, as: url.href }, "", url.href);
+  } else {
+    window.history.replaceState({ ...window.history.state, as: url.href }, "", url.href);
+  }
 };
