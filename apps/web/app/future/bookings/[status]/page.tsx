@@ -7,7 +7,7 @@ import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import Page from "~/bookings/views/bookings-listing-view";
+import Bookings from "~/bookings/views/bookings-listing-view";
 import { getStaticProps } from "~/bookings/views/bookings-listing-view.getStaticProps";
 
 type Y = InferGetStaticPropsType<typeof getStaticProps>;
@@ -23,6 +23,6 @@ export const generateStaticParams = async () => {
   return validStatuses.map((status) => ({ status }));
 };
 
-export default WithLayout({ getLayout, getData, Page })<"P">;
+export default WithLayout({ getLayout, getData, Page: Bookings })<"P">;
 
 export const dynamic = "force-static";
