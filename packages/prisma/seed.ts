@@ -530,6 +530,60 @@ async function main() {
       },
     ]
   );
+
+  const orgOwner = await createUserAndEventType({
+    user: {
+      email: "john@acme.com",
+      password: "johnacme",
+      username: "johndoe",
+      name: "John Doe",
+    },
+  });
+
+  const org = await createTeamAndAddUsers(
+    {
+      name: "Acme",
+      slug: "acme",
+      createdAt: new Date(),
+      metadata: {
+        isOrganization: true,
+        orgAutoAcceptEmail: "acme.com",
+        isOrganizationVerified: true,
+        isOrganizationConfigured: true,
+      },
+    },
+    [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
+  );
+
+  if (org) {
+    await createTeamAndAddUsers(
+      {
+        name: "Marketing Team",
+        slug: "marketing-team",
+        createdAt: new Date(),
+        parent: {
+          connect: {
+            id: org.id,
+          },
+        },
+      },
+      [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
+    );
+
+    await createTeamAndAddUsers(
+      {
+        name: "Engineering Team",
+        slug: "engineering-team",
+        createdAt: new Date(),
+        parent: {
+          connect: {
+            id: org.id,
+          },
+        },
+      },
+      [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
+    );
+  }
 }
 
 main()
