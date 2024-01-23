@@ -38,6 +38,7 @@ export interface DataTableProps<TData, TValue> {
   onScroll?: (e: React.UIEvent<HTMLDivElement, UIEvent>) => void;
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
+  variant?: "default" | "compact";
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +51,7 @@ export function DataTable<TData, TValue>({
   tableContainerRef,
   isLoading,
   tableOverlay,
+  variant,
   /** This should only really be used if you dont have actions in a row. */
   onRowMouseclick,
   onScroll,
@@ -95,28 +97,16 @@ export function DataTable<TData, TValue>({
     virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
-    <div className="relative space-y-4">
+    <div className="space-y-4">
       <DataTableToolbar
         table={table}
         filterableItems={filterableItems}
         searchKey={searchKey}
         tableCTA={tableCTA}
       />
-      <div
-        className="border-subtle rounded-md border"
-        ref={tableContainerRef}
-        onScroll={onScroll}
-        style={{
-          height: "calc(100vh - 30vh)",
-          overflow: "auto",
-        }}>
+      <div ref={tableContainerRef} onScroll={onScroll}>
         <Table>
-          <TableHeader
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-            }}>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -140,16 +130,18 @@ export function DataTable<TData, TValue>({
             {virtualRows && !isLoading ? (
               virtualRows.map((virtualRow) => {
                 const row = rows[virtualRow.index] as Row<TData>;
-
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowMouseclick && onRowMouseclick(row)}
-                    className={classNames(onRowMouseclick && "hover:cursor-pointer")}>
+                    className={classNames(
+                      onRowMouseclick && "hover:cursor-pointer",
+                      variant === "compact" && "!border-0"
+                    )}>
                     {row.getVisibleCells().map((cell) => {
                       return (
-                        <TableCell key={cell.id}>
+                        <TableCell key={cell.id} className={classNames(variant === "compact" && "p-1.5")}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       );

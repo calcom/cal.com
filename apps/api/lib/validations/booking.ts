@@ -18,6 +18,11 @@ const schemaBookingBaseBodyParams = Booking.pick({
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
 
+export const schemaBookingGetParams = z.object({
+  dateFrom: iso8601.optional(),
+  dateTo: iso8601.optional(),
+});
+
 const schemaBookingEditParams = z
   .object({
     title: z.string().optional(),
@@ -28,7 +33,9 @@ const schemaBookingEditParams = z
   })
   .strict();
 
-export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingEditParams);
+export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
+  .merge(schemaBookingEditParams)
+  .omit({ uid: true });
 
 export const schemaBookingReadPublic = Booking.extend({
   attendees: z
@@ -58,7 +65,7 @@ export const schemaBookingReadPublic = Booking.extend({
       })
     )
     .optional(),
-  responses: z.record(z.any()),
+  responses: z.record(z.any()).nullable(),
 }).pick({
   id: true,
   userId: true,

@@ -2,13 +2,14 @@ import { expect } from "@playwright/test";
 
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import { localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
 // a test to logout requires both a succesfull login as logout, to prevent
 // a doubling of tests failing on logout & logout, we can group them.
-test.describe("user can login & logout succesfully", async () => {
+testBothFutureAndLegacyRoutes.describe("user can login & logout succesfully", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
   });
@@ -35,7 +36,7 @@ test.describe("user can login & logout succesfully", async () => {
       const signOutBtn = await page.locator(`text=${signOutLabel}`);
       await signOutBtn.click();
 
-      await page.locator('a[href="/auth/login"]').click();
+      await page.locator("[data-testid=logout-btn]").click();
 
       // Reroute to the home page to check if the login form shows up
       await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
@@ -43,7 +44,7 @@ test.describe("user can login & logout succesfully", async () => {
   });
 });
 
-test.describe("Login and logout tests", () => {
+testBothFutureAndLegacyRoutes.describe("Login and logout tests", () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
   });
@@ -56,7 +57,7 @@ test.describe("Login and logout tests", () => {
     await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
   });
 
-  test.describe("Login flow validations", async () => {
+  testBothFutureAndLegacyRoutes.describe("Login flow validations", async () => {
     test("Should warn when user does not exist", async ({ page }) => {
       const alertMessage = (await localize("en"))("incorrect_email_password");
 

@@ -28,6 +28,7 @@ test.describe("Availablity tests", () => {
       await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).click();
       await page.locator('[data-testid="date-override-mark-unavailable"]').click();
       await page.locator('[data-testid="add-override-submit-btn"]').click();
+      await page.locator('[data-testid="dialog-rejection"]').click();
       await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
       await page.locator('[form="availability-form"][type="submit"]').click();
     });
@@ -39,6 +40,7 @@ test.describe("Availablity tests", () => {
       const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
       const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
       await page.goto(troubleshooterURL);
+      await page.waitForLoadState("networkidle");
       await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
     });
   });

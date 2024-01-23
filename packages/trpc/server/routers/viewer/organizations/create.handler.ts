@@ -5,14 +5,9 @@ import { totp } from "otplib";
 import { sendOrganizationEmailVerification } from "@calcom/emails";
 import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import {
-  IS_TEAM_BILLING_ENABLED,
-  RESERVED_SUBDOMAINS,
-  IS_PRODUCTION,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -39,30 +34,6 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
-const vercelCreateDomain = async (domain: string) => {
-  const response = await fetch(
-    `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
-    {
-      body: JSON.stringify({ name: `${domain}.${subdomainSuffix()}` }),
-      headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN_VERCEL}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    }
-  );
-
-  const data = await response.json();
-
-  // Domain is already owned by another team but you can request delegation to access it
-  if (data.error?.code === "forbidden") return false;
-
-  // Domain is already being used by a different project
-  if (data.error?.code === "domain_taken") return false;
-
-  return true;
-};
-
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, adminEmail, adminUsername, check } = input;
 
@@ -72,9 +43,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  const slugCollisions = await prisma.team.findFirst({
+  const hasAnOrgWithSameSlug = await prisma.team.findFirst({
     where: {
       slug: slug,
+      parentId: null,
       metadata: {
         path: ["isOrganization"],
         equals: true,
@@ -82,7 +54,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
-  if (slugCollisions || RESERVED_SUBDOMAINS.includes(slug))
+  // Allow creating an organization with same requestedSlug as a non-org Team's slug
+  // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
+  // Publishing the organization would fail if the team with the same slug is not migrated first
+
+  if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
   if (userCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "admin_email_taken" });
 
@@ -98,12 +74,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   let isOrganizationConfigured = false;
 
   if (check === false) {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
-    if (process.env.VERCEL) {
-      // We only want to proceed to register the subdomain for the org in Vercel
-      // within a Vercel context
-      isOrganizationConfigured = await vercelCreateDomain(slug);
-    } else {
+    isOrganizationConfigured = await createDomain(slug);
+
+    if (!isOrganizationConfigured) {
       // Otherwise, we proceed to send an administrative email to admins regarding
       // the need to configure DNS registry to support the newly created org
       const instanceAdmins = await prisma.user.findMany({
@@ -153,7 +126,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
             metadata: {
               ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: slug } : {}),
               isOrganization: true,
-              isOrganizationVerified: false,
+              isOrganizationVerified: true,
               isOrganizationConfigured,
               orgAutoAcceptEmail: emailDomain,
             },
@@ -175,7 +148,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     return { user: { ...createOwnerOrg, password } };
   } else {
-    if (!IS_PRODUCTION) return { checked: true };
     const language = await getTranslation(input.language ?? "en", "common");
 
     const secret = createHash("md5")

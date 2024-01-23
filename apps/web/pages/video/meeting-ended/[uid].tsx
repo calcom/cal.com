@@ -1,13 +1,13 @@
-import type { NextPageContext } from "next";
+"use client";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { Button, HeadSeo } from "@calcom/ui";
 import { ArrowRight, Calendar, X } from "@calcom/ui/components/icon";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -44,7 +44,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                     </h2>
                     <p className="text-subtle text-center">
                       <Calendar className="-mt-1 mr-1 inline-block h-4 w-4" />
-                      {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
+                      {dayjs(props.booking.startTime).format(`${detectBrowserTimeFormat}, dddd DD MMMM YYYY`)}
                     </p>
                   </div>
                 </div>
@@ -64,48 +64,5 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
   );
 }
 
+export { getServerSideProps };
 MeetingUnavailable.PageWrapper = PageWrapper;
-
-export async function getServerSideProps(context: NextPageContext) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      uid: context.query.uid as string,
-    },
-    select: {
-      ...bookingMinimalSelect,
-      uid: true,
-      user: {
-        select: {
-          credentials: true,
-        },
-      },
-      references: {
-        select: {
-          uid: true,
-          type: true,
-          meetingUrl: true,
-        },
-      },
-    },
-  });
-
-  if (!booking) {
-    return {
-      redirect: {
-        destination: "/video/no-meeting-found",
-        permanent: false,
-      },
-    };
-  }
-
-  const bookingObj = Object.assign({}, booking, {
-    startTime: booking.startTime.toString(),
-    endTime: booking.endTime.toString(),
-  });
-
-  return {
-    props: {
-      booking: bookingObj,
-    },
-  };
-}

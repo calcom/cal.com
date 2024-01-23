@@ -55,7 +55,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0">
+    <div className="mb-4 flex w-full flex-col last:mb-0 sm:flex-row sm:px-0" data-testid={weekday}>
       {/* Label & switch container */}
       <div className="flex h-[36px] items-center justify-between sm:w-32">
         <div>
@@ -107,6 +107,7 @@ const CopyButton = ({
             "text-default",
             open && "ring-brand-500 !bg-subtle outline-none ring-2 ring-offset-1"
           )}
+          data-testid="copy-button"
           type="button"
           tooltip={t("copy_times_to_tooltip")}
           color="minimal"
@@ -117,7 +118,7 @@ const CopyButton = ({
       <DropdownMenuContent align="end">
         <CopyTimes
           weekStart={weekStart}
-          disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
+          disabled={parseInt(getValuesFromDayRange.replace(`${fieldArrayName}.`, ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
             setOpen(false);
@@ -192,6 +193,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 disabled={disabled}
+                data-testid="add-time-availability"
                 tooltip={t("add_time_availability")}
                 className="text-default mx-2 "
                 type="button"
@@ -326,7 +328,7 @@ interface IOption {
  * 23:45:00 (End of day with enough time for 15 min booking)
  */
 /** Begin Time Increments For Select */
-const INCREMENT = 15;
+const INCREMENT = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
 const useOptions = () => {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();

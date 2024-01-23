@@ -19,11 +19,12 @@ Fixes # (issue)
 
 <!-- Please delete bullets that are not relevant. -->
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] Chore (refactoring code, technical debt, workflow improvements)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+- Bug fix (non-breaking change which fixes an issue)
+- Chore (refactoring code, technical debt, workflow improvements)
+- New feature (non-breaking change which adds functionality)
+- Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- Tests (Unit/Integration/E2E or any other test)
+- This change requires a documentation update
 
 ## How should this be tested?
 
@@ -40,7 +41,7 @@ Fixes # (issue)
 
 ## Checklist
 
-<!-- Please remove all the irrelevant bullets to your PR -->
+<!-- Remove bullet points below that don't apply to you -->
 
 - I haven't read the [contributing guide](https://github.com/calcom/cal.com/blob/main/CONTRIBUTING.md)
 - My code doesn't follow the style guidelines of this project

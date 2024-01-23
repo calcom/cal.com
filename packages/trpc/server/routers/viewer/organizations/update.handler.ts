@@ -61,6 +61,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
     logo: input.logo,
+    calVideoLogo: input.calVideoLogo,
     bio: input.bio,
     hideBranding: input.hideBranding,
     hideBookATeamMember: input.hideBookATeamMember,
@@ -99,7 +100,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Sync Services: Close.com
   if (prevOrganisation) closeComUpdateTeam(prevOrganisation, updatedOrganisation);
 
-  return { update: true, userId: ctx.user.id };
+  return { update: true, userId: ctx.user.id, data };
 };
 
 export default updateHandler;

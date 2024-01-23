@@ -1,5 +1,6 @@
+"use client";
+
 import { getLayout } from "@calcom/features/MainLayout";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -17,6 +18,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+
+import { getServerSideProps } from "@lib/insights/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -46,6 +49,7 @@ export default function InsightsPage() {
     <div>
       <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
         <UpgradeTip
+          plan="team"
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
@@ -68,17 +72,17 @@ export default function InsightsPage() {
             <FiltersProvider>
               <Filters />
 
-              <div className="mb-4 space-y-6">
+              <div className="mb-4 space-y-4">
                 <BookingKPICards />
 
                 <BookingStatusLineChart />
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <PopularEventsTable />
 
                   <AverageEventDurationChart />
                 </div>
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
                 </div>
@@ -103,18 +107,4 @@ export default function InsightsPage() {
 InsightsPage.PageWrapper = PageWrapper;
 InsightsPage.getLayout = getLayout;
 
-// If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async () => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-
-  if (flags.insights === false) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {},
-  };
-};
+export { getServerSideProps };

@@ -19,6 +19,8 @@ export default function AppCard({
   children,
   returnTo,
   teamId,
+  disableSwitch,
+  switchTooltip,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -28,10 +30,12 @@ export default function AppCard({
   returnTo?: string;
   teamId?: number;
   LockedIcon?: React.ReactNode;
+  disableSwitch?: boolean;
+  switchTooltip?: string;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const { setAppData, LockedIcon, disabled } = useAppContextWithSchema();
+  const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
 
   return (
     <div
@@ -44,7 +48,7 @@ export default function AppCard({
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
           <Link
-            href={"/apps/" + app.slug}
+            href={`/apps/${app.slug}`}
             className={classNames(app?.isInstalled ? "mr-[11px]" : "mr-3", "h-auto w-10 rounded-sm")}>
             <img
               className={classNames(
@@ -90,7 +94,7 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
-                  disabled={!app.enabled || disabled}
+                  disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
                       switchOnClick(enabled);
@@ -99,6 +103,8 @@ export default function AppCard({
                   }}
                   checked={switchChecked}
                   LockedIcon={LockedIcon}
+                  data-testid={`${app.slug}-app-switch`}
+                  tooltip={switchTooltip}
                 />
               </div>
             ) : (

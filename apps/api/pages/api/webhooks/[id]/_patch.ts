@@ -51,6 +51,9 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
  *               eventTypeId:
  *                 type: number
  *                 description: The event type ID if this webhook should be associated with only that event type
+ *               secret:
+ *                 type: string
+ *                 description: The secret to verify the authenticity of the received payload
  *     tags:
  *     - webhooks
  *     externalDocs:
@@ -66,7 +69,12 @@ import { schemaWebhookEditBodyParams, schemaWebhookReadPublic } from "~/lib/vali
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, query, userId, isAdmin } = req;
   const { id } = schemaQueryIdAsString.parse(query);
-  const { eventTypeId, userId: bodyUserId, ...data } = schemaWebhookEditBodyParams.parse(req.body);
+  const {
+    eventTypeId,
+    userId: bodyUserId,
+    eventTriggers,
+    ...data
+  } = schemaWebhookEditBodyParams.parse(req.body);
   const args: Prisma.WebhookUpdateArgs = { where: { id }, data };
 
   if (eventTypeId) {
@@ -82,6 +90,11 @@ export async function patchHandler(req: NextApiRequest) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
     args.data.userId = bodyUserId;
+  }
+
+  if (eventTriggers) {
+    const eventTriggersSet = new Set(eventTriggers);
+    args.data.eventTriggers = Array.from(eventTriggersSet);
   }
 
   const result = await prisma.webhook.update(args);

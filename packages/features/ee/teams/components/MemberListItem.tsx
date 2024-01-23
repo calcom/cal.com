@@ -3,7 +3,6 @@ import { SendIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -11,7 +10,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import {
-  Avatar,
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
@@ -28,6 +26,7 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
@@ -37,6 +36,7 @@ import TeamPill, { TeamRole } from "./TeamPill";
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["get"];
   member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  isOrgAdminOrOwner: boolean | undefined;
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -66,6 +66,7 @@ export default function MemberListItem(props: Props) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
+      await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -109,7 +110,8 @@ export default function MemberListItem(props: Props) {
       (props.member.role !== MembershipRole.OWNER ||
         ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
-    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
+    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER) ||
+    props.isOrgAdminOrOwner;
   const impersonationMode =
     editMode &&
     !props.member.disableImpersonation &&
@@ -117,7 +119,7 @@ export default function MemberListItem(props: Props) {
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
   const resendInvitation = editMode && !props.member.accepted;
 
-  const bookerUrl = useBookerUrl();
+  const bookerUrl = props.member.bookerUrl;
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
   const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
@@ -141,22 +143,27 @@ export default function MemberListItem(props: Props) {
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between truncate sm:flex-row">
           <div className="flex">
-            <Avatar
-              size="sm"
-              imageSrc={bookerUrl + "/" + props.member.username + "/avatar.png"}
-              alt={name || ""}
-              className="h-10 w-10 rounded-full"
-            />
-
+            <UserAvatar size="sm" user={props.member} className="h-10 w-10 rounded-full" />
             <div className="ms-3 inline-block">
-              <div className="mb-1 flex">
-                <span className="text-default mr-2 text-sm font-bold leading-4">{name}</span>
-                {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
+              <div className="mb-1 flex" data-testid={`member-${props.member.username}`}>
+                <span data-testid="member-name" className="text-default mr-2 text-sm font-bold leading-4">
+                  {name}
+                </span>
+                {!props.member.accepted && (
+                  <TeamPill data-testid="member-pending" color="orange" text={t("pending")} />
+                )}
                 {isAdmin && props.member.accepted && appList}
-                {props.member.role && <TeamRole role={props.member.role} />}
+                {props.member.role && <TeamRole data-testid="member-role" role={props.member.role} />}
               </div>
               <div className="text-default flex items-center">
-                <span className=" block text-sm" data-testid="member-email" data-email={props.member.email}>
+                <span
+                  className=" block text-sm"
+                  data-testid={
+                    props.member.accepted
+                      ? "member-email"
+                      : `email-${props.member.email.replace("@", "")}-pending`
+                  }
+                  data-email={props.member.email}>
                   {props.member.email}
                 </span>
                 {bookingLink && (
@@ -192,17 +199,19 @@ export default function MemberListItem(props: Props) {
                   StartIcon={Clock}
                 />
               </Tooltip> */}
-              <Tooltip content={t("view_public_page")}>
-                <Button
-                  target="_blank"
-                  href={`${bookerUrl}/${props.member.username}`}
-                  color="secondary"
-                  className={classNames(!editMode ? "rounded-r-md" : "")}
-                  variant="icon"
-                  StartIcon={ExternalLink}
-                  disabled={!props.member.accepted}
-                />
-              </Tooltip>
+              {!!props.member.accepted && (
+                <Tooltip content={t("view_public_page")}>
+                  <Button
+                    target="_blank"
+                    href={`${bookerUrl}/${props.member.username}`}
+                    color="secondary"
+                    className={classNames(!editMode ? "rounded-r-md" : "")}
+                    variant="icon"
+                    StartIcon={ExternalLink}
+                    disabled={!props.member.accepted}
+                  />
+                </Tooltip>
+              )}
               {editMode && (
                 <Dropdown>
                   <DropdownMenuTrigger asChild>
@@ -273,7 +282,7 @@ export default function MemberListItem(props: Props) {
                   <DropdownMenuItem className="outline-none">
                     <DropdownItem
                       disabled={!props.member.accepted}
-                      href={!props.member.accepted ? undefined : "/" + props.member.username}
+                      href={!props.member.accepted ? undefined : `/${props.member.username}`}
                       target="_blank"
                       type="button"
                       StartIcon={ExternalLink}>
@@ -327,7 +336,7 @@ export default function MemberListItem(props: Props) {
               onSubmit={async (e) => {
                 e.preventDefault();
                 await signIn("impersonation-auth", {
-                  username: props.member.username || props.member.email,
+                  username: props.member.email,
                   teamId: props.team.id,
                 });
                 setShowImpersonateModal(false);

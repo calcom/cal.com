@@ -1,4 +1,4 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,9 +26,6 @@ type Props = {
 };
 
 export default function CancelBooking(props: Props) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const asPath = `${pathname}?${searchParams.toString()}`;
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
@@ -44,6 +41,7 @@ export default function CancelBooking(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
     <>
       {error && (
@@ -100,7 +98,8 @@ export default function CancelBooking(props: Props) {
                   });
 
                   if (res.status >= 200 && res.status < 300) {
-                    router.replace(asPath);
+                    // tested by apps/web/playwright/booking-pages.e2e.ts
+                    router.refresh();
                   } else {
                     setLoading(false);
                     setError(

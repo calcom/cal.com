@@ -3,13 +3,14 @@ import type { FormEvent } from "react";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import OrganizationAvatar from "@calcom/features/ee/organizations/components/OrganizationAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
+import type { Ensure } from "@calcom/types/utils";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 type FormData = {
@@ -96,17 +97,18 @@ const UserProfile = () => {
     },
   ];
 
+  const organization =
+    user.organization && user.organization.id
+      ? {
+          ...(user.organization as Ensure<typeof user.organization, "id">),
+          slug: user.organization.slug || null,
+          requestedSlug: user.organization.metadata?.requestedSlug || null,
+        }
+      : null;
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && (
-          <OrganizationAvatar
-            alt={user.username || "user avatar"}
-            size="lg"
-            imageSrc={imageSrc}
-            organizationSlug={user.organization?.slug}
-          />
-        )}
+        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />}
         <input
           ref={avatarRef}
           type="hidden"
@@ -148,15 +150,10 @@ const UserProfile = () => {
           firstRender={firstRender}
           setFirstRender={setFirstRender}
         />
-        <p className="dark:text-inverted text-default mt-2 font-sans text-sm font-normal">
-          {t("few_sentences_about_yourself")}
-        </p>
+        <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
-      <Button
-        type="submit"
-        className="text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm">
+      <Button EndIcon={ArrowRight} type="submit" className="mt-8 w-full items-center justify-center">
         {t("finish")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </Button>
     </form>
   );

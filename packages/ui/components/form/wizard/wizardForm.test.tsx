@@ -4,6 +4,12 @@ import { vi } from "vitest";
 
 import WizardForm from "./WizardForm";
 
+vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({
+  useCompatSearchParams() {
+    return { get: vi.fn().mockReturnValue(currentStepNavigation) };
+  },
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter() {
     return { replace: vi.fn() };

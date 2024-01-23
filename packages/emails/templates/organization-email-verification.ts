@@ -22,12 +22,12 @@ export default class OrganizationEmailVerification extends BaseEmail {
     this.orgVerifyInput = orgVerifyInput;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.orgVerifyInput.user.email,
       subject: this.orgVerifyInput.language("verify_email_organization"),
-      html: renderEmail("OrganisationAccountVerifyEmail", this.orgVerifyInput),
+      html: await renderEmail("OrganisationAccountVerifyEmail", this.orgVerifyInput),
       text: this.getTextBody(),
     };
   }

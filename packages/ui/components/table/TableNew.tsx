@@ -4,8 +4,12 @@ import { classNames } from "@calcom/lib";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-auto">
-      <table ref={ref} className={classNames("w-full caption-bottom text-sm", className)} {...props} />
+    <div className="w-full overflow-auto md:overflow-visible">
+      <table
+        ref={ref}
+        className={classNames("border-subtle w-full caption-bottom border text-sm", className)}
+        {...props}
+      />
     </div>
   )
 );
@@ -13,7 +17,11 @@ Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={classNames("[&_tr]:bg-subtle [&_tr]:border-b", className)} {...props} />
+    <thead
+      ref={ref}
+      className={classNames("[&_tr]:bg-subtle md:sticky md:top-[4.25rem] md:z-10 [&_tr]:border-b", className)}
+      {...props}
+    />
   )
 );
 TableHeader.displayName = "TableHeader";
@@ -64,7 +72,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
-      className={classNames("text-default p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={classNames("text-default px-2 py-2.5 align-middle [&:has([role=checkbox])]:pr-0", className)}
       {...props}
     />
   )

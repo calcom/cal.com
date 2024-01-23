@@ -1,8 +1,8 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import z from "zod";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
@@ -10,7 +10,7 @@ import { X } from "@calcom/ui/components/icon";
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { ssgInit } from "@server/lib/ssg";
+import { getTranslations } from "@server/lib/getTranslations";
 
 const querySchema = z.object({
   error: z.string().optional(),
@@ -18,7 +18,7 @@ const querySchema = z.object({
 
 export default function Error() {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { error } = querySchema.parse(searchParams);
   const isTokenVerificationError = error?.toLowerCase() === "verification";
   const errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
@@ -50,11 +50,11 @@ export default function Error() {
 Error.PageWrapper = PageWrapper;
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const ssr = await ssgInit(context);
+  const i18n = await getTranslations(context);
 
   return {
     props: {
-      trpcState: ssr.dehydrate(),
+      i18n,
     },
   };
 };

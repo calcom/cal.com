@@ -1,11 +1,15 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetStaticPaths, GetStaticProps } from "next";
-import { Fragment } from "react";
+import type { GetStaticPaths } from "next";
+import { Fragment, useState } from "react";
 import React from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
+import dayjs from "@calcom/dayjs";
 import { getLayout } from "@calcom/features/MainLayout";
+import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
@@ -19,13 +23,13 @@ import type { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
+import { getStaticProps } from "@lib/bookings/[status]/getStaticProps";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
+import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
-
-import { ssgInit } from "@server/lib/ssg";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -78,6 +82,8 @@ export default function Bookings() {
   const { data: filterQuery } = useFilterQuery();
   const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
   const { t } = useLocale();
+  const user = useMeQuery().data;
+  const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -94,7 +100,7 @@ export default function Bookings() {
     }
   );
 
-  // Animate page (tab) tranistions to look smoothing
+  // Animate page (tab) transitions to look smoothing
 
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
@@ -119,7 +125,10 @@ export default function Bookings() {
       }
       shownBookings[booking.recurringEventId] = [booking];
     } else if (status === "upcoming") {
-      return new Date(booking.startTime).toDateString() !== new Date().toDateString();
+      return (
+        dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+        dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+      );
     }
     return true;
   };
@@ -132,7 +141,11 @@ export default function Bookings() {
         recurringInfoToday = page.recurringInfo.find(
           (info) => info.recurringEventId === booking.recurringEventId
         );
-        return new Date(booking.startTime).toDateString() === new Date().toDateString();
+
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
       })
     )[0] || [];
 
@@ -141,12 +154,11 @@ export default function Bookings() {
   return (
     <ShellMain hideHeadingOnMobile heading={t("bookings")} subtitle={t("bookings_description")}>
       <div className="flex flex-col">
-        <div className="flex flex-col flex-wrap lg:flex-row">
+        <div className="flex flex-row flex-wrap justify-between">
           <HorizontalTabs tabs={tabs} />
-          <div className="max-w-full overflow-x-auto xl:ml-auto">
-            <FiltersContainer />
-          </div>
+          <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
         </div>
+        <FiltersContainer isFiltersVisible={isFiltersVisible} />
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
             {query.status === "error" && (
@@ -166,6 +178,12 @@ export default function Bookings() {
                             {bookingsToday.map((booking: BookingOutput) => (
                               <BookingListItem
                                 key={booking.id}
+                                loggedInUser={{
+                                  userId: user?.id,
+                                  userTimeZone: user?.timeZone,
+                                  userTimeFormat: user?.timeFormat,
+                                  userEmail: user?.email,
+                                }}
                                 listingStatus={status}
                                 recurringInfo={recurringInfoToday}
                                 {...booking}
@@ -190,6 +208,12 @@ export default function Bookings() {
                               return (
                                 <BookingListItem
                                   key={booking.id}
+                                  loggedInUser={{
+                                    userId: user?.id,
+                                    userTimeZone: user?.timeZone,
+                                    userTimeFormat: user?.timeFormat,
+                                    userEmail: user?.email,
+                                  }}
                                   listingStatus={status}
                                   recurringInfo={recurringInfo}
                                   {...booking}
@@ -235,20 +259,6 @@ export default function Bookings() {
 Bookings.PageWrapper = PageWrapper;
 Bookings.getLayout = getLayout;
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
-  const params = querySchema.safeParse(ctx.params);
-  const ssg = await ssgInit(ctx);
-
-  if (!params.success) return { notFound: true };
-
-  return {
-    props: {
-      status: params.data.status,
-      trpcState: ssg.dehydrate(),
-    },
-  };
-};
-
 export const getStaticPaths: GetStaticPaths = () => {
   return {
     paths: validStatuses.map((status) => ({
@@ -258,3 +268,5 @@ export const getStaticPaths: GetStaticPaths = () => {
     fallback: "blocking",
   };
 };
+
+export { getStaticProps };

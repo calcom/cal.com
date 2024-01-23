@@ -77,7 +77,7 @@ export default function OtherTeamListItem(props: Props) {
                         `${
                           orgBranding
                             ? `${orgBranding.fullDomain}`
-                            : process.env.NEXT_PUBLIC_WEBSITE_URL + "/team"
+                            : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
                         }/${team.slug}`
                       );
                       showToast(t("link_copied"), "success");
@@ -101,7 +101,7 @@ export default function OtherTeamListItem(props: Props) {
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
-                      href={"/settings/teams/other/" + team.id + "/profile"}
+                      href={`/settings/teams/other/${team.id}/profile`}
                       StartIcon={Edit2}>
                       {t("edit_team") as string}
                     </DropdownItem>

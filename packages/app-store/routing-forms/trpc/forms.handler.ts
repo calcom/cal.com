@@ -16,7 +16,7 @@ interface FormsHandlerOptions {
   };
   input: TFormSchema;
 }
-const log = logger.getChildLogger({ prefix: ["[formsHandler]"] });
+const log = logger.getSubLogger({ prefix: ["[formsHandler]"] });
 
 export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
   const { prisma, user } = ctx;

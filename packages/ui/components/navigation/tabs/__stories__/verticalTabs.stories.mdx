@@ -1,0 +1,158 @@
+import { Meta, Story, Canvas } from "@storybook/addon-docs/blocks";
+
+import {
+  Title,
+  CustomArgsTable,
+  Examples,
+  Example,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+import { Plus } from "@calcom/ui/components/icon";
+
+import VerticalTabs from "../VerticalTabs";
+
+<Meta title="UI/Navigation/VerticalTabs" component={VerticalTabs} />
+
+<Title title="Vertical Tabs Brief" subtitle="Version 1.0 — Last Update: 17 Aug 2023" />
+
+## Definition
+
+The VerticalTabs component is a user interface element utilized to present a vertical set of tabs, commonly employed for navigation or organizing content within a web application.
+
+## Structure
+
+The VerticalTabs component is designed to complement the HorizontalTabItem component, which represents individual tabs within the tab bar. This combination allows for creating intuitive navigation experiences and organized content presentation.
+
+export const tabs = [
+  {
+    name: "Tab 1",
+    href: "/tab1",
+    disabled: false,
+    linkShallow: true,
+    linkScroll: true,
+    disableChevron: true,
+    icon: Plus,
+  },
+  {
+    name: "Tab 2",
+    href: "/tab2",
+    disabled: false,
+    linkShallow: true,
+    linkScroll: true,
+    avatar: "Avatar",
+  },
+  {
+    name: "Tab 3",
+    href: "/tab3",
+    disabled: true,
+    linkShallow: true,
+    linkScroll: true,
+  },
+];
+
+<CustomArgsTable of={VerticalTabs} />
+
+<Examples title="Default">
+  <Example title="Default">
+    <VerticalTabs
+      tabs={[
+        {
+          name: "tab 1",
+          href: "/tab1",
+        },
+      ]}
+    />
+  </Example>
+  <Example title="Disabled chevron">
+    <VerticalTabs
+      tabs={[
+        {
+          name: "Tab 1",
+          href: "/tab1",
+          disableChevron: true,
+        },
+      ]}
+    />
+  </Example>
+  <Example title="With icon">
+    <VerticalTabs
+      tabs={[
+        {
+          name: "Tab 1",
+          href: "/tab1",
+          icon: Plus,
+        },
+      ]}
+    />
+  </Example>
+  <Example title="Disabled">
+    <VerticalTabs
+      tabs={[
+        {
+          name: "Tab 1",
+          href: "/tab1",
+          disabled: true,
+        },
+      ]}
+    />
+  </Example>
+</Examples>
+
+## VerticalTabs Story
+
+<Canvas>
+  <Story
+    name="Vertical Tabs"
+    args={{
+      name: "Tab 1",
+      info: "Tab information",
+      icon: Plus,
+      disabled: false,
+      children: [
+        {
+          name: "Sub Tab 1",
+          href: "/sub-tab1",
+          disabled: false,
+          className: "sub-tab",
+        },
+      ],
+      textClassNames: "",
+      className: "",
+      isChild: false,
+      hidden: false,
+      disableChevron: true,
+      href: "/tab1",
+      isExternalLink: true,
+      linkShallow: true,
+      linkScroll: true,
+      avatar: "",
+      iconClassName: "",
+    }}
+    argTypes={{
+      name: { control: "text", description: "Tab name" },
+      info: { control: "text", description: "Tab information" },
+      icon: { control: "object", description: "SVGComponent icon" },
+      disabled: { control: "boolean", description: "Whether the tab is disabled" },
+      children: { control: "object", description: "Array of child tabs" },
+      textClassNames: { control: "text", description: "Additional text class names" },
+      className: { control: "text", description: "Additional CSS class" },
+      isChild: { control: "boolean", description: "Whether the tab is a child tab" },
+      hidden: { control: "boolean", description: "Whether the tab is hidden" },
+      disableChevron: { control: "boolean", description: "Whether to disable the chevron" },
+      href: { control: "text", description: "Tab link" },
+      isExternalLink: { control: "boolean", description: "Whether the link is external" },
+      linkShallow: { control: "boolean", description: "Whether to use shallow links" },
+      linkScroll: { control: "boolean", description: "Whether to scroll to links" },
+      avatar: { control: "text", description: "Avatar image URL" },
+      iconClassName: { control: "text", description: "Additional icon class name" },
+    }}>
+    {(...props) => (
+      <VariantsTable titles={["Default"]} columnMinWidth={150}>
+        <VariantRow>
+          <VerticalTabs tabs={tabs} className="overflow-hidden" />
+        </VariantRow>
+      </VariantsTable>
+    )}
+  </Story>
+</Canvas>

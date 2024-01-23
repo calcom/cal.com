@@ -24,6 +24,8 @@ import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import type { EmailVerifyCode } from "./templates/attendee-verify-email";
 import AttendeeVerifyEmail from "./templates/attendee-verify-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
+import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
+import type { IBookingRedirect } from "./templates/booking-redirect-notification";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
@@ -87,6 +89,7 @@ export const sendScheduledEmails = async (
             new AttendeeScheduledEmail(
               {
                 ...calEvent,
+                ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
                 ...(eventNameObject && {
                   title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
                 }),
@@ -96,6 +99,37 @@ export const sendScheduledEmails = async (
         );
       })
     );
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+// for rescheduled round robin booking that assigned new members
+export const sendRoundRobinScheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const teamMember of members) {
+    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, teamMember })));
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendRoundRobinRescheduledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const teamMember of members) {
+    emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent, teamMember })));
+  }
+
+  await Promise.all(emailsToSend);
+};
+
+export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const teamMember of members) {
+    emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent, teamMember })));
   }
 
   await Promise.all(emailsToSend);
@@ -135,20 +169,37 @@ export const sendScheduledSeatsEmails = async (
   calEvent: CalendarEvent,
   invitee: Person,
   newSeat: boolean,
-  showAttendees: boolean
+  showAttendees: boolean,
+  hostEmailDisabled?: boolean,
+  attendeeEmailDisabled?: boolean
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat })));
+  if (!hostEmailDisabled) {
+    emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat })));
 
-  if (calEvent.team) {
-    for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat, teamMember })));
+    if (calEvent.team) {
+      for (const teamMember of calEvent.team.members) {
+        emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent, newSeat, teamMember })));
+      }
     }
   }
 
-  emailsToSend.push(sendEmail(() => new AttendeeScheduledEmail(calEvent, invitee, showAttendees)));
-
+  if (!attendeeEmailDisabled) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new AttendeeScheduledEmail(
+            {
+              ...calEvent,
+              ...(calEvent.hideCalendarNotes && { additionalNotes: undefined }),
+            },
+            invitee,
+            showAttendees
+          )
+      )
+    );
+  }
   await Promise.all(emailsToSend);
 };
 
@@ -387,4 +438,8 @@ export const sendMonthlyDigestEmails = async (eventData: MonthlyDigestEmailData)
 
 export const sendAdminOrganizationNotification = async (input: OrganizationNotification) => {
   await sendEmail(() => new AdminOrganizationNotification(input));
+};
+
+export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
+  await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };

@@ -8,6 +8,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -27,12 +28,14 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   description: true,
   eventName: true,
   slug: true,
+  isInstantEvent: true,
   schedulingType: true,
   length: true,
   locations: true,
   customInputs: true,
   disableGuests: true,
   metadata: true,
+  lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   recurringEvent: true,
@@ -79,6 +82,12 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           brandColor: true,
           darkBrandColor: true,
           theme: true,
+          organizationId: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
           metadata: true,
         },
       },
@@ -93,6 +102,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
+      organizationId: true,
       organization: {
         select: {
           name: true,
@@ -130,6 +140,7 @@ export const getPublicEvent = async (
         brandColor: true,
         darkBrandColor: true,
         theme: true,
+        organizationId: true,
         organization: {
           select: {
             slug: true,
@@ -167,7 +178,11 @@ export const getPublicEvent = async (
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
-      users: users.map((user) => ({ ...user, metadata: undefined })),
+      users: users.map((user) => ({
+        ...user,
+        metadata: undefined,
+        bookerUrl: getBookerBaseUrlSync(user.organization?.slug ?? null),
+      })),
       locations: privacyFilteredLocations(locations),
       profile: {
         username: users[0].username,
@@ -186,6 +201,7 @@ export const getPublicEvent = async (
         orgSlug: org,
         name: unPublishedOrgUser?.organization?.name ?? null,
       },
+      isInstantEvent: false,
     };
   }
 
@@ -247,6 +263,7 @@ export const getPublicEvent = async (
       name: (event.owner?.organization?.name || event.team?.parent?.name || event.team?.name) ?? null,
     },
     isDynamic: false,
+    isInstantEvent: event.isInstantEvent,
   };
 };
 
@@ -291,23 +308,51 @@ function getUsersFromEvent(event: Event) {
   if (!owner) {
     return null;
   }
-  const { username, name, weekStart } = owner;
-  return [{ username, name, weekStart }];
+  const { username, name, weekStart, organizationId } = owner;
+  return [
+    {
+      username,
+      name,
+      weekStart,
+      organizationId,
+      bookerUrl: getBookerBaseUrlSync(owner.organization?.slug ?? null),
+    },
+  ];
 }
 
 async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number) {
   const { users } = await prisma.eventType.findUniqueOrThrow({
     where: { id: eventTypeId },
-    select: { users: { select: { username: true, name: true, weekStart: true } } },
+    select: {
+      users: {
+        select: {
+          username: true,
+          name: true,
+          weekStart: true,
+          organizationId: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
+    },
   });
   if (!users.length) return null;
-  return [users[0]];
+  return [{ ...users[0], bookerUrl: getBookerBaseUrlSync(users[0].organization?.slug ?? null) }];
 }
 
-function mapHostsToUsers(host: { user: Pick<User, "username" | "name" | "weekStart"> }) {
+function mapHostsToUsers(host: {
+  user: Pick<User, "username" | "name" | "weekStart" | "organizationId"> & {
+    organization: { slug: string | null } | null;
+  };
+}) {
   return {
     username: host.user.username,
     name: host.user.name,
     weekStart: host.user.weekStart,
+    organizationId: host.user.organizationId,
+    bookerUrl: getBookerBaseUrlSync(host.user.organization?.slug ?? null),
   };
 }

@@ -15,7 +15,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
+const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
@@ -55,7 +55,7 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
 
 const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
-  log.silly(
+  log.debug(
     "createMeeting",
     safeStringify({
       credential: getPiiFreeCredential(credential),
@@ -100,11 +100,13 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       },
     });
 
-    if (!enabledApp?.enabled) throw "Current location app is not enabled";
+    if (!enabledApp?.enabled)
+      throw `Location app ${credential.appId} is either disabled or not seeded at all`;
 
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
+    log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
     log.error("createMeeting failed", safeStringify({ err, calEvent: getPiiFreeCalendarEvent(calEvent) }));
@@ -142,7 +144,7 @@ const updateMeeting = async (
   if (!updatedMeeting) {
     log.error(
       "updateMeeting failed",
-      JSON.stringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
+      safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
       appName: credential.appId || "",
@@ -200,6 +202,28 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);
+};
+
+export const createInstantMeetingWithCalVideo = async (endTime: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+  return videoAdapter?.createInstantCalVideoRoom?.(endTime);
 };
 
 const getRecordingsOfCalVideoByRoomName = async (

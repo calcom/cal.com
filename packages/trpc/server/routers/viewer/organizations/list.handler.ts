@@ -29,6 +29,13 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     },
   });
 
+  if (!membership) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "You do not have a membership to your organization",
+    });
+  }
+
   const metadata = teamMetadataSchema.parse(membership?.team.metadata);
 
   return {

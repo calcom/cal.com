@@ -106,7 +106,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
 
   return (
     <>
-      <div className="flex items-end overflow-auto text-sm">
+      <div className="flex items-end justify-center overflow-auto text-sm">
         {days.map((day, i) => {
           if (!day.length) return null;
           const dateWithDaySet = usersTimezoneDate.add(i - 1, "day");
@@ -141,7 +141,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       rangeGradients.textGradient = `linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(2,0,36,1) 100%, rgba(9,108,121,1) 100%)`;
 
                       rangeGradients.darkTextGradient = `linear-gradient(90deg, var(--cal-text-emphasis, #111827) ${
-                        gradientValue === 50 ? "50%" : Math.round(gradientValue / 100) * 100 + "%"
+                        gradientValue === 50 ? "50%" : `${Math.round(gradientValue / 100) * 100}%`
                       }, var(--cal-text-inverted, white) 0%, var(--cal-text-inverted, white) 0%)`;
                     } else {
                       rangeGradients.backgroundGradient = `linear-gradient(90deg, var(--cal-bg-success) ${rangeOverlap}%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%)`;
@@ -149,7 +149,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       rangeGradients.textGradient = `linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(2,0,36,1) 50%, rgba(9,108,121,1) 100%)`;
 
                       rangeGradients.darkTextGradient = `linear-gradient(90deg, var(--cal-text-inverted, white) ${
-                        rangeOverlap === 50 ? "50%" : Math.round(rangeOverlap / 100) * 100 + "%"
+                        rangeOverlap === 50 ? "50%" : `${Math.round(rangeOverlap / 100) * 100}%`
                       }, var(--cal-text-emphasis, #111827) 0%, var(--cal-text-emphasis, #111827) 0%)`;
                     }
                   }
@@ -165,7 +165,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       key={h}
                       className={classNames(
                         "flex h-8 flex-col items-center justify-center",
-                        isInRange ? "text-emphasis dark:text-inverted" : "",
+                        isInRange ? "text-emphasis" : "",
                         isInRange && !rangeOverlap ? "bg-success" : "",
                         hours ? "" : "bg-subtle font-medium"
                       )}

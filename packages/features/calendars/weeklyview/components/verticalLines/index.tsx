@@ -2,8 +2,12 @@ import type dayjs from "@calcom/dayjs";
 
 export const VeritcalLines = ({ days }: { days: dayjs.Dayjs[] }) => {
   const isRTL = () => {
-    const userLocale = navigator.language;
-    const userLanguage = new Intl.Locale(userLocale).language;
+    let userLanguage = "en"; // Default to 'en' if navigator is not defined
+
+    if (typeof window !== "undefined" && typeof navigator !== "undefined") {
+      const userLocale = navigator.language;
+      userLanguage = new Intl.Locale(userLocale).language;
+    }
     return ["ar", "he", "fa", "ur"].includes(userLanguage);
   };
 

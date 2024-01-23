@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -34,7 +36,7 @@ function WorkflowsPage() {
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
-      await router.replace("/workflows/" + workflow.id);
+      await router.replace(`/workflows/${workflow.id}`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -120,7 +122,7 @@ const Filter = (props: {
   const userId = session.data?.user.id || 0;
   const user = session.data?.user.name || "";
   const userName = session.data?.user.username;
-  const userAvatar = WEBAPP_URL + "/" + userName + "/avatar.png";
+  const userAvatar = `${WEBAPP_URL}/${userName}/avatar.png`;
 
   const teams = props.profiles.filter((profile) => !!profile.teamId);
   const { checked, setChecked } = props;
@@ -147,7 +149,7 @@ const Filter = (props: {
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -211,7 +213,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             />
           </div>
         ))}

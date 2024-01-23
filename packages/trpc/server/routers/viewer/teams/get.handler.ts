@@ -1,6 +1,5 @@
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
-import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,6 +18,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     id: input.teamId,
     userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
     includeTeamLogo: input.includeTeamLogo,
+    isOrgView: input?.isOrg,
   });
 
   if (!team) {
@@ -27,12 +27,18 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 
   const membership = team?.members.find((membership) => membership.id === ctx.user.id);
 
+  if (!membership) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Not a member of this team." });
+  }
+
   return {
     ...team,
     safeBio: markdownToSafeHTML(team.bio),
     membership: {
-      role: membership?.role as MembershipRole,
-      accepted: membership?.accepted,
+      role: membership.role,
+      accepted: membership.accepted,
     },
   };
 };
+
+export default getHandler;

@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
+import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -205,7 +206,11 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => dayjs(val));
+export const stringToDayjs = z.string().transform((val) => {
+  const matches = val.match(/([+-]\d{2}:\d{2})$/);
+  const timezone = matches ? matches[1] : "+00:00";
+  return dayjs(val).utcOffset(timezone);
+});
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -245,7 +250,14 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
-    allRecurringDates: z.string().array().optional(),
+    allRecurringDates: z
+      .array(
+        z.object({
+          start: z.string(),
+          end: z.string(),
+        })
+      )
+      .optional(),
     currentRecurringIndex: z.number().optional(),
     appsStatus: z
       .array(
@@ -296,6 +308,7 @@ export const vitalSettingsUpdateSchema = z.object({
 export const createdEventSchema = z
   .object({
     id: z.string(),
+    thirdPartyRecurringEventId: z.string(),
     password: z.union([z.string(), z.undefined()]),
     onlineMeetingUrl: z.string().nullable(),
     iCalUID: z.string().optional(),
@@ -319,6 +332,8 @@ export const userMetadata = z
   })
   .nullable();
 
+export type userMetadataType = z.infer<typeof userMetadata>;
+
 export const teamMetadataSchema = z
   .object({
     requestedSlug: z.string(),
@@ -329,6 +344,14 @@ export const teamMetadataSchema = z
     isOrganizationVerified: z.boolean().nullable(),
     isOrganizationConfigured: z.boolean().nullable(),
     orgAutoAcceptEmail: z.string().nullable(),
+    migratedToOrgFrom: z
+      .object({
+        teamSlug: z.string().or(z.null()).optional(),
+        lastMigrationTime: z.string().optional(),
+        reverted: z.boolean().optional(),
+        lastRevertTime: z.string().optional(),
+      })
+      .optional(),
   })
   .partial()
   .nullable();
@@ -548,6 +571,7 @@ export const downloadLinkSchema = z.object({
 export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
   title: true,
   description: true,
+  isInstantEvent: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -581,6 +605,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   destinationCalendar: true,
   periodCountCalendarDays: true,
   bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
   slotInterval: true,
   scheduleId: true,
   workflows: true,
@@ -605,9 +630,9 @@ export const emailSchemaRefinement = (value: string) => {
 };
 
 export const signupSchema = z.object({
-  username: z.string().refine((value) => !value.includes("+"), {
-    message: "String should not contain a plus symbol (+).",
-  }),
+  // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
+  // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
+  username: z.string().optional(),
   email: z.string().email(),
   password: z.string().superRefine((data, ctx) => {
     const isStrict = false;
@@ -634,3 +659,5 @@ export const ZVerifyCodeInputSchema = z.object({
 export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 
 export const coerceToDate = z.coerce.date();
+export const getStringAsNumberRequiredSchema = (t: TFunction) =>
+  z.string().min(1, t("error_required_field")).pipe(z.coerce.number());

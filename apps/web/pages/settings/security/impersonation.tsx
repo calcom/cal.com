@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -66,8 +68,8 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
           onCheckedChange={(checked) => {
             mutation.mutate({ disableImpersonation: !checked });
           }}
+          switchContainerClassName="rounded-t-none border-t-0"
           disabled={mutation.isLoading}
-          switchContainerClassName="py-6 px-4 sm:px-6 border-subtle rounded-b-xl border border-t-0"
         />
       </div>
     </>

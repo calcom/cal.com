@@ -15,7 +15,7 @@ interface DailyVideoDownloadRecordingEmailProps {
 export const DailyVideoDownloadRecordingEmail = (
   props: DailyVideoDownloadRecordingEmailProps & Partial<React.ComponentProps<typeof V2BaseEmailHtml>>
 ) => {
-  const image = WEBAPP_URL + "/emails/logo.png";
+  const image = `${WEBAPP_URL}/emails/logo.png`;
   return (
     <V2BaseEmailHtml
       subject={props.language("download_your_recording", {

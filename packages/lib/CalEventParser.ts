@@ -14,7 +14,7 @@ const translator = short();
 export const getWhat = (calEvent: CalendarEvent, t: TFunction) => {
   return `
 ${t("what")}:
-${calEvent.type}
+${calEvent.title}
   `;
 };
 
@@ -52,7 +52,7 @@ ${calEvent.organizer.email}
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members.map((member) => {
         return `
-${member.name} - ${t("team_member")} 
+${member.name} - ${t("team_member")}
 ${member.email}
     `;
       })
@@ -155,14 +155,13 @@ const getSeatReferenceId = (calEvent: CalendarEvent): string => {
 };
 
 export const getManageLink = (calEvent: CalendarEvent, t: TFunction) => {
-  return `
-${t("need_to_reschedule_or_cancel")}
-${(calEvent.bookerUrl ?? WEBAPP_URL) + "/booking/" + getUid(calEvent) + "?changes=true"}
-  `;
+  return `${t("need_to_reschedule_or_cancel")}${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(
+    calEvent
+  )}?changes=true`;
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  const cancelLink = new URL((calEvent.bookerUrl ?? WEBAPP_URL) + `/booking/${getUid(calEvent)}`);
+  const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(calEvent)}`);
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
   const seatReferenceUid = getSeatReferenceId(calEvent);
@@ -177,7 +176,11 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
   return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
 };
 
-export const getRichDescription = (calEvent: CalendarEvent, t_?: TFunction /*, attendee?: Person*/) => {
+export const getRichDescription = (
+  calEvent: CalendarEvent,
+  t_?: TFunction /*, attendee?: Person*/,
+  includeAppStatus = false
+) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
   return `
@@ -190,7 +193,7 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent, t)}
 ${getAdditionalNotes(calEvent, t)}
 ${getUserFieldsResponses(calEvent)}
-${getAppsStatus(calEvent, t)}
+${includeAppStatus ? getAppsStatus(calEvent, t) : ""}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
@@ -220,7 +223,7 @@ export const isDailyVideoCall = (calEvent: CalendarEvent): boolean => {
 };
 
 export const getPublicVideoCallUrl = (calEvent: CalendarEvent): string => {
-  return WEBAPP_URL + "/video/" + getUid(calEvent);
+  return `${WEBAPP_URL}/video/${getUid(calEvent)}`;
 };
 
 export const getVideoCallUrlFromCalEvent = (calEvent: CalendarEvent): string => {

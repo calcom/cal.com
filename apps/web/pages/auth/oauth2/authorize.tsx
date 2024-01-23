@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Select } from "@calcom/ui";
@@ -16,13 +17,13 @@ export default function Authorize() {
   const { status } = useSession();
 
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
 
-  const client_id = searchParams?.get("client_id") as string;
+  const client_id = (searchParams?.get("client_id") as string) || "";
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
 
-  const queryString = searchParams.toString();
+  const queryString = searchParams?.toString();
 
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
@@ -80,7 +81,7 @@ export default function Authorize() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="mt-2 max-w-xl rounded-md bg-white px-9 pb-3 pt-2">
+      <div className="bg-default border-subtle mt-2 max-w-xl rounded-md border px-9 pb-3 pt-2">
         <div className="flex items-center justify-center">
           <Avatar
             alt=""
@@ -91,7 +92,7 @@ export default function Authorize() {
           />
           <div className="relative -ml-6 h-24 w-24">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[70px] w-[70px] items-center justify-center  rounded-full bg-white">
+              <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
                 <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
               </div>
             </div>

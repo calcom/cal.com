@@ -48,7 +48,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           throw new Error("Something went wrong");
         }
       } else {
-        const res = await fetch("/api/availability/calendar?" + new URLSearchParams(body), {
+        const res = await fetch(`/api/availability/calendar?${new URLSearchParams(body)}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -67,7 +67,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       },
       onError() {
         setCheckedInternal(false);
-        showToast(`Something went wrong when toggling "${title}""`, "error");
+        showToast(`Something went wrong when toggling "${title}"`, "error");
       },
     }
   );
@@ -77,9 +77,10 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         <Switch
           id={externalId}
           checked={checkedInternal}
-          onCheckedChange={(isOn: boolean) => {
+          disabled={mutation.isLoading}
+          onCheckedChange={async (isOn: boolean) => {
             setCheckedInternal(isOn);
-            mutation.mutate({ isOn });
+            await mutation.mutate({ isOn });
           }}
         />
       </div>

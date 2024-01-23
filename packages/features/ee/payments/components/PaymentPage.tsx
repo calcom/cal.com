@@ -1,3 +1,5 @@
+"use client";
+
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import Head from "next/head";
@@ -62,7 +64,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
         )?.parentElement;
         if (stripeIframeWrapper) {
           stripeIframeWrapper.style.margin = "0 auto";
-          stripeIframeWrapper.style.width = embedIframeWidth + "px";
+          stripeIframeWrapper.style.width = `${embedIframeWidth}px`;
         }
         requestAnimationFrame(fixStripeIframe);
       });

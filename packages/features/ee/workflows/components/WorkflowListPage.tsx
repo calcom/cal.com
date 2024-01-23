@@ -102,9 +102,11 @@ export default function WorkflowListPage({ workflows }: Props) {
             {workflows.map((workflow, index) => {
               const firstItem = workflows[0];
               const lastItem = workflows[workflows.length - 1];
+              const dataTestId = `workflow-${workflow.name.toLowerCase().replaceAll(" ", "-")}`;
               return (
                 <li
                   key={workflow.id}
+                  data-testid={dataTestId}
                   className="group flex w-full max-w-full items-center justify-between overflow-hidden">
                   {!(firstItem && firstItem.id === workflow.id) && (
                     <ArrowButton onClick={() => moveWorkflow(index, -1)} arrowDirection="up" />
@@ -113,7 +115,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <ArrowButton onClick={() => moveWorkflow(index, 1)} arrowDirection="down" />
                   )}
                   <div className="first-line:group hover:bg-muted flex w-full items-center justify-between p-4 sm:px-6">
-                    <Link href={"/workflows/" + workflow.id} className="flex-grow cursor-pointer">
+                    <Link href={`/workflows/${workflow.id}`} className="flex-grow cursor-pointer">
                       <div className="rtl:space-x-reverse">
                         <div className="flex">
                           <div
@@ -124,12 +126,11 @@ export default function WorkflowListPage({ workflows }: Props) {
                             {workflow.name
                               ? workflow.name
                               : workflow.steps[0]
-                              ? "Untitled (" +
-                                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                              ? `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
                                   .charAt(0)
-                                  .toUpperCase() +
-                                `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
-                                ")"
+                                  .toUpperCase()}${`${t(
+                                  `${workflow.steps[0].action.toLowerCase()}_action`
+                                )}`.slice(1)})`
                               : "Untitled"}
                           </div>
                           <div>
@@ -234,7 +235,8 @@ export default function WorkflowListPage({ workflows }: Props) {
                               variant="icon"
                               StartIcon={Edit2}
                               disabled={workflow.readOnly}
-                              onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                              onClick={async () => await router.replace(`/workflows/${workflow.id}`)}
+                              data-testid="edit-button"
                             />
                           </Tooltip>
                           <Tooltip content={t("delete") as string}>
@@ -247,6 +249,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                               variant="icon"
                               disabled={workflow.readOnly}
                               StartIcon={Trash2}
+                              data-testid="delete-button"
                             />
                           </Tooltip>
                         </ButtonGroup>
@@ -267,7 +270,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 <DropdownItem
                                   type="button"
                                   StartIcon={Edit2}
-                                  onClick={async () => await router.replace("/workflows/" + workflow.id)}>
+                                  onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>

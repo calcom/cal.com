@@ -157,6 +157,7 @@ export async function getEventType(
       periodType: true,
       periodStartDate: true,
       periodEndDate: true,
+      onlyShowFirstAvailableSlot: true,
       periodCountCalendarDays: true,
       periodDays: true,
       metadata: true,
@@ -266,9 +267,9 @@ export function getRegularOrDynamicEventType(
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
-  const orgDetails = orgDomainConfig(ctx?.req?.headers.host ?? "");
+  const orgDetails = orgDomainConfig(ctx?.req);
   if (process.env.INTEGRATION_TEST_MODE === "true") {
-    logger.setSettings({ minLevel: "silly" });
+    logger.settings.minLevel = 2;
   }
   const startPrismaEventTypeGet = performance.now();
   const eventType = await getRegularOrDynamicEventType(input, orgDetails);
@@ -279,10 +280,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
-    logger.setSettings({ minLevel: "debug" });
+    logger.settings.minLevel = 2;
   }
 
-  const loggerWithEventDetails = logger.getChildLogger({
+  const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
@@ -292,7 +293,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     }`
   );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
-    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice, "minutes");
+    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice || 1, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
@@ -327,8 +328,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
 
   const sharedQuery = {
-    startTime: { gte: startTimeDate },
-    endTime: { lte: endTimeDate },
+    startTime: { lte: endTimeDate },
+    endTime: { gte: startTimeDate },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
@@ -368,6 +369,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       eventType: {
         select: {
           id: true,
+          onlyShowFirstAvailableSlot: true,
           afterEventBuffer: true,
           beforeEventBuffer: true,
           seatsPerTimeSlot: true,
@@ -567,7 +569,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   const computedAvailableSlots = availableTimeSlots.reduce(
     (
-      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
+      r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
       { time, ...passThroughProps }
     ) => {
       // TODO: Adds unit tests to prevent regressions in getSchedule (try multiple timezones)
@@ -577,16 +579,12 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       const dateString = formatter.format(time.toDate());
 
       r[dateString] = r[dateString] || [];
+      if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
+        return r;
+      }
       r[dateString].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: (eventType.hosts
-          ? eventType.hosts.map((hostUserWithCredentials) => {
-              const { user } = hostUserWithCredentials;
-              return user;
-            })
-          : eventType.users
-        ).map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:
