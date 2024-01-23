@@ -1,7 +1,3 @@
-import EventTypeScheduleDetails from "event-type/components/event-type-schedule/details";
-import { SingleValue } from "event-type/components/single-value";
-import type { FormValues } from "event-type/types";
-import type { AvailabilityOption } from "event-type/types";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -9,12 +5,17 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { Select } from "@calcom/ui";
 
 import { SelectSkeletonLoader } from "../../../../../../apps/web/components/availability/SkeletonLoader";
+import type { FormValues, AvailabilityOption } from "../../types";
+import EventTypeScheduleDetails from "../event-type-schedule/details/index";
+import { Option } from "../option/index";
+import { SingleValue } from "../single-value/index";
 
 type EventTypeScheduleProps = {
   eventType: any;
+  isLoading: boolean;
 };
 
-export function EventTypeSchedule({ eventType }: EventTypeScheduleProps) {
+export function EventTypeSchedule({ eventType, isLoading }: EventTypeScheduleProps) {
   const { shouldLockIndicator, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager(
     eventType,
     "Members will not be able to edit this",
@@ -33,7 +34,6 @@ export function EventTypeSchedule({ eventType }: EventTypeScheduleProps) {
           Availability
           {shouldLockIndicator("availability")}
         </label>
-        {/* isLoading is gonna come from react query when we fetch the schedules list */}
         {isLoading && <SelectSkeletonLoader />}
         {!isLoading && (
           <Controller
@@ -65,7 +65,9 @@ export function EventTypeSchedule({ eventType }: EventTypeScheduleProps) {
         />
       ) : (
         isManagedEventType && (
-          <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+          <p className="!mt-2 ml-1 text-sm text-gray-600">
+            We will use each members default availability schedule. They will be able to edit or change it.
+          </p>
         )
       )}
     </div>
