@@ -189,6 +189,19 @@ async function getBookings({
         price: true,
         recurringEvent: true,
         schedulingType: true,
+        hosts: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                username: true,
+              },
+            },
+            isFixed: true,
+          },
+        },
         currency: true,
         metadata: true,
         seatsShowAttendees: true,

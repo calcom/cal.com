@@ -49,6 +49,7 @@ import {
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -202,7 +203,7 @@ function BookingListItem(booking: BookingItemProps) {
       id: "reassign ",
       label: "Reassign",
       onClick: () => {
-        console.log("reassign host");
+        setIsOpenReassignDialog(true);
       },
       icon: Users,
     });
@@ -260,6 +261,7 @@ function BookingListItem(booking: BookingItemProps) {
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
@@ -333,6 +335,18 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
         teamId={booking.eventType?.team?.id}
+      />
+      <ReassignDialog
+        isOpenDialog={isOpenReassignDialog}
+        setIsOpenDialog={setIsOpenReassignDialog}
+        bookingId={booking.id}
+        teamId={booking.eventType?.team?.id || 0}
+        hosts={booking.eventType?.hosts}
+        assignedHosts={
+          booking.user
+            ? [booking.user.email || ""].concat(booking.attendees.map((attendee) => attendee.email))
+            : []
+        }
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
