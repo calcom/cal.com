@@ -1,9 +1,10 @@
-import LegacyPage, { type SignupProps } from "@pages/signup";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
+
+import LegacyPage, { type SignupProps } from "@components/pages/signup";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
