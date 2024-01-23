@@ -1,10 +1,11 @@
-import Login from "@pages/auth/login";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import type { InferGetServerSidePropsType } from "next";
 
 import { APP_NAME } from "@calcom/lib/constants";
+
+import Login from "@components/pages/auth/login";
 
 import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 

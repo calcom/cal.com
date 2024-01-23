@@ -7,10 +7,14 @@ import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/feature
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+
+import { type WithNonceProps } from "@lib/withNonce";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
+export type PageProps = inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res, query } = context;
 
