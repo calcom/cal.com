@@ -5,17 +5,19 @@ import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { HorizontalTabItemProps } from "@calcom/ui";
 import {
-    AllApps,
-    AppStoreCategories,
-    HorizontalTabs,
-    PopularAppsSlider,
-    RecentAppsSlider,
-    TextField,
+  AllApps,
+  AppStoreCategories,
+  HorizontalTabs,
+  PopularAppsSlider,
+  RecentAppsSlider,
+  TextField,
 } from "@calcom/ui";
 import { Search } from "@calcom/ui/components/icon";
+
+import type { AppProps } from "@lib/app-providers";
+import type { PageProps } from "@lib/apps/getServerSideProps";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
@@ -52,11 +54,10 @@ function AppsSearch({
   );
 }
 
-export default function Apps({
-  categories,
-  appStore,
-  userAdminTeams,
-}: Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">) {
+const Apps: React.FC<PageProps> & {
+  PageWrapper?: AppProps["Component"]["PageWrapper"];
+  getLayout?: AppProps["Component"]["getLayout"];
+} = ({ categories, appStore, userAdminTeams }) => {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
@@ -94,6 +95,6 @@ export default function Apps({
       </div>
     </AppsLayout>
   );
-}
+};
 
-
+export default Apps;

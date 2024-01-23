@@ -5,11 +5,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import type { AppCategories } from "@calcom/prisma/enums";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-export type PageProps =  Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">; 
+export type PageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
 
