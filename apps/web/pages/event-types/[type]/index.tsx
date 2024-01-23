@@ -424,21 +424,45 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
+
+  const isFieldDirty = (fieldName: keyof FormValues, prefix = ""): boolean => {
+    const fullFieldName = (prefix + fieldName) as keyof typeof formMethods.formState.dirtyFields;
+
+    // Check if the field itself is dirty
+    if (formMethods.formState.dirtyFields[fullFieldName]) {
+      return true;
+    }
+
+    // Recursively check for nested fields
+    for (const key in formMethods.formState.dirtyFields) {
+      if (key.startsWith(`${fullFieldName}.`)) {
+        // Extract the next level field name
+        const nextLevelFieldName = key.slice(fullFieldName.length + 1).split(".")[0] as keyof FormValues;
+        console.log("NextFieldName", nextLevelFieldName);
+        if (isFieldDirty(nextLevelFieldName, `${fullFieldName}.`)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    console.log("dirtyFields", formMethods.formState.dirtyFields);
     if (formMethods.formState.isDirty) {
       const updatedFields: Partial<FormValues> = {};
       Object.keys(formMethods.formState.dirtyFields).forEach((key) => {
-        const typedKey = key as keyof FormValues;
-        if (formMethods.formState.dirtyFields[typedKey]) {
+        const typedKey = key as keyof typeof formMethods.formState.dirtyFields;
+        updatedFields[typedKey] = undefined;
+        const isDirty = isFieldDirty(typedKey);
+        if (isDirty) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           updatedFields[typedKey] = values[typedKey];
-        } else {
-          updatedFields[typedKey] = undefined;
         }
       });
-
+      console.log("updatedFields", updatedFields);
       return updatedFields;
-      // Here you would send updatedFields to your backend API
-      // axios.post('/api/update', updatedFields);
     }
     return {};
   };
@@ -581,7 +605,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
-            const dirtyValues = getDirtyFields(values);
+            // const dirtyValues = getDirtyFields(values);
 
             const {
               periodDates,
