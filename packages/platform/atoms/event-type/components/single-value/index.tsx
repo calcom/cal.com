@@ -1,14 +1,15 @@
-import type { AvailabilityOption } from "event-type/types";
-import type { OptionProps } from "react-select";
+import type { SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 import { Badge } from "@calcom/ui";
 
-export function SingleValue({ ...props }: OptionProps<AvailabilityOption>) {
+import type { AvailabilityOption } from "../../types";
+
+export function SingleValue({ ...props }: SingleValueProps<AvailabilityOption>) {
   const { label, isDefault, isManaged = false } = props.data;
 
   return (
-    <components.Option {...props}>
+    <components.SingleValue {...props}>
       <span>{label}</span>
       {isDefault && (
         <Badge variant="blue" className="ml-2">
@@ -20,6 +21,6 @@ export function SingleValue({ ...props }: OptionProps<AvailabilityOption>) {
           Managed
         </Badge>
       )}
-    </components.Option>
+    </components.SingleValue>
   );
 }
