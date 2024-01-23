@@ -42,22 +42,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           successDestination,
         });
         if (stripePremiumUrl) {
-          return {
+          const redirect = {
             redirect: {
               destination: stripePremiumUrl,
               permanent: false,
             },
-          };
+          } as const;
+
+          return redirect;
         }
       }
     }
 
-    return {
+    const redirect = {
       redirect: {
         destination: successDestination,
         permanent: false,
       },
-    };
+    } as const;
+
+    return redirect;
   }
 
   let error: string | null = null;
@@ -82,12 +86,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   if (error) {
-    return {
+    const redirect = {
       redirect: {
         destination: `/auth/error?error=${error}`,
         permanent: false,
       },
     };
+
+    return redirect;
   }
 
   return {

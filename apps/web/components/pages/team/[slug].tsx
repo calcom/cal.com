@@ -22,19 +22,17 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
+import type { AppProps } from "@lib/app-providers";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { type PageProps } from "@lib/team/[slug]/getServerSideProps";
 
 import Team from "@components/team/screens/Team";
 import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
-const TeamPage = ({
-  team,
-  isUnpublished,
-  markdownStrippedBio,
-  isValidOrgDomain,
-  currentOrgDomain,
-}: PageProps) => {
+const TeamPage: React.FC<PageProps> & {
+  isBookingPage?: AppProps["Component"]["isBookingPage"];
+  PageWrapper?: AppProps["Component"]["PageWrapper"];
+} = ({ team, isUnpublished, markdownStrippedBio, isValidOrgDomain, currentOrgDomain }) => {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
