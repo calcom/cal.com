@@ -338,21 +338,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw e;
   }
 
-  const teamMembers = eventType.team?.members
-    ? eventType.team.members
-        .filter((member) => member.accepted)
-        .map((member) => {
-          return {
-            owner: {
-              ...member.user,
-              name: member.user.name ?? "",
-              eventTypeSlugs: member.user.eventTypes.map((evTy) => evTy.slug),
-            },
-            hidden: false,
-          };
-        })
-    : [];
-
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
@@ -361,9 +346,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hashedLink,
     connectedLink,
     updatedEventType,
-    children: assignAllTeamMembers ? teamMembers : children,
+    children,
     prisma: ctx.prisma,
   });
+
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
     try {

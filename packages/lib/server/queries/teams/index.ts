@@ -310,7 +310,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
         } else {
           return prisma.eventType.update({
             where: { id: eventType.id },
-            data: { hosts: { create: [{ userId, isFixed: true }] } },
+            data: { hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } },
           });
         }
       })

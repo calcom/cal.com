@@ -128,6 +128,7 @@ const AssignAllTeamMembers = ({
               onInactive();
             }
           }}
+          toggleSwitchAtTheEnd
         />
       )}
     />
@@ -287,7 +288,7 @@ const ChildrenEventTypes = ({
         <AssignAllTeamMembers
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          onActive={() => formMethods.setValue("children", [])}
+          onActive={() => formMethods.setValue("children", childrenEventTypeOptions)}
         />
         {!assignAllTeamMembers ? (
           <Controller<FormValues>
