@@ -54,7 +54,7 @@ export const useCalendars = () => {
     [isError]
   );
 
-  const { data, isLoading } = trpc.viewer.connectedCalendars.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.connectedCalendars.useQuery(undefined, {
     enabled: !!calendarSettingsOverlay || Boolean(searchParams?.get("overlayCalendar")),
   });
 
@@ -62,7 +62,7 @@ export const useCalendars = () => {
     overlayBusyDates,
     isOverlayCalendarEnabled: switchEnabled,
     connectedCalendars: data?.connectedCalendars || [],
-    loadingConnectedCalendar: isLoading,
+    loadingConnectedCalendar: isPending,
     onToggleCalendar: () => {
       utils.viewer.availability.calendarOverlay.reset();
     },
