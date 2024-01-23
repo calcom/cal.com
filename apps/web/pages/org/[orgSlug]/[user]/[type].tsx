@@ -12,7 +12,6 @@ export { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSi
 export type PageProps = UserTypePageProps | TeamTypePageProps;
 
 export default function Page(props: PageProps) {
-  // @ts-expect-error TODO temporary fix
   if ((props as TeamTypePageProps)?.teamId) return <TeamTypePage {...(props as TeamTypePageProps)} />;
   return <UserTypePage {...(props as UserTypePageProps)} />;
 }
