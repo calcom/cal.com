@@ -1,14 +1,16 @@
-import CategoryPage, { type PageProps } from "@pages/apps/categories/[category]";
 import { Prisma } from "@prisma/client";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import type { InferGetStaticPropsType } from "next";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
 import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
+
+import Apps from "@components/pages/apps/categories/[category]";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -34,7 +36,9 @@ export const generateStaticParams = async () => {
   return paths.map((category) => ({ category }));
 };
 
-const getData = withAppDirSsg<PageProps>(getStaticProps);
+type GetStaticPropsType = InferGetStaticPropsType<typeof getStaticProps>;
 
-export default WithLayout({ getData, Page: CategoryPage, getLayout: null })<"P">;
+const getData = withAppDirSsg<GetStaticPropsType>(getStaticProps);
+
+export default WithLayout({ getData, Page: Apps, getLayout: null })<"P">;
 export const dynamic = "force-static";
