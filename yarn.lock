@@ -4072,6 +4072,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/feishucalendar@workspace:packages/app-store/feishucalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/feishucalendar@workspace:packages/app-store/feishucalendar"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ga4@workspace:packages/app-store/ga4":
   version: 0.0.0-use.local
   resolution: "@calcom/ga4@workspace:packages/app-store/ga4"
@@ -4136,6 +4146,19 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    react-hook-form: ^7.43.3
   languageName: unknown
   linkType: soft
 
@@ -26747,8 +26770,8 @@ __metadata:
   linkType: hard
 
 "mdast-util-to-hast@npm:^13.0.0":
-  version: 13.0.2
-  resolution: "mdast-util-to-hast@npm:13.0.2"
+  version: 13.1.0
+  resolution: "mdast-util-to-hast@npm:13.1.0"
   dependencies:
     "@types/hast": ^3.0.0
     "@types/mdast": ^4.0.0
@@ -26758,7 +26781,8 @@ __metadata:
     trim-lines: ^3.0.0
     unist-util-position: ^5.0.0
     unist-util-visit: ^5.0.0
-  checksum: 8fef6c3752476461d9c00b1dea4f141bc7d980e1b3bac7bd965bc68f532b6d30fb1c9e810433327c167176e68e071b8f4ab5a45355954857dc095c878421f35e
+    vfile: ^6.0.0
+  checksum: 640bc897286af8fe760cd477fb04bbf544a5a897cdc2220ce36fe2f892f067b483334610387aeb969511bd78a2d841a54851079cd676ac513d6a5ff75852514e
   languageName: node
   linkType: hard
 
@@ -32718,15 +32742,15 @@ __metadata:
   linkType: hard
 
 "remark-rehype@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "remark-rehype@npm:11.0.0"
+  version: 11.1.0
+  resolution: "remark-rehype@npm:11.1.0"
   dependencies:
     "@types/hast": ^3.0.0
     "@types/mdast": ^4.0.0
     mdast-util-to-hast: ^13.0.0
     unified: ^11.0.0
     vfile: ^6.0.0
-  checksum: 0ff0fd948759cbde9d507ca1581028d0b89da0b5f610b35a6cb0a511f8d11621449b6eca573b11ddaea77afd37edd4755f3f1eb086ad49a6f7b970b4a4634e13
+  checksum: f0c731f0ab92a122e7f9c9bcbd10d6a31fdb99f0ea3595d232ddd9f9d11a308c4ec0aff4d56e1d0d256042dfad7df23b9941e50b5038da29786959a5926814e1
   languageName: node
   linkType: hard
 

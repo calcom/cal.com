@@ -2,7 +2,7 @@
 
 import { redirect, useRouter } from "next/navigation";
 
-import { AddNewOrgAdminsForm } from "@calcom/features/ee/organizations/components";
+import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Meta, WizardLayout, WizardLayoutAppDir } from "@calcom/ui";
@@ -20,7 +20,7 @@ const OnboardTeamMembersPage = () => {
         title={t("invite_organization_admins")}
         description={t("invite_organization_admins_description")}
       />
-      <AddNewOrgAdminsForm />
+      <AddNewTeamMembers isOrg={true} />
     </>
   );
 };
