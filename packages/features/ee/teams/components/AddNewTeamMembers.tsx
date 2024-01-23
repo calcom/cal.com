@@ -30,14 +30,14 @@ type FormValues = {
   members: TeamMember[];
 };
 
-const AddNewTeamMembers = () => {
+const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
   const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
-    { teamId },
+    { teamId, isOrg },
     { enabled: session.status === "authenticated" }
   );
 
@@ -50,15 +50,23 @@ const AddNewTeamMembers = () => {
 
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
-  return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
+  return (
+    <AddNewTeamMembersForm
+      defaultValues={{ members: teamQuery.data.members }}
+      teamId={teamId}
+      isOrg={isOrg}
+    />
+  );
 };
 
 export const AddNewTeamMembersForm = ({
   defaultValues,
   teamId,
+  isOrg,
 }: {
   defaultValues: FormValues;
   teamId: number;
+  isOrg?: boolean;
 }) => {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
@@ -71,7 +79,7 @@ export const AddNewTeamMembersForm = ({
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: !!teamId });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
   const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
     {
       teamIdToExclude: teamId,
@@ -99,7 +107,13 @@ export const AddNewTeamMembersForm = ({
         {defaultValues.members.length > 0 && (
           <ul className="border-subtle rounded-md border" data-testid="pending-member-list">
             {defaultValues.members.map((member, index) => (
-              <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
+              <PendingMemberItem
+                key={member.email}
+                member={member}
+                index={index}
+                teamId={teamId}
+                isOrg={isOrg}
+              />
             ))}
           </ul>
         )}
@@ -109,7 +123,7 @@ export const AddNewTeamMembersForm = ({
           StartIcon={Plus}
           onClick={() => setMemberInviteModal(true)}
           className={classNames("w-full justify-center", defaultValues.members.length > 0 && "mt-6")}>
-          {t("add_team_member")}
+          {isOrg ? t("add_org_members") : t("add_team_member")}
         </Button>
       </div>
       {isLoading ? (
@@ -130,11 +144,13 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
+                  isOrg: !!isOrg,
                 },
                 {
                   onSuccess: async (data) => {
                     await utils.viewer.teams.get.invalidate();
                     setMemberInviteModal(false);
+                    resetFields();
                     if (Array.isArray(data.usernameOrEmail)) {
                       showToast(
                         t("email_invite_team_bulk", {
@@ -142,7 +158,6 @@ export const AddNewTeamMembersForm = ({
                         }),
                         "success"
                       );
-                      resetFields();
                     } else {
                       showToast(
                         t("email_invite_team", {
@@ -181,14 +196,18 @@ export const AddNewTeamMembersForm = ({
       <hr className="border-subtle my-6" />
       <Button
         data-testid="publish-button"
-        EndIcon={!orgBranding ? ArrowRight : undefined}
+        EndIcon={!orgBranding || isOrg ? ArrowRight : undefined}
         color="primary"
         className="w-full justify-center"
         disabled={publishTeamMutation.isLoading}
         onClick={() => {
-          router.push(`/settings/teams/${teamId}/profile`);
+          let uri = `/settings/teams/${teamId}/profile`;
+          if (isOrg) {
+            uri = `/settings/organizations/${teamId}/add-teams`;
+          }
+          router.push(uri);
         }}>
-        {t("finish")}
+        {isOrg ? t("continue") : t("finish")}
       </Button>
     </>
   );
@@ -213,7 +232,7 @@ const AddNewTeamMemberSkeleton = () => {
   );
 };
 
-const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number }) => {
+const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number; isOrg?: boolean }) => {
   const { member, index, teamId } = props;
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -253,8 +272,10 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             {/* Assume that the first member of the team is the creator */}
             {member.id === session.data?.user.id && <Badge variant="green">{t("you")}</Badge>}
             {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
-            {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
-            {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
+            {member.role === MembershipRole.MEMBER && <Badge variant="gray">{t("member")}</Badge>}
+
+            {member.role === MembershipRole.ADMIN && <Badge variant="gray">{t("admin")}</Badge>}
+            {member.role === MembershipRole.OWNER && <Badge variant="gray">{t("owner")}</Badge>}
           </div>
           {member.username ? (
             <p className="text-default truncate">{`${bookerUrl}/${member.username}`}</p>
@@ -263,7 +284,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           )}
         </div>
       </div>
-      {(member.role !== "OWNER" || isOrgAdminOrOwner) && (
+      {(member.role !== "OWNER" || isOrgAdminOrOwner) && member.id !== session.data?.user.id && (
         <Button
           data-testid="remove-member-button"
           StartIcon={Trash2}
@@ -274,6 +295,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             removeMemberMutation.mutate({
               teamId: teamId,
               memberId: member.id,
+              isOrg: !!props.isOrg,
             });
           }}
         />

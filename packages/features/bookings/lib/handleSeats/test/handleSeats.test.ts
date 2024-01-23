@@ -31,6 +31,7 @@ describe("handleSeats", () => {
     test("On new booking handleSeats is not called", async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const spy = vi.spyOn(handleSeatsModule, "default");
+
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -48,8 +49,8 @@ describe("handleSeats", () => {
           eventTypes: [
             {
               id: 1,
-              slotInterval: 45,
-              length: 45,
+              slotInterval: 30,
+              length: 30,
               users: [
                 {
                   id: 101,
@@ -108,18 +109,19 @@ describe("handleSeats", () => {
         schedules: [TestData.schedules.IstWorkHours],
       });
 
+      const bookingId = 1;
+      const bookingUid = "abc123";
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const bookingStartTime = `${plus1DateString}T04:00:00Z`;
-      const bookingUid = "abc123";
-
+      const bookingEndTime = `${plus1DateString}T04:30:00Z`;
       const bookingScenario = await createBookingScenario(
         getScenarioData({
           eventTypes: [
             {
               id: 1,
               slug: "seated-event",
-              slotInterval: 45,
-              length: 45,
+              slotInterval: 30,
+              length: 30,
               users: [
                 {
                   id: 101,
@@ -131,11 +133,12 @@ describe("handleSeats", () => {
           ],
           bookings: [
             {
+              id: bookingId,
               uid: bookingUid,
               eventTypeId: 1,
               status: BookingStatus.ACCEPTED,
               startTime: bookingStartTime,
-              endTime: `${plus1DateString}T05:15:00.000Z`,
+              endTime: bookingEndTime,
               metadata: {
                 videoCallUrl: "https://existing-daily-video-call-url.example.com",
               },
@@ -248,18 +251,19 @@ describe("handleSeats", () => {
         schedules: [TestData.schedules.IstWorkHours],
       });
 
+      const bookingId = 1;
+      const bookingUid = "abc123";
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const bookingStartTime = `${plus1DateString}T04:00:00Z`;
-      const bookingUid = "abc123";
-
+      const bookingEndTime = `${plus1DateString}T04:30:00Z`;
       const bookingScenario = await createBookingScenario(
         getScenarioData({
           eventTypes: [
             {
               id: 1,
               slug: "seated-event",
-              slotInterval: 45,
-              length: 45,
+              slotInterval: 30,
+              length: 30,
               users: [
                 {
                   id: 101,
@@ -271,11 +275,12 @@ describe("handleSeats", () => {
           ],
           bookings: [
             {
+              id: bookingId,
               uid: bookingUid,
               eventTypeId: 1,
               status: BookingStatus.ACCEPTED,
               startTime: bookingStartTime,
-              endTime: `${plus1DateString}T05:15:00.000Z`,
+              endTime: bookingEndTime,
               metadata: {
                 videoCallUrl: "https://existing-daily-video-call-url.example.com",
               },
@@ -392,19 +397,19 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const bookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const bookingUid = "abc123";
         const bookingId = 1;
-
+        const bookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const bookingEndTime = `${plus1DateString}T04:30:00Z`;
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: bookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -416,12 +421,12 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: bookingId,
                 uid: bookingUid,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: bookingStartTime,
-                endTime: `${plus1DateString}T05:15:00.000Z`,
+                endTime: bookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -501,7 +506,7 @@ describe("handleSeats", () => {
           expect.objectContaining({
             referenceUid: expect.any(String),
             data: expect.any(Object),
-            bookingId: 1,
+            bookingId: bookingId,
           })
         );
       });
@@ -521,19 +526,19 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const bookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const bookingUid = "abc123";
         const bookingId = 1;
-
+        const bookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const bookingEndTime = `${plus1DateString}T04:30:00Z`;
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: bookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -545,12 +550,12 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: bookingId,
                 uid: bookingUid,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: bookingStartTime,
-                endTime: `${plus1DateString}T05:15:00.000Z`,
+                endTime: bookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -631,19 +636,20 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const bookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const bookingUid = "abc123";
         const bookingId = 1;
+        const bookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const bookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: bookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -655,12 +661,12 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: bookingId,
                 uid: bookingUid,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: bookingStartTime,
-                endTime: `${plus1DateString}T05:15:00.000Z`,
+                endTime: bookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -768,25 +774,26 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
-        const secondBookingUid = "def456";
         const secondBookingId = 2;
+        const secondBookingUid = "def456";
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -798,12 +805,12 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: firstBookingStartTime,
-                endTime: secondBookingEndTime,
+                endTime: firstBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -839,7 +846,7 @@ describe("handleSeats", () => {
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: secondBookingStartTime,
-                endTime: `${plus2DateString}T05:15:00.000Z`,
+                endTime: secondBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -973,23 +980,24 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1001,12 +1009,12 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: firstBookingStartTime,
-                endTime: secondBookingEndTime,
+                endTime: firstBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -1130,23 +1138,24 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1158,12 +1167,12 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 status: BookingStatus.ACCEPTED,
                 startTime: firstBookingStartTime,
-                endTime: secondBookingEndTime,
+                endTime: firstBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -1255,11 +1264,11 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const bookingStartTime = `${plus1DateString}T04:00:00.00Z`;
-        const bookingEndTime = `${plus1DateString}T15:00:00.00Z`;
-        const bookingUid = "abc123";
         const bookingId = 1;
+        const bookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const bookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const attendeeIdToBeCancelled = 2;
         const bookingSeatToBeCancelledUid = "booking-seat-2";
@@ -1268,10 +1277,10 @@ describe("handleSeats", () => {
           getScenarioData({
             eventTypes: [
               {
-                id: bookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1284,7 +1293,7 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: bookingId,
                 uid: bookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,
@@ -1317,13 +1326,13 @@ describe("handleSeats", () => {
                     },
                   }),
                   getMockBookingAttendee({
-                    id: 2,
+                    id: attendeeIdToBeCancelled,
                     name: "Seat 2",
                     email: "seat2@test.com",
                     locale: "en",
                     timeZone: "America/Toronto",
                     bookingSeat: {
-                      referenceUid: "booking-seat-2",
+                      referenceUid: bookingSeatToBeCancelledUid,
                       data: {},
                     },
                   }),
@@ -1406,11 +1415,11 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const bookingStartTime = `${plus1DateString}T04:00:00.00Z`;
-        const bookingEndTime = `${plus1DateString}T15:00:00.00Z`;
-        const bookingUid = "abc123";
         const bookingId = 1;
+        const bookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const bookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const attendeeIdToBeCancelled = 1;
         const bookingSeatToBeCancelledUid = "booking-seat-1";
@@ -1419,10 +1428,10 @@ describe("handleSeats", () => {
           getScenarioData({
             eventTypes: [
               {
-                id: bookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1435,7 +1444,7 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: bookingId,
                 uid: bookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,
@@ -1457,13 +1466,13 @@ describe("handleSeats", () => {
                 ],
                 attendees: [
                   getMockBookingAttendee({
-                    id: 1,
+                    id: attendeeIdToBeCancelled,
                     name: "Seat 1",
                     email: "seat1@test.com",
                     locale: "en",
                     timeZone: "America/Toronto",
                     bookingSeat: {
-                      referenceUid: "booking-seat-1",
+                      referenceUid: bookingSeatToBeCancelledUid,
                       data: {},
                     },
                   }),
@@ -1554,23 +1563,24 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.000Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1582,13 +1592,13 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,
                 status: BookingStatus.ACCEPTED,
                 startTime: firstBookingStartTime,
-                endTime: secondBookingEndTime,
+                endTime: firstBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -1716,25 +1726,26 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.00Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
-        const secondBookingUid = "def456";
         const secondBookingId = 2;
+        const secondBookingUid = "def456";
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1746,13 +1757,13 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,
                 status: BookingStatus.ACCEPTED,
                 startTime: firstBookingStartTime,
-                endTime: secondBookingEndTime,
+                endTime: firstBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -1926,25 +1937,26 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.00Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
-        const secondBookingUid = "def456";
         const secondBookingId = 2;
+        const secondBookingUid = "def456";
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T05:15:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -1956,13 +1968,13 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,
                 status: BookingStatus.ACCEPTED,
                 startTime: firstBookingStartTime,
-                endTime: secondBookingEndTime,
+                endTime: firstBookingEndTime,
                 metadata: {
                   videoCallUrl: "https://existing-daily-video-call-url.example.com",
                 },
@@ -2107,20 +2119,20 @@ describe("handleSeats", () => {
           schedules: [TestData.schedules.IstWorkHours],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T04:00:00.00Z`;
-        const firstBookingEndTime = `${plus1DateString}T15:00:00.00Z`;
-        const firstBookingUid = "abc123";
         const firstBookingId = 1;
+        const firstBookingUid = "abc123";
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
             eventTypes: [
               {
-                id: firstBookingId,
+                id: 1,
                 slug: "seated-event",
-                slotInterval: 45,
-                length: 45,
+                slotInterval: 30,
+                length: 30,
                 users: [
                   {
                     id: 101,
@@ -2133,7 +2145,7 @@ describe("handleSeats", () => {
             ],
             bookings: [
               {
-                id: 1,
+                id: firstBookingId,
                 uid: firstBookingUid,
                 eventTypeId: 1,
                 userId: organizer.id,

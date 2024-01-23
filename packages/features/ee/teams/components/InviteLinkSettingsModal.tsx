@@ -53,7 +53,11 @@ export default function InviteLinkSettingsModal(props: InvitationLinkSettingsMod
     ];
   }, [t]);
 
-  const linkSettingsFormMethods = useForm<LinkSettingsForm>();
+  const linkSettingsFormMethods = useForm<LinkSettingsForm>({
+    defaultValues: {
+      expiresInDays: props.expiresInDays,
+    },
+  });
 
   const handleSubmit = (values: LinkSettingsForm) => {
     setInviteExpirationMutation.mutate({
