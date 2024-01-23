@@ -1,4 +1,5 @@
-import LegacyPage from "@pages/connect-and-join";
 import { WithLayout } from "app/layoutHOC";
 
-export default WithLayout({ getLayout: null, Page: LegacyPage })<"P">;
+import ConnectAndJoin from "@components/pages/connect-and-join";
+
+export default WithLayout({ getLayout: null, Page: ConnectAndJoin })<"P">;
