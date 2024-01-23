@@ -9,10 +9,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession({ req });
   const csrfToken = await getCsrfToken(context);
   const providers = await getProviders();
+
+  const redirect = {
+    redirect: { destination: "/", permanent: false },
+  } as const;
+
   if (session) {
-    return {
-      redirect: { destination: "/" },
-    };
+    return redirect;
   }
   return {
     props: {
