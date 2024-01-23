@@ -28,7 +28,6 @@ export default function TeamInviteList(props: Props) {
     switch (action) {
       case "disband":
         deleteTeam(teamId);
-        trackFormbricksAction("team_disbanded");
         break;
     }
   }
@@ -38,6 +37,7 @@ export default function TeamInviteList(props: Props) {
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
+      trackFormbricksAction("team_disbanded");
     },
     async onError(err) {
       showToast(err.message, "error");

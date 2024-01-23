@@ -125,6 +125,7 @@ const ProfileView = () => {
       await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
+      trackFormbricksAction("team_disbanded");
     },
   });
 
@@ -220,7 +221,6 @@ const ProfileView = () => {
             confirmBtnText={t("confirm_disband_team")}
             onConfirm={() => {
               deleteTeam();
-              trackFormbricksAction("team_disbanded");
             }}>
             {t("disband_team_confirmation_message")}
           </ConfirmationDialogContent>

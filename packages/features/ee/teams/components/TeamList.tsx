@@ -25,7 +25,6 @@ export default function TeamList(props: Props) {
     switch (action) {
       case "disband":
         deleteTeam(teamId);
-        trackFormbricksAction("team_disbanded");
         break;
     }
   }
@@ -34,6 +33,7 @@ export default function TeamList(props: Props) {
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
       await utils.viewer.teams.hasTeamPlan.invalidate();
+      trackFormbricksAction("team_disbanded");
     },
     async onError(err) {
       showToast(err.message, "error");
