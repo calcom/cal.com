@@ -6,8 +6,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -135,8 +135,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
       // invited users can autojoin, create their memberships in org
       if (autoJoinUsers.length) {
-        await MembershipRepository.createMany(
-          autoJoinUsers.map((userToAutoJoin) => {
+        await prisma.membership.createMany({
+          data: autoJoinUsers.map((userToAutoJoin) => {
             const organizationRole = userToAutoJoin.teams?.[0]?.role;
             return {
               userId: userToAutoJoin.id,
@@ -147,8 +147,8 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
                   ? organizationRole
                   : input.role,
             };
-          })
-        );
+          }),
+        });
       }
 
       // invited users cannot autojoin, create provisional memberships and send email
@@ -179,13 +179,13 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           });
         }
 
-        await MembershipRepository.create({
-          userId: user.id,
-          teamId: team.id,
-          accepted: shouldAutoAccept,
-          role: input.role,
-          // FIXME: OrgNewSchema - At this moment profile might not even be created yet
-          profileId: null,
+        await prisma.membership.create({
+          data: {
+            userId: user.id,
+            teamId: team.id,
+            accepted: shouldAutoAccept,
+            role: input.role,
+          },
         });
       }
 

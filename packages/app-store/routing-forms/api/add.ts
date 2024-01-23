@@ -1,4 +1,4 @@
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
 import appConfig from "../config.json";
@@ -10,11 +10,13 @@ const handler: AppDeclarativeHandler = {
   supportsMultipleInstalls: false,
   handlerType: "add",
   createCredential: async ({ user, appType, slug, teamId }) => {
-    return await CredentialRepository.create({
-      type: appType,
-      key: {},
-      ...(teamId ? { teamId } : { userId: user.id, profileId: user.profile.id }),
-      appId: slug,
+    return await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        ...(teamId ? { teamId } : { userId: user.id }),
+        appId: slug,
+      },
     });
   },
   redirect: {

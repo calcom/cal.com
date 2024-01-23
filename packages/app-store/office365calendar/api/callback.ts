@@ -1,11 +1,9 @@
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import checkSession from "../../_utils/auth";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -24,8 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ message: "No code returned" });
     return;
   }
-
-  const session = checkSession(req);
 
   const appKeys = await getAppKeysFromSlug("office365-calendar");
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
@@ -71,12 +67,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
-  const credential = await CredentialRepository.create({
-    type: "office365_calendar",
-    key: responseBody,
-    userId: session.user.id,
-    profileId: session.user.profile.id,
-    appId: "office365-calendar",
+  const credential = await prisma.credential.create({
+    data: {
+      type: "office365_calendar",
+      key: responseBody,
+      userId: req.session?.user.id,
+      appId: "office365-calendar",
+    },
   });
 
   // Set the isDefaultCalendar as selectedCalendar

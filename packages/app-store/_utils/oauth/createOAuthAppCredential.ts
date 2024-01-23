@@ -1,7 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../oauth/decodeOAuthState";
@@ -22,15 +21,9 @@ const createOAuthAppCredential = async (
   req: NextApiRequest
 ) => {
   const userId = req.session?.user.id;
-  if (!req.session) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
-  }
-
   if (!userId) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
-
-  const profileId = req.session.user.profile.id;
   // For OAuth flows, see if a teamId was passed through the state
   const state = decodeOAuthState(req);
 
@@ -51,11 +44,13 @@ const createOAuthAppCredential = async (
 
     if (!team) throw new Error("User does not belong to the team");
 
-    await CredentialRepository.create({
-      type: appData.type,
-      key: key || {},
-      teamId: state.teamId,
-      appId: appData.appId,
+    await prisma.credential.create({
+      data: {
+        type: appData.type,
+        key: key || {},
+        teamId: state.teamId,
+        appId: appData.appId,
+      },
     });
 
     return;
@@ -63,12 +58,13 @@ const createOAuthAppCredential = async (
 
   await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
-  await CredentialRepository.create({
-    type: appData.type,
-    key: key || {},
-    userId,
-    profileId,
-    appId: appData.appId,
+  await prisma.credential.create({
+    data: {
+      type: appData.type,
+      key: key || {},
+      userId,
+      appId: appData.appId,
+    },
   });
 
   return;

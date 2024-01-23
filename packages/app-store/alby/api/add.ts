@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -20,12 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (alreadyInstalled) {
       throw new Error("Already installed");
     }
-    const installation = await CredentialRepository.create({
-      type: appType,
-      key: {},
-      userId: req.session.user.id,
-      profileId: req.session.user.profile.id,
-      appId: "alby",
+    const installation = await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        userId: req.session.user.id,
+        appId: "alby",
+      },
     });
 
     if (!installation) {

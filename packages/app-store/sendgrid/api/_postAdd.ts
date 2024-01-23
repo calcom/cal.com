@@ -4,7 +4,7 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -26,13 +26,14 @@ export async function getHandler(req: NextApiRequest) {
   const data = {
     type: "sendgrid_other_calendar",
     key: { encrypted },
-    userId: session.user.id,
-    profileId: session.user.profile.id,
+    userId: session.user?.id,
     appId: "sendgrid",
   };
 
   try {
-    await CredentialRepository.create(data);
+    await prisma.credential.create({
+      data,
+    });
   } catch (reason) {
     logger.error("Could not add Sendgrid app", reason);
     throw new HttpError({ statusCode: 500, message: "Could not add Sendgrid app" });

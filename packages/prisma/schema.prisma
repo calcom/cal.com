@@ -37,8 +37,6 @@ enum PeriodType {
 model Host {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
-  profileId   Int?
-  profile     Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
@@ -142,10 +140,6 @@ model Credential {
   key    Json
   user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
-
-  profileId Int?
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
-
   team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId Int?
   app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
@@ -179,8 +173,6 @@ model DestinationCalendar {
   externalId   String
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int?        @unique
-  profileId    Int?
-  profile      Profile?    @relation(fields: [profileId], references: [id], onDelete: Cascade)
   booking      Booking[]
   eventType    EventType?  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId  Int?        @unique
@@ -302,26 +294,12 @@ model Profile {
   organization       Team                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   username           String
   eventTypes         EventType[]
-  memberships        Membership[]
-  bookings           Booking[]
-  schedules          Schedule[]
-  availability       Availability[]
-  selectedCalendars  SelectedCalendar[]
-  webhooks           Webhook[]
-  apiKeys            ApiKey[]
-  routingForms       App_RoutingForms_Form[]
-  workflows          Workflow[]
-  verifiedNumbers    VerifiedNumber[]
-  bookingRedirects   OutOfOfficeEntry[]
   bookingRedirectsTo OutOfOfficeEntry[]      @relation(name: "toProfile")
 
-  movedFromUserId     Int?
-  movedFromUser       User?                 @relation("moved_to_profile")
-  createdAt           DateTime              @default(now())
-  updatedAt           DateTime              @updatedAt
-  Credential          Credential[]
-  Host                Host[]
-  DestinationCalendar DestinationCalendar[]
+  movedFromUserId Int?
+  movedFromUser   User?        @relation("moved_to_profile")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@unique([userId, organizationId])
   @@unique([movedFromUserId])
@@ -384,8 +362,6 @@ model Membership {
   id                   Int            @id @default(autoincrement())
   teamId               Int
   userId               Int
-  profileId            Int?
-  profile              Profile?       @relation(fields: [profileId], references: [id], onDelete: Cascade)
   accepted             Boolean        @default(false)
   role                 MembershipRole
   team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -476,8 +452,6 @@ model Booking {
   uid                   String               @unique
   user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
-  profileId             Int?
-  profile               Profile?             @relation(fields: [profileId], references: [id], onDelete: Cascade)
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
   eventTypeId           Int?
@@ -528,8 +502,6 @@ model Schedule {
   id           Int            @id @default(autoincrement())
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
-  profileId    Int?
-  profile      Profile?       @relation(fields: [profileId], references: [id], onDelete: Cascade)
   eventType    EventType[]
   name         String
   timeZone     String?
@@ -542,8 +514,6 @@ model Availability {
   id          Int        @id @default(autoincrement())
   user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int?
-  profileId   Int?
-  profile     Profile?   @relation(fields: [profileId], references: [id], onDelete: Cascade)
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int?
   days        Int[]
@@ -561,8 +531,6 @@ model Availability {
 model SelectedCalendar {
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       Int
-  profileId    Int?
-  profile      Profile?    @relation(fields: [profileId], references: [id], onDelete: Cascade)
   integration  String
   externalId   String
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
@@ -663,8 +631,6 @@ enum WebhookTriggerEvents {
 model Webhook {
   id              String                 @id @unique
   userId          Int?
-  profileId       Int?
-  profile         Profile?               @relation(fields: [profileId], references: [id], onDelete: Cascade)
   teamId          Int?
   eventTypeId     Int?
   /// @zod.url()
@@ -696,8 +662,6 @@ model ApiKey {
   id         String    @id @unique @default(cuid())
   userId     Int
   teamId     Int?
-  profileId  Int?
-  profile    Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   note       String?
   createdAt  DateTime  @default(now())
   expiresAt  DateTime?
@@ -796,8 +760,6 @@ model App_RoutingForms_Form {
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId      Int
-  profileId   Int?
-  profile     Profile?                        @relation(fields: [profileId], references: [id], onDelete: Cascade)
   team        Team?                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId      Int?
   responses   App_RoutingForms_FormResponse[]
@@ -877,8 +839,6 @@ model Workflow {
   name      String
   userId    Int?
   user      User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profileId Int?
-  profile   Profile?                @relation(fields: [profileId], references: [id], onDelete: Cascade)
   team      Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId    Int?
   activeOn  WorkflowsOnEventTypes[]
@@ -981,8 +941,6 @@ model VerifiedNumber {
   id          Int      @id @default(autoincrement())
   userId      Int?
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profileId   Int?
-  profile     Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
   teamId      Int?
   team        Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
@@ -1137,8 +1095,6 @@ model OutOfOfficeEntry {
   end         DateTime
   userId      Int
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profileId   Int?
-  profile     Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
   toUserId    Int?
   toUser      User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
   toProfileId Int?

@@ -1,5 +1,3 @@
-import type { Session } from "next-auth";
-
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import { prisma } from "@calcom/prisma";
@@ -13,13 +11,12 @@ import type { TCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 type ListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    session: Session;
   };
   input: TCalendarOverlayInputSchema;
 };
 
 export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
-  const { user, session } = ctx;
+  const { user } = ctx;
   const { calendarsToLoad, dateFrom, dateTo } = input;
 
   if (!dateFrom || !dateTo) {
@@ -45,7 +42,6 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       key: true,
       userId: true,
       teamId: true,
-      profileId: true,
       appId: true,
       invalid: true,
       user: {
@@ -73,7 +69,6 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     }
     return {
       ...calendar,
-      profileId: user.profile.id,
       userId: user.id,
       integration: credential.type,
     };

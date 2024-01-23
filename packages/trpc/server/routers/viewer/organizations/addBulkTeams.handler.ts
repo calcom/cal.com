@@ -1,5 +1,4 @@
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -74,12 +73,13 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
         teamId,
         role: MembershipRole.MEMBER,
         accepted: accepted || false,
-        profileId: 
       } as Prisma.MembershipCreateManyInput;
     })
   );
 
-  await MembershipRepository.createMany(membershipData);
+  await prisma.membership.createMany({
+    data: membershipData,
+  });
 
   return {
     success: true,

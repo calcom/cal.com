@@ -4,13 +4,14 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
+
   const { api_key } = req.body;
   if (!api_key) throw new HttpError({ statusCode: 400, message: "No Api Key provoided to check" });
 
@@ -19,13 +20,14 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const data = {
     type: "closecom_other_calendar",
     key: { encrypted },
-    userId: session.user.id,
-    profileId: session.user.profile.id,
+    userId: session.user?.id,
     appId: "closecom",
   };
 
   try {
-    await CredentialRepository.create(data);
+    await prisma.credential.create({
+      data,
+    });
   } catch (reason) {
     logger.error("Could not add Close.com app", reason);
     return res.status(500).json({ message: "Could not add Close.com app" });

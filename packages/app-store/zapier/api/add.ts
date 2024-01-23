@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -18,15 +17,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (alreadyInstalled) {
       throw new Error("Already installed");
     }
-
-    const installation = await CredentialRepository.create({
-      type: appType,
-      key: {},
-      userId: req.session.user.id,
-      profileId: req.session.user.profile.id,
-      appId: "zapier",
+    const installation = await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        userId: req.session.user.id,
+        appId: "zapier",
+      },
     });
-
     if (!installation) {
       throw new Error("Unable to create user credential for zapier");
     }

@@ -7,7 +7,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -281,7 +280,6 @@ export async function createNewUsersConnectToOrgIfExists({
               userId: createdUser.id,
               role: input.role as MembershipRole,
               accepted: autoAccept,
-              profileId: "unknown",
             },
           });
         }
@@ -301,8 +299,8 @@ export async function createProvisionalMemberships({
   parentId?: number;
 }) {
   try {
-    await MembershipRepository.createMany(
-      invitees.flatMap((invitee) => {
+    await prisma.membership.createMany({
+      data: invitees.flatMap((invitee) => {
         const organizationRole = invitee?.teams?.[0]?.role;
         const data = [];
         // membership for the team
@@ -324,8 +322,8 @@ export async function createProvisionalMemberships({
           });
         }
         return data;
-      })
-    );
+      }),
+    });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       // Don't throw an error if the user is already a member of the team when inviting multiple users

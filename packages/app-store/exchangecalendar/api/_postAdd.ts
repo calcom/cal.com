@@ -5,7 +5,7 @@ import { z } from "zod";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
 import { ExchangeAuthentication, ExchangeVersion } from "../enums";
@@ -30,7 +30,6 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     type: "exchange_calendar",
     key: encrypted,
     userId: session.user?.id,
-    profileId: session.user.profile.id,
     teamId: null,
     appId: "exchange",
     invalid: false,
@@ -39,7 +38,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const service = new CalendarService({ id: 0, user: { email: session.user.email || "" }, ...data });
     await service?.listCalendars();
-    await CredentialRepository.create(data);
+    await prisma.credential.create({ data });
   } catch (reason) {
     logger.info(reason);
     if (reason instanceof SoapFaultDetails && reason.message != "") {

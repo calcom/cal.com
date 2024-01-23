@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -19,9 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = req.session.user.id;
   const appType = "giphy_other";
   const teamId = Number(req.query.teamId);
-  const credentialOwner = req.query.teamId
-    ? { teamId }
-    : { userId: req.session.user.id, profileId: req.session.user.profile.id };
+  const credentialOwner = req.query.teamId ? { teamId } : { userId: req.session.user.id };
 
   await throwIfNotHaveAdminAccessToTeam({ teamId: teamId ?? null, userId });
 
@@ -35,11 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (alreadyInstalled) {
       throw new Error("Already installed");
     }
-    const installation = await CredentialRepository.create({
-      type: appType,
-      key: {},
-      ...credentialOwner,
-      appId: "giphy",
+    const installation = await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        ...credentialOwner,
+        appId: "giphy",
+      },
     });
     if (!installation) {
       throw new Error("Unable to create user credential for giphy");

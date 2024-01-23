@@ -2,9 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 
-import checkSession from "../../_utils/auth";
 import { initVitalClient, vitalEnv } from "../lib/client";
 
 /**
@@ -13,9 +12,11 @@ import { initVitalClient, vitalEnv } from "../lib/client";
  * @param res
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = checkSession(req);
   // Get user id
-  const calcomUserId = session.user.id;
+  const calcomUserId = req.session?.user?.id;
+  if (!calcomUserId) {
+    return res.status(401).json({ message: "You must be logged in to do this" });
+  }
 
   const vitalClient = await initVitalClient();
 
@@ -32,12 +33,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (userVital?.user_id) {
-      await CredentialRepository.create({
-        type: "vital_other",
-        key: { userVitalId: userVital.user_id } as unknown as Prisma.InputJsonObject,
-        userId: calcomUserId,
-        profileId: session.user.profile.id,
-        appId: "vital-automation",
+      await prisma.credential.create({
+        data: {
+          type: "vital_other",
+          key: { userVitalId: userVital.user_id } as unknown as Prisma.InputJsonObject,
+          userId: calcomUserId,
+          appId: "vital-automation",
+        },
       });
     }
     const token = await vitalClient.Link.create(

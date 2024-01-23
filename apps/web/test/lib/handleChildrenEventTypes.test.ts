@@ -27,7 +27,7 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-describe.skip("handleChildrenEventTypes", () => {
+describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {
       mockFindFirstEventType();

@@ -5,7 +5,6 @@ import { WEBAPP_URL_FOR_OAUTH, CAL_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -43,12 +42,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
 
-    const credential = await CredentialRepository.create({
-      type: "google_calendar",
-      key,
-      userId: req.session.user.id,
-      profileId: req.session.user.profile.id,
-      appId: "google-calendar",
+    const credential = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key,
+        userId: req.session.user.id,
+        appId: "google-calendar",
+      },
     });
 
     // Set the primary calendar as the first selected calendar
@@ -88,12 +88,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!existingGoogleMeetCredential) {
-      await CredentialRepository.create({
-        type: "google_video",
-        key: {},
-        userId: req.session.user.id,
-        profileId: req.session.user.profile.id,
-        appId: "google-meet",
+      await prisma.credential.create({
+        data: {
+          type: "google_video",
+          key: {},
+          userId: req.session.user.id,
+          appId: "google-meet",
+        },
       });
 
       res.redirect(

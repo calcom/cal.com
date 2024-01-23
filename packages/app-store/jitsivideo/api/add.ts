@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -19,9 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
 
-  const installForObject = teamId
-    ? { teamId: Number(teamId) }
-    : { userId: req.session.user.id, profileId: req.session.user.profile.id };
+  const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
   const appType = "jitsi_video";
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
@@ -33,11 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (alreadyInstalled) {
       throw new Error("Already installed");
     }
-    const installation = await CredentialRepository.create({
-      type: appType,
-      key: {},
-      ...installForObject,
-      appId: "jitsi",
+    const installation = await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        ...installForObject,
+        appId: "jitsi",
+      },
     });
     if (!installation) {
       throw new Error("Unable to create user credential for jitsivideo");

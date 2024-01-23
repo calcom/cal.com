@@ -2,7 +2,6 @@ import type { Workflow } from "@prisma/client";
 
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
@@ -56,14 +55,15 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   try {
-    const workflow: Workflow = await WorkflowRepository.create({
-      name: "",
-      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-      time: 24,
-      timeUnit: TimeUnit.HOUR,
-      userId,
-      teamId,
-      profileId: ctx.user.profile.id,
+    const workflow: Workflow = await prisma.workflow.create({
+      data: {
+        name: "",
+        trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+        time: 24,
+        timeUnit: TimeUnit.HOUR,
+        userId,
+        teamId,
+      },
     });
 
     const renderedEmailTemplate = emailReminderTemplate(

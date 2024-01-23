@@ -307,7 +307,6 @@ async function createOrganizationAndAddMembersAndTeams({
           userId: member.id,
           role: role,
           accepted: true,
-          profileId: member.profile.id,
         },
       });
     }

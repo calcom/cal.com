@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -10,9 +9,6 @@ import { CalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    if (!req.session) {
-      return res.status(401).json({ message: "You must be logged in to do this" });
-    }
     const { username, password, url } = req.body;
     // Get user
     const user = await prisma.user.findFirstOrThrow({
@@ -32,7 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         process.env.CALENDSO_ENCRYPTION_KEY || ""
       ),
       userId: user.id,
-      profileId: req.session.user.profile.id,
       teamId: null,
       appId: "caldav-calendar",
       invalid: false,
@@ -45,7 +40,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user: { email: user.email },
       });
       await dav?.listCalendars();
-      await CredentialRepository.create(data);
+      await prisma.credential.create({
+        data,
+      });
     } catch (e) {
       logger.error("Could not add this caldav account", e);
       if (e instanceof Error) {

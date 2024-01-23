@@ -27,14 +27,6 @@ export class MembershipRepository {
     });
   }
 
-  static async findAllByProfileId({ id }: { id: number }) {
-    return await prisma.membership.findMany({
-      where: {
-        profileId: id,
-      },
-    });
-  }
-
   /**
    * TODO: Using a specific function for specific tasks so that we don't have to focus on TS magic at the moment. May be try to make it a a generic findAllByProfileId with various options.
    */
