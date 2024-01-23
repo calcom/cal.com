@@ -438,7 +438,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       if (key.startsWith(`${fullFieldName}.`)) {
         // Extract the next level field name
         const nextLevelFieldName = key.slice(fullFieldName.length + 1).split(".")[0] as keyof FormValues;
-        console.log("NextFieldName", nextLevelFieldName);
         if (isFieldDirty(nextLevelFieldName, `${fullFieldName}.`)) {
           return true;
         }
@@ -448,7 +447,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
-    console.log("dirtyFields", formMethods.formState.dirtyFields);
     if (formMethods.formState.isDirty) {
       const updatedFields: Partial<FormValues> = {};
       Object.keys(formMethods.formState.dirtyFields).forEach((key) => {
@@ -461,13 +459,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           updatedFields[typedKey] = values[typedKey];
         }
       });
-      console.log("updatedFields", updatedFields);
       return updatedFields;
     }
     return {};
   };
 
   const handleSubmit = async (values: FormValues) => {
+    const dirtyValues = getDirtyFields(values);
     const {
       periodDates,
       periodCountCalendarDays,
@@ -495,7 +493,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       multipleDurationEnabled,
       length,
       ...input
-    } = values;
+    } = dirtyValues;
 
     if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
@@ -533,15 +531,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, ...rest } = input;
-    updateMutation.mutate({
+    const payload = {
       ...rest,
       length,
       locations,
       recurringEvent,
-      periodStartDate: periodDates.startDate,
-      periodEndDate: periodDates.endDate,
+      periodStartDate: periodDates?.startDate,
+      periodEndDate: periodDates?.endDate,
       periodCountCalendarDays: periodCountCalendarDays === "1",
-      id: eventType.id,
       beforeEventBuffer: beforeBufferTime,
       afterEventBuffer: afterBufferTime,
       bookingLimits,
@@ -553,7 +550,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       customInputs,
       children,
-    });
+    };
+    // Filter out undefined values
+    const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // @ts-expect-error Element implicitly has any type
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+    updateMutation.mutate({ ...filteredPayload, id: eventType.id });
   };
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
@@ -605,7 +611,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
-            // const dirtyValues = getDirtyFields(values);
+            const dirtyValues = getDirtyFields(values);
 
             const {
               periodDates,
@@ -629,7 +635,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               multipleDurationEnabled,
               length,
               ...input
-            } = values;
+            } = dirtyValues;
 
             if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
@@ -663,15 +669,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, ...rest } = input;
-            updateMutation.mutate({
+            const payload = {
               ...rest,
               length,
               locations,
               recurringEvent,
-              periodStartDate: periodDates.startDate,
-              periodEndDate: periodDates.endDate,
+              periodStartDate: periodDates?.startDate,
+              periodEndDate: periodDates?.endDate,
               periodCountCalendarDays: periodCountCalendarDays === "1",
-              id: eventType.id,
               beforeEventBuffer: beforeBufferTime,
               afterEventBuffer: afterBufferTime,
               bookingLimits,
@@ -682,7 +687,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAvailabilityCount,
               metadata,
               customInputs,
-            });
+            };
+            // Filter out undefined values
+            const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
+              if (value !== undefined) {
+                // @ts-expect-error Element implicitly has any type
+                acc[key] = value;
+              }
+              return acc;
+            }, {});
+            updateMutation.mutate({ ...filteredPayload, id: eventType.id });
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
