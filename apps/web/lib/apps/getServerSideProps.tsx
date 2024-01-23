@@ -7,7 +7,9 @@ import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminT
 import type { AppCategories } from "@calcom/prisma/enums";
 
 import { ssrInit } from "@server/lib/ssr";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+export type PageProps =  Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">; 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
 

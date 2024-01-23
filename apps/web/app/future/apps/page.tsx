@@ -1,4 +1,4 @@
-import AppsPage from "@pages/apps";
+import AppsPage from "@components/pages/apps";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
