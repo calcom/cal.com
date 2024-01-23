@@ -70,6 +70,7 @@
   "current_time": "Jelenlegi idő",
   "welcome": "Üdvözöljük",
   "connect_caldav": "Csatlakozás a CalDav szerverhez",
+  "connect_ics_feed": "Csatlakozás egy ICS feedhez",
   "connect": "Csatlakozás",
   "try_for_free": "Próbáld ki ingyen",
   "who": "Ki",

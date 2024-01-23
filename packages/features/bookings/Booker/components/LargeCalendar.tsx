@@ -7,19 +7,24 @@ import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/week
 import { localStorage } from "@calcom/lib/webstorage";
 
 import { useBookerStore } from "../store";
-import { useEvent, useScheduleForEvent } from "../utils/event";
+import type { useScheduleForEventReturnType } from "../utils/event";
+import { useEvent } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
 
-export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
+export const LargeCalendar = ({
+  extraDays,
+  schedule,
+  isLoading,
+}: {
+  extraDays: number;
+  schedule?: useScheduleForEventReturnType["data"];
+  isLoading: boolean;
+}) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
-  const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
-  const schedule = useScheduleForEvent({
-    prefetchNextMonth: !!extraDays && dayjs(date).month() !== dayjs(date).add(extraDays, "day").month(),
-  });
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
@@ -28,11 +33,11 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
 
   const availableSlots = useMemo(() => {
     const availableTimeslots: CalendarAvailableTimeslots = {};
-    if (!schedule.data) return availableTimeslots;
-    if (!schedule.data.slots) return availableTimeslots;
+    if (!schedule) return availableTimeslots;
+    if (!schedule.slots) return availableTimeslots;
 
-    for (const day in schedule.data.slots) {
-      availableTimeslots[day] = schedule.data.slots[day].map((slot) => ({
+    for (const day in schedule.slots) {
+      availableTimeslots[day] = schedule.slots[day].map((slot) => ({
         start: dayjs(slot.time).toDate(),
         end: dayjs(slot.time).add(eventDuration, "minutes").toDate(),
       }));
@@ -69,7 +74,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
-        isLoading={schedule.isLoading}
+        isLoading={isLoading}
         availableTimeslots={availableSlots}
         startHour={0}
         endHour={23}
