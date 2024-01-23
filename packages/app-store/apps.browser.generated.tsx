@@ -41,6 +41,7 @@ export const EventTypeAddonMap = {
 };
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
+  fathom: dynamic(() => import("./fathom/components/EventTypeAppSettingsInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),
   gtm: dynamic(() => import("./gtm/components/EventTypeAppSettingsInterface")),
