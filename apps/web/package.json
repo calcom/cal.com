@@ -60,7 +60,7 @@
     "@sentry/nextjs": "^7.73.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
-    "@tanstack/react-query": "^4.3.9",
+    "@tanstack/react-query": "^5.17.15",
     "@tremor/react": "^2.0.0",
     "@types/turndown": "^5.0.1",
     "@upstash/ratelimit": "^0.4.3",

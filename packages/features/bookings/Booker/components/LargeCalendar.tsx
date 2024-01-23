@@ -74,7 +74,7 @@ export const LargeCalendar = ({
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
-        isLoading={isLoading}
+        isPending={isLoading}
         availableTimeslots={availableSlots}
         startHour={0}
         endHour={23}
