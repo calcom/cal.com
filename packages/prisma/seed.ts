@@ -773,19 +773,19 @@ async function main() {
   await createOrganizationAndAddMembersAndTeams({
     org: {
       orgData: {
-        name: "Organization1",
-        slug: "org1",
+        name: "Acme Inc",
+        slug: "acme",
         metadata: {
           isOrganizationVerified: true,
-          orgAutoAcceptEmail: "org1.com",
+          orgAutoAcceptEmail: "acme.com",
         },
       },
       members: [
         {
           memberData: {
-            email: "owner1-org1@example.com",
-            password: "owner1-org1",
-            username: "owner1-org1",
+            email: "owner1-acme@example.com",
+            password: "owner1-acme",
+            username: "owner1-acme",
             name: "Owner 1",
           },
           orgMembership: {
@@ -812,10 +812,62 @@ async function main() {
         },
         nonOrgMembers: [
           {
-            email: "non-org1-member-1@example.com",
-            password: "non-org1-member-1",
-            username: "non-org1-member-1",
-            name: "NonOrg1 Member1",
+            email: "non-acme-member-1@example.com",
+            password: "non-acme-member-1",
+            username: "non-acme-member-1",
+            name: "NonAcme Member1",
+          },
+        ],
+      },
+    ],
+  });
+
+  await createOrganizationAndAddMembersAndTeams({
+    org: {
+      orgData: {
+        name: "Dunder Mifflin",
+        slug: "dunder-mifflin",
+        metadata: {
+          isOrganizationVerified: true,
+          orgAutoAcceptEmail: "dunder-mifflin.com",
+        },
+      },
+      members: [
+        {
+          memberData: {
+            email: "owner1-dunder@example.com",
+            password: "owner1-dunder",
+            username: "owner1-dunder",
+            name: "Owner 1",
+          },
+          orgMembership: {
+            role: "OWNER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "owner1",
+          },
+          inTeams: [
+            {
+              slug: "team1",
+              role: "ADMIN",
+            },
+          ],
+        },
+      ],
+    },
+    teams: [
+      {
+        teamData: {
+          name: "Team 1",
+          slug: "team1",
+        },
+        nonOrgMembers: [
+          {
+            email: "non-dunder-member-1@example.com",
+            password: "non-dunder-member-1",
+            username: "non-dunder-member-1",
+            name: "NonDunder Member1",
           },
         ],
       },
