@@ -107,9 +107,6 @@ const MembersView = () => {
     { teamId, limit },
     {
       enabled: !Number.isNaN(teamId),
-      // onError: () => {
-      //   router.push("/settings");
-      // },
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       placeholderData: keepPreviousData,
     }
