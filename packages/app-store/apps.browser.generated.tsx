@@ -42,5 +42,6 @@ export const EventTypeAddonMap = {
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),
+  gtm: dynamic(() => import("./gtm/components/EventTypeAppSettingsInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
 };
