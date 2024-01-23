@@ -401,44 +401,7 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    createBookingWebhook: async (webhookReceiver: { url: string }, eventTitle: string) => {
-      const events = [
-        "Booking Canceled",
-        "Booking Created",
-        "Booking Rejected",
-        "Booking Requested",
-        "Booking Payment Initiated",
-        "Booking Rescheduled",
-        "Meeting Ended",
-        "Booking Paid",
-        "Recording Download Link Ready",
-      ];
-      await page.goto(`${WEBAPP_URL}/event-types`);
-      await page.getByText(eventTitle).click();
 
-      await page.getByTestId("vertical-tab-webhooks").click();
-
-      await page.getByTestId("new_webhook").click();
-      await page.getByLabel("Subscriber URL").fill(webhookReceiver.url);
-      await page.getByRole("button", { name: "Ping test" }).click();
-      page
-        .getByTestId("dialog-creation")
-        .locator("div")
-        .filter({ hasText: '{ "ok": true, "status": 200, "message": "{}" }' })
-        .nth(2);
-      await page.getByRole("button", { name: "Create Webhook" }).click();
-
-      page.getByText(webhookReceiver.url);
-      events.forEach((event) => {
-        page.getByText(event);
-      });
-    },
-    rejectFirstBooking: async () => {
-      await page.goto("/bookings/unconfirmed");
-      await page.getByTestId("horizontal-tab-unconfirmed").click();
-      await page.getByTestId("booking-item").first().getByText("Reject").click();
-      await page.getByTestId("rejection-confirm").click();
-    },
     checkBufferTime: async () => {
       const minutes = (await localize("en"))("minutes");
       const fieldPlaceholder = page.getByPlaceholder("0");
@@ -531,6 +494,44 @@ export function createBookingPageFixture(page: Page) {
 
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
+    },
+    createBookingWebhook: async (webhookReceiver: { url: string }, eventTitle: string) => {
+      const events = [
+        "Booking Canceled",
+        "Booking Created",
+        "Booking Rejected",
+        "Booking Requested",
+        "Booking Payment Initiated",
+        "Booking Rescheduled",
+        "Meeting Ended",
+        "Booking Paid",
+        "Recording Download Link Ready",
+      ];
+      await page.goto(`${WEBAPP_URL}/event-types`);
+      await page.getByText(eventTitle).click();
+
+      await page.getByTestId("vertical-tab-webhooks").click();
+
+      await page.getByTestId("new_webhook").click();
+      await page.getByLabel("Subscriber URL").fill(webhookReceiver.url);
+      await page.getByRole("button", { name: "Ping test" }).click();
+      page
+        .getByTestId("dialog-creation")
+        .locator("div")
+        .filter({ hasText: '{ "ok": true, "status": 200, "message": "{}" }' })
+        .nth(2);
+      await page.getByRole("button", { name: "Create Webhook" }).click();
+
+      page.getByText(webhookReceiver.url);
+      events.forEach((event) => {
+        page.getByText(event);
+      });
+    },
+    rejectFirstBooking: async () => {
+      await page.goto("/bookings/unconfirmed");
+      await page.getByTestId("horizontal-tab-unconfirmed").click();
+      await page.getByTestId("booking-item").first().getByText("Reject").click();
+      await page.getByTestId("rejection-confirm").click();
     },
   };
 }
