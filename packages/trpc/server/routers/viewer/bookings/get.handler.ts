@@ -188,6 +188,7 @@ async function getBookings({
         eventName: true,
         price: true,
         recurringEvent: true,
+        schedulingType: true,
         currency: true,
         metadata: true,
         seatsShowAttendees: true,
