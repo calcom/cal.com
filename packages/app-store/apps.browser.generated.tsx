@@ -45,5 +45,6 @@ export const EventTypeSettingsMap = {
   ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),
   gtm: dynamic(() => import("./gtm/components/EventTypeAppSettingsInterface")),
+  paypal: dynamic(() => import("./paypal/components/EventTypeAppSettingsInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
 };
