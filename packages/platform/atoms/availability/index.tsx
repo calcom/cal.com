@@ -10,6 +10,7 @@ import type { Schedule } from "./settings/index";
 
 type AvailabilityProps = {
   id?: string;
+  link?: string;
   userInfo: {
     defaultScheduleId: number;
     timeFormat: number;
@@ -34,6 +35,7 @@ type AvailabilityProps = {
 const queryClient = new QueryClient();
 
 export function Availability({
+  link,
   userInfo,
   schedule,
   displayOptions,
@@ -52,33 +54,37 @@ export function Availability({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="hover:bg-muted border-subtle bg-default flex items-center justify-between overflow-hidden rounded-md border py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
-        <div className="group flex w-full flex-grow flex-col items-start justify-between truncate text-sm sm:px-6">
-          <div className="space-x-2 rtl:space-x-reverse">
-            <span className="text-emphasis truncate font-medium">{schedule.name}</span>
-            {schedule.id === userInfo.defaultScheduleId && (
-              <Badge variant="success" className="text-xs">
-                Default
-              </Badge>
-            )}
+      <a
+        href={!!link ? link : "javascript:void(0);"}
+        className={`${!!link ? "cursor-pointer" : "cursor-auto"}`}>
+        <div className="hover:bg-muted border-subtle bg-default flex items-center justify-between overflow-hidden rounded-md border py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
+          <div className="group flex w-full flex-grow flex-col items-start justify-between truncate text-sm sm:px-6">
+            <div className="space-x-2 rtl:space-x-reverse">
+              <span className="text-emphasis truncate font-medium">{schedule.name}</span>
+              {schedule.id === userInfo.defaultScheduleId && (
+                <Badge variant="success" className="text-xs">
+                  Default
+                </Badge>
+              )}
+            </div>
+            <p className="text-subtle mt-1">
+              {subtitle}
+              {(schedule.timeZone || displayOptions?.timeZone) && (
+                <p className="my-1 flex items-center first-letter:text-xs">
+                  <Globe className="h-3.5 w-3.5" />
+                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
+                </p>
+              )}
+            </p>
           </div>
-          <p className="text-subtle mt-1">
-            {subtitle}
-            {(schedule.timeZone || displayOptions?.timeZone) && (
-              <p className="my-1 flex items-center first-letter:text-xs">
-                <Globe className="h-3.5 w-3.5" />
-                &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
-              </p>
-            )}
-          </p>
+          <AvailabilityDropdown
+            schedule={schedule}
+            isLoading={isLoading}
+            onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
+          />
         </div>
-        <AvailabilityDropdown
-          schedule={schedule}
-          isLoading={isLoading}
-          onDelete={handleDelete}
-          onDuplicate={handleDuplicate}
-        />
-      </div>
+      </a>
     </QueryClientProvider>
   );
 }
