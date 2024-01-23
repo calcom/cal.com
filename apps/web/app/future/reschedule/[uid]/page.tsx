@@ -1,4 +1,4 @@
-import OldPage, { getServerSideProps as _getServerSideProps } from "@pages/reschedule/[uid]";
+import { getServerSideProps } from "@pages/reschedule/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -18,14 +18,14 @@ type PageProps = Readonly<{
   searchParams: SearchParams;
 }>;
 
-const getData = withAppDirSsr(_getServerSideProps);
+const getData = withAppDirSsr(getServerSideProps);
 
 const Page = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
 
   await getData(legacyCtx);
 
-  return <OldPage />;
+  return null;
 };
 
 export default Page;
