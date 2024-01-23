@@ -1,4 +1,3 @@
-import LegacyPage, { getLayout } from "@pages/apps/[slug]/[...pages]";
 import type { PageProps, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import type { GetServerSidePropsContext } from "next";
@@ -21,6 +20,7 @@ import type { AppProps } from "@lib/app-providers";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import PageWrapper from "@components/PageWrapperAppDir";
+import LegacyPage, { getLayout } from "@components/pages/apps/[slug]/[...pages]";
 
 import { ssrInit } from "@server/lib/ssr";
 
