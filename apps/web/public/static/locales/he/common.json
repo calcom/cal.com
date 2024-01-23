@@ -440,7 +440,7 @@
   "browse_api_documentation": "עיון במסמכי ממשק תכנות היישומים (API) שלנו",
   "leverage_our_api": "מומלץ להיעזר בממשק תכנות היישומים (API) שלנו לקבלת שליטה מלאה ויכולת התאמה אישית.",
   "create_webhook": "יצירת Webhook",
-  "instant_meeting_created": "נוצרה פגישה מיידית",
+  "instant_meeting": "נוצרה פגישה מיידית",
   "booking_cancelled": "ההזמנה בוטלה",
   "booking_rescheduled": "מועד ההזמנה השתנה",
   "recording_ready": "הקישור להורדת ההקלטה מוכן",

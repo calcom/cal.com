@@ -118,12 +118,28 @@ const usernameCheck = async (usernameRaw: string) => {
   const user = await prisma.user.findFirst({
     where: { username, organizationId: null },
     select: {
+      id: true,
       username: true,
     },
   });
 
   if (user) {
-    response.available = false;
+    const userIsAMemberOfAnOrg = await prisma.membership.findFirst({
+      where: {
+        userId: user.id,
+        team: {
+          metadata: {
+            path: ["isOrganization"],
+            equals: true,
+          },
+        },
+      },
+    });
+    // When we invite an email, that doesn't match the orgAutoAcceptEmail, we create a user with organizationId=null.
+    // The only way to differentiate b/w 'a new email that was invited to an Org' and 'a user that was created using regular signup' is to check if the user is a member of an org.
+    if (!userIsAMemberOfAnOrg) {
+      response.available = false;
+    }
   }
 
   if (await isPremiumUserName(username)) {

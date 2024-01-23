@@ -1,13 +1,11 @@
 "use client";
 
-import type { GetServerSidePropsContext } from "next";
-
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { CreateANewOrganizationForm } from "@calcom/features/ee/organizations/components";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout, Meta, WizardLayoutAppDir } from "@calcom/ui";
 
+import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
@@ -29,7 +27,7 @@ const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export const WrappedCreateNewOrganizationPage = (page: React.ReactElement) => {
+export const LayoutWrapperAppDir = (page: React.ReactElement) => {
   return (
     <WizardLayoutAppDir currentStep={1} maxSteps={5}>
       {page}
@@ -37,26 +35,9 @@ export const WrappedCreateNewOrganizationPage = (page: React.ReactElement) => {
   );
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-  // Check if organizations are enabled
-  if (flags["organizations"] !== true) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const querySlug = context.query.slug as string;
-
-  return {
-    props: {
-      querySlug: querySlug ?? null,
-    },
-  };
-};
-
 CreateNewOrganizationPage.getLayout = LayoutWrapper;
 CreateNewOrganizationPage.PageWrapper = PageWrapper;
 
 export default CreateNewOrganizationPage;
+
+export { getServerSideProps };
