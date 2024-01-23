@@ -1,4 +1,3 @@
-import Page, { type JoinCallPageProps } from "@pages/video/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -6,6 +5,8 @@ import { WithLayout } from "app/layoutHOC";
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+
+import Page, { type JoinCallPageProps } from "@components/pages/video/[uid]";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
