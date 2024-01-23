@@ -172,9 +172,7 @@ export default function RoutingForms({
       <ShellMain
         heading="Routing Forms"
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
-        subtitle={t("routing_forms_description")}
-        title="Routing Forms"
-        description="Create forms to direct attendees to the correct destinations.">
+        subtitle={t("routing_forms_description")}>
         <UpgradeTip
           plan="team"
           title={t("teams_plan_required")}
@@ -368,7 +366,11 @@ export default function RoutingForms({
 
 RoutingForms.getLayout = (page: React.ReactElement) => {
   return (
-    <Shell withoutMain={true} hideHeadingOnMobile>
+    <Shell
+      title="Routing Forms"
+      description="Create forms to direct attendees to the correct destinations."
+      withoutMain={true}
+      hideHeadingOnMobile>
       {page}
     </Shell>
   );

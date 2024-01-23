@@ -8,7 +8,6 @@ import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
-import { getLayout } from "@calcom/features/MainLayout";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
@@ -17,7 +16,7 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -951,7 +950,8 @@ const EventTypesPage = () => {
   }, [orgBranding, user]);
 
   return (
-    <ShellMain
+    <Shell
+      withoutMain={false}
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
@@ -960,11 +960,9 @@ const EventTypesPage = () => {
       description="Create events to share for people to book on your calendar."
       CTA={<CTA data={data} />}>
       <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
-    </ShellMain>
+    </Shell>
   );
 };
-
-EventTypesPage.getLayout = getLayout;
 
 EventTypesPage.PageWrapper = PageWrapper;
 

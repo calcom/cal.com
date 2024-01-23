@@ -313,7 +313,6 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         <FormActionsProvider appUrl={appUrl}>
           <Meta title={form.name} description={form.description || ""} />
           <ShellMain
-            withoutSeo
             heading={
               <div className="flex">
                 <div>{form.name}</div>

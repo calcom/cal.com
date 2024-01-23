@@ -5,10 +5,10 @@ import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
-import { getLayout } from "@calcom/features/MainLayout";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
@@ -107,7 +107,17 @@ export default function Apps({
 }
 
 Apps.PageWrapper = PageWrapper;
-Apps.getLayout = getLayout;
+Apps.getLayout = (page: React.ReactElement) => {
+  return (
+    <Shell
+      title="Apps Store"
+      description="Create forms to direct attendees to the correct destinations."
+      withoutMain={true}
+      hideHeadingOnMobile>
+      {page}
+    </Shell>
+  );
+};
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, res } = context;

@@ -994,12 +994,6 @@ export function ShellMain(props: LayoutProps) {
 
   return (
     <>
-      {!props.withoutSeo && (
-        <HeadSeo
-          title={props.title ?? props.heading ?? APP_NAME}
-          description={props.description ?? props.subtitle?.toString() ?? ""}
-        />
-      )}
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(

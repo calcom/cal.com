@@ -3,9 +3,8 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -158,11 +157,12 @@ export default function AvailabilityPage() {
   );
   return (
     <div>
-      <ShellMain
+      <Shell
         heading={t("availability")}
         title="Availability"
         description="Configure times when you are available for bookings."
         hideHeadingOnMobile
+        withoutMain={false}
         subtitle={t("configure_availability")}
         CTA={
           <div className="flex gap-2">
@@ -189,11 +189,9 @@ export default function AvailabilityPage() {
             customLoader={<SkeletonLoader />}
           />
         )}
-      </ShellMain>
+      </Shell>
     </div>
   );
 }
-
-AvailabilityPage.getLayout = getLayout;
 
 AvailabilityPage.PageWrapper = PageWrapper;

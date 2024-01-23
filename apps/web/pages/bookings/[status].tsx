@@ -8,12 +8,11 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
-import { getLayout } from "@calcom/features/MainLayout";
 import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -153,7 +152,8 @@ export default function Bookings() {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <ShellMain
+    <Shell
+      withoutMain={false}
       hideHeadingOnMobile
       heading={t("bookings")}
       subtitle={t("bookings_description")}
@@ -258,12 +258,11 @@ export default function Bookings() {
           </div>
         </main>
       </div>
-    </ShellMain>
+    </Shell>
   );
 }
 
 Bookings.PageWrapper = PageWrapper;
-Bookings.getLayout = getLayout;
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
