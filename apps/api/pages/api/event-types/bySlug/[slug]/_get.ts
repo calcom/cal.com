@@ -1,20 +1,18 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
-import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
-import { checkPermissions as canAccessTeamEventOrThrow } from "~/pages/api/teams/[teamId]/_auth-middleware";
+import { schemaQuerySlugAsString } from "~/lib/validations/shared/querySlugString";
 
-import getCalLink from "../_utils/getCalLink";
+import { checkPermissions } from "../../[id]/_get";
+import getCalLink from "../../_utils/getCalLink";
 
 /**
  * @swagger
- * /event-types/{id}:
+ * /event-types/bySlug/{slug}:
  *   get:
- *     operationId: getEventTypeById
+ *     operationId: getEventTypeBySlug
  *     summary: Find a eventType
  *     parameters:
  *      - in: query
@@ -24,12 +22,12 @@ import getCalLink from "../_utils/getCalLink";
  *        required: true
  *        description: Your API Key
  *      - in: path
- *        name: id
- *        example: 4
+ *        name: slug
+ *        example: 30min
  *        schema:
- *          type: integer
+ *          type: string
  *        required: true
- *        description: ID of the eventType to get
+ *        description: Slug of the eventType to get
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -43,11 +41,11 @@ import getCalLink from "../_utils/getCalLink";
  *         description: EventType was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { prisma, query } = req;
-  const { id } = schemaQueryIdParseInt.parse(query);
+  const { userId, prisma, query } = req;
+  const { slug } = schemaQuerySlugAsString.parse(query);
 
-  const eventType = await prisma.eventType.findUnique({
-    where: { id },
+  const eventType = await prisma.eventType.findFirst({
+    where: { slug, users: { some: { id: userId } } },
     include: {
       customInputs: true,
       team: { select: { slug: true } },
@@ -60,7 +58,6 @@ export async function getHandler(req: NextApiRequest) {
   await checkPermissions(req, eventType);
 
   const link = eventType ? getCalLink(eventType) : null;
-  // user.defaultScheduleId doesn't work the same for team events.
   if (!eventType?.scheduleId && eventType?.userId && !eventType?.teamId) {
     const user = await prisma.user.findUniqueOrThrow({
       where: {
@@ -73,29 +70,7 @@ export async function getHandler(req: NextApiRequest) {
     eventType.scheduleId = user.defaultScheduleId;
   }
 
-  // TODO: eventType when not found should be a 404
-  //       but API consumers may depend on the {} behaviour.
   return { event_type: schemaEventTypeReadPublic.parse({ ...eventType, link }) };
-}
-
-type BaseEventTypeCheckPermissions = {
-  userId: number | null;
-  teamId: number | null;
-};
-
-export async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
-  req: NextApiRequest,
-  eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
-) {
-  if (req.isAdmin) return true;
-  if (eventType?.teamId) {
-    req.query.teamId = String(eventType.teamId);
-    await canAccessTeamEventOrThrow(req, {
-      in: [MembershipRole.OWNER, MembershipRole.ADMIN, MembershipRole.MEMBER],
-    });
-  }
-  if (eventType?.userId === req.userId) return true; // is owner.
-  throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default defaultResponder(getHandler);
