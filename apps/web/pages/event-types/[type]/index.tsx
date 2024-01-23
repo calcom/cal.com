@@ -514,7 +514,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       if (metadata?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
-        if (!length && !metadata?.multipleDuration?.includes(length)) {
+        if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
           throw new Error(t("event_setup_multiple_duration_default_error"));
         }
       }
@@ -656,7 +656,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!length && !metadata?.multipleDuration?.includes(length)) {
+                if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
