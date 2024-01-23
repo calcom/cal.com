@@ -51,9 +51,10 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     language: translation,
     from: ctx.user.name || `${team.name}'s admin`,
     to: input.email,
-    teamName: team?.parent?.name || team.name,
+    teamName: team.name,
     ...inviteTeamOptions,
     isOrg: input.isOrg,
+    parentTeamName: team?.parent?.name,
   });
 
   return input;

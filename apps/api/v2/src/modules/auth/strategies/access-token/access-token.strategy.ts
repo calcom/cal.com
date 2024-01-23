@@ -1,3 +1,4 @@
+import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -6,11 +7,6 @@ import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
-
-class BaseStrategy {
-  success!: (user: unknown) => void;
-  error!: (error: Error) => void;
-}
 
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-token") {

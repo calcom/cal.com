@@ -7,7 +7,9 @@
   "authors": "Cal.com, Inc.",
   "version": "0.0.0",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "vite-dev": "yarn vite build --watch & npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify --watch",
+    "vite-build": "yarn vite build && npx tailwindcss -i ./globals.css -o ./globals.min.css --postcss --minify"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
@@ -17,10 +19,25 @@
     "@vitejs/plugin-react": "^2.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "typescript": "^4.9.4",
-    "vite": "^4.1.2"
+    "vite": "^5.0.10"
   },
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "files": [
+    "dist"
+  ],
+  "main": "index.ts",
+  "module": "index.ts",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "require": "./index.ts"
+    },
+    "./components": {
+      "import": "./dist/cal-atoms.js",
+      "require": "./dist/cal-atoms.umd.cjs"
+    },
+    "./dist/globals.min.css": "./globals.min.css",
+    "./dist/index.ts": "./index.ts"
+  },
   "dependencies": {
     "@calcom/ui": "*",
     "@radix-ui/react-slot": "^1.0.2",
@@ -31,6 +48,10 @@
     "react-select": "^5.8.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "react-use": "^17.4.2",
+    "tailwind-merge": "^2.0.0",
+    "tailwindcss": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
   }
 }
