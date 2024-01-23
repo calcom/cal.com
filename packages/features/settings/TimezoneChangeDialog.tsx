@@ -2,10 +2,10 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
