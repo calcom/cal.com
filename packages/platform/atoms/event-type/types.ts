@@ -105,3 +105,5 @@ export type AvailabilityOption = {
   isDefault: boolean;
   isManaged?: boolean;
 };
+
+export type DurationType = "minutes" | "hours" | "days";
