@@ -1,16 +1,11 @@
-import NotFoundPage from "@pages/404";
+import { withAppDirSsg } from "app/WithAppDirSsg";
 import { WithLayout } from "app/layoutHOC";
-import type { GetStaticPropsContext } from "next";
 
-import { getTranslations } from "@server/lib/getTranslations";
+import { getStaticProps } from "@lib/404/getStaticProps";
 
-const getData = async (context: GetStaticPropsContext) => {
-  const i18n = await getTranslations(context);
+import NotFoundPage from "@components/pages/404";
 
-  return {
-    i18n,
-  };
-};
+const getData = withAppDirSsg(getStaticProps);
 
 export const dynamic = "force-static";
 
