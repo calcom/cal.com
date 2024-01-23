@@ -247,4 +247,5 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
   );
 }
 
+export { getServerSideProps };
 JoinCall.PageWrapper = PageWrapper;
