@@ -105,11 +105,6 @@ export async function getTeamWithMembers(args: {
           accepted: true,
           role: true,
           disableImpersonation: true,
-          profile: {
-            include: {
-              organization: true,
-            },
-          },
           user: {
             select: userSelect,
           },
@@ -150,25 +145,24 @@ export async function getTeamWithMembers(args: {
   const currentOrgId = currentOrg?.id ?? (isOrgView ? teamOrOrg.id : teamOrOrg.parent?.id) ?? null;
 
   const teamOrOrgMemberships = [];
-
   for (const membership of teamOrOrg.members) {
-    const enrichedMembership = await UserRepository.enrichEntityWithProfile(membership);
-    if (!enrichedMembership.profile) {
-      throw new Error(`Team ${teamOrOrg.slug} has a membership without a profile`);
-    }
-    const profile = enrichedMembership.profile;
-    teamOrOrgMemberships.push({ ...enrichedMembership, profile });
+    teamOrOrgMemberships.push({
+      ...membership,
+      user: await UserRepository.enrichUserWithOrganizationProfile({
+        user: membership.user,
+        organizationId: currentOrgId,
+      }),
+    });
   }
-
   const members = teamOrOrgMemberships.map((m) => {
     const { credentials, ...restUser } = m.user;
     return {
       ...restUser,
-      username: m.profile?.username ?? restUser.username,
+      username: m.user.profile?.username ?? restUser.username,
       role: m.role,
-      profile: m.profile,
-      organizationId: m.profile?.organizationId ?? null,
-      organization: m.profile?.organization,
+      profile: m.user.profile,
+      organizationId: m.user.profile?.organizationId ?? null,
+      organization: m.user.profile?.organization,
       accepted: m.accepted,
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
@@ -177,7 +171,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(m.profile?.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;

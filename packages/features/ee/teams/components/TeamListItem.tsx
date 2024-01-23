@@ -6,6 +6,7 @@ import InviteLinkSettingsModal from "@calcom/ee/teams/components/InviteLinkSetti
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -42,7 +43,6 @@ import {
   X,
 } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
 import { TeamRole } from "./TeamPill";
 
 interface Props {
@@ -86,7 +86,6 @@ export default function TeamListItem(props: Props) {
 
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
-  const orgBranding = useOrgBranding();
 
   const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
@@ -94,7 +93,9 @@ export default function TeamListItem(props: Props) {
   const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
-
+  const teamUrl = isOrganization({ team })
+    ? getTeamUrlSync({ orgSlug: team.slug, teamSlug: null })
+    : getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug });
   const teamInfo = (
     <div className="item-center flex px-5 py-5">
       <Avatar
@@ -106,11 +107,7 @@ export default function TeamListItem(props: Props) {
       <div className="ms-3 inline-block truncate">
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
-          {team.slug ? (
-            `${getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug })}`
-          ) : (
-            <Badge>{t("upgrade")}</Badge>
-          )}
+          {team.slug ? `${teamUrl}` : <Badge>{t("upgrade")}</Badge>}
         </span>
       </div>
     </div>

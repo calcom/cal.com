@@ -420,12 +420,13 @@ export const AUTH_OPTIONS: AuthOptions = {
   providers,
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
+      // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
         log.debug("callbacks:jwt:update", { token, user, account, trigger, session });
         return {
           ...token,
-          profileId: session?.user.profileId ?? session?.profileId ?? null,
-          upId: session?.user.upId ?? session.upId ?? null,
+          profileId: session?.profileId ?? token.profileId ?? null,
+          upId: session?.upId ?? token.upId ?? null,
           locale: session?.locale ?? token.locale ?? "en",
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,

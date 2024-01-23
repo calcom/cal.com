@@ -111,6 +111,53 @@ export class ProfileRepository {
     return ProfileRepository._create({ userId, organizationId, username, email });
   }
 
+  static async upsert({
+    create,
+    update,
+    updateWhere,
+  }: {
+    create: {
+      userId: number;
+      organizationId: number;
+      username: string | null;
+      email: string;
+    };
+    update: {
+      username: string | null;
+      email: string;
+    };
+    updateWhere: {
+      userId: number;
+      organizationId: number;
+    };
+  }) {
+    return prisma.profile.upsert({
+      create: {
+        uid: ProfileRepository.generateProfileUid(),
+        user: {
+          connect: {
+            id: create.userId,
+          },
+        },
+        organization: {
+          connect: {
+            id: create.organizationId,
+          },
+        },
+        username: create.username || create.email.split("@")[0],
+      },
+      update: {
+        username: update.username || update.email.split("@")[0],
+      },
+      where: {
+        userId_organizationId: {
+          userId: updateWhere.userId,
+          organizationId: updateWhere.organizationId,
+        },
+      },
+    });
+  }
+
   static async createForExistingUser({
     userId,
     organizationId,

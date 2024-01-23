@@ -16,7 +16,7 @@ type AcceptOrLeaveOptions = {
 
 export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions) => {
   if (input.accept) {
-    const membership = await prisma.membership.update({
+    const teamMembership = await prisma.membership.update({
       where: {
         userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
       },
@@ -28,7 +28,22 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       },
     });
 
-    const team = membership.team;
+    const team = teamMembership.team;
+
+    if (team.parentId) {
+      await prisma.membership.update({
+        where: {
+          userId_teamId: { userId: ctx.user.id, teamId: team.parentId },
+        },
+        data: {
+          accepted: true,
+        },
+        include: {
+          team: true,
+        },
+      });
+    }
+
     const isAnOrganization = isOrganization({ team });
     const isASubteam = team.parentId !== null;
     const idOfOrganizationInContext = isAnOrganization ? team.id : isASubteam ? team.parentId : null;
@@ -40,11 +55,11 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       });
     }
 
-    closeComUpsertTeamUser(membership.team, ctx.user, membership.role);
+    closeComUpsertTeamUser(team, ctx.user, teamMembership.role);
   } else {
     try {
       //get team owner so we can alter their subscription seat count
-      const teamOwner = await prisma.membership.findFirst({
+      const ownerMembership = await prisma.membership.findFirst({
         where: { teamId: input.teamId, role: MembershipRole.OWNER },
         include: { team: true },
       });
@@ -53,10 +68,21 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
         where: {
           userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
         },
+        include: {
+          team: true,
+        },
       });
 
+      if (membership.team.parentId) {
+        await prisma.membership.delete({
+          where: {
+            userId_teamId: { userId: ctx.user.id, teamId: membership.team.parentId },
+          },
+        });
+      }
+
       // Sync Services: Close.com
-      if (teamOwner) closeComUpsertTeamUser(teamOwner.team, ctx.user, membership.role);
+      if (ownerMembership) closeComUpsertTeamUser(ownerMembership.team, ctx.user, membership.role);
     } catch (e) {
       console.log(e);
     }

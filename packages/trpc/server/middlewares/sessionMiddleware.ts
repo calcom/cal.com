@@ -52,6 +52,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       brandColor: true,
       darkBrandColor: true,
       away: true,
+      movedToProfileId: true,
       selectedCalendars: {
         select: {
           externalId: true,
@@ -88,7 +89,6 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     upId,
   });
 
-  logger.debug("getUserFromSession-Result", { user: user.id, profile: user.profile, session });
   const { email, username, id } = user;
   if (!email || !id) {
     return null;
@@ -154,9 +154,12 @@ const getUserSession = async (ctx: TRPCContextInner) => {
       profileId: session.profileId,
     });
     if (!foundProfile) {
-      logger.error("Profile not found or not authorized", { profileId: session.profileId, userId: user?.id });
+      logger.error(
+        "Profile not found or not authorized",
+        safeStringify({ profileId: session.profileId, userId: user?.id })
+      );
       // TODO: Test that logout should happen automatically
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Profile not found or not authorized" });
     }
   }
 

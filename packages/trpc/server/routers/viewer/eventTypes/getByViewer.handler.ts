@@ -259,7 +259,6 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
               .filter(filterTeamsEventTypesBasedOnInput)
               .filter((evType) => {
                 const res = evType.userId === null || evType.userId === ctx.user.id;
-                console.log("getByViewerHandler:filterTeamsEventTypesBasedOnInput", res, evType, ctx.user.id);
                 return res;
               })
               .filter((evType) =>

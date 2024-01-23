@@ -26,14 +26,25 @@ export const createOrUpdateMemberships = async ({
         },
         select: {
           username: true,
+          email: true,
         },
       });
-      await tx.profile.create({
-        data: {
+      await tx.profile.upsert({
+        create: {
           uid: ProfileRepository.generateProfileUid(),
           userId: user.id,
           organizationId: team.id,
-          username: dbUser.username || "",
+          // FIXME: Should properly derive from email
+          username: dbUser.username || dbUser.email.split("@")[0],
+        },
+        update: {
+          username: dbUser.username || dbUser.email.split("@")[0],
+        },
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId: team.id,
+          },
         },
       });
     }

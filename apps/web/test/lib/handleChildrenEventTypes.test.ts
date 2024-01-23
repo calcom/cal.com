@@ -326,7 +326,7 @@ describe("handleChildrenEventTypes", () => {
   });
 
   describe("Workflows", () => {
-    it.only("Links workflows to new and existing assigned members", async () => {
+    it("Links workflows to new and existing assigned members", async () => {
       const {
         schedulingType: _schedulingType,
         id: _id,

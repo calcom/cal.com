@@ -11,6 +11,7 @@ const mockUser = {
   organizationId: null,
   avatarUrl: "",
   profile: {
+    id: 1,
     username: "",
     organizationId: null,
     organization: null,
@@ -28,6 +29,8 @@ describe("tests for UserAvatar component", () => {
   test("It should render the organization logo if a organization is passed in", () => {
     const profile: UserProfile = {
       username: "",
+      id: 1,
+      upId: "1",
       organizationId: 1,
       organization: {
         id: 1,

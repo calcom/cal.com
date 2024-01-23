@@ -2,6 +2,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -20,7 +21,7 @@ import {
   getUsernameOrEmailsToInvite,
   getOrgConnectionInfo,
   getIsOrgVerified,
-  sendVerificationEmail,
+  sendSignupToOrganizationEmail,
   getUsersToInvite,
   createNewUsersConnectToOrgIfExists,
   createProvisionalMemberships,
@@ -113,13 +114,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       parentId: team.parentId,
     });
     const sendVerifEmailsPromises = newUsersEmailsOrUsernames.map((usernameOrEmail) => {
-      return sendVerificationEmail({
+      return sendSignupToOrganizationEmail({
         usernameOrEmail,
         team,
         translation,
         ctx,
         input,
-        connectionInfo: orgConnectInfoByUsernameOrEmail[usernameOrEmail],
       });
     });
     sendEmails(sendVerifEmailsPromises);
@@ -127,11 +127,19 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   // deal with existing users invited to join the team/org
   if (existingUsersWithMembersips.length) {
-    if (!team.metadata?.isOrganization) {
+    if (!isOrganization({ team })) {
       const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
         existingUsersWithMembersips,
         team,
       });
+
+      log.debug(
+        "Inviting existing users to a team",
+        safeStringify({
+          autoJoinUsers,
+          regularUsers,
+        })
+      );
 
       // invited users can autojoin, create their memberships in org
       if (autoJoinUsers.length) {
@@ -156,6 +164,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         await createProvisionalMemberships({
           input,
           invitees: regularUsers,
+          parentId: team.parentId,
         });
         await sendTeamInviteEmails({
           currentUserName: ctx?.user?.name,
@@ -174,7 +183,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           await ProfileRepository.create({
             userId: user.id,
             organizationId: team.id,
-            username: getOrgUsernameFromEmail(user.email, team.metadata.orgAutoAcceptEmail || null),
+            username: getOrgUsernameFromEmail(user.email, team.metadata?.orgAutoAcceptEmail || null),
             email: user.email,
           });
         }

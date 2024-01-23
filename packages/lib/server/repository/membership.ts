@@ -2,6 +2,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma, MembershipRole } from "@calcom/prisma/client";
 
 import logger from "../../logger";
+import { safeStringify } from "../../safeStringify";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
@@ -55,9 +56,12 @@ export class MembershipRepository {
       };
     }
 
-    log.debug("findAllByProfileIdIncludeTeamWithMembersAndEventTypes", {
-      prismaWhere,
-    });
+    log.debug(
+      "findAllByProfileIdIncludeTeamWithMembersAndEventTypes",
+      safeStringify({
+        prismaWhere,
+      })
+    );
 
     return await prisma.membership.findMany({
       where: prismaWhere,

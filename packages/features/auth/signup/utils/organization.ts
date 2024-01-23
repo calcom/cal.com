@@ -1,6 +1,5 @@
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
-import type { PrismaPromise, Profile as ProfilePrisma } from "@calcom/prisma/client";
 
 export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: number; orgId: number }) {
   const user = await prisma.user.findUnique({
@@ -21,12 +20,23 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
         organizationId: orgId,
       },
     }),
-    ProfileRepository.create({
-      userId: userId,
-      organizationId: orgId,
-      email: user.email,
-      username: user.username,
-    }) as PrismaPromise<ProfilePrisma>,
+    prisma.profile.upsert({
+      create: {
+        uid: ProfileRepository.generateProfileUid(),
+        userId: userId,
+        organizationId: orgId,
+        username: user.username || user.email.split("@")[0],
+      },
+      update: {
+        username: user.username || user.email.split("@")[0],
+      },
+      where: {
+        userId_organizationId: {
+          userId: user.id,
+          organizationId: orgId,
+        },
+      },
+    }),
     prisma.membership.updateMany({
       where: {
         userId,

@@ -1,6 +1,7 @@
 import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
@@ -12,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TRemoveMemberInputSchema } from "./removeMember.schema";
 
+const log = logger.getSubLogger({ prefix: ["viewer/teams/removeMember.handler"] });
 type RemoveMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -48,8 +50,17 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     },
     include: {
       user: true,
+      team: true,
     },
   });
+
+  // const parentOrg = membership.team.parentId
+  //   ? await prisma.team.findUnique({
+  //       where: {
+  //         id: membership.team.parentId,
+  //       },
+  //     })
+  //   : null;
 
   // remove user as host from team events associated with this membership
   await ctx.prisma.host.deleteMany({
@@ -62,10 +73,14 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   });
 
   if (input.isOrg) {
+    log.debug("Removing a member from the organization");
+
     // Deleting membership from all child teams
     const foundUser = await ctx.prisma.user.findUnique({
       where: { id: input.memberId },
       select: {
+        id: true,
+        movedToProfileId: true,
         email: true,
         password: true,
         username: true,
@@ -113,6 +128,26 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
         userId: membership.userId,
       },
     });
+
+    const userToDeleteMembershipOf = foundUser;
+
+    const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
+      userId: userToDeleteMembershipOf.id,
+      organizationId: orgInfo.id,
+    });
+
+    if (
+      userToDeleteMembershipOf.username &&
+      userToDeleteMembershipOf.movedToProfileId === profileToDelete?.id
+    ) {
+      log.debug("Cleaning up tempOrgRedirect for user", userToDeleteMembershipOf.username);
+
+      await ctx.prisma.tempOrgRedirect.deleteMany({
+        where: {
+          from: userToDeleteMembershipOf.username,
+        },
+      });
+    }
 
     await ctx.prisma.$transaction([
       ctx.prisma.user.update({
