@@ -197,7 +197,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
 
   if (bookingSeatReferenceUid) {
     booking["description"] = bookingSeatData?.description ?? null;
-    booking["responses"] = bookingResponsesDbSchema.parse(bookingSeatData?.responses);
+    booking["responses"] = bookingResponsesDbSchema.parse(bookingSeatData?.responses ?? {});
   }
   return {
     ...booking,

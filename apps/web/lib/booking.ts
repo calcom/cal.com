@@ -152,7 +152,7 @@ export const handleSeatsEventTypeOnBooking = async (
       responses: Prisma.JsonValue;
     };
     bookingInfo["description"] = seatAttendeeData.description ?? null;
-    bookingInfo["responses"] = bookingResponsesDbSchema.parse(seatAttendeeData.responses);
+    bookingInfo["responses"] = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
   }
 
   if (!eventType.seatsShowAttendees && !isHost) {
