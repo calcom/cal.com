@@ -9,7 +9,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import OldPage from "~/bookings/views/bookings-single-view";
+import Success from "~/bookings/views/bookings-single-view";
 import { getServerSideProps, type PageProps } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
 export const generateMetadata = async ({
@@ -34,4 +34,4 @@ export const generateMetadata = async ({
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
-export default WithLayout({ getLayout: null, getData, Page: OldPage });
+export default WithLayout({ getLayout: null, getData, Page: Success });
