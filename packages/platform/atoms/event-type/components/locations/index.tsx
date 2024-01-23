@@ -61,7 +61,7 @@ export function Locations({
     return true;
   });
   const defaultValue = isManagedEventType
-    ? locationOptions.find((op) => op.label === t("default"))?.options[0]
+    ? locationOptions.find((op) => op.label === "Default")?.options[0]
     : undefined;
 
   const [showEmptyLocationSelect, setShowEmptyLocationSelect] = useState(false);
