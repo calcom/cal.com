@@ -84,7 +84,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${formMethods.getValues("slug")}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
-  const noShowFeeEnabled = formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
+  const noShowFeeEnabled =
+    formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
+    formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
