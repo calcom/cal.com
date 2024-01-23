@@ -1,9 +1,8 @@
 import { prisma } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/client";
+import type { Prisma, MembershipRole } from "@calcom/prisma/client";
 
 import logger from "../../logger";
 import { LookupTarget, ProfileRepository } from "./profile";
-import type { Prisma } from ".prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {
@@ -35,16 +34,26 @@ export class MembershipRepository {
     { where }: { where?: Prisma.MembershipWhereInput } = {}
   ) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    const prismaWhere = {
-      ...(lookupTarget.type === LookupTarget.User
-        ? {
-            userId: lookupTarget.id,
-          }
-        : {
-            profileId: lookupTarget.id,
-          }),
-      ...where,
-    };
+    let prismaWhere;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      /**
+       * TODO: When we add profileId to membership, we lookup by profileId
+       * If the profile is movedFromUser, we lookup all memberships without profileId as well.
+       */
+      const profile = await ProfileRepository.find(lookupTarget.id);
+      if (!profile) {
+        return [];
+      }
+      prismaWhere = {
+        userId: profile.user.id,
+        ...where,
+      };
+    } else {
+      prismaWhere = {
+        userId: lookupTarget.id,
+        ...where,
+      };
+    }
 
     log.debug("findAllByProfileIdIncludeTeamWithMembersAndEventTypes", {
       prismaWhere,
