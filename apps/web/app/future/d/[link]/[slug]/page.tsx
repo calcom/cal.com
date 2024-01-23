@@ -1,4 +1,3 @@
-import LegacyPage from "@pages/d/[link]/[slug]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { Params, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -7,6 +6,8 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/d/[link]/[slug]/getServerSideProps";
+
+import LegacyPage from "@components/pages/d/[link]/[slug]";
 
 export const generateMetadata = async ({
   params,
