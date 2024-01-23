@@ -1,4 +1,3 @@
-import Page from "@pages/teams/index";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -6,6 +5,8 @@ import { WithLayout } from "app/layoutHOC";
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 
 import { getServerSideProps } from "@lib/teams/getServerSideProps";
+
+import Page from "@components/pages/teams";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

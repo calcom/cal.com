@@ -11,11 +11,14 @@ import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { type inferSSRProps } from "@lib/types/inferSSRProps";
+import type { EmbedProps } from "@lib/withEmbedSsr";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
   slug: z.string().transform((s) => slugify(s)),
 });
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 // Booker page fetches a tiny bit of data server side:
 // 1. Check if team exists, to show 404
