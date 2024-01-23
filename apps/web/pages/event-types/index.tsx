@@ -52,6 +52,7 @@ import {
   Switch,
   Tooltip,
   ArrowButton,
+  UserAvatarGroup,
 } from "@calcom/ui";
 import {
   Clipboard,
@@ -72,7 +73,6 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
-import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];

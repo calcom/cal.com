@@ -1,8 +1,14 @@
-export { Avatar, AvatarGroup, UserAvatar } from "./components/avatar";
+export {
+  Avatar,
+  AvatarGroup,
+  UserAvatar,
+  UserAvatarGroup,
+  UserAvatarGroupWithOrg,
+} from "./components/avatar";
 export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
 export { ArrowButton } from "./components/arrow-button";
 export type { ArrowButtonProps } from "./components/arrow-button";
-export { Badge, UpgradeTeamsBadge } from "./components/badge";
+export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";
 export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
 export { Button, LinkIconButton } from "./components/button";
@@ -150,6 +156,7 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
+export { WizardLayoutAppDir } from "./layouts/WizardLayoutAppDir";
 export { DataTable } from "./components/data-table";
 export {
   Sheet,

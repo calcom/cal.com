@@ -74,7 +74,7 @@ export async function patchHandler(req: NextApiRequest) {
       },
     },
   });
-  
+
   if (slugAlreadyExists && data.slug !== _team.slug)
     throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
 
