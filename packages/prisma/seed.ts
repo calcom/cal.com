@@ -551,6 +551,7 @@ async function main() {
         isOrganizationVerified: true,
         isOrganizationConfigured: true,
       },
+      orgUsers: { connect: { email: orgOwner.email } },
     },
     [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
   );
