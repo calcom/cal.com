@@ -1,6 +1,7 @@
-import LegacyPage from "@pages/[user]/embed";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
+
+import LegacyPage from "@components/pages/[user]";
 
 import { getData } from "../page";
 
