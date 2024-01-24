@@ -80,6 +80,7 @@ const EventWebhooksTab = dynamic(() =>
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
 export type FormValues = {
+  id: number;
   title: string;
   eventTitle: string;
   eventName: string;
@@ -119,6 +120,7 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
+  scheduleName: string;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
   beforeBufferTime: number;
@@ -139,6 +141,7 @@ export type FormValues = {
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
+  users: EventTypeSetup["users"];
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -180,7 +183,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
       formMethods.setValue(
@@ -248,6 +250,18 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const defaultValues: any = useMemo(() => {
     return {
       title: eventType.title,
+      id: eventType.id,
+      slug: eventType.slug,
+      afterEventBuffer: eventType.afterEventBuffer,
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      eventName: eventType.eventName || "",
+      scheduleName: eventType.scheduleName,
+      periodDays: eventType.periodDays || 30,
+      requiresBookerEmailVerification: eventType.requiresBookerEmailVerification,
+      seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+      seatsShowAttendees: eventType.seatsShowAttendees,
+      seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
+      lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
@@ -268,9 +282,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodType: eventType.periodType,
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,
+      requiresConfirmation: eventType.requiresConfirmation,
+      slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
       hosts: eventType.hosts,
+      successRedirectUrl: eventType.successRedirectUrl || "",
+      users: eventType.users,
       children: eventType.children.map((ch) => ({
         ...ch,
         created: true,
@@ -411,7 +429,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
-    limits: <EventLimitsTab eventType={eventType} />,
+    limits: <EventLimitsTab />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
@@ -490,7 +508,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, ...rest } = input;
+    const { availability, users, scheduleName, ...rest } = input;
     updateMutation.mutate({
       ...rest,
       length,
@@ -550,6 +568,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         installedAppsNumber={eventTypeApps?.items.length || 0}
         enabledWorkflowsNumber={eventType.workflows.length}
         eventType={eventType}
+        activeWebhooksNumber={eventType.webhooks.filter((webhook) => webhook.active).length}
         team={team}
         availability={availability}
         isUpdateMutationLoading={updateMutation.isPending}
@@ -618,7 +637,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               throw new Error(t("event_setup_multiple_payment_apps_error"));
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { availability, ...rest } = input;
+            const { availability, users, scheduleName, ...rest } = input;
             updateMutation.mutate({
               ...rest,
               length,
