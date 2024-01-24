@@ -116,7 +116,7 @@ const AssignAllTeamMembers = ({
       name="assignAllTeamMembers"
       render={() => (
         <SettingsToggle
-          title={t("automatically_add_to_all_team_members")}
+          title={t("automatically_add_all_team_members")}
           description={t("including_people_who_join_in_future")}
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {
@@ -203,6 +203,8 @@ const RoundRobinHosts = ({
   teamMembers,
   value,
   onChange,
+  assignAllTeamMembers,
+  setAssignAllTeamMembers,
 }: {
   value: { isFixed: boolean; userId: number }[];
   onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
@@ -212,12 +214,11 @@ const RoundRobinHosts = ({
     avatar: string;
     email: string;
   }[];
+  assignAllTeamMembers: boolean;
+  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(
-    formMethods.getValues("assignAllTeamMembers") ?? false
-  );
 
   return (
     <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
@@ -274,14 +275,14 @@ const RoundRobinHosts = ({
 
 const ChildrenEventTypes = ({
   childrenEventTypeOptions,
+  assignAllTeamMembers,
+  setAssignAllTeamMembers,
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
+  assignAllTeamMembers: boolean;
+  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
   const formMethods = useFormContext<FormValues>();
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(
-    formMethods.getValues("assignAllTeamMembers") ?? false
-  );
-
   return (
     <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
       <div className="flex flex-col gap-4">
@@ -307,6 +308,8 @@ const ChildrenEventTypes = ({
 
 const Hosts = ({
   teamMembers,
+  assignAllTeamMembers,
+  setAssignAllTeamMembers,
 }: {
   teamMembers: {
     value: string;
@@ -314,6 +317,8 @@ const Hosts = ({
     avatar: string;
     email: string;
   }[];
+  assignAllTeamMembers: boolean;
+  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
   const { t } = useLocale();
   const {
@@ -344,10 +349,6 @@ const Hosts = ({
   }, [schedulingType, resetField, getValues, submitCount]);
 
   const formMethods = useFormContext<FormValues>();
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState(
-    formMethods.getValues("assignAllTeamMembers") ?? false
-  );
-
   return (
     <Controller<FormValues>
       name="hosts"
@@ -371,7 +372,7 @@ const Hosts = ({
                   onInactive={() => formMethods.setValue("hosts", [])}
                 />
                 {assignAllTeamMembers ? (
-                  <></>
+                  <div className="mb-4" />
                 ) : (
                   <CheckedHostField
                     value={value}
@@ -387,7 +388,13 @@ const Hosts = ({
           ),
           ROUND_ROBIN: (
             <>
-              <RoundRobinHosts teamMembers={teamMembers} onChange={onChange} value={value} />
+              <RoundRobinHosts
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                teamMembers={teamMembers}
+                onChange={onChange}
+                value={value}
+              />
               {/*<TextField
         required
         type="number"
@@ -442,6 +449,11 @@ export const EventTeamTab = ({
     );
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+  const formMethods = useFormContext<FormValues>();
+  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
+    formMethods.getValues("assignAllTeamMembers") ?? false
+  );
+
   return (
     <div>
       {team && !isManagedEventType && (
@@ -457,16 +469,26 @@ export const EventTeamTab = ({
                   className="w-full"
                   onChange={(val) => {
                     onChange(val?.value);
+                    formMethods.setValue("assignAllTeamMembers", false);
+                    setAssignAllTeamMembers(false);
                   }}
                 />
               )}
             />
           </div>
-          <Hosts teamMembers={teamMembersOptions} />
+          <Hosts
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            teamMembers={teamMembersOptions}
+          />
         </div>
       )}
       {team && isManagedEventType && (
-        <ChildrenEventTypes childrenEventTypeOptions={childrenEventTypeOptions} />
+        <ChildrenEventTypes
+          assignAllTeamMembers={assignAllTeamMembers}
+          setAssignAllTeamMembers={setAssignAllTeamMembers}
+          childrenEventTypeOptions={childrenEventTypeOptions}
+        />
       )}
     </div>
   );
