@@ -1066,6 +1066,8 @@
   "user_impersonation_description": "Allows our support team to temporarily sign in as you to help us quickly resolve any issues you report to us.",
   "team_impersonation_description": "Allows your team Owners/Admins to temporarily sign in as you.",
   "cal_signup_description":"Free for individuals. Team plans for collaborative features.",
+  "make_org_private": "Make organization private",
+  "make_org_private_description": "Your organization members won't be able to see other organization members when this is turned on.",
   "make_team_private": "Make team private",
   "make_team_private_description": "Your team members won't be able to see other team members when this is turned on.",
   "you_cannot_see_team_members": "You cannot see all the team members of a private team.",
