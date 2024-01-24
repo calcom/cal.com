@@ -34,7 +34,7 @@ export const generateMetadata = async ({
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
   );
 };
-export const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
 export default WithLayout({
   getData,
