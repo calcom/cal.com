@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -94,7 +94,7 @@ const MembersView = () => {
     enabled: !!session.data?.user?.org,
   });
 
-  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
@@ -105,17 +105,26 @@ const MembersView = () => {
       }
     );
 
-  const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending: isTeamsLoading,
+    error: teamError,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (teamError) {
+        router.push("/settings");
+      }
+    },
+    [teamError]
+  );
 
-  const isLoading = isOrgListLoading || isTeamsLoading;
+  const isPending = isOrgListLoading || isTeamsLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
@@ -150,7 +159,7 @@ const MembersView = () => {
           )
         }
       />
-      {!isLoading && (
+      {!isPending && (
         <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-4 py-8 sm:px-6">
           {team && (
             <>
@@ -175,11 +184,7 @@ const MembersView = () => {
               <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
             </>
           )}
-        </div>
-      )}
-      {!isLoading && (
-        <>
-          <div>
+
             {team && session.data && (
               <DisableTeamImpersonation
                 teamId={team.id}
@@ -194,7 +199,7 @@ const MembersView = () => {
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
-              isLoading={inviteMemberMutation.isLoading}
+              isPending={inviteMemberMutation.isPending}
               isOpen={showMemberInvitationModal}
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
