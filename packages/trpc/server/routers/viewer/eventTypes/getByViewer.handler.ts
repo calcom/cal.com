@@ -13,7 +13,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { ORGANIZATION_ID_UNKNOWN, UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -46,7 +46,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   });
   const lightProfile = ctx.user.profile;
 
-  const profile = await ProfileRepository.findById(lightProfile.upId);
+  const profile = await ProfileRepository.findByUpId(lightProfile.upId);
   const isFilterSet = input?.filters && hasFilter(input.filters);
   const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
   const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
@@ -103,9 +103,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
     users: await Promise.all(
       (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
         async (u) =>
-          await UserRepository.enrichUserWithOrganizationProfile({
+          await UserRepository.enrichUserWithItsProfile({
             user: u,
-            organizationId: ORGANIZATION_ID_UNKNOWN,
           })
       )
     ),
@@ -116,9 +115,8 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
         users: await Promise.all(
           c.users.map(
             async (u) =>
-              await UserRepository.enrichUserWithOrganizationProfile({
+              await UserRepository.enrichUserWithItsProfile({
                 user: u,
-                organizationId: ORGANIZATION_ID_UNKNOWN,
               })
           )
         ),

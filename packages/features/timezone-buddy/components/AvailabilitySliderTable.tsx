@@ -59,7 +59,6 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable() {
-  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);

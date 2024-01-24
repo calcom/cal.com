@@ -109,9 +109,8 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
   for (const membership of members) {
     enrichedMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithItsProfile({
         user: membership.user,
-        organizationId: team.parentId,
       }),
     });
   }

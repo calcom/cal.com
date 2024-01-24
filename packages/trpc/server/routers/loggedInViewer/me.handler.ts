@@ -17,7 +17,9 @@ export const meHandler = async ({ ctx }: MeOptions) => {
 
   const { user: sessionUser, session } = ctx;
 
-  const allUserEnrichedProfiles = await ProfileRepository.getAllProfilesForUser(sessionUser);
+  const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
+    sessionUser
+  );
 
   const user = await UserRepository.enrichUserWithProfile({
     user: sessionUser,

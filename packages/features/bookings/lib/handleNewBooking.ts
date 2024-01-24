@@ -69,7 +69,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@c
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { UserRepository, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -224,9 +224,8 @@ const getAllCredentials = async (
     }
   }
 
-  const { profile } = await UserRepository.enrichUserWithOrganizationProfile({
+  const { profile } = await UserRepository.enrichUserWithItsProfile({
     user: user,
-    organizationId: ORGANIZATION_ID_UNKNOWN,
   });
 
   // If the user is a part of an organization, query for the organization's credentials

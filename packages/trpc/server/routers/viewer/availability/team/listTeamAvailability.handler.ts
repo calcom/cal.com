@@ -65,9 +65,8 @@ async function getTeamMembers({
   for (const membership of memberships) {
     membershipWithUserProfile.push({
       ...membership,
-      user: await UserRepository.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithItsProfile({
         user: membership.user,
-        organizationId,
       }),
     });
   }

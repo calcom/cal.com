@@ -247,9 +247,8 @@ export default async function getEventTypeById({
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: await UserRepository.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithItsProfile({
         user: eventTeamMembership.user,
-        organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
       }),
     });
   }
@@ -259,9 +258,8 @@ export default async function getEventTypeById({
     childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? await UserRepository.enrichUserWithOrganizationProfile({
+        ? await UserRepository.enrichUserWithItsProfile({
             user: child.owner,
-            organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
           })
         : null,
     });
@@ -270,9 +268,8 @@ export default async function getEventTypeById({
   const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
     eventTypeUsersWithUserProfile.push(
-      await UserRepository.enrichUserWithOrganizationProfile({
+      await UserRepository.enrichUserWithItsProfile({
         user: eventTypeUser,
-        organizationId: rawEventType.team ? rawEventType.team.parentId : currentOrganizationId,
       })
     );
   }

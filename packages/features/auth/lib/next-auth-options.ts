@@ -460,13 +460,13 @@ export const AUTH_OPTIONS: AuthOptions = {
         // Check if the existingUser has any active teams
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
-        const allProfiles = await ProfileRepository.getAllProfilesForUser(existingUser);
+        const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         log.debug("callbacks:jwt:autoMergeIdentities", {
           allProfiles,
         });
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
-        const profile = await ProfileRepository.findById(upId);
+        const profile = await ProfileRepository.findByUpId(upId);
         if (!profile) {
           throw new Error("Profile not found");
         }

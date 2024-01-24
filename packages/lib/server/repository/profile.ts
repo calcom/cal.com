@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
-import type { UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
+import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
@@ -38,7 +38,7 @@ export class ProfileRepository {
     };
   }
 
-  static getLookupTarget(upId: string) {
+  static getLookupTarget(upId: UpId) {
     if (upId.startsWith("usr-")) {
       return {
         type: LookupTarget.User,
@@ -271,7 +271,7 @@ export class ProfileRepository {
     return profile;
   }
 
-  static async findById(upId: string) {
+  static async findByUpId(upId: string) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     logger.debug("findById", { upId, lookupTarget });
     if (lookupTarget.type === LookupTarget.User) {
@@ -326,7 +326,7 @@ export class ProfileRepository {
     return enrichProfile(profile);
   }
 
-  static async getProfilesBySlugs({ usernames, orgSlug }: { usernames: string[]; orgSlug: string }) {
+  static async findManyBySlugs({ usernames, orgSlug }: { usernames: string[]; orgSlug: string }) {
     logger.debug("getProfileBySlugs", { usernames, orgSlug });
     const profiles = await prisma.profile.findMany({
       where: {
@@ -348,8 +348,11 @@ export class ProfileRepository {
     return profiles.map(enrichProfile);
   }
 
-  static async getAllProfilesForUser(user: { id: number; username: string | null }): Promise<UserProfile[]> {
-    const profiles = await ProfileRepository.getOrgProfilesForUser(user);
+  static async findAllProfilesForUserIncludingMovedUser(user: {
+    id: number;
+    username: string | null;
+  }): Promise<UserProfile[]> {
+    const profiles = await ProfileRepository.findManyForUser(user);
     // User isn't member of any organization. Also, he has no user profile. We build the profile from user table
     if (!profiles.length) {
       return [
@@ -362,7 +365,7 @@ export class ProfileRepository {
     return profiles;
   }
 
-  static async getOrgProfilesForUser(user: { id: number }) {
+  static async findManyForUser(user: { id: number }) {
     const profiles = (
       await prisma.profile.findMany({
         where: {
@@ -401,7 +404,7 @@ export class ProfileRepository {
     return profiles;
   }
 
-  static async getAllProfilesForOrg({ organizationId }: { organizationId: number }) {
+  static async findManyForOrg({ organizationId }: { organizationId: number }) {
     return await prisma.profile.findMany({
       where: {
         organizationId,

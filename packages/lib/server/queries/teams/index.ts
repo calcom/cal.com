@@ -148,9 +148,8 @@ export async function getTeamWithMembers(args: {
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithItsProfile({
         user: membership.user,
-        organizationId: currentOrgId,
       }),
     });
   }
@@ -200,9 +199,8 @@ export async function getTeamWithMembers(args: {
     const usersWithUserProfile = [];
     for (const user of eventType.users) {
       usersWithUserProfile.push(
-        await UserRepository.enrichUserWithOrganizationProfile({
+        await UserRepository.enrichUserWithItsProfile({
           user: user,
-          organizationId: currentOrgId,
         })
       );
     }

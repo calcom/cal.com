@@ -14,7 +14,7 @@ import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constant
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { UserRepository, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
@@ -304,9 +304,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithOrganizationProfile({
+        await UserRepository.enrichUserWithItsProfile({
           user: booking.user,
-          organizationId: ORGANIZATION_ID_UNKNOWN,
         })
       ).profile
     : null;

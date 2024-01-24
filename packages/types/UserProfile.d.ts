@@ -29,3 +29,8 @@ export type UserAsPersonalProfile = {
 };
 
 export type UserProfile = PersonalProfile | OrgProfile | UserAsPersonalProfile;
+
+/**
+ * It's a unique identifier that can refer to a user moved to a profile(with format `usr-${user.id}`) or a profile itself(Profile.id)
+ */
+export type UpId = string;

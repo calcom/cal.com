@@ -145,7 +145,7 @@ async function getImpersonatedUser({
     throw new Error("This user does not exist");
   }
 
-  const allOrgProfiles = await ProfileRepository.getAllProfilesForUser({
+  const allOrgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser({
     id: impersonatedUser.id,
     username: impersonatedUser.username,
   });

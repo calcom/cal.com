@@ -10,7 +10,7 @@ import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { UserRepository, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
@@ -224,9 +224,8 @@ export const getPublicEvent = async (
   for (const host of event.hosts) {
     hosts.push({
       ...host,
-      user: await UserRepository.enrichUserWithOrganizationProfile({
+      user: await UserRepository.enrichUserWithItsProfile({
         user: host.user,
-        organizationId: ORGANIZATION_ID_UNKNOWN,
       }),
     });
   }
@@ -234,9 +233,8 @@ export const getPublicEvent = async (
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await UserRepository.enrichUserWithOrganizationProfile({
+      ? await UserRepository.enrichUserWithItsProfile({
           user: event.owner,
-          organizationId: ORGANIZATION_ID_UNKNOWN,
         })
       : null,
     hosts: hosts,
@@ -366,9 +364,8 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   if (!users.length) return null;
   const usersWithUserProfile = [];
   for (const user of users) {
-    const { profile } = await UserRepository.enrichUserWithOrganizationProfile({
+    const { profile } = await UserRepository.enrichUserWithItsProfile({
       user: user,
-      organizationId: ORGANIZATION_ID_UNKNOWN,
     });
     usersWithUserProfile.push({
       ...user,

@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { UserProfile } from "@calcom/types/UserProfile";
+import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { isOrganization } from "../../entityPermissionUtils";
 import logger from "../../logger";
@@ -11,7 +11,7 @@ import type { User as UserType, Prisma } from ".prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 type ProfileId = number | null;
-type UpId = string;
+
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 export class UserRepository {
   static async getTeamsFromUserId({ userId }: { userId: UserType["id"] }) {
@@ -160,7 +160,7 @@ export class UserRepository {
     // Lookup in profiles because that's where the organization usernames exist
     const profiles = orgSlug
       ? (
-          await ProfileRepository.getProfilesBySlugs({
+          await ProfileRepository.findManyBySlugs({
             orgSlug: orgSlug,
             usernames: usernameList,
           })
@@ -217,7 +217,7 @@ export class UserRepository {
       return null;
     }
 
-    const orgProfiles = await ProfileRepository.getAllProfilesForUser(user);
+    const orgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(user);
     return {
       ...user,
       orgProfiles,
@@ -238,7 +238,7 @@ export class UserRepository {
   }
 
   static async getAllUsersForOrganization({ organizationId }: { organizationId: number }) {
-    const profiles = await ProfileRepository.getAllProfilesForOrg({ organizationId });
+    const profiles = await ProfileRepository.findManyForOrg({ organizationId });
     return profiles.map((profile) => profile.user);
   }
 
@@ -253,7 +253,7 @@ export class UserRepository {
   }
 
   static async isUserAMemberOfAnyOrganization({ userId }: { userId: number }) {
-    const orgProfiles = await ProfileRepository.getOrgProfilesForUser({ id: userId });
+    const orgProfiles = await ProfileRepository.findManyForUser({ id: userId });
     return orgProfiles.length > 0;
   }
 
@@ -265,7 +265,7 @@ export class UserRepository {
     upId: UpId;
   }) {
     log.debug("enrichUserWithProfile", safeStringify({ user, upId }));
-    const profile = await ProfileRepository.findById(upId);
+    const profile = await ProfileRepository.findByUpId(upId);
     if (!profile) {
       return {
         ...user,
@@ -278,62 +278,26 @@ export class UserRepository {
     };
   }
 
-  static async enrichUserWithOrganizationProfile<T extends { id: number; username: string | null }>({
+  /**
+   * Use this method if you don't directly has the profileId.
+   * It can happen in two cases:
+   * 1. While dealing with a User that hasn't been added to any organization yet and thus have no Profile entries.
+   * 2. While dealing with a User that has been moved to a Profile i.e. he was invited to an organization when he was an existing user.
+   */
+  static async enrichUserWithItsProfile<T extends { id: number; username: string | null }>({
     user,
-    organizationId,
   }: {
     user: T;
-    /**
-     * It would be made mandatory to pass an organizationId here
-     * Pass ORGANIZATION_ID_UNKNOWN to indicate that the organizationId is unknown. This is needed till we have a clear way to know at the caller side as to which profile is needed.
-     * If you don't have organizationId but have profileId use `enrichUserWithProfile` instead
-     */
-    organizationId: number | null | typeof ORGANIZATION_ID_UNKNOWN;
   }): Promise<T & { profile: UserProfile }> {
-    if (typeof organizationId === "number") {
-      const profile = await ProfileRepository.findByUserIdAndOrgId({
-        userId: user.id,
-        organizationId: organizationId,
-      });
-      if (!profile) {
-        return {
-          ...user,
-          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
-        };
-      }
-      return {
-        ...user,
-        profile,
-      };
-    }
-
-    // An explicity null organizationId means that non org profile is requested
-    if (organizationId === null) {
-      return {
-        ...user,
-        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
-      };
-    }
-
-    // TODO: OrgNewSchema - later -> Correctly determine the organizationId at the caller level and then pass that.
-    // organizationId not specified Get the first organization profile for now
-    const orgProfiles = await ProfileRepository.getOrgProfilesForUser({ id: user.id });
-
-    if (orgProfiles.length > 1) {
-      logger.error(
-        "User having more than one organization profile doesnt work. You need to pass profileId direcctly"
-      );
-    }
-
+    const orgProfiles = await ProfileRepository.findManyForUser({ id: user.id });
     if (orgProfiles.length) {
-      // TODO: OrgNewSchema - later -> Support choosing the correct organization from either req.user or better organizationId in the handleNewBooking payload itself
       return {
         ...user,
         profile: orgProfiles[0],
       };
     }
 
-    // If no organization profile exists use the personal profile
+    // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
     return {
       ...user,
       profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
@@ -383,7 +347,7 @@ export class UserRepository {
       };
       return ret;
     } else {
-      const profiles = await ProfileRepository.getOrgProfilesForUser(entity.user);
+      const profiles = await ProfileRepository.findManyForUser(entity.user);
       if (!profiles.length) {
         return {
           ...entity,
