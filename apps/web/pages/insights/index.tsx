@@ -1,10 +1,6 @@
 "use client";
 
-import type { GetServerSidePropsContext } from "next";
-
 import { getLayout } from "@calcom/features/MainLayout";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -22,6 +18,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+
+import { getServerSideProps } from "@lib/insights/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -109,19 +107,4 @@ export default function InsightsPage() {
 InsightsPage.PageWrapper = PageWrapper;
 InsightsPage.getLayout = getLayout;
 
-// If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const session = await getServerSession({ req: ctx.req });
-  const flags = await getFeatureFlagMap(prisma, session?.user);
-
-  if (flags.insights === false) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {},
-  };
-};
+export { getServerSideProps };

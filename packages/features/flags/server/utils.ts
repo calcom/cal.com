@@ -12,10 +12,10 @@ async function getFlagsFromDb(prisma: PrismaClient) {
     orderBy: { slug: "asc" },
     cacheStrategy: { swr: 300, ttl: 300 },
   });
-  return flags.reduce<AppFlags>((acc, flag) => {
+  return flags.reduce((acc, flag) => {
     acc[flag.slug as keyof AppFlags] = flag.enabled;
     return acc;
-  }, {} as AppFlags);
+  }, {} as Partial<AppFlags>);
 }
 
 export async function getFeatureFlagMap(prisma: PrismaClient, user?: Session["user"]): Promise<AppFlags> {

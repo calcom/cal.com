@@ -15,7 +15,8 @@ import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
+export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+export default function Apps({ apps }: PageProps) {
   const searchParams = useCompatSearchParams();
   const { t, isLocaleReady } = useLocale();
   const category = searchParams?.get("category");
