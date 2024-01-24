@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
-import Shell from "@calcom/features/shell/Shell";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import Shell from "@calcom/features/shell/Shell";
 import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
