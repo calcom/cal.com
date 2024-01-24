@@ -302,6 +302,7 @@
   "welcome_to_calcom": "Welcome to {{appName}}",
   "welcome_instructions": "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
   "connect_caldav": "Connect to CalDav (Beta)",
+  "connect_ics_feed": "Connect to an ICS Feed",
   "connect": "Connect",
   "try_for_free": "Try it for free",
   "create_booking_link_with_calcom": "Create your own booking link with {{appName}}",

@@ -5,6 +5,6 @@
     "jsx": "preserve",
     "resolveJsonModule": true
   },
-  "include": [".", "../types/next-auth.d.ts"],
+  "include": [".", "../types/next-auth.d.ts", "../types/window.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }

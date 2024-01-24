@@ -64,7 +64,7 @@ function WorkflowsPage() {
             createFunction={(teamId?: number) => {
               createMutation.mutate({ teamId });
             }}
-            isLoading={createMutation.isLoading}
+            isPending={createMutation.isPending}
             disableMobileButton={true}
             onlyShowWithNoTeams={true}
           />
@@ -79,7 +79,7 @@ function WorkflowsPage() {
                 <CreateButtonWithTeamsList
                   subtitle={t("new_workflow_subtitle").toUpperCase()}
                   createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                  isLoading={createMutation.isLoading}
+                  isPending={createMutation.isPending}
                   disableMobileButton={true}
                   onlyShowWithTeams={true}
                 />

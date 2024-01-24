@@ -1,9 +1,10 @@
 "use client";
 
 // import { debounce } from "lodash";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import MemberInvitationModal from "@calcom/ee/teams/components/MemberInvitationModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -71,20 +72,21 @@ const MembersView = () => {
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
   const limit = 20;
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState<boolean>(false);
-  const [members, setMembers] = useState<Members>([]);
+
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
-  const { data: team, isLoading: isTeamLoading } = trpc.viewer.organizations.getOtherTeam.useQuery(
+  const {
+    data: team,
+    isPending: isTeamLoading,
+    error: otherTeamError,
+  } = trpc.viewer.organizations.getOtherTeam.useQuery(
     { teamId },
     {
       enabled: !Number.isNaN(teamId),
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
-  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
@@ -95,24 +97,40 @@ const MembersView = () => {
       }
     );
 
-  const { fetchNextPage, isFetchingNextPage, hasNextPage } =
-    trpc.viewer.organizations.listOtherTeamMembers.useInfiniteQuery(
-      { teamId, limit },
-      {
-        onSuccess: (data) => {
-          const flatData = data?.pages?.flatMap((page) => page.rows) as Members;
-          setMembers(flatData);
-        },
-        enabled: !Number.isNaN(teamId),
-        onError: () => {
-          router.push("/settings");
-        },
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
-      }
-    );
+  const {
+    fetchNextPage,
+    isFetchingNextPage,
+    hasNextPage,
+    error: otherMembersError,
+    data,
+  } = trpc.viewer.organizations.listOtherTeamMembers.useInfiniteQuery(
+    { teamId, limit },
+    {
+      enabled: !Number.isNaN(teamId),
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      placeholderData: keepPreviousData,
+    }
+  );
 
-  const isLoading = isTeamLoading || isOrgListLoading;
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (otherMembersError || otherTeamError) {
+        router.push("/settings");
+      }
+    },
+    [otherMembersError, otherTeamError]
+  );
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (data) {
+        router.push("/settings");
+      }
+    },
+    [data]
+  );
+
+  const isPending = isTeamLoading || isOrgListLoading;
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     onSuccess: () => {
       utils.viewer.organizations.getMembers.invalidate();
@@ -147,7 +165,7 @@ const MembersView = () => {
           )
         }
       />
-      {!isLoading && (
+      {!isPending && (
         <>
           <div>
             <>
@@ -163,7 +181,7 @@ const MembersView = () => {
                 placeholder={`${t("search")}...`}
               /> */}
               <MembersList
-                members={members}
+                members={data?.pages?.flatMap((page) => page.rows) ?? []}
                 team={team}
                 fetchNextPage={fetchNextPage}
                 hasNextPage={hasNextPage}
@@ -180,7 +198,7 @@ const MembersView = () => {
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
-              isLoading={inviteMemberMutation.isLoading}
+              isPending={inviteMemberMutation.isPending}
               isOpen={showMemberInvitationModal}
               orgMembers={orgMembersNotInThisTeam}
               teamId={team.id}
