@@ -87,13 +87,15 @@ const BookerComponent = ({
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
-    (layout === BookerLayouts.WEEK_VIEW &&
+    (!process.env.BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
+      layout === BookerLayouts.WEEK_VIEW &&
       !!extraDays &&
       dayjs(date).month() !== dayjs(date).add(extraDays, "day").month()) ||
     (layout === BookerLayouts.COLUMN_VIEW &&
       dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month());
 
   const monthCount =
+    !process.env.BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
     ((layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
       layout === BookerLayouts.COLUMN_VIEW) &&
     dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
@@ -128,6 +130,7 @@ const BookerComponent = ({
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 

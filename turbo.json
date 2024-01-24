@@ -25,6 +25,7 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
       "env": [
+        "BOOKER_DISALLOW_PREFETCH_NEXT_MONTH",
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
         "NEXT_PUBLIC_IS_E2E",
         "NEXT_PUBLIC_SENTRY_DSN",
