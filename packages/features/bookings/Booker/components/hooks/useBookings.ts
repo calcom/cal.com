@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
@@ -74,27 +74,33 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
       enabled: !!bookingId && !hasInstantMeetingTokenExpired,
       refetchInterval: 2000,
       refetchIntervalInBackground: true,
-      onSuccess: (data) => {
-        try {
-          showToast(t("something_went_wrong_on_our_end"), "error");
-
-          const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
-            data.booking?.metadata || {}
-          )?.videoCallUrl;
-
-          if (locationVideoCallUrl) {
-            router.push(locationVideoCallUrl);
-          } else {
-            showToast(t("something_went_wrong_on_our_end"), "error");
-          }
-        } catch (err) {
-          showToast(t("something_went_wrong_on_our_end"), "error");
-        }
-      },
     }
   );
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = _instantBooking.data;
+      if (!data) return;
+      try {
+        showToast(t("something_went_wrong_on_our_end"), "error");
 
-  const createBookingMutation = useMutation(createBooking, {
+        const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
+          data.booking?.metadata || {}
+        )?.videoCallUrl;
+
+        if (locationVideoCallUrl) {
+          router.push(locationVideoCallUrl);
+        } else {
+          showToast(t("something_went_wrong_on_our_end"), "error");
+        }
+      } catch (err) {
+        showToast(t("something_went_wrong_on_our_end"), "error");
+      }
+    },
+    [_instantBooking.data]
+  );
+
+  const createBookingMutation = useMutation({
+    mutationFn: createBooking,
     onSuccess: (responseData) => {
       const { uid, paymentUid } = responseData;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
@@ -141,7 +147,8 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
     },
   });
 
-  const createInstantBookingMutation = useMutation(createInstantBooking, {
+  const createInstantBookingMutation = useMutation({
+    mutationFn: createInstantBooking,
     onSuccess: (responseData) => {
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
@@ -153,7 +160,8 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
     },
   });
 
-  const createRecurringBookingMutation = useMutation(createRecurringBooking, {
+  const createRecurringBookingMutation = useMutation({
+    mutationFn: createRecurringBooking,
     onSuccess: async (responseData) => {
       const booking = responseData[0] || {};
       const { uid } = booking;
@@ -253,10 +261,10 @@ export const useBookings = ({ event, hashedLink, bookingForm }: IUseBookings) =>
 
   // A redirect is triggered on mutation success, so keep the loading state while it is happening.
   const loadingStates = {
-    creatingBooking: createBookingMutation.isLoading || createBookingMutation.isSuccess,
+    creatingBooking: createBookingMutation.isPending || createBookingMutation.isSuccess,
     creatingRecurringBooking:
-      createRecurringBookingMutation.isLoading || createRecurringBookingMutation.isSuccess,
-    creatingInstantBooking: createInstantBookingMutation.isLoading,
+      createRecurringBookingMutation.isPending || createRecurringBookingMutation.isSuccess,
+    creatingInstantBooking: createInstantBookingMutation.isPending,
   };
 
   return {

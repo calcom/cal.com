@@ -446,7 +446,7 @@ function EventTypeSingleLayout({
       </Suspense>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
-          isLoading={deleteMutation.isLoading}
+          isPending={deleteMutation.isPending}
           variety="danger"
           title={t(`delete${isManagedEvent}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
