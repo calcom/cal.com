@@ -540,6 +540,33 @@ async function main() {
     },
   });
 
+  const orgMember = await createUserAndEventType({
+    user: {
+      email: "orgmember@acme.com",
+      password: "orgmember",
+      username: "orgmember",
+      name: "Org Member Example 1",
+    },
+  });
+
+  const orgMember2 = await createUserAndEventType({
+    user: {
+      email: "orgmember2@acme.com",
+      password: "orgmember2",
+      username: "orgmember2",
+      name: "Org Member Example 2",
+    },
+  });
+
+  const orgAdmin = await createUserAndEventType({
+    user: {
+      email: "orgadmin@acme.com",
+      password: "orgadmin",
+      username: "orgadmin",
+      name: "Org Admin Example 1",
+    },
+  });
+
   const org = await createTeamAndAddUsers(
     {
       name: "Acme",
@@ -551,9 +578,21 @@ async function main() {
         isOrganizationVerified: true,
         isOrganizationConfigured: true,
       },
-      orgUsers: { connect: { email: orgOwner.email } },
+      orgUsers: {
+        connect: [
+          { email: orgOwner.email },
+          { email: orgMember.email },
+          { email: orgMember2.email },
+          { email: orgAdmin.email },
+        ],
+      },
     },
-    [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
+    [
+      { id: orgOwner.id, username: orgOwner.username || "Unknown" },
+      { id: orgMember.id, username: orgMember.username || "Unknown", role: "MEMBER" },
+      { id: orgMember2.id, username: orgMember2.username || "Unknown", role: "MEMBER" },
+      { id: orgAdmin.id, username: orgAdmin.username || "Unknown", role: "ADMIN" },
+    ]
   );
 
   if (org) {
@@ -568,7 +607,10 @@ async function main() {
           },
         },
       },
-      [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
+      [
+        { id: orgOwner.id, username: orgOwner.username || "Unknown" },
+        { id: orgMember.id, username: orgMember.username || "Unknown", role: "MEMBER" },
+      ]
     );
 
     await createTeamAndAddUsers(
@@ -582,7 +624,10 @@ async function main() {
           },
         },
       },
-      [{ id: orgOwner.id, username: orgOwner.username || "Unknown" }]
+      [
+        { id: orgOwner.id, username: orgOwner.username || "Unknown" },
+        { id: orgMember2.id, username: orgMember2.username || "Unknown", role: "MEMBER" },
+      ]
     );
   }
 }
