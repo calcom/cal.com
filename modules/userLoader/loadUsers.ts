@@ -2,11 +2,12 @@ import { Prisma } from "@calcom/prisma/client";
 import { createBooking } from "../booking/createBooking";
 import { getEventTypesFromDB } from "../eventTypes/getEventTypesFromDB";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { HttpError } from "@calcom/lib/http-error";
+import type { IncomingMessage } from "http";
+type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
     | Awaited<ReturnType<typeof getDefaultEvent>>
     | Awaited<ReturnType<typeof getEventTypesFromDB>>;

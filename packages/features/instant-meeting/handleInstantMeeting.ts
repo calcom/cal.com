@@ -7,11 +7,6 @@ import { v5 as uuidv5 } from "uuid";
 import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import {
-  getEventTypesFromDB,
-  getBookingData,
-  getCustomInputsResponses,
-} from "@calcom/features/bookings/lib/handleNewBooking";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
@@ -20,6 +15,10 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import { getBookingData } from "../../../modules/booking/getBookingData";
+import { getCustomInputsResponses } from "../../../modules/customInputs/getCustomInputsResponses";
+import { getEventTypesFromDB } from "../../../modules/eventTypes/getEventTypesFromDB";
 
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
