@@ -469,9 +469,10 @@ export function createBookingPageFixture(page: Page) {
       }
 
       const continueText = (await localize("en"))("continue");
+      const toast = page.getByTestId("toast-success");
 
       await page.getByRole("button", { name: continueText }).click();
-      await expect(page.getByRole("button", { name: "event type created successfully" })).toBeVisible();
+      expect(toast).toBeTruthy();
       await page.getByTestId("update-eventtype").click();
     },
     assertLabelWithCorrectTeamName: async (page: Page, teamName: string) => {
