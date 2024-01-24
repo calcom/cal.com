@@ -61,7 +61,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization) ||
+    (!isValidOrgDomain && !!team?.isOrganization) ||
     !isOrganizationFeatureEnabled
   ) {
     return { notFound: true } as const;
