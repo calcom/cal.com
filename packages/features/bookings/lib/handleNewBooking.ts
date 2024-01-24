@@ -1099,6 +1099,15 @@ async function handler(
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
+  const reqEventLength = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes");
+  const validEventLengths = eventType.metadata?.multipleDuration?.length
+    ? eventType.metadata.multipleDuration
+    : [eventType.length];
+  if (!validEventLengths.includes(reqEventLength)) {
+    loggerWithEventDetails.warn({ message: "NewBooking: Invalid event length" });
+    throw new HttpError({ statusCode: 400, message: "Invalid event length" });
+  }
+
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
     isFixed?: boolean;

@@ -254,9 +254,9 @@ const InstallAppButtonChild = ({
         <DropdownMenuContent
           className="w-56"
           onInteractOutside={(event) => {
-            if (mutation.isLoading) event.preventDefault();
+            if (mutation.isPending) event.preventDefault();
           }}>
-          {mutation.isLoading && (
+          {mutation.isPending && (
             <div className="z-1 fixed inset-0 flex items-center justify-center">
               <Spinner />
             </div>

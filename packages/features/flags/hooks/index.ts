@@ -1,12 +1,12 @@
 import type { AppFlags } from "@calcom/features/flags/config";
 import { trpc } from "@calcom/trpc/react";
 
-export function useFlags() {
+const initialData: Partial<AppFlags> = process.env.NEXT_PUBLIC_IS_E2E
+  ? { "managed-event-types": true, organizations: true, teams: true }
+  : {};
+export function useFlags(): Partial<AppFlags> {
   const query = trpc.viewer.features.map.useQuery(undefined, {
-    initialData: process.env.NEXT_PUBLIC_IS_E2E
-      ? { "managed-event-types": true, organizations: true, teams: true }
-      : undefined,
-    placeholderData: {},
+    initialData,
   });
-  return query.data ?? ({} as AppFlags);
+  return query.data ?? {};
 }
