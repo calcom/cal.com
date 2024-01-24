@@ -160,31 +160,32 @@ const MembersView = () => {
         }
       />
       {!isPending && (
-        <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-4 py-8 sm:px-6">
-          {team && (
-            <>
-              {isInviteOpen && (
-                <TeamInviteList
-                  teams={[
-                    {
-                      id: team.id,
-                      accepted: team.membership.accepted || false,
-                      name: team.name,
-                      slug: team.slug,
-                      role: team.membership.role,
-                    },
-                  ]}
-                />
+        <>
+          <div>
+            <div className="border-subtle rounded-lg rounded-t-none border border-t-0 px-4 py-8 sm:px-6">
+              {team && (
+                <>
+                  {isInviteOpen && (
+                    <TeamInviteList
+                      teams={[
+                        {
+                          id: team.id,
+                          accepted: team.membership.accepted || false,
+                          name: team.name,
+                          slug: team.slug,
+                          role: team.membership.role,
+                        },
+                      ]}
+                    />
+                  )}
+                </>
               )}
-            </>
-          )}
-
-          {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
-            <>
-              <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
-            </>
-          )}
-
+              {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
+                <>
+                  <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
+                </>
+              )}
+            </div>
             {team && session.data && (
               <DisableTeamImpersonation
                 teamId={team.id}
