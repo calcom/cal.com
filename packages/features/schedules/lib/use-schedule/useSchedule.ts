@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
@@ -32,10 +33,6 @@ export const useSchedule = ({
   const monthDayjs = month ? dayjs(month) : dayjs();
 
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
-  const numberOfDaysToLoadOverride = parseInt(
-    process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
-    0
-  );
 
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
@@ -51,13 +48,13 @@ export const useSchedule = ({
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
       startTime:
-        selectedDate && numberOfDaysToLoadOverride > 0
+        selectedDate && BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
           ? dayjs(selectedDate).toISOString()
           : monthDayjs.startOf("month").toISOString(),
       // if `prefetchNextMonth` is true, two months are fetched at once.
       endTime:
-        selectedDate && numberOfDaysToLoadOverride > 0
-          ? dayjs(selectedDate).add(numberOfDaysToLoadOverride, "day").toISOString()
+        selectedDate && BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+          ? dayjs(selectedDate).add(BOOKER_NUMBER_OF_DAYS_TO_LOAD, "day").toISOString()
           : (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,

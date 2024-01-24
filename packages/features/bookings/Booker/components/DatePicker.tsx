@@ -4,6 +4,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { default as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
+import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -23,10 +24,6 @@ export const DatePicker = ({
     (state) => [state.setSelectedDate, state.setMonth],
     shallow
   );
-  const numberOfDaysToLoadOverride = parseInt(
-    process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
-    0
-  );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   return (
@@ -39,7 +36,7 @@ export const DatePicker = ({
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));
       }}
-      includedDates={numberOfDaysToLoadOverride > 0 ? null : nonEmptyScheduleDays}
+      includedDates={BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? null : nonEmptyScheduleDays}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
