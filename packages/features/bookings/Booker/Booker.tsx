@@ -105,7 +105,6 @@ const BookerComponent = ({
    * Component will render but use data already fetched from here, and no duplicate requests will be made
    * */
   const schedule = useScheduleForEvent({
-    selectedDate,
     prefetchNextMonth,
     username,
     monthCount,

@@ -43,7 +43,6 @@ export const useEvent = () => {
  * this way the multi day view will show data of both months.
  */
 export const useScheduleForEvent = ({
-  selectedDate,
   prefetchNextMonth,
   username,
   eventSlug,
@@ -52,7 +51,6 @@ export const useScheduleForEvent = ({
   duration,
   monthCount,
 }: {
-  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   username?: string | null;
   eventSlug?: string | null;
@@ -63,10 +61,11 @@ export const useScheduleForEvent = ({
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
-    shallow
-  );
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, selectedDate] =
+    useBookerStore(
+      (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.selectedDate],
+      shallow
+    );
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
