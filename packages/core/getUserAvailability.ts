@@ -94,7 +94,7 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
+const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
   return monitorCallbackAsync(_getUser, ...args);
 };
 
@@ -112,7 +112,7 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (
+export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
 ): Promise<ReturnType<typeof _getCurrentSeats>> => {
   return monitorCallbackAsync(_getCurrentSeats, ...args);
