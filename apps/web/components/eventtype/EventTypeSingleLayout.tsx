@@ -153,7 +153,7 @@ function DeleteDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <ConfirmationDialogContent
-        isLoading={deleteMutation.isLoading}
+        isLoading={deleteMutation.isPending}
         variety="danger"
         title={t(`delete${isManagedEvent}_event_type`)}
         confirmBtnText={t(`confirm_delete_event_type`)}
