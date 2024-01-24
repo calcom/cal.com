@@ -5,16 +5,37 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts",
-  "files": [
-    "dist"
-  ],
   "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "require": "./index.ts"
+    },
+    "./dist/packages/lib/*.js": {
+      "import": "./dist/packages/lib/*.js",
+      "require": "./dist/packages/lib/*.js",
+      "types": "./dist/packages/lib/*.d.ts"
+    },
+    "./*": {
+      "import": "./*.ts",
+      "require": "./*.ts",
+      "types": "./*.d.ts"
+    },
+    "./**/*": {
+      "import": "./**/*.ts",
+      "require": "./**/*.ts",
+      "types": "./**/*.d.ts"
+    }
+  },
+  "files": [
+    "./dist"
+  ],
   "scripts": {
     "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json",
-    "build": "tsc --build --force tsconfig.json",
-    "build:watch": "tsc --build --force tsconfig.json --watch"
+    "build": "rm -rf dist && tsc --build --force tsconfig.json",
+    "build:watch": "rm -rf dist && tsc --build --force ./tsconfig.json --watch"
   },
   "dependencies": {
     "@calcom/config": "*",

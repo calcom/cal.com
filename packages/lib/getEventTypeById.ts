@@ -16,7 +16,7 @@ import { TRPCError } from "@trpc/server";
 import { CAL_URL } from "./constants";
 import { getBookerBaseUrl } from "./getBookerUrl/server";
 
-interface getEventTypeByIdProps {
+export interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
   prisma: PrismaClient;
@@ -24,7 +24,7 @@ interface getEventTypeByIdProps {
   isUserOrganizationAdmin: boolean;
 }
 
-export default async function getEventTypeById({
+export async function getEventTypeById({
   eventTypeId,
   userId,
   prisma,

@@ -1,9 +1,8 @@
+import { getEventTypeById } from "@/ee/event-types/imports/getEventTypeById";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import { MembershipRole } from "@prisma/client";
-
-import getEventTypeById from "@calcom/lib/dist";
 
 @Injectable()
 export class EventTypesService {
@@ -19,6 +18,8 @@ export class EventTypesService {
       const eventType = await getEventTypeById({
         eventTypeId,
         userId,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         prisma: this.dbRead.prisma,
         isUserOrganizationAdmin,
       });

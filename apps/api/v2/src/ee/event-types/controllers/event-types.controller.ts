@@ -8,19 +8,19 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "me",
+  path: "event-types",
   version: "2",
 })
 export class EventTypesController {
   constructor(private readonly eventTypesService: EventTypesService) {}
 
   @Get("/:eventTypeId")
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   async getEventType(
-    @Param("eventTypeId") eventTypeId: string,
-    @GetUser("id") userId: User["id"]
+    @Param("eventTypeId") eventTypeId: string
+    // @GetUser("id") userId: User["id"]
   ): Promise<ApiResponse> {
-    const eventType = await this.eventTypesService.getUserEventType(userId, Number(eventTypeId));
+    const eventType = await this.eventTypesService.getUserEventType(9, Number(eventTypeId));
 
     return {
       status: SUCCESS_STATUS,
