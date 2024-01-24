@@ -26,6 +26,7 @@ import PageWrapper from "@components/PageWrapper";
 
 export type BookingRedirectForm = {
   dateRange: { startDate: Date; endDate: Date };
+  offset: number;
   toTeamUserId: number | null;
 };
 
@@ -47,6 +48,7 @@ const OutOfOfficeSection = () => {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       },
+      offset: dayjs().utcOffset(),
       toTeamUserId: null,
     },
   });
@@ -104,20 +106,17 @@ const OutOfOfficeSection = () => {
               </div>
             )}
           </div>
-          <div className="mt-4 flex flex-row">
+          <div className="mt-4 grid grid-rows-2 gap-2 md:grid-cols-2">
             {profileRedirect && (
-              <div className="mr-2 w-1/2 lg:w-1/3">
+              <div>
                 <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
                 <Select
-                  className="mt-1 h-4 max-w-[350px] text-white"
+                  className="mt-1 h-4 text-white"
                   name="toTeamUsername"
                   data-testid="team_username_select"
                   value={selectedMember}
                   placeholder={t("select_team_member")}
                   isSearchable
-                  innerClassNames={{
-                    control: "h-[38px]",
-                  }}
                   options={memberListOptions}
                   onChange={(selectedOption) => {
                     if (selectedOption?.value) {
@@ -128,25 +127,27 @@ const OutOfOfficeSection = () => {
                 />
               </div>
             )}
-            <div className="w-1/2 lg:w-1/3">
+            <div>
               <p className="text-emphasis mb-1 block text-sm font-medium">{t("time_range")}</p>
-              <Controller
-                name="dateRange"
-                control={control}
-                defaultValue={dateRange}
-                render={() => (
-                  <DateRangePicker
-                    startDate={getValues("dateRange").startDate}
-                    endDate={getValues("dateRange").endDate}
-                    onDatesChange={({ startDate, endDate }) => {
-                      setValue("dateRange", {
-                        startDate,
-                        endDate,
-                      });
-                    }}
-                  />
-                )}
-              />
+              <div>
+                <Controller
+                  name="dateRange"
+                  control={control}
+                  defaultValue={dateRange}
+                  render={() => (
+                    <DateRangePicker
+                      startDate={getValues("dateRange").startDate}
+                      endDate={getValues("dateRange").endDate}
+                      onDatesChange={({ startDate, endDate }) => {
+                        setValue("dateRange", {
+                          startDate,
+                          endDate,
+                        });
+                      }}
+                    />
+                  )}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -154,7 +155,7 @@ const OutOfOfficeSection = () => {
           <Button
             color="primary"
             type="submit"
-            disabled={createOutOfOfficeEntry.isLoading}
+            disabled={createOutOfOfficeEntry.isPending}
             data-testid="create-entry-ooo-redirect">
             {t("create_entry")}
           </Button>
@@ -167,7 +168,7 @@ const OutOfOfficeSection = () => {
 const OutOfOfficeEntriesList = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data, isLoading } = trpc.viewer.outOfOfficeEntriesList.useQuery();
+  const { data, isPending } = trpc.viewer.outOfOfficeEntriesList.useQuery();
   const deleteOutOfOfficeEntryMutation = trpc.viewer.outOfOfficeEntryDelete.useMutation({
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
@@ -195,7 +196,7 @@ const OutOfOfficeEntriesList = () => {
             <TableRow key={item.id} data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
               <TableCell>
                 <p className="px-2">
-                  {dayjs(item.start).format("ll")} - {dayjs(item.end).format("ll")}
+                  {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
                 </p>
               </TableCell>
               <TableCell>
@@ -206,7 +207,7 @@ const OutOfOfficeEntriesList = () => {
                   type="button"
                   color="minimal"
                   variant="icon"
-                  disabled={deleteOutOfOfficeEntryMutation.isLoading}
+                  disabled={deleteOutOfOfficeEntryMutation.isPending}
                   StartIcon={Trash2}
                   onClick={() => {
                     deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
@@ -215,7 +216,7 @@ const OutOfOfficeEntriesList = () => {
               </TableCell>
             </TableRow>
           ))}
-          {isLoading && (
+          {isPending && (
             <TableRow>
               {new Array(6).fill(0).map((_, index) => (
                 <TableCell key={index}>
@@ -225,7 +226,7 @@ const OutOfOfficeEntriesList = () => {
             </TableRow>
           )}
 
-          {!isLoading && (data === undefined || data.length === 0) && (
+          {!isPending && (data === undefined || data.length === 0) && (
             <TableRow>
               <TableCell colSpan={6} className="text-center">
                 <p className="text-subtle text-sm">{t("no_redirects_found")}</p>
