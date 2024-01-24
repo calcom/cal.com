@@ -43,6 +43,7 @@ export const useEvent = () => {
  * this way the multi day view will show data of both months.
  */
 export const useScheduleForEvent = ({
+  selectedDate,
   prefetchNextMonth,
   username,
   eventSlug,
@@ -51,6 +52,7 @@ export const useScheduleForEvent = ({
   duration,
   monthCount,
 }: {
+  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   username?: string | null;
   eventSlug?: string | null;
@@ -77,6 +79,7 @@ export const useScheduleForEvent = ({
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId: event.data?.id ?? eventId,
     timezone,
+    selectedDate,
     prefetchNextMonth,
     monthCount,
     rescheduleUid,

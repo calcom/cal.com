@@ -8,6 +8,7 @@ type UseScheduleWithCacheArgs = {
   eventId?: number | null;
   month?: string | null;
   timezone?: string | null;
+  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
   monthCount?: number | null;
@@ -21,6 +22,7 @@ export const useSchedule = ({
   username,
   eventSlug,
   eventId,
+  selectedDate,
   prefetchNextMonth,
   duration,
   monthCount,
@@ -28,6 +30,7 @@ export const useSchedule = ({
   isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
+
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
@@ -42,9 +45,17 @@ export const useSchedule = ({
       ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
-      startTime: monthDayjs.startOf("month").toISOString(),
+      startTime:
+        selectedDate && process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+          ? dayjs(selectedDate).toISOString()
+          : monthDayjs.startOf("month").toISOString(),
       // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime: (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
+      endTime:
+        selectedDate && process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+          ? dayjs(selectedDate)
+              .add(process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD, "day")
+              .toISOString()
+          : (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
