@@ -36,7 +36,7 @@ export const DatePicker = ({
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));
       }}
-      includedDates={BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? null : nonEmptyScheduleDays}
+      includedDates={BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? undefined : nonEmptyScheduleDays}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
