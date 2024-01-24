@@ -199,9 +199,10 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    //only add for team admin or owner
     editBookingActions.push({
       id: "reassign ",
-      label: "Reassign",
+      label: t("reassign"),
       onClick: () => {
         setIsOpenReassignDialog(true);
       },
@@ -339,8 +340,6 @@ function BookingListItem(booking: BookingItemProps) {
       <ReassignDialog
         isOpenDialog={isOpenReassignDialog}
         setIsOpenDialog={setIsOpenReassignDialog}
-        bookingId={booking.id}
-        teamId={booking.eventType?.team?.id || 0}
         hosts={booking.eventType?.hosts}
         assignedHosts={
           booking.user

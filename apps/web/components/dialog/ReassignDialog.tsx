@@ -24,6 +24,8 @@ const MemberReassignStep = ({
   setSelectedHost: Dispatch<SetStateAction<number>>;
   selectedHost: number;
 }) => {
+  const { t } = useLocale();
+
   const hostsToReassign = hosts?.filter(
     (host) => !assignedHosts?.find((assignedHost) => assignedHost === host.user.email && !host.isFixed)
   );
@@ -36,12 +38,12 @@ const MemberReassignStep = ({
   // only show available hosts, backend work needed
 
   if (!hostsToReassignOptions) {
-    return <div>No available hosts</div>;
+    return <div>{t("no_available_hosts")}</div>;
   }
 
   return (
     <div className="py-4">
-      <Label>Assign to</Label>
+      <Label>{t("assign_to")}</Label>
       <Select
         isSearchable={true}
         options={hostsToReassignOptions}
@@ -69,23 +71,23 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, hosts, assignedH
       onOpenChange={(open) => {
         setIsOpenDialog(open);
       }}>
-      <DialogContent title="Reassign round-robin host">
+      <DialogContent title={t("reassign_reound_robin_host")}>
         <RadioArea.Group className="mt-3 flex flex-col space-y-4">
           <RadioArea.Item
             className="text-sm"
             checked={reassignTarget === "round-robin"}
             value="round-robin"
             onClick={() => setReassignTarget("round-robin")}>
-            <strong className="mb-1">Round-Robin</strong>
-            <p>Reassign booking to another available round-robin host</p>
+            <strong className="mb-1">{t("round_robin")}</strong>
+            <p>{t("reassign_to_another_rr_host")}</p>
           </RadioArea.Item>
           <RadioArea.Item
             className="text-sm"
             value="choose-member"
             checked={reassignTarget === "choose-member"}
             onClick={() => setReassignTarget("choose-member")}>
-            <strong className="mb-1">Assign team member</strong>
-            <p>Override which team member you want to assign to.</p>
+            <strong className="mb-1">{t("assign_team_member")}</strong>
+            <p>{t("override_team_member_to_assign")}</p>
           </RadioArea.Item>
         </RadioArea.Group>
         {reassignTarget === "choose-member" ? (
@@ -110,7 +112,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, hosts, assignedH
               }
               setIsOpenDialog(false);
             }}>
-            Reassign
+            {t("reassign")}
           </Button>
         </DialogFooter>
       </DialogContent>
