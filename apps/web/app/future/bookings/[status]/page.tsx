@@ -7,9 +7,8 @@ import type { InferGetStaticPropsType } from "next";
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
 
-import { getStaticProps } from "@lib/bookings/[status]/getStaticProps";
-
-const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
+import { validStatuses } from "~/bookings/lib/validStatuses";
+import { getStaticProps } from "~/bookings/views/bookings-listing-view.getStaticProps";
 
 type Y = InferGetStaticPropsType<typeof getStaticProps>;
 const getData = withAppDirSsg<Y>(getStaticProps);

@@ -1,9 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { GetStaticPaths } from "next";
 import { Fragment, useState } from "react";
-import React from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -18,18 +16,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { HorizontalTabs } from "@calcom/ui";
-import type { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
-import { Alert, Button, EmptyScreen } from "@calcom/ui";
+import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 import { Calendar } from "@calcom/ui/components/icon";
 
-import { getStaticProps } from "@lib/bookings/[status]/getStaticProps";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
+
+import { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -63,7 +61,6 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     href: "/bookings/cancelled",
   },
 ];
-const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   upcoming: "upcoming_bookings",
@@ -258,15 +255,3 @@ export default function Bookings() {
 
 Bookings.PageWrapper = PageWrapper;
 Bookings.getLayout = getLayout;
-
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: validStatuses.map((status) => ({
-      params: { status },
-      locale: "en",
-    })),
-    fallback: "blocking",
-  };
-};
-
-export { getStaticProps };
