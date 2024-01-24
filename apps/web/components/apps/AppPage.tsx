@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
@@ -92,17 +92,19 @@ export const AppPage = ({
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
 
-  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
-    { appType: type },
-    {
-      onSettled(data) {
-        const credentialsCount = data?.credentials.length || 0;
-        setShowDisconnectIntegration(
-          data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
-        );
-        setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
-      },
-    }
+  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = appDbQuery.data;
+
+      const credentialsCount = data?.credentials.length || 0;
+      setShowDisconnectIntegration(
+        data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
+      );
+      setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
+    },
+    [appDbQuery.data]
   );
 
   const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
@@ -190,7 +192,7 @@ export const AppPage = ({
             )}
           </header>
         </div>
-        {!appDbQuery.isLoading ? (
+        {!appDbQuery.isPending ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
@@ -211,7 +213,7 @@ export const AppPage = ({
                         onClick: () => {
                           mutation.mutate({ type, variant, slug });
                         },
-                        loading: mutation.isLoading,
+                        loading: mutation.isPending,
                       };
                     }
                     return (
@@ -250,7 +252,7 @@ export const AppPage = ({
                     onClick: () => {
                       mutation.mutate({ type, variant, slug });
                     },
-                    loading: mutation.isLoading,
+                    loading: mutation.isPending,
                   };
                 }
                 return (
@@ -272,7 +274,7 @@ export const AppPage = ({
         )}
 
         {dependencies &&
-          (!dependencyData.isLoading ? (
+          (!dependencyData.isPending ? (
             <div className="mt-6">
               <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
             </div>

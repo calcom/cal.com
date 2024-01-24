@@ -179,7 +179,7 @@ const BookerComponent = ({
     event,
   });
 
-  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates } = useBookings({
+  const { handleBookEvent, hasInstantMeetingTokenExpired, errors, loadingStates, expiryTime } = useBookings({
     event,
     hashedLink,
     bookingForm,
@@ -207,7 +207,7 @@ const BookerComponent = ({
   } = useCalendars();
 
   useEffect(() => {
-    if (event.isLoading) return setBookerState("loading");
+    if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
@@ -245,6 +245,7 @@ const BookerComponent = ({
               isUserSessionRequiredToVerify={false}
             />
             <RedirectToInstantMeetingModal
+              expiryTime={expiryTime}
               hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
               bookingId={parseInt(getQueryParam("bookingId") || "0")}
               onGoBack={() => {
@@ -279,6 +280,7 @@ const BookerComponent = ({
       setSeatedEventData,
       setSelectedTimeslot,
       setVerifiedEmail,
+      expiryTime,
     ]
   );
 
@@ -301,8 +303,9 @@ const BookerComponent = ({
       {bookerState !== "booking" && event.data?.isInstantEvent && (
         <div
           className="animate-fade-in-up fixed bottom-2 z-40 my-2 opacity-0"
-          style={{ animationDelay: "2s" }}>
+          style={{ animationDelay: "1s" }}>
           <InstantBooking
+            event={event.data}
             onConnectNow={() => {
               const newPath = `${pathname}?isInstantMeeting=true`;
               router.push(newPath);
@@ -396,7 +399,7 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                <EventMeta event={event.data} isLoading={event.isLoading} />
+                <EventMeta event={event.data} isPending={event.isPending} />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
@@ -431,7 +434,7 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isLoading} />
+              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isPending} />
             </BookerSection>
 
             <BookerSection
@@ -453,7 +456,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}
-                isLoading={schedule.isLoading}
+                isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
               />

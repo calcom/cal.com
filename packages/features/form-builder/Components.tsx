@@ -19,8 +19,8 @@ import {
   InputField,
   CheckboxField,
 } from "@calcom/ui";
+import { InfoBadge } from "@calcom/ui";
 import { UserPlus, X } from "@calcom/ui/components/icon";
-import InfoBadge from "@calcom/web/components/ui/InfoBadge";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
