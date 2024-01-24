@@ -5,7 +5,7 @@ import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
 import type { PublicEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
 
-type BookingOptions = {
+export type BookingOptions = {
   values: Record<string, unknown>;
   event: PublicEvent;
   date: string;

@@ -1,5 +1,3 @@
-"use client";
-
 import type { ParsedUrlQuery } from "querystring";
 import { z } from "zod";
 
