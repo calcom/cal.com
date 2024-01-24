@@ -11,7 +11,11 @@ import dayjs from "@calcom/dayjs";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import {
+  BOOKER_NUMBER_OF_DAYS_TO_LOAD,
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+} from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -100,6 +104,13 @@ const BookerComponent = ({
       ? 2
       : undefined;
 
+  const dayCount =
+    layout === BookerLayouts.WEEK_VIEW
+      ? 7
+      : BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+      ? BOOKER_NUMBER_OF_DAYS_TO_LOAD
+      : undefined;
+
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -108,6 +119,7 @@ const BookerComponent = ({
     prefetchNextMonth,
     username,
     monthCount,
+    dayCount,
     eventSlug,
     month,
     duration,

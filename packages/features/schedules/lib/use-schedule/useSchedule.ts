@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
@@ -27,6 +26,7 @@ export const useSchedule = ({
   prefetchNextMonth,
   duration,
   monthCount,
+  dayCount,
   rescheduleUid,
   isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
@@ -48,13 +48,13 @@ export const useSchedule = ({
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
       startTime:
-        selectedDate && BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+        selectedDate && dayCount && dayCount > 0
           ? dayjs(selectedDate).toISOString()
           : monthDayjs.startOf("month").toISOString(),
       // if `prefetchNextMonth` is true, two months are fetched at once.
       endTime:
-        selectedDate && BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
-          ? dayjs(selectedDate).add(BOOKER_NUMBER_OF_DAYS_TO_LOAD, "day").toISOString()
+        selectedDate && dayCount && dayCount > 0
+          ? dayjs(selectedDate).add(dayCount, "day").toISOString()
           : (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
