@@ -1,4 +1,5 @@
-import type { GetServerSidePropsContext } from "next";
+"use client";
+
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,7 +14,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { ssrInit } from "@server/lib/ssr";
+import { getServerSideProps } from "@server/lib/auth/logout/getServerSideProps";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
@@ -70,18 +71,4 @@ export function Logout(props: Props) {
 Logout.PageWrapper = PageWrapper;
 export default Logout;
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const ssr = await ssrInit(context);
-  // Deleting old cookie manually, remove this code after all existing cookies have expired
-  context.res.setHeader(
-    "Set-Cookie",
-    "next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-  );
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-      query: context.query,
-    },
-  };
-}
+export { getServerSideProps };

@@ -49,7 +49,7 @@ export default function TeamList(props: Props) {
           key={team?.id as number}
           team={team}
           onActionSelect={(action: string) => selectAction(action, team?.id as number)}
-          isLoading={deleteTeamMutation.isLoading}
+          isPending={deleteTeamMutation.isPending}
           hideDropdown={hideDropdown}
           setHideDropdown={setHideDropdown}
         />
