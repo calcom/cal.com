@@ -515,6 +515,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
         if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
+          //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
           throw new Error(t("event_setup_multiple_duration_default_error"));
         }
       }
@@ -637,7 +638,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               ...input
             } = dirtyValues;
 
-            if (!Number(length)) throw new Error(t("event_setup_length_error"));
+            if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -657,6 +658,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
                 if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
+                  //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
