@@ -3,7 +3,7 @@
   "name": "Notion Calendar",
   "slug": "cron",
   "type": "cron_calendar",
-  "logo": "icon.svg",
+  "logo": "logo.png",
   "url": "https://github.com/miguelnietoa",
   "variant": "calendar",
   "categories": ["calendar"],
