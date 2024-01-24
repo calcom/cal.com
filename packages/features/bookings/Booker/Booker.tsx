@@ -87,12 +87,12 @@ const BookerComponent = ({
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
-    (!process.env.NEXT_PUBLIC_BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
-      layout === BookerLayouts.WEEK_VIEW &&
+    !process.env.NEXT_PUBLIC_BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
+    ((layout === BookerLayouts.WEEK_VIEW &&
       !!extraDays &&
       dayjs(date).month() !== dayjs(date).add(extraDays, "day").month()) ||
-    (layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month());
+      (layout === BookerLayouts.COLUMN_VIEW &&
+        dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()));
 
   const monthCount =
     !process.env.NEXT_PUBLIC_BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
