@@ -49,7 +49,7 @@ interface Props {
   team: RouterOutputs["viewer"]["teams"]["list"][number];
   key: number;
   onActionSelect: (text: string) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
 }
@@ -125,7 +125,7 @@ export default function TeamListItem(props: Props) {
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
-        isLoading={inviteMemberMutation.isLoading}
+        isPending={inviteMemberMutation.isPending}
         onSubmit={(values, resetFields) => {
           inviteMemberMutation.mutate(
             {
@@ -322,7 +322,7 @@ export default function TeamListItem(props: Props) {
                             variety="danger"
                             title={t("disband_team")}
                             confirmBtnText={t("confirm_disband_team")}
-                            isLoading={props.isLoading}
+                            isPending={props.isPending}
                             onConfirm={() => {
                               props.onActionSelect("disband");
                             }}>

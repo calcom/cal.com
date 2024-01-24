@@ -215,9 +215,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
             <Button
               color="primary"
               type="submit"
-              loading={passwordMutation.isLoading}
+              loading={passwordMutation.isPending}
               onClick={() => formMethods.clearErrors("apiError")}
-              disabled={isDisabled || passwordMutation.isLoading || sessionMutation.isLoading}>
+              disabled={isDisabled || passwordMutation.isPending || sessionMutation.isPending}>
               {t("update")}
             </Button>
           </SectionBottomActions>
@@ -268,7 +268,7 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                 <SectionBottomActions align="end">
                   <Button
                     color="primary"
-                    loading={sessionMutation.isLoading}
+                    loading={sessionMutation.isPending}
                     onClick={() => {
                       sessionMutation.mutate({
                         metadata: { ...metadata, sessionTimeout },
@@ -277,8 +277,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
                     }}
                     disabled={
                       initialSessionTimeout === sessionTimeout ||
-                      passwordMutation.isLoading ||
-                      sessionMutation.isLoading
+                      passwordMutation.isPending ||
+                      sessionMutation.isPending
                     }>
                     {t("update")}
                   </Button>
@@ -293,9 +293,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
 };
 
 const PasswordViewWrapper = () => {
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
   const { t } = useLocale();
-  if (isLoading || !user)
+  if (isPending || !user)
     return <SkeletonLoader title={t("password")} description={t("password_description")} />;
 
   return <PasswordView user={user} />;
