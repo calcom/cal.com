@@ -18,21 +18,21 @@ export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isLoading } = trpc.viewer.integrations.useQuery({
+  const { data: eventTypeApps, isPending } = trpc.viewer.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
   });
 
-  const methods = useFormContext<FormValues>();
+  const formMethods = useFormContext<FormValues>();
   const installedApps =
     eventTypeApps?.items.filter((app) => app.userCredentialIds.length || app.teams.length) || [];
   const notInstalledApps =
     eventTypeApps?.items.filter((app) => !app.userCredentialIds.length && !app.teams.length) || [];
-  const allAppsData = methods.watch("metadata")?.apps || {};
+  const allAppsData = formMethods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
-    methods.setValue("metadata", {
-      ...methods.getValues("metadata"),
+    formMethods.setValue("metadata", {
+      ...formMethods.getValues("metadata"),
       apps: _allAppsData,
     });
   };
@@ -47,7 +47,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     };
   };
 
-  const eventTypeFormMetadata = methods.getValues("metadata");
+  const eventTypeFormMetadata = formMethods.getValues("metadata");
 
   const getAppDataSetter = (
     appId: EventTypeAppsList,
@@ -56,8 +56,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   ): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
-      const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
-
+      const allAppsDataFromForm = formMethods.getValues("metadata")?.apps || {};
       const appData = allAppsDataFromForm[appId];
       setAllAppsData({
         ...allAppsDataFromForm,
@@ -138,7 +137,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               message={t("locked_apps_description")}
             />
           )}
-          {!isLoading && !installedApps?.length ? (
+          {!isPending && !installedApps?.length ? (
             <EmptyScreen
               Icon={Grid}
               headline={t("empty_installed_apps_headline")}
@@ -179,7 +178,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
       </div>
       {!shouldLockDisableProps("apps").disabled && (
         <div className="bg-muted mt-6 rounded-md p-8">
-          {!isLoading && notInstalledApps?.length ? (
+          {!isPending && notInstalledApps?.length ? (
             <>
               <h2 className="text-emphasis mb-2 text-xl font-semibold leading-5 tracking-[0.01em]">
                 {t("available_apps_lower_case")}
