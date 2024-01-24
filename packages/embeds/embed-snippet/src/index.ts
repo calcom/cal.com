@@ -44,8 +44,11 @@ export default function EmbedSnippet(url = EMBED_LIB_URL) {
           api.q = api.q || [];
           typeof namespace === "string"
             ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              (cal.ns![namespace] = api) && p(api, ar)
+              (cal.ns![namespace] = cal.ns![namespace] || api) && p(cal.ns![namespace], ar)
             : p(cal as GlobalCal, ar);
+
+          // Also send init to the default namespace queue so that the namespace instance can be created which will then take care of it's own queue
+          p(cal as GlobalCal, arguments);
           return;
         }
         p(cal as GlobalCal, ar);

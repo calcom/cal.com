@@ -51,6 +51,8 @@
               const namespace = ar[1];
               api.q = api.q || [];
               typeof namespace === "string" ? (cal.ns[namespace] = api) && p(api, ar) : p(cal, ar);
+              // Also send init to the default namespace queue so that the namespace instance can be created which will then take care of it's own queue
+              p(cal, arguments)
               return;
             }
             p(cal, ar);
