@@ -7,6 +7,6 @@
     "resolveJsonModule": true,
     "outDir": "./dist"
   },
-  "include": [".", "../types/*.d.ts"],
+  "include": [".", "../types/next-auth.d.ts", "../types/window.d.ts", "../types/*.d.ts"],
   "exclude": ["dist", "build", "node_modules"]
 }
