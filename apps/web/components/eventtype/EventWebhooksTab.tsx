@@ -105,7 +105,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   return (
     <div>
-      {webhooks && !isPending && (
+      {webhooks && !isLoading && (
         <>
           <div>
             <div>
