@@ -7,7 +7,7 @@ import { Check } from "@calcom/ui/components/icon";
 const StepDone = (props: {
   currentStep: number;
   nextStepPath: string;
-  setIsLoading: Dispatch<SetStateAction<boolean>>;
+  setIsPending: Dispatch<SetStateAction<boolean>>;
 }) => {
   const router = useRouter();
   const { t } = useLocale();
@@ -18,7 +18,7 @@ const StepDone = (props: {
       name={`wizard-step-${props.currentStep}`}
       className="flex justify-center space-y-4"
       onSubmit={(e) => {
-        props.setIsLoading(true);
+        props.setIsPending(true);
         e.preventDefault();
         router.replace(props.nextStepPath);
       }}>

@@ -14,6 +14,7 @@ import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { prefillAvatar } from "../utils/prefillAvatar";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -131,6 +132,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         identityProvider: IdentityProvider.CAL,
       },
     });
+
+    if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
+      await prefillAvatar({ email: userEmail });
+    }
+
     await sendEmailVerification({
       email: userEmail,
       username: correctedUsername,

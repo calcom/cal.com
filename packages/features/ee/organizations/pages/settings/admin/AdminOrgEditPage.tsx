@@ -102,7 +102,7 @@ const OrgForm = ({
         required
         {...form.register("organizationSettings.orgAutoAcceptEmail")}
       />
-      <Button type="submit" color="primary" loading={mutation.isLoading}>
+      <Button type="submit" color="primary" loading={mutation.isPending}>
         {t("save")}
       </Button>
     </Form>
