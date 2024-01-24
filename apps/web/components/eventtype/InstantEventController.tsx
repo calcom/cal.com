@@ -108,7 +108,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
     eventTypeId: eventType.id,
     eventTriggers: [WebhookTriggerEvents.INSTANT_MEETING],
   });
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
+  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
   });
@@ -188,7 +188,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
 
   return (
     <div>
-      {webhooks && !isLoading && (
+      {webhooks && !isPending && (
         <>
           <div>
             {webhooks.length ? (

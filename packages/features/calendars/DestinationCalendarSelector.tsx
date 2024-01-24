@@ -11,7 +11,7 @@ import { Check } from "@calcom/ui/components/icon";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
   destinationCalendar?: DestinationCalendar | null;
@@ -49,7 +49,7 @@ const OptionComponent = ({ ...props }: OptionProps<Option>) => {
 
 const DestinationCalendarSelector = ({
   onChange,
-  isLoading,
+  isPending,
   value,
   hidePlaceholder,
   hideAdvancedText,
@@ -173,7 +173,7 @@ const DestinationCalendarSelector = ({
             externalId,
           });
         }}
-        isLoading={isLoading}
+        isLoading={isPending}
         value={selectedOption}
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}
