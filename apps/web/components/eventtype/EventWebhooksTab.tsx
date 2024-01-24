@@ -22,6 +22,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const utils = trpc.useContext();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
+
   const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
     variant: "other",
     onlyInstalled: true,
@@ -104,7 +105,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   return (
     <div>
-      {webhooks && !isLoading && (
+      {webhooks && !isPending && (
         <>
           <div>
             <div>
