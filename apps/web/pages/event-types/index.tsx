@@ -686,7 +686,7 @@ export const EventTypeList = ({
           title={t(`delete${isManagedEventPrefix()}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}
           loadingText={t(`confirm_delete_event_type`)}
-          isLoading={deleteMutation.isLoading}
+          isPending={deleteMutation.isPending}
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
@@ -856,7 +856,7 @@ const Main = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
 
-  if (!data || status === "loading") {
+  if (!data || status === "pending") {
     return <SkeletonLoader />;
   }
 
@@ -934,7 +934,7 @@ const EventTypesPage = () => {
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
     refetchOnWindowFocus: false,
-    cacheTime: 1 * 60 * 60 * 1000,
+    gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
 

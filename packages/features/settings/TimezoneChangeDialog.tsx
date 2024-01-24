@@ -9,7 +9,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@ca
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
   const utils = trpc.useContext();
   const userTz = user?.timeZone;
   const currentTz = dayjs.tz.guess() || "Europe/London";
@@ -42,10 +42,10 @@ export default function TimezoneChangeDialog() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const tzDifferent =
-      !isLoading && dayjs.tz(undefined, currentTz).utcOffset() !== dayjs.tz(undefined, userTz).utcOffset();
+      !isPending && dayjs.tz(undefined, currentTz).utcOffset() !== dayjs.tz(undefined, userTz).utcOffset();
     const showDialog = tzDifferent && !document.cookie.includes("calcom-timezone-dialog=1");
     setOpen(!IS_VISUAL_REGRESSION_TESTING && showDialog);
-  }, [currentTz, isLoading, userTz]);
+  }, [currentTz, isPending, userTz]);
 
   // save cookie to not show again
   function onCancel(maxAge: number, toast: boolean) {
