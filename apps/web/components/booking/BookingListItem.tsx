@@ -59,6 +59,7 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
+  isOrgAdminOrOwner: boolean;
   loggedInUser: {
     userId: number | undefined;
     userTimeZone: string | undefined;
@@ -70,6 +71,7 @@ type BookingItemProps = BookingItem & {
 function BookingListItem(booking: BookingItemProps) {
   const bookerUrl = useBookerUrl();
   const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { isOrgAdminOrOwner } = booking;
 
   const {
     t,
@@ -198,7 +200,13 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+  const isAdminOrOwner =
+    isOrgAdminOrOwner ||
+    !!booking.eventType.team.members.find(
+      (member) => userId === member.userId && (member.role === "ADMIN" || member.role === "OWNER")
+    );
+
+  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN && isAdminOrOwner) {
     //only add for team admin or owner
     editBookingActions.push({
       id: "reassign ",

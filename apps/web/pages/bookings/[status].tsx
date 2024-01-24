@@ -16,6 +16,7 @@ import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { HorizontalTabs } from "@calcom/ui";
@@ -84,6 +85,12 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+
+  // is there a better way to check if user is admin/owner of org or the team?
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -185,6 +192,7 @@ export default function Bookings() {
                                   userEmail: user?.email,
                                 }}
                                 listingStatus={status}
+                                isOrgAdminOrOwner={isOrgAdminOrOwner}
                                 recurringInfo={recurringInfoToday}
                                 {...booking}
                               />
@@ -214,6 +222,7 @@ export default function Bookings() {
                                     userTimeFormat: user?.timeFormat,
                                     userEmail: user?.email,
                                   }}
+                                  isOrgAdminOrOwner={isOrgAdminOrOwner}
                                   listingStatus={status}
                                   recurringInfo={recurringInfo}
                                   {...booking}
