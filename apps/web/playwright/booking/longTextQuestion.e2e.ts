@@ -9,48 +9,50 @@ test.describe("Booking With Long Text Question and Each Other Question", () => {
     await page.goto("/event-types");
   });
 
-  test("Long Text and Address required", async ({ bookingPage }) => {
-    await bookingPage.goToEventType("30 min");
-    await bookingPage.goToTab("event_advanced_tab_title");
-    await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
-    await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
-    await bookingPage.updateEventType();
-    const eventTypePage = await bookingPage.previewEventType();
-    await bookingPage.selectTimeSlot(eventTypePage);
-    await bookingPage.fillAndConfirmBooking({
-      eventTypePage,
-      placeholderText: "Please share anything that will help prepare for our meeting.",
-      question: "textarea",
-      fillText: "Test Long Text question and Address question (both required)",
-      secondQuestion: "address",
-      options: bookingOptions,
+  test.describe("Booking With Long Text Question and Address Question", () => {
+    test("Long Text and Address required", async ({ bookingPage }) => {
+      await bookingPage.goToEventType("30 min");
+      await bookingPage.goToTab("event_advanced_tab_title");
+      await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
+      await bookingPage.addQuestion("address", "address-test", "address test", true, "address test");
+      await bookingPage.updateEventType();
+      const eventTypePage = await bookingPage.previewEventType();
+      await bookingPage.selectTimeSlot(eventTypePage);
+      await bookingPage.fillAndConfirmBooking({
+        eventTypePage,
+        placeholderText: "Please share anything that will help prepare for our meeting.",
+        question: "textarea",
+        fillText: "Test Long Text question and Address question (both required)",
+        secondQuestion: "address",
+        options: bookingOptions,
+      });
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
-    await bookingPage.rescheduleBooking(eventTypePage);
-    await bookingPage.assertBookingRescheduled(eventTypePage);
-    await bookingPage.cancelBooking(eventTypePage);
-    await bookingPage.assertBookingCanceled(eventTypePage);
-  });
 
-  test("Long Text required and Address not required", async ({ bookingPage }) => {
-    await bookingPage.goToEventType("30 min");
-    await bookingPage.goToTab("event_advanced_tab_title");
-    await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
-    await bookingPage.addQuestion("address", "address-test", "address test", false, "address test");
-    await bookingPage.updateEventType();
-    const eventTypePage = await bookingPage.previewEventType();
-    await bookingPage.selectTimeSlot(eventTypePage);
-    await bookingPage.fillAndConfirmBooking({
-      eventTypePage,
-      placeholderText: "Please share anything that will help prepare for our meeting.",
-      question: "textarea",
-      fillText: "Test Long Text question and Address question (only Long Text required)",
-      secondQuestion: "address",
-      options: { ...bookingOptions, isRequired: false },
+    test("Long Text required and Address not required", async ({ bookingPage }) => {
+      await bookingPage.goToEventType("30 min");
+      await bookingPage.goToTab("event_advanced_tab_title");
+      await bookingPage.addQuestion("textarea", "textarea-test", "textarea test", true, "textarea test");
+      await bookingPage.addQuestion("address", "address-test", "address test", false, "address test");
+      await bookingPage.updateEventType();
+      const eventTypePage = await bookingPage.previewEventType();
+      await bookingPage.selectTimeSlot(eventTypePage);
+      await bookingPage.fillAndConfirmBooking({
+        eventTypePage,
+        placeholderText: "Please share anything that will help prepare for our meeting.",
+        question: "textarea",
+        fillText: "Test Long Text question and Address question (only Long Text required)",
+        secondQuestion: "address",
+        options: { ...bookingOptions, isRequired: false },
+      });
+      await bookingPage.rescheduleBooking(eventTypePage);
+      await bookingPage.assertBookingRescheduled(eventTypePage);
+      await bookingPage.cancelBooking(eventTypePage);
+      await bookingPage.assertBookingCanceled(eventTypePage);
     });
-    await bookingPage.rescheduleBooking(eventTypePage);
-    await bookingPage.assertBookingRescheduled(eventTypePage);
-    await bookingPage.cancelBooking(eventTypePage);
-    await bookingPage.assertBookingCanceled(eventTypePage);
   });
 
   test.describe("Booking With Long Text Question and Checkbox Group Question", () => {
