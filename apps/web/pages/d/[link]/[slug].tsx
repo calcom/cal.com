@@ -101,7 +101,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const [user] = await UserRepository.getUsersFromUsernameInOrgContext({
+  const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: org,
   });

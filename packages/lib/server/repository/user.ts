@@ -1,5 +1,4 @@
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { isOrganization } from "../../entityPermissionUtils";
@@ -10,11 +9,10 @@ import { getParsedTeam } from "./teamUtils";
 import type { User as UserType, Prisma } from ".prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
-type ProfileId = number | null;
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 export class UserRepository {
-  static async getTeamsFromUserId({ userId }: { userId: UserType["id"] }) {
+  static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
       where: {
         userId: userId,
@@ -35,8 +33,8 @@ export class UserRepository {
     };
   }
 
-  static async getOrganizations({ userId }: { userId: UserType["id"] }) {
-    const { acceptedTeamMemberships } = await UserRepository.getTeamsFromUserId({
+  static async findOrganizations({ userId }: { userId: UserType["id"] }) {
+    const { acceptedTeamMemberships } = await UserRepository.findTeamsByUserId({
       userId,
     });
 
@@ -51,75 +49,17 @@ export class UserRepository {
     };
   }
 
-  static async getProfile({ profileId, userId }: { profileId: ProfileId; userId: number }) {
-    if (!profileId) {
-      return null;
-    }
-    const profile = await prisma.profile.findUnique({
-      where: {
-        id: profileId,
-      },
-      include: {
-        organization: true,
-      },
-    });
-
-    if (!profile) {
-      return null;
-    }
-    if (profile.userId !== userId) {
-      throw new Error("Unauthorized");
-    }
-
-    const parsedMetadata = teamMetadataSchema.parse(profile.organization.metadata);
-    return {
-      ...profile,
-      organization: {
-        ...profile.organization,
-        requestedSlug: parsedMetadata?.requestedSlug ?? null,
-        metadata: parsedMetadata,
-      },
-    };
-  }
-
-  static async getOrganizationForUser({
-    userId,
-    organizationId,
-  }: {
-    userId: number;
-    organizationId: number;
-  }) {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId: userId,
-        teamId: organizationId,
-        accepted: true,
-      },
-      include: {
-        team: true,
-      },
-    });
-
-    const team = membership?.team;
-    if (!team) {
-      return null;
-    }
-    const parsedMetadata = teamMetadataSchema.parse(team.metadata);
-    return {
-      ...team,
-      requestedSlug: parsedMetadata?.requestedSlug ?? null,
-      metadata: parsedMetadata,
-    };
-  }
-
-  static async getUsersFromUsernameInOrgContext({
+  /**
+   * It is aware of the fact that a user can be part of multiple organizations.
+   */
+  static async findUsersByUsername({
     orgSlug,
     usernameList,
   }: {
     orgSlug: string | null;
     usernameList: string[];
   }) {
-    const { where, profiles } = await UserRepository._getWhereClauseForGettingUsers({
+    const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
       orgSlug,
       usernameList,
     });
@@ -150,7 +90,7 @@ export class UserRepository {
     });
   }
 
-  static async _getWhereClauseForGettingUsers({
+  static async _getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   }: {
@@ -160,7 +100,7 @@ export class UserRepository {
     // Lookup in profiles because that's where the organization usernames exist
     const profiles = orgSlug
       ? (
-          await ProfileRepository.findManyBySlugs({
+          await ProfileRepository.findManyByOrgSlugOrRequestedSlug({
             orgSlug: orgSlug,
             usernames: usernameList,
           })
@@ -186,7 +126,7 @@ export class UserRepository {
     return { where, profiles };
   }
 
-  static async getUserByEmail({ email }: { email: string }) {
+  static async findByEmail({ email }: { email: string }) {
     const user = await prisma.user.findUnique({
       where: {
         email: email.toLowerCase(),
@@ -224,7 +164,7 @@ export class UserRepository {
     };
   }
 
-  static async getUserById({ id }: { id: number }) {
+  static async findById({ id }: { id: number }) {
     const user = await prisma.user.findUnique({
       where: {
         id,
@@ -237,12 +177,12 @@ export class UserRepository {
     return user;
   }
 
-  static async getAllUsersForOrganization({ organizationId }: { organizationId: number }) {
+  static async findManyByOrganization({ organizationId }: { organizationId: number }) {
     const profiles = await ProfileRepository.findManyForOrg({ organizationId });
     return profiles.map((profile) => profile.user);
   }
 
-  static isUserAMemberOfOrganization({
+  static isAMemberOfOrganization({
     user,
     organizationId,
   }: {
@@ -252,19 +192,14 @@ export class UserRepository {
     return user.profiles.some((profile) => profile.organizationId === organizationId);
   }
 
-  static async isUserAMemberOfAnyOrganization({ userId }: { userId: number }) {
-    const orgProfiles = await ProfileRepository.findManyForUser({ id: userId });
-    return orgProfiles.length > 0;
-  }
-
-  static async enrichUserWithProfile<T extends { username: string | null; id: number }>({
+  static async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
     user,
     upId,
   }: {
     user: T;
     upId: UpId;
   }) {
-    log.debug("enrichUserWithProfile", safeStringify({ user, upId }));
+    log.debug("enrichUserWithTheProfile", safeStringify({ user, upId }));
     const profile = await ProfileRepository.findByUpId(upId);
     if (!profile) {
       return {

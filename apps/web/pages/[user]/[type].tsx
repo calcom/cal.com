@@ -90,7 +90,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const usersInOrgContext = await UserRepository.getUsersFromUsernameInOrgContext({
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
@@ -173,12 +173,12 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const [user] = await UserRepository.getUsersFromUsernameInOrgContext({
+  const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
 
-  console.log("[type] - getUsersFromUsernameInOrgContext", user);
+  console.log("[type] - findUsersByUsername", user);
 
   if (!user) {
     return {

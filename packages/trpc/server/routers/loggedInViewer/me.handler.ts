@@ -21,7 +21,7 @@ export const meHandler = async ({ ctx }: MeOptions) => {
     sessionUser
   );
 
-  const user = await UserRepository.enrichUserWithProfile({
+  const user = await UserRepository.enrichUserWithTheProfile({
     user: sessionUser,
     upId: session.upId,
   });

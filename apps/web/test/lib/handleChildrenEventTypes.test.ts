@@ -41,6 +41,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -60,6 +61,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -85,6 +87,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -120,12 +123,14 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
+          bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           userId: 4,
@@ -165,10 +170,12 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: "somestring",
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...evType,
+          bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: { create: { link: expect.any(String) } },
@@ -197,6 +204,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([]);
@@ -221,6 +229,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       // Have been called
       expect(result.newUserIds).toEqual([5]);
@@ -257,12 +266,14 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
           parentId: 1,
           users: { connect: [{ id: 4 }] },
+          bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: undefined,
@@ -302,6 +313,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
@@ -361,41 +373,34 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
-      expect(prismaMock.eventType.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: {
-            ...evType,
-            durationLimits: undefined,
-            recurringEvent: undefined,
-            hashedLink: undefined,
-            locations: [],
-            parent: {
-              connect: {
-                id: 1,
-              },
-            },
-            owner: {
-              connect: {
+      expect(prismaMock.eventType.create).toHaveBeenCalledWith({
+        data: {
+          ...evType,
+          bookingLimits: undefined,
+          durationLimits: undefined,
+          recurringEvent: undefined,
+          hashedLink: undefined,
+          locations: [],
+          parentId: 1,
+          userId: 5,
+          users: {
+            connect: [
+              {
                 id: 5,
               },
-            },
-            users: {
-              connect: [
-                {
-                  id: 5,
-                },
-              ],
-            },
-            workflows: {
-              create: [{ workflowId: 11 }],
-            },
+            ],
           },
-        })
-      );
+          workflows: {
+            create: [{ workflowId: 11 }],
+          },
+        },
+      });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...evType,
+          bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           hashedLink: undefined,

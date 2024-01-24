@@ -1,6 +1,7 @@
 import type { User as PrismaUser } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Team } from "@calcom/prisma/client";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
@@ -9,6 +10,7 @@ import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
+const log = logger.getSubLogger({ prefix: ["repository/profile"] });
 const organizationSelect = {
   id: true,
   slug: true,
@@ -64,7 +66,7 @@ export class ProfileRepository {
     email: string;
     movedFromUserId?: number;
   }) {
-    logger.debug("Creating profile", { userId, organizationId, username, email });
+    log.debug("_create", safeStringify({ userId, organizationId, username, email }));
     return prisma.profile.create({
       data: {
         uid: ProfileRepository.generateProfileUid(),
@@ -273,9 +275,9 @@ export class ProfileRepository {
 
   static async findByUpId(upId: string) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    logger.debug("findById", { upId, lookupTarget });
+    log.debug("findById", safeStringify({ upId, lookupTarget }));
     if (lookupTarget.type === LookupTarget.User) {
-      const user = await UserRepository.getUserById({ id: lookupTarget.id });
+      const user = await UserRepository.findById({ id: lookupTarget.id });
       if (!user) {
         return null;
       }
@@ -326,15 +328,31 @@ export class ProfileRepository {
     return enrichProfile(profile);
   }
 
-  static async findManyBySlugs({ usernames, orgSlug }: { usernames: string[]; orgSlug: string }) {
-    logger.debug("getProfileBySlugs", { usernames, orgSlug });
+  static async findManyByOrgSlugOrRequestedSlug({
+    usernames,
+    orgSlug,
+  }: {
+    usernames: string[];
+    orgSlug: string;
+  }) {
+    logger.debug("findManyByOrgSlugOrRequestedSlug", safeStringify({ usernames, orgSlug }));
     const profiles = await prisma.profile.findMany({
       where: {
         username: {
           in: usernames,
         },
         organization: {
-          slug: orgSlug,
+          OR: [
+            {
+              slug: orgSlug,
+            },
+            {
+              metadata: {
+                path: ["requestedSlug"],
+                equals: orgSlug,
+              },
+            },
+          ],
         },
       },
       include: {

@@ -226,7 +226,7 @@ export async function getDynamicEventType(
     });
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
-  const { where } = await UserRepository._getWhereClauseForGettingUsers({
+  const { where } = await UserRepository._getWhereClauseForFindingUsersByUsername({
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     usernameList: Array.isArray(input.usernameList)
       ? input.usernameList
@@ -620,7 +620,7 @@ async function getUserIdFromUsername(
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
 
-  const [user] = await UserRepository.getUsersFromUsernameInOrgContext({
+  const [user] = await UserRepository.findUsersByUsername({
     usernameList: [username],
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });

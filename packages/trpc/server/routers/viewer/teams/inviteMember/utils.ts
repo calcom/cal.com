@@ -104,7 +104,7 @@ export function validateInviteeEligibility(invitee: UserWithMembership, team: Te
   // invitee is invited to the org's team and is already part of the organization
   if (
     team.parentId &&
-    UserRepository.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
     return;
   }
@@ -434,7 +434,7 @@ export function shouldAutoJoinIfInOrg({
   }
 
   // Not a member of the org
-  if (!UserRepository.isUserAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
+  if (!UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
     return false;
   }
 

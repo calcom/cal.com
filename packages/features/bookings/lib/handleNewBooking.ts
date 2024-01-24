@@ -409,7 +409,7 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
       const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(req);
-      const users = await getUsersFromUsernameInOrgContext({
+      const users = await findUsersByUsername({
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
@@ -2358,14 +2358,18 @@ function handleCustomInputs(
   });
 }
 
-export const getUsersFromUsernameInOrgContext = async ({
+/**
+ * This method is mostly same as the one in UserRepository but it includes a lot more relations which are specific requirement here
+ * TODO: Figure out how to keep it in UserRepository and use it here
+ */
+export const findUsersByUsername = async ({
   usernameList,
   orgSlug,
 }: {
   orgSlug: string | null;
   usernameList: string[];
 }) => {
-  const { where, profiles } = await UserRepository._getWhereClauseForGettingUsers({
+  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });

@@ -18,6 +18,7 @@ import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -105,7 +106,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await UserRepository.getUserByEmail({ email: credentials.email });
+      const user = await UserRepository.findByEmail({ email: credentials.email });
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
@@ -420,9 +421,10 @@ export const AUTH_OPTIONS: AuthOptions = {
   providers,
   callbacks: {
     async jwt({ token, user, account, trigger, session }) {
+      log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
+
       // The data available in 'session' depends on what data was supplied in update method call of session
       if (trigger === "update") {
-        log.debug("callbacks:jwt:update", { token, user, account, trigger, session });
         return {
           ...token,
           profileId: session?.profileId ?? token.profileId ?? null,
@@ -461,9 +463,12 @@ export const AUTH_OPTIONS: AuthOptions = {
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        log.debug("callbacks:jwt:autoMergeIdentities", {
-          allProfiles,
-        });
+        log.debug(
+          "callbacks:jwt:autoMergeIdentities",
+          safeStringify({
+            allProfiles,
+          })
+        );
         const { upId } = determineProfile({ profiles: allProfiles, token });
 
         const profile = await ProfileRepository.findByUpId(upId);
@@ -499,7 +504,6 @@ export const AUTH_OPTIONS: AuthOptions = {
         return token;
       }
       if (account.type === "credentials") {
-        console.log('account.type === "credentials"');
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
           return token;
@@ -516,7 +520,8 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
-          profileId: user.profile?.id ?? null,
+          profileId: user.profile?.id ?? token.profileId ?? null,
+          upId: user.profile?.upId ?? token.upId ?? null,
         } as JWT;
       }
 
@@ -562,7 +567,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       return token;
     },
     async session({ session, token, user }) {
-      log.debug("callbacks:session - Session callback called", { session, token, user });
+      log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const hasValidLicense = await checkLicense(prisma);
       const profileId = token.profileId;
       const calendsoSession: Session = {

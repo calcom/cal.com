@@ -77,17 +77,14 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const profileId = session.profileId ?? null;
   const upId = session.upId;
 
-  logger.debug(
-    "getUserFromSession: enriching user with profile",
-    safeStringify({ userFromDb, profileId, upId })
-  );
-  const user = await UserRepository.enrichUserWithProfile({
+  const user = await UserRepository.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });
+
+  logger.debug("getUserFromSession: enriching user with profile", safeStringify({ user, userFromDb, upId }));
 
   const { email, username, id } = user;
   if (!email || !id) {
@@ -104,6 +101,11 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     (member) => (member.role === "ADMIN" || member.role === "OWNER") && member.userId === user.id
   ).length;
 
+  if (isOrgAdmin) {
+    logger.debug("User is an org admin", safeStringify({ userId: user.id }));
+  } else {
+    logger.debug("User is not an org admin", safeStringify({ userId: user.id }));
+  }
   // Want to reduce the amount of data being sent
   if (isOrgAdmin && user.profile?.organization?.members) {
     user.profile.organization.members = [];

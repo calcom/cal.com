@@ -74,7 +74,7 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const user = await UserRepository.enrichUserWithProfile({
+  const user = await UserRepository.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });

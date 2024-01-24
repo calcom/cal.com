@@ -118,7 +118,7 @@ export const getPublicEvent = async (
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await UserRepository.getUsersFromUsernameInOrgContext({
+    const usersInOrgContext = await UserRepository.findUsersByUsername({
       usernameList,
       orgSlug: org,
     });

@@ -7,7 +7,7 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
   const premium = !!process.env.NEXT_PUBLIC_IS_E2E && username.length < 5;
 
   const profiles = currentOrgDomain
-    ? await ProfileRepository.findManyBySlugs({
+    ? await ProfileRepository.findManyByOrgSlugOrRequestedSlug({
         orgSlug: currentOrgDomain,
         usernames: [username],
       })

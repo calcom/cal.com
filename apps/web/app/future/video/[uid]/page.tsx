@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
-import { UserRepository, ORGANIZATION_ID_UNKNOWN } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -61,9 +61,8 @@ async function getData(context: GetServerSidePropsContext) {
 
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithOrganizationProfile({
+        await UserRepository.enrichUserWithItsProfile({
           user: booking.user,
-          organizationId: ORGANIZATION_ID_UNKNOWN,
         })
       ).profile
     : null;

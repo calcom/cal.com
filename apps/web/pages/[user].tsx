@@ -324,7 +324,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       return result;
     }
   }
-  const usersInOrgContext = await UserRepository.getUsersFromUsernameInOrgContext({
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
     usernameList,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
