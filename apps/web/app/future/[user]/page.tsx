@@ -1,4 +1,3 @@
-import LegacyPage, { getServerSideProps, type UserPageProps } from "@pages/[user]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -7,7 +6,10 @@ import { headers, cookies } from "next/headers";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 
+import { getServerSideProps, type UserPageProps } from "@lib/[user]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import LegacyPage from "@components/pages/[user]";
 
 export const generateMetadata = async ({
   params,
