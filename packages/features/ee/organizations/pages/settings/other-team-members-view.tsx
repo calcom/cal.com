@@ -192,7 +192,12 @@ const MembersView = () => {
             {team && (
               <>
                 <hr className="border-subtle my-8" />
-                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={false} />
+                <MakeTeamPrivateSwitch
+                  teamId={team.id}
+                  isPrivate={team.isPrivate}
+                  disabled={false}
+                  isOrg={false}
+                />
               </>
             )}
           </div>
