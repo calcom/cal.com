@@ -100,10 +100,15 @@ const AppearanceView = ({
     reset: resetBookerLayoutThemeReset,
   } = bookerLayoutFormMethods;
 
+  const DEFAULT_BRAND_COLOURS = {
+    light: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    dark: user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+  };
+
   const brandColorsFormMethods = useForm({
     defaultValues: {
-      brandColor: user.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
-      darkBrandColor: user.darkBrandColor || DEFAULT_DARK_BRAND_COLOR,
+      brandColor: DEFAULT_BRAND_COLOURS.light,
+      darkBrandColor: DEFAULT_BRAND_COLOURS.dark,
     },
   });
 
@@ -233,12 +238,12 @@ const AppearanceView = ({
               <Controller
                 name="brandColor"
                 control={brandColorsFormMethods.control}
-                defaultValue={user.brandColor}
+                defaultValue={DEFAULT_BRAND_COLOURS.light}
                 render={() => (
                   <div>
                     <p className="text-default mb-2 block text-sm font-medium">{t("light_brand_color")}</p>
                     <ColorPicker
-                      defaultValue={user.brandColor}
+                      defaultValue={DEFAULT_BRAND_COLOURS.light}
                       resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
                       onChange={(value) => {
                         try {
@@ -262,12 +267,12 @@ const AppearanceView = ({
               <Controller
                 name="darkBrandColor"
                 control={brandColorsFormMethods.control}
-                defaultValue={user.darkBrandColor}
+                defaultValue={DEFAULT_BRAND_COLOURS.dark}
                 render={() => (
                   <div className="mt-6 sm:mt-0">
                     <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
                     <ColorPicker
-                      defaultValue={user.darkBrandColor}
+                      defaultValue={DEFAULT_BRAND_COLOURS.dark}
                       resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
                       onChange={(value) => {
                         try {
@@ -312,7 +317,7 @@ const AppearanceView = ({
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("disable_cal_branding", { appName: APP_NAME })}
-        disabled={!hasPaidPlan || mutation?.isLoading}
+        disabled={!hasPaidPlan || mutation?.isPending}
         description={t("removes_cal_branding", { appName: APP_NAME })}
         checked={hasPaidPlan ? hideBrandingValue : false}
         Badge={<UpgradeTeamsBadge />}
@@ -327,12 +332,12 @@ const AppearanceView = ({
 };
 
 const AppearanceViewWrapper = () => {
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  const { isLoading: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
+  const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
 
   const { t } = useLocale();
 
-  if (isLoading || isTeamPlanStatusLoading || !user)
+  if (isPending || isTeamPlanStatusLoading || !user)
     return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   return <AppearanceView user={user} hasPaidPlan={hasPaidPlan} />;

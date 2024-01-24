@@ -35,7 +35,7 @@ export interface InstallAppButtonProps {
     renderProps: ButtonProps & {
       /** Tells that the default render component should be used */
       useDefaultComponent?: boolean;
-      isLoading?: boolean;
+      isPending?: boolean;
     }
   ) => JSX.Element;
   onChanged?: () => unknown;

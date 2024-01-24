@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -66,7 +68,7 @@ function ConnectAndJoin() {
                 </div>
               ) : (
                 <Button
-                  loading={mutation.isLoading}
+                  loading={mutation.isPending}
                   tooltip={isUserPartOfOrg ? t("join_meeting") : t("not_part_of_org")}
                   disabled={!isUserPartOfOrg}
                   onClick={() => {

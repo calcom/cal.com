@@ -18,12 +18,13 @@ type TBookingRedirect = {
 };
 
 export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
-  if (!input.startDate || !input.endDate) {
+  const { startDate, endDate } = input.dateRange;
+  if (!startDate || !endDate) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
   }
 
-  const inputStartTime = dayjs(input.startDate).startOf("day");
-  const inputEndTime = dayjs(input.endDate).endOf("day");
+  const inputStartTime = dayjs(startDate).startOf("day");
+  const inputEndTime = dayjs(endDate).endOf("day");
   const offset = dayjs(inputStartTime).utcOffset();
 
   // If start date is after end date throw error
@@ -133,12 +134,14 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
+  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
+  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
   const createdRedirect = await prisma.outOfOfficeEntry.create({
     data: {
       uuid: uuidv4(),
-      start: dayjs(input.startDate).startOf("day").toISOString(),
-      end: dayjs(input.endDate).endOf("day").toISOString(),
+      start: startDateUtc.startOf("day").toISOString(),
+      end: endDateUtc.endOf("day").toISOString(),
       userId: ctx.user.id,
       toUserId: toUserId,
       createdAt: new Date(),

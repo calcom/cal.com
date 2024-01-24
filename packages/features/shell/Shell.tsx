@@ -33,8 +33,15 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+  IS_VISUAL_REGRESSION_TESTING,
+  TOP_BANNER_HEIGHT,
+} from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -88,7 +95,6 @@ import {
   Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -194,13 +200,13 @@ function useRedirectToOnboardingIfNeeded() {
 type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
 
 const useBanners = () => {
-  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
-  if (isLoading || !userSession) return null;
+  if (isPending || !userSession) return null;
 
   const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
-  const userImpersonatedByUID = userSession?.user.impersonatedByUID;
+  const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
 
   const userSessionBanners = {
     adminPasswordBanner: isUserInactiveAdmin ? userSession : null,
@@ -765,7 +771,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -892,7 +898,7 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
-              <Link href="/settings/organizations/profile" className="mt-3 w-full px-1.5">
+              <Link href="/settings/organizations/profile" className="w-full px-1.5">
                 <div className="flex items-center gap-2 font-medium">
                   <Avatar
                     alt={`${orgBranding.name} logo`}
@@ -1030,7 +1036,7 @@ export function ShellMain(props: LayoutProps) {
                   </h3>
                 )}
                 {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block">
+                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
                     {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                   </p>
                 )}

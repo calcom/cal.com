@@ -22,6 +22,7 @@ import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016cal
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
+import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
@@ -29,6 +30,7 @@ import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
+import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
 import intercom_config_json from "./intercom/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
@@ -36,6 +38,7 @@ import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
+import mock_payment_app_config_json from "./mock-payment-app/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
@@ -101,6 +104,7 @@ export const appStoreMetadata = {
   exchangecalendar: exchangecalendar_config_json,
   facetime: facetime_config_json,
   fathom: fathom_config_json,
+  feishucalendar: feishucalendar__metadata_ts,
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
@@ -108,6 +112,7 @@ export const appStoreMetadata = {
   gtm: gtm_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
+  "ics-feedcalendar": ics_feedcalendar_config_json,
   intercom: intercom_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
@@ -115,6 +120,7 @@ export const appStoreMetadata = {
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
+  "mock-payment-app": mock_payment_app_config_json,
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
