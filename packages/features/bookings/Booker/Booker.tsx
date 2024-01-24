@@ -87,7 +87,7 @@ const BookerComponent = ({
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
-    (!process.env.BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
+    (!process.env.NEXT_PUBLIC_BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
       layout === BookerLayouts.WEEK_VIEW &&
       !!extraDays &&
       dayjs(date).month() !== dayjs(date).add(extraDays, "day").month()) ||
@@ -95,7 +95,7 @@ const BookerComponent = ({
       dayjs(date).month() !== dayjs(date).add(columnViewExtraDays.current, "day").month());
 
   const monthCount =
-    !process.env.BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
+    !process.env.NEXT_PUBLIC_BOOKER_DISALLOW_PREFETCH_NEXT_MONTH &&
     ((layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
       layout === BookerLayouts.COLUMN_VIEW) &&
     dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
