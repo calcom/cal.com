@@ -11,9 +11,9 @@
       "import": "./index.ts",
       "require": "./index.ts"
     },
-    "./dist/packages/lib/*.js": {
-      "import": "./dist/packages/lib/*.js",
-      "require": "./dist/packages/lib/*.js",
+    "./dist/packages/lib/*": {
+      "import": "./dist/packages/lib/*",
+      "require": "./dist/packages/lib/*",
       "types": "./dist/packages/lib/*.d.ts"
     },
     "./*": {

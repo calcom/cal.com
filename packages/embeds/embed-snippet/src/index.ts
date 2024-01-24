@@ -10,10 +10,11 @@ import type { Optional } from "@calcom/types/utils";
  * So, write the code that you need directly but keep it short.
  */
 
-const WEBAPP_URL =
-  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
 
-const EMBED_LIB_URL = import.meta.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const EMBED_LIB_URL = process.env.EMBED_PUBLIC_EMBED_LIB_URL || `${WEBAPP_URL}/embed/embed.js`;
 
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
   (function (C, A, L) {

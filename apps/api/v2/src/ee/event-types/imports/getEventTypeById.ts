@@ -1,4 +1,5 @@
+import { getEventTypeById as abc } from "@calcom/lib/dist/packages/lib/getEventTypeById.js";
+
 export async function getEventTypeById(props: any) {
-  const { getEventTypeById } = await import("@calcom/lib/dist/packages/lib/getEventTypeById");
-  return getEventTypeById(props);
+  return abc(props);
 }

@@ -192,7 +192,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async listCalendars(): Promise<IntegrationCalendar[]> {
+  async listCalendars(): Promise<any> {
     try {
       const allFolders: IntegrationCalendar[] = [];
       return this.getExchangeService()

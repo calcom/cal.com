@@ -144,7 +144,7 @@ export default class ExchangeCalendarService implements Calendar {
 
   async getAvailability(dateFrom: string, dateTo: string, selectedCalendars: IntegrationCalendar[]) {
     try {
-      const externalCalendars = await this.listCalendars();
+      const externalCalendars: any = await this.listCalendars();
       const calendarsToGetAppointmentsFrom = [];
       for (let i = 0; i < selectedCalendars.length; i++) {
         //Only select vaild calendars! (We get all all active calendars on the instance! even from different users!)
@@ -187,7 +187,7 @@ export default class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async listCalendars() {
+  async listCalendars(): Promise<any> {
     try {
       const allFolders: IntegrationCalendar[] = [];
       return this.getExchangeService()

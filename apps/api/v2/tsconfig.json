@@ -16,8 +16,11 @@
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
+    "jsx": "preserve",
+    "resolveJsonModule": true,
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": [".", "../../../packages/types/*.d.ts"]
 }
