@@ -19,7 +19,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
+import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import type { AppProps } from "@lib/app-providers";
@@ -27,7 +27,6 @@ import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { type PageProps } from "@lib/team/[slug]/getServerSideProps";
 
 import Team from "@components/team/screens/Team";
-import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
 const TeamPage: React.FC<PageProps> & {
   isBookingPage?: AppProps["Component"]["isBookingPage"];
