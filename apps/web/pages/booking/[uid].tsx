@@ -88,9 +88,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-type SuccessProps = inferSSRProps<typeof getServerSideProps>;
-
-export default function Success(props: SuccessProps) {
+export default function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -759,7 +757,7 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email}
-                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black  sm:text-sm"
+                          className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
                         <Button
@@ -829,8 +827,8 @@ Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
-  eventType: SuccessProps["eventType"];
-  recurringBookings: SuccessProps["recurringBookings"];
+  eventType: PageProps["eventType"];
+  recurringBookings: PageProps["recurringBookings"];
   date: dayjs.Dayjs;
   duration: number | undefined;
   is24h: boolean;
@@ -895,10 +893,16 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(date, tz), language, "full", tz)}
+                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
                     <br />
-                    {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
-                    {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+                    {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+                    {formatToLocalizedTime(
+                      dayjs(dateStr).add(duration, "m"),
+                      language,
+                      undefined,
+                      !is24h,
+                      tz
+                    )}{" "}
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>

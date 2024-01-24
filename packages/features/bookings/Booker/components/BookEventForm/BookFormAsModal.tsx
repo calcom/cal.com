@@ -1,4 +1,5 @@
 import { Calendar, Clock } from "lucide-react";
+import type { ReactNode } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,9 +8,8 @@ import { Badge, Dialog, DialogContent } from "@calcom/ui";
 import { useTimePreferences } from "../../../lib";
 import { useBookerStore } from "../../store";
 import { useEvent } from "../../utils/event";
-import { BookEventForm } from "./BookEventForm";
 
-const BookEventFormWrapper = ({ onCancel }: { onCancel: () => void }) => {
+const BookEventFormWrapper = ({ children }: { onCancel: () => void; children: ReactNode }) => {
   const { t } = useLocale();
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
@@ -31,19 +31,27 @@ const BookEventFormWrapper = ({ onCancel }: { onCancel: () => void }) => {
           </Badge>
         )}
       </div>
-      <BookEventForm onCancel={onCancel} />
+      {children}
     </>
   );
 };
 
-export const BookFormAsModal = ({ visible, onCancel }: { visible: boolean; onCancel: () => void }) => {
+export const BookFormAsModal = ({
+  visible,
+  onCancel,
+  children,
+}: {
+  visible: boolean;
+  onCancel: () => void;
+  children: ReactNode;
+}) => {
   return (
     <Dialog open={visible} onOpenChange={onCancel}>
       <DialogContent
         type={undefined}
         enableOverflow
         className="[&_.modalsticky]:border-t-subtle [&_.modalsticky]:bg-default max-h-[80vh] pb-0 [&_.modalsticky]:sticky [&_.modalsticky]:bottom-0 [&_.modalsticky]:left-0 [&_.modalsticky]:right-0 [&_.modalsticky]:-mx-8 [&_.modalsticky]:border-t [&_.modalsticky]:px-8 [&_.modalsticky]:py-4">
-        <BookEventFormWrapper onCancel={onCancel} />
+        <BookEventFormWrapper onCancel={onCancel}>{children}</BookEventFormWrapper>
       </DialogContent>
     </Dialog>
   );

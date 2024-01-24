@@ -36,7 +36,7 @@ export type DatePickerProps = {
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
-  isLoading?: boolean;
+  isPending?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
 };
@@ -206,7 +206,7 @@ const Days = ({
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
-          ) : props.isLoading ? (
+          ) : props.isPending ? (
             <button
               className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50"
               key={`e-${idx}`}
@@ -226,7 +226,7 @@ const Days = ({
         </div>
       ))}
 
-      {!props.isLoading && includedDates && includedDates?.length === 0 && (
+      {!props.isPending && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
     </>

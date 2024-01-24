@@ -600,7 +600,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         eventType={eventType}
         team={team}
         availability={availability}
-        isUpdateMutationLoading={updateMutation.isLoading}
+        isUpdateMutationLoading={updateMutation.isPending}
         formMethods={formMethods}
         // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
         disableBorder={true}
@@ -705,7 +705,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       {slugExistsChildrenDialogOpen.length ? (
         <ManagedEventTypeDialog
           slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
-          isLoading={formMethods.formState.isSubmitting}
+          isPending={formMethods.formState.isSubmitting}
           onOpenChange={() => {
             setSlugExistsChildrenDialogOpen([]);
           }}

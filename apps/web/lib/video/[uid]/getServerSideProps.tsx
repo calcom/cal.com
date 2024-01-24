@@ -10,7 +10,7 @@ import { ssrInit } from "@server/lib/ssr";
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
+  const { req } = context;
 
   const ssr = await ssrInit(context);
 
@@ -79,7 +79,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     endTime: booking.endTime.toString(),
   });
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   // set meetingPassword to null for guests
   if (session?.user.id !== bookingObj.user?.id) {

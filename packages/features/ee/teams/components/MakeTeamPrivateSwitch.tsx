@@ -34,7 +34,7 @@ const MakeTeamPrivateSwitch = ({
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("make_team_private")}
-        disabled={disabled || mutation?.isLoading}
+        disabled={disabled || mutation?.isPending}
         description={t("make_team_private_description")}
         checked={isTeamPrivate}
         onCheckedChange={(checked) => {
