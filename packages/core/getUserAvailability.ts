@@ -94,7 +94,7 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (...args: Parameters<typeof _getUser>): ReturnType<typeof _getUser> => {
+const getUser = (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
   return monitorCallbackAsync(_getUser, ...args);
 };
 
@@ -114,7 +114,7 @@ type User = Awaited<ReturnType<typeof getUser>>;
 
 export const getCurrentSeats = (
   ...args: Parameters<typeof _getCurrentSeats>
-): ReturnType<typeof _getCurrentSeats> => {
+): Promise<ReturnType<typeof _getCurrentSeats>> => {
   return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
