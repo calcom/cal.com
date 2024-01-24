@@ -9,5 +9,5 @@ export const map = publicProcedure.query(async ({ ctx }) => {
   const { prisma } = ctx;
   const session = await getServerSession({ req: ctx.req as NextApiRequest });
 
-  return getFeatureFlagMap(prisma, session?.user.id);
+  return getFeatureFlagMap(prisma, session?.user);
 });

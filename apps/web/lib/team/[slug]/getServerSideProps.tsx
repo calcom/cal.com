@@ -27,7 +27,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
   const session = await getServerSession({ req: context.req });
-  const flags = await getFeatureFlagMap(prisma, session?.user.id);
+  const flags = await getFeatureFlagMap(prisma, session?.user);
   const isOrganizationFeatureEnabled = flags["organizations"];
 
   log.debug("getServerSideProps", {

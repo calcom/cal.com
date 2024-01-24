@@ -2,6 +2,7 @@
 
 import type { GetServerSidePropsContext } from "next";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { CreateANewOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
@@ -39,7 +40,8 @@ export const WrappedCreateNewOrganizationPage = (page: React.ReactElement) => {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
+  const session = await getServerSession({ req: context.req });
+  const flags = await getFeatureFlagMap(prisma, session?.user);
   // Check if organizations are enabled
   if (flags["organizations"] !== true) {
     return {

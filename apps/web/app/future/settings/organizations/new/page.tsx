@@ -16,7 +16,7 @@ export const generateMetadata = async () =>
 const getPageProps = async (context: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const session = await getServerSession({ req: context.req });
-  const flags = await getFeatureFlagMap(prisma, session?.user.id);
+  const flags = await getFeatureFlagMap(prisma, session?.user);
   // Check if organizations are enabled
   if (flags["organizations"] !== true) {
     return notFound();

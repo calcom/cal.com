@@ -8,7 +8,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const session = await getServerSession({ req, res });
 
-  const flags = await getFeatureFlagMap(prisma, session?.user.id);
+  const flags = await getFeatureFlagMap(prisma, session?.user);
   // Check if organizations are enabled
   if (flags["organizations"] !== true) {
     return {

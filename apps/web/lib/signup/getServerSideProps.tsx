@@ -27,7 +27,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const session = await getServerSession({ req: ctx.req });
 
-  const flags = await getFeatureFlagMap(prisma, session?.user.id);
+  const flags = await getFeatureFlagMap(prisma, session?.user);
   const ssr = await ssrInit(ctx);
   const token = z.string().optional().parse(ctx.query.token);
 

@@ -113,7 +113,7 @@ InsightsPage.getLayout = getLayout;
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const session = await getServerSession({ req: ctx.req });
-  const flags = await getFeatureFlagMap(prisma, session?.user.id);
+  const flags = await getFeatureFlagMap(prisma, session?.user);
 
   if (flags.insights === false) {
     return {
