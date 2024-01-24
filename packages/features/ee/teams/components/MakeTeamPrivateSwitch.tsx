@@ -8,10 +8,12 @@ const MakeTeamPrivateSwitch = ({
   teamId,
   isPrivate,
   disabled,
+  isOrg,
 }: {
   teamId: number;
   isPrivate: boolean;
   disabled: boolean;
+  isOrg: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -23,7 +25,7 @@ const MakeTeamPrivateSwitch = ({
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
-      showToast(t("your_team_updated_successfully"), "success");
+      showToast(t(isOrg ? "your_org_updated_successfully" : "your_team_updated_successfully"), "success");
     },
   });
 
@@ -33,9 +35,9 @@ const MakeTeamPrivateSwitch = ({
     <>
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
-        title={t("make_team_private")}
+        title={t(isOrg ? "make_org_private" : "make_team_private")}
         disabled={disabled || mutation?.isPending}
-        description={t("make_team_private_description")}
+        description={t(isOrg ? "make_org_private_description" : "make_team_private_description")}
         checked={isTeamPrivate}
         onCheckedChange={(checked) => {
           setTeamPrivate(checked);
