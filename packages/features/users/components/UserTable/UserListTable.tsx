@@ -1,13 +1,14 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, DataTable, Checkbox } from "@calcom/ui";
+import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -114,14 +115,14 @@ export function UserListTable() {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
 
-  const { data, isLoading, fetchNextPage, isFetching } =
+  const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
+        placeholderData: keepPreviousData,
       }
     );
 
@@ -329,7 +330,7 @@ export function UserListTable() {
         }
         columns={memorisedColumns}
         data={flatData}
-        isLoading={isLoading}
+        isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         filterableItems={[
           {

@@ -305,7 +305,7 @@ export default function CreateEventTypeDialog({
           </div>
           <DialogFooter showDivider>
             <DialogClose />
-            <Button type="submit" loading={createMutation.isLoading}>
+            <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

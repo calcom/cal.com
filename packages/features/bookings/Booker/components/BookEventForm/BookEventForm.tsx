@@ -51,6 +51,7 @@ export const BookEventForm = ({
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const [expiryTime, setExpiryTime] = useState<Date | undefined>();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -62,7 +63,7 @@ export const BookEventForm = ({
   }, [eventType]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
-  if (eventQuery.isLoading || !eventQuery.data) return <FormSkeleton />;
+  if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
     return (
       <EmptyScreen

@@ -41,8 +41,13 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
   const pathname = usePathname();
   const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
 
-  const mutation = useMutation<AddAppMutationData, Error, useAddAppMutationVariables | "">(
-    async (variables) => {
+  const mutation = useMutation<
+    AddAppMutationData,
+    Error,
+    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean; teamId?: number } | ""
+  >({
+    ...options,
+    mutationFn: async (variables) => {
       let type: string | null | undefined;
       let isOmniInstall;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
@@ -68,7 +73,6 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
               location.search
             ),
         onErrorReturnTo,
-        fromApp: true,
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
       };
@@ -102,8 +106,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 
       return { setupPending: externalUrl || json.url.endsWith("/setup") };
     },
-    options
-  );
+  });
 
   return mutation;
 }

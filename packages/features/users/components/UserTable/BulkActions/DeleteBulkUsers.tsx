@@ -33,7 +33,7 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
         variety="danger"
         title={t("remove_users_from_org")}
         confirmBtnText={t("remove")}
-        isLoading={deleteMutation.isLoading}
+        isPending={deleteMutation.isPending}
         onConfirm={() => {
           deleteMutation.mutateAsync({
             userIds: selectedRows.map((user) => user.id),

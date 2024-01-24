@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -50,14 +51,23 @@ const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const {
+    data: currentOrg,
+    isPending,
+    error,
+  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
   const { data: user } = trpc.viewer.me.useQuery();
 
-  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
+
+  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!currentOrg) {
     return null;
   }

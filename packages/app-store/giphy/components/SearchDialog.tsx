@@ -23,15 +23,15 @@ export const SearchDialog = (props: ISearchDialog) => {
   const [nextOffset, setNextOffset] = useState<number>(0);
   const [keyword, setKeyword] = useState<string>("");
   const { isOpenDialog, setIsOpenDialog } = props;
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedMode, setSelectedMode] = useState<Mode>(MODE_SEARCH);
 
   const searchGiphy = async (keyword: string, offset: number) => {
-    if (isLoading) {
+    if (isPending) {
       return;
     }
-    setIsLoading(true);
+    setIsPending(true);
     setErrorMessage("");
     const res = await fetch("/api/integrations/giphy/search", {
       method: "POST",
@@ -53,15 +53,15 @@ export const SearchDialog = (props: ISearchDialog) => {
         setErrorMessage("No Result found");
       }
     }
-    setIsLoading(false);
+    setIsPending(false);
     return null;
   };
 
   const getGiphyByUrl = async (url: string) => {
-    if (isLoading) {
+    if (isPending) {
       return;
     }
-    setIsLoading(true);
+    setIsPending(true);
     setErrorMessage("");
     const res = await fetch("/api/integrations/giphy/get", {
       method: "POST",
@@ -81,7 +81,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         setErrorMessage("No Result found");
       }
     }
-    setIsLoading(false);
+    setIsPending(false);
     return null;
   };
 
@@ -139,14 +139,14 @@ export const SearchDialog = (props: ISearchDialog) => {
               }}
             />
           </div>
-          <Button type="submit" tabIndex={-1} color="secondary" loading={isLoading}>
+          <Button type="submit" tabIndex={-1} color="secondary" loading={isPending}>
             {t("search")}
           </Button>
         </form>
         {gifImage && (
           <div className="flex flex-col items-center space-x-2 space-y-2 pt-3 rtl:space-x-reverse">
             <div className="bg-subtle flex w-full items-center justify-center">
-              {isLoading ? (
+              {isPending ? (
                 <div className="flex h-[200px] w-full items-center justify-center bg-gray-400 pb-3 pt-3">
                   <svg
                     className={classNames("mx-4 h-5 w-5 animate-spin", "text-inverted dark:text-emphasis")}
@@ -182,7 +182,7 @@ export const SearchDialog = (props: ISearchDialog) => {
               size="sm"
               color="secondary"
               type="button"
-              loading={isLoading}
+              loading={isPending}
               onClick={() => searchGiphy(keyword, nextOffset)}>
               Shuffle
             </Button>
