@@ -13,7 +13,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
-import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
