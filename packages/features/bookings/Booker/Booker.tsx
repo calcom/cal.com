@@ -1,4 +1,5 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
@@ -70,6 +71,7 @@ const BookerComponent = ({
     shallow
   );
   const event = useEvent();
+  const session = useSession();
   const { selectedTimeslot, setSelectedTimeslot } = useSlots(event);
 
   const {
@@ -362,7 +364,7 @@ const BookerComponent = ({
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
                 <Header
-                  isMyLink={Boolean(username === event?.data?.owner?.username)}
+                  isMyLink={Boolean(username === session?.data?.user.username)}
                   eventSlug={eventSlug}
                   enabledLayouts={bookerLayouts.enabledLayouts}
                   extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
