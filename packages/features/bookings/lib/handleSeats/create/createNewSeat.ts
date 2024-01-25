@@ -27,7 +27,6 @@ const createNewSeat = async (
     attendeeLanguage,
     invitee,
     eventType,
-    reqBookingUid,
     additionalNotes,
     noEmail,
     paymentAppData,
@@ -66,7 +65,7 @@ const createNewSeat = async (
 
   await prisma.booking.update({
     where: {
-      uid: reqBookingUid,
+      uid: seatedBooking.uid,
     },
     include: {
       attendees: true,

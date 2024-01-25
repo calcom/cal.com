@@ -17,7 +17,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventType,
     reqBodyUser,
     rescheduleUid,
-    reqBookingUid,
     invitee,
     bookerEmail,
     smsReminderNumber,
@@ -37,9 +36,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   const seatedBooking: SeatedBooking | null = await prisma.booking.findFirst({
     where: {
       OR: [
-        {
-          uid: rescheduleUid || reqBookingUid,
-        },
         {
           eventTypeId: eventType.id,
           startTime: evt.startTime,
@@ -62,8 +58,13 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     },
   });
 
-  if (!seatedBooking) {
+  if (!seatedBooking && rescheduleUid) {
     throw new HttpError({ statusCode: 404, message: ErrorCode.BookingNotFound });
+  }
+
+  // We might be trying to create a new booking
+  if (!seatedBooking) {
+    return;
   }
 
   // See if attendee is already signed up for timeslot
