@@ -60,7 +60,7 @@ export const useScheduleForEvent = ({
   month?: string | null;
   duration?: number | null;
   monthCount?: number;
-  dayCount?: number;
+  dayCount?: number | null;
   selectedDate?: string | null;
 } = {}) => {
   const { timezone } = useTimePreferences();
