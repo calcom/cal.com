@@ -1,11 +1,13 @@
-import LegacyPage, { getServerSideProps, type PageProps } from "@pages/[user]/[type]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
 
+import { getServerSideProps, type PageProps } from "@lib/[user]/[type]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import LegacyPage from "@components/pages/[user]/[type]";
 
 export const generateMetadata = async ({
   params,

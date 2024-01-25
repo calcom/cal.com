@@ -1,5 +1,3 @@
-"use client";
-
 import { getServerSideProps as _getServerSideProps } from "@lib/[user]/getServerSideProps";
 import withEmbedSsr from "@lib/withEmbedSsr";
 
