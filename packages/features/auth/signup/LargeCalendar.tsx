@@ -162,7 +162,7 @@ export const LargeCalendar = ({
         maxHeight: `calc(100vh - ${allRoundedCorners ? "26rem" : "6rem"})`,
       }}>
       <Calendar
-        isLoading={false}
+        isPending={false}
         availableTimeslots={availableTimeslots}
         startHour={0}
         endHour={23}
