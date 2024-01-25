@@ -4,7 +4,7 @@
     "jsx": "react",
     "target": "ES2015",
     "module": "esnext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "baseUrl": ".",
     "outDir": "dist",
     "paths": {
