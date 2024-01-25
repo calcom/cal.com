@@ -32,11 +32,26 @@ export const useSchedule = ({
   isTeamEvent,
 }: UseScheduleWithCacheArgs) => {
   const monthDayjs = month ? dayjs(month) : dayjs();
-
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typescript.
+  let startTime;
+  let endTime;
+
+  if (dayCount > 0) {
+    if (selectedDate) {
+      startTime = dayjs(selectedDate).toISOString();
+      endTime = dayjs(selectedDate).add(dayCount, "day").toISOString();
+    } else {
+      startTime = monthDayjs.startOf("month").toISOString();
+      endTime = monthDayjs.startOf("month").add(dayCount, "day").toISOString();
+    }
+  } else {
+    startTime = monthDayjs.startOf("month").toISOString();
+    endTime = (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString();
+  }
+
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -47,15 +62,9 @@ export const useSchedule = ({
       ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
-      startTime:
-        selectedDate && dayCount && dayCount > 0
-          ? dayjs(selectedDate).toISOString()
-          : monthDayjs.startOf("month").toISOString(),
+      startTime,
       // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime:
-        selectedDate && dayCount && dayCount > 0
-          ? dayjs(selectedDate).add(dayCount, "day").toISOString()
-          : (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
+      endTime,
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,

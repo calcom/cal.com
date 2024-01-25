@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
+import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
@@ -105,6 +106,11 @@ export type BookerStore = {
   occurenceCount: number | null;
   setOccurenceCount(count: number | null): void;
   /**
+   * The number of days worth of schedules to load.
+   */
+  dayCount: string | null;
+  setDayCount: (dayCount: string | null) => void;
+  /**
    * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
    * the current booking details are passed in. The `bookingData`
    * object is something that's fetched server side.
@@ -204,6 +210,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ month, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
+  },
+  dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : undefined,
+  setDayCount: (dayCount: string | null) => {
+    set({ dayCount });
   },
   isTeamEvent: false,
   seatedEventData: {

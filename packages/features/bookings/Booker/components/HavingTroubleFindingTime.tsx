@@ -22,7 +22,7 @@ export function HavingTroubleFindingTime(props: Props) {
 
   // If we have clicked this internally - and the schedule above is not loading - hide this banner as there is no use of being able to go backwards
   if (internalClick && !props.isScheduleLoading) return null;
-  if (props.isScheduleLoading) return null;
+  if (props.isScheduleLoading || !props.dayCount) return null;
 
   return (
     <div className="bg-default border-subtle absolute bottom-[-120px] flex w-full min-w-0 items-center justify-between rounded-[32px] border p-3 text-sm leading-none shadow-sm">

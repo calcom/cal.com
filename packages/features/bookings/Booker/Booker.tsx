@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -12,11 +12,7 @@ import dayjs from "@calcom/dayjs";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
-import {
-  BOOKER_NUMBER_OF_DAYS_TO_LOAD,
-  DEFAULT_LIGHT_BRAND_COLOR,
-  DEFAULT_DARK_BRAND_COLOR,
-} from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -92,11 +88,7 @@ const BookerComponent = ({
     bookerLayouts,
   } = useBookerLayout(event.data);
 
-  const [dayCount, setDayCount] = useState(
-    layout === BookerLayouts.MONTH_VIEW && BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
-      ? BOOKER_NUMBER_OF_DAYS_TO_LOAD
-      : undefined
-  );
+  const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
 
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
@@ -114,6 +106,8 @@ const BookerComponent = ({
       ? 2
       : undefined;
 
+  const searchParams = useSearchParams();
+
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -126,7 +120,7 @@ const BookerComponent = ({
     eventSlug,
     month,
     duration,
-    selectedDate,
+    selectedDate: searchParams?.get("date"),
   });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -159,7 +153,6 @@ const BookerComponent = ({
 
   const { t } = useLocale();
 
-  const searchParams = useSearchParams();
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
 
