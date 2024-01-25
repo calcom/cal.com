@@ -93,9 +93,7 @@ const BookerComponent = ({
   } = useBookerLayout(event.data);
 
   const [dayCount, setDayCount] = useState(
-    layout === BookerLayouts.WEEK_VIEW
-      ? 7
-      : BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+    layout === BookerLayouts.MONTH_VIEW && BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
       ? BOOKER_NUMBER_OF_DAYS_TO_LOAD
       : undefined
   );

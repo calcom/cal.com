@@ -8,7 +8,6 @@ type UseScheduleWithCacheArgs = {
   eventId?: number | null;
   month?: string | null;
   timezone?: string | null;
-  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
   monthCount?: number | null;
@@ -23,7 +22,6 @@ export const useSchedule = ({
   username,
   eventSlug,
   eventId,
-  selectedDate,
   prefetchNextMonth,
   duration,
   monthCount,
@@ -34,7 +32,6 @@ export const useSchedule = ({
   const monthDayjs = month ? dayjs(month) : dayjs();
 
   const nextMonthDayjs = monthDayjs.add(monthCount ? monthCount : 1, "month");
-
   // Why the non-null assertions? All of these arguments are checked in the enabled condition,
   // and the query will not run if they are null. However, the check in `enabled` does
   // no satisfy typescript.
@@ -48,14 +45,11 @@ export const useSchedule = ({
       ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
-      startTime:
-        selectedDate && dayCount && dayCount > 0
-          ? dayjs(selectedDate).toISOString()
-          : monthDayjs.startOf("month").toISOString(),
+      startTime: monthDayjs.startOf("month").toISOString(),
       // if `prefetchNextMonth` is true, two months are fetched at once.
       endTime:
-        selectedDate && dayCount && dayCount > 0
-          ? dayjs(selectedDate).add(dayCount, "day").toISOString()
+        dayCount && dayCount > 0
+          ? monthDayjs.startOf("month").add(dayCount, "day").toISOString()
           : (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
