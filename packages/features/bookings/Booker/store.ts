@@ -108,8 +108,8 @@ export type BookerStore = {
   /**
    * The number of days worth of schedules to load.
    */
-  dayCount: string | null;
-  setDayCount: (dayCount: string | null) => void;
+  dayCount: number | null;
+  setDayCount: (dayCount: number | null) => void;
   /**
    * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
    * the current booking details are passed in. The `bookingData`
@@ -212,7 +212,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     get().setSelectedDate(null);
   },
   dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
-  setDayCount: (dayCount: string | null) => {
+  setDayCount: (dayCount: number | null) => {
     set({ dayCount });
   },
   isTeamEvent: false,
