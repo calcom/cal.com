@@ -21,16 +21,16 @@ const schema = z
     id: z.string(),
     payload: z.object({
       recording_id: z.string(),
-      end_ts: z.number(),
+      end_ts: z.number().optional(),
       room_name: z.string(),
-      start_ts: z.number(),
+      start_ts: z.number().optional(),
       status: z.string(),
 
-      max_participants: z.number(),
-      duration: z.number(),
-      s3_key: z.string(),
+      max_participants: z.number().optional(),
+      duration: z.number().optional(),
+      s3_key: z.string().optional(),
     }),
-    event_ts: z.number(),
+    event_ts: z.number().optional(),
   })
   .passthrough();
 

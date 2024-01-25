@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { extractDomainFromWebsiteUrl } from "@calcom/ee/organizations/lib/utils";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +14,7 @@ import { Alert, Button, Form, TextField } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
 
 import { useOrgBranding } from "../../organizations/context/provider";
+import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import type { NewTeamFormValues } from "../lib/types";
 
 const querySchema = z.object({
@@ -71,7 +71,7 @@ export const CreateANewTeamForm = () => {
       <Form
         form={newTeamFormMethods}
         handleSubmit={(v) => {
-          if (!createTeamMutation.isLoading) {
+          if (!createTeamMutation.isPending) {
             setServerErrorMessage(null);
             createTeamMutation.mutate(v);
           }
@@ -95,7 +95,7 @@ export const CreateANewTeamForm = () => {
                 <TextField
                   disabled={
                     /* E2e is too fast and it tries to fill this way before the form is ready */
-                    !isLocaleReady || createTeamMutation.isLoading
+                    !isLocaleReady || createTeamMutation.isPending
                   }
                   className="mt-2"
                   placeholder="Acme Inc."
@@ -129,7 +129,7 @@ export const CreateANewTeamForm = () => {
                 addOnLeading={`${
                   orgBranding
                     ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}/`
-                    : `${extractDomainFromWebsiteUrl}/team/`
+                    : `${subdomainSuffix()}/team/`
                 }`}
                 value={value}
                 defaultValue={value}
@@ -146,14 +146,14 @@ export const CreateANewTeamForm = () => {
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
-            disabled={createTeamMutation.isLoading}
+            disabled={createTeamMutation.isPending}
             color="secondary"
             href={returnToParam}
             className="w-full justify-center">
             {t("cancel")}
           </Button>
           <Button
-            disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isLoading}
+            disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
             color="primary"
             EndIcon={ArrowRight}
             type="submit"

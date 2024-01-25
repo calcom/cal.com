@@ -1,7 +1,9 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarHeart, Info, Link2, ShieldCheckIcon, StarIcon, Users } from "lucide-react";
-import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
+import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -13,28 +15,22 @@ import { z } from "zod";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { classNames } from "@calcom/lib";
-import { APP_NAME, IS_CALCOM, IS_SELF_HOSTED, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, URL_PROTOCOL_REGEX, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import slugify from "@calcom/lib/slugify";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, HeadSeo, PasswordField, TextField, Form, Alert, showToast } from "@calcom/ui";
 
-import PageWrapper from "@components/PageWrapper";
+import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
-import { ssrInit } from "../server/lib/ssr";
+import PageWrapper from "@components/PageWrapper";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
@@ -42,7 +38,7 @@ const signupSchema = apiSignupSchema.extend({
 
 type FormValues = z.infer<typeof signupSchema>;
 
-type SignupProps = inferSSRProps<typeof getServerSideProps>;
+export type SignupProps = inferSSRProps<typeof getServerSideProps>;
 
 const FEATURES = [
   {
@@ -73,13 +69,16 @@ function UsernameField({
   setPremium,
   premium,
   setUsernameTaken,
+  orgSlug,
   usernameTaken,
+  disabled,
   ...props
 }: React.ComponentProps<typeof TextField> & {
   username: string;
   setPremium: (value: boolean) => void;
   premium: boolean;
   usernameTaken: boolean;
+  orgSlug?: string;
   setUsernameTaken: (value: boolean) => void;
 }) {
   const { t } = useLocale();
@@ -90,22 +89,33 @@ function UsernameField({
     if (formState.isSubmitting || formState.isSubmitSuccessful) return;
 
     async function checkUsername() {
+      // If the username can't be changed, there is no point in doing the username availability check
+      if (disabled) return;
       if (!debouncedUsername) {
         setPremium(false);
         setUsernameTaken(false);
         return;
       }
-      fetchUsername(debouncedUsername).then(({ data }) => {
+      fetchUsername(debouncedUsername, orgSlug ?? null).then(({ data }) => {
         setPremium(data.premium);
         setUsernameTaken(!data.available);
       });
     }
     checkUsername();
-  }, [debouncedUsername, setPremium, setUsernameTaken, formState.isSubmitting, formState.isSubmitSuccessful]);
+  }, [
+    debouncedUsername,
+    setPremium,
+    disabled,
+    orgSlug,
+    setUsernameTaken,
+    formState.isSubmitting,
+    formState.isSubmitSuccessful,
+  ]);
 
   return (
     <div>
       <TextField
+        disabled={disabled}
         {...props}
         {...register("username")}
         data-testid="signup-usernamefield"
@@ -135,8 +145,6 @@ function UsernameField({
     </div>
   );
 }
-
-const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
 
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
@@ -229,11 +237,17 @@ export default function Signup({
   };
 
   return (
-    <div className="light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand-emphasis:#101010] [--cal-brand:#111827] [--cal-brand-text:#FFFFFF] [--cal-brand-subtle:#9CA3AF] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand:white] dark:[--cal-brand-text:#000000]">
+    <div
+      className={classNames(
+        "light bg-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
+      )}>
       <div className="bg-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         {/* Left side */}
-        <div className="flex w-full flex-col px-4 pt-6 sm:px-16 md:px-20 2xl:px-28">
+        <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
           {/* Header */}
           {errors.apiError && (
             <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
@@ -253,7 +267,7 @@ export default function Signup({
             )}
           </div>
           {/* Form Container */}
-          <div className="mt-10">
+          <div className="mt-12">
             <Form
               className="flex flex-col gap-4"
               form={formMethods}
@@ -270,6 +284,7 @@ export default function Signup({
               {/* Username */}
               {!isOrgInviteByLink ? (
                 <UsernameField
+                  orgSlug={orgSlug}
                   label={t("username")}
                   username={watch("username") || ""}
                   premium={premiumUsername}
@@ -280,8 +295,8 @@ export default function Signup({
                   setPremium={(value) => setPremiumUsername(value)}
                   addOnLeading={
                     orgSlug
-                      ? `${getOrgFullOrigin(orgSlug, { protocol: true })}/`
-                      : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/`
+                      ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(URL_PROTOCOL_REGEX, "")}/`
+                      : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
                   }
                 />
               ) : null}
@@ -427,67 +442,109 @@ export default function Signup({
                   {t("sign_in")}
                 </Link>
               </div>
-              <div className="text-subtle">
-                By signing up, you agree to our{" "}
-                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`}>
-                  Terms{" "}
-                </Link>
-                <span>&</span>{" "}
-                <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`}>
-                  Privacy Policy.
-                </Link>
+              <div className="text-subtle ">
+                <Trans i18nKey="signing_up_terms">
+                  By proceeding, you agree to our{" "}
+                  <Link
+                    className="text-emphasis hover:underline"
+                    href={`${WEBSITE_URL}/terms`}
+                    target="_blank">
+                    <a>Terms</a>
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    className="text-emphasis hover:underline"
+                    href={`${WEBSITE_URL}/privacy`}
+                    target="_blank">
+                    <a>Privacy Policy</a>
+                  </Link>
+                  .
+                </Trans>
               </div>
             </div>
           </div>
         </div>
-        <div
-          className="border-subtle hidden w-full flex-col justify-between rounded-l-2xl border py-12 pl-12 lg:flex"
-          style={{
-            background:
-              "radial-gradient(162.05% 170% at 109.58% 35%, rgba(102, 117, 147, 0.7) 0%, rgba(212, 212, 213, 0.4) 100%) ",
-          }}>
+        <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
           {IS_CALCOM && (
-            <div className="mb-12 mr-12 grid h-full w-full grid-cols-4 gap-4 ">
-              <div className="">
-                <img src="/product-cards/trustpilot.svg" className="h-[54px] w-full" alt="#" />
+            <>
+              <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-day.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Day at ProductHunt"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-week.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Week at ProductHunt"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/product-of-the-month.svg"
+                    className="h-[34px] w-full dark:invert"
+                    alt="Cal.com was Product of the Month at ProductHunt"
+                  />
+                </div>
               </div>
-              <div>
-                <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="#" />
+              <div className="mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
+                <div>
+                  <img
+                    src="/product-cards/producthunt.svg"
+                    className="h-[54px] w-full"
+                    alt="ProductHunt Rating of 5 Stars"
+                  />
+                </div>
+                <div>
+                  <img
+                    src="/product-cards/trustpilot.svg"
+                    className="block h-[54px] w-full dark:hidden"
+                    alt="Trustpilot Rating of 4.7 Stars"
+                  />
+                  <img
+                    src="/product-cards/trustpilot-dark.svg"
+                    className="hidden h-[54px] w-full dark:block"
+                    alt="Trustpilot Rating of 4.7 Stars"
+                  />
+                </div>
+                <div>
+                  <img src="/product-cards/g2.svg" className="h-[54px] w-full" alt="G2 Rating of 4.7 Stars" />
+                </div>
               </div>
-              <div>
-                <img src="/product-cards/producthunt.svg" className="h-[54px] w-full" alt="#" />
-              </div>
-            </div>
+            </>
           )}
-          <div
-            className="border-default rounded-bl-2xl rounded-br-none rounded-tl-2xl border-dashed py-[6px] pl-[6px]"
-            style={{
-              backgroundColor: "rgba(236,237,239,0.9)",
-            }}>
-            <img src="/mock-event-type-list.svg" alt="#" className="" />
+          <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
+            <img
+              className="hidden dark:block"
+              src="/mock-event-type-list-dark.svg"
+              alt="Cal.com Booking Page"
+            />
           </div>
-          <div className="mr-12 mt-8 grid h-full w-full grid-cols-3 gap-4 overflow-hidden">
-            {!IS_CALCOM &&
-              FEATURES.map((feature) => (
-                <>
-                  <div className="flex flex-col leading-none">
-                    <div className="text-emphasis items-center">
-                      <feature.icon className="mb-1 h-4 w-4" />
-                      <span className="text-sm font-medium">{t(feature.title)}</span>
-                    </div>
-                    <div className="text-subtle text-sm">
-                      <p>
-                        {t(
-                          feature.description,
-                          feature.i18nOptions && {
-                            ...feature.i18nOptions,
-                          }
-                        )}
-                      </p>
-                    </div>
+          <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
+            {FEATURES.map((feature) => (
+              <>
+                <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="text-emphasis items-center">
+                    <feature.icon className="mb-1 h-4 w-4" />
+                    <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
-                </>
-              ))}
+                  <div className="text-subtle text-sm">
+                    <p>
+                      {t(
+                        feature.description,
+                        feature.i18nOptions && {
+                          ...feature.i18nOptions,
+                        }
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ))}
           </div>
         </div>
       </div>
@@ -496,151 +553,6 @@ export default function Signup({
   );
 }
 
-const querySchema = z.object({
-  username: z
-    .string()
-    .optional()
-    .transform((val) => val || ""),
-  email: z.string().email().optional(),
-});
-
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-  const ssr = await ssrInit(ctx);
-  const token = z.string().optional().parse(ctx.query.token);
-
-  const props = {
-    isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-    isSAMLLoginEnabled,
-    trpcState: ssr.dehydrate(),
-    prepopulateFormValues: undefined,
-  };
-
-  // username + email prepopulated from query params
-  const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
-
-  if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || flags["disable-signup"]) {
-    return {
-      notFound: true,
-    };
-  }
-
-  // no token given, treat as a normal signup without verification token
-  if (!token) {
-    return {
-      props: JSON.parse(
-        JSON.stringify({
-          ...props,
-          prepopulateFormValues: {
-            username: preFillusername || null,
-            email: prefilEmail || null,
-          },
-        })
-      ),
-    };
-  }
-
-  const verificationToken = await prisma.verificationToken.findUnique({
-    where: {
-      token,
-    },
-    include: {
-      team: {
-        select: {
-          metadata: true,
-          parentId: true,
-          parent: {
-            select: {
-              slug: true,
-              metadata: true,
-            },
-          },
-          slug: true,
-        },
-      },
-    },
-  });
-
-  if (!verificationToken || verificationToken.expires < new Date()) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        {
-          email: verificationToken?.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
-      },
-    };
-  }
-
-  const guessUsernameFromEmail = (email: string) => {
-    const [username] = email.split("@");
-    return username;
-  };
-
-  let username = guessUsernameFromEmail(verificationToken.identifier);
-
-  const tokenTeam = {
-    ...verificationToken?.team,
-    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
-  };
-
-  // Detect if the team is an org by either the metadata flag or if it has a parent team
-  const isOrganization = tokenTeam.metadata?.isOrganization || tokenTeam?.parentId !== null;
-  // If we are dealing with an org, the slug may come from the team itself or its parent
-  const orgSlug = isOrganization
-    ? tokenTeam.metadata?.requestedSlug || tokenTeam.parent?.slug || tokenTeam.slug
-    : null;
-
-  // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganization) {
-    // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
-    const { available, suggestion } = await checkPremiumUsername(username);
-
-    username = available ? username : suggestion || username;
-  }
-
-  const isValidEmail = checkValidEmail(verificationToken.identifier);
-  const isOrgInviteByLink = isOrganization && !isValidEmail;
-  const parentMetaDataForSubteam = tokenTeam?.parent?.metadata
-    ? teamMetadataSchema.parse(tokenTeam.parent.metadata)
-    : null;
-
-  return {
-    props: {
-      ...props,
-      token,
-      prepopulateFormValues: !isOrgInviteByLink
-        ? {
-            email: verificationToken.identifier,
-            username: slugify(username),
-          }
-        : null,
-      orgSlug,
-      orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.metadata?.orgAutoAcceptEmail ?? parentMetaDataForSubteam?.orgAutoAcceptEmail ?? null
-        : null,
-    },
-  };
-};
+export { getServerSideProps };
 
 Signup.PageWrapper = PageWrapper;

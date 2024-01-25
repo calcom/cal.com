@@ -51,7 +51,7 @@
 .dark {
   /* background */
 
-  --cal-bg-emphasis: hsla(0, 0%, 32%, 1);
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
   --cal-bg: hsla(0, 0%, 10%, 1);
   --cal-bg-subtle: hsla(0, 0%, 18%, 1);
   --cal-bg-muted: hsla(0, 0%, 12%, 1);
@@ -109,10 +109,6 @@
   background: var(--cal-brand);
 }
 
-html {
-  scrollbar-gutter: stable;
-}
-
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -146,41 +142,10 @@ html.todesktop div {
 html.todesktop header {
   -webkit-app-region: drag;
 }
-html.todesktop header button {
+
+html.todesktop header button,
+html.todesktop header a {
   -webkit-app-region: no-drag;
-}
-
-html.todesktop .logo {
-  display: none;
-}
-
-.desktop-only {
-  display: none;
-}
-
-html.todesktop .desktop-only {
-  display: block;
-}
-
-html.todesktop .desktop-hidden {
-  display: none;
-}
-
-html.todesktop header {
-  margin-top: -14px;
-}
-
-html.todesktop header nav {
-  margin-top: 8px;
-}
-
-html.todesktop aside {
-  margin: 0px -6px;
-}
-
-html.todesktop-platform-darwin .desktop-transparent {
-  background: transparent !important;
-  border: none !important;
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {
@@ -191,25 +156,13 @@ html.todesktop-platform-darwin.light main.bg-default {
   background: rgba(255, 255, 255, 0.8) !important;
 }
 
-/*
-html.todesktop aside a {
-  height: 28px;
-  padding: 0px 8px;
-  font-size: 12px;
-  color: #383438 !important
+html.todesktop.light {
+  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
 }
 
-html.todesktop nav a:hover{
-  background-color: inherit !important
+html.todesktop.dark {
+  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
 }
-
-html.todesktop nav a[aria-current="page"]{
-  background: rgba(0, 0, 0, 0.1) !important;
-}
-
-html.todesktop nav a svg{
-  color: #0272F7 !important
-} */
 
 /*
   Adds Utility to hide scrollbar to tailwind

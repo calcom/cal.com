@@ -9,12 +9,12 @@ import { expectInvitationEmailToBeReceived } from "./expects";
 
 test.describe.configure({ mode: "parallel" });
 
-test.afterEach(async ({ users, emails }) => {
+test.afterEach(async ({ users, orgs }) => {
   await users.deleteAll();
-  emails?.deleteAll();
+  await orgs.deleteAll();
 });
 
-test.describe.serial("Organization", () => {
+test.describe("Organization", () => {
   test.describe("Email not matching orgAutoAcceptEmail", () => {
     test("Org Invitation", async ({ browser, page, users, emails }) => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
@@ -24,9 +24,10 @@ test.describe.serial("Organization", () => {
       await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
-        const invitedUserEmail = `rick-${Date.now()}@domain.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
+
         await inviteAnEmail(page, invitedUserEmail);
         const inviteLink = await expectInvitationEmailToBeReceived(
           page,
@@ -45,7 +46,12 @@ test.describe.serial("Organization", () => {
         });
 
         assertInviteLink(inviteLink);
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -61,7 +67,7 @@ test.describe.serial("Organization", () => {
 
       await test.step("By invite link", async () => {
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@domain.com`;
+        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
         await signupFromInviteLink({ browser, inviteLink, email });
@@ -86,7 +92,7 @@ test.describe.serial("Organization", () => {
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         await page.waitForLoadState("networkidle");
-        const invitedUserEmail = `rick-${Date.now()}@domain.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
         await inviteAnEmail(page, invitedUserEmail);
@@ -112,13 +118,18 @@ test.describe.serial("Organization", () => {
           page,
           emails,
           invitedUserEmail,
-          `${team.name}'s admin invited you to join the team ${org.name} on Cal.com`,
+          `${team.name}'s admin invited you to join the team ${team.name} of organization ${org.name} on Cal.com`,
           "signup?token"
         );
 
         assertInviteLink(inviteLink);
 
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -144,7 +155,7 @@ test.describe.serial("Organization", () => {
       await test.step("By invite link", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@domain.com`;
+        const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
         await signupFromInviteLink({ browser, inviteLink, email });
@@ -180,7 +191,7 @@ test.describe.serial("Organization", () => {
       await page.waitForLoadState("networkidle");
 
       await test.step("By email", async () => {
-        const invitedUserEmail = `rick-${Date.now()}@example.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail);
         const inviteLink = await expectInvitationEmailToBeReceived(
@@ -200,7 +211,12 @@ test.describe.serial("Organization", () => {
         });
 
         assertInviteLink(inviteLink);
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -216,7 +232,7 @@ test.describe.serial("Organization", () => {
 
       await test.step("By invite link", async () => {
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@example.com`;
+        const email = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = email.split("@")[0];
         await signupFromInviteLink({ browser, inviteLink, email });
 
@@ -247,7 +263,7 @@ test.describe.serial("Organization", () => {
       await test.step("By email", async () => {
         await page.goto(`/settings/teams/${team.id}/members`);
         await page.waitForLoadState("networkidle");
-        const invitedUserEmail = `rick-${Date.now()}@example.com`;
+        const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail);
         await expectUserToBeAMemberOfTeam({
@@ -276,7 +292,12 @@ test.describe.serial("Organization", () => {
 
         assertInviteLink(inviteLink);
 
-        await signupFromEmailInviteLink(browser, inviteLink);
+        await signupFromEmailInviteLink({
+          browser,
+          inviteLink,
+          expectedEmail: invitedUserEmail,
+          expectedUsername: usernameDerivedFromEmail,
+        });
 
         const dbUser = await prisma.user.findUnique({ where: { email: invitedUserEmail } });
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
@@ -303,7 +324,7 @@ test.describe.serial("Organization", () => {
         await page.goto(`/settings/teams/${team.id}/members`);
 
         const inviteLink = await copyInviteLink(page);
-        const email = `rick-${Date.now()}@example.com`;
+        const email = users.trackEmail({ username: "rick", domain: "example.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${email.split("@")[0]}`;
 
@@ -356,14 +377,30 @@ async function signupFromInviteLink({
   return { email };
 }
 
-async function signupFromEmailInviteLink(browser: Browser, inviteLink: string) {
+async function signupFromEmailInviteLink({
+  browser,
+  inviteLink,
+  expectedUsername,
+  expectedEmail,
+}: {
+  browser: Browser;
+  inviteLink: string;
+  expectedUsername: string;
+  expectedEmail: string;
+}) {
   // Follow invite link in new window
   const context = await browser.newContext();
   const signupPage = await context.newPage();
 
   signupPage.goto(inviteLink);
+  await signupPage.locator(`[data-testid="signup-usernamefield"]`).waitFor({ state: "visible" });
   await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toBeDisabled();
+  // await for value. initial value is ""
+  await expect(signupPage.locator(`[data-testid="signup-usernamefield"]`)).toHaveValue(expectedUsername);
+
   await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toBeDisabled();
+  await expect(signupPage.locator(`[data-testid="signup-emailfield"]`)).toHaveValue(expectedEmail);
+
   await signupPage.waitForLoadState("networkidle");
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
@@ -424,6 +461,7 @@ async function expectUserToBeAMemberOfTeam({
 }) {
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
+  await page.reload();
   expect(
     (
       await page.locator(`[data-testid="member-${username}"] [data-testid=member-role]`).textContent()

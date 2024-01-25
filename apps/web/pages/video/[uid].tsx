@@ -1,34 +1,32 @@
+"use client";
+
 import type {
   DailyEventObjectCustomButtonClick,
   DailyEventObjectRecordingStarted,
   DailyTranscriptionDeepgramOptions,
   DailyEventObjectAppMessage,
 } from "@daily-co/daily-js";
+
 import DailyIframe from "@daily-co/daily-js";
-import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
+import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+
 import PageWrapper from "@components/PageWrapper";
 
-import { ssrInit } from "@server/lib/ssr";
-
-export type JoinCallPageProps = inferSSRProps<typeof getServerSideProps>;
-const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+export type JoinCallPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState">;
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
@@ -373,8 +371,6 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
   );
 }
 
-JoinCall.PageWrapper = PageWrapper;
-
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req, res } = context;
 
@@ -481,3 +477,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   };
 }
+
+
+
+export { getServerSideProps };
+JoinCall.PageWrapper = PageWrapper;

@@ -139,7 +139,7 @@ function BookingListItem(booking: BookingItemProps) {
         setRejectionDialogIsOpen(true);
       },
       icon: Ban,
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
     ...((isPending && !paymentAppData.enabled) ||
@@ -147,12 +147,13 @@ function BookingListItem(booking: BookingItemProps) {
       ? [
           {
             id: "confirm",
+            bookingId: booking.id,
             label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
             onClick: () => {
               bookingConfirm(true);
             },
             icon: Check,
-            disabled: mutation.isLoading,
+            disabled: mutation.isPending,
           },
         ]
       : []),
@@ -292,7 +293,7 @@ function BookingListItem(booking: BookingItemProps) {
         setViewRecordingsDialogIsOpen(true);
       },
       color: showCheckRecordingButton ? "secondary" : "primary",
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
   ];
 
@@ -347,7 +348,7 @@ function BookingListItem(booking: BookingItemProps) {
           <DialogFooter>
             <DialogClose />
             <Button
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
@@ -384,7 +385,7 @@ function BookingListItem(booking: BookingItemProps) {
                         target="_blank"
                         title={locationToDisplay}
                         rel="noreferrer"
-                        className="text-sm leading-6 text-blue-600 hover:underline">
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                         <div className="flex items-center gap-2">
                           {provider?.iconUrl && (
                             <img

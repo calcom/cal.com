@@ -1,13 +1,14 @@
 import { expect } from "@playwright/test";
 import path from "path";
+import { uuid } from "short-uuid";
 
 import { test } from "../lib/fixtures";
 import { generateTotpCode } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
-test.afterAll(({ users, emails }) => {
+test.afterAll(({ users, orgs }) => {
   users.deleteAll();
-  emails?.deleteAll();
+  orgs.deleteAll();
 });
 
 function capitalize(text: string) {
@@ -18,12 +19,19 @@ function capitalize(text: string) {
 }
 
 test.describe("Organization", () => {
-  test("should be able to create an organization and complete onboarding", async ({
+  test("Admin should be able to create an organization and complete onboarding", async ({
     page,
     users,
     emails,
   }) => {
-    const orgOwner = await users.create();
+    const orgOwner = await users.create({
+      role: "ADMIN",
+    });
+    const instanceAdmin = await users.create({
+      username: `admin-${uuid()}`,
+      email: users.trackEmail({ username: "admin", domain: "example.com" }),
+      role: "ADMIN",
+    });
     const orgDomain = `${orgOwner.username}-org`;
     const orgName = capitalize(`${orgOwner.username}-org`);
     await orgOwner.apiLogin();
@@ -36,7 +44,8 @@ test.describe("Organization", () => {
       await expect(page.locator(".text-red-700")).toHaveCount(3);
 
       // Happy path
-      await page.locator("input[name=adminEmail]").fill(`john@${orgDomain}.com`);
+      const adminEmail = users.trackEmail({ username: "john", domain: `${orgDomain}.com` });
+      await page.locator("input[name=adminEmail]").fill(adminEmail);
       expect(await page.locator("input[name=name]").inputValue()).toEqual(orgName);
       expect(await page.locator("input[name=slug]").inputValue()).toEqual(orgDomain);
       await page.locator("button[type=submit]").click();
@@ -46,7 +55,7 @@ test.describe("Organization", () => {
       await expectInvitationEmailToBeReceived(
         page,
         emails,
-        `john@${orgOwner.username}-org.com`,
+        adminEmail,
         "Verify your email to create an organization"
       );
 
@@ -54,12 +63,11 @@ test.describe("Organization", () => {
         // Code verification
         await expect(page.locator("#modal-title")).toBeVisible();
         await page.locator("input[name='2fa1']").fill(generateTotpCode(`john@${orgDomain}.com`));
-
         // Check admin email about DNS pending action
         await expectInvitationEmailToBeReceived(
           page,
           emails,
-          "admin@example.com",
+          instanceAdmin.email,
           "New organization created: pending action"
         );
 
@@ -95,25 +103,36 @@ test.describe("Organization", () => {
       await page.locator("button[type=submit]").click();
 
       // Waiting to be in next step URL
-      await page.waitForURL("/settings/organizations/*/onboard-admins");
+      await page.waitForURL("/settings/organizations/*/onboard-members");
     });
 
     await test.step("On-board administrators", async () => {
-      // Required field
-      await page.locator("button[type=submit]").click();
+      await page.waitForSelector('[data-testid="pending-member-list"]');
+      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
 
-      // Happy path
-      await page.locator('textarea[name="emails"]').fill(`rick@${orgDomain}.com`);
-      await page.locator("button[type=submit]").click();
+      const adminEmail = users.trackEmail({ username: "rick", domain: `${orgDomain}.com` });
 
+      //can add members
+      await page.getByTestId("new-member-button").click();
+      await page.locator('[placeholder="email\\@example\\.com"]').fill(adminEmail);
+      await page.getByTestId("invite-new-member-button").click();
+      await expect(page.locator(`li:has-text("${adminEmail}")`)).toBeVisible();
       // Check if invited admin received the invitation email
       await expectInvitationEmailToBeReceived(
         page,
         emails,
-        `rick@${orgDomain}.com`,
+        adminEmail,
         `${orgName}'s admin invited you to join the organization ${orgName} on Cal.com`
       );
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
 
+      // can remove members
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
+      const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
+      await lastRemoveMemberButton.click();
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
+      await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
       await page.waitForURL("/settings/organizations/*/add-teams");
     });

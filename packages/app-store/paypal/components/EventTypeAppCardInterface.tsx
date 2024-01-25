@@ -1,5 +1,5 @@
-import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -13,13 +13,24 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
+import checkForMultiplePaymentApps from "../../_utils/payments/checkForMultiplePaymentApps";
 import type { appDataSchema } from "../zod";
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const { asPath } = useRouter();
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  eventTypeFormMetadata,
+}) {
+  const searchParams = useSearchParams();
+  /** TODO "pathname" no longer contains square-bracket expressions. Rewrite the code relying on them if required. **/
+  const pathname = usePathname();
+  const asPath = useMemo(
+    () => `${pathname}${searchParams ? `?${searchParams.toString()}` : ""}`,
+    [pathname, searchParams]
+  );
   const { getAppData, setAppData } = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
 
@@ -38,6 +49,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
+  const otherPaymentAppEnabled = checkForMultiplePaymentApps(eventTypeFormMetadata);
+
+  const shouldDisableSwitch = !requirePayment && otherPaymentAppEnabled;
 
   useEffect(() => {
     if (requirePayment) {
@@ -48,6 +62,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         setAppData("paymentOption", paymentOptions[0].value);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -58,7 +73,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(enabled) => {
         setRequirePayment(enabled);
       }}
-      description={<>Add Paypal payment to your events</>}>
+      description={<>Add Paypal payment to your events</>}
+      disableSwitch={shouldDisableSwitch}
+      switchTooltip={shouldDisableSwitch ? t("other_payment_app_enabled") : undefined}>
       <>
         {recurringEventDefined ? (
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
@@ -77,6 +94,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   required
                   className="block w-full rounded-sm pl-2 text-sm"
                   placeholder="Price"
+                  data-testid="paypal-price-input"
                   onChange={(e) => {
                     setAppData("price", Number(e.target.value) * 100);
                     if (selectedCurrency) {

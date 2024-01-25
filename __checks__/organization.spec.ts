@@ -41,6 +41,28 @@ test.describe("Org", () => {
       await expectPageToBeServerSideRendered(page);
     });
   });
+  test.describe("Dynamic Group Booking", () => {
+    test("Dynamic Group booking link should load", async ({ page }) => {
+      const users = [
+        {
+          username: "peer",
+          name: "Peer Richelsen",
+        },
+        {
+          username: "bailey",
+          name: "Bailey Pumfleet",
+        },
+      ];
+      const response = await page.goto(`http://i.cal.com/${users[0].username}+${users[1].username}`);
+      expect(response?.status()).toBe(200);
+      expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Dynamic");
+
+      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[0].name);
+      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[1].name);
+      // 2 users and 1 for the organization(2+1)
+      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
+    });
+  });
 });
 
 // This ensures that the route is actually mapped to a page that is using withEmbedSsr

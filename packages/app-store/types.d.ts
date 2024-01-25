@@ -1,6 +1,7 @@
 import type React from "react";
 import type { z } from "zod";
 
+import type { EventTypeFormMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 
@@ -34,7 +35,7 @@ export interface InstallAppButtonProps {
     renderProps: ButtonProps & {
       /** Tells that the default render component should be used */
       useDefaultComponent?: boolean;
-      isLoading?: boolean;
+      isPending?: boolean;
     }
   ) => JSX.Element;
   onChanged?: () => unknown;
@@ -51,5 +52,6 @@ export type EventTypeAppCardComponentProps = {
   app: EventTypeAppCardApp;
   disabled?: boolean;
   LockedIcon?: JSX.Element | false;
+  eventTypeFormMetadata?: z.infer<typeof EventTypeFormMetadataSchema>;
 };
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;

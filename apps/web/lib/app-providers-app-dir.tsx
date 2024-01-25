@@ -1,5 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { TrpcProvider } from "_app/_trpc/trpc-provider";
+import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
@@ -62,8 +62,12 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   // @TODO
 
   const session = useSession();
+
+  // window.document.documentElement.lang can be empty in some cases, for instance when we rendering GlobalError (not-found) page.
   const locale =
-    session?.data?.user.locale ?? typeof window !== "undefined" ? window.document.documentElement.lang : "en";
+    session?.data?.user.locale ?? typeof window !== "undefined"
+      ? window.document.documentElement.lang || "en"
+      : "en";
 
   useEffect(() => {
     try {
