@@ -1,6 +1,6 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import type { FieldValues, Control, UseFormReturn, SubmitHandler } from "react-hook-form";
+import type { FieldValues, Control } from "react-hook-form";
 import { useForm, Controller } from "react-hook-form";
 
 import Schedule from "@calcom/features/schedules/components/Schedule";
@@ -32,9 +32,12 @@ export type Schedule = {
   days: number[];
 };
 
+type LabelsType = { saveButtonLabel?: string };
+
 type AvailabilitySettingsProps = {
-  id?: string;
-  schedule: {
+  id?: number;
+  saveButtonLabel?: string;
+  schedule?: {
     name: string;
     id: number;
     availability: TimeRange[][];
@@ -45,23 +48,27 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Schedule[] | [];
   };
-  handleDelete: (id: string) => void;
+  handleDelete: (id: number) => void;
   isDeleting: boolean;
+  isSaving: boolean;
   isLoading: boolean;
-  timeFormat: number;
+  timeFormat: number | null;
   weekStart: string;
-  backPath: boolean;
-  handleSubmit: (data: SubmitHandler<AvailabilityFormValues>) => Promise<void>;
+  backPath: string | boolean;
+  handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  labels: LabelsType;
 };
 
 const queryClient = new QueryClient();
 
 export function AvailabilitySettings({
   id,
+  saveButtonLabel = "Save",
   schedule,
   handleDelete,
   isDeleting,
   isLoading,
+  isSaving,
   timeFormat,
   weekStart,
   backPath,
@@ -76,15 +83,6 @@ export function AvailabilitySettings({
       schedule: schedule?.availability || [],
     },
   });
-
-  const subtitle = schedule.schedule
-    .filter((availability) => !!availability.days.length)
-    .map((availability) => (
-      <span key={availability.id}>
-        {availabilityAsString(availability, { hour12: timeFormat === 12 })}
-        <br />
-      </span>
-    ));
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -101,7 +99,20 @@ export function AvailabilitySettings({
         }
         backPath={backPath}
         SidebarContainer={<></>}
-        subtitle={schedule ? subtitle : <SkeletonText className="h-4 w-48" />}
+        subtitle={
+          schedule ? (
+            schedule.schedule
+              .filter((availability) => !!availability.days.length)
+              .map((availability) => (
+                <span key={availability.id}>
+                  {availabilityAsString(availability, { hour12: timeFormat === 12 })}
+                  <br />
+                </span>
+              ))
+          ) : (
+            <SkeletonText className="h-4 w-48" />
+          )
+        }
         CTA={
           <div className="flex items-center justify-end">
             <LargeScreenCTA
@@ -110,7 +121,7 @@ export function AvailabilitySettings({
               // onSwitchCheckedChange={(e) => {
               //   form.setValue("isDefault", e);
               // }}
-              isButtonDisabled={schedule?.isLastSchedule}
+              isButtonDisabled={Boolean(schedule?.isLastSchedule)}
               isConfirmationDialogLoading={isDeleting}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
@@ -121,15 +132,15 @@ export function AvailabilitySettings({
               formControl={form.control}
               isSidebarOpen={openSidebar}
               toggleSidebar={() => setOpenSidebar(false)}
-              isDeleteButtonDisabled={schedule?.isLastSchedule}
+              isDeleteButtonDisabled={Boolean(schedule?.isLastSchedule)}
               isDeleteDialogLoading={isDeleting}
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
             />
             <div className="border-default border-l-2" />
-            <Button className="ml-4 lg:ml-0" type="submit" form="availability-form">
-              Save
+            <Button className="ml-4 lg:ml-0" type="submit" form="availability-form" loading={isSaving}>
+              {saveButtonLabel}
             </Button>
             <Button
               className="ml-3 sm:hidden"
@@ -142,7 +153,7 @@ export function AvailabilitySettings({
         }>
         <div className="mt-4 w-full md:mt-0">
           <Form
-            form={form as unknown as UseFormReturn<FieldValues, any>}
+            form={form}
             id="availability-form"
             handleSubmit={handleSubmit}
             className="flex flex-col sm:mx-0 xl:flex-row xl:space-x-6">
