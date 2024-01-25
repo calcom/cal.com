@@ -430,7 +430,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const host = await page.locator('[data-testid="booking-host-name"]');
+    const host = page.locator('[data-testid="booking-host-name"]');
     const hostName = await host.innerText();
 
     //expect teammate-1 to be booked, test-user is not available at this time
