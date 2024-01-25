@@ -1,3 +1,4 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
@@ -9,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup, DataTable } from "@calcom/ui";
-import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
+import { UserAvatar } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { TBContext, createTimezoneBuddyStore } from "../store";
@@ -62,7 +63,7 @@ export function AvailabilitySliderTable() {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
-  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
       loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
@@ -71,7 +72,7 @@ export function AvailabilitySliderTable() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
     }
   );
 
@@ -130,7 +131,7 @@ export function AvailabilitySliderTable() {
         id: "slider",
         header: () => {
           return (
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
               <ButtonGroup containerProps={{ className: "space-x-0" }}>
                 <Button
                   color="minimal"
@@ -145,7 +146,7 @@ export function AvailabilitySliderTable() {
                   variant="icon"
                 />
               </ButtonGroup>
-              <span>{browsingDate.format("DD dddd MMM, YYYY")}</span>
+              <span>{browsingDate.format("LL")}</span>
             </div>
           );
         },
@@ -192,8 +193,9 @@ export function AvailabilitySliderTable() {
         browsingDate: browsingDate.toDate(),
       })}>
       <>
-        <div className="relative">
+        <div className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6">
           <DataTable
+            variant="compact"
             searchKey="member"
             tableContainerRef={tableContainerRef}
             columns={memorisedColumns}
@@ -202,7 +204,7 @@ export function AvailabilitySliderTable() {
               setSelectedUser(row.original);
             }}
             data={flatData}
-            isLoading={isLoading}
+            isPending={isPending}
             // tableOverlay={<HoverOverview />}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
           />

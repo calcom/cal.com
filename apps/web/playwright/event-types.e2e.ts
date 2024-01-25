@@ -10,28 +10,13 @@ import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Event Types A/B tests", () => {
-  test("should point to the /future/event-types page", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+testBothFutureAndLegacyRoutes.describe("Event Types A/B tests", () => {
+  test("should render the /future/event-types page", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
 
     await page.goto("/event-types");
-
-    await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
 
     const locator = page.getByRole("heading", { name: "Event Types" });
 
@@ -39,8 +24,8 @@ test.describe("Event Types A/B tests", () => {
   });
 });
 
-test.describe("Event Types tests", () => {
-  testBothFutureAndLegacyRoutes.describe("user", () => {
+testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
+  test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
       await user.apiLogin();

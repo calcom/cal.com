@@ -8,6 +8,9 @@ import { trpc } from "@calcom/trpc/react";
 import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
 
+export type useEventReturnType = ReturnType<typeof useEvent>;
+export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
+
 /**
  * Wrapper hook around the trpc query that fetches
  * the event curently viewed in the booker. It will get

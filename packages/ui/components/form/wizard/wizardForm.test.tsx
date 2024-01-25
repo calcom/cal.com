@@ -29,8 +29,8 @@ const steps = [
   {
     title: "Step 2",
     description: "Description 2",
-    content: (setIsLoading: (value: boolean) => void) => (
-      <button data-testid="content-2" onClick={() => setIsLoading(true)}>
+    content: (setIsPending: (value: boolean) => void) => (
+      <button data-testid="content-2" onClick={() => setIsPending(true)}>
         Test
       </button>
     ),

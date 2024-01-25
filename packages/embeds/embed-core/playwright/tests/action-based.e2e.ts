@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 

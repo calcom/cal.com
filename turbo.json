@@ -112,6 +112,7 @@
       "cache": false
     },
     "dx": {
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
     "lint": {
@@ -211,6 +212,7 @@
     "APP_ROUTER_SETTINGS_TEAMS_ENABLED",
     "APP_ROUTER_WORKFLOWS_ENABLED",
     "APP_ROUTER_VIDEO_ENABLED",
+    "APP_ROUTER_TEAMS_ENABLED",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
@@ -259,6 +261,8 @@
     "FORMBRICKS_HOST_URL",
     "FORMBRICKS_ENVIRONMENT_ID",
     "FORMBRICKS_FEEDBACK_SURVEY_ID",
+    "AVATARAPI_USERNAME",
+    "AVATARAPI_PASSWORD",
     "GIPHY_API_KEY",
     "GITHUB_API_REPO_TOKEN",
     "GOOGLE_API_CREDENTIALS",
@@ -274,6 +278,7 @@
     "LARK_OPEN_APP_ID",
     "LARK_OPEN_APP_SECRET",
     "LARK_OPEN_VERIFICATION_TOKEN",
+    "MOCK_PAYMENT_APP_ENABLED",
     "MS_GRAPH_CLIENT_ID",
     "MS_GRAPH_CLIENT_SECRET",
     "NEXT_PUBLIC_API_URL",

@@ -124,7 +124,7 @@ const UserSettings = memo(
         <Button
           type="submit"
           className="mt-8 flex w-full flex-row justify-center"
-          disabled={mutation.isLoading}>
+          disabled={mutation.isPending}>
           {t("next_step_text")}
           <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
         </Button>

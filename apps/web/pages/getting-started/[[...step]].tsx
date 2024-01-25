@@ -1,9 +1,9 @@
+"use client";
+
 import { getWorldViewSVGStr } from "@pages/getting-started/worldviewUtils";
 import type { ICountry } from "country-state-city";
 import { Country } from "country-state-city";
 import * as d3 from "d3";
-import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -13,19 +13,14 @@ import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { LargeCalendar } from "@calcom/features/auth/signup/LargeCalendar";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import prisma from "@calcom/prisma";
-import { AppCategories } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
 import type { TimeRange } from "@calcom/types/schedule";
-import { Button, StepCard, Steps } from "@calcom/ui";
+import { Avatar, Button, StepCard, Steps } from "@calcom/ui";
 import { Loader, Timer, User } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -34,9 +29,9 @@ import { SetupAvailability } from "@components/getting-started/steps-views/Setup
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-import { ssrInit } from "@server/lib/ssr";
-
 import worldviewGeoJSON from "../../public/worldviewGeo.json";
+
+export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 const INITIAL_STEP = "user-settings";
 const steps = [
@@ -94,10 +89,16 @@ const stepRouteSchema = z.object({
 const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsCount: number }) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const result = stepRouteSchema.safeParse(params);
+
+  const result = stepRouteSchema.safeParse({
+    ...params,
+    step: Array.isArray(params.step) ? params.step : [params.step],
+  });
+
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
   const svgRef = useRef<HTMLDivElement>(null);
@@ -556,13 +557,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
                 style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
                 <div className="bg-subtle min-h-screen min-w-full rounded-l-xl">
                   <div className="item-center mb-16 ms-44 mt-24 flex flex-col items-center justify-center">
-                    <OrganizationMemberAvatar
-                      size="lg"
-                      user={user}
-                      previewSrc={imageSrc}
-                      organization={null}
-                      className="mb-4"
-                    />
+                    <Avatar size="lg" alt="User Avatar" imageSrc={imageSrc} className="mb-4" />
                     <div className="min-h-8 text-default text-3xl font-bold">{fullName}</div>
                     <div className="min-h-4 text-subtle text-xl">{bio}</div>
                   </div>
@@ -598,69 +593,6 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
       </div>
     </div>
   );
-};
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req, res });
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const ssr = await ssrInit(context);
-
-  await ssr.viewer.me.prefetch();
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      completedOnboarding: true,
-      teams: {
-        select: {
-          accepted: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user) {
-    throw new Error("User from session not found");
-  }
-
-  if (user.completedOnboarding) {
-    return { redirect: { permanent: false, destination: "/event-types" } };
-  }
-  const locale = await getLocale(context.req);
-
-  const connectedCalendarsCount = await prisma.credential.count({
-    where: {
-      userId: session.user.id,
-      app: {
-        categories: { has: AppCategories.calendar },
-        enabled: true,
-      },
-    },
-  });
-
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ["common"])),
-      trpcState: ssr.dehydrate(),
-      hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
-      connectedCalendarsCount,
-    },
-  };
 };
 
 OnboardingPage.PageWrapper = PageWrapper;

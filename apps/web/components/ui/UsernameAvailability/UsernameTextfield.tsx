@@ -81,7 +81,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="me-2 ms-2 flex flex-row space-x-2">
+      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -135,15 +135,17 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             {...rest}
           />
 
-          <div className="absolute right-[2px] top-6 flex flex-row">
-            <span className={classNames("mx-2 py-2.5")}>
-              {usernameIsAvailable ? (
-                <Star className="h-4 w-4" />
-              ) : (
-                <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
-              )}
-            </span>
-          </div>
+          {currentUsername !== inputUsernameValue && (
+            <div className="absolute right-[2px] top-6 flex flex-row">
+              <span className={classNames("mx-2 py-2.5")}>
+                {usernameIsAvailable ? (
+                  <Star className="h-4 w-4" />
+                ) : (
+                  <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
+                )}
+              </span>
+            </div>
+          )}
         </div>
         <div className="mt-6 hidden md:inline">
           <ActionButtons />
@@ -180,7 +182,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <DialogFooter className="mt-4">
             <Button
               type="button"
-              loading={updateUsernameMutation.isLoading}
+              loading={updateUsernameMutation.isPending}
               data-testid="save-username"
               onClick={updateUsername}>
               {t("save")}

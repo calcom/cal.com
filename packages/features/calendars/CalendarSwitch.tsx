@@ -22,14 +22,8 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useContext();
   const { t } = useLocale();
-  const mutation = useMutation<
-    unknown,
-    unknown,
-    {
-      isOn: boolean;
-    }
-  >(
-    async ({ isOn }: { isOn: boolean }) => {
+  const mutation = useMutation({
+    mutationFn: async ({ isOn }: { isOn: boolean }) => {
       const body = {
         integration: type,
         externalId: externalId,
@@ -60,24 +54,22 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         }
       }
     },
-    {
-      async onSettled() {
-        await utils.viewer.integrations.invalidate();
-        await utils.viewer.connectedCalendars.invalidate();
-      },
-      onError() {
-        setCheckedInternal(false);
-        showToast(`Something went wrong when toggling "${title}"`, "error");
-      },
-    }
-  );
+    async onSettled() {
+      await utils.viewer.integrations.invalidate();
+      await utils.viewer.connectedCalendars.invalidate();
+    },
+    onError() {
+      setCheckedInternal(false);
+      showToast(`Something went wrong when toggling "${title}"`, "error");
+    },
+  });
   return (
     <div className={classNames("my-2 flex flex-row items-center")}>
       <div className="flex pl-2">
         <Switch
           id={externalId}
           checked={checkedInternal}
-          disabled={mutation.isLoading}
+          disabled={mutation.isPending}
           onCheckedChange={async (isOn: boolean) => {
             setCheckedInternal(isOn);
             await mutation.mutate({ isOn });
@@ -93,7 +85,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           {t("adding_events_to")}
         </span>
       )}
-      {mutation.isLoading && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {mutation.isPending && <RotateCw className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
     </div>
   );
 };
