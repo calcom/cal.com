@@ -86,7 +86,7 @@ const stepRouteSchema = z.object({
 });
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
-const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsCount: number }) => {
+const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
@@ -526,7 +526,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
               style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
               <LargeCalendar
                 extraDays={7}
-                showFakeEvents={props.connectedCalendarsCount !== 0}
+                showFakeEvents={true}
                 allRoundedCorners={false}
                 startDate={startDate.toDate()}
                 endDate={endDate.toDate()}
@@ -541,7 +541,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
               style={{ background: "linear-gradient(to top right, #D4D4D5 0%, #667593 100%)" }}>
               <LargeCalendar
                 extraDays={7}
-                showFakeEvents={props.connectedCalendarsCount !== 0}
+                showFakeEvents={true}
                 allRoundedCorners={true}
                 startDate={startDate.toDate()}
                 endDate={endDate.toDate()}
