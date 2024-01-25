@@ -14,7 +14,10 @@ export function HavingTroubleFindingTime(props: Props) {
   const [internalClick, setInternalClick] = useState(false);
 
   // Eaiest way to detect if its not enabled
-  if (process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD == "0" && BOOKER_NUMBER_OF_DAYS_TO_LOAD == 0)
+  if (
+    (process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD == "0" && BOOKER_NUMBER_OF_DAYS_TO_LOAD == 0) ||
+    !process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD
+  )
     return null;
 
   // If we have clicked this internally - and the schedule above is not loading - hide this banner as there is no use of being able to go backwards
