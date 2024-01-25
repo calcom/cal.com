@@ -210,6 +210,9 @@ export function createBookingPageFixture(page: Page) {
     goToPage: async (pageName: string, page: Page) => {
       await page.getByRole("link", { name: pageName }).click();
     },
+    backToBookings: async (page: Page) => {
+      await page.getByTestId("back-to-bookings").click();
+    },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
@@ -336,14 +339,6 @@ export function createBookingPageFixture(page: Page) {
     confirmBooking: async (eventTypePage: Page) => {
       await eventTypePage.getByTestId("confirm-book-button").click();
       await eventTypePage.waitForURL("booking/**");
-    },
-
-    confirmBooking: async (eventTypePage: Page) => {
-      const confirmButton = "confirm-book-button";
-      await eventTypePage.getByTestId(confirmButton).click();
-      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
-      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
-      await expect(scheduleSuccessfullyPage).toBeVisible();
     },
 
     fillAndConfirmBooking: async ({
@@ -498,9 +493,6 @@ export function createBookingPageFixture(page: Page) {
               name: `${options.bookingName} between ${options.teamName} and ${options.profileName} You and ${options.profileName}`,
             })
           ).toBeVisible();
-    },
-    confirmBooking: async (page?: Page) => {
-      await page?.getByTestId("confirm-book-button").click();
     },
     clickOnBooking: async (page: Page, teamName: string) => {
       await page.getByRole("link", { name: teamName }).first().click();

@@ -1,60 +1,51 @@
-import { randomString } from "@calcom/lib/random";
-
-import { loginUser } from "../../fixtures/regularBookings";
 import { test } from "../../lib/fixtures";
-import { localize } from "../../lib/testUtils";
 
-test.describe("Create a Team, a Collective Event Type and Book a Meeting", () => {
-  test.beforeEach(async ({ page, users }) => {
-    await loginUser(users);
+test.describe("Collective event type", () => {
+  const teamEventTitle = "Test Managed Event Type";
+  test.beforeEach(async ({ page, users, bookingPage }) => {
+    const userFixture = await users.create(
+      { name: "testuser" },
+      { hasTeam: true, schedulingType: "COLLECTIVE", teamEventTitle }
+    );
+    await userFixture.apiLogin();
     await page.goto("/event-types");
+    await bookingPage.goToEventType(teamEventTitle);
   });
 
-  test("Create Collective Event type and Book a Meeting", async ({ bookingPage }) => {
-    const teamName = `Team example-${randomString(3)}`;
-    const backToBookingsText = (await localize("en"))("back_to_bookings");
-
-    await bookingPage.createTeam(teamName);
-    await bookingPage.createTeamEventType("test-collective", { isCollectiveType: true });
+  test("Book a Collective event type", async ({ bookingPage }) => {
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
-
     await bookingPage.confirmBooking(eventTypePage);
-    await bookingPage.goToPage(backToBookingsText, eventTypePage);
-    await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamName);
+    await bookingPage.backToBookings(eventTypePage);
+    await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamEventTitle);
     await bookingPage.assertBookingWithCorrectTitleAndDescription(eventTypePage, {
       profileName: "testuser",
       bookingName: "test-collective",
-      teamName: teamName,
+      teamName: teamEventTitle,
     });
 
-    await bookingPage.clickOnBooking(eventTypePage, teamName);
+    await bookingPage.clickOnBooking(eventTypePage, teamEventTitle);
     await bookingPage.rescheduleBooking(eventTypePage);
     await bookingPage.assertBookingRescheduled(eventTypePage);
     await bookingPage.cancelBookingWithReason(eventTypePage);
     await bookingPage.assertBookingCanceled(eventTypePage);
   });
 
-  test("Create Collective Event type and Book a Meeting (with added guest)", async ({ bookingPage }) => {
-    const teamName = `Team example-${randomString(3)}`;
-    const backToBookingsText = (await localize("en"))("back_to_bookings");
-
-    await bookingPage.createTeam(teamName);
-    await bookingPage.createTeamEventType("test-collective", { isCollectiveType: true });
+  test("Book a Collective event type (with added guest)", async ({ bookingPage }) => {
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
     await bookingPage.addGuests(eventTypePage, { guests: ["test@example.com"] });
     await bookingPage.confirmBooking(eventTypePage);
-    await bookingPage.goToPage(backToBookingsText, eventTypePage);
-    await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamName);
+    await bookingPage.backToBookings(eventTypePage);
+    await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamEventTitle);
     await bookingPage.assertBookingWithCorrectTitleAndDescription(eventTypePage, {
       profileName: "testuser",
       bookingName: "test-collective",
-      teamName: teamName,
+      teamName: teamEventTitle,
       aditionalGuestEmail: "test@example.com",
     });
 
-    await bookingPage.clickOnBooking(eventTypePage, teamName);
+    await bookingPage.clickOnBooking(eventTypePage, teamEventTitle);
     await bookingPage.rescheduleBooking(eventTypePage);
     await bookingPage.assertBookingRescheduled(eventTypePage);
     await bookingPage.cancelBookingWithReason(eventTypePage);
