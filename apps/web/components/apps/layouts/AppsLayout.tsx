@@ -22,12 +22,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
 
   if (session.status === "loading") return <></>;
   return (
-    <ShellMain
-      {...rest}
-      actions={actions?.("block")}
-      hideHeadingOnMobile
-      title="App Store"
-      description="Connecting people, technology and the workplace.">
+    <ShellMain {...rest} actions={actions?.("block")} hideHeadingOnMobile>
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (
