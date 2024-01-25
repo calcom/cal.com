@@ -17,7 +17,7 @@ import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import PageWrapper from "@components/PageWrapper";
 
-import { ssgInit } from "@server/lib/ssg";
+import { getTranslations } from "@server/lib/getTranslations";
 
 enum pageType {
   ORG = "org",
@@ -273,11 +273,11 @@ export default function Custom404() {
 Custom404.PageWrapper = PageWrapper;
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const ssr = await ssgInit(context);
+  const i18n = await getTranslations(context);
 
   return {
     props: {
-      trpcState: ssr.dehydrate(),
+      i18n,
     },
   };
 };

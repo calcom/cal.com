@@ -37,7 +37,7 @@ export function ScheduleListItem({
 }) {
   const { t, i18n } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule.id });
+  const { data, isPending } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule.id });
 
   return (
     <li key={schedule.id}>
@@ -87,7 +87,7 @@ export function ScheduleListItem({
               StartIcon={MoreHorizontal}
             />
           </DropdownMenuTrigger>
-          {!isLoading && data && (
+          {!isPending && data && (
             <DropdownMenuContent>
               <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 {!schedule.isDefault && (

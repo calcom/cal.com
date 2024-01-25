@@ -113,7 +113,7 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.locator('[data-testid="time"]').nth(0).click();
 }
 
-async function bookEventOnThisPage(page: Page) {
+export async function bookEventOnThisPage(page: Page) {
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
 

@@ -89,8 +89,7 @@ function PageWrapper(props: AppProps) {
           </LicenseRequired>
         ) : (
           <Component {...pageProps} err={err} />
-        ),
-        router
+        )
       )}
     </AppProviders>
   );
