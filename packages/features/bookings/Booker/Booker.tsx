@@ -440,7 +440,7 @@ const BookerComponent = ({
                   dayCount={dayCount}
                   isScheduleLoading={schedule.isLoading}
                   onButtonClick={() => {
-                    setDayCount(undefined);
+                    setDayCount(null);
                   }}
                 />
                 <DatePicker event={event} schedule={schedule} />

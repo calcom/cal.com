@@ -34,7 +34,7 @@ export const DatePicker = ({
       onMonthChange={(date: Dayjs) => {
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));
-        setDayCount(undefined); // Whenever the month is changed, we nullify getting X days
+        setDayCount(null); // Whenever the month is changed, we nullify getting X days
       }}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}

@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type Props = {
   onButtonClick: () => void;
-  dayCount: number | undefined;
+  dayCount: number | null;
   isScheduleLoading: boolean;
 };
 export function HavingTroubleFindingTime(props: Props) {
