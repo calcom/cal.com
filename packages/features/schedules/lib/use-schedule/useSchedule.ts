@@ -8,6 +8,7 @@ type UseScheduleWithCacheArgs = {
   eventId?: number | null;
   month?: string | null;
   timezone?: string | null;
+  selectedDate?: string | null;
   prefetchNextMonth?: boolean;
   duration?: number | null;
   monthCount?: number | null;
