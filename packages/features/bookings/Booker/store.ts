@@ -211,7 +211,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
   },
-  dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : undefined,
+  dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
   setDayCount: (dayCount: string | null) => {
     set({ dayCount });
   },
