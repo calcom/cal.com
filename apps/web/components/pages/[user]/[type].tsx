@@ -1,3 +1,5 @@
+"use client";
+
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms";

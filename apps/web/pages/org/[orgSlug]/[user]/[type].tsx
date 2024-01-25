@@ -1,9 +1,9 @@
 "use client";
 
 import PageWrapper from "@components/PageWrapper";
+import UserTypePage from "@components/pages/[user]/[type]";
 
 import type { PageProps as UserTypePageProps } from "../../../[user]/[type]";
-import UserTypePage from "../../../[user]/[type]";
 import type { PageProps as TeamTypePageProps } from "../../../team/[slug]/[type]";
 import TeamTypePage from "../../../team/[slug]/[type]";
 
