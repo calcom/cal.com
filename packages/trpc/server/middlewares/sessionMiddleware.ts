@@ -79,6 +79,13 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
           },
         },
       },
+      linkedTo: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      },
     },
   });
 

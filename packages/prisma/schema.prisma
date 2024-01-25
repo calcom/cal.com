@@ -259,10 +259,8 @@ model User {
   accessCodes          AccessCode[]
   bookingRedirects     OutOfOfficeEntry[]
   bookingRedirectsTo   OutOfOfficeEntry[]      @relation(name: "toUser")
-  // Linking account code for orgs v2
-  //linkedByUserId       Int?
-  //linkedBy             User?                   @relation("linked_account", fields: [linkedByUserId], references: [id], onDelete: Cascade)
-  //linkedUsers          User[]                  @relation("linked_account")*/
+  linkedBy             User[]                  @relation("LinkedUsers")
+  linkedTo             User[]                  @relation("LinkedUsers")
 
   // Used to lock the user account
   locked Boolean @default(false)

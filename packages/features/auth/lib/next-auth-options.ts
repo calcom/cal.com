@@ -10,6 +10,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import LinkedUserProvider from "@calcom/features/users/lib/LinkedUserProvider";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
@@ -259,6 +260,7 @@ const providers: Provider[] = [
     },
   }),
   ImpersonationProvider,
+  LinkedUserProvider,
 ];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {

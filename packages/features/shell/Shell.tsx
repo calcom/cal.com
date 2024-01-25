@@ -29,6 +29,7 @@ import AdminPasswordBanner, {
 import CalendarCredentialBanner, {
   type CalendarCredentialBannerProps,
 } from "@calcom/features/users/components/CalendarCredentialBanner";
+import { LinkedUsersDropdown } from "@calcom/features/users/components/LinkedUsersDropdown";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -477,6 +478,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
+                <LinkedUsersDropdown />
                 <DropdownMenuItem>
                   <DropdownItem
                     type="button"
