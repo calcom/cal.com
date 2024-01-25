@@ -1,4 +1,3 @@
-import Page from "@pages/bookings/[status]";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -8,6 +7,7 @@ import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { APP_NAME } from "@calcom/lib/constants";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
+import Page from "~/bookings/views/bookings-listing-view";
 import { getStaticProps } from "~/bookings/views/bookings-listing-view.getStaticProps";
 
 type Y = InferGetStaticPropsType<typeof getStaticProps>;

@@ -833,7 +833,7 @@ type RecurringBookingsProps = {
   tz: string;
 };
 
-export function RecurringBookings({
+function RecurringBookings({
   eventType,
   recurringBookings,
   duration,

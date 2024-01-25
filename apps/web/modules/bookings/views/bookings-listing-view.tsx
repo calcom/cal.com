@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
-import { getLayout } from "@calcom/features/MainLayout";
 import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
@@ -23,7 +22,6 @@ import { Calendar } from "@calcom/ui/components/icon";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-import PageWrapper from "@components/PageWrapper";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
@@ -252,6 +250,3 @@ export default function Bookings() {
     </ShellMain>
   );
 }
-
-Bookings.PageWrapper = PageWrapper;
-Bookings.getLayout = getLayout;
