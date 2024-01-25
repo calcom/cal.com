@@ -12,6 +12,7 @@ type UseScheduleWithCacheArgs = {
   prefetchNextMonth?: boolean;
   duration?: number | null;
   monthCount?: number | null;
+  dayCount?: number | null;
   rescheduleUid?: string | null;
   isTeamEvent?: boolean;
 };
