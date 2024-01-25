@@ -254,7 +254,7 @@ const RoundRobinHosts = ({
             />
           </div>
           {assignAllTeamMembers ? (
-            <></>
+            <div className="mb-4" />
           ) : (
             <CheckedHostField
               options={teamMembers.sort(sortByLabel)}
@@ -372,7 +372,7 @@ const Hosts = ({
                   onInactive={() => formMethods.setValue("hosts", [])}
                 />
                 {assignAllTeamMembers ? (
-                  <div className="mb-4" />
+                  <></>
                 ) : (
                   <CheckedHostField
                     value={value}
