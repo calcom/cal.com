@@ -1,4 +1,4 @@
-import { ArrowRight, InfoIcon, RefreshCcw } from "lucide-react";
+import { ArrowRight, InfoIcon } from "lucide-react";
 import { useState } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
@@ -34,12 +34,7 @@ export function HavingTroubleFindingTime(props: Props) {
           props.onButtonClick();
           setInternalClick(true);
         }}>
-        {t("show_more")}{" "}
-        {!props.isScheduleLoading && internalClick ? (
-          <ArrowRight className="h-4 w-4" />
-        ) : (
-          <RefreshCcw className="h-4 w-4 animate-spin" />
-        )}
+        {t("show_more")} <ArrowRight className="h-4 w-4" />
       </button>
     </div>
   );
