@@ -1,4 +1,5 @@
-'use client'
+"use client";
+
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,12 +34,12 @@ import { trpc } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
-import { getServerSideProps, type PageProps } from "@lib/event-types/[type]/getServerSideProps";
+import type { AppProps } from "@lib/app-providers";
 
-import PageWrapper from "@components/PageWrapper";
 import type { AvailabilityOption } from "@components/eventtype/EventAvailabilityTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
-import { AppProps } from "@lib/app-providers";
+
+import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
