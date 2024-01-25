@@ -126,6 +126,7 @@ const BookerComponent = ({
     eventSlug,
     month,
     duration,
+    selectedDate,
   });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(

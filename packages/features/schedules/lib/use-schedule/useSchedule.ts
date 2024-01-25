@@ -22,6 +22,7 @@ export const useSchedule = ({
   username,
   eventSlug,
   eventId,
+  selectedDate,
   prefetchNextMonth,
   duration,
   monthCount,
@@ -45,11 +46,14 @@ export const useSchedule = ({
       ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
       // @TODO: Old code fetched 2 days ago if we were fetching the current month.
       // Do we want / need to keep that behavior?
-      startTime: monthDayjs.startOf("month").toISOString(),
+      startTime:
+        selectedDate && dayCount && dayCount > 0
+          ? dayjs(selectedDate).toISOString()
+          : monthDayjs.startOf("month").toISOString(),
       // if `prefetchNextMonth` is true, two months are fetched at once.
       endTime:
-        dayCount && dayCount > 0
-          ? monthDayjs.startOf("month").add(dayCount, "day").toISOString()
+        selectedDate && dayCount && dayCount > 0
+          ? dayjs(selectedDate).add(dayCount, "day").toISOString()
           : (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString(),
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
