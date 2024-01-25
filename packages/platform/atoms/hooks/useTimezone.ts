@@ -1,15 +1,18 @@
 import { useEffect } from "react";
 
 import { useApiKey } from "../hooks/useApiKeys";
-import { useGetUserTimezone } from "../hooks/useGetUserTimezone";
+import { useMe } from "./useMe";
 
-export const useTimezone = (currentTimezone: string, onTimeZoneChange: () => void) => {
+export const useTimezone = (
+  onTimeZoneChange: (currentTimezone: string) => void,
+  currentTimezone: string = new Intl.DateTimeFormat().resolvedOptions().timeZone
+) => {
   const { key } = useApiKey();
-  const preferredTimezone = useGetUserTimezone(key);
+  const { timeZone: preferredTimezone } = useMe(key);
 
   useEffect(() => {
-    if (currentTimezone !== preferredTimezone) {
-      onTimeZoneChange();
+    if (preferredTimezone !== currentTimezone) {
+      onTimeZoneChange(currentTimezone);
     }
   }, [currentTimezone, preferredTimezone, onTimeZoneChange]);
 };
