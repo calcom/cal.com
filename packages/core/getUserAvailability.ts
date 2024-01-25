@@ -94,12 +94,12 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (...args: Parameters<typeof _getUser>): ReturnType<typeof _getUser> => {
-  return monitorCallbackSync(_getUser, ...args);
+const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
+  return monitorCallbackAsync(_getUser, ...args);
 };
 
-const _getUser = (where: Prisma.UserWhereInput) =>
-  prisma.user.findFirst({
+const _getUser = async (where: Prisma.UserWhereInput) => {
+  return await prisma.user.findFirst({
     where,
     select: {
       ...availabilityUserSelect,
@@ -108,17 +108,18 @@ const _getUser = (where: Prisma.UserWhereInput) =>
       },
     },
   });
+};
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (
+export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
-): ReturnType<typeof _getCurrentSeats> => {
-  return monitorCallbackSync(_getCurrentSeats, ...args);
+): Promise<ReturnType<typeof _getCurrentSeats>> => {
+  return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
-const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
-  prisma.booking.findMany({
+const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
+  return await prisma.booking.findMany({
     where: {
       eventTypeId,
       startTime: {
@@ -137,6 +138,7 @@ const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =
       },
     },
   });
+};
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 

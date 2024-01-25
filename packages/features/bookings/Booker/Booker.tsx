@@ -1,4 +1,5 @@
 import { LazyMotion, m, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
@@ -70,6 +71,7 @@ const BookerComponent = ({
     shallow
   );
   const event = useEvent();
+  const session = useSession();
   const { selectedTimeslot, setSelectedTimeslot } = useSlots(event);
 
   const {
@@ -207,7 +209,7 @@ const BookerComponent = ({
   } = useCalendars();
 
   useEffect(() => {
-    if (event.isLoading) return setBookerState("loading");
+    if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
@@ -366,7 +368,7 @@ const BookerComponent = ({
                     "bg-default dark:bg-muted sticky top-0 z-10"
                 )}>
                 <Header
-                  isMyLink={Boolean(username === event?.data?.owner?.username)}
+                  isMyLink={Boolean(username === session?.data?.user.username)}
                   eventSlug={eventSlug}
                   enabledLayouts={bookerLayouts.enabledLayouts}
                   extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
@@ -403,7 +405,7 @@ const BookerComponent = ({
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
-                <EventMeta event={event.data} isLoading={event.isLoading} />
+                <EventMeta event={event.data} isPending={event.isPending} />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
@@ -438,7 +440,7 @@ const BookerComponent = ({
               visible={layout === BookerLayouts.WEEK_VIEW}
               className="border-subtle sticky top-0 ml-[-1px] h-full md:border-l"
               {...fadeInLeft}>
-              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isLoading} />
+              <LargeCalendar extraDays={extraDays} schedule={schedule.data} isLoading={schedule.isPending} />
             </BookerSection>
 
             <BookerSection
@@ -460,7 +462,7 @@ const BookerComponent = ({
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
                 schedule={schedule?.data}
-                isLoading={schedule.isLoading}
+                isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
               />
