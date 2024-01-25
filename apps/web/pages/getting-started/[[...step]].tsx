@@ -3,7 +3,7 @@
 import { getWorldViewSVGStr } from "@pages/getting-started/worldviewUtils";
 import type { ICountry } from "country-state-city";
 import { Country } from "country-state-city";
-import * as d3 from "d3";
+import { geoMercator } from "d3";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -208,7 +208,7 @@ const OnboardingPage = (props: { hasPendingInvites: boolean; connectedCalendarsC
       let svgCoordinates: ([number, number] | null | undefined)[] = [];
       let countryCoord: [number, number] = [0, 0];
       if (areaCoordinates) {
-        const projection = d3.geoMercator().scale(100).translate([318, 235]);
+        const projection = geoMercator().scale(100).translate([318, 235]);
 
         svgCoordinates = areaCoordinates
           .filter((coord) => coord !== null)
