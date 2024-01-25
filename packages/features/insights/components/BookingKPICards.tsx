@@ -18,7 +18,7 @@ export const BookingKPICards = () => {
 
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.eventsByStatus.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -59,7 +59,7 @@ export const BookingKPICards = () => {
     },
   ];
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingKPICards categories={categories} />;
   }
 

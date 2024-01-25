@@ -116,7 +116,7 @@ function getNavigation(props: {
     {
       name: "workflows",
       href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: PhoneCall,
+      icon: Zap,
       info: `${enabledWorkflowsNumber} ${t("active")}`,
     },
   ];
@@ -219,7 +219,7 @@ function EventTypeSingleLayout({
         navigation.push({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
-          icon: Zap,
+          icon: PhoneCall,
           info: `instant_event_tab_description`,
         });
       }
@@ -446,7 +446,7 @@ function EventTypeSingleLayout({
       </Suspense>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
-          isLoading={deleteMutation.isLoading}
+          isPending={deleteMutation.isPending}
           variety="danger"
           title={t(`delete${isManagedEvent}_event_type`)}
           confirmBtnText={t(`confirm_delete_event_type`)}

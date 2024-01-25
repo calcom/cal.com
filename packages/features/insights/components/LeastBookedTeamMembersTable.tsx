@@ -14,7 +14,7 @@ export const LeastBookedTeamMembersTable = () => {
   const { dateRange, selectedEventTypeId, selectedTeamId: teamId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithLeastBookings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastBookings.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -31,7 +31,7 @@ export const LeastBookedTeamMembersTable = () => {
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || !teamId) return null;
 

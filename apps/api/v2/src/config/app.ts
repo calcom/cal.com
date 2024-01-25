@@ -17,6 +17,7 @@ const loadConfig = (): AppConfig => {
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
       writeUrl: getEnv("DATABASE_WRITE_URL"),
+      redisUrl: getEnv("REDIS_URL"),
     },
     next: {
       authSecret: getEnv("NEXTAUTH_SECRET"),
