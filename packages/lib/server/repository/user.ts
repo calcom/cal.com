@@ -126,7 +126,7 @@ export class UserRepository {
     return { where, profiles };
   }
 
-  static async findByEmail({ email }: { email: string }) {
+  static async findByEmailAndIncludeProfiles({ email }: { email: string }) {
     const user = await prisma.user.findUnique({
       where: {
         email: email.toLowerCase(),
@@ -157,10 +157,10 @@ export class UserRepository {
       return null;
     }
 
-    const orgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(user);
+    const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(user);
     return {
       ...user,
-      orgProfiles,
+      allProfiles,
     };
   }
 

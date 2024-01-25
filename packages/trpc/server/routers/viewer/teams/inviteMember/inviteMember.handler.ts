@@ -8,6 +8,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -24,7 +25,7 @@ import {
   sendSignupToOrganizationEmail,
   getUsersToInvite,
   createNewUsersConnectToOrgIfExists,
-  createProvisionalMemberships,
+  createMemberships,
   groupUsersByJoinability,
   sendTeamInviteEmails,
   sendEmails,
@@ -131,6 +132,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
         existingUsersWithMembersips,
         team,
+        connectionInfoMap: orgConnectInfoByUsernameOrEmail,
       });
 
       log.debug(
@@ -143,28 +145,31 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
       // invited users can autojoin, create their memberships in org
       if (autoJoinUsers.length) {
-        await prisma.membership.createMany({
-          data: autoJoinUsers.map((userToAutoJoin) => {
-            const organizationRole = userToAutoJoin.teams?.[0]?.role;
-            return {
-              userId: userToAutoJoin.id,
-              teamId: team.id,
-              accepted: true,
-              role:
-                organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
-                  ? organizationRole
-                  : input.role,
-            };
-          }),
+        await createMemberships({
+          input,
+          invitees: autoJoinUsers,
+          parentId: team.parentId,
+          accepted: true,
+        });
+
+        await sendTeamInviteEmails({
+          currentUserName: ctx?.user?.name,
+          currentUserTeamName: team?.name,
+          existingUsersWithMembersips: autoJoinUsers,
+          language: translation,
+          isOrg: input.isOrg,
+          teamId: team.id,
+          currentUserParentTeamName: team?.parent?.name,
         });
       }
 
       // invited users cannot autojoin, create provisional memberships and send email
       if (regularUsers.length) {
-        await createProvisionalMemberships({
+        await createMemberships({
           input,
           invitees: regularUsers,
           parentId: team.parentId,
+          accepted: false,
         });
         await sendTeamInviteEmails({
           currentUserName: ctx?.user?.name,
@@ -175,6 +180,41 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           teamId: team.id,
           currentUserParentTeamName: team?.parent?.name,
         });
+      }
+
+      const parentOrganization = team.parent;
+      if (parentOrganization) {
+        const parsedOrg = getParsedTeam(parentOrganization);
+        // Create profiles if needed
+        await Promise.all([
+          autoJoinUsers
+            .concat(regularUsers)
+            .filter((u) => u.needToCreateProfile)
+            .map((user) =>
+              ProfileRepository.upsert({
+                create: {
+                  userId: user.id,
+                  organizationId: parsedOrg.id,
+                  username: getOrgUsernameFromEmail(
+                    user.email,
+                    parsedOrg.metadata?.orgAutoAcceptEmail || null
+                  ),
+                  email: user.email,
+                },
+                update: {
+                  email: user.email,
+                  username: getOrgUsernameFromEmail(
+                    user.email,
+                    parsedOrg.metadata?.orgAutoAcceptEmail || null
+                  ),
+                },
+                updateWhere: {
+                  userId: user.id,
+                  organizationId: parsedOrg.id,
+                },
+              })
+            ),
+        ]);
       }
     } else {
       for (const user of existingUsersWithMembersips) {

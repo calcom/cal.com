@@ -84,7 +84,10 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     upId,
   });
 
-  logger.debug("getUserFromSession: enriching user with profile", safeStringify({ user, userFromDb, upId }));
+  logger.debug(
+    `getUserFromSession: enriched user with profile - ${ctx.req?.url}`,
+    safeStringify({ user, userFromDb, upId })
+  );
 
   const { email, username, id } = user;
   if (!email || !id) {

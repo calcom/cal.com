@@ -6,7 +6,6 @@ import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
 import type { PrismaClient } from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -98,28 +97,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
 
     if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
 
-    const parsedMetadata = teamMetadataSchema.parse(orgInfo.metadata);
-
-    if (
-      parsedMetadata?.isOrganization &&
-      parsedMetadata.isOrganizationVerified &&
-      parsedMetadata.orgAutoAcceptEmail
-    ) {
-      if (foundUser.email.endsWith(parsedMetadata.orgAutoAcceptEmail)) {
-        await ctx.prisma.user.delete({
-          where: { id: input.memberId },
-        });
-        // This should cascade delete all memberships and hosts etc
-        return;
-      }
-    } else if ((!foundUser.username || !foundUser.password) && !foundUser.completedOnboarding) {
-      await ctx.prisma.user.delete({
-        where: { id: input.memberId },
-      });
-      // This should cascade delete all memberships and hosts etc
-      return;
-    }
-
+    // Delete all sub-team memberships where this team is the organization
     await ctx.prisma.membership.deleteMany({
       where: {
         team: {

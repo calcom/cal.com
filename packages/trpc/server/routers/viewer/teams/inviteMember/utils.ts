@@ -3,6 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
@@ -170,12 +171,7 @@ export async function getUsersToInvite({
       completedOnboarding: true,
       identityProvider: true,
       profiles: true,
-      teams: {
-        select: { teamId: true, userId: true, accepted: true, role: true },
-        where: {
-          OR: memberships,
-        },
-      },
+      teams: true,
     },
   });
 
@@ -292,16 +288,20 @@ export async function createNewUsersConnectToOrgIfExists({
   );
 }
 
-export async function createProvisionalMemberships({
+export async function createMemberships({
   input,
   invitees,
   parentId,
+  accepted,
 }: {
   input: InviteMemberOptions["input"];
-  invitees: UserWithMembership[];
+  invitees: (UserWithMembership & {
+    needToCreateOrgMembership: boolean;
+  })[];
   parentId: number | null;
+  accepted: boolean;
 }) {
-  log.debug("Creating provisional memberships for", safeStringify({ input, invitees, parentId }));
+  log.debug("Creating memberships for", safeStringify({ input, invitees, parentId, accepted }));
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
@@ -311,6 +311,7 @@ export async function createProvisionalMemberships({
         data.push({
           teamId: input.teamId,
           userId: invitee.id,
+          accepted,
           role:
             organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
               ? organizationRole
@@ -318,8 +319,9 @@ export async function createProvisionalMemberships({
         });
 
         // membership for the org
-        if (parentId) {
+        if (parentId && invitee.needToCreateOrgMembership) {
           data.push({
+            accepted,
             teamId: parentId,
             userId: invitee.id,
             role: input.role as MembershipRole,
@@ -329,6 +331,7 @@ export async function createProvisionalMemberships({
       }),
     });
   } catch (e) {
+    console.error(e);
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       // Don't throw an error if the user is already a member of the team when inviting multiple users
       if (!Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
@@ -342,7 +345,7 @@ export async function createProvisionalMemberships({
           message: "Trying to invite users already members of this team / have pending invitations",
         });
       }
-      logger.error("Failed to create provisional memberships", input.teamId);
+      logger.error("Failed to create memberships", input.teamId);
     } else throw e;
   }
 }
@@ -421,39 +424,67 @@ export function getIsOrgVerified(
   } as { isInOrgScope: false; orgVerified: never; autoAcceptEmailDomain: never };
 }
 
-export function shouldAutoJoinIfInOrg({
+export function getAutoJoinStatus({
   team,
   invitee,
+  connectionInfoMap,
 }: {
   team: TeamWithParent;
   invitee: UserWithMembership;
+  connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  // team is an Org
-  if (!team.parentId) {
-    return false;
+  if (!isOrganization({ team }) && !team.parentId) {
+    // It is a regular team not part of any organization
+    return {
+      autoAccept: true,
+      needToCreateProfile: false,
+      needToCreateOrgMembership: false,
+    };
   }
 
-  // Not a member of the org
-  if (!UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })) {
-    return false;
+  const isAutoAcceptEmail = connectionInfoMap[invitee.email].autoAccept;
+
+  if (
+    team.parentId &&
+    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+  ) {
+    const orgMembership = invitee.teams?.find((membership) => membership.teamId === team.parentId);
+
+    const isAMemberOfOrg = orgMembership?.accepted;
+    // User is a member of parent organization
+    return {
+      autoAccept: isAMemberOfOrg,
+      needToCreateProfile: false,
+      needToCreateOrgMembership: false,
+    };
   }
 
-  const orgMembership = invitee.teams?.find((membership) => membership.teamId === team.parentId);
-
-  if (!orgMembership?.accepted) {
-    return false;
+  if (isAutoAcceptEmail) {
+    // User is not a member of parent organization but has autoAccept email
+    // We need to create profile as well.
+    return {
+      autoAccept: true,
+      needToCreateProfile: true,
+      needToCreateOrgMembership: true,
+    };
   }
 
-  return true;
+  return {
+    autoAccept: false,
+    needToCreateProfile: false,
+    needToCreateOrgMembership: true,
+  };
 }
 
 // split invited users between ones that can autojoin and the others who cannot autojoin
 export const groupUsersByJoinability = ({
   existingUsersWithMembersips,
   team,
+  connectionInfoMap,
 }: {
   team: TeamWithParent;
   existingUsersWithMembersips: UserWithMembership[];
+  connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) => {
   const usersToAutoJoin = [];
   const regularUsers = [];
@@ -461,14 +492,21 @@ export const groupUsersByJoinability = ({
   for (let index = 0; index < existingUsersWithMembersips.length; index++) {
     const existingUserWithMembersips = existingUsersWithMembersips[index];
 
-    const canAutojoin = shouldAutoJoinIfInOrg({
+    const autoJoinStatus = getAutoJoinStatus({
       invitee: existingUserWithMembersips,
       team,
+      connectionInfoMap,
     });
 
-    canAutojoin
-      ? usersToAutoJoin.push(existingUserWithMembersips)
-      : regularUsers.push(existingUserWithMembersips);
+    autoJoinStatus.autoAccept
+      ? usersToAutoJoin.push({
+          ...existingUserWithMembersips,
+          ...autoJoinStatus,
+        })
+      : regularUsers.push({
+          ...existingUserWithMembersips,
+          ...autoJoinStatus,
+        });
   }
 
   return [usersToAutoJoin, regularUsers];

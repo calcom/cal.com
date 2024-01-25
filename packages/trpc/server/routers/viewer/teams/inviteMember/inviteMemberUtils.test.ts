@@ -14,7 +14,7 @@ import {
   getIsOrgVerified,
   getOrgConnectionInfo,
   validateInviteeEligibility,
-  shouldAutoJoinIfInOrg,
+  getAutoJoinStatus,
   checkInputEmailIsValid,
 } from "./utils";
 
@@ -323,7 +323,7 @@ describe("Invite Member Utils", () => {
   });
   describe("shouldAutoJoinIfInOrg", () => {
     it("should return autoJoined: false if the user is not in the same organization as the team", async () => {
-      const result = await shouldAutoJoinIfInOrg({
+      const result = await getAutoJoinStatus({
         team: mockedTeam,
         invitee: userInTeamAccepted,
       });
@@ -331,7 +331,7 @@ describe("Invite Member Utils", () => {
     });
 
     it("should return autoJoined: false if the team does not have a parent organization", async () => {
-      const result = await shouldAutoJoinIfInOrg({
+      const result = await getAutoJoinStatus({
         team: { ...mockedTeam, parentId: null },
         invitee: userInTeamAccepted,
       });
@@ -339,7 +339,7 @@ describe("Invite Member Utils", () => {
     });
 
     it("should return `autoJoined: false` if team has parent organization and invitee has not accepted membership to organization", async () => {
-      const result = await shouldAutoJoinIfInOrg({
+      const result = await getAutoJoinStatus({
         team: { ...mockedTeam, parentId: mockedTeam.id },
         invitee: {
           ...userInTeamNotAccepted,
@@ -349,7 +349,7 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual(false);
     });
     it("should return `autoJoined: true` if team has parent organization and invitee has accepted membership to organization", async () => {
-      const result = shouldAutoJoinIfInOrg({
+      const result = getAutoJoinStatus({
         team: { ...mockedTeam, parentId: mockedTeam.id },
         invitee: {
           ...userInTeamAccepted,

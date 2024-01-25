@@ -106,7 +106,7 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await UserRepository.findByEmail({ email: credentials.email });
+      const user = await UserRepository.findByEmailAndIncludeProfiles({ email: credentials.email });
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
@@ -229,10 +229,7 @@ const providers: Provider[] = [
         role: validateRole(user.role),
         belongsToActiveTeam: hasActiveTeams,
         locale: user.locale,
-
-        // Use the first organization profile for now
-        // TODO: OrgNewSchema - later
-        profile: user.orgProfiles[0] ?? null,
+        profile: user.allProfiles[0],
       };
     },
   }),
@@ -269,22 +266,28 @@ if (isSAMLLoginEnabled) {
       params: { grant_type: "authorization_code" },
     },
     userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
-    profile: (profile) => {
+    profile: async (profile: {
+      id?: number;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      locale?: string;
+    }) => {
+      const user = await UserRepository.findByEmailAndIncludeProfiles({ email: profile.email || "" });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      const [userProfile] = user.allProfiles;
       return {
-        id: profile.id || "",
+        id: profile.id || 0,
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         email: profile.email || "",
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        profile: {
-          id: profile.profileId || null,
-          organizationId: profile.organizationId || null,
-          organization: profile.organization || null,
-          username: profile.username || "",
-          upId: profile.upId || "",
-        },
+        profile: userProfile,
       };
     },
     options: {
@@ -336,6 +339,12 @@ if (isSAMLLoginEnabled) {
         }
 
         const { id, firstName, lastName, email } = userInfo;
+        const user = await UserRepository.findByEmailAndIncludeProfiles({ email });
+        if (!user) {
+          throw new Error(ErrorCode.UserNotFound);
+        }
+
+        const [profile] = user.allProfiles;
 
         return {
           id: id as unknown as number,
@@ -344,14 +353,7 @@ if (isSAMLLoginEnabled) {
           email,
           name: `${firstName} ${lastName}`.trim(),
           email_verified: true,
-          // FIXME: OrgNewSchema - How do we set profile here.
-          profile: {
-            id: null,
-            organizationId: null,
-            organization: null,
-            username: "",
-            upId: "",
-          },
+          profile,
         };
       },
     })
@@ -387,6 +389,7 @@ export const AUTH_OPTIONS: AuthOptions = {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
+  debug: true,
   session: {
     strategy: "jwt",
   },
@@ -420,7 +423,18 @@ export const AUTH_OPTIONS: AuthOptions = {
   },
   providers,
   callbacks: {
-    async jwt({ token, user, account, trigger, session }) {
+    async jwt({
+      // Always available but with a little difference in value
+      token,
+      // Available only in case of signIn, signUp or useSession().update call.
+      trigger,
+      // Available when useSession().update is called. The value will be the POST data
+      session,
+      // Available only in the first call once the user signs in. Not available in subsequent calls
+      user,
+      // Available only in the first call once the user signs in. Not available in subsequent calls
+      account,
+    }) {
       log.debug("callbacks:jwt", safeStringify({ token, user, account, trigger, session }));
 
       // The data available in 'session' depends on what data was supplied in update method call of session
@@ -564,6 +578,10 @@ export const AUTH_OPTIONS: AuthOptions = {
         } as JWT;
       }
 
+      if (account.type === "email") {
+        return await autoMergeIdentities();
+      }
+
       return token;
     },
     async session({ session, token, user }) {
@@ -590,7 +608,19 @@ export const AUTH_OPTIONS: AuthOptions = {
       return calendsoSession;
     },
     async signIn(params) {
-      const { user, account, profile } = params;
+      const {
+        /**
+         * Available when Credentials provider is used - Has the value returned by authorize callback
+         */
+        user,
+        /**
+         * Available when Credentials provider is used - Has the value submitted as the body of the HTTP POST submission
+         */
+        profile,
+        account,
+      } = params;
+
+      log.debug("callbacks:signin", safeStringify(params));
 
       if (account?.provider === "email") {
         return true;
@@ -827,6 +857,9 @@ export const AUTH_OPTIONS: AuthOptions = {
 
       return false;
     },
+    /**
+     * Used to handle the navigation right after successful login or logout
+     */
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
