@@ -40,7 +40,7 @@ export const useSchedule = ({
   let startTime;
   let endTime;
 
-  if (dayCount > 0) {
+  if (!!dayCount && dayCount > 0) {
     if (selectedDate) {
       startTime = dayjs(selectedDate).toISOString();
       endTime = dayjs(selectedDate).add(dayCount, "day").toISOString();
