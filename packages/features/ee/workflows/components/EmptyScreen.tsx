@@ -82,7 +82,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
               subtitle={t("new_workflow_subtitle").toUpperCase()}
               createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
               buttonText={t("create_workflow")}
-              isLoading={createMutation.isLoading}
+              isPending={createMutation.isPending}
             />
           </div>
         </div>

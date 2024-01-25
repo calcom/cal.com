@@ -1,3 +1,4 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -76,7 +77,7 @@ function UsersTableBare() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
       refetchOnWindowFocus: false,
     }
   );

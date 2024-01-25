@@ -106,7 +106,7 @@ export function TeamListBulkAction({ table }: Props) {
           </Command>
           <div className="my-1.5 flex w-full">
             <Button
-              loading={mutation.isLoading}
+              loading={mutation.isPending}
               className="ml-auto mr-1.5 rounded-md"
               size="sm"
               onClick={async () => {
