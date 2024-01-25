@@ -100,7 +100,6 @@ const BookerComponent = ({
       : undefined
   );
 
-  console.log(dayCount);
 
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
