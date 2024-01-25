@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetUserTimezone = (key: string) => {
+export const useMe = (key: string) => {
   const { data } = useQuery({
     queryKey: ["get-user-timezone"],
     queryFn: () => {
@@ -11,5 +11,5 @@ export const useGetUserTimezone = (key: string) => {
     },
   });
 
-  return data.timeZone;
+  return data;
 };
