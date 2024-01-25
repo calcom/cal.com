@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -25,6 +25,7 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
+import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
@@ -90,6 +91,17 @@ const BookerComponent = ({
     isEmbed,
     bookerLayouts,
   } = useBookerLayout(event.data);
+
+  const [dayCount, setDayCount] = useState(
+    layout === BookerLayouts.WEEK_VIEW
+      ? 7
+      : BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
+      ? BOOKER_NUMBER_OF_DAYS_TO_LOAD
+      : undefined
+  );
+
+  console.log(dayCount);
+
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -104,13 +116,6 @@ const BookerComponent = ({
       layout === BookerLayouts.COLUMN_VIEW) &&
     dayjs(date).add(1, "month").month() !== dayjs(date).add(columnViewExtraDays.current, "day").month()
       ? 2
-      : undefined;
-
-  const dayCount =
-    layout === BookerLayouts.WEEK_VIEW
-      ? 7
-      : BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0
-      ? BOOKER_NUMBER_OF_DAYS_TO_LOAD
       : undefined;
 
   /**
@@ -440,7 +445,16 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker event={event} schedule={schedule} />
+              <div className="relative">
+                <HavingTroubleFindingTime
+                  dayCount={dayCount}
+                  isScheduleLoading={schedule.isLoading}
+                  onButtonClick={() => {
+                    setDayCount(undefined);
+                  }}
+                />
+                <DatePicker event={event} schedule={schedule} />
+              </div>
             </BookerSection>
 
             <BookerSection
