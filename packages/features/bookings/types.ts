@@ -25,7 +25,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   noEmail?: boolean;
   recurringCount?: number;
   appsStatus?: AppsStatus[] | undefined;
-  allRecurringDates?: string[];
+  allRecurringDates?: Record<string, string>[];
   currentRecurringIndex?: number;
 };
 
@@ -33,6 +33,6 @@ export type BookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
 >;
 
-export type InstatBookingResponse = Awaited<
+export type InstantBookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>
 >;

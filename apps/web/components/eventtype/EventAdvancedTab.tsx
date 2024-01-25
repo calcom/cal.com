@@ -21,6 +21,7 @@ import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -35,7 +36,6 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { Copy, Edit, Info } from "@calcom/ui/components/icon";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 

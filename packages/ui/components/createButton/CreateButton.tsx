@@ -28,7 +28,7 @@ export type CreateBtnProps = {
   createFunction?: (teamId?: number) => void;
   subtitle?: string;
   buttonText?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
   disableMobileButton?: boolean;
   "data-testid"?: string;
   color?: ButtonColor;
@@ -46,7 +46,7 @@ export function CreateButton(props: CreateBtnProps) {
   const {
     createDialog,
     options,
-    isLoading,
+    isPending,
     createFunction,
     buttonText,
     disableMobileButton,
@@ -85,7 +85,7 @@ export function CreateButton(props: CreateBtnProps) {
           }
           data-testid="create-button"
           StartIcon={Plus}
-          loading={isLoading}
+          loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
           {buttonText ? buttonText : t("new")}
@@ -97,7 +97,7 @@ export function CreateButton(props: CreateBtnProps) {
               variant={disableMobileButton ? "button" : "fab"}
               StartIcon={Plus}
               data-testid="create-button-dropdown"
-              loading={isLoading}
+              loading={isPending}
               {...restProps}>
               {buttonText ? buttonText : t("new")}
             </Button>
