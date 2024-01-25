@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
+import { useTimezone } from "../hooks/useTimezone";
 import http from "../lib/http";
 
 type CalProviderProps = {
@@ -16,11 +17,10 @@ type CalProviderProps = {
 
 export function CalProvider({ clientId, accessToken, options, children }: CalProviderProps) {
   const [error, setError] = useState<string>("");
-  const currentUserTimezone = new Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const { mutateAsync } = useUpdateUserTimezone();
-  const handleTimezoneChange = async () => {
-    await mutateAsync({ key: clientId, timeZone: currentUserTimezone });
+  const handleTimezoneChange = async (currentTimezone: string) => {
+    await mutateAsync({ key: clientId, timeZone: currentTimezone });
   };
 
   const { isInit } = useOAuthClient({
@@ -36,6 +36,8 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
     onError: setError,
     clientId,
   });
+
+  useTimezone(handleTimezoneChange);
 
   return isInit ? (
     <AtomsContext.Provider
