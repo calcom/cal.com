@@ -16,7 +16,7 @@ export const AverageEventDurationChart = () => {
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId, selectedUserId } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.averageEventDuration.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -35,7 +35,7 @@ export const AverageEventDurationChart = () => {
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
   const isNoData = (data && data.length === 0) || data.every((item) => item["Average"] === 0);

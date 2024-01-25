@@ -1,10 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { FormValues } from "pages/event-types/[type]";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
 import { classNames } from "@calcom/lib";
@@ -107,7 +107,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   );
 });
 
-export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
+export const EventLimitsTab = () => {
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
@@ -126,36 +126,20 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
     },
   ];
 
-  const periodType =
-    PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
-    PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
-
-  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType.periodStartDate || Date.now()),
-    endDate: new Date(eventType.periodEndDate || Date.now()),
-  });
-  const watchPeriodType = useWatch({
-    control: formMethods.control,
-    name: "periodType",
-    defaultValue: periodType?.type,
-  });
+  const watchPeriodType = formMethods.watch("periodType");
 
   const optionsPeriod = [
-    { value: 1, label: t("calendar_days") },
     { value: 0, label: t("business_days") },
+    { value: 1, label: t("calendar_days") },
   ];
 
-  // offsetStart toggle is client-side only, opened by default if offsetStart is set
-  const offsetStartValue = useWatch({
-    control: formMethods.control,
-    name: "offsetStart",
-  });
-  const [offsetToggle, setOffsetToggle] = useState(() => offsetStartValue > 0);
+  const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
 
   // Preview how the offset will affect start times
+  const watchOffsetStartValue = formMethods.watch("offsetStart");
   const offsetOriginalTime = new Date();
   offsetOriginalTime.setHours(9, 0, 0, 0);
-  const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + offsetStartValue * 60 * 1000);
+  const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + watchOffsetStartValue * 60 * 1000);
 
   return (
     <div>
@@ -165,8 +149,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <Label htmlFor="beforeBufferTime">{t("before_event")}</Label>
             <Controller
               name="beforeBufferTime"
-              control={formMethods.control}
-              defaultValue={eventType.beforeEventBuffer || 0}
               render={({ field: { onChange, value } }) => {
                 const beforeBufferOptions = [
                   {
@@ -197,8 +179,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <Label htmlFor="afterBufferTime">{t("after_event")}</Label>
             <Controller
               name="afterBufferTime"
-              control={formMethods.control}
-              defaultValue={eventType.afterEventBuffer || 0}
               render={({ field: { onChange, value } }) => {
                 const afterBufferOptions = [
                   {
@@ -235,7 +215,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <Label htmlFor="slotInterval">{t("slot_interval")}</Label>
             <Controller
               name="slotInterval"
-              control={formMethods.control}
               render={() => {
                 const slotIntervalOptions = [
                   {
@@ -254,8 +233,9 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
                     }}
                     defaultValue={
-                      slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
-                      slotIntervalOptions[0]
+                      slotIntervalOptions.find(
+                        (option) => option.value === formMethods.getValues("slotInterval")
+                      ) || slotIntervalOptions[0]
                     }
                     options={slotIntervalOptions}
                   />
@@ -267,7 +247,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       </div>
       <Controller
         name="bookingLimits"
-        control={formMethods.control}
         render={({ field: { value } }) => {
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
@@ -300,7 +279,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <Controller
         name="onlyShowFirstAvailableSlot"
-        control={formMethods.control}
         render={({ field: { value } }) => {
           const isChecked = value;
           return (
@@ -323,7 +301,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <Controller
         name="durationLimits"
-        control={formMethods.control}
         render={({ field: { value } }) => {
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
@@ -361,7 +338,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
       />
       <Controller
         name="periodType"
-        control={formMethods.control}
         render={({ field: { value } }) => {
           const isChecked = value && value !== "UNLIMITED";
 
@@ -380,7 +356,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
-                  defaultValue={watchPeriodType}
                   value={watchPeriodType}
                   onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType)}>
                   {PERIOD_TYPES.map((period) => {
@@ -408,22 +383,23 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                               className="border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                               placeholder="30"
                               {...formMethods.register("periodDays", { valueAsNumber: true })}
-                              defaultValue={eventType.periodDays || 30}
                             />
                             <Select
                               options={optionsPeriod}
                               isSearchable={false}
-                              onChange={(opt) => {
-                                formMethods.setValue(
-                                  "periodCountCalendarDays",
-                                  opt?.value.toString() as "0" | "1"
-                                );
-                              }}
-                              defaultValue={
-                                optionsPeriod.find(
-                                  (opt) => opt.value === (eventType.periodCountCalendarDays ? 1 : 0)
-                                ) ?? optionsPeriod[0]
+                              onChange={(opt) =>
+                                formMethods.setValue("periodCountCalendarDays", opt?.value === 1 ? "1" : "0")
                               }
+                              name="periodCoundCalendarDays"
+                              value={optionsPeriod.find((opt) => {
+                                opt.value ===
+                                  (formMethods.getValues("periodCountCalendarDays") === "1" ? 1 : 0);
+                              })}
+                              defaultValue={optionsPeriod.find(
+                                (opt) =>
+                                  opt.value ===
+                                  (formMethods.getValues("periodCountCalendarDays") === "1" ? 1 : 0)
+                              )}
                             />
                           </div>
                         )}
@@ -431,8 +407,6 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                           <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
                             <Controller
                               name="periodDates"
-                              control={formMethods.control}
-                              defaultValue={periodDates}
                               render={() => (
                                 <DateRangePicker
                                   startDate={formMethods.getValues("periodDates").startDate}
@@ -481,7 +455,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             type="number"
             containerClassName="max-w-80"
             label={t("offset_start")}
-            {...formMethods.register("offsetStart")}
+            {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
             addOnSuffix={<>{t("minutes")}</>}
             hint={t("offset_start_description", {
               originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
