@@ -21,6 +21,7 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { EventMeta } from "./components/EventMeta";
+import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
 import { InstantBooking } from "./components/InstantBooking";
 import { LargeCalendar } from "./components/LargeCalendar";
@@ -86,6 +87,9 @@ const BookerComponent = ({
     isEmbed,
     bookerLayouts,
   } = useBookerLayout(event.data);
+
+  const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -102,6 +106,8 @@ const BookerComponent = ({
       ? 2
       : undefined;
 
+  const searchParams = useSearchParams();
+
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
@@ -110,9 +116,11 @@ const BookerComponent = ({
     prefetchNextMonth,
     username,
     monthCount,
+    dayCount,
     eventSlug,
     month,
     duration,
+    selectedDate: searchParams?.get("date"),
   });
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -130,6 +138,7 @@ const BookerComponent = ({
   if (nonEmptyScheduleDays.length !== 0)
     columnViewExtraDays.current =
       Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 2], "day")) + addonDays;
+
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
@@ -144,7 +153,6 @@ const BookerComponent = ({
 
   const { t } = useLocale();
 
-  const searchParams = useSearchParams();
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
 
@@ -427,7 +435,16 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker event={event} schedule={schedule} />
+              <div className="relative">
+                <HavingTroubleFindingTime
+                  dayCount={dayCount}
+                  isScheduleLoading={schedule.isLoading}
+                  onButtonClick={() => {
+                    setDayCount(null);
+                  }}
+                />
+                <DatePicker event={event} schedule={schedule} />
+              </div>
             </BookerSection>
 
             <BookerSection
