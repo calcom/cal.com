@@ -1,4 +1,4 @@
-export const getWorldViewSVGStr = () => {
+const getWorldViewSVGStr = () => {
   return `<svg width="647" height="380" viewBox="0 0 647 380" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M377.264 61.945C377.659 61.5503 378.299 61.5503 378.693 61.945C379.088 62.3397 379.088 62.9796 378.693 63.3743C378.299 63.769 377.659 63.769 377.264 63.3743C376.869 62.9796 376.869 62.3397 377.264 61.945Z" fill="white"/>
     <path d="M381.307 70.0301C381.701 69.6354 382.341 69.6354 382.736 70.0301C383.13 70.4248 383.13 71.0648 382.736 71.4595C382.341 71.8542 381.701 71.8542 381.307 71.4595C380.912 71.0648 380.912 70.4248 381.307 70.0301Z" fill="white"/>
@@ -5130,3 +5130,5 @@ export const getWorldViewSVGStr = () => {
     </svg>
     `;
 };
+
+export default getWorldViewSVGStr;

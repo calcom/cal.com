@@ -1,6 +1,6 @@
 "use client";
 
-import { getWorldViewSVGStr } from "@pages/getting-started/worldviewUtils";
+import getWorldViewSVGStr from "@pages/getting-started/worldviewUtils";
 import type { ICountry } from "country-state-city";
 import { Country } from "country-state-city";
 import { geoMercator } from "d3";
