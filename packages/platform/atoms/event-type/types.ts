@@ -1,10 +1,11 @@
+import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 
 import type { EventLocationType } from "@calcom/core/location";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
-import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -107,3 +108,10 @@ export type AvailabilityOption = {
 };
 
 export type DurationType = "minutes" | "hours" | "days";
+
+export type IntervalLimitUnit = "day" | "week" | "month" | "year";
+
+export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
+export type IntervalLimitsKey = keyof IntervalLimit;
+
+export type LimitsToggleProps = UseFormReturn<FormValues, any>;
