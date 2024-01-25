@@ -1,10 +1,11 @@
-import LegacyPage, { getServerSideProps } from "@pages/insights/index";
+import LegacyPage from "@pages/insights/index";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 
+import { getServerSideProps } from "@lib/insights/getServerSideProps";
 import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 export const generateMetadata = async () =>
