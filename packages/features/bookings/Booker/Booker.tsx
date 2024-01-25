@@ -100,7 +100,6 @@ const BookerComponent = ({
       : undefined
   );
 
-
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
