@@ -460,7 +460,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const hostSecondBooking = await page.locator('[data-testid="booking-host-name"]');
+    const hostSecondBooking = page.locator('[data-testid="booking-host-name"]');
     const hostNameSecondBooking = await hostSecondBooking.innerText();
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
