@@ -1,8 +1,9 @@
-import PageWrapper from "@components/PageWrapper";
+import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
 import OnboardingPage from "@components/pages/getting-started/[[...step]]";
 
 export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
-OnboardingPage.PageWrapper = PageWrapper;
+const Onboarding = OnboardingPage as CalPageWrapper;
+Onboarding.PageWrapper = PageWrapper;
 
-export default OnboardingPage;
+export default Onboarding;

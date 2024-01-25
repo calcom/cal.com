@@ -14,8 +14,6 @@ import { HeadSeo } from "@calcom/ui";
 import { BookOpen, Check, ChevronRight, FileText, Shield } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
-import type { AppProps } from "@lib/app-providers";
-
 enum pageType {
   ORG = "org",
   TEAM = "team",
@@ -23,9 +21,7 @@ enum pageType {
   OTHER = "other",
 }
 
-const Custom404: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-} = () => {
+const Custom404 = () => {
   const pathname = usePathname();
   const { t } = useLocale();
   const [username, setUsername] = useState<string>("");

@@ -6,17 +6,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
 
-import type { AppProps } from "@lib/app-providers";
-
 import AuthContainer from "@components/ui/AuthContainer";
 
 const querySchema = z.object({
   error: z.string().optional(),
 });
 
-const Error: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-} = () => {
+const Error = () => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const { error } = querySchema.parse(searchParams);

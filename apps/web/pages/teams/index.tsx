@@ -7,7 +7,7 @@ import TeamsPage from "@components/pages/teams";
 
 export { getServerSideProps } from "@lib/teams/getServerSideProps";
 
-const Teams = TeamsPage as unknown as CalPageWrapper & {
+const Teams = TeamsPage as CalPageWrapper & {
   getLayout: AppProps["Component"]["getLayout"];
   requiresLicense: AppProps["Component"]["requiresLicense"];
 };

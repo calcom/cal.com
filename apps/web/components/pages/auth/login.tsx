@@ -42,8 +42,7 @@ function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: // eslint-disable-next-line @typescript-eslint/ban-types
-PageProps) {
+}: PageProps) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();

@@ -1,7 +1,8 @@
-import PageWrapper from "@components/PageWrapper";
-import Error from "@components/pages/auth/error";
+import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import ErrorPage from "@components/pages/auth/error";
 
 export { getStaticProps } from "@lib/auth/error/getStaticProps";
 
-export default Error;
+const Error = ErrorPage as CalPageWrapper;
 Error.PageWrapper = PageWrapper;
+export default Error;

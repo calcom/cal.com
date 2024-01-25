@@ -13,15 +13,11 @@ import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
 
-import type { AppProps } from "@lib/app-providers";
-
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
-
-export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 const INITIAL_STEP = "user-settings";
 const steps = [
@@ -46,10 +42,7 @@ const stepRouteSchema = z.object({
 });
 
 // TODO: Refactor how steps work to be contained in one array/object. Currently we have steps,initalsteps,headers etc. These can all be in one place
-const OnboardingPage: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
+const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
 

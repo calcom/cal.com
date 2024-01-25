@@ -1,9 +1,11 @@
 "use client";
 
-import PageWrapper from "@components/PageWrapper";
-import Custom404 from "@components/pages/404";
+import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+import Custom404Page from "@components/pages/404";
 
 export { getStaticProps } from "@lib/404/getStaticProps";
 
-export default Custom404;
+const Custom404 = Custom404Page as CalPageWrapper;
 Custom404.PageWrapper = PageWrapper;
+
+export default Custom404;
