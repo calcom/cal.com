@@ -44,17 +44,13 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Alert, Badge, Button, EmailInput, HeadSeo, useCalcomTheme } from "@calcom/ui";
 import { AlertCircle, Calendar, Check, ChevronLeft, ExternalLink, X } from "@calcom/ui/components/icon";
 
-import { getServerSideProps } from "@lib/booking/[uid]/getServerSideProps";
 import { timeZone } from "@lib/clock";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
-export { getServerSideProps };
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
   .string()
@@ -837,7 +833,7 @@ type RecurringBookingsProps = {
   tz: string;
 };
 
-export function RecurringBookings({
+function RecurringBookings({
   eventType,
   recurringBookings,
   duration,
