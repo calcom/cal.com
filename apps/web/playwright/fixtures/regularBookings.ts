@@ -344,7 +344,7 @@ export function createBookingPageFixture(page: Page) {
     confirmBooking: async (eventTypePage: Page) => {
       await eventTypePage.getByTestId("confirm-book-button").click();
       await eventTypePage.waitForURL("booking/**");
-      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
+      await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
     },
 
     fillAndConfirmBooking: async ({
