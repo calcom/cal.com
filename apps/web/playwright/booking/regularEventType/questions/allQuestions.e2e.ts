@@ -1,6 +1,6 @@
 /* eslint-disable playwright/no-conditional-in-test */
-import { loginUser } from "../fixtures/regularBookings";
-import { test } from "../lib/fixtures";
+import { loginUser } from "../../../fixtures/regularBookings";
+import { test } from "../../../lib/fixtures";
 
 test.describe("Booking With All Questions", () => {
   test.beforeEach(async ({ page, users, bookingPage }) => {
@@ -12,20 +12,21 @@ test.describe("Booking With All Questions", () => {
 
   const bookingOptions = { isAllRequired: true };
 
+  const allQuestions = [
+    "phone",
+    "address",
+    "checkbox",
+    "boolean",
+    "textarea",
+    "multiemail",
+    "multiselect",
+    "number",
+    "radio",
+    "select",
+    "text",
+  ];
+
   test("Selecting and filling all questions as required", async ({ bookingPage }) => {
-    const allQuestions = [
-      "phone",
-      "address",
-      "checkbox",
-      "boolean",
-      "textarea",
-      "multiemail",
-      "multiselect",
-      "number",
-      "radio",
-      "select",
-      "text",
-    ];
     for (const question of allQuestions) {
       if (
         question !== "number" &&
@@ -59,19 +60,6 @@ test.describe("Booking With All Questions", () => {
   });
 
   test("Selecting and filling all questions as optional", async ({ bookingPage }) => {
-    const allQuestions = [
-      "phone",
-      "address",
-      "checkbox",
-      "boolean",
-      "textarea",
-      "multiemail",
-      "multiselect",
-      "number",
-      "radio",
-      "select",
-      "text",
-    ];
     for (const question of allQuestions) {
       if (
         question !== "number" &&
@@ -91,7 +79,7 @@ test.describe("Booking With All Questions", () => {
       } else {
         await bookingPage.addQuestion(question, `${question}-test`, `${question} test`, false);
       }
-      await bookingPage.checkField(question);
+      await bookingPage.checkField(question, { isOptional: true });
     }
 
     await bookingPage.updateEventType();
