@@ -333,7 +333,7 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.waitForURL("booking/**");
     },
 
-    confirmBooking: async (eventTypePage: Page) => {
+    confirmBookingWithAssertion: async (eventTypePage: Page) => {
       const confirmButton = "confirm-book-button";
       await eventTypePage.getByTestId(confirmButton).click();
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
