@@ -15,17 +15,17 @@ async function getFlagsFromDb(prisma: PrismaClient) {
   return flags.reduce((acc, flag) => {
     acc[flag.slug as keyof AppFlags] = flag.enabled;
     return acc;
-  }, {} as AppFlags);
+  }, {} as Partial<AppFlags>);
 }
 
 export async function getFeatureFlagMap(prisma: PrismaClient, user?: Session["user"]): Promise<AppFlags> {
   if (!!FLAGSMITH_ENVIRONMENT_ID) {
     try {
       const flags = await getFlagsFromFlagsmith(user);
-      const res = flags.reduce<AppFlags>((acc, flag) => {
+      const res = flags.reduce((acc, flag) => {
         acc[flag.feature.name as keyof AppFlags] = flag.enabled;
         return acc;
-      }, {} as AppFlags);
+      }, {} as Partial<AppFlags>);
       return res;
     } catch (error) {
       return await getFlagsFromDb(prisma);
