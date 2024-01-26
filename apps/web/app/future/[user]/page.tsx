@@ -6,10 +6,10 @@ import { headers, cookies } from "next/headers";
 
 import { getLayout } from "@calcom/features/MainLayoutAppDir";
 
-import { getServerSideProps, type UserPageProps } from "@lib/[user]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import LegacyPage from "@components/pages/[user]";
+import LegacyPage from "~/users/views/users-public-view";
+import { getServerSideProps, type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
 
 export const generateMetadata = async ({
   params,

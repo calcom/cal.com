@@ -2,9 +2,8 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSideProps, type UserPageProps } from "@lib/[user]/getServerSideProps";
-
-import LegacyPage from "@components/pages/[user]";
+import LegacyPage from "~/users/views/users-public-view";
+import { getServerSideProps, type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
 
 const getData = withAppDirSsr<UserPageProps>(getServerSideProps);
 

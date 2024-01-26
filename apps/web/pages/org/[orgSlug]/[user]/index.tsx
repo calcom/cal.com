@@ -1,9 +1,10 @@
 "use client";
 
 import PageWrapper from "@components/PageWrapper";
-import UserPage from "@components/pages/[user]";
 
-import type { UserPageProps } from "../../../[user]";
+import UserPage from "~/users/views/users-public-view";
+import { type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
+
 import type { PageProps as TeamPageProps } from "../../../team/[slug]";
 import TeamPage from "../../../team/[slug]";
 

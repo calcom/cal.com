@@ -1,10 +1,10 @@
-import { getServerSideProps, type UserPageProps } from "@lib/[user]/getServerSideProps";
 import { type AppProps } from "@lib/app-providers";
 
 import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
-import User from "@components/pages/[user]";
 
-export { getServerSideProps, UserPageProps };
+import User from "~/users/views/users-public-view";
+
+export { getServerSideProps, type UserPageProps } from "~/users/views/users-public-view.getServerSideProps";
 
 const UserPage = User as unknown as CalPageWrapper & {
   isBookingPage: AppProps["Component"]["isBookingPage"];

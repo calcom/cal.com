@@ -17,11 +17,10 @@ import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { HeadSeo, UnpublishedEntity } from "@calcom/ui";
-import { UserAvatar } from "@calcom/ui";
-import { Verified, ArrowRight } from "@calcom/ui/components/icon";
+import { HeadSeo, UnpublishedEntity, UserAvatar } from "@calcom/ui";
+import { ArrowRight, Verified } from "@calcom/ui/components/icon";
 
-import { type getServerSideProps } from "@lib/[user]/getServerSideProps";
+import { type getServerSideProps } from "./users-public-view.getServerSideProps";
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
