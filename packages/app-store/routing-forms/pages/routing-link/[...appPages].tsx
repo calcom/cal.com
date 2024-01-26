@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
+import { CAL_URL } from "@calcom/lib/constants";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -39,7 +40,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-function RoutingForm({ form, profile, ...restProps }: Props) {
+function RoutingForm({ form, profile, isOrgDomain, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
@@ -101,7 +102,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        await router.push(`/${decidedAction.value}?${allURLSearchParams}`);
+        // If not on org domain, always use absolute URL to link to event-types so that if any redirects are there, they work.
+        router.push(`${!isOrgDomain ? CAL_URL : ""}/${decidedAction.value}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }

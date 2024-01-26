@@ -1,8 +1,35 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import type { Prisma } from "@calcom/prisma/client";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
+export function isAuthorizedToViewTheForm({
+  user,
+  currentOrgDomain,
+}: {
+  user: { metadata: Prisma.JsonValue; organization: { slug: string | null } | null };
+  currentOrgDomain: string | null;
+}) {
+  const formUser = {
+    ...user,
+    metadata: userMetadata.parse(user.metadata),
+  };
+
+  if (!currentOrgDomain) {
+    // On non org domain, see if the form owner has been migrated to an org. If yes, then still allow access on non-org domain
+    if (!formUser.metadata?.migratedToOrgFrom) {
+      return false;
+    }
+  } else if (currentOrgDomain !== formUser.organization?.slug) {
+    // If on org domain,
+    // We don't serve the form that is of another org
+    // We don't serve the form that doesn't belong to any org
+    return false;
+  }
+  return true;
+}
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
@@ -26,21 +53,20 @@ export const getServerSideProps = async function getServerSideProps(
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
-      user: {
-        organization: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
-      },
     },
     include: {
       user: {
         select: {
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
           username: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,
+          metadata: true,
         },
       },
     },
@@ -52,6 +78,11 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
+  if (!isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain })) {
+    return {
+      notFound: true,
+    };
+  }
   return {
     props: {
       isEmbed,
@@ -61,6 +92,7 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
+      isOrgDomain: isValidOrgDomain,
       form: await getSerializableForm({ form }),
     },
   };

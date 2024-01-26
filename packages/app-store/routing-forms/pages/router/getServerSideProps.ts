@@ -1,8 +1,8 @@
 import { stringify } from "querystring";
 import z from "zod";
 
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { CAL_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { TRPCError } from "@calcom/trpc/server";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
@@ -12,6 +12,7 @@ import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
+import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 
@@ -36,13 +37,22 @@ export const getServerSideProps = async function getServerSideProps(
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
+  const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+    },
+    include: {
       user: {
-        organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+        select: {
+          metadata: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
+        },
       },
     },
   });
@@ -52,6 +62,13 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+
+  if (!isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain })) {
+    return {
+      notFound: true,
+    };
+  }
+
   const serializableForm = await getSerializableForm({ form });
 
   const response: Response = {};
@@ -104,7 +121,7 @@ export const getServerSideProps = async function getServerSideProps(
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
     return {
       redirect: {
-        destination: `/${decidedAction.value}?${stringify(context.query)}`,
+        destination: `${!currentOrgDomain ? CAL_URL : ""}/${decidedAction.value}?${stringify(context.query)}`,
         permanent: false,
       },
     };
