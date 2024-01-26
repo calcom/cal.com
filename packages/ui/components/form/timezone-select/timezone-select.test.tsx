@@ -5,20 +5,22 @@ import { vi } from "vitest";
 
 import { TimezoneSelect } from "./TimezoneSelect";
 
-const mockCityTimezones = [
-  { city: "City 1", timezone: "Timezone 1" },
-  { city: "City 2", timezone: "Timezone 2" },
+const cityTimezonesMock = [
+  { city: "Dawson City", timezone: "America/Dawson" },
+  { city: "Honolulu", timezone: "Pacific/Honolulu" },
+  { city: "Juneau", timezone: "America/Juneau" },
+  { city: "Toronto", timezone: "America/Toronto" },
 ];
 
-const runtimeMock = async (bool: boolean) => {
+const runtimeMock = async (isPending: boolean) => {
   const updatedTrcp = {
     viewer: {
       public: {
         cityTimezones: {
           useQuery() {
             return {
-              data: mockCityTimezones,
-              isLoading: bool,
+              data: cityTimezonesMock,
+              isPending,
             };
           },
         },
@@ -30,14 +32,14 @@ const runtimeMock = async (bool: boolean) => {
   mockedLib.trpc = updatedTrcp;
 };
 
-const mockOptText = [
-  "America/Dawson GMT -7:00",
-  "Pacific/Midway GMT -11:00",
+const optionMockValues = [
+  "America/Dawson GMT -8:00",
   "Pacific/Honolulu GMT -10:00",
-  "America/Juneau GMT -8:00",
+  "America/Juneau GMT -9:00",
+  "America/Toronto GMT -5:00",
 ];
 
-const MockTimezText = ["America/Dawson", "Pacific/Midway", "Pacific/Honolulu", "America/Juneau"];
+const timezoneMockValues = ["America/Dawson", "Pacific/Honolulu", "America/Juneau", "America/Toronto"];
 
 const classNames = {
   singleValue: () => "test1",
@@ -66,7 +68,7 @@ const openMenu = async () => {
     const element = screen.getByLabelText("Test");
     element.focus();
     fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
-    screen.getByText(mockOptText[0]);
+    screen.getByText(optionMockValues[0]);
   });
 };
 
@@ -76,15 +78,15 @@ describe("Test TimezoneSelect", () => {
     vi.resetAllMocks();
   });
 
-  describe("Test TimezoneSelect with isLoading = false in mock", () => {
+  describe("Test TimezoneSelect with isPending = false", () => {
     beforeAll(async () => {
       await runtimeMock(false);
     });
-    test("Should render with the correct CSS when has classNames prop", async () => {
-      renderSelect({ value: MockTimezText[0], classNames });
+    test("Should render with the correct CSS when provided with classNames prop", async () => {
+      renderSelect({ value: timezoneMockValues[0], classNames });
       openMenu();
 
-      const dawsonEl = screen.getByText(MockTimezText[0]);
+      const dawsonEl = screen.getByText(timezoneMockValues[0]);
 
       expect(dawsonEl).toBeInTheDocument();
 
@@ -92,7 +94,7 @@ describe("Test TimezoneSelect", () => {
       const valueContainerEl = singleValueEl?.parentElement;
       const controlEl = valueContainerEl?.parentElement;
       const inputEl = screen.getByRole("combobox", { hidden: true }).parentElement;
-      const optionEl = screen.getByText(mockOptText[0]).parentElement?.parentElement;
+      const optionEl = screen.getByText(optionMockValues[0]).parentElement?.parentElement;
       const menuListEl = optionEl?.parentElement;
       const menuEl = menuListEl?.parentElement;
 
@@ -104,24 +106,24 @@ describe("Test TimezoneSelect", () => {
       expect(menuListEl).toHaveClass(classNames.menuList());
       expect(menuEl).toHaveClass(classNames.menu());
 
-      for (const mockText of mockOptText) {
+      for (const mockText of optionMockValues) {
         expect(screen.getByText(mockText)).toBeInTheDocument();
       }
     });
 
-    test("Should render with the correct CSS when has className prop", async () => {
-      renderSelect({ value: MockTimezText[0], className: "test-css" });
+    test("Should render with the correct CSS when provided with className prop", async () => {
+      renderSelect({ value: timezoneMockValues[0], className: "test-css" });
       openMenu();
       const labelTest = screen.getByText("Test");
       const timezoneEl = labelTest.nextSibling;
       expect(timezoneEl).toHaveClass("test-css");
     });
 
-    test("Should render with the correct CSS when has prop isMulti", async () => {
-      renderSelect({ value: MockTimezText[0], isMulti: true, classNames });
+    test("Should render with the correct CSS when isMulti is enabled", async () => {
+      renderSelect({ value: timezoneMockValues[0], isMulti: true, classNames });
       openMenu();
 
-      const dawsonEl = screen.getByText(MockTimezText[0]);
+      const dawsonEl = screen.getByText(timezoneMockValues[0]);
       const multiValueEl = dawsonEl.parentElement?.parentElement;
       expect(multiValueEl).toHaveClass(classNames.multiValue());
 
@@ -130,18 +132,18 @@ describe("Test TimezoneSelect", () => {
       expect(menuIsOpenEl).toHaveClass("[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform ");
     });
 
-    test("Should render with the correct CSS when menu is open and onChange be called", async () => {
-      renderSelect({ value: MockTimezText[0], onChange: onChangeMock });
+    test("Should render with the correct CSS when menu is open and onChange is called", async () => {
+      renderSelect({ value: timezoneMockValues[0], onChange: onChangeMock });
       await waitFor(async () => {
         const element = screen.getByLabelText("Test");
         element.focus();
         fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
-        screen.getByText(mockOptText[3]);
+        screen.getByText(optionMockValues[3]);
 
         const inputEl = screen.getByRole("combobox", { hidden: true }).parentElement;
         const menuIsOpenEl = inputEl?.parentElement?.nextSibling;
         expect(menuIsOpenEl).toHaveClass("rotate-180 transition-transform ");
-        const opt = screen.getByText(mockOptText[3]);
+        const opt = screen.getByText(optionMockValues[3]);
         fireEvent.click(opt);
         fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
       });
@@ -150,19 +152,19 @@ describe("Test TimezoneSelect", () => {
     });
   });
 
-  describe("Test TimezoneSelect with isLoading = true in mock", () => {
+  describe("Test TimezoneSelect with isPending = true", () => {
     beforeAll(async () => {
       await runtimeMock(true);
     });
-    test("Should have no options when isLoading is true", async () => {
-      renderSelect({ value: MockTimezText[0] });
+    test("Should have no options when isPending is true", async () => {
+      renderSelect({ value: timezoneMockValues[0] });
       await waitFor(async () => {
         const element = screen.getByLabelText("Test");
         element.focus();
         fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
       });
 
-      for (const mockText of mockOptText) {
+      for (const mockText of optionMockValues) {
         const optionEl = screen.queryByText(mockText);
         expect(optionEl).toBeNull();
       }
