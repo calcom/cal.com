@@ -321,6 +321,7 @@ export default function Success(props: PageProps) {
         <div className="-mb-4 ml-4 mt-2">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
+            data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm dark:hover:bg-transparent">
             <ChevronLeft className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
