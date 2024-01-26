@@ -342,10 +342,9 @@ export function createBookingPageFixture(page: Page) {
     },
 
     confirmBooking: async (eventTypePage: Page) => {
-      const confirmButton = "confirm-book-button";
-      const toast = page.getByTestId("toast-success");
-      await eventTypePage.getByTestId(confirmButton).click();
-      expect(toast).toBeTruthy();
+      await eventTypePage.getByTestId("confirm-book-button").click();
+      await eventTypePage.waitForURL("booking/**");
+      await expect(page.getByText(scheduleSuccessfullyText)).toBeVisible();
     },
 
     fillAndConfirmBooking: async ({
