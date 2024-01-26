@@ -62,6 +62,7 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
   durationLimits: true,
+  assignAllTeamMembers: true,
 })
   .merge(
     z.object({

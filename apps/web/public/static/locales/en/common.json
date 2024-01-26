@@ -2235,6 +2235,8 @@
   "add_a_redirect": "Add a redirect",
   "create_entry": "Create entry",
   "time_range": "Time range",
+  "automatically_add_all_team_members": "Automatically add all team members",
+  "including_people_who_join_in_future": "Including people who join the team in the future",
   "redirect_to": "Redirect to",
   "having_trouble_finding_time": "Having trouble finding a time?",
   "show_more": "Show more",
