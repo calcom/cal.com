@@ -5,6 +5,9 @@
 
 */
 -- AlterTable
+ALTER TABLE "EventType" ADD COLUMN     "profileId" INTEGER;
+
+-- AlterTable
 ALTER TABLE "users" ADD COLUMN     "movedToProfileId" INTEGER;
 
 -- CreateTable
@@ -40,6 +43,9 @@ CREATE UNIQUE INDEX "Profile_movedFromUserId_key" ON "Profile"("movedFromUserId"
 CREATE UNIQUE INDEX "users_movedToProfileId_key" ON "users"("movedToProfileId");
 
 -- AddForeignKey
+ALTER TABLE "EventType" ADD CONSTRAINT "EventType_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_movedToProfileId_fkey" FOREIGN KEY ("movedToProfileId") REFERENCES "Profile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -47,3 +53,15 @@ ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+WITH new_profile AS (
+  INSERT INTO "Profile" ("uid", "organizationId", "userId", "username", "movedFromUserId", "updatedAt")
+  SELECT "id" as "uid", "organizationId", "id" AS "userId", "username", "id" as "movedFromUserId", NOW()
+  FROM "users"
+  WHERE "organizationId" IS NOT NULL
+  RETURNING "uid", "userId", "id"
+)
+UPDATE "users"
+SET "movedToProfileId" = "new_profile"."id"
+FROM "new_profile"
+WHERE "users"."id" = "new_profile"."userId";
