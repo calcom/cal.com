@@ -389,7 +389,7 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
 
     const testUser = await users.create(
-      { username: "test-user", name: "Test User", email: "testuser@example.com", schedule },
+      { schedule },
       {
         hasTeam: true,
         schedulingType: SchedulingType.ROUND_ROBIN,
