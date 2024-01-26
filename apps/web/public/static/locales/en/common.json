@@ -2236,5 +2236,7 @@
   "create_entry": "Create entry",
   "time_range": "Time range",
   "redirect_to": "Redirect to",
+  "having_trouble_finding_time": "Having trouble finding a time?",
+  "show_more": "Show more",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
