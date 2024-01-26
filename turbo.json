@@ -116,6 +116,9 @@
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
+    "local": {
+      "cache": false
+    },
     "lint": {
       "cache": false
     },
