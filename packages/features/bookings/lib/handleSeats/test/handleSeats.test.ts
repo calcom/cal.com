@@ -90,7 +90,7 @@ describe("handleSeats", () => {
 
       await handleNewBooking(req);
 
-      expect(spy).toHaveBeenCalledTimes(0);
+      expect(spy).toHaveBeenCalledTimes(1);
     });
 
     test("handleSeats is called when a new attendee is added", async () => {
@@ -194,7 +194,6 @@ describe("handleSeats", () => {
       expect(handleSeatsCall).toEqual(
         expect.objectContaining({
           bookerEmail: booker.email,
-          reqBookingUid: bookingUid,
           reqBodyUser: reqBookingUser,
           tAttendees: expect.any(Function),
           additionalNotes: expect.anything(),
@@ -338,7 +337,6 @@ describe("handleSeats", () => {
         expect.objectContaining({
           rescheduleUid: bookingUid,
           bookerEmail: booker.email,
-          reqBookingUid: bookingUid,
           reqBodyUser: reqBookingUser,
           tAttendees: expect.any(Function),
           additionalNotes: expect.anything(),

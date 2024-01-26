@@ -37,8 +37,12 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     where: {
       OR: [
         {
+          uid: rescheduleUid,
+        },
+
+        {
           eventTypeId: eventType.id,
-          startTime: evt.startTime,
+          startTime: new Date(evt.startTime),
         },
       ],
       status: BookingStatus.ACCEPTED,
