@@ -101,7 +101,7 @@ test.describe("Booking page with no questions", () => {
       const eventTypePage = await bookingPage.previewEventType();
       await eventTypePage.setViewportSize({ width: resolution.width, height: resolution.height });
       await bookingPage.selectTimeSlot(eventTypePage);
-      await bookingPage.confirmBookingWithAssertion(eventTypePage);
+      await bookingPage.confirmBooking(eventTypePage);
     });
   }
 });
