@@ -15,12 +15,6 @@ import getCalLink from "../../_utils/getCalLink";
  *     operationId: getEventTypeBySlug
  *     summary: Find an eventType by slug
  *     parameters:
- *      - in: query
- *        name: apiKey
- *        schema:
- *          type: string
- *        required: true
- *        description: Your API Key
  *      - in: path
  *        name: slug
  *        example: 30min
@@ -28,6 +22,18 @@ import getCalLink from "../../_utils/getCalLink";
  *          type: string
  *        required: true
  *        description: Slug of the eventType to get
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API Key
+ *      - in: query
+ *        name: ownerId
+ *        schema:
+ *          type: integer
+ *        required: falser
+ *        description: Optional owner ID to fetch event types belonging to other users, accessible only by admins.
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -41,11 +47,13 @@ import getCalLink from "../../_utils/getCalLink";
  *         description: EventType was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { userId, prisma, query } = req;
-  const { slug } = schemaQuerySlug.parse(query);
+  const { userId, prisma, isAdmin, query } = req;
+  const { slug, ownerId } = schemaQuerySlug.parse(query);
+
+  const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
 
   const eventType = await prisma.eventType.findFirst({
-    where: { slug, users: { some: { id: userId } } },
+    where: { slug, users: { some: { id: effectiveUserId } } },
     include: {
       customInputs: true,
       team: { select: { slug: true } },
