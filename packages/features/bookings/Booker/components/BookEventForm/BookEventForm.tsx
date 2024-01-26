@@ -63,7 +63,7 @@ export const BookEventForm = ({
   }, [eventType]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
-  if (eventQuery.isLoading || !eventQuery.data) return <FormSkeleton />;
+  if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
     return (
       <EmptyScreen

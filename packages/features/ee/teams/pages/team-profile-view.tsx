@@ -5,7 +5,7 @@ import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -93,16 +93,25 @@ const ProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId, includeTeamLogo: true },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
@@ -142,7 +151,7 @@ const ProfileView = () => {
       });
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
   }
 
@@ -405,7 +414,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

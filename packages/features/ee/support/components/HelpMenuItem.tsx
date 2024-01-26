@@ -166,7 +166,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
         <div className="my-2 flex justify-end">
           <Button
             disabled={disableSubmit}
-            loading={mutation.isLoading}
+            loading={mutation.isPending}
             onClick={async () => {
               if (rating && comment) {
                 await sendFeedback(rating, comment);

@@ -65,7 +65,7 @@ export const ChargeCardDialog = (props: IRescheduleDialog) => {
               <DialogClose />
               <Button
                 data-testid="send_request"
-                disabled={chargeCardMutation.isLoading || chargeError}
+                disabled={chargeCardMutation.isPending || chargeError}
                 onClick={() =>
                   chargeCardMutation.mutate({
                     bookingId,
