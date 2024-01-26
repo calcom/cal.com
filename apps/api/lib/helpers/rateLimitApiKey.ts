@@ -9,6 +9,11 @@ export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
   await checkRateLimitAndThrowError({
     identifier: req.query.apiKey as string,
     rateLimitingType: "api",
+    onRateLimiterResponse: (response) => {
+      res.setHeader("X-RateLimit-Limit", 10);
+      res.setHeader("X-RateLimit-Remaining", response.remaining);
+      res.setHeader("X-RateLimit-Reset", response.reset);
+    },
   });
 
   await next();

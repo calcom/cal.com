@@ -9,6 +9,11 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 export type RateLimitHelper = {
   rateLimitingType?: "core" | "forcedSlowMode" | "common" | "api" | "ai";
   identifier: string;
+  /**
+   * Using a callback instead of a regular return to provide headers even
+   * when the rate limit is reached and an error is thrown.
+   **/
+  onRateLimiterResponse?: (response: RatelimitResponse) => void;
 };
 
 export type RatelimitResponse = {
