@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
-import { schemaQuerySlugAsString } from "~/lib/validations/shared/querySlugString";
+import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
 
 import { checkPermissions } from "../../[id]/_get";
 import getCalLink from "../../_utils/getCalLink";
@@ -42,7 +42,7 @@ import getCalLink from "../../_utils/getCalLink";
  */
 export async function getHandler(req: NextApiRequest) {
   const { userId, prisma, query } = req;
-  const { slug } = schemaQuerySlugAsString.parse(query);
+  const { slug } = schemaQuerySlug.parse(query);
 
   const eventType = await prisma.eventType.findFirst({
     where: { slug, users: { some: { id: userId } } },
