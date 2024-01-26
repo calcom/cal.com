@@ -33,8 +33,16 @@ import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGHT, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+  IS_VISUAL_REGRESSION_TESTING,
+  TOP_BANNER_HEIGHT,
+  ENABLE_PROFILE_SWITCHER,
+} from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -89,7 +97,6 @@ import {
   Check,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -197,13 +204,13 @@ function useRedirectToOnboardingIfNeeded() {
 type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
 
 const useBanners = () => {
-  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
-  if (isLoading || !userSession) return null;
+  if (isPending || !userSession) return null;
 
   const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
-  const userImpersonatedByUID = userSession?.user.impersonatedByUID;
+  const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
 
   const userSessionBanners = {
     adminPasswordBanner: isUserInactiveAdmin ? userSession : null,
@@ -768,7 +775,7 @@ const MobileNavigation = () => {
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 z-30 -mx-4 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (

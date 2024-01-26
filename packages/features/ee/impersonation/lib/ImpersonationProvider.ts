@@ -29,7 +29,8 @@ const auditAndReturnNextUser = async (
     profile: ProfileType;
   },
   impersonatedByUID: number,
-  hasTeam?: boolean
+  hasTeam?: boolean,
+  isReturningToSelf?: boolean
 ) => {
   // Log impersonations for audit purposes
   await prisma.impersonations.create({
@@ -53,17 +54,37 @@ const auditAndReturnNextUser = async (
     email: impersonatedUser.email,
     name: impersonatedUser.name,
     role: impersonatedUser.role,
-    impersonatedByUID,
     belongsToActiveTeam: hasTeam,
     organizationId: impersonatedUser.organizationId,
     locale: impersonatedUser.locale,
     profile: impersonatedUser.profile,
   };
 
+  if (!isReturningToSelf) {
+    const impersonatedByUser = await prisma.user.findUnique({
+      where: {
+        id: impersonatedByUID,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+    if (!impersonatedByUser) throw new Error("This user does not exist.");
+
+    return {
+      ...obj,
+      impersonatedBy: {
+        id: impersonatedByUser?.id,
+        role: impersonatedByUser?.role,
+      },
+    };
+  }
+
   return obj;
 };
 
-type Credentials = Record<"username" | "teamId", string> | undefined;
+type Credentials = Record<"username" | "teamId" | "returnToId", string> | undefined;
 
 export function parseTeamId(creds: Partial<Credentials>) {
   return creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
@@ -76,10 +97,13 @@ export function checkSelfImpersonation(session: Session | null, creds: Partial<C
 }
 
 export function checkUserIdentifier(creds: Partial<Credentials>) {
-  if (!creds?.username) throw new Error("User identifier must be present");
+  if (!creds?.username) {
+    if (creds?.returnToId) return;
+    throw new Error("User identifier must be present");
+  }
 }
 
-export function checkPermission(session: Session | null) {
+export function checkGlobalPermission(session: Session | null) {
   if (
     (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user
@@ -145,35 +169,70 @@ async function getImpersonatedUser({
     throw new Error("This user does not exist");
   }
 
-  const allOrgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser({
-    id: impersonatedUser.id,
-    username: impersonatedUser.username,
-  });
-
-  const firstOrgProfile = allOrgProfiles[0];
-  const orgMembers = firstOrgProfile.organizationId
-    ? await prisma.membership.findMany({
-        where: {
-          teamId: firstOrgProfile.organizationId,
-        },
-      })
-    : [];
-
-  const profile = !firstOrgProfile.organization
-    ? firstOrgProfile
-    : {
-        ...firstOrgProfile,
-        organization: {
-          ...firstOrgProfile.organization,
-          members: orgMembers,
-        },
-      };
+  const profile = await findProfile(impersonatedUser);
 
   return {
     ...impersonatedUser,
-    organizationId: firstOrgProfile?.organizationId ?? null,
+    organizationId: profile.organization?.id ?? null,
     profile,
   };
+}
+
+async function isReturningToSelf({ session, creds }: { session: Session | null; creds: Credentials | null }) {
+  const impersonatedByUID = session?.user.impersonatedBy?.id;
+  if (!impersonatedByUID || !creds?.returnToId) return;
+  const returnToId = parseInt(creds?.returnToId, 10);
+
+  // Ensure session impersonatedUID + the returnToId is the same so we cant take over a random account
+  if (impersonatedByUID !== returnToId) return;
+
+  const returningUser = await prisma.user.findUnique({
+    where: {
+      id: returnToId,
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      name: true,
+      role: true,
+      organizationId: true,
+      locale: true,
+      teams: {
+        where: {
+          accepted: true, // Ensure they are apart of the team and not just invited.
+        },
+        select: {
+          teamId: true,
+          disableImpersonation: true,
+          role: true,
+        },
+      },
+    },
+  });
+
+  if (returningUser) {
+    // Skip for none org users
+    if (returningUser.role !== "ADMIN" && !returningUser.organizationId) return;
+
+    const hasTeams = returningUser.teams.length >= 1;
+
+    const profile = await findProfile(returningUser);
+    return {
+      user: {
+        id: returningUser.id,
+        email: returningUser.email,
+        locale: returningUser.locale,
+        name: returningUser.name,
+        organizationId: returningUser.organizationId,
+        role: returningUser.role,
+        username: returningUser.username,
+        profile,
+      },
+      impersonatedByUID,
+      hasTeams,
+    };
+  }
 }
 
 const ImpersonationProvider = CredentialsProvider({
@@ -183,6 +242,7 @@ const ImpersonationProvider = CredentialsProvider({
   credentials: {
     username: { type: "text" },
     teamId: { type: "text" },
+    returnToId: { type: "text" },
   },
   async authorize(creds, req) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -191,7 +251,19 @@ const ImpersonationProvider = CredentialsProvider({
     const teamId = parseTeamId(creds);
     checkSelfImpersonation(session, creds);
     checkUserIdentifier(creds);
-    checkPermission(session);
+
+    // Returning to target and UID is self without having to do perm checks.
+    const returnToUser = await isReturningToSelf({ session, creds });
+    if (returnToUser) {
+      return auditAndReturnNextUser(
+        returnToUser.user,
+        returnToUser.impersonatedByUID,
+        returnToUser.hasTeams,
+        true
+      );
+    }
+
+    checkGlobalPermission(session);
 
     const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
     if (session?.user.role === "ADMIN") {
@@ -253,3 +325,29 @@ const ImpersonationProvider = CredentialsProvider({
 });
 
 export default ImpersonationProvider;
+async function findProfile(returningUser: { id: number; username: string | null }) {
+  const allOrgProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser({
+    id: returningUser.id,
+    username: returningUser.username,
+  });
+
+  const firstOrgProfile = allOrgProfiles[0];
+  const orgMembers = firstOrgProfile.organizationId
+    ? await prisma.membership.findMany({
+        where: {
+          teamId: firstOrgProfile.organizationId,
+        },
+      })
+    : [];
+
+  const profile = !firstOrgProfile.organization
+    ? firstOrgProfile
+    : {
+        ...firstOrgProfile,
+        organization: {
+          ...firstOrgProfile.organization,
+          members: orgMembers,
+        },
+      };
+  return profile;
+}

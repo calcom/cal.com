@@ -7,11 +7,12 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
-import type { Maybe } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
 
 import type { TRPCContextInner } from "../createContext";
 import { middleware } from "../trpc";
+
+type Maybe<T> = T | null | undefined;
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
   const { prisma } = ctx;
@@ -209,7 +210,7 @@ export const isAuthed = middleware(async ({ ctx, next }) => {
   }
 
   return next({
-    ctx: { ...ctx, user, session },
+    ctx: { user, session },
   });
 });
 
@@ -218,7 +219,7 @@ export const isAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   if (user?.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  return next({ ctx: { ...ctx, user: user } });
+  return next({ ctx: { user: user } });
 });
 
 // Org admins can be admins or owners
@@ -227,7 +228,7 @@ export const isOrgAdminMiddleware = isAuthed.unstable_pipe(({ ctx, next }) => {
   if (!user?.organization?.isOrgAdmin) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  return next({ ctx: { ...ctx, user: user } });
+  return next({ ctx: { user: user } });
 });
 
 export default sessionMiddleware;

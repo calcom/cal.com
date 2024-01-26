@@ -19,6 +19,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     currentOrg: ctx.user.profile?.organization ?? null,
     userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
     includeTeamLogo: input.includeTeamLogo,
+    isOrgView: input?.isOrg,
   });
 
   if (!team) {

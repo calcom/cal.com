@@ -1,3 +1,4 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useMemo, useRef, useCallback, useEffect, useState } from "react";
@@ -64,7 +65,7 @@ export function AvailabilitySliderTable() {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
-  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
       loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
@@ -73,7 +74,7 @@ export function AvailabilitySliderTable() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
     }
   );
 
@@ -206,7 +207,7 @@ export function AvailabilitySliderTable() {
               setSelectedUser(row.original);
             }}
             data={flatData}
-            isLoading={isLoading}
+            isPending={isPending}
             // tableOverlay={<HoverOverview />}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
           />

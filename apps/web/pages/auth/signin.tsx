@@ -1,17 +1,19 @@
-import type { GetServerSidePropsContext } from "next";
-import { getProviders, signIn, getCsrfToken } from "next-auth/react";
+"use client";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import type { getProviders } from "next-auth/react";
+import { signIn } from "next-auth/react";
+
 import { Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-type Provider = {
-  name: string;
-  id: string;
-};
+import { getServerSideProps } from "@server/lib/auth/signin/getServerSideProps";
 
-function signin({ providers }: { providers: Provider[] }) {
+function signin({ providers }: { providers: Awaited<ReturnType<typeof getProviders>> }) {
+  if (!providers) {
+    return null;
+  }
+
   return (
     <div className="center mt-10 justify-between space-y-5 text-center align-baseline">
       {Object.values(providers).map((provider) => {
@@ -29,21 +31,4 @@ signin.PageWrapper = PageWrapper;
 
 export default signin;
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req, res });
-  const csrfToken = await getCsrfToken(context);
-  const providers = await getProviders();
-  if (session) {
-    return {
-      redirect: { destination: "/" },
-    };
-  }
-  return {
-    props: {
-      csrfToken,
-      providers,
-    },
-  };
-}
+export { getServerSideProps };
