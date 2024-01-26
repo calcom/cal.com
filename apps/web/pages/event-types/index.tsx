@@ -732,7 +732,7 @@ const EventTypeListHeading = ({
       <Avatar
         alt={profile.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${bookerUrl}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`}
+        imageSrc={profile.image}
         size="md"
         className="mt-1 inline-flex justify-center"
       />

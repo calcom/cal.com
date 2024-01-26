@@ -142,7 +142,6 @@ export async function getTeamWithMembers(args: {
   const teamOrOrg = isOrgView ? await getOrg(arg) : await getTeam(arg);
 
   if (!teamOrOrg) return null;
-  const currentOrgId = currentOrg?.id ?? (isOrgView ? teamOrOrg.id : teamOrOrg.parent?.id) ?? null;
 
   const teamOrOrgMemberships = [];
   for (const membership of teamOrOrg.members) {

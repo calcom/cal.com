@@ -134,7 +134,7 @@ export type FormValues = {
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
-  hosts: { userId: number; isFixed: boolean; profileId: number | null }[];
+  hosts: { userId: number; isFixed: boolean }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;

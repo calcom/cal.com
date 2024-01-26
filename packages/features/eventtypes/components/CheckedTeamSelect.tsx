@@ -11,7 +11,6 @@ export type CheckedSelectOption = {
   label: string;
   value: string;
   disabled?: boolean;
-  profileId: number | null;
 };
 
 export const CheckedTeamSelect = ({

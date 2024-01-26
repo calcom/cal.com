@@ -241,7 +241,7 @@ export class ProfileRepository {
     }
 
     const organization = getParsedTeam(profile.organization);
-    return enrichProfile({
+    return normalizeProfile({
       ...profile,
       organization: {
         ...organization,
@@ -325,7 +325,7 @@ export class ProfileRepository {
       return null;
     }
 
-    return enrichProfile(profile);
+    return normalizeProfile(profile);
   }
 
   static async findManyByOrgSlugOrRequestedSlug({
@@ -363,7 +363,7 @@ export class ProfileRepository {
       },
     });
 
-    return profiles.map(enrichProfile);
+    return profiles.map(normalizeProfile);
   }
 
   static async findAllProfilesForUserIncludingMovedUser(user: {
@@ -393,7 +393,6 @@ export class ProfileRepository {
           organization: {
             select: organizationSelect,
           },
-          user: true,
         },
       })
     )
@@ -404,7 +403,7 @@ export class ProfileRepository {
         };
       })
       .map((profile) => {
-        return enrichProfile({
+        return normalizeProfile({
           username: profile.username,
           id: profile.id,
           userId: profile.userId,
@@ -416,7 +415,6 @@ export class ProfileRepository {
             requestedSlug: profile.organization.metadata?.requestedSlug ?? null,
             metadata: profile.organization.metadata,
           },
-          user: profile.user,
         });
       });
     return profiles;
@@ -452,7 +450,7 @@ export class ProfileRepository {
     if (!profile) {
       return profile;
     }
-    return enrichProfile(profile);
+    return normalizeProfile(profile);
   }
 
   /**
@@ -473,7 +471,7 @@ export class ProfileRepository {
   }
 }
 
-export const enrichProfile = <
+export const normalizeProfile = <
   T extends {
     id: number;
     organization: Pick<Team, keyof typeof organizationSelect>;
@@ -487,7 +485,8 @@ export const enrichProfile = <
     ...profile,
     upId: profile.id.toString(),
     organization: getParsedTeam(profile.organization),
-    createdAt: profile.createdAt?.toISOString(),
-    updatedAt: profile.updatedAt?.toISOString(),
+    // Make these ↓ props ISO strings so that they can be returned from getServerSideProps as is without any issues
+    ...(profile.createdAt ? { createdAt: profile.createdAt.toISOString() } : null),
+    ...(profile.updatedAt ? { updatedAt: profile.updatedAt.toISOString() } : null),
   };
 };
