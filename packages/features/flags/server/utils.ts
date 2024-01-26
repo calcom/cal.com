@@ -15,7 +15,7 @@ async function getFlagsFromDb(prisma: PrismaClient) {
   return flags.reduce((acc, flag) => {
     acc[flag.slug as keyof AppFlags] = flag.enabled;
     return acc;
-  }, {} as Partial<AppFlags>);
+  }, {} as AppFlags);
 }
 
 export async function getFeatureFlagMap(prisma: PrismaClient, user?: Session["user"]): Promise<AppFlags> {
