@@ -10,10 +10,10 @@ import getCalLink from "../../_utils/getCalLink";
 
 /**
  * @swagger
- * /event-types/bySlug/{slug}:
+ * /event-types/by-slug/{slug}:
  *   get:
  *     operationId: getEventTypeBySlug
- *     summary: Find a eventType
+ *     summary: Find an eventType by slug
  *     parameters:
  *      - in: query
  *        name: apiKey
