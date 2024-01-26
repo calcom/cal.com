@@ -18,7 +18,10 @@ async function getFlagsFromDb(prisma: PrismaClient) {
   }, {} as Partial<AppFlags>);
 }
 
-export async function getFeatureFlagMap(prisma: PrismaClient, user?: Session["user"]): Promise<AppFlags> {
+export async function getFeatureFlagMap(
+  prisma: PrismaClient,
+  user?: Session["user"]
+): Promise<Partial<AppFlags>> {
   if (!!FLAGSMITH_ENVIRONMENT_ID) {
     try {
       const flags = await getFlagsFromFlagsmith(user);
