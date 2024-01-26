@@ -11,23 +11,9 @@ async function authMiddleware(req: NextApiRequest) {
   const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
 
   const eventType = await prisma.eventType.findFirst({
-    where: { slug },
-    include: {
-      users: {
-        select: { id: true },
-      },
-    },
+    where: { slug, users: { some: { id: effectiveUserId } } },
   });
-
-  if (!eventType) {
-    throw new HttpError({ statusCode: 404, message: "Event type not found" });
-  }
-
-  const isAuthorized = isAdmin || eventType.users.some((user) => user.id === effectiveUserId);
-
-  if (!isAuthorized) {
-    throw new HttpError({ statusCode: 403, message: "Forbidden" });
-  }
+  if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;
