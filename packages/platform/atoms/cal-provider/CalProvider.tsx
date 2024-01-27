@@ -20,7 +20,7 @@ export function CalProvider({ clientId, accessToken, options, children }: CalPro
 
   const { mutateAsync } = useUpdateUserTimezone();
   const handleTimezoneChange = async (currentTimezone: string) => {
-    await mutateAsync({ key: clientId, timeZone: currentTimezone });
+    await mutateAsync({ timeZone: currentTimezone });
   };
 
   const { isInit } = useOAuthClient({
