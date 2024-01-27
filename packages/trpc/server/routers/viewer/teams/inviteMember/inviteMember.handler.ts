@@ -2,6 +2,7 @@ import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -130,6 +131,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           };
         }),
       });
+
+      await Promise.all(
+        autoJoinUsers.map(async (userToAutoJoin) => {
+          await updateNewTeamMemberEventTypes(userToAutoJoin.id, team.id);
+        })
+      );
 
       await sendTeamInviteEmails({
         currentUserName: ctx?.user?.name,

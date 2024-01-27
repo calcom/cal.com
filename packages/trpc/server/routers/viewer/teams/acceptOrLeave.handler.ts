@@ -1,3 +1,4 @@
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -25,6 +26,8 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
         team: true,
       },
     });
+
+    await updateNewTeamMemberEventTypes(ctx.user.id, input.teamId);
 
     closeComUpsertTeamUser(membership.team, ctx.user, membership.role);
   } else {

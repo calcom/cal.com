@@ -9,6 +9,8 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+
 import { ssrInit } from "@server/lib/ssr";
 
 const stringToBoolean = z
@@ -28,6 +30,8 @@ const querySchema = z.object({
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
 });
+
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   // this is needed to prevent bundling of lib/booking to the client bundle
