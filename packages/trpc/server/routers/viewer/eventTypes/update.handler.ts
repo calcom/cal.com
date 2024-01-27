@@ -39,6 +39,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     recurringEvent,
     users,
     children,
+    assignAllTeamMembers,
     hosts,
     id,
     hashedLink,
@@ -65,9 +66,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       team: {
         select: {
-          name: true,
           id: true,
+          name: true,
+          slug: true,
           parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  name: true,
+                  id: true,
+                  email: true,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -290,6 +315,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  data.assignAllTeamMembers = assignAllTeamMembers ?? false;
+
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
@@ -322,6 +349,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     children,
     prisma: ctx.prisma,
   });
+
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
     try {
