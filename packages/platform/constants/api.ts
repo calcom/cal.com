@@ -1,3 +1,10 @@
+export const BASE_URL = "http://localhost:5555";
+export const API_VERSION = "v2";
+export const V2_ENDPOINTS = {
+  me: "me",
+  eventTypes: "event-types",
+};
+
 export const SUCCESS_STATUS = "success";
 export const ERROR_STATUS = "error";
 // Client Errors (4xx)
