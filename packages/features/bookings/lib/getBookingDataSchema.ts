@@ -6,8 +6,8 @@ import {
   extendedBookingCreateBody,
 } from "@calcom/prisma/zod-utils";
 
+import type { getEventTypesFromDB } from "../../../../modules/eventTypes/getEventTypesFromDB";
 import getBookingResponsesSchema from "./getBookingResponsesSchema";
-import type { getEventTypesFromDB } from "./handleNewBooking";
 
 const getBookingDataSchema = (
   rescheduleUid: string | undefined,
