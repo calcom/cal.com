@@ -67,7 +67,6 @@
   "cannot_repackage_codebase": "Vous ne pouvez pas restructurer ou vendre la base de code",
   "acquire_license": "Obtenez une licence commerciale pour supprimer ces termes en envoyant un e-mail",
   "terms_summary": "Résumé des conditions",
-  "signing_up_terms": "En vous inscrivant, vous acceptez nos <2>Conditions d'utilisation</2> et notre <3>Politique de confidentialité</3>.",
   "open_env": "Ouvrez le fichier .env et acceptez notre licence",
   "env_changed": "J'ai modifié mon fichier .env",
   "accept_license": "Accepter la licence",
@@ -2100,5 +2099,6 @@
   "troubleshooter_tooltip": "Ouvrez l'outil de dépannage et déterminez ce qui ne va pas avec votre planning",
   "need_help": "Besoin d'aide ?",
   "troubleshooter": "Dépannage",
+  "show_more": "En voir plus",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

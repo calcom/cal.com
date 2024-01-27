@@ -177,7 +177,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <DialogFooter className="mt-4">
             <Button
               type="button"
-              loading={updateUsernameMutation.isLoading}
+              loading={updateUsernameMutation.isPending}
               data-testid="save-username"
               onClick={updateUsername}>
               {t("save")}

@@ -106,7 +106,7 @@ export const EventTypeDescription = ({
             </li>
           )}
           {eventType.requiresConfirmation && (
-            <li className="hidden xl:block">
+            <li className="hidden xl:block" data-testid="requires-confirmation-badge">
               <Badge variant="gray" startIcon={Clipboard}>
                 {eventType.metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")

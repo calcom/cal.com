@@ -37,6 +37,7 @@ export type AppProps = Omit<
       WithNonceProps<{
         themeBasis?: string;
         session: Session;
+        i18n?: SSRConfig;
       }>
     >
   >,
@@ -46,7 +47,7 @@ export type AppProps = Omit<
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
-    getLayout?: (page: React.ReactElement, router: NextAppProps["router"]) => ReactNode;
+    getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -108,7 +109,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   }, [locale]);
 
   const clientViewerI18n = useViewerI18n(locale);
-  const i18n = clientViewerI18n.data?.i18n;
+  const i18n = clientViewerI18n.data?.i18n ?? props.pageProps.i18n;
 
   const passedProps = {
     ...props,

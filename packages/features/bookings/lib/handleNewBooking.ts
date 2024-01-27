@@ -333,6 +333,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       parentId: true,
       owner: {
         select: {
@@ -1097,6 +1098,15 @@ async function handler(
       message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
     });
     throw new HttpError({ statusCode: 400, message: error.message });
+  }
+
+  const reqEventLength = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes");
+  const validEventLengths = eventType.metadata?.multipleDuration?.length
+    ? eventType.metadata.multipleDuration
+    : [eventType.length];
+  if (!validEventLengths.includes(reqEventLength)) {
+    loggerWithEventDetails.warn({ message: "NewBooking: Invalid event length" });
+    throw new HttpError({ statusCode: 400, message: "Invalid event length" });
   }
 
   // loadUsers allows type inferring

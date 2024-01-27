@@ -29,13 +29,15 @@ export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpira
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
   const oneDay = 24 * 60 * 60 * 1000;
-  const expires = expiresInDays ? new Date(Date.now() + expiresInDays * oneDay) : new Date();
+  const expires = expiresInDays
+    ? new Date(Date.now() + expiresInDays * oneDay)
+    : new Date("9999-12-31T23:59:59Z"); //maximum possible date incase the link is set to never expire
 
   await prisma.verificationToken.update({
     where: { token },
     data: {
       expires,
-      expiresInDays,
+      expiresInDays: expiresInDays ? expiresInDays : null,
     },
   });
 };
