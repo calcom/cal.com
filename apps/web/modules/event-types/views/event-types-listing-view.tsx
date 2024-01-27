@@ -16,7 +16,7 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -954,7 +954,10 @@ const EventTypesPage: React.FC & {
   }, [orgBranding, user]);
 
   return (
-    <ShellMain
+    <Shell
+      withoutMain={false}
+      title="Event Types"
+      description="Create events to share for people to book on your calendar."
       withoutSeo
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
@@ -966,7 +969,7 @@ const EventTypesPage: React.FC & {
         description="Create events to share for people to book on your calendar."
       />
       <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
-    </ShellMain>
+    </Shell>
   );
 };
 
