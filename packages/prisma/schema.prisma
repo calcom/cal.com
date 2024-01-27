@@ -124,6 +124,7 @@ model EventType {
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                  Json?
   isInstantEvent                  Boolean                 @default(false)
+  assignAllTeamMembers            Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

@@ -18,9 +18,21 @@ import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
+const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefined): string | undefined => {
+  if (value === undefined || typeof value === "string") {
+    return value;
+  }
+
+  return value.at(-1);
+};
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
+
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
+    context.req,
+    context.params?.orgSlug ?? context.query?.orgSlug
+  );
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js

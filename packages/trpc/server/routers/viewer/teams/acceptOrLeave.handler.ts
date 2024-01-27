@@ -1,5 +1,6 @@
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { isOrganization } from "@calcom/lib/entityPermissionUtils";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -54,7 +55,7 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
         organizationId: idOfOrganizationInContext,
       });
     }
-
+    await updateNewTeamMemberEventTypes(ctx.user.id, input.teamId);
     closeComUpsertTeamUser(team, ctx.user, teamMembership.role);
   } else {
     try {
