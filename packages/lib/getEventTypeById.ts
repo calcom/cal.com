@@ -112,7 +112,11 @@ export default async function getEventTypeById({
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
-      owner: true,
+      owner: {
+        select: {
+          id: true,
+        },
+      },
       parent: {
         select: {
           teamId: true,

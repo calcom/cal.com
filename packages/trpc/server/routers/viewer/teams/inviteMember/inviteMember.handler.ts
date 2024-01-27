@@ -153,6 +153,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           accepted: true,
         });
 
+        await Promise.all(
+          autoJoinUsers.map(async (userToAutoJoin) => {
+            await updateNewTeamMemberEventTypes(userToAutoJoin.id, team.id);
+          })
+        );
+
         await sendTeamInviteEmails({
           currentUserName: ctx?.user?.name,
           currentUserTeamName: team?.name,
@@ -238,12 +244,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
           },
         });
       }
-
-      await Promise.all(
-        autoJoinUsers.map(async (userToAutoJoin) => {
-          await updateNewTeamMemberEventTypes(userToAutoJoin.id, team.id);
-        })
-      );
 
       await sendTeamInviteEmails({
         currentUserName: ctx?.user?.name,

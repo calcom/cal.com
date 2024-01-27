@@ -32,11 +32,7 @@ const defaultIntegrationAddHandler = async ({
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         appId: slug,
-        ...(teamId
-          ? {
-              AND: [{ userId: user.id }, { teamId }],
-            }
-          : { userId: user.id }),
+        ...(teamId ? { AND: [{ userId: user.id }, { teamId }] } : { userId: user.id }),
       },
     });
     if (alreadyInstalled) {
@@ -74,11 +70,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (typeof handler === "function") {
       await handler(req, res);
     } else {
-      await defaultIntegrationAddHandler({
-        user: req.session?.user,
-        teamId: Number(teamId),
-        ...handler,
-      });
+      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
       redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }

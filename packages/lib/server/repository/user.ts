@@ -1,3 +1,4 @@
+import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma from "@calcom/prisma";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -64,6 +65,8 @@ export class UserRepository {
       usernameList,
     });
 
+    log.debug("findUsersByUsername", safeStringify({ where, profiles }));
+
     return (
       await prisma.user.findMany({
         where,
@@ -121,6 +124,13 @@ export class UserRepository {
           username: {
             in: usernameList,
           },
+          ...(orgSlug
+            ? {
+                organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+              }
+            : {
+                organization: null,
+              }),
         };
 
     return { where, profiles };

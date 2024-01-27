@@ -28,7 +28,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import { RedirectType, type EventType, type User as UserType } from "@calcom/prisma/client";
+import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -44,7 +44,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 import { getTemporaryOrgRedirect } from "../lib/getTemporaryOrgRedirect";
 
-const log = logger.getSubLogger({ prefix: ["[[user.tsx]]"] });
+const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
   const searchParams = useSearchParams();
@@ -277,7 +277,7 @@ export type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: (Pick<UserType, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
+  users: (Pick<User, "away" | "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
     profile: UserProfile;
   })[];
   themeBasis: string | null;
@@ -324,12 +324,25 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       return result;
     }
   }
+
+  if (!isOrgContext) {
+    // If there is no org context, see if some redirect is setup due to org migration
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+    });
+
+    if (redirect) {
+      return redirect;
+    }
+  }
+
   const usersInOrgContext = await UserRepository.findUsersByUsername({
     usernameList,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
-
-  log.debug("[user]", safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain }));
 
   const usersWithoutAvatar = usersInOrgContext.map((user) => {
     const { avatar: _1, ...rest } = user;
@@ -337,6 +350,8 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   });
 
   const isDynamicGroup = usersWithoutAvatar.length > 1;
+  log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
+
   if (isDynamicGroup) {
     return {
       redirect: {
@@ -355,19 +370,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     ...user,
     avatar: `/${user.username}/avatar.png`,
   }));
-
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernameList,
-      redirectType: RedirectType.User,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return redirect;
-    }
-  }
 
   const isNonOrgUser = (user: { profile: UserProfile }) => {
     return !user.profile?.organization;
