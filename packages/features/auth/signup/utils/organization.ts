@@ -1,3 +1,4 @@
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import prisma from "@calcom/prisma";
 
 export async function joinOrganization({
@@ -52,4 +53,6 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
       },
     }),
   ]);
+
+  await updateNewTeamMemberEventTypes(userId, orgId);
 }
