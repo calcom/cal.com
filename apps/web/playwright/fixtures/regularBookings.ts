@@ -406,6 +406,10 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
+    fillEmailAndName: async (eventTypePage: Page) => {
+      await eventTypePage.getByLabel("Email address").fill(EMAIL);
+      await eventTypePage.getByLabel("Your Name").fill("test");
+    },
     addGuests: async (eventTypePage: Page, options: { guests: string[] }) => {
       await eventTypePage.getByTestId("add-guests").click();
       for (const guest of options.guests) {

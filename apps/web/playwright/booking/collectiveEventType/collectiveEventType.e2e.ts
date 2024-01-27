@@ -15,6 +15,7 @@ test.describe("Collective event type", () => {
   test("Book a Collective event type", async ({ bookingPage }) => {
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
+    await bookingPage.fillEmailAndName(eventTypePage);
     await bookingPage.confirmBooking(eventTypePage);
     await bookingPage.backToBookings(eventTypePage);
     await bookingPage.assertLabelWithCorrectTeamName(eventTypePage, teamEventTitle);
@@ -34,6 +35,7 @@ test.describe("Collective event type", () => {
   test("Book a Collective event type (with added guest)", async ({ bookingPage }) => {
     const eventTypePage = await bookingPage.previewEventType();
     await bookingPage.selectTimeSlot(eventTypePage);
+    await bookingPage.fillEmailAndName(eventTypePage);
     await bookingPage.addGuests(eventTypePage, { guests: ["test@example.com"] });
     await bookingPage.confirmBooking(eventTypePage);
     await bookingPage.backToBookings(eventTypePage);
