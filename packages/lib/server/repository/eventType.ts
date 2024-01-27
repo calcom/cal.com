@@ -1,10 +1,13 @@
 import type { Prisma, EventType as PrismaEventType } from "@prisma/client";
 
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
+import { safeStringify } from "../../safeStringify";
 import { LookupTarget, ProfileRepository } from "./profile";
 
+const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
 type IEventType = Ensure<
   Partial<
@@ -75,7 +78,7 @@ export class EventTypeRepository {
     });
   }
 
-  static async findAllByProfileId(
+  static async findAllByUpId(
     { upId }: { upId: string },
     {
       orderBy,
@@ -84,17 +87,27 @@ export class EventTypeRepository {
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    const eventTypeWhere = {
+      ...(lookupTarget.type === LookupTarget.User
+        ? {
+            userId: lookupTarget.id,
+          }
+        : {
+            profileId: lookupTarget.id,
+          }),
+      ...where,
+    };
+    log.debug(
+      "findAllByUpId",
+      safeStringify({
+        upId,
+        orderBy,
+        argumentWhere: where,
+        where: eventTypeWhere,
+      })
+    );
     return await prisma.eventType.findMany({
-      where: {
-        ...(lookupTarget.type === LookupTarget.User
-          ? {
-              userId: lookupTarget.id,
-            }
-          : {
-              profileId: lookupTarget.id,
-            }),
-        ...where,
-      },
+      where: eventTypeWhere,
       include: {
         // TODO:  As required by getByViewHandler - Make it configurable
         team: {

@@ -235,6 +235,9 @@ export const createUsersFixture = (
       for (const eventTypeData of defaultEventTypes) {
         eventTypeData.owner = { connect: { id: _user.id } };
         eventTypeData.users = { connect: { id: _user.id } };
+        if (_user.profiles[0]) {
+          eventTypeData.profile = { connect: { id: _user.profiles[0].id } };
+        }
         await prisma.eventType.create({
           data: eventTypeData,
         });
@@ -723,37 +726,31 @@ const createUser = (
       throw new Error("Missing role for user in organization");
     }
     return {
-      profiles: organizationId
-        ? {
-            create: {
-              uid: ProfileRepository.generateProfileUid(),
-              username: uname,
-              organization: {
-                connect: {
-                  id: organizationId,
-                },
+      profiles: {
+        create: {
+          uid: ProfileRepository.generateProfileUid(),
+          username: uname,
+          organization: {
+            connect: {
+              id: organizationId,
+            },
+          },
+        },
+      },
+      teams: {
+        // Create membership
+        create: [
+          {
+            team: {
+              connect: {
+                id: organizationId,
               },
             },
-          }
-        : undefined,
-      ...(organizationId
-        ? {
-            teams: {
-              // Create membership
-              create: [
-                {
-                  team: {
-                    connect: {
-                      id: organizationId,
-                    },
-                  },
-                  accepted: true,
-                  role: MembershipRole.ADMIN,
-                },
-              ],
-            },
-          }
-        : null),
+            accepted: true,
+            role: MembershipRole.ADMIN,
+          },
+        ],
+      },
     };
   }
 };

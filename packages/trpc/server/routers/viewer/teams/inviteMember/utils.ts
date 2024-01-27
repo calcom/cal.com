@@ -296,7 +296,7 @@ export async function createMemberships({
 }: {
   input: InviteMemberOptions["input"];
   invitees: (UserWithMembership & {
-    needToCreateOrgMembership: boolean;
+    needToCreateOrgMembership: boolean | null;
   })[];
   parentId: number | null;
   accepted: boolean;
@@ -433,27 +433,30 @@ export function getAutoJoinStatus({
   invitee: UserWithMembership;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) {
-  if (!isOrganization({ team }) && !team.parentId) {
-    // It is a regular team not part of any organization
+  const isRegularTeam = !isOrganization({ team }) && !team.parentId;
+
+  if (isRegularTeam) {
+    // There are no-auto join in regular teams ever
     return {
-      autoAccept: true,
-      needToCreateProfile: false,
-      needToCreateOrgMembership: false,
+      autoAccept: false,
+      // Following are not relevant for regular teams
+      needToCreateProfile: null,
+      needToCreateOrgMembership: null,
     };
   }
 
   const isAutoAcceptEmail = connectionInfoMap[invitee.email].autoAccept;
+  const isUserMemberOfTheTeamsParentOrganization = team.parentId
+    ? UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    : null;
 
-  if (
-    team.parentId &&
-    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
-  ) {
+  if (isUserMemberOfTheTeamsParentOrganization) {
     const orgMembership = invitee.teams?.find((membership) => membership.teamId === team.parentId);
 
     const isAMemberOfOrg = orgMembership?.accepted;
-    // User is a member of parent organization
     return {
       autoAccept: isAMemberOfOrg,
+      // User is a member of parent organization already - So, no need to create profile and membership with Org
       needToCreateProfile: false,
       needToCreateOrgMembership: false,
     };
@@ -461,7 +464,7 @@ export function getAutoJoinStatus({
 
   if (isAutoAcceptEmail) {
     // User is not a member of parent organization but has autoAccept email
-    // We need to create profile as well.
+    // We need to create profile as well as membership with the Org in this case
     return {
       autoAccept: true,
       needToCreateProfile: true,

@@ -51,7 +51,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
   const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    MembershipRepository.findAllByProfileIdIncludeTeamWithMembersAndEventTypes(
+    MembershipRepository.findAllByUpidIncludeTeamWithMembersAndEventTypes(
       {
         upId: lightProfile.upId,
       },
@@ -62,7 +62,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       }
     ),
     shouldListUserEvents
-      ? EventTypeRepository.findAllByProfileId(
+      ? EventTypeRepository.findAllByUpId(
           {
             upId: lightProfile.upId,
           },
@@ -94,6 +94,13 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       metadata: teamMetadataSchema.parse(membership.team.metadata),
     },
   }));
+
+  log.debug(
+    safeStringify({
+      profileMemberships,
+      profileEventTypes,
+    })
+  );
 
   type UserEventTypes = (typeof profileEventTypes)[number];
   type TeamEventTypeChildren = NonNullable<(typeof profileEventTypes)[number]["team"]>["eventTypes"][number];
@@ -151,10 +158,13 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
 
   log.debug(safeStringify({ profileMemberships, profileEventTypes, profile }));
 
-  log.debug("Filter Settings", {
-    isFilterSet,
-    isProfileIdInFilter: isUpIdInFilter,
-  });
+  log.debug(
+    "Filter Settings",
+    safeStringify({
+      isFilterSet,
+      isProfileIdInFilter: isUpIdInFilter,
+    })
+  );
 
   if (!isFilterSet || isUpIdInFilter) {
     const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);

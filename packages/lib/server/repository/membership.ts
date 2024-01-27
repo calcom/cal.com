@@ -30,7 +30,7 @@ export class MembershipRepository {
   /**
    * TODO: Using a specific function for specific tasks so that we don't have to focus on TS magic at the moment. May be try to make it a a generic findAllByProfileId with various options.
    */
-  static async findAllByProfileIdIncludeTeamWithMembersAndEventTypes(
+  static async findAllByUpidIncludeTeamWithMembersAndEventTypes(
     { upId }: { upId: string },
     { where }: { where?: Prisma.MembershipWhereInput } = {}
   ) {
@@ -57,7 +57,7 @@ export class MembershipRepository {
     }
 
     log.debug(
-      "findAllByProfileIdIncludeTeamWithMembersAndEventTypes",
+      "findAllByUpidIncludeTeamWithMembersAndEventTypes",
       safeStringify({
         prismaWhere,
       })
