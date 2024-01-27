@@ -112,6 +112,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     },
   },
   hidden: true,
+  assignAllTeamMembers: true,
 });
 
 export const getPublicEvent = async (
@@ -264,6 +265,7 @@ export const getPublicEvent = async (
     },
     isDynamic: false,
     isInstantEvent: event.isInstantEvent,
+    assignAllTeamMembers: event.assignAllTeamMembers,
   };
 };
 

@@ -63,6 +63,7 @@ export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] 
 export type NewCalendarEventType = {
   uid: string;
   id: string;
+  thirdPartyRecurringEventId?: string | null;
   type: string;
   password: string;
   url: string;
@@ -143,6 +144,10 @@ export type CalEventResponses = Record<
   }
 >;
 
+export interface ExistingRecurringEvent {
+  recurringEventId: string;
+}
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   // Instead of sending this per event.
@@ -167,6 +172,7 @@ export interface CalendarEvent {
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
   bookingId?: number;
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;

@@ -101,14 +101,15 @@ const commons = {
   hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
+  assignAllTeamMembers: false,
 };
 
 const dynamicEvent = {
   length: 30,
   slug: "dynamic",
-  title: "Dynamic",
-  eventName: "Dynamic Event",
-  description: "",
+  title: "Group Meeting",
+  eventName: "Group Meeting",
+  description: "Join us for a meeting with multiple people",
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,

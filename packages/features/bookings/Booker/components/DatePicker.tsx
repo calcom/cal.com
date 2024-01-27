@@ -8,28 +8,33 @@ import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useBookerStore } from "../store";
-import { useEvent, useScheduleForEvent } from "../utils/event";
+import type { useEventReturnType, useScheduleForEventReturnType } from "../utils/event";
 
-export const DatePicker = () => {
+export const DatePicker = ({
+  event,
+  schedule,
+}: {
+  event: useEventReturnType;
+  schedule: useScheduleForEventReturnType;
+}) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
-  const [setSelectedDate, setMonth] = useBookerStore(
-    (state) => [state.setSelectedDate, state.setMonth],
+  const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
+    (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
     shallow
   );
-  const event = useEvent();
-  const schedule = useScheduleForEvent();
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   return (
     <DatePickerComponent
-      isLoading={schedule.isLoading}
+      isPending={schedule.isPending}
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
       }}
       onMonthChange={(date: Dayjs) => {
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));
+        setDayCount(null); // Whenever the month is changed, we nullify getting X days
       }}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}

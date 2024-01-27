@@ -1352,7 +1352,9 @@
   "event_name_info": "Ime tipa događaja",
   "event_date_info": "Datum događaja",
   "event_time_info": "Vreme početka događaja",
+  "location_variable": "Lokacija",
   "location_info": "Lokacija događaja",
+  "additional_notes_variable": "Dodatne beleške",
   "additional_notes_info": "Dodatne napomene o rezervaciji",
   "attendee_name_info": "Ime osobe koja rezerviše",
   "organizer_name_info": "Ime organizatora",
@@ -1803,6 +1805,7 @@
   "verification_code": "Verifikacioni kôd",
   "can_you_try_again": "Možete li da pokušate sa drugim terminom?",
   "verify": "Verifikuj",
+  "timezone_variable": "Vremenska zona",
   "timezone_info": "Vremenska zona primaoca",
   "event_end_time_variable": "Vreme završetka događaja",
   "event_end_time_info": "Vreme završetka događaja",
@@ -2093,5 +2096,6 @@
   "description_lock_timezone_toggle_on_booking_page": "Za zaključavanje vremenske zone na stranici za zakazivanja, korisno za događaje licem u lice.",
   "extensive_whitelabeling": "Posvećena podrška za uvodnu obuku i inženjering",
   "need_help": "Potrebna vam je pomoć?",
+  "show_more": "Prikaži više",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

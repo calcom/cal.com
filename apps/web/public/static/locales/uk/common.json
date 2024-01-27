@@ -1352,7 +1352,9 @@
   "event_name_info": "Назва типу заходу",
   "event_date_info": "Дата заходу",
   "event_time_info": "Час початку заходу",
+  "location_variable": "Розташування",
   "location_info": "Місце проведення заходу",
+  "additional_notes_variable": "Додаткові примітки",
   "additional_notes_info": "Додаткові примітки щодо бронювання",
   "attendee_name_info": "Ім’я особи, яка бронює",
   "organizer_name_info": "Ім’я організатора",
@@ -1803,6 +1805,7 @@
   "verification_code": "Код перевірки",
   "can_you_try_again": "Виберіть інший час і повторіть спробу.",
   "verify": "Перевірити",
+  "timezone_variable": "Часовий пояс",
   "timezone_info": "Часовий пояс одержувача",
   "event_end_time_variable": "Час завершення заходу",
   "event_end_time_info": "Час завершення заходу",
@@ -2093,5 +2096,6 @@
   "description_lock_timezone_toggle_on_booking_page": "Для блокування часового поясу на сторінці бронювання (корисне для окремих заходів)",
   "extensive_whitelabeling": "Технічна підтримка й підтримка під час ознайомлення",
   "need_help": "Потрібна допомога?",
+  "show_more": "Більше",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

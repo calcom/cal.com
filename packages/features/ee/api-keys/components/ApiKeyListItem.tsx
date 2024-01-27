@@ -82,7 +82,7 @@ const ApiKeyListItem = ({
               <DropdownItem
                 type="button"
                 color="destructive"
-                disabled={deleteApiKey.isLoading}
+                disabled={deleteApiKey.isPending}
                 onClick={() =>
                   deleteApiKey.mutate({
                     id: apiKey.id,

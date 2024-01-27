@@ -40,7 +40,7 @@ export const DeleteDialog = (props: IDeleteDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <ConfirmationDialogContent
-        isLoading={deleteMutation.isLoading}
+        isPending={deleteMutation.isPending}
         variety="danger"
         title={t("delete_workflow")}
         confirmBtnText={t("confirm_delete_workflow")}

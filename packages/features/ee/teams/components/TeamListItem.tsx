@@ -49,7 +49,7 @@ interface Props {
   team: RouterOutputs["viewer"]["teams"]["list"][number];
   key: number;
   onActionSelect: (text: string) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hideDropdown: boolean;
   setHideDropdown: (value: boolean) => void;
 }
@@ -107,9 +107,7 @@ export default function TeamListItem(props: Props) {
         <span className="text-default text-sm font-bold">{team.name}</span>
         <span className="text-muted block text-xs">
           {team.slug ? (
-            `${getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug })}/${
-              team.slug
-            }`
+            `${getTeamUrlSync({ orgSlug: team.parent ? team.parent.slug : null, teamSlug: team.slug })}`
           ) : (
             <Badge>{t("upgrade")}</Badge>
           )}
@@ -127,7 +125,7 @@ export default function TeamListItem(props: Props) {
         onExit={() => {
           setOpenMemberInvitationModal(false);
         }}
-        isLoading={inviteMemberMutation.isLoading}
+        isPending={inviteMemberMutation.isPending}
         onSubmit={(values, resetFields) => {
           inviteMemberMutation.mutate(
             {
@@ -245,11 +243,10 @@ export default function TeamListItem(props: Props) {
                       color="secondary"
                       onClick={() => {
                         navigator.clipboard.writeText(
-                          `${
-                            orgBranding
-                              ? `${orgBranding.fullDomain}`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
-                          }/${team.slug}`
+                          `${getTeamUrlSync({
+                            orgSlug: team.parent ? team.parent.slug : null,
+                            teamSlug: team.slug,
+                          })}`
                         );
                         showToast(t("link_copied"), "success");
                       }}
@@ -285,11 +282,10 @@ export default function TeamListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           target="_blank"
-                          href={`${
-                            orgBranding
-                              ? `${orgBranding.fullDomain}`
-                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team`
-                          }/${team.slug}`}
+                          href={`${getTeamUrlSync({
+                            orgSlug: team.parent ? team.parent.slug : null,
+                            teamSlug: team.slug,
+                          })}`}
                           StartIcon={ExternalLink}>
                           {t("preview_team") as string}
                         </DropdownItem>
@@ -326,7 +322,7 @@ export default function TeamListItem(props: Props) {
                             variety="danger"
                             title={t("disband_team")}
                             confirmBtnText={t("confirm_disband_team")}
-                            isLoading={props.isLoading}
+                            isPending={props.isPending}
                             onConfirm={() => {
                               props.onActionSelect("disband");
                             }}>

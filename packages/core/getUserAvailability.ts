@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
@@ -56,6 +57,7 @@ const _getEventType = async (id: number) => {
       seatsPerTimeSlot: true,
       bookingLimits: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       timeZone: true,
       length: true,
       metadata: true,
@@ -93,12 +95,12 @@ const _getEventType = async (id: number) => {
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
-const getUser = (...args: Parameters<typeof _getUser>): ReturnType<typeof _getUser> => {
-  return monitorCallbackSync(_getUser, ...args);
+const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType<typeof _getUser>> => {
+  return monitorCallbackAsync(_getUser, ...args);
 };
 
-const _getUser = (where: Prisma.UserWhereInput) =>
-  prisma.user.findFirst({
+const _getUser = async (where: Prisma.UserWhereInput) => {
+  return await prisma.user.findFirst({
     where,
     select: {
       ...availabilityUserSelect,
@@ -107,17 +109,18 @@ const _getUser = (where: Prisma.UserWhereInput) =>
       },
     },
   });
+};
 
 type User = Awaited<ReturnType<typeof getUser>>;
 
-export const getCurrentSeats = (
+export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
-): ReturnType<typeof _getCurrentSeats> => {
-  return monitorCallbackSync(_getCurrentSeats, ...args);
+): Promise<ReturnType<typeof _getCurrentSeats>> => {
+  return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
-const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =>
-  prisma.booking.findMany({
+const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
+  return await prisma.booking.findMany({
     where: {
       eventTypeId,
       startTime: {
@@ -136,6 +139,7 @@ const _getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) =
       },
     },
   });
+};
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
@@ -258,6 +262,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
   const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+
   log.debug(
     "Using schedule:",
     safeStringify({
@@ -272,8 +277,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const timeZone = schedule?.timeZone || eventType?.timeZone || user.timeZone;
 
+  if (
+    !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
+  ) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
+  }
+
   const availability = (
-    schedule.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
   ).map((a) => ({
     ...a,
     userId: user.id,

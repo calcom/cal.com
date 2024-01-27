@@ -7,7 +7,7 @@ import type { AppFlags } from "../config";
  *
  * Entries consist of the feature flag name as the key and the resolved variant's value as the value.
  */
-export type Flags = AppFlags;
+export type Flags = Partial<AppFlags>;
 
 /**
  * Allows you to access the flags from context

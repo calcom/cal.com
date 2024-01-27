@@ -1352,7 +1352,9 @@
   "event_name_info": "イベントの種類の名前",
   "event_date_info": "イベントの日付",
   "event_time_info": "イベントの開始時刻",
+  "location_variable": "場所",
   "location_info": "イベントの場所",
+  "additional_notes_variable": "備考",
   "additional_notes_info": "予約の追加メモ",
   "attendee_name_info": "予約者名",
   "organizer_name_info": "主催者名",
@@ -1803,6 +1805,7 @@
   "verification_code": "確認コード",
   "can_you_try_again": "別の時間帯でもう 1 度お試しください",
   "verify": "確認する",
+  "timezone_variable": "タイムゾーン",
   "timezone_info": "受信するユーザーのタイムゾーン",
   "event_end_time_variable": "イベントの終了時刻",
   "event_end_time_info": "イベントの終了時刻",
@@ -2093,5 +2096,6 @@
   "description_lock_timezone_toggle_on_booking_page": "予約ページのタイムゾーンを固定するためのもので、対面のイベントに役立ちます。",
   "extensive_whitelabeling": "専用のオンボーディングサポートとエンジニアリングサポート",
   "need_help": "サポートが必要ですか？",
+  "show_more": "さらに表示",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
