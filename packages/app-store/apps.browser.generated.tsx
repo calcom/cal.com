@@ -50,4 +50,5 @@ export const EventTypeSettingsMap = {
   paypal: dynamic(() => import("./paypal/components/EventTypeAppSettingsInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppSettingsInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
+  stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppSettingsInterface")),
 };
