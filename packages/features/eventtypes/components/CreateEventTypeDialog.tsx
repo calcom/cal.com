@@ -181,6 +181,7 @@ export default function CreateEventTypeDialog({
               />
             )}
             <TextField
+              data-testid="new-event-title"
               label={t("title")}
               placeholder={t("quick_chat")}
               data-testid="event-type-quick-chat"

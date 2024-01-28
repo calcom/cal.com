@@ -94,7 +94,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
   const filteredLocations = renderLocations.filter(excludeNullValues) as JSX.Element[];
 
   return filteredLocations.length > 1 ? (
-    <div className="flex flex-row items-center text-sm font-medium">
+    <div data-testid="available-locations" className="flex flex-row items-center text-sm font-medium">
       <img
         src="/map-pin-dark.svg"
         className={classNames("me-[10px] h-4 w-4 opacity-70 dark:invert")}
@@ -109,7 +109,9 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       </Tooltip>
     </div>
   ) : filteredLocations.length === 1 ? (
-    <div className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm rtl:mr-2">
+    <div
+      data-testid="unique-location"
+      className="text-default mr-6 flex w-full flex-col space-y-4 break-words text-sm rtl:mr-2">
       {filteredLocations}
     </div>
   ) : null;

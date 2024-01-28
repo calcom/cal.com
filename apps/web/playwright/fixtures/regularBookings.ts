@@ -597,6 +597,21 @@ export function createBookingPageFixture(page: Page) {
     checkTimeSlotsCount: async (eventTypePage: Page, count: number) => {
       await expect(eventTypePage.getByTestId("time")).toHaveCount(count);
     },
+    createEventType: async (eventName: string) => {
+      await page.goto("/event-types");
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("new-event-title").fill(eventName);
+      await page.getByRole("button", { name: "Continue" }).click();
+      await page.waitForURL("http://localhost:3000/event-types/**");
+    },
+    addLocation: async (locationText: string) => {
+      await page.locator("#location-select").click();
+      await page.getByText(locationText, { exact: true }).click();
+    },
+    addNewLocation: async (locationText: string) => {
+      await page.getByTestId("add-location").click();
+      await page.getByText(locationText, { exact: true }).click();
+    },
     createBookingWebhook: async (webhookReceiver: { url: string }, eventTitle: string) => {
       const events = [
         "Booking Canceled",
