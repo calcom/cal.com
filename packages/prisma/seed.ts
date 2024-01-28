@@ -81,6 +81,7 @@ async function createTeamAndAddUsers(
 async function createOrganizationAndAddMembersAndTeams({
   org: { orgData, members: orgMembers },
   teams,
+  usersOutsideOrg,
 }: {
   org: {
     orgData: Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">;
@@ -96,6 +97,11 @@ async function createOrganizationAndAddMembersAndTeams({
   teams: {
     teamData: Omit<Ensure<Partial<Prisma.TeamCreateInput>, "name" | "slug">, "members">;
     nonOrgMembers: Ensure<Partial<Prisma.UserCreateInput>, "username" | "name" | "email" | "password">[];
+  }[];
+  usersOutsideOrg: {
+    name: string;
+    username: string;
+    email: string;
   }[];
 }) {
   console.log(`\n🏢 Creating organization "${orgData.name}"`);
@@ -132,6 +138,19 @@ async function createOrganizationAndAddMembersAndTeams({
       }
     }
   }
+
+  await Promise.all([
+    usersOutsideOrg.map(async (user) => {
+      return await prisma.user.create({
+        data: {
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          password: await hashPassword(user.username),
+        },
+      });
+    }),
+  ]);
 
   // Create organization with those users as members
   const orgInDb = await prisma.team.create({
@@ -820,6 +839,13 @@ async function main() {
         ],
       },
     ],
+    usersOutsideOrg: [
+      {
+        name: "Jane Doe",
+        email: "jane@acme.com",
+        username: "jane-outside-org",
+      },
+    ],
   });
 
   await createOrganizationAndAddMembersAndTeams({
@@ -870,6 +896,13 @@ async function main() {
             name: "NonDunder Member1",
           },
         ],
+      },
+    ],
+    usersOutsideOrg: [
+      {
+        name: "John Doe",
+        email: "john@dunder-mifflin.com",
+        username: "john-outside-org",
       },
     ],
   });

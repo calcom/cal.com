@@ -109,6 +109,7 @@ export const CreateANewTeamForm = () => {
                     }
                   }}
                   autoComplete="off"
+                  data-testid="team-name"
                 />
               </>
             )}

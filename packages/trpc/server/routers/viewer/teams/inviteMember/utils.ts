@@ -392,6 +392,7 @@ export async function sendSignupToOrganizationEmail({
     isCalcomMember: false,
     isOrg: input.isOrg,
     parentTeamName: team?.parent?.name,
+    isAutoJoin: false,
   });
 }
 
@@ -524,7 +525,7 @@ export const sendEmails = async (emailPromises: Promise<void>[]) => {
   });
 };
 
-export const sendTeamInviteEmails = async ({
+export const sendExistingUserTeamInviteEmails = async ({
   existingUsersWithMembersips,
   language,
   currentUserTeamName,
@@ -532,8 +533,10 @@ export const sendTeamInviteEmails = async ({
   currentUserParentTeamName,
   isOrg,
   teamId,
+  isAutoJoin,
 }: {
   language: TFunction;
+  isAutoJoin: boolean;
   existingUsersWithMembersips: UserWithMembership[];
   currentUserTeamName?: string;
   currentUserParentTeamName: string | undefined;
@@ -588,6 +591,7 @@ export const sendTeamInviteEmails = async ({
 
       return sendTeamInviteEmail({
         language,
+        isAutoJoin,
         from: currentUserName ?? `${currentUserTeamName}'s admin`,
         to: sendTo,
         teamName: currentUserTeamName,

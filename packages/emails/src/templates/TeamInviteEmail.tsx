@@ -11,6 +11,7 @@ type TeamInvite = {
   teamName: string;
   joinLink: string;
   isCalcomMember: boolean;
+  isAutoJoin: boolean;
   isOrg: boolean;
   parentTeamName: string | undefined;
 };
@@ -75,7 +76,9 @@ export const TeamInviteEmail = (
       </p>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <CallToAction
-          label={props.language(props.isCalcomMember ? "email_user_cta" : "create_your_account")}
+          label={props.language(
+            props.isCalcomMember ? (props.isAutoJoin ? "login" : "email_user_cta") : "create_your_account"
+          )}
           href={props.joinLink}
           endIconName="linkIcon"
         />

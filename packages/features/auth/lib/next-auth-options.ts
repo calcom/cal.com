@@ -832,6 +832,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
+            ...(user.image && { avatarUrl: user.image }),
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,

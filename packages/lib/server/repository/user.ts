@@ -234,11 +234,13 @@ export class UserRepository {
   }: {
     user: T;
   }): Promise<T & { profile: UserProfile }> {
-    const orgProfiles = await ProfileRepository.findManyForUser({ id: user.id });
-    if (orgProfiles.length) {
+    const profiles = await ProfileRepository.findManyForUser({ id: user.id });
+    if (profiles.length) {
+      const profile = profiles[0];
       return {
         ...user,
-        profile: orgProfiles[0],
+        username: profile.username,
+        profile,
       };
     }
 
