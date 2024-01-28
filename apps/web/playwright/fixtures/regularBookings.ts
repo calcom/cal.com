@@ -347,6 +347,7 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByTestId("confirm_cancel").click();
       await expect(eventTypePage.getByTestId("cancelled-headline")).toBeVisible();
     },
+
     confirmBooking: async (eventTypePage: Page) => {
       await eventTypePage.getByTestId("confirm-book-button").click();
       await eventTypePage.waitForURL("booking/**");
@@ -414,10 +415,6 @@ export function createBookingPageFixture(page: Page) {
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
-    },
-    fillEmailAndName: async (eventTypePage: Page) => {
-      await eventTypePage.getByLabel("Email address").fill(EMAIL);
-      await eventTypePage.getByLabel("Your Name").fill("test");
     },
     addGuests: async (eventTypePage: Page, options: { guests: string[] }) => {
       await eventTypePage.getByTestId("add-guests").click();
@@ -729,6 +726,13 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId("horizontal-tab-unconfirmed").click();
       await page.getByTestId("booking-item").first().getByText("Reject").click();
       await page.getByTestId("rejection-confirm").click();
+    },
+    fillEmailAndName: async (eventTypePage: Page) => {
+      const emailLabel = (await localize("en"))("email_address");
+      const nameLabel = (await localize("en"))("your_name");
+
+      await eventTypePage.getByLabel(emailLabel).fill(EMAIL);
+      await eventTypePage.getByLabel(nameLabel).fill("testuser");
     },
   };
 }
