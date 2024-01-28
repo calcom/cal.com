@@ -282,6 +282,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      hideCalendarNotes: eventType.hideCalendarNotes,
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
