@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
@@ -92,9 +93,14 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
     const body = await translateEvent(event);
+    console.log(`meeting body: ${JSON.stringify(body)}`);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+      properties: {
+        room_name: dailyEvent.name,
+        exp: dailyEvent.config.exp,
+        is_owner: true,
+      },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
@@ -106,6 +112,13 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   }
 
   const translateEvent = async (event: CalendarEvent) => {
+    const checkCalAiInstalled = await prisma.credential.findFirst({
+      where: {
+        appId: "cal-ai",
+        userId: event.organizer.id,
+      },
+    });
+    logger.log(0, `checkCalAiInstalled: ${JSON.stringify(checkCalAiInstalled)}`);
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
@@ -120,28 +133,46 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         },
       },
     });
+    const options = {
+      enable_prejoin_ui: true,
+      enable_knocking: true,
+      enable_screenshare: true,
+      enable_chat: true,
+      exp: exp,
+    };
+    /** permission to allow transcription using cal-ai @link https://docs.daily.co/reference/rn-daily-js/instance-methods/start-transcription#main */
     if (scalePlan === "true" && !!hasTeamPlan === true) {
+      if (checkCalAiInstalled) {
+        return {
+          privacy: "public",
+          properties: {
+            ...options,
+            enable_recording: "cloud",
+            enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
+            permissions: { canAdmin: ["transcription"] },
+          },
+        };
+      } else {
+        return {
+          privacy: "public",
+          properties: { ...options, enable_recording: "cloud" },
+        };
+      }
+    }
+    if (checkCalAiInstalled) {
       return {
         privacy: "public",
         properties: {
-          enable_prejoin_ui: true,
-          enable_knocking: true,
-          enable_screenshare: true,
-          enable_chat: true,
-          exp: exp,
+          ...options,
           enable_recording: "cloud",
+          enable_transcription: `deepgram:${process.env.DEEPGRAM_API_KEY}`,
+          permissions: { canAdmin: ["transcription"] },
         },
       };
     }
     return {
       privacy: "public",
-      properties: {
-        enable_prejoin_ui: true,
-        enable_knocking: true,
-        enable_screenshare: true,
-        enable_chat: true,
-        exp: exp,
-      },
+      properties: options,
     };
   };
 

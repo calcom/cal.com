@@ -1,8 +1,17 @@
 "use client";
 
+import type {
+  DailyEventObjectCustomButtonClick,
+  DailyEventObjectRecordingStarted,
+  DailyTranscriptionDeepgramOptions,
+  DailyEventObjectAppMessage,
+} from "@daily-co/daily-js";
+
 import DailyIframe from "@daily-co/daily-js";
 import Head from "next/head";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { toast } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -21,9 +30,15 @@ export type JoinCallPageProps = Omit<inferSSRProps<typeof getServerSideProps>, "
 
 export default function JoinCall(props: JoinCallPageProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const { meetingUrl, meetingPassword, booking } = props;
 
+  const recordingId = useRef<string | null>(null);
+  const isTranscribing = useRef<boolean>(false);
+  const transcript = useRef<string>("");
+
   useEffect(() => {
+    /** adding a custom tray button @link https://docs.daily.co/reference/daily-js/daily-iframe-class/properties#customTrayButtons* */
     const callFrame = DailyIframe.createFrame({
       theme: {
         colors: {
@@ -39,6 +54,14 @@ export default function JoinCall(props: JoinCallPageProps) {
           supportiveText: "#FFF",
         },
       },
+      customTrayButtons: {
+        transcriptButton: {
+          iconPath: "https://unpkg.com/lucide-static@latest/icons/sparkles.svg", // TODO
+          iconPathDarkMode: "https://unpkg.com/lucide-static@latest/icons/sparkles.svg", //TODO
+          label: "Cal.ai",
+          tooltip: !!isTranscribing.current ? "Stop transcribing this call" : "Start transcribing this call",
+        },
+      },
       showLeaveButton: true,
       iframeStyle: {
         position: "fixed",
@@ -48,13 +71,114 @@ export default function JoinCall(props: JoinCallPageProps) {
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
     });
+    /** API reference @link https://docs.daily.co/reference/rn-daily-js/events/transcription-events */
+    /** handling custom-button-click @link  https://docs.daily.co/reference/daily-js/events/meeting-events#custom-button-click */
+    const onCustomButtonClick = async (event?: DailyEventObjectCustomButtonClick | undefined) => {
+      if (!props.calAiCredential) {
+        //TODO - this needs to open in a new tab
+        router.push("/apps/cal-ai");
+      }
+
+      if (event && event["button_id"] == "transcriptButton") {
+        console.log("transcript button clicked");
+        console.log(`ref value ${isTranscribing.current}`);
+        return isTranscribing.current ? stopTranscription() : startTranscription();
+      }
+    };
+    const transcriptionOptions: DailyTranscriptionDeepgramOptions = {
+      detect_language: true,
+      model: "general",
+    };
+    async function startTranscription() {
+      if (!!isTranscribing.current) {
+        return;
+      }
+      console.log("starting transcription");
+      isTranscribing.current = true;
+      await callFrame.startTranscription(transcriptionOptions);
+    }
+    async function stopTranscription() {
+      if (!!isTranscribing.current) {
+        console.log("stopping transcription");
+        isTranscribing.current = false;
+        await callFrame.stopTranscription();
+      }
+    }
+
     callFrame.join();
+
+    callFrame.on("recording-started", onRecordingStarted).on("recording-stopped", onRecordingStopped);
+    callFrame.on("custom-button-click", onCustomButtonClick);
+    /** hndling transcription events @link https://docs.daily.co/reference/daily-js/events/transcription-events#main */
+    callFrame.on("transcription-started", handleTranscriptionStarted);
+    callFrame.on("transcription-stopped", handleTranscriptionStopped);
+    callFrame.on("transcription-error", handleTranscriptionError);
+    /** handle transcription messages @link https://docs.daily.co/reference/daily-js/instance-methods/start-transcription */
+    callFrame.on("app-message", (msg: DailyEventObjectAppMessage | undefined) => {
+      if (msg && msg.data) {
+        const data = msg.data;
+        if (msg?.fromId === "transcription" && data?.is_final) {
+          console.log(`messageData: ${data}`);
+          const userName = data.user_name;
+          const oldTranscript = transcript.current;
+          transcript.current = `${oldTranscript}\n` + `${userName} (${data.timestamp}): ${data.text}`;
+          console.log(`transcript: ${transcript.current}`);
+          console.log(`${userName} (${data.timestamp}): ${data.text}`);
+        }
+      }
+    });
+    callFrame.on("left-meeting", handleLeftMeeting);
+
     return () => {
       callFrame.destroy();
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onRecordingStopped = () => {
+    const data = { recordingId: recordingId.current, bookingUID: booking.uid };
+    console.log(`data when recording stopped ${JSON.stringify(data)}`);
+    fetch("/api/recorded-daily-video", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }).catch((err) => {
+      console.log(err);
+    });
+
+    recordingId.current = null;
+  };
+
+  const onRecordingStarted = (event?: DailyEventObjectRecordingStarted | undefined) => {
+    const response = recordingStartedEventResponse.parse(event);
+    recordingId.current = response.recordingId;
+  };
+  const handleTranscriptionStarted = () => {
+    //
+  };
+  const handleTranscriptionStopped = async () => {
+    //
+  };
+  const handleLeftMeeting = async () => {
+    if (props.calAiCredential) {
+      console.log(`Full Transcript: ${transcript.current}`);
+      const transcribeData = {
+        recordingId: recordingId,
+        bookingL: booking,
+        organiserEmail: booking.user?.email,
+      };
+      //TODO need to replace the `CAL_AI_PARSE_KEY` with a key that can be exposed to client or bypass this altogether
+      await fetch(`${calAiUrl}/api/transcribe?parseKey=${process.env.CAL_AI_PARSE_KEY}`, {
+        method: "POST",
+        body: JSON.stringify(transcribeData),
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
+  };
+  const handleTranscriptionError = () => {
+    toast.error("Could not run transcription service for this meeting");
+  };
   const title = `${APP_NAME} Video`;
   return (
     <>
@@ -170,7 +294,7 @@ function ProgressBar(props: ProgressBarProps) {
   );
 }
 
-interface VideoMeetingInfo {
+export interface VideoMeetingInfo {
   booking: JoinCallPageProps["booking"];
 }
 
@@ -246,6 +370,115 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
     </>
   );
 }
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const { req, res } = context;
+
+  const ssr = await ssrInit(context);
+
+  const booking = await prisma.booking.findUnique({
+    where: {
+      uid: context.query.uid as string,
+    },
+    select: {
+      ...bookingMinimalSelect,
+      uid: true,
+      description: true,
+      isRecorded: true,
+      user: {
+        select: {
+          id: true,
+          timeZone: true,
+          name: true,
+          email: true,
+          organization: {
+            select: {
+              calVideoLogo: true,
+            },
+          },
+        },
+      },
+      references: {
+        select: {
+          uid: true,
+          type: true,
+          meetingUrl: true,
+          meetingPassword: true,
+        },
+        where: {
+          type: "daily_video",
+        },
+      },
+    },
+  });
+
+  if (
+    !booking ||
+    booking.references.length === 0 ||
+    !booking.references[0].meetingUrl ||
+    !booking.user ||
+    !booking.user.id
+  ) {
+    return {
+      redirect: {
+        destination: "/video/no-meeting-found",
+        permanent: false,
+      },
+    };
+  }
+  const aiAppInstalled = await prisma.credential.findFirst({
+    where: {
+      appId: "cal-ai",
+      userId: booking.user.id,
+    },
+  });
+
+  //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
+  const now = new Date();
+  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
+
+  //find out if the meeting is in the past
+  const isPast = booking?.endTime <= exitDate;
+  if (isPast) {
+    return {
+      redirect: {
+        destination: `/video/meeting-ended/${booking?.uid}`,
+        permanent: false,
+      },
+    };
+  }
+
+  const bookingObj = Object.assign({}, booking, {
+    startTime: booking.startTime.toString(),
+    endTime: booking.endTime.toString(),
+  });
+
+  const session = await getServerSession({ req, res });
+
+  // set meetingPassword to null for guests
+  if (session?.user.id !== bookingObj.user?.id) {
+    bookingObj.references.forEach((bookRef) => {
+      bookRef.meetingPassword = null;
+    });
+  }
+
+  return {
+    props: {
+      calAiCredential: aiAppInstalled ? true : false,
+      meetingUrl: bookingObj.references[0].meetingUrl ?? "",
+      ...(typeof bookingObj.references[0].meetingPassword === "string" && {
+        meetingPassword: bookingObj.references[0].meetingPassword,
+      }),
+      booking: {
+        ...bookingObj,
+        ...(bookingObj.description && { description: md.render(bookingObj.description) }),
+      },
+      trpcState: ssr.dehydrate(),
+    },
+  };
+}
+
+
 
 export { getServerSideProps };
 JoinCall.PageWrapper = PageWrapper;
