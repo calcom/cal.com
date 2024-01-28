@@ -1,9 +1,6 @@
 "use client";
 
 import getWorldViewSVGStr from "@pages/getting-started/worldviewUtils";
-import type { ICountry } from "country-state-city";
-import { Country } from "country-state-city";
-import { geoMercator } from "d3";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
@@ -28,8 +25,6 @@ import { ConnectedCalendars } from "@components/getting-started/steps-views/Conn
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
-
-import worldviewGeoJSON from "../../public/worldviewGeo.json";
 
 export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
@@ -180,83 +175,58 @@ const OnboardingPage = () => {
     return inside;
   }
 
-  useEffect(() => {
-    if (timeZone !== "" && timeZone !== null) {
-      // Search country by timezone
-      const targetCountry: ICountry | undefined = Country.getAllCountries().find((c: any) => {
-        const alltimezones = c.timezones.map((t: any) => {
-          return t.zoneName;
-        });
+  const { data } = trpc.viewer.auth.getLocationGeoJSON.useQuery({
+    timeZone: timeZone || "",
+  });
 
-        if (alltimezones.includes(timeZone)) return true;
+  const highlightCountryOnMap = async () => {
+    const svgCoordinates: any = data?.svgCoordinates;
 
-        return false;
-      });
+    let countryCoord: [number, number] = [0, 0];
 
-      if (!targetCountry) return;
-
-      // Find country's geo json data
-      const country = worldviewGeoJSON.features.find((feature) => {
-        return feature.properties.name_en === targetCountry.name;
-      });
-      const areaCoordinates: ([number, number] | null)[] = [];
-      country?.geometry.coordinates.map((g) => {
-        areaCoordinates.push(...(g as [number, number][]));
-      });
-
-      // Convert geo json data to svg coordinates
-      let svgCoordinates: ([number, number] | null | undefined)[] = [];
-      let countryCoord: [number, number] = [0, 0];
-      if (areaCoordinates) {
-        const projection = geoMercator().scale(100).translate([318, 235]);
-
-        svgCoordinates = areaCoordinates
-          .filter((coord) => coord !== null)
-          .map((coord) => {
-            if (coord) {
-              return projection(coord);
-            }
-          });
+    // Highlight country on map
+    if (svgRef.current) {
+      while (svgRef.current.firstChild) {
+        svgRef.current.removeChild(svgRef.current.firstChild);
       }
 
-      // Highlight country on map
-      if (svgRef.current) {
-        while (svgRef.current.firstChild) {
-          svgRef.current.removeChild(svgRef.current.firstChild);
-        }
-
-        const svgString = getWorldViewSVGStr();
-        const svgParsed = parseSync(svgString);
-        svgParsed.children = svgParsed.children.map((child) => {
-          if (
-            isPointInsidePolygon(
-              child.attributes.d
-                .split("C")[0]
-                .split(" ")
-                .map((c) => {
-                  return parseFloat(c.replace("M", ""));
-                }),
-              svgCoordinates
-            )
-          ) {
-            if (countryCoord[0] == 0) {
-              countryCoord = child.attributes.d
-                .split("C")[0]
-                .split(" ")
-                .map((c) => {
-                  return parseFloat(c.replace("M", ""));
-                }) as [number, number];
-            }
-
-            child.attributes.fill = "#374151";
+      const svgString = getWorldViewSVGStr();
+      const svgParsed = parseSync(svgString);
+      svgParsed.children = svgParsed.children.map((child) => {
+        if (
+          isPointInsidePolygon(
+            child.attributes.d
+              .split("C")[0]
+              .split(" ")
+              .map((c) => {
+                return parseFloat(c.replace("M", ""));
+              }),
+            svgCoordinates
+          )
+        ) {
+          if (countryCoord[0] == 0) {
+            countryCoord = child.attributes.d
+              .split("C")[0]
+              .split(" ")
+              .map((c) => {
+                return parseFloat(c.replace("M", ""));
+              }) as [number, number];
           }
 
-          return child;
-        });
+          child.attributes.fill = "#374151";
+        }
 
-        const svgElement = createSVGElement(svgParsed, "svg", true, countryCoord);
-        svgRef.current.appendChild(svgElement);
-      }
+        return child;
+      });
+
+      const svgElement = createSVGElement(svgParsed, "svg", true, countryCoord);
+      svgRef.current.appendChild(svgElement);
+    }
+  };
+
+  useEffect(() => {
+    if (timeZone !== "" && timeZone !== null && data?.svgCoordinates) {
+      highlightCountryOnMap();
     } else {
       if (svgRef.current) {
         while (svgRef.current.firstChild) {

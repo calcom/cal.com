@@ -4,6 +4,7 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZChangePasswordInputSchema } from "./changePassword.schema";
+import { ZGetLocationGeoJSONSchema } from "./getLocationGeoJSON.schema";
 import { ZSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
 import { ZVerifyPasswordInputSchema } from "./verifyPassword.schema";
 
@@ -13,6 +14,7 @@ type AuthRouterHandlerCache = {
   verifyCodeUnAuthenticated?: typeof import("./verifyCodeUnAuthenticated.handler").verifyCodeUnAuthenticatedHandler;
   resendVerifyEmail?: typeof import("./resendVerifyEmail.handler").resendVerifyEmail;
   sendVerifyEmailCode?: typeof import("./sendVerifyEmailCode.handler").sendVerifyEmailCodeHandler;
+  getLocationGeoJSON?: typeof import("./getLocationGeoJSON.handler").getHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AuthRouterHandlerCache = {};
@@ -102,6 +104,22 @@ export const authRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.resendVerifyEmail({
       ctx,
+    });
+  }),
+
+  getLocationGeoJSON: publicProcedure.input(ZGetLocationGeoJSONSchema).query(async ({ input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getLocationGeoJSON) {
+      UNSTABLE_HANDLER_CACHE.getLocationGeoJSON = await import("./getLocationGeoJSON.handler").then(
+        (mod) => mod.getHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.getLocationGeoJSON) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getLocationGeoJSON({
+      input,
     });
   }),
 });
