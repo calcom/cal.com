@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { getTranslations } from "@server/lib/getTranslations";
 
-const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
+import { validStatuses } from "~/bookings/lib/validStatuses";
 
 const querySchema = z.object({
   status: z.enum(validStatuses),

@@ -18,23 +18,30 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
 
   if (Number.isNaN(typeParam)) {
-    return {
+    const notFound = {
       notFound: true,
-    };
+    } as const;
+
+    return notFound;
   }
 
   if (!session?.user?.id) {
-    return {
+    const redirect = {
       redirect: {
         permanent: false,
         destination: "/auth/login",
       },
-    };
+    } as const;
+    return redirect;
   }
 
   await ssr.viewer.eventTypes.get.prefetch({ id: typeParam });
+
+  const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: typeParam });
+
   return {
     props: {
+      eventType,
       type: typeParam,
       trpcState: ssr.dehydrate(),
     },
