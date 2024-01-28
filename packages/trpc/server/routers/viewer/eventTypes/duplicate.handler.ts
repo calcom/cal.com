@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import { prisma } from "@calcom/prisma";
 
@@ -12,6 +14,13 @@ type DuplicateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TDuplicateInputSchema;
+};
+
+export const generateHashedLink = (id: number) => {
+  const translator = short();
+  const seed = `${id}:${new Date().getTime()}`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+  return uid;
 };
 
 export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
@@ -34,6 +43,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         team: true,
         workflows: true,
         webhooks: true,
+        hashedLink: true,
       },
     });
 
@@ -66,6 +76,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits,
       metadata,
       workflows,
+      hashedLink,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       id: _id,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -108,6 +119,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       });
       await prisma.eventTypeCustomInput.createMany({
         data: customInputsData,
+      });
+    }
+
+    if (hashedLink) {
+      await prisma.hashedLink.create({
+        data: {
+          link: generateHashedLink(users[0].id ?? newEventType.teamId),
+          eventType: {
+            connect: { id: newEventType.id },
+          },
+        },
       });
     }
 
