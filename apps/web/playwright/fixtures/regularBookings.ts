@@ -205,9 +205,15 @@ export function createBookingPageFixture(page: Page) {
     goToEventType: async (eventType: string) => {
       await page.getByRole("link", { name: eventType }).click();
     },
+
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
+
+    goToEventTypesPage: async () => {
+      await page.goto("/event-types");
+    },
+
     setResolution: async (width: number, height: number) => {
       await page.setViewportSize({ width: width, height: height });
     },
@@ -253,16 +259,21 @@ export function createBookingPageFixture(page: Page) {
     },
     updateEventType: async () => {
       await page.getByTestId("update-eventtype").click();
+      const toast = await page.waitForSelector('[data-testid="toast-success"]');
+      expect(toast).toBeTruthy();
     },
+
     previewEventType: async () => {
       const eventtypePromise = page.waitForEvent("popup");
       await page.getByTestId("preview-button").click();
       return eventtypePromise;
     },
+
     selectTimeSlot: async (eventTypePage: Page) => {
       await goToNextMonthIfNoAvailabilities(eventTypePage);
       await eventTypePage.getByTestId("time").first().click();
     },
+
     clickReschedule: async () => {
       await page.getByText("Reschedule").click();
     },
@@ -290,6 +301,7 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId("cancel_reason").fill("Test cancel");
       await page.getByTestId("confirm_cancel").click();
     },
+
     assertBookingCanceled: async (page: Page) => {
       await expect(page.getByTestId("cancelled-headline")).toBeVisible();
     },
@@ -330,11 +342,9 @@ export function createBookingPageFixture(page: Page) {
     },
 
     confirmBooking: async (eventTypePage: Page) => {
-      const confirmButton = "confirm-book-button";
-      await eventTypePage.getByTestId(confirmButton).click();
-      const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
-      await scheduleSuccessfullyPage.waitFor({ state: "visible" });
-      await expect(scheduleSuccessfullyPage).toBeVisible();
+      await eventTypePage.getByTestId("confirm-book-button").click();
+      await eventTypePage.waitForURL("booking/**");
+      await expect(eventTypePage.getByText(scheduleSuccessfullyText)).toBeVisible();
     },
 
     fillAndConfirmBooking: async ({
@@ -390,9 +400,7 @@ export function createBookingPageFixture(page: Page) {
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
-    checkField: async (question: string) => {
-      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
-    },
+
     fillAllQuestions: async (eventTypePage: Page, questions: string[], options: BookingOptions) => {
       const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
       await fillAllQuestions(eventTypePage, questions, options);
@@ -409,6 +417,93 @@ export function createBookingPageFixture(page: Page) {
       await expect(scheduleSuccessfullyPage).toBeVisible();
     },
 
+    checkField: async (question: string, options?: { isOptional: boolean }) => {
+      if (options?.isOptional) {
+        await expect(page.getByTestId(`field-${question}-test`).getByTestId("optional")).toBeVisible();
+      } else {
+        await expect(page.getByTestId(`field-${question}-test`).getByTestId("required")).toBeVisible();
+      }
+      await expect(page.getByTestId(`field-${question}-test`)).toBeVisible();
+    },
+
+    checkRequiresConfirmation: async () => {
+      // Check existence of the icon
+      await expect(page.getByTestId("requires-confirmation-title").locator("svg")).toBeVisible();
+
+      const confirmationSwitch = page.getByTestId("requires-confirmation");
+      await expect(confirmationSwitch).toBeVisible();
+      await confirmationSwitch.click();
+    },
+
+    checkRequiresBookerEmailVerification: async () => {
+      await expect(page.getByTestId("requires-booker-email-verification-title").locator("svg")).toBeVisible();
+
+      const emailSwitch = page.getByTestId("requires-booker-email-verification");
+
+      await expect(emailSwitch).toBeVisible();
+      await emailSwitch.click();
+    },
+
+    checkHideNotes: async () => {
+      await expect(page.getByTestId("disable-notes-title").locator("svg")).toBeVisible();
+
+      const hideNotesSwitch = page.getByTestId("disable-notes");
+
+      await expect(hideNotesSwitch).toBeVisible();
+      await hideNotesSwitch.click();
+    },
+
+    checkRedirectOnBooking: async () => {
+      await expect(page.getByTestId("redirect-success-booking-title").locator("svg")).toBeVisible();
+
+      const redirectSwitch = page.getByTestId("redirect-success-booking");
+      await expect(redirectSwitch).toBeVisible();
+      await redirectSwitch.click();
+      await expect(page.getByTestId("external-redirect-url")).toBeVisible();
+      await page.getByTestId("external-redirect-url").fill("https://cal.com");
+      await expect(page.getByTestId("redirect-url-warning")).toBeVisible();
+    },
+
+    checkEnablePrivateUrl: async () => {
+      await expect(page.getByTestId("hashedLinkCheck-title").locator("label div")).toBeVisible();
+
+      await expect(page.getByTestId("hashedLinkCheck-info")).toBeVisible();
+      await expect(page.getByTestId("hashedLinkCheck")).toBeVisible();
+      await page.getByTestId("hashedLinkCheck").click();
+      await expect(page.getByTestId("generated-hash-url")).toBeVisible();
+    },
+
+    toggleOfferSeats: async () => {
+      await expect(page.getByTestId("offer-seats-toggle-title").locator("svg")).toBeVisible();
+
+      await page.getByTestId("offer-seats-toggle").click();
+
+      const seatSwitchField = page.getByTestId("seats-per-time-slot");
+      await seatSwitchField.fill("3");
+      await expect(seatSwitchField).toHaveValue("3");
+      await expect(page.getByTestId("show-attendees")).toBeVisible();
+    },
+
+    checkLockTimezone: async () => {
+      await expect(page.getByTestId("lock-timezone-toggle-title").locator("svg")).toBeVisible();
+
+      const lockSwitch = page.getByTestId("lock-timezone-toggle");
+
+      await expect(lockSwitch).toBeVisible();
+      await lockSwitch.click();
+    },
+
+    checkEventType: async () => {
+      await expect(page.getByTestId("requires-confirmation-badge").last()).toBeVisible();
+    },
+
+    assertBookingIsVisible: async (name: string) => {
+      await expect(
+        page.getByRole("link", {
+          name,
+        })
+      ).toBeVisible();
+    },
     checkBufferTime: async () => {
       const minutes = (await localize("en"))("minutes");
       const fieldPlaceholder = page.getByPlaceholder("0");
