@@ -48,5 +48,6 @@ export const EventTypeSettingsMap = {
   gtm: dynamic(() => import("./gtm/components/EventTypeAppSettingsInterface")),
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppSettingsInterface")),
   paypal: dynamic(() => import("./paypal/components/EventTypeAppSettingsInterface")),
+  plausible: dynamic(() => import("./plausible/components/EventTypeAppSettingsInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
 };
