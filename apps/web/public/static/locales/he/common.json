@@ -819,6 +819,7 @@
   "private_link_label": "קישור פרטי",
   "private_link_hint": "הקישור הפרטי שלך ייווצר מחדש לאחר כל שימוש",
   "copy_private_link": "העתקת קישור פרטי",
+  "copy_private_link_to_event": "העתקת קישור פרטי לאירוע",
   "private_link_description": "ניתן ליצור כתובת קישור פרטית מבלי לחשוף את המשתמש שלך- {{appName}}",
   "invitees_can_schedule": "המוזמנים יכולים לקבוע מועד",
   "date_range": "טווח תאריכים",
