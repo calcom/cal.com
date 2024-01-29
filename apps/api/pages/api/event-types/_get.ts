@@ -39,7 +39,7 @@ async function getHandler(req: NextApiRequest) {
   const { userId, prisma, isAdmin } = req;
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
   const { slug } = schemaQuerySlug.parse(req.query);
-  const shouldUseUserId = !isAdmin || !slug || !!(isAdmin && req.query.userId);
+  const shouldUseUserId = !isAdmin || !slug || !!req.query.userId;
   // When user is admin and no query params are provided we should return all event types.
   // But currently we return only the event types of the user. Not changing this for backwards compatibility.
   const data = await prisma.eventType.findMany({
