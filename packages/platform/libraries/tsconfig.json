@@ -1,0 +1,24 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2021",
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "types": ["jest"],
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+  },
+  "include": [".", "../../types/*.d.ts"],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules",
+    "**/*.test.*",
+    "**/__mocks__/*",
+    "**/__tests__/*",
+    "../../lib/hooks/useTheme.tsx",
+    "../../lib/getBrandColours.tsx"
+  ]
+}

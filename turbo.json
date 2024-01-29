@@ -179,7 +179,8 @@
     },
     "@calcom/embed-core#build": {
       "cache": false,
-      "outputs": ["../../../apps/web/public/embed/**"]
+      "outputs": ["../../../apps/web/public/embed/**"],
+      "env": ["EMBED_PUBLIC_VERCEL_URL", "EMBED_PUBLIC_WEBAPP_URL", "EMBED_PUBLIC_EMBED_FINGER_PRINT"]
     },
     "embed-tests-update-snapshots:ci": {
       "cache": false,
@@ -382,6 +383,9 @@
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
     "CLOUDFLARE_ZONE_ID",
     "CLOUDFLARE_VERCEL_CNAME",
-    "CLOUDFLARE_DNS"
+    "CLOUDFLARE_DNS",
+    "EMBED_PUBLIC_EMBED_FINGER_PRINT",
+    "EMBED_PUBLIC_WEBAPP_URL",
+    "EMBED_PUBLIC_VERCEL_URL"
   ]
 }

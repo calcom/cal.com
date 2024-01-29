@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@calcom/platform-constants": "*",
+    "@calcom/platform-libraries": "*",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",

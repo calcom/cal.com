@@ -43,7 +43,7 @@ if (!bookerUrl || !embedLibUrl) {
 })(window, embedLibUrl, "init");
 
 const previewWindow = window;
-previewWindow.Cal.fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
+previewWindow.Cal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
 
 previewWindow.Cal("init", {
   origin: bookerUrl,

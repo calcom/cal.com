@@ -1,0 +1,26 @@
+{
+  "name": "@calcom/platform-libraries",
+  "version": "0.0.0",
+  "main": "./dist/calcom-lib.umd.cjs",
+  "module": "./dist/calcom-lib.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn vite build",
+    "build:watch": "yarn vite build --watch"
+  },
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.7",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^4.9.4",
+    "vite": "^5.0.12",
+    "vite-plugin-dts": "^3.7.2",
+    "vite-plugin-environment": "^1.1.3"
+  }
+}
