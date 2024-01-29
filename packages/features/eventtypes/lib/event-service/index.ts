@@ -1,10 +1,13 @@
 import type { User } from "@prisma/client";
-import { getBookingFieldsWithSystemFields } from "bookings/lib/getBookingFields";
-import { getSlugOrRequestedSlug } from "ee/organizations/lib/orgDomains";
-import { dynamicEventSelector, publicEventSelector } from "eventtypes/lib/event-service/validators";
 
 import { privacyFilteredLocations, type LocationObject } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  dynamicEventSelector,
+  publicEventSelector,
+} from "@calcom/features/eventtypes/lib/event-service/validators";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";

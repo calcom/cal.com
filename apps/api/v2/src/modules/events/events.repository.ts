@@ -1,9 +1,10 @@
-import { getUsernameList } from "@/modules/events/helpers/users.helper";
 import { GetPublicEventInput } from "@/modules/events/inputs/get-public-event.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+
+import { getUsernameList } from "@calcom/platform-libraries";
 
 @Injectable()
 export class EventsRepository {

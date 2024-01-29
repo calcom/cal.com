@@ -1,7 +1,7 @@
 import { GetPublicEventInput } from "@/modules/events/inputs/get-public-event.input";
 import { Body, Controller, Get, VERSION_NEUTRAL, Version } from "@nestjs/common";
 
-import { EventService } from "@calcom/features/eventtypes/lib/event-service";
+import { EventService } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller("event")

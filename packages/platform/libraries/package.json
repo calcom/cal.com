@@ -13,6 +13,7 @@
     "build:watch": "yarn vite build --watch"
   },
   "dependencies": {
+    "@calcom/features": "*",
     "@calcom/lib": "*"
   },
   "devDependencies": {
