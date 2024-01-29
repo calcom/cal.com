@@ -339,6 +339,16 @@ const ProfileView = () => {
           type="creation"
           Icon={AlertTriangle}>
           <div className="mb-10">
+            <div className="mb-4 grid gap-2 md:grid-cols-2">
+              <div>
+                <span className="text-subtle text-sm">{t("old_email_address")}</span>
+                <p className="leading-none">{user.email}</p>
+              </div>
+              <div>
+                <span className="text-subtle text-sm">{t("new_email_address")}</span>
+                <p className="leading-none">{tempFormValues?.email}</p>
+              </div>
+            </div>
             <PasswordField
               data-testid="password"
               name="password"
