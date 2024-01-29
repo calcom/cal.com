@@ -1,14 +1,10 @@
-import type { SelectedCalendar as _SelectedCalendar } from "@prisma/client";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
-type SelectedCalendar = Omit<_SelectedCalendar, "metadata">;
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 const getCalendarsEvents = async (

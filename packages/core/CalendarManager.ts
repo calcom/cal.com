@@ -1,4 +1,3 @@
-import type { SelectedCalendar as _SelectedCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
@@ -15,13 +14,12 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  SelectedCalendar,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
-
-type SelectedCalendar = Omit<_SelectedCalendar, "metadata">;
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 

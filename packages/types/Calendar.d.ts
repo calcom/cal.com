@@ -1,4 +1,9 @@
-import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar } from "@prisma/client";
+import type {
+  BookingSeat,
+  DestinationCalendar,
+  Prisma,
+  SelectedCalendar as _SelectedCalendar,
+} from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { calendar_v3 } from "googleapis";
 import type { Time } from "ical.js";
@@ -217,7 +222,7 @@ export interface AdditionalInformation {
   hangoutLink?: string;
 }
 
-export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "externalId"> {
+export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId"> {
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
@@ -260,3 +265,5 @@ export interface Calendar {
 type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 
 export type CalendarClass = Class<Calendar, [CredentialPayload]>;
+
+export type SelectedCalendar = Omit<_SelectedCalendar, "metadata">;
