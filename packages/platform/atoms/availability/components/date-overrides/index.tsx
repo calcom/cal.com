@@ -9,9 +9,23 @@ import { Info, Plus } from "@calcom/ui/components/icon";
 
 type DateOverrideProps = {
   workingHours: WorkingHours[];
+  translationLabels: {
+    title?: string;
+    subtitle?: string;
+    tooltipContent?: string;
+    buttonText?: string;
+  };
 };
 
-export function DateOverride({ workingHours }: DateOverrideProps) {
+export function DateOverride({
+  workingHours,
+  translationLabels = {
+    title: "Date overrides",
+    subtitle: "Add dates when your availability changes from your daily hours.",
+    tooltipContent: "Date overrides are archived automatically after the date has passed",
+    buttonText: "Add an override",
+  },
+}: DateOverrideProps) {
   const { remove, append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -20,16 +34,14 @@ export function DateOverride({ workingHours }: DateOverrideProps) {
   return (
     <div className="p-6">
       <h3 className="text-emphasis font-medium leading-6">
-        Date overrides{" "}
-        <Tooltip content="Date overrides are archived automatically after the date has passed">
+        {translationLabels.title}
+        <Tooltip content={translationLabels.tooltipContent}>
           <span className="inline-block align-middle">
             <Info className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
-      <p className="text-subtle mb-4 text-sm">
-        Add dates when your availability changes from your daily hours.
-      </p>
+      <p className="text-subtle mb-4 text-sm">{translationLabels.subtitle}</p>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
@@ -44,7 +56,7 @@ export function DateOverride({ workingHours }: DateOverrideProps) {
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           Trigger={
             <Button color="secondary" StartIcon={Plus} data-testid="add-override">
-              Add an override
+              {translationLabels.buttonText}
             </Button>
           }
         />

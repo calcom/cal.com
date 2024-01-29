@@ -46,14 +46,20 @@ type AvailabilitySettingsProps = {
     confirmationDialogButtonText?: string;
     confirmationDialogDescription?: string;
   };
+  dateOverrideTranslations?: {
+    title?: string;
+    subtitle?: string;
+    tooltipContent?: string;
+    buttonText?: string;
+  };
   timezoneTranslations?: {
     title: string;
   };
-  skeletonLabel?: string;
   troubleshooterTranslations?: {
     title: string;
     cta: string;
   };
+  skeletonLabel?: string;
   schedule?: {
     name: string;
     id: number;
@@ -91,6 +97,7 @@ export function AvailabilitySettings({
   handleSubmit,
   timezoneTranslations,
   troubleshooterTranslations,
+  dateOverrideTranslations,
   skeletonLabel = "Name",
   ctaTranslations = {
     saveButtonLabel: "Save",
@@ -220,7 +227,17 @@ export function AvailabilitySettings({
                 </div>
               </div>
               <div className="border-subtle my-6 rounded-md border">
-                {schedule?.workingHours && <DateOverride workingHours={schedule.workingHours} />}
+                {schedule?.workingHours && (
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    translationLabels={{
+                      title: dateOverrideTranslations?.title,
+                      subtitle: dateOverrideTranslations?.subtitle,
+                      tooltipContent: dateOverrideTranslations?.tooltipContent,
+                      buttonText: dateOverrideTranslations?.buttonText,
+                    }}
+                  />
+                )}
               </div>
             </div>
             <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
