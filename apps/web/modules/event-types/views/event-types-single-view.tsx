@@ -450,7 +450,47 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
 
+  const isFieldDirty = (fieldName: keyof FormValues, prefix = ""): boolean => {
+    const fullFieldName = (prefix + fieldName) as keyof typeof formMethods.formState.dirtyFields;
+
+    // Check if the field itself is dirty
+    if (formMethods.formState.dirtyFields[fullFieldName]) {
+      return true;
+    }
+
+    // Recursively check for nested fields
+    for (const key in formMethods.formState.dirtyFields) {
+      if (key.startsWith(`${fullFieldName}.`)) {
+        // Extract the next level field name
+        const nextLevelFieldName = key.slice(fullFieldName.length + 1).split(".")[0] as keyof FormValues;
+        if (isFieldDirty(nextLevelFieldName, `${fullFieldName}.`)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    if (formMethods.formState.isDirty) {
+      const updatedFields: Partial<FormValues> = {};
+      Object.keys(formMethods.formState.dirtyFields).forEach((key) => {
+        const typedKey = key as keyof typeof formMethods.formState.dirtyFields;
+        updatedFields[typedKey] = undefined;
+        const isDirty = isFieldDirty(typedKey);
+        if (isDirty) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          updatedFields[typedKey] = values[typedKey];
+        }
+      });
+      return updatedFields;
+    }
+    return {};
+  };
+
   const handleSubmit = async (values: FormValues) => {
+    const dirtyValues = getDirtyFields(values);
     const {
       periodDates,
       periodCountCalendarDays,
@@ -479,7 +519,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       multipleDurationEnabled,
       length,
       ...input
-    } = values;
+    } = dirtyValues;
 
     if (!Number(length)) throw new Error(t("event_setup_length_error"));
 
@@ -500,7 +540,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       if (metadata?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
-        if (!length && !metadata?.multipleDuration?.includes(length)) {
+        if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
+          //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
           throw new Error(t("event_setup_multiple_duration_default_error"));
         }
       }
@@ -517,13 +558,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, users, scheduleName, ...rest } = input;
-    updateMutation.mutate({
+    const payload = {
       ...rest,
       length,
       locations,
       recurringEvent,
-      periodStartDate: periodDates.startDate,
-      periodEndDate: periodDates.endDate,
+      periodStartDate: periodDates?.startDate,
+      periodEndDate: periodDates?.endDate,
       periodCountCalendarDays: periodCountCalendarDays === "1",
       id: eventType.id,
       beforeEventBuffer: beforeBufferTime,
@@ -538,7 +579,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       customInputs,
       children,
       assignAllTeamMembers,
-    });
+    };
+    // Filter out undefined values
+    const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
+      if (value !== undefined) {
+        // @ts-expect-error Element implicitly has any type
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+    updateMutation.mutate({ ...filteredPayload, id: eventType.id });
   };
 
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
@@ -591,6 +641,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           form={formMethods}
           id="event-type-form"
           handleSubmit={async (values) => {
+            const dirtyValues = getDirtyFields(values);
             const {
               periodDates,
               periodCountCalendarDays,
@@ -613,9 +664,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               multipleDurationEnabled,
               length,
               ...input
-            } = values;
+            } = dirtyValues;
 
-            if (!Number(length)) throw new Error(t("event_setup_length_error"));
+            if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
             if (bookingLimits) {
               const isValid = validateIntervalLimitOrder(bookingLimits);
@@ -634,7 +685,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               if (metadata?.multipleDuration.length < 1) {
                 throw new Error(t("event_setup_multiple_duration_error"));
               } else {
-                if (!length && !metadata?.multipleDuration?.includes(length)) {
+                if (!length && !metadata?.multipleDuration?.includes(eventType.length)) {
+                  //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
                   throw new Error(t("event_setup_multiple_duration_default_error"));
                 }
               }
@@ -647,13 +699,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, users, scheduleName, ...rest } = input;
-            updateMutation.mutate({
+            const payload = {
               ...rest,
               length,
               locations,
               recurringEvent,
-              periodStartDate: periodDates.startDate,
-              periodEndDate: periodDates.endDate,
+              periodStartDate: periodDates?.startDate,
+              periodEndDate: periodDates?.endDate,
               periodCountCalendarDays: periodCountCalendarDays === "1",
               id: eventType.id,
               beforeEventBuffer: beforeBufferTime,
@@ -666,7 +718,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               seatsShowAvailabilityCount,
               metadata,
               customInputs,
-            });
+            };
+            // Filter out undefined values
+            const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {
+              if (value !== undefined) {
+                // @ts-expect-error Element implicitly has any type
+                acc[key] = value;
+              }
+              return acc;
+            }, {});
+            updateMutation.mutate({ ...filteredPayload, id: eventType.id });
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
