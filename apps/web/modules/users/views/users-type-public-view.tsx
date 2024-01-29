@@ -6,14 +6,7 @@ import { Booker } from "@calcom/atoms";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
-import { getServerSideProps } from "@lib/[user]/[type]/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
-
-import PageWrapper from "@components/PageWrapper";
-
-export type PageProps = Omit<inferSSRProps<typeof getServerSideProps>, "trpcState"> & EmbedProps;
-export { getServerSideProps };
+import { type PageProps } from "./users-type-public-view.getServerSideProps";
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -69,6 +62,3 @@ export default function Type({
     </main>
   );
 }
-
-Type.isBookingPage = true;
-Type.PageWrapper = PageWrapper;

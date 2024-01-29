@@ -1,5 +1,6 @@
 import type z from "zod";
 
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -56,6 +57,7 @@ export const createOrUpdateMemberships = async ({
         },
       });
     }
+    await updateNewTeamMemberEventTypes(user.id, team.id);
     return { membership, orgMembership };
   });
 };

@@ -2096,5 +2096,6 @@
   "description_lock_timezone_toggle_on_booking_page": "Um die Zeitzone auf der Buchungsseite zu sperren, nützlich für Termine in Person.",
   "extensive_whitelabeling": "Dedizierte Onboarding- und Engineeringsupport",
   "need_help": "Brauchst du Hilfe?",
+  "show_more": "Mehr anzeigen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
