@@ -9,9 +9,11 @@ export const RedirectToInstantMeetingModal = ({
   hasInstantMeetingTokenExpired,
   bookingId,
   onGoBack,
+  isInstantMeeting,
   expiryTime,
 }: {
   hasInstantMeetingTokenExpired: boolean;
+  isInstantMeeting: boolean | undefined;
   bookingId: number;
   onGoBack: () => void;
   expiryTime?: Date;
@@ -47,7 +49,7 @@ export const RedirectToInstantMeetingModal = ({
   };
 
   useEffect(() => {
-    if (hasInstantMeetingTokenExpired) return;
+    if (!isInstantMeeting || hasInstantMeetingTokenExpired) return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       const message = "/o";
@@ -59,7 +61,7 @@ export const RedirectToInstantMeetingModal = ({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [hasInstantMeetingTokenExpired]);
+  }, [hasInstantMeetingTokenExpired, isInstantMeeting]);
 
   return (
     <Dialog open={!!bookingId && !!expiryTime}>

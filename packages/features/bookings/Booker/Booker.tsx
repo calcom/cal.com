@@ -257,6 +257,7 @@ const BookerComponent = ({
             <RedirectToInstantMeetingModal
               expiryTime={expiryTime}
               hasInstantMeetingTokenExpired={hasInstantMeetingTokenExpired}
+              isInstantMeeting={event.data?.isInstantEvent}
               bookingId={parseInt(getQueryParam("bookingId") || "0")}
               onGoBack={() => {
                 // Prevent null on app directory
