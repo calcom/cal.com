@@ -1,7 +1,9 @@
 import { LimitBookingFrequency } from "event-type/components/limit-booking-frequency";
 import { LimitFirstSlot } from "event-type/components/limit-first-slot";
+import { LimitFutureBookings } from "event-type/components/limit-future-bookings";
 import { LimitTotalBookingDuration } from "event-type/components/limit-total-booking-duration";
 import { OffsetStartTimes } from "event-type/components/offset-start-times";
+import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { Label } from "@calcom/ui";
@@ -9,6 +11,7 @@ import { Label } from "@calcom/ui";
 import { EventIntervalScheduler } from "../../components/event-interval-range-selector/index";
 import { MinimumBookingNoticeInput } from "../../components/min-booking-notice-input/index";
 import { beforeAndAfterBufferOptions, slotIntervalOptions } from "../../lib/limitsUtils";
+import { PERIOD_TYPES } from "../../lib/limitsUtils";
 import type { FormValues } from "../../types";
 import type { EventTypeSetupProps } from "../event-setup/index";
 
@@ -18,6 +21,13 @@ type LimitsProps = {
 
 export function Limits({ eventType }: LimitsProps) {
   const formMethods = useFormContext<FormValues>();
+  const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
+    startDate: new Date(eventType.periodStartDate || Date.now()),
+    endDate: new Date(eventType.periodEndDate || Date.now()),
+  });
+  const periodType =
+    PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
+    PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
   // offsetStart toggle is client-side only, opened by default if offsetStart is set
   const offsetStartValue = useWatch({
     control: formMethods.control,
@@ -81,13 +91,18 @@ export function Limits({ eventType }: LimitsProps) {
           />
         </div>
       </div>
-      {/* This is the controller to limit booking frequency */}
       <LimitBookingFrequency formMethods={formMethods} />
-      {/* This is the controller to limit first booking slot */}
       <LimitFirstSlot formMethods={formMethods} />
-      {/* This is the controller to limit total booking duration */}
       <LimitTotalBookingDuration formMethods={formMethods} />
-      {/* TODO: this is the controller for limiting future bookings  */}
+      <LimitFutureBookings
+        formMethods={formMethods}
+        periodDates={periodDates}
+        periodType={periodType}
+        eventType={{
+          periodDays: eventType.periodDays,
+          periodCountCalendarDays: eventType.periodCountCalendarDays,
+        }}
+      />
       {/* controller for offset start times */}
       <OffsetStartTimes
         formMethods={formMethods}
