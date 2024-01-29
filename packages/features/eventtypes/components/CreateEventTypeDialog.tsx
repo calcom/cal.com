@@ -9,7 +9,7 @@ import { z } from "zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -147,7 +147,7 @@ export default function CreateEventTypeDialog({
   });
 
   const flags = useFlagMap();
-  const urlPrefix = orgBranding?.fullDomain ?? WEBAPP_URL;
+  const urlPrefix = orgBranding?.fullDomain ?? WEBSITE_URL;
 
   return (
     <Dialog

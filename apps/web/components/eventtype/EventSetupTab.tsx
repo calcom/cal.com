@@ -11,7 +11,7 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
@@ -444,10 +444,10 @@ export const EventSetupTab = (
 
   const lengthLockedProps = shouldLockDisableProps("length");
   const descriptionLockedProps = shouldLockDisableProps("description");
-  // TODO: WEBAPP_URL or WEBSITE_URL
+
   const urlPrefix = orgBranding
     ? orgBranding?.fullDomain.replace(/^(https?:|)\/\//, "")
-    : `${WEBAPP_URL?.replace(/^(https?:|)\/\//, "")}`;
+    : `${WEBSITE_URL?.replace(/^(https?:|)\/\//, "")}`;
 
   return (
     <div>
