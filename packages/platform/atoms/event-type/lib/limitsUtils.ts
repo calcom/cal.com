@@ -76,3 +76,9 @@ export const INTERVAL_LIMIT_OPTIONS = ascendingLimitKeys.map((key) => ({
   value: key as keyof IntervalLimit,
   label: `Per ${intervalLimitKeyToUnit(key)}`,
 }));
+
+export const PeriodType = {
+  UNLIMITED: "UNLIMITED",
+  ROLLING: "ROLLING",
+  RANGE: "RANGE",
+} as const;
