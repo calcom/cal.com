@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH, WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
