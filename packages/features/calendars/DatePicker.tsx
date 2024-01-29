@@ -36,7 +36,7 @@ export type DatePickerProps = {
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
-  isLoading?: boolean;
+  isPending?: boolean;
   /** used to query the multiple selected dates */
   eventSlug?: string;
 };
@@ -74,7 +74,7 @@ export const Day = ({
         <span
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
-            active && "invert"
+            active && "bg-brand-accent"
           )}>
           <span className="sr-only">{t("today")}</span>
         </span>
@@ -95,7 +95,7 @@ const NoAvailabilityOverlay = ({
   return (
     <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border p-8 shadow-sm">
       <h4 className="text-emphasis mb-4 font-medium">{t("no_availability_in_month", { month: month })}</h4>
-      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight}>
+      <Button onClick={nextMonthButton} color="primary" EndIcon={ArrowRight} data-testid="view_next_month">
         {t("view_next_month")}
       </Button>
     </div>
@@ -206,7 +206,7 @@ const Days = ({
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
-          ) : props.isLoading ? (
+          ) : props.isPending ? (
             <button
               className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50"
               key={`e-${idx}`}
@@ -226,7 +226,7 @@ const Days = ({
         </div>
       ))}
 
-      {!props.isLoading && includedDates && includedDates?.length === 0 && (
+      {!props.isPending && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
     </>

@@ -12,10 +12,9 @@ export async function getFeatureFlagMap(prisma: PrismaClient) {
     orderBy: { slug: "asc" },
     cacheStrategy: { swr: 300, ttl: 300 },
   });
-  // Save the flags to the cache
-  TEMP_CACHE = flags.reduce<AppFlags>((acc, flag) => {
+  TEMP_CACHE = flags.reduce((acc, flag) => {
     acc[flag.slug as keyof AppFlags] = flag.enabled;
     return acc;
-  }, {} as AppFlags);
+  }, {} as Partial<AppFlags>);
   return TEMP_CACHE;
 }

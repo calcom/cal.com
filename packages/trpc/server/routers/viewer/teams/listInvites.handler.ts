@@ -18,3 +18,5 @@ export const listInvitesHandler = async ({ ctx }: ListInvitesOptions) => {
     },
   });
 };
+
+export default listInvitesHandler;

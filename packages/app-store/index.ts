@@ -10,12 +10,14 @@ const appStore = {
   googlevideo: () => import("./googlevideo"),
   hubspot: () => import("./hubspot"),
   huddle01video: () => import("./huddle01video"),
+  "ics-feedcalendar": () => import("./ics-feedcalendar"),
   jitsivideo: () => import("./jitsivideo"),
   larkcalendar: () => import("./larkcalendar"),
   office365calendar: () => import("./office365calendar"),
   office365video: () => import("./office365video"),
   plausible: () => import("./plausible"),
   paypal: () => import("./paypal"),
+  "pipedrive-crm": () => import("./pipedrive-crm"),
   salesforce: () => import("./salesforce"),
   zohocrm: () => import("./zohocrm"),
   sendgrid: () => import("./sendgrid"),
@@ -37,6 +39,15 @@ const appStore = {
   "zoho-bigin": () => import("./zoho-bigin"),
   basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),
+  shimmervideo: () => import("./shimmervideo"),
 };
 
-export default appStore;
+const exportedAppStore: typeof appStore & {
+  ["mock-payment-app"]?: () => Promise<typeof import("./mock-payment-app/index")>;
+} = appStore;
+
+if (process.env.MOCK_PAYMENT_APP_ENABLED !== undefined) {
+  exportedAppStore["mock-payment-app"] = () => import("./mock-payment-app/index");
+}
+
+export default exportedAppStore;

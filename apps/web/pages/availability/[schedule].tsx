@@ -1,4 +1,4 @@
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -8,6 +8,7 @@ import Schedule from "@calcom/features/schedules/components/Schedule";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
@@ -83,7 +84,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
 };
 
 export default function Availability() {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
@@ -92,7 +93,7 @@ export default function Availability() {
   const fromEventType = searchParams?.get("fromEventType");
   const { timeFormat } = me.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
-  const { data: schedule, isLoading } = trpc.viewer.availability.schedule.get.useQuery(
+  const { data: schedule, isPending } = trpc.viewer.availability.schedule.get.useQuery(
     { scheduleId },
     {
       enabled: !!scheduleId,
@@ -157,7 +158,7 @@ export default function Availability() {
           control={form.control}
           name="name"
           render={({ field }) => (
-            <EditableHeading isReady={!isLoading} {...field} data-testid="availablity-title" />
+            <EditableHeading isReady={!isPending} {...field} data-testid="availablity-title" />
           )}
         />
       }
@@ -187,7 +188,7 @@ export default function Availability() {
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              disabled={isLoading || schedule?.isDefault}
+              disabled={isPending || schedule?.isDefault}
               checked={form.watch("isDefault")}
               onCheckedChange={(e) => {
                 form.setValue("isDefault", e);
@@ -209,7 +210,7 @@ export default function Availability() {
               />
             </DialogTrigger>
             <ConfirmationDialogContent
-              isLoading={deleteMutation.isLoading}
+              isPending={deleteMutation.isPending}
               variety="danger"
               title={t("delete_schedule")}
               confirmBtnText={t("delete")}
@@ -248,7 +249,7 @@ export default function Availability() {
                     />
                   </DialogTrigger>
                   <ConfirmationDialogContent
-                    isLoading={deleteMutation.isLoading}
+                    isPending={deleteMutation.isPending}
                     variety="danger"
                     title={t("delete_schedule")}
                     confirmBtnText={t("delete")}
@@ -283,7 +284,7 @@ export default function Availability() {
                 </Skeleton>
                 <Switch
                   id="hiddenSwitch"
-                  disabled={isLoading || schedule?.isDefault}
+                  disabled={isPending || schedule?.isDefault}
                   checked={form.watch("isDefault")}
                   onCheckedChange={(e) => {
                     form.setValue("isDefault", e);
@@ -333,7 +334,7 @@ export default function Availability() {
             className="ml-4 lg:ml-0"
             type="submit"
             form="availability-form"
-            loading={updateMutation.isLoading}>
+            loading={updateMutation.isPending}>
             {t("save")}
           </Button>
           <Button

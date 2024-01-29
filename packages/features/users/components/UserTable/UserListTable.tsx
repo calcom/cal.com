@@ -1,13 +1,14 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useMemo, useRef, useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Avatar, Badge, Button, DataTable, Checkbox } from "@calcom/ui";
+import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
@@ -114,14 +115,14 @@ export function UserListTable() {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
 
-  const { data, isLoading, fetchNextPage, isFetching } =
+  const { data, isPending, fetchNextPage, isFetching } =
     trpc.viewer.organizations.listMembers.useInfiniteQuery(
       {
         limit: 10,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-        keepPreviousData: true,
+        placeholderData: keepPreviousData,
       }
     );
 
@@ -166,10 +167,16 @@ export function UserListTable() {
             <div className="flex items-center gap-2">
               <Avatar size="sm" alt={username || email} imageSrc={`${domain}/${username}/avatar.png`} />
               <div className="">
-                <div className="text-emphasis text-sm font-medium leading-none">
+                <div
+                  data-testid={`member-${username}-username`}
+                  className="text-emphasis text-sm font-medium leading-none">
                   {username || "No username"}
                 </div>
-                <div className="text-subtle mt-1 text-sm leading-none">{email}</div>
+                <div
+                  data-testid={`member-${username}-email`}
+                  className="text-subtle mt-1 text-sm leading-none">
+                  {email}
+                </div>
               </div>
             </div>
           );
@@ -185,9 +192,10 @@ export function UserListTable() {
         accessorFn: (data) => data.role,
         header: "Role",
         cell: ({ row, table }) => {
-          const { role } = row.original;
+          const { role, username } = row.original;
           return (
             <Badge
+              data-testid={`member-${username}-role`}
               variant={role === "MEMBER" ? "gray" : "blue"}
               onClick={() => {
                 table.getColumn("role")?.setFilterValue([role]);
@@ -204,12 +212,16 @@ export function UserListTable() {
         id: "teams",
         header: "Teams",
         cell: ({ row }) => {
-          const { teams, accepted } = row.original;
+          const { teams, accepted, email, username } = row.original;
           // TODO: Implement click to filter
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {accepted ? null : (
-                <Badge variant="red" className="text-xs">
+                <Badge
+                  data-testid2={`member-${username}-pending`}
+                  variant="red"
+                  className="text-xs"
+                  data-testid={`email-${email.replace("@", "")}-pending`}>
                   Pending
                 </Badge>
               )}
@@ -287,7 +299,10 @@ export function UserListTable() {
           {
             type: "render",
             render: (table) => (
-              <DeleteBulkUsers users={table.getSelectedRowModel().flatRows.map((row) => row.original)} />
+              <DeleteBulkUsers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+              />
             ),
           },
         ]}
@@ -315,7 +330,7 @@ export function UserListTable() {
         }
         columns={memorisedColumns}
         data={flatData}
-        isLoading={isLoading}
+        isPending={isPending}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
         filterableItems={[
           {

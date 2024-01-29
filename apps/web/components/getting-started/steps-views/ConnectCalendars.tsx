@@ -31,7 +31,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   return (
     <>
       {/* Already connected calendars  */}
-      {!queryConnectedCalendars.isLoading &&
+      {!queryConnectedCalendars.isPending &&
         firstCalendar &&
         firstCalendar.integration &&
         firstCalendar.integration.title &&
@@ -76,13 +76,13 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         </List>
       )}
 
-      {queryIntegrations.isLoading && <StepConnectionLoader />}
+      {queryIntegrations.isPending && <StepConnectionLoader />}
 
       <button
         type="button"
         data-testid="save-calendar-button"
         className={classNames(
-          "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm",
+          "text-inverted bg-inverted border-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         onClick={() => nextStep()}

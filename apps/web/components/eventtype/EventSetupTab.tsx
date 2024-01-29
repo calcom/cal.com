@@ -8,7 +8,7 @@ import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, LocationType, MeetLocationType } from "@calcom/app-store/locations";
+import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -30,8 +30,7 @@ import {
   Button,
   showToast,
 } from "@calcom/ui";
-import { Plus, X, Check } from "@calcom/ui/components/icon";
-import { CornerDownRight } from "@calcom/ui/components/icon";
+import { Plus, X, Check, CornerDownRight } from "@calcom/ui/components/icon";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
@@ -49,21 +48,19 @@ const getLocationFromType = (
   }
 };
 
-const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
+const getLocationInfo = ({
+  eventType,
+  locationOptions,
+}: Pick<EventTypeSetupProps, "eventType" | "locationOptions">) => {
   const locationAvailable =
-    props.eventType.locations &&
-    props.eventType.locations.length > 0 &&
-    props.locationOptions.some((op) =>
-      op.options.find((opt) => opt.value === props.eventType.locations[0].type)
-    );
-  const locationDetails = props.eventType.locations &&
-    props.eventType.locations.length > 0 &&
+    eventType.locations &&
+    eventType.locations.length > 0 &&
+    locationOptions.some((op) => op.options.find((opt) => opt.value === eventType.locations[0].type));
+  const locationDetails = eventType.locations &&
+    eventType.locations.length > 0 &&
     !locationAvailable && {
-      slug: props.eventType.locations[0].type
-        .replace("integrations:", "")
-        .replace(":", "-")
-        .replace("_video", ""),
-      name: props.eventType.locations[0].type
+      slug: eventType.locations[0].type.replace("integrations:", "").replace(":", "-").replace("_video", ""),
+      name: eventType.locations[0].type
         .replace("integrations:", "")
         .replace(":", " ")
         .replace("_video", "")
@@ -73,16 +70,11 @@ const getLocationInfo = (props: Pick<EventTypeSetupProps, "eventType" | "locatio
     };
   return { locationAvailable, locationDetails };
 };
-interface DescriptionEditorProps {
-  description?: string | null;
-  editable?: boolean;
-}
 
-const DescriptionEditor = (props: DescriptionEditorProps) => {
+const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
   const formMethods = useFormContext<FormValues>();
   const [mounted, setIsMounted] = useState(false);
   const { t } = useLocale();
-  const { description } = props;
   const [firstRender, setFirstRender] = useState(true);
   useEffect(() => {
     setIsMounted(true);
@@ -90,11 +82,11 @@ const DescriptionEditor = (props: DescriptionEditorProps) => {
 
   return mounted ? (
     <Editor
-      getText={() => md.render(formMethods.getValues("description") || description || "")}
+      getText={() => md.render(formMethods.getValues("description") || "")}
       setText={(value: string) => formMethods.setValue("description", turndown(value))}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
-      editable={props.editable}
+      editable={isEditable}
       firstRender={firstRender}
       setFirstRender={setFirstRender}
     />
@@ -114,7 +106,9 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, destinationCalendar } = props;
-  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata?.multipleDuration);
+  const [multipleDuration, setMultipleDuration] = useState(
+    formMethods.getValues("metadata")?.multipleDuration
+  );
   const orgBranding = useOrgBranding();
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
 
@@ -144,12 +138,12 @@ export const EventSetupTab = (
     }>
   >(multipleDurationOptions.filter((mdOpt) => multipleDuration?.includes(mdOpt.value)));
   const [defaultDuration, setDefaultDuration] = useState(
-    selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
+    selectedMultipleDuration.find((opt) => opt.value === formMethods.getValues("length")) ?? null
   );
 
   const { isChildrenManagedEventType, isManagedEventType, shouldLockIndicator, shouldLockDisableProps } =
     useLockedFieldsManager(
-      eventType,
+      formMethods.getValues(),
       t("locked_fields_admin_description"),
       t("locked_fields_member_description")
     );
@@ -196,27 +190,19 @@ export const EventSetupTab = (
         return (
           <Controller
             name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
-                <>
-                  <Input
-                    name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                    type="text"
-                    required
-                    onChange={onChange}
-                    value={value}
-                    className="my-0"
-                    {...rest}
-                  />
-                  <ErrorMessage
-                    errors={formMethods.formState.errors.locations?.[index]}
-                    name={eventLocationType.defaultValueVariable}
-                    className="text-error my-1 text-sm"
-                    as="div"
-                  />
-                </>
+                <Input
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                  type="text"
+                  required
+                  onChange={onChange}
+                  value={value}
+                  className="my-0"
+                  {...rest}
+                />
               );
             }}
           />
@@ -227,25 +213,17 @@ export const EventSetupTab = (
         return (
           <Controller
             name={`locations.${index}.${eventLocationType.defaultValueVariable}`}
-            control={formMethods.control}
             defaultValue={defaultValue}
             render={({ field: { onChange, value } }) => {
               return (
-                <>
-                  <PhoneInput
-                    required
-                    name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
-                    value={value}
-                    onChange={onChange}
-                    {...rest}
-                  />
-                  <ErrorMessage
-                    errors={formMethods.formState.errors.locations?.[index]}
-                    name={eventLocationType.defaultValueVariable}
-                    className="text-error my-1 text-sm"
-                    as="div"
-                  />
-                </>
+                <PhoneInput
+                  required
+                  placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
+                  name={`locations[${index}].${eventLocationType.defaultValueVariable}`}
+                  value={value}
+                  onChange={onChange}
+                  {...rest}
+                />
               );
             }}
           />
@@ -262,15 +240,7 @@ export const EventSetupTab = (
         <ul ref={animationRef} className="space-y-2">
           {locationFields.map((field, index) => {
             const eventLocationType = getEventLocationType(field.type);
-            const defaultLocation = formMethods
-              .getValues("locations")
-              ?.find((location: { type: EventLocationType["type"]; address?: string }) => {
-                if (location.type === LocationType.InPerson) {
-                  return location.type === eventLocationType?.type && location.address === field?.address;
-                } else {
-                  return location.type === eventLocationType?.type;
-                }
-              });
+            const defaultLocation = field;
 
             const option = getLocationFromType(field.type, locationOptions);
 
@@ -298,9 +268,21 @@ export const EventSetupTab = (
                           !validLocations.find((location) => location.type === newLocationType);
 
                         if (canAddLocation) {
-                          updateLocationField(index, { type: newLocationType });
+                          updateLocationField(index, {
+                            type: newLocationType,
+                            ...(e.credentialId && {
+                              credentialId: e.credentialId,
+                              teamName: e.teamName,
+                            }),
+                          });
                         } else {
-                          updateLocationField(index, { type: field.type });
+                          updateLocationField(index, {
+                            type: field.type,
+                            ...(field.credentialId && {
+                              credentialId: field.credentialId,
+                              teamName: field.teamName,
+                            }),
+                          });
                           showToast(t("location_already_exists"), "warning");
                         }
                       }
@@ -320,11 +302,11 @@ export const EventSetupTab = (
 
                 {eventLocationType?.organizerInputType && (
                   <div className="mt-2 space-y-2">
-                    <div className="flex gap-2">
-                      <div className="flex items-center justify-center">
-                        <CornerDownRight className="h-4 w-4" />
-                      </div>
-                      <div className="w-full">
+                    <div className="w-full">
+                      <div className="flex gap-2">
+                        <div className="flex items-center justify-center">
+                          <CornerDownRight className="h-4 w-4" />
+                        </div>
                         <LocationInput
                           defaultValue={
                             defaultLocation
@@ -335,14 +317,22 @@ export const EventSetupTab = (
                           index={index}
                         />
                       </div>
+                      <ErrorMessage
+                        errors={formMethods.formState.errors.locations?.[index]}
+                        name={eventLocationType.defaultValueVariable}
+                        className="text-error my-1 ml-6 text-sm"
+                        as="div"
+                        id="location-error"
+                      />
                     </div>
                     <div className="ml-6">
                       <CheckboxField
+                        name={`locations[${index}].displayLocationPublicly`}
                         data-testid="display-location"
                         defaultChecked={defaultLocation?.displayLocationPublicly}
                         description={t("display_location_label")}
                         onChange={(e) => {
-                          const fieldValues = formMethods.getValues().locations[index];
+                          const fieldValues = formMethods.getValues("locations")[index];
                           updateLocationField(index, {
                             ...fieldValues,
                             displayLocationPublicly: e.target.checked,
@@ -360,7 +350,6 @@ export const EventSetupTab = (
             <div className="flex">
               <LocationSelect
                 defaultMenuIsOpen={showEmptyLocationSelect}
-                autoFocus
                 placeholder={t("select")}
                 options={locationOptions}
                 value={selectedNewOption}
@@ -382,7 +371,13 @@ export const EventSetupTab = (
                       !validLocations.find((location) => location.type === newLocationType);
 
                     if (canAppendLocation) {
-                      append({ type: newLocationType });
+                      append({
+                        type: newLocationType,
+                        ...(e.credentialId && {
+                          credentialId: e.credentialId,
+                          teamName: e.teamName,
+                        }),
+                      });
                       setSelectedNewOption(e);
                     } else {
                       showToast(t("location_already_exists"), "warning");
@@ -406,7 +401,7 @@ export const EventSetupTab = (
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                   Change it{" "}
                   <Link
-                    href={`${CAL_URL}/event-types/${eventType.id}?tabName=advanced`}
+                    href={`${CAL_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
                     className="underline">
                     here.
                   </Link>{" "}
@@ -461,7 +456,6 @@ export const EventSetupTab = (
             required
             label={t("title")}
             {...shouldLockDisableProps("title")}
-            defaultValue={eventType.title}
             {...formMethods.register("title")}
           />
           <div>
@@ -469,23 +463,19 @@ export const EventSetupTab = (
               {t("description")}
               {shouldLockIndicator("description")}
             </Label>
-            <DescriptionEditor
-              description={eventType?.description}
-              editable={!descriptionLockedProps.disabled}
-            />
+            <DescriptionEditor isEditable={!descriptionLockedProps.disabled} />
           </div>
           <TextField
             required
             label={t("URL")}
             {...shouldLockDisableProps("slug")}
-            defaultValue={eventType.slug}
             addOnLeading={
               <>
                 {urlPrefix}/
                 {!isManagedEventType
                   ? team
                     ? (orgBranding ? "" : "team/") + team.slug
-                    : eventType.users[0].username
+                    : formMethods.getValues("users")[0].username
                   : t("username_placeholder")}
                 /
               </>
@@ -562,7 +552,7 @@ export const EventSetupTab = (
               type="number"
               {...lengthLockedProps}
               label={t("duration")}
-              defaultValue={eventType.length ?? 15}
+              defaultValue={formMethods.getValues("length") ?? 15}
               {...formMethods.register("length")}
               addOnSuffix={<>{t("minutes")}</>}
               min={1}
@@ -578,6 +568,8 @@ export const EventSetupTab = (
                 onCheckedChange={() => {
                   if (multipleDuration !== undefined) {
                     setMultipleDuration(undefined);
+                    setSelectedMultipleDuration([]);
+                    setDefaultDuration(null);
                     formMethods.setValue("metadata.multipleDuration", undefined);
                     formMethods.setValue("length", eventType.length);
                   } else {
@@ -598,12 +590,7 @@ export const EventSetupTab = (
               {shouldLockIndicator("locations")}
             </Skeleton>
 
-            <Controller
-              name="locations"
-              control={formMethods.control}
-              defaultValue={eventType.locations || []}
-              render={() => <Locations />}
-            />
+            <Controller name="locations" render={() => <Locations />} />
           </div>
         </div>
       </div>

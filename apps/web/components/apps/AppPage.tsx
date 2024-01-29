@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
@@ -42,6 +42,7 @@ export type AppPageProps = {
   disableInstall?: boolean;
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
+  paid?: AppType["paid"];
 };
 
 export const AppPage = ({
@@ -67,6 +68,7 @@ export const AppPage = ({
   isTemplate,
   dependencies,
   concurrentMeetings,
+  paid,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
@@ -90,17 +92,19 @@ export const AppPage = ({
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const [showDisconnectIntegration, setShowDisconnectIntegration] = useState(false);
 
-  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery(
-    { appType: type },
-    {
-      onSettled(data) {
-        const credentialsCount = data?.credentials.length || 0;
-        setShowDisconnectIntegration(
-          data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
-        );
-        setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
-      },
-    }
+  const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = appDbQuery.data;
+
+      const credentialsCount = data?.credentials.length || 0;
+      setShowDisconnectIntegration(
+        data?.userAdminTeams.length ? credentialsCount >= data?.userAdminTeams.length : credentialsCount > 0
+      );
+      setExistingCredentials(data?.credentials.map((credential) => credential.id) || []);
+    },
+    [appDbQuery.data]
   );
 
   const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
@@ -163,6 +167,19 @@ export const AppPage = ({
                 className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
+              {paid && (
+                <>
+                  <Badge className="mr-1">
+                    {Intl.NumberFormat(i18n.language, {
+                      style: "currency",
+                      currency: "USD",
+                      useGrouping: false,
+                      maximumFractionDigits: 0,
+                    }).format(paid.priceInUsd)}
+                    /{t("month")}
+                  </Badge>
+                </>
+              )}
               •{" "}
               <a target="_blank" rel="noreferrer" href={website}>
                 {t("published_by", { author })}
@@ -175,7 +192,7 @@ export const AppPage = ({
             )}
           </header>
         </div>
-        {!appDbQuery.isLoading ? (
+        {!appDbQuery.isPending ? (
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
@@ -196,7 +213,7 @@ export const AppPage = ({
                         onClick: () => {
                           mutation.mutate({ type, variant, slug });
                         },
-                        loading: mutation.isLoading,
+                        loading: mutation.isPending,
                       };
                     }
                     return (
@@ -206,6 +223,7 @@ export const AppPage = ({
                         addAppMutationInput={{ type, variant, slug }}
                         multiInstall
                         concurrentMeetings={concurrentMeetings}
+                        paid={paid}
                         {...props}
                       />
                     );
@@ -234,7 +252,7 @@ export const AppPage = ({
                     onClick: () => {
                       mutation.mutate({ type, variant, slug });
                     },
-                    loading: mutation.isLoading,
+                    loading: mutation.isPending,
                   };
                 }
                 return (
@@ -244,6 +262,7 @@ export const AppPage = ({
                     addAppMutationInput={{ type, variant, slug }}
                     credentials={appDbQuery.data?.credentials}
                     concurrentMeetings={concurrentMeetings}
+                    paid={paid}
                     {...props}
                   />
                 );
@@ -255,7 +274,7 @@ export const AppPage = ({
         )}
 
         {dependencies &&
-          (!dependencyData.isLoading ? (
+          (!dependencyData.isPending ? (
             <div className="mt-6">
               <AppDependencyComponent appName={name} dependencyData={dependencyData.data} />
             </div>
@@ -263,7 +282,7 @@ export const AppPage = ({
             <SkeletonButton className="mt-6 h-20 grow" />
           ))}
 
-        {price !== 0 && (
+        {price !== 0 && !paid && (
           <span className="block text-right">
             {feeType === "usage-based" ? `${commission}% + ${priceInDollar}/booking` : priceInDollar}
             {feeType === "monthly" && `/${t("month")}`}
@@ -273,23 +292,27 @@ export const AppPage = ({
         <div className="prose-sm prose prose-a:text-default prose-headings:text-emphasis prose-code:text-default prose-strong:text-default text-default mt-8">
           {body}
         </div>
-        <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
-        <span className="text-default">
-          {teamsPlanRequired ? (
-            t("teams_plan_required")
-          ) : price === 0 ? (
-            t("free_to_use_apps")
-          ) : (
-            <>
-              {Intl.NumberFormat(i18n.language, {
-                style: "currency",
-                currency: "USD",
-                useGrouping: false,
-              }).format(price)}
-              {feeType === "monthly" && `/${t("month")}`}
-            </>
-          )}
-        </span>
+        {!paid && (
+          <>
+            <h4 className="text-emphasis mt-8 font-semibold ">{t("pricing")}</h4>
+            <span className="text-default">
+              {teamsPlanRequired ? (
+                t("teams_plan_required")
+              ) : price === 0 ? (
+                t("free_to_use_apps")
+              ) : (
+                <>
+                  {Intl.NumberFormat(i18n.language, {
+                    style: "currency",
+                    currency: "USD",
+                    useGrouping: false,
+                  }).format(price)}
+                  {feeType === "monthly" && `/${t("month")}`}
+                </>
+              )}
+            </span>
+          </>
+        )}
 
         <h4 className="text-emphasis mb-2 mt-8 font-semibold ">{t("contact")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">

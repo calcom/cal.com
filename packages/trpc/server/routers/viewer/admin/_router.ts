@@ -1,10 +1,11 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZListMembersSchema } from "./listPaginated.schema";
+import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
-import { ZAdminToggleFeatureFlagSchema } from "./toggleFeatureFlag.schema";
+import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 
-const NAMESPACE = "adminRouter";
+const NAMESPACE = "admin";
 
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
@@ -20,10 +21,11 @@ export const adminRouter = router({
     );
     return handler(opts);
   }),
-  toggleFeatureFlag: authedAdminProcedure.input(ZAdminToggleFeatureFlagSchema).mutation(async (opts) => {
+  toggleFeatureFlag,
+  lockUserAccount: authedAdminProcedure.input(ZAdminLockUserAccountSchema).mutation(async (opts) => {
     const handler = await importHandler(
-      namespaced("toggleFeatureFlag"),
-      () => import("./toggleFeatureFlag.handler")
+      namespaced("lockUserAccount"),
+      () => import("./lockUserAccount.handler")
     );
     return handler(opts);
   }),

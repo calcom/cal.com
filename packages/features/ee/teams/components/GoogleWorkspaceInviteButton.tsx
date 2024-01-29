@@ -76,14 +76,14 @@ export function GoogleWorkspaceInviteButton(
             }}
             className="w-full justify-center gap-2"
             StartIcon={UsersIcon}
-            loading={mutation.isLoading}>
+            loading={mutation.isPending}>
             {t("import_from_google_workspace")}
           </Button>
         </Tooltip>
         <Tooltip content="Remove workspace connection">
           <Button
             color="secondary"
-            loading={removeConnectionMutation.isLoading}
+            loading={removeConnectionMutation.isPending}
             StartIcon={XIcon}
             onClick={() => {
               removeConnectionMutation.mutate();

@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
@@ -6,11 +8,10 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import OrganizationMemberAvatar from "@calcom/features/ee/organizations/components/OrganizationMemberAvatar";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
@@ -41,6 +42,7 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui";
 import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
@@ -72,37 +74,22 @@ interface DeleteAccountValues {
 
 type FormValues = {
   username: string;
-  avatar: string | null;
+  avatar: string;
   name: string;
   email: string;
   bio: string;
-};
-
-const checkIfItFallbackImage = (fetchedImgSrc?: string) => {
-  return !fetchedImgSrc || fetchedImgSrc.endsWith(AVATAR_FALLBACK);
 };
 
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { update } = useSession();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
 
-  const [fetchedImgSrc, setFetchedImgSrc] = useState<string | undefined>(undefined);
-
-  const { data: user, isLoading } = trpc.viewer.me.useQuery(undefined, {
-    onSuccess: async (userData) => {
-      try {
-        if (!userData.organization) {
-          const res = await fetch(userData.avatar);
-          if (res.url) setFetchedImgSrc(res.url);
-        } else {
-          setFetchedImgSrc("");
-        }
-      } catch (err) {
-        setFetchedImgSrc("");
-      }
-    },
+  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
+    enabled: !isPending && !user?.avatarUrl,
   });
+
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -121,8 +108,17 @@ const ProfileView = () => {
       setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },
-    onError: () => {
-      showToast(t("error_updating_settings"), "error");
+    onError: (e) => {
+      switch (e.message) {
+        // TODO: Add error codes.
+        case "email_already_used":
+          {
+            showToast(t(e.message), "error");
+          }
+          return;
+        default:
+          showToast(t("error_updating_settings"), "error");
+      }
     },
   });
 
@@ -226,7 +222,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user) {
+  if (isPending || !user) {
     return (
       <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
     );
@@ -234,7 +230,7 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: user.avatar || "",
+    avatar: getUserAvatarUrl(user),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -250,9 +246,8 @@ const ProfileView = () => {
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
-        isLoading={updateProfileMutation.isLoading}
-        isFallbackImg={checkIfItFallbackImage(fetchedImgSrc)}
-        userAvatar={user.avatar}
+        isPending={updateProfileMutation.isPending}
+        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -283,8 +278,8 @@ const ProfileView = () => {
       />
 
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle">{t("account_deletion_cannot_be_undone")}</p>
+        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
+        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
       </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
@@ -359,7 +354,7 @@ const ProfileView = () => {
           <DialogFooter showDivider>
             <Button
               color="primary"
-              loading={confirmPasswordMutation.isLoading}
+              loading={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
@@ -380,7 +375,7 @@ const ProfileView = () => {
           <DialogFooter>
             <Button
               color="primary"
-              loading={updateProfileMutation.isLoading}
+              loading={updateProfileMutation.isPending}
               onClick={(e) => onConfirmAuthEmailChange(e)}>
               {t("confirm")}
             </Button>
@@ -396,18 +391,16 @@ const ProfileForm = ({
   defaultValues,
   onSubmit,
   extraField,
-  isLoading = false,
+  isPending = false,
   isFallbackImg,
-  userAvatar,
   user,
   userOrganization,
 }: {
   defaultValues: FormValues;
   onSubmit: (values: FormValues) => void;
   extraField?: React.ReactNode;
-  isLoading: boolean;
+  isPending: boolean;
   isFallbackImg: boolean;
-  userAvatar: string;
   user: RouterOutputs["viewer"]["me"];
   userOrganization: RouterOutputs["viewer"]["me"]["organization"];
 }) => {
@@ -416,7 +409,7 @@ const ProfileForm = ({
 
   const profileFormSchema = z.object({
     username: z.string(),
-    avatar: z.string().nullable(),
+    avatar: z.string(),
     name: z
       .string()
       .trim()
@@ -438,7 +431,6 @@ const ProfileForm = ({
   } = formMethods;
 
   const isDisabled = isSubmitting || !isDirty;
-
   return (
     <Form form={formMethods} handleSubmit={onSubmit}>
       <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
@@ -447,7 +439,7 @@ const ProfileForm = ({
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => {
-              const showRemoveAvatarButton = !isFallbackImg || (value && userAvatar !== value);
+              const showRemoveAvatarButton = value === null ? false : !isFallbackImg;
               const organization =
                 userOrganization && userOrganization.id
                   ? {
@@ -458,7 +450,8 @@ const ProfileForm = ({
                   : null;
               return (
                 <>
-                  <OrganizationMemberAvatar
+                  <UserAvatar
+                    data-testid="profile-upload-avatar"
                     previewSrc={value}
                     size="lg"
                     user={user}
@@ -474,7 +467,7 @@ const ProfileForm = ({
                         handleAvatarChange={(newAvatar) => {
                           formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                         }}
-                        imageSrc={value || undefined}
+                        imageSrc={value}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "primary"}
                       />
 
@@ -482,7 +475,7 @@ const ProfileForm = ({
                         <Button
                           color="secondary"
                           onClick={() => {
-                            formMethods.setValue("avatar", null, { shouldDirty: true });
+                            formMethods.setValue("avatar", "", { shouldDirty: true });
                           }}>
                           {t("remove")}
                         </Button>
@@ -516,7 +509,7 @@ const ProfileForm = ({
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button loading={isLoading} disabled={isDisabled} color="primary" type="submit">
+        <Button loading={isPending} disabled={isDisabled} color="primary" type="submit">
           {t("update")}
         </Button>
       </SectionBottomActions>
