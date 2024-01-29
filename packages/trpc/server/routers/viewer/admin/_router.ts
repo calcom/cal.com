@@ -21,7 +21,6 @@ export const adminRouter = router({
     );
     return handler(opts);
   }),
-  toggleFeatureFlag,
   lockUserAccount: authedAdminProcedure.input(ZAdminLockUserAccountSchema).mutation(async (opts) => {
     const handler = await importHandler(
       namespaced("lockUserAccount"),
@@ -29,4 +28,5 @@ export const adminRouter = router({
     );
     return handler(opts);
   }),
+  toggleFeatureFlag,
 });
