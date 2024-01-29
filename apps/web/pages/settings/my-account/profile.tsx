@@ -341,12 +341,16 @@ const ProfileView = () => {
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
-                <span className="text-subtle text-sm">{t("old_email_address")}</span>
-                <p className="leading-none">{user.email}</p>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("old_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{user.email}</p>
               </div>
               <div>
-                <span className="text-subtle text-sm">{t("new_email_address")}</span>
-                <p className="leading-none">{tempFormValues?.email}</p>
+                <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
+                  {t("new_email_address")}
+                </span>
+                <p className="text-subtle leading-none">{tempFormValues?.email}</p>
               </div>
             </div>
             <PasswordField
