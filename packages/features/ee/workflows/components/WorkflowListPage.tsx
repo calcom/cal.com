@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -24,8 +23,6 @@ import {
 } from "@calcom/ui";
 import { Edit2, Link as LinkIcon, MoreHorizontal, Trash2 } from "@calcom/ui/components/icon";
 
-import { useOrgBranding } from "../../organizations/context/provider";
-import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import { getActionIcon } from "../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
 
@@ -60,9 +57,6 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const router = useRouter();
-
-  const orgBranding = useOrgBranding();
-  const urlPrefix = orgBranding ? `${orgBranding.slug}.${subdomainSuffix()}` : CAL_URL;
 
   const mutation = trpc.viewer.workflowOrder.useMutation({
     onError: async (err) => {

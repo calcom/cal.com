@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL_FOR_OAUTH, CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -98,7 +98,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       res.redirect(
-        getSafeRedirectUrl(`${CAL_URL}/apps/installed/conferencing?hl=google-meet`) ??
+        getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
           getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
       );
     }

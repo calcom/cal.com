@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 
 export default function getCalLink(eventType: {
   team?: { slug: string | null } | null;
@@ -6,7 +6,7 @@ export default function getCalLink(eventType: {
   users?: { username: string | null }[];
   slug: string;
 }) {
-  return `${CAL_URL}/${
+  return `${WEBSITE_URL}/${
     eventType?.team
       ? `team/${eventType?.team?.slug}`
       : eventType?.owner

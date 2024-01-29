@@ -1,4 +1,4 @@
-import { CAL_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
@@ -7,8 +7,8 @@ import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
   // If we are self hosted, calOrigin won't be app.cal.com so we need to pass it
-  // If we are not self hosted but it's still different from WEBAPP_URL and CAL_URL, we need to pass it -> It happens for organization booking URL at the moment
-  return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== CAL_URL);
+  // If we are not self hosted but it's still different from WEBAPP_URL and WEBSITE_URL, we need to pass it -> It happens for organization booking URL at the moment
+  return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,7 +121,7 @@ export const Codes = {
 	calLink: "${calLink}",
 	layout: "${previewState.layout}"
   });
-  
+
   ${uiInstructionCode}`;
     },
 
@@ -155,7 +155,7 @@ export const Codes = {
   // \`data-cal-config='${JSON.stringify({
     layout: previewState.layout,
   })}'\`
-  
+
   ${uiInstructionCode}`;
     },
   },

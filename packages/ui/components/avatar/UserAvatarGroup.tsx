@@ -1,4 +1,4 @@
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { AvatarGroup } from "@calcom/ui";
@@ -12,7 +12,7 @@ export function UserAvatarGroup(props: UserAvatarProps) {
     <AvatarGroup
       {...rest}
       items={users.map((user) => ({
-        href: `${CAL_URL}/${user.username}?redirect=false`,
+        href: `${WEBAPP_URL}/${user.username}?redirect=false`,
         alt: user.name || "",
         title: user.name || "",
         image: getUserAvatarUrl(user),
