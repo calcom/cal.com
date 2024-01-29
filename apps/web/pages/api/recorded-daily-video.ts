@@ -9,10 +9,14 @@ import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+
+const log = logger.getSubLogger({ prefix: ["recorded-daily-video"] });
 
 const schema = z
   .object({
@@ -65,6 +69,13 @@ const triggerWebhook = async ({
   };
   const webhooks = await getWebhooks(subscriberOptions);
 
+  log.debug(
+    "Webhooks:",
+    safeStringify({
+      webhooks,
+    })
+  );
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
@@ -105,6 +116,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const response = schema.safeParse(req.body);
 
+  log.debug(
+    "Recording Request Body:",
+    safeStringify({
+      response,
+    })
+  );
+
   if (!response.success || response.data.type !== "recording.ready-to-download") {
     return res.status(400).send({
       message: "Invalid Payload",
@@ -126,6 +144,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!bookingReference || !bookingReference.bookingId) {
+      log.error(
+        "bookingReference:",
+        safeStringify({
+          bookingReference,
+        })
+      );
       return res.status(404).send({ message: "Booking reference not found" });
     }
 
@@ -159,6 +183,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (!booking || !(booking.location === DailyLocationType || booking?.location?.trim() === "")) {
+      log.error(
+        "Booking:",
+        safeStringify({
+          booking,
+        })
+      );
+
       return res.status(404).send({
         message: `Booking of room_name ${room_name} does not exist or does not contain daily video as location`,
       });

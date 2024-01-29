@@ -662,3 +662,8 @@ export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 export const coerceToDate = z.coerce.date();
 export const getStringAsNumberRequiredSchema = (t: TFunction) =>
   z.string().min(1, t("error_required_field")).pipe(z.coerce.number());
+
+export const bookingSeatDataSchema = z.object({
+  description: z.string().optional(),
+  responses: bookingResponses,
+});
