@@ -449,11 +449,16 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const getSlotsCount = 0;
   const checkForAvailabilityCount = 0;
 
+  const start = performance.now();
+  const aggregatedAvailability = getAggregatedAvailability(userAvailability, eventType.schedulingType);
+  const end = performance.now();
+  console.log(`[PERF]: aggregatedAvailability took ${end - start}ms`);
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
-    dateRanges: getAggregatedAvailability(userAvailability, eventType.schedulingType),
+    dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventType.timeZone || eventType?.schedule?.timeZone || userAvailability?.[0]?.timeZone,
@@ -610,6 +615,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   );
   loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
+  const metrics = await prisma.$metrics.json();
+  console.log(metrics);
+  console.log(metrics["histograms"][0].value);
+  console.log(metrics["histograms"][1].value);
+  console.log(metrics["histograms"][2].value);
   return {
     slots: computedAvailableSlots,
   };
