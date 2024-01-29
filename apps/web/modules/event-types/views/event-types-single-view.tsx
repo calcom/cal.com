@@ -145,6 +145,7 @@ export type FormValues = {
   bookerLayouts: BookerLayoutSettings;
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
+  assignAllTeamMembers: boolean;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -195,6 +196,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           created: true,
         }))
       );
+      formMethods.setValue("assignAllTeamMembers", formMethods.getValues("assignAllTeamMembers") || false);
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
@@ -266,6 +268,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
       locations: eventType.locations || [],
+      destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
@@ -280,6 +283,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      hideCalendarNotes: eventType.hideCalendarNotes,
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
@@ -305,6 +309,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      assignAllTeamMembers: eventType.assignAllTeamMembers,
     };
   }, [eventType, periodDates, metadata]);
 
@@ -463,6 +468,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       customInputs,
       children,
+      assignAllTeamMembers,
       // We don't need to send send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       seatsPerTimeSlotEnabled,
@@ -532,6 +538,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       customInputs,
       children,
+      assignAllTeamMembers,
     });
   };
 
