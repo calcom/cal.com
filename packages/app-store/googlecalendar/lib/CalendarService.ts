@@ -7,6 +7,7 @@ import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
 import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
