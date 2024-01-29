@@ -819,6 +819,7 @@
   "private_link_label": "Private link",
   "private_link_hint": "Your private link will regenerate after each use",
   "copy_private_link": "Copy private link",
+  "copy_private_link_to_event": "Copy private link to event",
   "private_link_description": "Generate a private URL to share without exposing your {{appName}} username",
   "invitees_can_schedule": "Invitees can schedule",
   "date_range": "Date Range",
