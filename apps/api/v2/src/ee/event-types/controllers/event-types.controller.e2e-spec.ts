@@ -34,7 +34,7 @@ describe("Event types Endpoints", () => {
     });
 
     it(`/GET/:id`, () => {
-      return request(app.getHttpServer()).get("/api/v2/oauth-clients/100/users/200").expect(401);
+      return request(app.getHttpServer()).get("/api/v2/event-types/100").expect(401);
     });
 
     afterAll(async () => {
