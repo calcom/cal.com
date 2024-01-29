@@ -1,8 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { type RouterOutputs } from "@calcom/trpc";
-import { Button } from "@calcom/ui";
-import { UserAvatarGroupWithOrg } from "@calcom/web/components/ui/avatar/UserAvatarGroupWithOrg";
+import { Button, UserAvatarGroupWithOrg } from "@calcom/ui";
 
 interface IInstantBookingProps {
   onConnectNow: () => void;

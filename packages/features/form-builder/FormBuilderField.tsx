@@ -5,9 +5,8 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui";
+import { Label, InfoBadge } from "@calcom/ui";
 import { Info } from "@calcom/ui/components/icon";
-import InfoBadge from "@calcom/web/components/ui/InfoBadge";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";

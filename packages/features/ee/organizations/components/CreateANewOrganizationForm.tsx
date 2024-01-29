@@ -89,7 +89,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         className="space-y-5"
         id="createOrg"
         handleSubmit={(v) => {
-          if (!createOrganizationMutation.isLoading) {
+          if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
             createOrganizationMutation.mutate(v);
           }
@@ -258,7 +258,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={
-              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isLoading
+              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
             }
             color="primary"
             EndIcon={ArrowRight}

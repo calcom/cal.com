@@ -37,12 +37,12 @@ const TwoFactorAuthView = () => {
   const utils = trpc.useContext();
 
   const { t } = useLocale();
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
 
   const [enableModalOpen, setEnableModalOpen] = useState<boolean>(false);
   const [disableModalOpen, setDisableModalOpen] = useState<boolean>(false);
 
-  if (isLoading)
+  if (isPending)
     return <SkeletonLoader title={t("2fa")} description={t("set_up_two_factor_authentication")} />;
 
   const isCalProvider = user?.identityProvider === "CAL";
