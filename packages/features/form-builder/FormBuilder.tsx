@@ -181,7 +181,9 @@ export const FormBuilder = function FormBuilder({
                         // Hidden field can't be required, so we don't need to show the Optional badge
                         <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="grayWithoutHover">{isRequired ? t("required") : t("optional")}</Badge>
+                        <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
+                          {isRequired ? t("required") : t("optional")}
+                        </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything

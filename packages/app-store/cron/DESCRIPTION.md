@@ -1,18 +1,14 @@
 ---
 items:
-  - 1.png
+  - 1.jpeg
   - 2.png
   - 3.png
   - 4.png
-  - 5.png
 ---
 
-{DESCRIPTION}
+### It’s time.
 
-### Cron's most valuable features
-
-<!-- From "FAQs: What are Cron’s most valuable features?"
-https://cronhq.notion.site/Cron-Calendar-5625be54feac4e13a75b10271b65ddb7 -->
+All of your commitments, now in one place. Meet the beautifully designed, fully integrated calendar for your work and life.
 
 - **Availability sharing** — mark holds on the grid, share the slots, and schedule with ease.
 - **Team overlays** — quickly overlay teammates' calendars.

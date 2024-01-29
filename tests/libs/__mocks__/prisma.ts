@@ -7,6 +7,7 @@ import * as selects from "@calcom/prisma/selects";
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
   prisma,
+  readonlyPrisma: prisma,
   ...selects,
 }));
 

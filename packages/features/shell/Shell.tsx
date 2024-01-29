@@ -200,10 +200,10 @@ function useRedirectToOnboardingIfNeeded() {
 type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
 
 const useBanners = () => {
-  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
-  if (isLoading || !userSession) return null;
+  if (isPending || !userSession) return null;
 
   const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
   const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
@@ -742,7 +742,7 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex">
+            <span className="hidden w-full justify-between lg:flex" data-testid={`${item.name}-test`}>
               <div className="flex">{t(item.name)}</div>
               {item.badge && item.badge}
             </span>

@@ -79,7 +79,7 @@ export const AddNewTeamMembersForm = ({
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
   const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
+  const { data: team, isPending } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
   const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
     {
       teamIdToExclude: teamId,
@@ -126,12 +126,12 @@ export const AddNewTeamMembersForm = ({
           {isOrg ? t("add_org_members") : t("add_team_member")}
         </Button>
       </div>
-      {isLoading ? (
+      {isPending ? (
         <SkeletonButton />
       ) : (
         <>
           <MemberInvitationModal
-            isLoading={inviteMemberMutation.isLoading}
+            isPending={inviteMemberMutation.isPending}
             isOpen={memberInviteModal}
             orgMembers={orgMembersNotInThisTeam}
             teamId={teamId}
@@ -199,7 +199,7 @@ export const AddNewTeamMembersForm = ({
         EndIcon={!orgBranding || isOrg ? ArrowRight : undefined}
         color="primary"
         className="w-full justify-center"
-        disabled={publishTeamMutation.isLoading}
+        disabled={publishTeamMutation.isPending}
         onClick={() => {
           let uri = `/settings/teams/${teamId}/profile`;
           if (isOrg) {
