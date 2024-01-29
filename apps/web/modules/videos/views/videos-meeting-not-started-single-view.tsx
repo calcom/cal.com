@@ -6,8 +6,6 @@ import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { Button, HeadSeo, EmptyScreen } from "@calcom/ui";
 import { ArrowRight, Calendar, Clock } from "@calcom/ui/components/icon";
 
-import PageWrapper from "@components/PageWrapper";
-
 import { type PageProps } from "./videos-meeting-not-started-single-view.getServerSideProps";
 
 export default function MeetingNotStarted(props: PageProps) {
@@ -38,5 +36,3 @@ export default function MeetingNotStarted(props: PageProps) {
     </>
   );
 }
-
-MeetingNotStarted.PageWrapper = PageWrapper;

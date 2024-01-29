@@ -1,9 +1,11 @@
-import Page, { type PageProps, getServerSideProps } from "@pages/video/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME } from "@calcom/lib/constants";
+
+import VideosSingleView from "~/videos/views/videos-single-view";
+import { getServerSideProps, type PageProps } from "~/videos/views/videos-single-view.getServerSideProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -13,4 +15,4 @@ export const generateMetadata = async () =>
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 
-export default WithLayout({ getData, Page, getLayout: null })<"P">;
+export default WithLayout({ getData, Page: VideosSingleView, getLayout: null })<"P">;

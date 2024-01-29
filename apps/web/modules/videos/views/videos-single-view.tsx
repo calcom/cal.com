@@ -12,8 +12,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { ChevronRight } from "@calcom/ui/components/icon";
 
-import PageWrapper from "@components/PageWrapper";
-
 import { type PageProps } from "./videos-single-view.getServerSideProps";
 
 export default function JoinCall(props: PageProps) {
@@ -243,5 +241,3 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
     </>
   );
 }
-
-JoinCall.PageWrapper = PageWrapper;

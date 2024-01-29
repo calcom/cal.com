@@ -6,8 +6,6 @@ import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { Button, HeadSeo } from "@calcom/ui";
 import { ArrowRight, Calendar, X } from "@calcom/ui/components/icon";
 
-import PageWrapper from "@components/PageWrapper";
-
 import { type PageProps } from "./videos-meeting-ended-single-view.getServerSideProps";
 
 export default function MeetingUnavailable(props: PageProps) {
@@ -62,5 +60,3 @@ export default function MeetingUnavailable(props: PageProps) {
     </div>
   );
 }
-
-MeetingUnavailable.PageWrapper = PageWrapper;
