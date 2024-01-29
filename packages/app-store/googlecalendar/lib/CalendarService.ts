@@ -51,19 +51,21 @@ function getTimeMin(timeMin: string) {
 }
 
 /** Expand the end date to the end of the month */
-function getTimeMax(timeMax: string) {
-  const date = new Date();
-  const dateMonth = date.getMonth();
-  const dateMax = new Date(timeMax);
-  const dateMaxMonth = dateMax.getMonth();
-  if (
-    // Normalize the next two months requests to guarantee a cache hit
-    date.getFullYear() === dateMax.getFullYear() &&
-    (dateMaxMonth - dateMonth === 1 || dateMaxMonth - dateMonth === 2)
-  ) {
-    return new Date(date.getFullYear(), date.getMonth() + 2, 1, 0, 0, 0, 0).toISOString();
+function getTimeMax(timeMax: string): string {
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const targetDate = new Date(timeMax);
+  const targetMonth = targetDate.getMonth();
+  const isSameYear = currentDate.getFullYear() === targetDate.getFullYear();
+  const isNextTwoMonths = [1, 2].includes(targetMonth - currentMonth);
+  if (isSameYear && isNextTwoMonths) {
+    return formatDate(currentDate.getFullYear(), currentMonth + 2);
   }
-  return new Date(dateMax.getFullYear(), dateMax.getMonth(), 1, 0, 0, 0, 0).toISOString();
+  return formatDate(targetDate.getFullYear(), targetMonth);
+}
+
+function formatDate(year: number, month: number): string {
+  return new Date(year, month, 1, 0, 0, 0, 0).toISOString();
 }
 
 function treatAsUTC(date: string | Date) {
