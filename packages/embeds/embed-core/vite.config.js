@@ -1,3 +1,5 @@
+import EnvironmentPlugin from "vite-plugin-environment";
+
 import viteBaseConfig from "../vite.config";
 
 const path = require("path");
@@ -15,6 +17,11 @@ module.exports = defineConfig((configEnv) => {
           embed: path.resolve(__dirname, "src/embed.ts"),
         },
         plugins: [
+          EnvironmentPlugin([
+            "EMBED_PUBLIC_EMBED_FINGER_PRINT",
+            "EMBED_PUBLIC_VERCEL_URL",
+            "EMBED_PUBLIC_WEBAPP_URL",
+          ]),
           {
             generateBundle: (code, bundle) => {
               // Note: banner/footer doesn't work because it doesn't enclose the entire library code, some variables are still left out.

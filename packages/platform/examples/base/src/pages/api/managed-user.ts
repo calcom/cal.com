@@ -46,15 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const body = await response.json();
   await prisma.user.update({
     data: {
-      refreshToken: (body.data.refreshToken as string) ?? "",
-      accessToken: (body.data.accessToken as string) ?? "",
-      calcomUserId: body.data.user.id,
+      refreshToken: (body.data?.refreshToken as string) ?? "",
+      accessToken: (body.data?.accessToken as string) ?? "",
+      calcomUserId: body.data?.user.id,
     },
     where: { id: localUser.id },
   });
   return res.status(200).json({
     id: body?.data?.user?.id,
-    email: (body.data.user.email as string) ?? "",
-    accessToken: (body.data.accessToken as string) ?? "",
+    email: (body.data?.user.email as string) ?? "",
+    accessToken: (body.data?.accessToken as string) ?? "",
   });
 }
