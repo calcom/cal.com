@@ -61,7 +61,8 @@ const MinimumBookingNoticeInput = React.forwardRef<
         minimumBookingNoticeDisplayValues.type,
         "minutes",
         minimumBookingNoticeDisplayValues.value
-      )
+      ),
+      { shouldDirty: true }
     );
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
