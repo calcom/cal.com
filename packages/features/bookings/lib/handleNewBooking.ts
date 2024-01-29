@@ -727,11 +727,11 @@ async function createBooking({
 
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
-    responses: responses === null ? Prisma.JsonNull : responses,
+    responses: responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : responses,
     title: evt.title,
     startTime: dayjs.utc(evt.startTime).toDate(),
     endTime: dayjs.utc(evt.endTime).toDate(),
-    description: evt.additionalNotes,
+    description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),
     status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
     location: evt.location,
@@ -1573,6 +1573,7 @@ async function handler(
       reqBodyMetadata: reqBody.metadata,
       subscriberOptions,
       eventTrigger,
+      responses,
     });
     if (newBooking) {
       req.statusCode = 201;
@@ -1658,7 +1659,8 @@ async function handler(
         data: {
           referenceUid: uniqueAttendeeId,
           data: {
-            description: evt.additionalNotes,
+            description: additionalNotes,
+            responses,
           },
           booking: {
             connect: {
