@@ -36,7 +36,24 @@ type LabelsType = { saveButtonLabel?: string };
 
 type AvailabilitySettingsProps = {
   id?: number;
-  saveButtonLabel?: string;
+  ctaTranslations?: {
+    saveButtonLabel?: string;
+    setToDefaultLabel?: string;
+    availabilitySettingsTitle?: string;
+    deleteAriaLabel?: string;
+    deleteTooltipDescription?: string;
+    confirmationDialogTitle?: string;
+    confirmationDialogButtonText?: string;
+    confirmationDialogDescription?: string;
+  };
+  timezoneTranslations?: {
+    title: string;
+  };
+  skeletonLabel?: string;
+  troubleshooterTranslations?: {
+    title: string;
+    cta: string;
+  };
   schedule?: {
     name: string;
     id: number;
@@ -63,7 +80,6 @@ const queryClient = new QueryClient();
 
 export function AvailabilitySettings({
   id,
-  saveButtonLabel = "Save",
   schedule,
   handleDelete,
   isDeleting,
@@ -73,6 +89,19 @@ export function AvailabilitySettings({
   weekStart,
   backPath,
   handleSubmit,
+  timezoneTranslations,
+  troubleshooterTranslations,
+  skeletonLabel = "Name",
+  ctaTranslations = {
+    saveButtonLabel: "Save",
+    setToDefaultLabel: "Set to Default",
+    availabilitySettingsTitle: "Availability Settings",
+    deleteAriaLabel: "Delete",
+    deleteTooltipDescription: "You are required to have at least one schedule",
+    confirmationDialogButtonText: "Delete",
+    confirmationDialogDescription:
+      "Deleting a schedule will remove it from all event types. This action cannot be undone.",
+  },
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const userWeekStart = daysInAWeek.indexOf(weekStart) as typeof daysInNumbers;
@@ -121,6 +150,14 @@ export function AvailabilitySettings({
               // onSwitchCheckedChange={(e) => {
               //   form.setValue("isDefault", e);
               // }}
+              translationLabels={{
+                setToDefaultLabel: ctaTranslations.setToDefaultLabel,
+                deleteAriaLabel: ctaTranslations.deleteAriaLabel,
+                deleteTooltip: ctaTranslations.deleteTooltipDescription,
+                confirmationDialogTitle: ctaTranslations.confirmationDialogTitle,
+                confirmationDialogButtonText: ctaTranslations.confirmationDialogButtonText,
+                confirmationDialogDescription: ctaTranslations.confirmationDialogDescription,
+              }}
               isButtonDisabled={Boolean(schedule?.isLastSchedule)}
               isConfirmationDialogLoading={isDeleting}
               onDeleteConfirmation={() => {
@@ -137,10 +174,23 @@ export function AvailabilitySettings({
               onDeleteConfirmation={() => {
                 id && handleDelete(id);
               }}
+              translationLabels={{
+                availabilitySettingsTitle: ctaTranslations.availabilitySettingsTitle,
+                setToDefaultLabel: ctaTranslations.setToDefaultLabel,
+                deleteAriaLabel: ctaTranslations.deleteAriaLabel,
+                deleteTooltipDescription: ctaTranslations.deleteTooltipDescription,
+                confirmationDialogTitle: ctaTranslations.confirmationDialogTitle,
+                confirmationDialogButtonText: ctaTranslations.confirmationDialogButtonText,
+                confirmationDialogDescription: ctaTranslations.confirmationDialogDescription,
+                skeletonTitle: skeletonLabel,
+                timezoneTitle: timezoneTranslations?.title,
+                troubleshooterTitle: troubleshooterTranslations?.title,
+                troubleshooterCta: troubleshooterTranslations?.cta,
+              }}
             />
             <div className="border-default border-l-2" />
             <Button className="ml-4 lg:ml-0" type="submit" form="availability-form" loading={isSaving}>
-              {saveButtonLabel}
+              {ctaTranslations.saveButtonLabel}
             </Button>
             <Button
               className="ml-3 sm:hidden"
@@ -175,9 +225,15 @@ export function AvailabilitySettings({
             </div>
             <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
               <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
-                <Timezone />
+                <Timezone title={timezoneTranslations?.title} />
                 <hr className="border-subtle my-6 mr-8" />
-                <Troubleshooter isDisplayBlock={false} />
+                <Troubleshooter
+                  translationLabels={{
+                    title: troubleshooterTranslations?.title,
+                    ctaLabel: troubleshooterTranslations?.cta,
+                  }}
+                  isDisplayBlock={false}
+                />
               </div>
             </div>
           </Form>

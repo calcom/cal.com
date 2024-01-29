@@ -3,11 +3,11 @@ import { Controller } from "react-hook-form";
 import { Skeleton, Label, TimezoneSelect } from "@calcom/ui";
 import { SelectSkeletonLoader } from "@calcom/web/components/availability/SkeletonLoader";
 
-export function Timezone() {
+export function Timezone({ title = "Timezone" }: { title?: string }) {
   return (
     <div>
       <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
-        Timezone
+        {title}
       </Skeleton>
       <Controller
         name="timeZone"

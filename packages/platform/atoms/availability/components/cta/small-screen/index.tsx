@@ -3,18 +3,10 @@ import { Controller } from "react-hook-form";
 import type { Control } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
-import {
-  Button,
-  Dialog,
-  DialogTrigger,
-  ConfirmationDialogContent,
-  Skeleton,
-  Label,
-  TimezoneSelect,
-} from "@calcom/ui";
+import { Button, Dialog, DialogTrigger, ConfirmationDialogContent, Skeleton, Label } from "@calcom/ui";
 import { ArrowLeft, Trash } from "@calcom/ui/components/icon";
-import { SelectSkeletonLoader } from "@calcom/web/components/availability/SkeletonLoader";
 
+import { Timezone } from "../../timezone/index";
 import { Troubleshooter } from "../../troubleshooter/index";
 
 type SmallScreenCTAProps = {
@@ -24,6 +16,19 @@ type SmallScreenCTAProps = {
   isDeleteDialogLoading: boolean;
   onDeleteConfirmation: () => void;
   formControl: Control<AvailabilityFormValues> | undefined;
+  translationLabels: {
+    availabilitySettingsTitle?: string;
+    setToDefaultLabel?: string;
+    deleteAriaLabel?: string;
+    deleteTooltipDescription?: string;
+    confirmationDialogTitle?: string;
+    confirmationDialogButtonText?: string;
+    confirmationDialogDescription?: string;
+    skeletonTitle?: string;
+    timezoneTitle?: string;
+    troubleshooterTitle?: string;
+    troubleshooterCta?: string;
+  };
   // isSwitchDisabled: boolean;
   // isSwitchChecked: boolean;
   // onSwitchCheckedChange: (e: any) => void;
@@ -42,6 +47,7 @@ export function SmallScreenCTA({
   isDeleteDialogLoading,
   onDeleteConfirmation,
   formControl,
+  translationLabels,
 }: SmallScreenCTAProps) {
   return (
     <div
@@ -57,32 +63,36 @@ export function SmallScreenCTA({
         )}>
         <div className="flex flex-row items-center pt-5">
           <Button StartIcon={ArrowLeft} color="minimal" onClick={toggleSidebar} />
-          <p className="-ml-2">Availability Settings</p>
+          <p className="-ml-2">{translationLabels.availabilitySettingsTitle}</p>
           <Dialog>
             <DialogTrigger asChild>
               <Button
                 StartIcon={Trash}
                 variant="icon"
                 color="destructive"
-                aria-label="Delete"
+                aria-label={translationLabels.deleteAriaLabel}
                 className="ml-16 inline"
                 disabled={isDeleteButtonDisabled}
-                tooltip={isDeleteButtonDisabled ? "You are required to have at least one schedule" : "Delete"}
+                tooltip={
+                  isDeleteButtonDisabled
+                    ? `${translationLabels.deleteTooltipDescription}`
+                    : `${translationLabels.deleteAriaLabel}`
+                }
               />
             </DialogTrigger>
             <ConfirmationDialogContent
               isLoading={isDeleteDialogLoading}
               variety="danger"
-              title="Delete schedule"
-              confirmBtnText="Delete"
-              loadingText="Delete"
+              title={translationLabels.confirmationDialogTitle || "Delete schedule"}
+              confirmBtnText={translationLabels.confirmationDialogButtonText}
+              loadingText={translationLabels.confirmationDialogButtonText}
               onConfirm={onDeleteConfirmation}>
-              Deleting a schedule will remove it from all event types. This action cannot be undone.
+              {translationLabels.confirmationDialogDescription}
             </ConfirmationDialogContent>
           </Dialog>
         </div>
         <div className="flex flex-col px-2 py-2">
-          <Skeleton as={Label}>Name</Skeleton>
+          <Skeleton as={Label}>{translationLabels.skeletonTitle}</Skeleton>
           <Controller
             control={formControl}
             name="name"
@@ -99,7 +109,7 @@ export function SmallScreenCTA({
             as={Label}
             htmlFor="hiddenSwitch"
             className="mt-2 cursor-pointer self-center pr-2 sm:inline">
-            Set to Default
+             {translationLabels.setToDefaultLabel}
           </Skeleton>
           <Switch
             id="hiddenSwitch"
@@ -110,28 +120,15 @@ export function SmallScreenCTA({
         </div> */}
         <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
           <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
-            <div>
-              <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
-                Timezone
-              </Skeleton>
-              <Controller
-                control={formControl}
-                name="timeZone"
-                render={({ field: { onChange, value } }) =>
-                  value ? (
-                    <TimezoneSelect
-                      value={value}
-                      className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
-                      onChange={(timezone) => onChange(timezone.value)}
-                    />
-                  ) : (
-                    <SelectSkeletonLoader className="mt-1 w-72" />
-                  )
-                }
-              />
-            </div>
+            <Timezone title={translationLabels.timezoneTitle} />
             <hr className="border-subtle my-7" />
-            <Troubleshooter isDisplayBlock={true} />
+            <Troubleshooter
+              translationLabels={{
+                title: translationLabels.troubleshooterTitle,
+                ctaLabel: translationLabels.troubleshooterCta,
+              }}
+              isDisplayBlock={true}
+            />
           </div>
           <hr />
         </div>

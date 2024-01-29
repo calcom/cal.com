@@ -9,6 +9,14 @@ type LargeScreenCTAProps = {
   isButtonDisabled: boolean;
   isConfirmationDialogLoading: boolean;
   onDeleteConfirmation: () => void;
+  translationLabels: {
+    setToDefaultLabel?: string;
+    deleteAriaLabel?: string;
+    deleteTooltip?: string;
+    confirmationDialogTitle?: string;
+    confirmationDialogButtonText?: string;
+    confirmationDialogDescription?: string;
+  };
 };
 
 // TODO: add ability to set any schedule as default
@@ -21,6 +29,7 @@ export function LargeScreenCTA({
   isButtonDisabled,
   isConfirmationDialogLoading,
   onDeleteConfirmation,
+  translationLabels,
 }: LargeScreenCTAProps) {
   return (
     <>
@@ -30,7 +39,7 @@ export function LargeScreenCTA({
           htmlFor="hiddenSwitch"
           className="mt-2 cursor-pointer self-center pe-2"
           loadingClassName="me-4">
-          Set to Default
+         {translationLabels.setToDefaultLabel}
         </Skeleton>
         <Switch
           id="hiddenSwitch"
@@ -46,21 +55,22 @@ export function LargeScreenCTA({
             StartIcon={Trash}
             variant="icon"
             color="destructive"
-            aria-label="Delete"
+            aria-label={translationLabels.deleteAriaLabel}
             className="hidden sm:inline"
             disabled={isButtonDisabled}
-            tooltip={isButtonDisabled ? "You are required to have at least one schedule" : "Delete"}
+            tooltip={
+              isButtonDisabled ? `${translationLabels.deleteTooltip}` : `${translationLabels.deleteAriaLabel}`
+            }
           />
         </DialogTrigger>
         <ConfirmationDialogContent
           isLoading={isConfirmationDialogLoading}
           variety="danger"
-          title="Delete schedule"
-          confirmBtnText="Delete"
-          cancelBtnText="Cancel"
-          loadingText="Delete"
+          title={translationLabels.confirmationDialogTitle || "Delete schedule"}
+          confirmBtnText={translationLabels.confirmationDialogButtonText}
+          loadingText={translationLabels.confirmationDialogButtonText}
           onConfirm={onDeleteConfirmation}>
-          Deleting a schedule will remove it from all event types. This action cannot be undone.
+          {translationLabels.confirmationDialogDescription}
         </ConfirmationDialogContent>
       </Dialog>
     </>
