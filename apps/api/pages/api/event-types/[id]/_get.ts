@@ -83,7 +83,7 @@ type BaseEventTypeCheckPermissions = {
   teamId: number | null;
 };
 
-export async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
+async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   req: NextApiRequest,
   eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
 ) {
