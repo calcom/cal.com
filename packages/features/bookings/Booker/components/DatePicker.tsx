@@ -19,8 +19,8 @@ export const DatePicker = ({
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
-  const [setSelectedDate, setMonth] = useBookerStore(
-    (state) => [state.setSelectedDate, state.setMonth],
+  const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
+    (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
     shallow
   );
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
@@ -34,6 +34,7 @@ export const DatePicker = ({
       onMonthChange={(date: Dayjs) => {
         setMonth(date.format("YYYY-MM"));
         setSelectedDate(date.format("YYYY-MM-DD"));
+        setDayCount(null); // Whenever the month is changed, we nullify getting X days
       }}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}
