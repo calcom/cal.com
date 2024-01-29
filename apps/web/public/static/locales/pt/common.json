@@ -2112,5 +2112,6 @@
   "description_lock_timezone_toggle_on_booking_page": "Para bloquear o fuso horário na página de reservas. Útil para eventos presenciais.",
   "extensive_whitelabeling": "Apoio dedicado à integração e engenharia",
   "need_help": "Precisa de ajuda?",
+  "show_more": "Mostrar mais",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
