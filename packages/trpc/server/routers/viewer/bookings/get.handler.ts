@@ -147,14 +147,8 @@ async function getBookings({
     userIds: {
       AND: [
         {
-          eventType: {
-            users: {
-              some: {
-                id: {
-                  in: filters?.userIds,
-                },
-              },
-            },
+          userId: {
+            in: filters?.userIds,
           },
         },
       ],
