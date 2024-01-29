@@ -10,3 +10,5 @@ export {
 const MeetingEndedPage = MeetingEnded as unknown as CalPageWrapper;
 
 MeetingEndedPage.PageWrapper = PageWrapper;
+
+export default MeetingEndedPage;
