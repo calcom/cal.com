@@ -11,6 +11,7 @@ export type Environment = {
   JWT_SECRET: string;
   SENTRY_DNS: string;
   LOG_LEVEL: keyof typeof logLevels;
+  REDIS_URL: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

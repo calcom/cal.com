@@ -24,13 +24,13 @@ interface getEventTypeByIdProps {
   isUserOrganizationAdmin: boolean;
 }
 
-export default async function getEventTypeById({
+export const getEventTypeById = async ({
   eventTypeId,
   userId,
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
-}: getEventTypeByIdProps) {
+}: getEventTypeByIdProps) => {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
     username: true,
@@ -394,4 +394,6 @@ export default async function getEventTypeById({
     isUserOrganizationAdmin,
   };
   return finalObj;
-}
+};
+
+export default getEventTypeById;
