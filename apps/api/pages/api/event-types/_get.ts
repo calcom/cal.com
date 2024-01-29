@@ -23,6 +23,12 @@ import getCalLink from "./_utils/getCalLink";
  *          type: string
  *        required: true
  *        description: Your API Key
+ *      - in: query
+ *        name: slug
+ *        schema:
+ *          type: string
+ *        required: false
+ *        description: Slug to filter event types by
  *     tags:
  *     - event-types
  *     externalDocs:
