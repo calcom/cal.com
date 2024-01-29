@@ -7,7 +7,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClientWithoutExtension } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -19,7 +19,7 @@ import { getBookerBaseUrl } from "./getBookerUrl/server";
 interface getEventTypeByIdProps {
   eventTypeId: number;
   userId: number;
-  prisma: PrismaClient;
+  prisma: PrismaClientWithoutExtension;
   isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
 }
