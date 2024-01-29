@@ -46,6 +46,8 @@ function logOnce(message: string) {
   warningDisplayed = true;
 }
 
+export const API_KEY_RATE_LIMIT = 10;
+
 export function rateLimiter() {
   const UPSATCH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -78,7 +80,7 @@ export function rateLimiter() {
       redis,
       analytics: true,
       prefix: "ratelimit:api",
-      limiter: Ratelimit.fixedWindow(10, "60s"),
+      limiter: Ratelimit.fixedWindow(API_KEY_RATE_LIMIT, "60s"),
     }),
     ai: new Ratelimit({
       redis,
