@@ -153,6 +153,7 @@ export async function getEventType(
       afterEventBuffer: true,
       bookingLimits: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       schedulingType: true,
       periodType: true,
       periodStartDate: true,
