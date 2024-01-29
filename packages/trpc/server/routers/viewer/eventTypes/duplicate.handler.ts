@@ -7,6 +7,7 @@ import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
 
 type DuplicateOptions = {
@@ -44,6 +45,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         workflows: true,
         webhooks: true,
         hashedLink: true,
+        destinationCalendar: true,
       },
     });
 
@@ -77,6 +79,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       metadata,
       workflows,
       hashedLink,
+      destinationCalendar,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       id: _id,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -140,6 +143,15 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
 
       await prisma.workflowsOnEventTypes.createMany({
         data: relationCreateData,
+      });
+    }
+    if (destinationCalendar) {
+      await setDestinationCalendarHandler({
+        ctx,
+        input: {
+          ...destinationCalendar,
+          eventTypeId: newEventType.id,
+        },
       });
     }
 

@@ -268,6 +268,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
       locations: eventType.locations || [],
+      destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
       description: eventType.description ?? undefined,
