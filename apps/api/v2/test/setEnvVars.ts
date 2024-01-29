@@ -7,6 +7,7 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   NEXTAUTH_SECRET: "XF+Hws3A5g2eyWA5uGYYVJ74X+wrCWJ8oWo6kAfU6O8=",
   JWT_SECRET: "XF+Hws3A5g2eyWA5uGYYVJ74X+wrCWJ8oWo6kAfU6O8=",
   LOG_LEVEL: "trace",
+  REDIS_URL: "redis://localhost:9199",
 };
 
 process.env = {

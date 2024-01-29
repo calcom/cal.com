@@ -1,4 +1,4 @@
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { Controller, UseGuards, Get, Param } from "@nestjs/common";
@@ -11,16 +11,16 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "event-types",
   version: "2",
 })
+@UseGuards(AccessTokenGuard)
 export class EventTypesController {
-  constructor(private readonly eventTypesService: EventTypesService) {}
+  constructor(private readonly eventTypesRepository: EventTypesRepository) {}
 
   @Get("/:eventTypeId")
-  @UseGuards(AccessTokenGuard)
   async getEventType(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser("id") userId: User["id"]
   ): Promise<ApiResponse> {
-    const eventType = await this.eventTypesService.getUserEventType(userId, Number(eventTypeId));
+    const eventType = await this.eventTypesRepository.getUserEventType(userId, Number(eventTypeId));
 
     return {
       status: SUCCESS_STATUS,

@@ -6,11 +6,12 @@ import { MembershipRole } from "@prisma/client";
 import { getEventTypeById } from "@calcom/platform-libraries";
 
 @Injectable()
-export class EventTypesService {
+export class EventTypesRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly usersRepository: UsersRepository
   ) {}
+
   async getUserEventType(userId: number, eventTypeId: number) {
     try {
       const user = await this.usersRepository.findById(userId);
