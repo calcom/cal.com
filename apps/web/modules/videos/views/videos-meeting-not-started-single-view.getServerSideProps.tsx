@@ -1,28 +1,17 @@
 import type { GetServerSidePropsContext } from "next";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
+
+// change the type
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const booking = await prisma.booking.findUnique({
     where: {
       uid: context.query.uid as string,
     },
-    select: {
-      ...bookingMinimalSelect,
-      uid: true,
-      user: {
-        select: {
-          credentials: true,
-        },
-      },
-      references: {
-        select: {
-          uid: true,
-          type: true,
-          meetingUrl: true,
-        },
-      },
-    },
+    select: bookingMinimalSelect,
   });
 
   if (!booking) {

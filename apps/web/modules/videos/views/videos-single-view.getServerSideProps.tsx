@@ -5,7 +5,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
+import { type inferSSRProps } from "@lib/types/inferSSRProps";
+
 import { ssrInit } from "@server/lib/ssr";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
