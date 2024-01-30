@@ -90,7 +90,7 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      <VideoMeetingInfo booking={booking} />
+      {/* <VideoMeetingInfo booking={booking} /> */}
     </>
   );
 }
