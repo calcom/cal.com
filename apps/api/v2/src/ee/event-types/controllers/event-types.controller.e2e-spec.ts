@@ -128,6 +128,14 @@ describe("Event types Endpoints", () => {
       expect(responseBody.data.eventType.userId).toEqual(user.id);
     });
 
+    it(`/GET/:id not existing`, async () => {
+      await request(app.getHttpServer())
+        .get(`/api/v2/event-types/1000`)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(404);
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
