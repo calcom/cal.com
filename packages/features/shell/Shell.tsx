@@ -29,6 +29,7 @@ import AdminPasswordBanner, {
 import CalendarCredentialBanner, {
   type CalendarCredentialBannerProps,
 } from "@calcom/features/users/components/CalendarCredentialBanner";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -253,6 +254,7 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
+            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
@@ -746,7 +748,7 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex">
+            <span className="hidden w-full justify-between lg:flex" data-testid={`${item.name}-test`}>
               <div className="flex">{t(item.name)}</div>
               {item.badge && item.badge}
             </span>

@@ -9,10 +9,12 @@ export const EventTypeUpdateInput = _EventTypeModel
   .extend({
     isInstantEvent: z.boolean().optional(),
     customInputs: z.array(customInputSchema).optional(),
-    destinationCalendar: _DestinationCalendarModel.pick({
-      integration: true,
-      externalId: true,
-    }),
+    destinationCalendar: _DestinationCalendarModel
+      .pick({
+        integration: true,
+        externalId: true,
+      })
+      .nullable(),
     users: z.array(stringOrNumber).optional(),
     children: z
       .array(
