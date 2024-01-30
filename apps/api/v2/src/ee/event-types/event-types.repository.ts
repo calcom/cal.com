@@ -21,6 +21,8 @@ export class EventTypesRepository {
       const eventType = await getEventTypeById({
         eventTypeId,
         userId: user.id,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         prisma: this.dbRead.prisma,
         isUserOrganizationAdmin,
       });
