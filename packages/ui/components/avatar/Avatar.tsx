@@ -1,5 +1,5 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
@@ -70,9 +70,9 @@ export function Avatar(props: AvatarProps) {
   }
 
   return title ? (
-    <TooltipPrimitive.Provider>
+    <TooltipPrimitiveProvider>
       <Tooltip content={title}>{avatar}</Tooltip>
-    </TooltipPrimitive.Provider>
+    </TooltipPrimitiveProvider>
   ) : (
     <>{avatar}</>
   );
