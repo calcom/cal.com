@@ -16,7 +16,6 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import DatePicker from "@calcom/features/calendars/DatePicker";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
@@ -222,7 +221,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isLoading={schedule.isLoading}
+              isPending={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
@@ -498,12 +497,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
   tabs,
+  namespace,
   eventTypeHideOptionDisabled,
   types,
 }: {
   embedType: EmbedType;
   embedUrl: string;
   tabs: EmbedTabs;
+  namespace: string;
   eventTypeHideOptionDisabled: boolean;
   types: EmbedTypes;
 }) => {
@@ -513,8 +514,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
-  const flags = useFlagMap();
-  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
   const [month, selectedDatesAndTimes] = useBookerStore(
@@ -955,34 +954,32 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           </div>
                         </Label>
                       ))}
-                      {isBookerLayoutsEnabled && (
-                        <Label className="mb-6">
-                          <div className="mb-2">{t("layout")}</div>
-                          <Select
-                            className="w-full"
-                            defaultValue={layoutOptions[0]}
-                            onChange={(option) => {
-                              if (!option) {
-                                return;
-                              }
-                              setPreviewState((previewState) => {
-                                const config = {
-                                  ...(previewState.floatingPopup.config ?? {}),
-                                  layout: option.value,
-                                };
-                                return {
-                                  ...previewState,
-                                  floatingPopup: {
-                                    config,
-                                  },
-                                  layout: option.value,
-                                };
-                              });
-                            }}
-                            options={layoutOptions}
-                          />
-                        </Label>
-                      )}
+                      <Label className="mb-6">
+                        <div className="mb-2">{t("layout")}</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              const config = {
+                                ...(previewState.floatingPopup.config ?? {}),
+                                layout: option.value,
+                              };
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
@@ -1009,6 +1006,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div className="flex h-[55vh] flex-grow flex-col">
                     {tab.type === "code" ? (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1016,6 +1014,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     ) : (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1097,7 +1096,8 @@ export const EmbedDialog = ({
   eventTypeHideOptionDisabled: boolean;
 }) => {
   const searchParams = useCompatSearchParams();
-  const embedUrl = searchParams?.get("embedUrl") as string;
+  const embedUrl = (searchParams?.get("embedUrl") || "") as string;
+  const namespace = (searchParams?.get("namespace") || "") as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!searchParams?.get("embedType") ? (
@@ -1106,6 +1106,7 @@ export const EmbedDialog = ({
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
+          namespace={namespace}
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
@@ -1117,6 +1118,7 @@ export const EmbedDialog = ({
 
 type EmbedButtonProps<T> = {
   embedUrl: string;
+  namespace: string;
   children?: React.ReactNode;
   className?: string;
   as?: T;
@@ -1129,6 +1131,7 @@ export const EmbedButton = <T extends React.ElementType>({
   className = "",
   as,
   eventId,
+  namespace,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const { goto } = useRouterHelpers();
@@ -1137,6 +1140,7 @@ export const EmbedButton = <T extends React.ElementType>({
     goto({
       dialog: "embed",
       eventId: eventId ? eventId.toString() : "",
+      namespace,
       embedUrl,
     });
   };

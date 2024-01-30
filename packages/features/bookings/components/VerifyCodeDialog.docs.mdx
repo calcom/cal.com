@@ -1,0 +1,24 @@
+import { Canvas, Meta } from "@storybook/blocks";
+
+import { Title, CustomArgsTable } from "@calcom/storybook/components";
+
+import { VerifyCodeDialog } from "./VerifyCodeDialog";
+import * as VerifyCodeDialogStories from "./VerifyCodeDialog.stories";
+
+<Meta of={VerifyCodeDialogStories} />
+
+<Title title="VerifyCodeDialog" suffix="Brief" subtitle="Version 1.0 — Last Update: 11 Sep 2023" />
+
+## Definition
+
+The `VerifyCodeDialog` component allows users to enter a verification code sent to their email. The component provides feedback in case of an error and can handle different verification processes depending on whether the user session is required.
+
+## Structure
+
+This component contains an input form to capture a 6-digit verification code, error handling UI, and action buttons.
+
+<CustomArgsTable of={VerifyCodeDialog} />
+
+{/* ## VerifyCodeDialog Story
+
+<Canvas of={VerifyCodeDialogStories.Default} /> */}

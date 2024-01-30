@@ -5,6 +5,7 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
@@ -21,7 +22,7 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-test.describe("free user", () => {
+testBothFutureAndLegacyRoutes.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
     await page.goto(`/${free.username}`);
@@ -29,7 +30,10 @@ test.describe("free user", () => {
 
   test("cannot book same slot multiple times", async ({ page, users, emails }) => {
     const [user] = users.get();
-    const bookerObj = { email: `testEmail-${randomString(4)}@example.com`, name: "testBooker" };
+    const bookerObj = {
+      email: users.trackEmail({ username: "testEmail", domain: "example.com" }),
+      name: "testBooker",
+    };
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
 
@@ -59,7 +63,7 @@ test.describe("free user", () => {
   });
 });
 
-test.describe("pro user", () => {
+testBothFutureAndLegacyRoutes.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
@@ -124,6 +128,34 @@ test.describe("pro user", () => {
 
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
+  });
+
+  test("Can cancel the recently created booking and shouldn't be allowed to reschedule it", async ({
+    page,
+    users,
+  }, testInfo) => {
+    // Because it tests the entire booking flow + the cancellation + rebooking
+    test.setTimeout(testInfo.timeout * 3);
+    await bookFirstEvent(page);
+    await expect(page.locator(`[data-testid="attendee-email-${testEmail}"]`)).toHaveText(testEmail);
+    await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+
+    const [pro] = users.get();
+    await pro.apiLogin();
+
+    await page.goto("/bookings/upcoming");
+    await page.locator('[data-testid="cancel"]').click();
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking/");
+    });
+    await page.locator('[data-testid="confirm_cancel"]').click();
+
+    const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
+    await expect(cancelledHeadline).toBeVisible();
+    const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+    await page.goto(`/reschedule/${bookingCancelledId}`);
+    // Should be redirected to the booking details page which shows the cancelled headline
+    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
   });
 
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
@@ -231,7 +263,7 @@ test.describe("pro user", () => {
   });
 });
 
-test.describe("prefill", () => {
+testBothFutureAndLegacyRoutes.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
     const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
@@ -288,7 +320,7 @@ test.describe("prefill", () => {
   });
 });
 
-test.describe("Booking on different layouts", () => {
+testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await page.goto(`/${user.username}`);
@@ -345,7 +377,7 @@ test.describe("Booking on different layouts", () => {
   });
 });
 
-test.describe("Booking round robin event", () => {
+testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
   test.beforeEach(async ({ page, users }) => {
     const teamMatesObj = [{ name: "teammate-1" }];
 
@@ -357,7 +389,7 @@ test.describe("Booking round robin event", () => {
     const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
 
     const testUser = await users.create(
-      { username: "test-user", name: "Test User", email: "testuser@example.com", schedule },
+      { schedule },
       {
         hasTeam: true,
         schedulingType: SchedulingType.ROUND_ROBIN,
@@ -365,15 +397,15 @@ test.describe("Booking round robin event", () => {
         teammates: teamMatesObj,
       }
     );
-    const team = await testUser.getFirstTeam();
+    const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
   test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
     const [testUser] = users.get();
-    testUser.apiLogin();
+    await testUser.apiLogin();
 
-    const team = await testUser.getFirstTeam();
+    const team = await testUser.getFirstTeamMembership();
 
     // Click first event type (round robin)
     await page.click('[data-testid="event-type-link"]');
@@ -398,7 +430,7 @@ test.describe("Booking round robin event", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const host = await page.locator('[data-testid="booking-host-name"]');
+    const host = page.locator('[data-testid="booking-host-name"]');
     const hostName = await host.innerText();
 
     //expect teammate-1 to be booked, test-user is not available at this time
@@ -428,7 +460,7 @@ test.describe("Booking round robin event", () => {
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
-    const hostSecondBooking = await page.locator('[data-testid="booking-host-name"]');
+    const hostSecondBooking = page.locator('[data-testid="booking-host-name"]');
     const hostNameSecondBooking = await hostSecondBooking.innerText();
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });

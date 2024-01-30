@@ -1,17 +1,18 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
@@ -92,16 +93,25 @@ const ProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending,
+    error,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId, includeTeamLogo: true },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
 
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.push("/settings");
+      }
+    },
+    [error]
+  );
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
@@ -141,7 +151,7 @@ const ProfileView = () => {
       });
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
   }
 
@@ -152,7 +162,7 @@ const ProfileView = () => {
       {isAdmin ? (
         <TeamProfileForm team={team} />
       ) : (
-        <div className="flex">
+        <div className="border-subtle flex rounded-b-xl border border-t-0 px-4 py-8 sm:px-6">
           <div className="flex-grow">
             <div>
               <Label className="text-emphasis">{t("team_name")}</Label>
@@ -168,7 +178,7 @@ const ProfileView = () => {
               </>
             )}
           </div>
-          <div className="">
+          <div>
             <Link href={permalink} passHref={true} target="_blank">
               <LinkIconButton Icon={ExternalLink}>{t("preview")}</LinkIconButton>
             </Link>
@@ -194,7 +204,11 @@ const ProfileView = () => {
         <Dialog>
           <SectionBottomActions align="end">
             <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon={Trash2}>
+              <Button
+                color="destructive"
+                className="border"
+                StartIcon={Trash2}
+                data-testid="disband-team-button">
                 {t("disband_team")}
               </Button>
             </DialogTrigger>
@@ -265,7 +279,6 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
   });
 
   const [firstRender, setFirstRender] = useState(true);
-  const orgBranding = useOrgBranding();
 
   const {
     formState: { isSubmitting, isDirty },
@@ -371,11 +384,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                 name="slug"
                 label={t("team_url")}
                 value={value}
-                addOnLeading={
-                  team.parent && orgBranding
-                    ? `${getOrgFullOrigin(orgBranding?.slug, { protocol: false })}/`
-                    : `${WEBAPP_URL}/team/`
-                }
+                data-testid="team-url"
+                addOnClassname="testid-leading-text-team-url"
+                addOnLeading={`${getTeamUrlSync(
+                  { orgSlug: team.parent ? team.parent.slug : null, teamSlug: null },
+                  {
+                    protocol: false,
+                  }
+                )}`}
                 onChange={(e) => {
                   form.clearErrors("slug");
                   form.setValue("slug", slugify(e?.target.value, true), { shouldDirty: true });
@@ -398,7 +414,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

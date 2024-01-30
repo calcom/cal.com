@@ -42,7 +42,7 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
 
   const acceptedEmailDomain = foundOrg.members[0].user.email.split("@")[1];
 
-  const metaDataParsed = teamMetadataSchema.parse(foundOrg.metadata);
+  const existingMetadataParsed = teamMetadataSchema.parse(foundOrg.metadata);
 
   await prisma.team.update({
     where: {
@@ -50,9 +50,8 @@ export const adminVerifyHandler = async ({ input }: AdminVerifyOptions) => {
     },
     data: {
       metadata: {
-        ...metaDataParsed,
+        ...existingMetadataParsed,
         isOrganizationVerified: true,
-        orgAutoAcceptEmail: acceptedEmailDomain,
       },
     },
   });

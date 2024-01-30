@@ -92,7 +92,7 @@ function UserToInviteItem({
           id={`${member.user.id}`}
           checked={isSelected}
           type="checkbox"
-          className="text-primary-600 focus:ring-primary-500 border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded checked:bg-gray-800"
+          className="text-emphasis focus:ring-emphasis dark:text-muted border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded checked:bg-gray-800"
           onChange={() => {
             onChange();
           }}

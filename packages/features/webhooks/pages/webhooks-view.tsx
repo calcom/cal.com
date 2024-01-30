@@ -45,11 +45,11 @@ const WebhooksView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const { data, isLoading } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
     enabled: session.status === "authenticated",
   });
 
-  if (isLoading || !data) {
+  if (isPending || !data) {
     return (
       <SkeletonLoader
         title={t("webhooks")}
@@ -78,7 +78,7 @@ const WebhooksView = () => {
             <></>
           )
         }
-        borderInShellHeader={data && data.profiles.length === 1}
+        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
       />
       <div>
         <WebhooksList webhooksByViewer={data} />

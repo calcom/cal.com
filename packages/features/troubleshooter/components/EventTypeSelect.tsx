@@ -7,7 +7,7 @@ import { getQueryParam } from "../../bookings/Booker/utils/query-param";
 import { useTroubleshooterStore } from "../store";
 
 export function EventTypeSelect() {
-  const { data: eventTypes, isLoading } = trpc.viewer.eventTypes.list.useQuery();
+  const { data: eventTypes, isPending } = trpc.viewer.eventTypes.list.useQuery();
   const selectedEventType = useTroubleshooterStore((state) => state.event);
   const setSelectedEventType = useTroubleshooterStore((state) => state.setEvent);
 
@@ -59,7 +59,7 @@ export function EventTypeSelect() {
     <SelectField
       label="Event Type"
       options={options}
-      isDisabled={isLoading || options.length === 0}
+      isDisabled={isPending || options.length === 0}
       value={options.find((option) => option.value === selectedEventType?.slug) || options[0]}
       onChange={(option) => {
         if (!option) return;

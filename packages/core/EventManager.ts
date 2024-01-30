@@ -173,18 +173,21 @@ export default class EventManager {
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
+      let thirdPartyRecurringEventId;
       let createdEventObj: createdEventSchema | null = null;
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
       const isCalendarType = isCalendarResult(result);
       if (isCalendarType) {
-        evt.iCalUID = result.iCalUID || undefined;
+        evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
+        thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
       }
 
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
@@ -324,7 +327,8 @@ export default class EventManager {
     event: CalendarEvent,
     rescheduleUid: string,
     newBookingId?: number,
-    changedOrganizer?: boolean
+    changedOrganizer?: boolean,
+    newDestinationCalendar?: DestinationCalendar[] | null
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
@@ -371,6 +375,7 @@ export default class EventManager {
     }
 
     const results: Array<EventResult<Event>> = [];
+    const bookingReferenceChangedOrganizer: Array<PartialReference> = [];
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -380,7 +385,13 @@ export default class EventManager {
       if (changedOrganizer) {
         log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
         await this.deleteEventsAndMeetings({ booking, event });
-        // New event is created in handleNewBooking
+
+        log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
+
+        const newEvent = { ...evt, destinationCalendar: newDestinationCalendar };
+        const createdEvent = await this.create(newEvent);
+        results.push(...createdEvent.results);
+        bookingReferenceChangedOrganizer.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
         const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
@@ -427,7 +438,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: [...booking.references],
+      referencesToCreate: changedOrganizer ? bookingReferenceChangedOrganizer : [...booking.references],
     };
   }
 
@@ -566,24 +577,25 @@ export default class EventManager {
             (c) => c.type === destination.integration
           );
           // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
-          const firstCalendarCredential = destinationCalendarCredentials[0];
+          const firstCalendarCredential = destinationCalendarCredentials[0] as
+            | (typeof destinationCalendarCredentials)[number]
+            | undefined;
 
           if (!firstCalendarCredential) {
             log.warn(
               "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
             );
             await fallbackToFirstConnectedCalendar();
+          } else {
+            log.warn(
+              "No credentialId found for destination calendar, falling back to first found calendar of same type as destination calendar",
+              safeStringify({
+                destination: getPiiFreeDestinationCalendar(destination),
+                firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
+              })
+            );
+            createdEvents.push(await createEvent(firstCalendarCredential, event));
           }
-
-          log.warn(
-            "No credentialId found for destination calendar, falling back to first found calendar",
-            safeStringify({
-              destination: getPiiFreeDestinationCalendar(destination),
-              firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
-            })
-          );
-
-          createdEvents.push(await createEvent(firstCalendarCredential, event));
         }
       }
     } else {

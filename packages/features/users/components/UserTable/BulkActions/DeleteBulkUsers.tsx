@@ -8,9 +8,10 @@ import type { User } from "../UserListTable";
 
 interface Props {
   users: User[];
+  onRemove: () => void;
 }
 
-export function DeleteBulkUsers({ users }: Props) {
+export function DeleteBulkUsers({ users, onRemove }: Props) {
   const { t } = useLocale();
   const selectedRows = users; // Get selected rows from table
   const utils = trpc.useContext();
@@ -32,11 +33,12 @@ export function DeleteBulkUsers({ users }: Props) {
         variety="danger"
         title={t("remove_users_from_org")}
         confirmBtnText={t("remove")}
-        isLoading={deleteMutation.isLoading}
+        isPending={deleteMutation.isPending}
         onConfirm={() => {
           deleteMutation.mutateAsync({
             userIds: selectedRows.map((user) => user.id),
           });
+          onRemove();
         }}>
         <p className="mt-5">
           {t("remove_users_from_org_confirm", {

@@ -232,6 +232,12 @@ const providers: Provider[] = [
         if (role !== "ADMIN") return role;
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
+
+        if (process.env.NEXT_PUBLIC_IS_E2E) {
+          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+          return role;
+        }
+
         // User's password is valid and two-factor authentication is enabled
         if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
         // Code is running in a development environment
@@ -502,7 +508,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: user?.impersonatedByUID,
+          impersonatedBy: user.impersonatedBy,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
@@ -541,7 +547,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
-          impersonatedByUID: token.impersonatedByUID as number,
+          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
@@ -561,7 +567,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           name: token.name,
           username: token.username as string,
           role: token.role as UserPermissionRole,
-          impersonatedByUID: token.impersonatedByUID as number,
+          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,
@@ -782,6 +788,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
+            ...(user.image && { avatarUrl: user.image }),
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,

@@ -4,6 +4,7 @@ import type {
   AdditionalInformation,
   CalendarEvent,
   ConferenceData,
+  ExistingRecurringEvent,
   Person,
   VideoCallData,
 } from "@calcom/types/Calendar";
@@ -22,6 +23,7 @@ class CalendarEventClass implements CalendarEvent {
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
   videoCallData?: VideoCallData;
   paymentInfo?: any;
   destinationCalendar?: DestinationCalendar[] | null;
@@ -30,6 +32,7 @@ class CalendarEventClass implements CalendarEvent {
   hideCalendarNotes?: boolean;
   additionalNotes?: string | null | undefined;
   recurrence?: string;
+  iCalUID?: string | null;
 
   constructor(initProps?: CalendarEvent) {
     // If more parameters are given we update this

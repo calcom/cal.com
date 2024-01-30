@@ -1,12 +1,17 @@
 import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import {
+  EventTypeMetaDataSchema,
+  allManagedEventTypeProps,
+  unlockedManagedEventTypeProps,
+} from "@calcom/prisma/zod-utils";
 
 import { WEBAPP_URL } from "../../../constants";
+import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
@@ -158,7 +163,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      orgOrigin: getOrgFullOrigin(m.user.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -214,16 +219,17 @@ export async function getTeamWithMembers(args: {
 
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {
-  return (
-    (await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId,
-        accepted: true,
-        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
-      },
-    })) || false
-  );
+  const team = await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
+      accepted: true,
+      OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+    },
+    include: { team: true },
+  });
+  if (!team) return false;
+  return team;
 }
 
 export async function isTeamOwner(userId: number, teamId: number) {
@@ -245,4 +251,68 @@ export async function isTeamMember(userId: number, teamId: number) {
       accepted: true,
     },
   }));
+}
+
+export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
+  const eventTypesToAdd = await prisma.eventType.findMany({
+    where: {
+      team: { id: teamId },
+      assignAllTeamMembers: true,
+    },
+    select: {
+      ...allManagedEventTypeProps,
+      id: true,
+      schedulingType: true,
+    },
+  });
+
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+
+  eventTypesToAdd.length > 0 &&
+    (await prisma.$transaction(
+      eventTypesToAdd.map((eventType) => {
+        if (eventType.schedulingType === "MANAGED") {
+          const managedEventTypeValues = allManagedEventTypePropsZod
+            .omit(unlockedManagedEventTypeProps)
+            .parse(eventType);
+
+          // Define the values for unlocked properties to use on creation, not updation
+          const unlockedEventTypeValues = allManagedEventTypePropsZod
+            .pick(unlockedManagedEventTypeProps)
+            .parse(eventType);
+
+          // Calculate if there are new workflows for which assigned members will get too
+          const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
+
+          return prisma.eventType.create({
+            data: {
+              ...managedEventTypeValues,
+              ...unlockedEventTypeValues,
+              bookingLimits:
+                (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+              recurringEvent:
+                (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+              metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+              bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
+              durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+              onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+              userId,
+              users: {
+                connect: [{ id: userId }],
+              },
+              parentId: eventType.parentId,
+              hidden: false,
+              workflows: currentWorkflowIds && {
+                create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+              },
+            },
+          });
+        } else {
+          return prisma.eventType.update({
+            where: { id: eventType.id },
+            data: { hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } },
+          });
+        }
+      })
+    ));
 }

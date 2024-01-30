@@ -1,6 +1,5 @@
 import { usePathname, useRouter } from "next/navigation";
 
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "@calcom/ui";
@@ -19,7 +18,7 @@ import { Plus } from "@calcom/ui/components/icon";
 export interface Option {
   teamId: number | null | undefined; // if undefined, then it's a profile
   label: string | null;
-  image?: string | null;
+  image: string | null;
   slug: string | null;
 }
 
@@ -29,7 +28,7 @@ export type CreateBtnProps = {
   createFunction?: (teamId?: number) => void;
   subtitle?: string;
   buttonText?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
   disableMobileButton?: boolean;
   "data-testid"?: string;
   color?: ButtonColor;
@@ -43,12 +42,11 @@ export function CreateButton(props: CreateBtnProps) {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
-  const bookerUrl = useBookerUrl();
 
   const {
     createDialog,
     options,
-    isLoading,
+    isPending,
     createFunction,
     buttonText,
     disableMobileButton,
@@ -87,7 +85,7 @@ export function CreateButton(props: CreateBtnProps) {
           }
           data-testid="create-button"
           StartIcon={Plus}
-          loading={isLoading}
+          loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
           {buttonText ? buttonText : t("new")}
@@ -99,7 +97,7 @@ export function CreateButton(props: CreateBtnProps) {
               variant={disableMobileButton ? "button" : "fab"}
               StartIcon={Plus}
               data-testid="create-button-dropdown"
-              loading={isLoading}
+              loading={isPending}
               {...restProps}>
               {buttonText ? buttonText : t("new")}
             </Button>
@@ -114,12 +112,7 @@ export function CreateButton(props: CreateBtnProps) {
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
                   StartIcon={(props) => (
-                    <Avatar
-                      alt={option.label || ""}
-                      imageSrc={option.image || `${bookerUrl}/${option.label}/avatar.png`} // if no image, use default avatar
-                      size="sm"
-                      {...props}
-                    />
+                    <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
                   )}
                   onClick={() =>
                     !!CreateDialog

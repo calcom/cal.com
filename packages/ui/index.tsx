@@ -1,8 +1,14 @@
-export { Avatar, AvatarGroup } from "./components/avatar";
+export {
+  Avatar,
+  AvatarGroup,
+  UserAvatar,
+  UserAvatarGroup,
+  UserAvatarGroupWithOrg,
+} from "./components/avatar";
 export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
 export { ArrowButton } from "./components/arrow-button";
 export type { ArrowButtonProps } from "./components/arrow-button";
-export { Badge, UpgradeTeamsBadge } from "./components/badge";
+export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";
 export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
 export { Button, LinkIconButton } from "./components/button";
@@ -77,6 +83,16 @@ export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
 export { Table } from "./components/table/Table";
+export {
+  Table as TableNew,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/table/TableNew";
 export { TableActions, DropdownActions } from "./components/table/TableActions";
 export type { ActionType } from "./components/table/TableActions";
 export { ErrorBoundary } from "./components/errorBoundary";
@@ -140,6 +156,7 @@ export { CreateButton, CreateButtonWithTeamsList } from "./components/createButt
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
+export { WizardLayoutAppDir } from "./layouts/WizardLayoutAppDir";
 export { DataTable } from "./components/data-table";
 export {
   Sheet,
@@ -164,3 +181,5 @@ export {
 } from "./components/command";
 
 export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
+
+export { StorybookTrpcProvider } from "./components/mocks/trpc";

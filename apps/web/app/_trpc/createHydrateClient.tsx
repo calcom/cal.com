@@ -1,11 +1,16 @@
 "use client";
 
-import { type DehydratedState, Hydrate } from "@tanstack/react-query";
+import { type DehydratedState, HydrationBoundary } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import type { DataTransformer } from "@trpc/server";
+type DataTransformer = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  serialize: (data: any) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deserialize: (data: any) => any;
+};
 
-export function createHydrateClient(opts: { transformer?: DataTransformer }) {
+export function createHydrateClient(opts: { transformer: DataTransformer }) {
   return function HydrateClient(props: { children: React.ReactNode; state: DehydratedState }) {
     const { state, children } = props;
 
@@ -16,6 +21,6 @@ export function createHydrateClient(opts: { transformer?: DataTransformer }) {
       return state;
     }, [state]);
 
-    return <Hydrate state={transformedState}>{children}</Hydrate>;
+    return <HydrationBoundary state={transformedState}>{children}</HydrationBoundary>;
   };
 }
