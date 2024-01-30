@@ -4434,6 +4434,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/salesroom@workspace:packages/app-store/salesroom":
+  version: 0.0.0-use.local
+  resolution: "@calcom/salesroom@workspace:packages/app-store/salesroom"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/sendgrid@workspace:packages/app-store/sendgrid":
   version: 0.0.0-use.local
   resolution: "@calcom/sendgrid@workspace:packages/app-store/sendgrid"
