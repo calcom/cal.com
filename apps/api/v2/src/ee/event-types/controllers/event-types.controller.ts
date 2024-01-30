@@ -16,11 +16,8 @@ export class EventTypesController {
   constructor(private readonly eventTypesRepository: EventTypesRepository) {}
 
   @Get("/:eventTypeId")
-  async getEventType(
-    @Param("eventTypeId") eventTypeId: string,
-    @GetUser("id") userId: User["id"]
-  ): Promise<ApiResponse> {
-    const eventType = await this.eventTypesRepository.getUserEventType(userId, Number(eventTypeId));
+  async getEventType(@Param("eventTypeId") eventTypeId: string, @GetUser() user: User): Promise<ApiResponse> {
+    const eventType = await this.eventTypesRepository.getUserEventType(user, Number(eventTypeId));
 
     return {
       status: SUCCESS_STATUS,

@@ -1,7 +1,7 @@
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { MembershipRole } from "@prisma/client";
+import { User } from "@prisma/client";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 
@@ -9,23 +9,24 @@ import { getEventTypeById } from "@calcom/platform-libraries";
 export class EventTypesRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
-    private readonly usersRepository: UsersRepository
+    private readonly membershipsRepository: MembershipsRepository
   ) {}
 
-  async getUserEventType(userId: number, eventTypeId: number) {
+  async getUserEventType(user: User, eventTypeId: number) {
     try {
-      const user = await this.usersRepository.findById(userId);
-      const isUserOrganizationAdmin = user?.role === MembershipRole.ADMIN;
+      const isUserOrganizationAdmin = user?.organizationId
+        ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, user.organizationId)
+        : false;
 
       const eventType = await getEventTypeById({
         eventTypeId,
-        userId,
+        userId: user.id,
         prisma: this.dbRead.prisma,
         isUserOrganizationAdmin,
       });
       return eventType;
     } catch (error) {
-      throw new NotFoundException(`User with id ${userId} has no event type with id ${eventTypeId}`);
+      throw new NotFoundException(`User with id ${user.id} has no event type with id ${eventTypeId}`);
     }
   }
 }
