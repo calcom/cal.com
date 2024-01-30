@@ -73,6 +73,9 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       if (eventLocationType.variable === "hostDefault") {
         return null;
       }
+      if (!location.displayLocationPublicly) {
+        return null;
+      }
 
       const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 
