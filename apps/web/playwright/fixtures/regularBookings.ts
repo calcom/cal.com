@@ -692,7 +692,7 @@ export function createBookingPageFixture(page: Page) {
     createEventType: async (eventName: string) => {
       await page.goto("/event-types");
       await page.getByTestId("new-event-type").click();
-      await page.getByTestId("new-event-title").fill(eventName);
+      await page.getByTestId("event-type-quick-chat").fill(eventName);
       await page.getByRole("button", { name: "Continue" }).click();
       await page.waitForURL("http://localhost:3000/event-types/**");
     },
