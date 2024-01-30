@@ -1,9 +1,31 @@
-import PageWrapper, { type CalPageWrapper } from "@components/PageWrapper";
+"use client";
 
-import NoMeetingFound from "~/videos/views/videos-no-meeting-found-single-view";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button, EmptyScreen, HeadSeo } from "@calcom/ui";
+import { X, ArrowRight } from "@calcom/ui/components/icon";
 
-const NoMeetingFoundPage = NoMeetingFound as unknown as CalPageWrapper;
+import PageWrapper from "@components/PageWrapper";
 
-NoMeetingFoundPage.PageWrapper = PageWrapper;
+export default function NoMeetingFound() {
+  const { t } = useLocale();
 
-export default NoMeetingFoundPage;
+  return (
+    <>
+      <HeadSeo title={t("no_meeting_found")} description={t("no_meeting_found")} />
+      <main className="mx-auto my-24 max-w-3xl">
+        <EmptyScreen
+          Icon={X}
+          headline={t("no_meeting_found")}
+          description={t("no_meeting_found_description")}
+          buttonRaw={
+            <Button data-testid="return-home" href="/event-types" EndIcon={ArrowRight}>
+              {t("go_back_home")}
+            </Button>
+          }
+        />
+      </main>
+    </>
+  );
+}
+
+NoMeetingFound.PageWrapper = PageWrapper;

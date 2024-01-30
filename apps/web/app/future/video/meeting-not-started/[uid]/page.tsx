@@ -1,3 +1,4 @@
+import Page from "@pages/video/meeting-not-started/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -5,8 +6,7 @@ import { WithLayout } from "app/layoutHOC";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
-import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
-import { getServerSideProps } from "~/videos/views/videos-meeting-not-started-single-view.getServerSideProps";
+import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
 export const generateMetadata = async ({ params }: PageProps) => {
   const booking = await prisma.booking.findUnique({
@@ -24,4 +24,4 @@ export const generateMetadata = async ({ params }: PageProps) => {
 
 const getData = withAppDirSsr(getServerSideProps);
 
-export default WithLayout({ getData, Page: MeetingNotStarted, getLayout: null })<"P">;
+export default WithLayout({ getData, Page, getLayout: null })<"P">;

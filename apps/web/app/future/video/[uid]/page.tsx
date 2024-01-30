@@ -1,11 +1,11 @@
+import Page, { type JoinCallPageProps } from "@pages/video/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
-import VideosSingleView from "~/videos/views/videos-single-view";
-import { getServerSideProps, type PageProps } from "~/videos/views/videos-single-view.getServerSideProps";
+import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -13,6 +13,6 @@ export const generateMetadata = async () =>
     (t) => t("quick_video_meeting")
   );
 
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const getData = withAppDirSsr<JoinCallPageProps>(getServerSideProps);
 
-export default WithLayout({ getData, Page: VideosSingleView, getLayout: null })<"P">;
+export default WithLayout({ getData, Page, getLayout: null })<"P">;
