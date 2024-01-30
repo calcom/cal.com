@@ -470,7 +470,7 @@ export const EventTypeList = ({
                               </Tooltip>
 
                               {isPrivateURLEnabled && (
-                                <Tooltip content={t("copy_link")}>
+                                <Tooltip content={t("copy_private_link_to_event")}>
                                   <Button
                                     color="secondary"
                                     variant="icon"

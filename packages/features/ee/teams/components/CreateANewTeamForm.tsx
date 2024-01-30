@@ -158,7 +158,8 @@ export const CreateANewTeamForm = () => {
             color="primary"
             EndIcon={ArrowRight}
             type="submit"
-            className="w-full justify-center">
+            className="w-full justify-center"
+            data-testid="continue-button">
             {t(flag.submitLabel)}
           </Button>
         </div>
