@@ -1,11 +1,5 @@
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import prisma from "@calcom/prisma";
-import { getEventTypesFromDB } from "../eventTypes/getEventTypesFromDB";
 import { BookingStatus } from ".prisma/client";
-
-export type NewBookingEventType =
-    | Awaited<ReturnType<typeof getDefaultEvent>>
-    | Awaited<ReturnType<typeof getEventTypesFromDB>>;
 
 export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
     return prisma.booking.findFirst({
