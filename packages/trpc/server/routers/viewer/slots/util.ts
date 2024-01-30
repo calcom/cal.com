@@ -12,6 +12,7 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -395,6 +396,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
   if (!!eventType && (bookingLimits || durationLimits)) {
+    const startTimeAsDayJs = dayjs(startTime.format());
+    const endTimeAsDayJs = dayjs(endTime.format());
     let limitDateFrom = dayjs(startTime.format());
     let limitDateTo = dayjs(endTime.format());
 
@@ -403,11 +406,13 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
       if (bookingLimits?.[key] || durationLimits?.[key]) {
         const unit = intervalLimitKeyToUnit(key);
-        limitDateFrom = dayjs.min(limitDateFrom, dateFrom.startOf(unit));
-        limitDateTo = dayjs.max(limitDateTo, dateTo.endOf(unit));
+        limitDateFrom = dayjs.min(limitDateFrom, startTimeAsDayJs.startOf(unit));
+        limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
       }
     }
 
+    console.log("limitDateFrom", limitDateFrom);
+    console.log("limitDateTo", limitDateTo);
     busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
       userIds: allUserIds,
       eventTypeId: eventType.id,

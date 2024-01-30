@@ -176,7 +176,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         seatsReferences: number;
       };
     })[];
-    busyTimesFromLimitsBookings?: EventBusyDetails[];
+    busyTimesFromLimitsBookings: EventBusyDetails[];
   }
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
@@ -220,7 +220,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo,
           duration,
           eventType,
-          initialData.busyTimesFromLimitsBookings
+          initialData?.busyTimesFromLimitsBookings ?? []
         )
       : [];
 
@@ -431,7 +431,7 @@ const _getBusyTimesFromLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  bookings?: EventBusyDetails[]
+  bookings: EventBusyDetails[]
 ) => {
   performance.mark("limitsStart");
 
