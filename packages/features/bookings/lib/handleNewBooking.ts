@@ -1274,21 +1274,20 @@ async function handler(
       }
     }
 
-    const availableUsers = await ensureAvailableUsers(
-      eventTypeWithUsers,
-      {
-        dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-        dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-        timeZone: reqBody.timeZone,
-        originalRescheduledBooking,
-      },
-      loggerWithEventDetails
-    );
-
-    const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
-
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
+      const availableUsers = await ensureAvailableUsers(
+        eventTypeWithUsers,
+        {
+          dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+          dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+          timeZone: reqBody.timeZone,
+          originalRescheduledBooking,
+        },
+        loggerWithEventDetails
+      );
+
       const luckyUsers: typeof users = [];
+      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
       const notAvailableLuckyUsers: typeof users = [];
 
       loggerWithEventDetails.debug(
@@ -1354,9 +1353,10 @@ async function handler(
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
-        ? luckyUserPool.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
+        ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
         : [];
-      users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsersFromFirstBooking];
+      const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
+      users = [...fixedHosts, ...luckyUsersFromFirstBooking];
     }
   }
 
