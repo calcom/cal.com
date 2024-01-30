@@ -220,7 +220,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo,
           duration,
           eventType,
-          busyTimesFromLimitsBookings
+          initialData.busyTimesFromLimitsBookings
         )
       : [];
 
