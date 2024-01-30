@@ -6,8 +6,11 @@ import { sendRescheduledEmails } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import { addVideoCallDataToEvent, handleAppsStatus, findBookingQuery } from "../../../handleNewBooking";
-import type { Booking, createLoggerWithEventDetails } from "../../../handleNewBooking";
+import { handleAppsStatus } from "../../../../../../../modules/appStatus/handleAppsStatus";
+import { findBookingQuery } from "../../../../../../../modules/bookingQueries/findBookingQuery";
+import type { createLoggerWithEventDetails } from "../../../../../../../modules/logger/createLoggerWithEventDetails";
+import { addVideoCallDataToEvent } from "../../../../../../../modules/videoCall/addVideoCallDataToEvent";
+import type { Booking } from "../../../handleNewBooking";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
 const moveSeatedBookingToNewTimeSlot = async (

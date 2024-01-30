@@ -6,8 +6,8 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
 
-import { refreshCredentials } from "../../handleNewBooking";
-import type { createLoggerWithEventDetails } from "../../handleNewBooking";
+import { refreshCredentials } from "../../../../../../modules/credentials/refreshCredentials";
+import type { createLoggerWithEventDetails } from "../../../../../../modules/logger/createLoggerWithEventDetails";
 import type {
   HandleSeatsResultBooking,
   SeatedBooking,
