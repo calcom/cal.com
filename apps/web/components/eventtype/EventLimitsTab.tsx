@@ -231,7 +231,9 @@ export const EventLimitsTab = () => {
                   <Select
                     isSearchable={false}
                     onChange={(val) => {
-                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
+                      formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
+                        shouldDirty: true,
+                      });
                     }}
                     defaultValue={
                       slotIntervalOptions.find(
@@ -259,11 +261,15 @@ export const EventLimitsTab = () => {
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
-                  formMethods.setValue("bookingLimits", {
-                    PER_DAY: 1,
-                  });
+                  formMethods.setValue(
+                    "bookingLimits",
+                    {
+                      PER_DAY: 1,
+                    },
+                    { shouldDirty: true }
+                  );
                 } else {
-                  formMethods.setValue("bookingLimits", {});
+                  formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
                 }
               }}
               switchContainerClassName={classNames(
@@ -290,7 +296,7 @@ export const EventLimitsTab = () => {
               description={t("limit_booking_only_first_slot_description")}
               checked={isChecked}
               onCheckedChange={(active) => {
-                formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false);
+                formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false, { shouldDirty: true });
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -318,11 +324,15 @@ export const EventLimitsTab = () => {
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
-                  formMethods.setValue("durationLimits", {
-                    PER_DAY: 60,
-                  });
+                  formMethods.setValue(
+                    "durationLimits",
+                    {
+                      PER_DAY: 60,
+                    },
+                    { shouldDirty: true }
+                  );
                 } else {
-                  formMethods.setValue("durationLimits", {});
+                  formMethods.setValue("durationLimits", {}, { shouldDirty: true });
                 }
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -354,7 +364,9 @@ export const EventLimitsTab = () => {
               title={t("limit_future_bookings")}
               description={t("limit_future_bookings_description")}
               checked={isChecked}
-              onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
+              onCheckedChange={(bool) =>
+                formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED", { shouldDirty: true })
+              }>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   value={watchPeriodType}
@@ -389,7 +401,11 @@ export const EventLimitsTab = () => {
                               options={optionsPeriod}
                               isSearchable={false}
                               onChange={(opt) =>
-                                formMethods.setValue("periodCountCalendarDays", opt?.value === 1 ? "1" : "0")
+                                formMethods.setValue(
+                                  "periodCountCalendarDays",
+                                  opt?.value === 1 ? "1" : "0",
+                                  { shouldDirty: true }
+                                )
                               }
                               name="periodCoundCalendarDays"
                               value={optionsPeriod.find((opt) => {
@@ -413,10 +429,14 @@ export const EventLimitsTab = () => {
                                   startDate={formMethods.getValues("periodDates").startDate}
                                   endDate={formMethods.getValues("periodDates").endDate}
                                   onDatesChange={({ startDate, endDate }) => {
-                                    formMethods.setValue("periodDates", {
-                                      startDate,
-                                      endDate,
-                                    });
+                                    formMethods.setValue(
+                                      "periodDates",
+                                      {
+                                        startDate,
+                                        endDate,
+                                      },
+                                      { shouldDirty: true }
+                                    );
                                   }}
                                 />
                               )}
@@ -447,7 +467,7 @@ export const EventLimitsTab = () => {
         onCheckedChange={(active) => {
           setOffsetToggle(active);
           if (!active) {
-            formMethods.setValue("offsetStart", 0);
+            formMethods.setValue("offsetStart", 0, { shouldDirty: true });
           }
         }}>
         <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -556,7 +576,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
   textFieldSuffix,
   disabled,
 }: IntervalLimitsManagerProps<K>) => {
-  const { watch, setValue, control } = useFormContext<FormValues>();
+  const { watch, setValue, getValues, control } = useFormContext<FormValues>();
   const watchIntervalLimits = watch(propertyName);
   const { t } = useLocale();
 
@@ -578,11 +598,16 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
           );
           if (!rest || !currentKeys.length) return;
           //currentDurationLimits is always defined so can be casted
-          // @ts-expect-error FIXME Fix these typings
-          setValue(propertyName, {
-            ...watchIntervalLimits,
-            [rest.value]: defaultLimit,
-          });
+
+          setValue(
+            propertyName,
+            // @ts-expect-error FIXME Fix these typings
+            {
+              ...watchIntervalLimits,
+              [rest.value]: defaultLimit,
+            },
+            { shouldDirty: true } // This only works when per-day, per-month dropdown is updated. Need to ensure even toggling settings adds it to dirtyFields, and obviously, changing value of number
+          );
         };
 
         return (
@@ -610,10 +635,10 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
                       selectOptions={INTERVAL_LIMIT_OPTIONS.filter(
                         (option) => !Object.keys(currentIntervalLimits).includes(option.value)
                       )}
-                      onLimitChange={(intervalLimitKey, val) =>
+                      onLimitChange={(intervalLimitKey, val) => {
                         // @ts-expect-error FIXME Fix these typings
-                        setValue(`${propertyName}.${intervalLimitKey}`, val)
-                      }
+                        setValue(`${propertyName}.${intervalLimitKey}`, val, { shouldDirty: true });
+                      }}
                       onDelete={(intervalLimitKey) => {
                         const current = currentIntervalLimits;
                         delete current[intervalLimitKey];
