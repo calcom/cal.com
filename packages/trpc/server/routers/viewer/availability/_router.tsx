@@ -25,8 +25,6 @@ export const availabilityRouter = router({
       throw new Error("Failed to load handler");
     }
 
-    ctx.session;
-
     return UNSTABLE_HANDLER_CACHE.list({
       ctx,
     });

@@ -551,7 +551,7 @@ async function addUsers(users: InputUser[]) {
     if (user.profiles) {
       newUser.profiles = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        // @ts-expect-error Not sure why this is not working
         createMany: {
           data: user.profiles,
         },

@@ -145,7 +145,7 @@ export default function MemberListItem(props: Props) {
         <div className="flex w-full flex-col justify-between truncate sm:flex-row">
           <div className="flex">
             <UserAvatar
-              noOrganizationIndicator={true}
+              noOrganizationIndicator
               size="sm"
               user={props.member}
               className="h-10 w-10 rounded-full"
