@@ -3,12 +3,14 @@ import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
+import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -336,6 +338,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   };
 
+  const allUserIds = usersWithCredentials.map((user) => user.id);
+
   const currentBookingsAllUsers = await prisma.booking.findMany({
     where: {
       OR: [
@@ -343,7 +347,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
         {
           ...sharedQuery,
           userId: {
-            in: usersWithCredentials.map((user) => user.id),
+            in: allUserIds,
           },
         },
         // The current user has a different booking at this time he/she attends
@@ -386,6 +390,32 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
+  let busyTimesFromLimitsBookingsAllUsers = [];
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+
+  if (!!eventType && (bookingLimits || durationLimits)) {
+    let limitDateFrom = dayjs(startTime.format());
+    let limitDateTo = dayjs(endTime.format());
+
+    // expand date ranges by absolute minimum required to apply limits
+    // (yearly limits are handled separately for performance)
+    for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
+      if (bookingLimits?.[key] || durationLimits?.[key]) {
+        const unit = intervalLimitKeyToUnit(key);
+        limitDateFrom = dayjs.min(limitDateFrom, dateFrom.startOf(unit));
+        limitDateTo = dayjs.max(limitDateTo, dateTo.endOf(unit));
+      }
+    }
+
+    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+      userIds: allUserIds,
+      eventTypeId: eventType.id,
+      startDate: limitDateFrom.toDate(),
+      endDate: limitDateTo.toDate(),
+      rescheduleUid: input.rescheduleUid,
+    });
+  }
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
@@ -418,6 +448,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
               const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
               return bookingWithoutAttendees;
             }),
+          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter(
+            (b) => b.userId === currentUser.id
+          ),
         }
       );
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;

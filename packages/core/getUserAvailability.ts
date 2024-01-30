@@ -25,7 +25,7 @@ import type {
   IntervalLimitUnit,
 } from "@calcom/types/Calendar";
 
-import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
+import { getBusyTimes } from "./getBusyTimes";
 import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
@@ -176,6 +176,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         seatsReferences: number;
       };
     })[];
+    busyTimesFromLimitsBookings?: EventBusyDetails[];
   }
 ) {
   const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
@@ -219,8 +220,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           dateTo,
           duration,
           eventType,
-          user.id,
-          initialData?.rescheduleUid
+          busyTimesFromLimitsBookings
         )
       : [];
 
@@ -431,35 +431,12 @@ const _getBusyTimesFromLimits = async (
   dateTo: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
-  userId: number,
-  rescheduleUid?: string | null
+  bookings?: EventBusyDetails[]
 ) => {
   performance.mark("limitsStart");
 
   // shared amongst limiters to prevent processing known busy periods
   const limitManager = new LimitManager();
-
-  let limitDateFrom = dayjs(dateFrom);
-  let limitDateTo = dayjs(dateTo);
-
-  // expand date ranges by absolute minimum required to apply limits
-  // (yearly limits are handled separately for performance)
-  for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
-    if (bookingLimits?.[key] || durationLimits?.[key]) {
-      const unit = intervalLimitKeyToUnit(key);
-      limitDateFrom = dayjs.min(limitDateFrom, dateFrom.startOf(unit));
-      limitDateTo = dayjs.max(limitDateTo, dateTo.endOf(unit));
-    }
-  }
-
-  // fetch only the data we need to check limits
-  const bookings = await getBusyTimesForLimitChecks({
-    userId,
-    eventTypeId: eventType.id,
-    startDate: limitDateFrom.toDate(),
-    endDate: limitDateTo.toDate(),
-    rescheduleUid: rescheduleUid,
-  });
 
   // run this first, as counting bookings should always run faster..
   if (bookingLimits) {

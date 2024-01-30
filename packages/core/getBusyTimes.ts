@@ -261,16 +261,15 @@ export async function getBusyTimes(params: {
 }
 
 export async function getBusyTimesForLimitChecks(params: {
-  userId: number;
+  userIds: number[];
   eventTypeId: number;
   startDate: Date;
   endDate: Date;
   rescheduleUid?: string | null;
 }) {
-  const { userId, eventTypeId, startDate, endDate, rescheduleUid } = params;
+  const { userIds, eventTypeId, startDate, endDate, rescheduleUid } = params;
   logger.silly(
     `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
-      userId,
       eventTypeId,
       status: BookingStatus.ACCEPTED,
     })}`
@@ -278,7 +277,9 @@ export async function getBusyTimesForLimitChecks(params: {
   performance.mark("getBusyTimesForLimitChecksStart");
 
   const where: Prisma.BookingWhereInput = {
-    userId,
+    userId: {
+      in: userIds,
+    },
     eventTypeId,
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
@@ -300,6 +301,7 @@ export async function getBusyTimesForLimitChecks(params: {
     where,
     select: {
       id: true,
+      uid: true,
       startTime: true,
       endTime: true,
       eventType: {
@@ -308,6 +310,7 @@ export async function getBusyTimesForLimitChecks(params: {
         },
       },
       title: true,
+      userId: true,
     },
   });
 
