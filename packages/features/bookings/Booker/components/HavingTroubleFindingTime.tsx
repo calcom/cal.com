@@ -7,11 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 type Props = {
   onButtonClick: () => void;
   dayCount: number | null;
+  visible: boolean;
   isScheduleLoading: boolean;
 };
 export function HavingTroubleFindingTime(props: Props) {
   const { t } = useLocale();
   const [internalClick, setInternalClick] = useState(false);
+
+  if (!props.visible) return null;
 
   // Easiest way to detect if its not enabled
   if (
@@ -25,7 +28,7 @@ export function HavingTroubleFindingTime(props: Props) {
   if (props.isScheduleLoading || !props.dayCount) return null;
 
   return (
-    <div className="bg-default border-subtle absolute bottom-[-120px] flex w-full min-w-0 items-center justify-between rounded-[32px] border p-3 text-sm leading-none shadow-sm">
+    <div className="bg-default border-subtle mt-6 flex w-1/2 min-w-0 items-center justify-between rounded-[32px] border p-3 text-sm leading-none shadow-sm lg:w-1/3">
       <div className="flex items-center gap-2 overflow-x-hidden">
         <InfoIcon className="text-default h-4 w-4" />
         <p className="w-full  leading-none">{t("having_trouble_finding_time")}</p>
