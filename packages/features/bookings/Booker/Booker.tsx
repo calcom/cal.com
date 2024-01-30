@@ -475,7 +475,7 @@ const BookerComponent = ({
         </div>
 
         <HavingTroubleFindingTime
-          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
+          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
           dayCount={dayCount}
           isScheduleLoading={schedule.isLoading}
           onButtonClick={() => {
