@@ -7,6 +7,8 @@ import type { ButtonProps } from "@calcom/ui";
 
 export type IntegrationOAuthCallbackState = {
   returnTo: string;
+  onErrorReturnTo: string;
+  fromApp: boolean;
   installGoogleVideo?: boolean;
   teamId?: number;
 };
@@ -35,7 +37,7 @@ export interface InstallAppButtonProps {
     renderProps: ButtonProps & {
       /** Tells that the default render component should be used */
       useDefaultComponent?: boolean;
-      isLoading?: boolean;
+      isPending?: boolean;
     }
   ) => JSX.Element;
   onChanged?: () => unknown;

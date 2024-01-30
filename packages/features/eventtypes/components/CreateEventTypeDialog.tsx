@@ -183,6 +183,7 @@ export default function CreateEventTypeDialog({
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}
+              data-testid="event-type-quick-chat"
               {...register("title")}
               onChange={(e) => {
                 form.setValue("title", e?.target.value);
@@ -293,7 +294,8 @@ export default function CreateEventTypeDialog({
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}
                         className={classNames("text-sm", !isAdmin && "w-1/2")}
-                        classNames={{ container: classNames(isAdmin && "w-full") }}>
+                        classNames={{ container: classNames(isAdmin && "w-full") }}
+                        data-testid="managed-event-type">
                         <strong className="mb-1 block">{t("managed_event")}</strong>
                         <p>{t("managed_event_description")}</p>
                       </RadioArea.Item>
@@ -305,7 +307,7 @@ export default function CreateEventTypeDialog({
           </div>
           <DialogFooter showDivider>
             <DialogClose />
-            <Button type="submit" loading={createMutation.isLoading}>
+            <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

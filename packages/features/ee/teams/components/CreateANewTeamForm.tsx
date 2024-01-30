@@ -71,7 +71,7 @@ export const CreateANewTeamForm = () => {
       <Form
         form={newTeamFormMethods}
         handleSubmit={(v) => {
-          if (!createTeamMutation.isLoading) {
+          if (!createTeamMutation.isPending) {
             setServerErrorMessage(null);
             createTeamMutation.mutate(v);
           }
@@ -95,7 +95,7 @@ export const CreateANewTeamForm = () => {
                 <TextField
                   disabled={
                     /* E2e is too fast and it tries to fill this way before the form is ready */
-                    !isLocaleReady || createTeamMutation.isLoading
+                    !isLocaleReady || createTeamMutation.isPending
                   }
                   className="mt-2"
                   placeholder="Acme Inc."
@@ -109,6 +109,7 @@ export const CreateANewTeamForm = () => {
                     }
                   }}
                   autoComplete="off"
+                  data-testid="team-name"
                 />
               </>
             )}
@@ -146,18 +147,19 @@ export const CreateANewTeamForm = () => {
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
-            disabled={createTeamMutation.isLoading}
+            disabled={createTeamMutation.isPending}
             color="secondary"
             href={returnToParam}
             className="w-full justify-center">
             {t("cancel")}
           </Button>
           <Button
-            disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isLoading}
+            disabled={newTeamFormMethods.formState.isSubmitting || createTeamMutation.isPending}
             color="primary"
             EndIcon={ArrowRight}
             type="submit"
-            className="w-full justify-center">
+            className="w-full justify-center"
+            data-testid="continue-button">
             {t(flag.submitLabel)}
           </Button>
         </div>

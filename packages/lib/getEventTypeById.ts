@@ -105,6 +105,7 @@ export default async function getEventTypeById({
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
