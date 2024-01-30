@@ -281,6 +281,7 @@ async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser
           }
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
+      schedulingType: eventType.schedulingType,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
