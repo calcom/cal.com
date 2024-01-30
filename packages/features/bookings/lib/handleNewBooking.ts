@@ -1360,6 +1360,11 @@ async function handler(
     }
   }
 
+  if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    loggerWithEventDetails.error(`No available users found for round robin event.`);
+    throw new Error(ErrorCode.NoAvailableUsersFound);
+  }
+
   const [organizerUser] = users;
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
