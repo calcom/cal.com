@@ -1589,10 +1589,13 @@ async function createTeamOutsideOrg(
   });
 }
 
-async function createUserOutsideOrg(data: Omit<Prisma.UserCreateArgs["data"], "organization">) {
+async function createUserOutsideOrg(
+  data: Omit<Prisma.UserCreateArgs["data"], "organization" | "movedToProfile">
+) {
   return await prismock.user.create({
     data: {
       ...data,
+      movedToProfileId: null,
       organizationId: null,
     },
   });
@@ -1625,6 +1628,7 @@ async function createUserInsideTheOrg(
           id: orgId,
         },
       },
+      movedToProfileId: null,
     },
   });
 }
