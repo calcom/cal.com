@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-nocheck - Temporary
 import prismock from "../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
@@ -1604,7 +1602,7 @@ async function createUserOutsideOrg(
 }
 
 async function createUserInsideTheOrg(
-  data: Omit<Prisma.UserUncheckedCreateInput, "organization" | "organizationId" | "id">,
+  data: Omit<Prisma.UserUncheckedCreateInput, "organization" | "organizationId" | "id" | "movedToProfileId">,
   orgId: number
 ) {
   const org = await prismock.team.findUnique({
@@ -1630,7 +1628,6 @@ async function createUserInsideTheOrg(
           id: orgId,
         },
       },
-      movedToProfileId: null,
     },
   });
 }
