@@ -301,7 +301,6 @@ export async function getBusyTimesForLimitChecks(params: {
     where,
     select: {
       id: true,
-      uid: true,
       startTime: true,
       endTime: true,
       eventType: {
