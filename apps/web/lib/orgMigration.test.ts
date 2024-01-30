@@ -15,9 +15,7 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { moveTeamToOrg, moveUserToOrg, removeTeamFromOrg, removeUserFromOrg } from "./orgMigration";
 
 const WEBSITE_PROTOCOL = new URL(WEBSITE_URL).protocol;
-// Skip temporarily till we fix the migration code
-// eslint-disable-next-line playwright/no-skipped-test
-describe.skip("orgMigration", () => {
+describe("orgMigration", () => {
   describe("moveUserToOrg", () => {
     describe("when user email does not match orgAutoAcceptEmail", () => {
       it(`should migrate a user to become a part of an organization with ADMIN role

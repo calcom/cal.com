@@ -29,7 +29,6 @@ export const createAProfileForAnExistingUser = async ({
   const profile = await ProfileRepository.createForExistingUser({
     userId: user.id,
     organizationId,
-    // Use the personal username as the username for the org
     username: usernameInOrg,
     email: user.email,
     movedFromUserId: user.id,
@@ -42,7 +41,10 @@ export const createAProfileForAnExistingUser = async ({
     },
   });
 
-  log.debug("Created profile for user", safeStringify({ userId: user.id, profileId: profile.id }));
+  log.debug(
+    "Created profile for user",
+    safeStringify({ userId: user.id, profileId: profile.id, usernameInOrg, username: user.username })
+  );
 
   const orgSlug = org.slug || org.requestedSlug;
 

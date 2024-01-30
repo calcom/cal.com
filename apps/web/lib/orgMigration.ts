@@ -1,10 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-nocheck - Temporary
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
@@ -329,7 +328,7 @@ async function setOrgSlugIfNotSet(
     slug: string | null;
   },
   orgMetadata: {
-    requestedSlug?: string | undefined;
+    requestedSlug?: string | null | undefined;
   },
   targetOrgId: number
 ) {
@@ -596,6 +595,23 @@ async function dbMoveUserToOrg({
       },
     },
   });
+
+  await ProfileRepository.upsert({
+    create: {
+      userId: userToMoveToOrg.id,
+      organizationId: targetOrgId,
+      username: targetOrgUsername,
+      email: userToMoveToOrg.email,
+    },
+    update: {
+      username: targetOrgUsername,
+      email: userToMoveToOrg.email,
+    },
+    updateWhere: {
+      userId: userToMoveToOrg.id,
+      organizationId: targetOrgId,
+    },
+  });
 }
 
 async function moveTeamsWithoutMembersToOrg({
@@ -829,7 +845,6 @@ async function dbRemoveUserFromOrg({
       id: userToRemoveFromOrg.id,
     },
     data: {
-      //@ts-expect-error - Temporary
       organizationId: null,
       username: nonOrgUserName,
       metadata: {
@@ -843,6 +858,10 @@ async function dbRemoveUserFromOrg({
         },
       },
     },
+  });
+
+  await ProfileRepository.deleteMany({
+    userIds: [userToRemoveFromOrg.id],
   });
 }
 
