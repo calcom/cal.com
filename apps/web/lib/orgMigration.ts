@@ -596,20 +596,32 @@ async function dbMoveUserToOrg({
     },
   });
 
-  await ProfileRepository.upsert({
+  await prisma.profile.upsert({
     create: {
+      uid: ProfileRepository.generateProfileUid(),
       userId: userToMoveToOrg.id,
       organizationId: targetOrgId,
       username: targetOrgUsername,
-      email: userToMoveToOrg.email,
+      movedFromUser: {
+        connect: {
+          id: userToMoveToOrg.id,
+        },
+      },
     },
     update: {
-      username: targetOrgUsername,
-      email: userToMoveToOrg.email,
-    },
-    updateWhere: {
-      userId: userToMoveToOrg.id,
       organizationId: targetOrgId,
+      username: targetOrgUsername,
+      movedFromUser: {
+        connect: {
+          id: userToMoveToOrg.id,
+        },
+      },
+    },
+    where: {
+      userId_organizationId: {
+        userId: userToMoveToOrg.id,
+        organizationId: targetOrgId,
+      },
     },
   });
 }

@@ -134,11 +134,11 @@ model EventType {
 }
 
 model Credential {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   // @@type is deprecated
   type   String
   key    Json
-  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int?
   team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId Int?
@@ -285,23 +285,21 @@ model User {
 
 // It holds Organization Profiles
 model Profile {
-  id                 Int                     @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   // uid allows us to set an identifier chosen by us which is helpful in migration when we create the Profile from User directly.
-  uid                String
-  userId             Int
-  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationId     Int
-  organization       Team                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  username           String
-  eventTypes         EventType[]
+  uid            String
+  userId         Int
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId Int
+  organization   Team        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  username       String
+  eventTypes     EventType[]
 
-  movedFromUserId Int?
-  movedFromUser   User?        @relation("moved_to_profile")
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  movedFromUser User?    @relation("moved_to_profile")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([userId, organizationId])
-  @@unique([movedFromUserId])
   @@index([uid])
   @@index([userId])
   @@index([organizationId])
@@ -835,18 +833,18 @@ model WorkflowStep {
 }
 
 model Workflow {
-  id        Int                     @id @default(autoincrement())
-  position  Int                     @default(0)
-  name      String
-  userId    Int?
-  user      User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team      Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId    Int?
-  activeOn  WorkflowsOnEventTypes[]
-  trigger   WorkflowTriggerEvents
-  time      Int?
-  timeUnit  TimeUnit?
-  steps     WorkflowStep[]
+  id       Int                     @id @default(autoincrement())
+  position Int                     @default(0)
+  name     String
+  userId   Int?
+  user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   Int?
+  activeOn WorkflowsOnEventTypes[]
+  trigger  WorkflowTriggerEvents
+  time     Int?
+  timeUnit TimeUnit?
+  steps    WorkflowStep[]
 
   @@index([userId])
   @@index([teamId])
@@ -940,11 +938,11 @@ model BookingSeat {
 }
 
 model VerifiedNumber {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   userId      Int?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
   teamId      Int?
-  team        Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
 
   @@index([userId])
@@ -1091,14 +1089,14 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id          Int      @id @default(autoincrement())
-  uuid        String   @unique
-  start       DateTime
-  end         DateTime
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId    Int?
-  toUser      User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  id       Int      @id @default(autoincrement())
+  uuid     String   @unique
+  start    DateTime
+  end      DateTime
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId Int?
+  toUser   User?    @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
