@@ -41,419 +41,6 @@ describe("handleNewBooking", () => {
   setupAndTeardown();
 
   describe("Recurring EventType:", () => {
-    describe("Round robin event type:", () => {
-      test("should create successfully bookings that are all assigned to the next available least recently booked user", async () => {
-        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-          .handleRecurringEventBooking;
-        const booker = getBooker({
-          email: "booker@example.com",
-          name: "Booker",
-        });
-
-        const organizer = getOrganizer({
-          name: "Organizer",
-          email: "organizer@example.com",
-          id: 101,
-          // So, that it picks the first schedule from the list
-          defaultScheduleId: null,
-          teams: [
-            {
-              membership: {
-                accepted: true,
-              },
-              team: {
-                id: 1,
-                name: "Team 1",
-                slug: "team-1",
-              },
-            },
-          ],
-          // Has morning shift with some overlap with morning shift
-          schedules: [TestData.schedules.IstMorningShift],
-          credentials: [getGoogleCalendarCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-          destinationCalendar: {
-            integration: TestData.apps["google-calendar"].type,
-            externalId: "organizer@google-calendar.com",
-          },
-        });
-
-        const otherTeamMembers = [
-          {
-            name: "Other Team Member 1",
-            username: "other-team-member-1",
-            timeZone: Timezones["+5:30"],
-            // So, that it picks the first schedule from the list
-            defaultScheduleId: null,
-            email: "other-team-member-1@example.com",
-            id: 102,
-            // Has Evening shift
-            schedules: [TestData.schedules.IstMorningShift],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            destinationCalendar: {
-              integration: TestData.apps["google-calendar"].type,
-              externalId: "other-team-member-1@google-calendar.com",
-            },
-          },
-        ];
-
-        const recurrence = getRecurrence({
-          type: "weekly",
-          numberOfOccurrences: 3,
-        });
-        const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
-        await createBookingScenario(
-          getScenarioData({
-            webhooks: [
-              {
-                userId: organizer.id,
-                eventTriggers: ["BOOKING_CREATED"],
-                subscriberUrl: "http://my-webhook.example.com",
-                active: true,
-                eventTypeId: 1,
-                appId: null,
-              },
-            ],
-            eventTypes: [
-              {
-                id: 1,
-                slotInterval: 30,
-                schedulingType: SchedulingType.ROUND_ROBIN,
-                length: 30,
-                recurringEvent: recurrence,
-                users: [
-                  {
-                    id: 101,
-                  },
-                  {
-                    id: 102,
-                  },
-                ],
-                destinationCalendar: {
-                  integration: "google_calendar",
-                  externalId: "event-type-1@google-calendar.com",
-                },
-              },
-            ],
-            organizer,
-            usersApartFromOrganizer: otherTeamMembers,
-            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-          })
-        );
-
-        mockSuccessfulVideoMeetingCreation({
-          metadataLookupKey: "dailyvideo",
-          videoMeetingData: {
-            id: "MOCK_ID",
-            password: "MOCK_PASS",
-            url: `http://mock-dailyvideo.example.com/meeting-1`,
-          },
-        });
-
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-          },
-        });
-
-        const recurringCountInRequest = 4;
-        const mockBookingData1 = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            start: `${plus1DateString}T04:00:00.000Z`,
-            end: `${plus1DateString}T04:30:00.000Z`,
-            recurringEventId: uuidv4(),
-            recurringCount: recurringCountInRequest,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
-            },
-          },
-        });
-
-        const mockBookingData2 = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            start: `${plus1DateString}T07:00:00.000Z`,
-            end: `${plus1DateString}T07:30:00.000Z`,
-            recurringEventId: uuidv4(),
-            recurringCount: recurringCountInRequest,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
-            },
-          },
-        });
-        const numOfSlotsToBeBooked = 4;
-        const { req, res } = createMockNextJsRequest({
-          method: "POST",
-          body: Array(numOfSlotsToBeBooked)
-            .fill(mockBookingData1)
-            .map((mockBookingData, index) => {
-              return {
-                ...mockBookingData,
-                schedulingType: SchedulingType.ROUND_ROBIN,
-                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
-                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
-              };
-            }),
-        });
-
-        const { req: req1, res: res1 } = createMockNextJsRequest({
-          method: "POST",
-          body: Array(numOfSlotsToBeBooked)
-            .fill(mockBookingData2)
-            .map((mockBookingData, index) => {
-              return {
-                ...mockBookingData,
-                schedulingType: SchedulingType.ROUND_ROBIN,
-                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
-                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
-              };
-            }),
-        });
-
-        const createdBookings1 = await handleRecurringEventBooking(req, res);
-
-        const assignedUserIds1 = createdBookings1.map((booking) => booking.userId);
-
-        const createdBookings2 = await handleRecurringEventBooking(req1, res1);
-
-        const assignedUserIds2 = createdBookings2.map((booking) => booking.userId);
-
-        const allSameHosts = (assignedUserIds: (number | null | undefined)[]) =>
-          assignedUserIds.every((id) => id === assignedUserIds[0]);
-
-        expect(createdBookings1[0].userId).not.toBe(createdBookings2[0].userId);
-        expect(allSameHosts(assignedUserIds1)).toBe(true);
-        expect(allSameHosts(assignedUserIds2)).toBe(true);
-      });
-
-      test(`should create bookings that are all assigned to the least recently booked user that is available on the first two slots,
-            if the least recently booked user is not available on the second slot`, async () => {
-        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
-          .handleRecurringEventBooking;
-        const booker = getBooker({
-          email: "booker@example.com",
-          name: "Booker",
-        });
-
-        const organizer = getOrganizer({
-          name: "Organizer",
-          email: "organizer@example.com",
-          id: 101,
-          // So, that it picks the first schedule from the list
-          defaultScheduleId: null,
-          teams: [
-            {
-              membership: {
-                accepted: true,
-              },
-              team: {
-                id: 1,
-                name: "Team 1",
-                slug: "team-1",
-              },
-            },
-          ],
-          // Has morning shift with some overlap with morning shift
-          schedules: [TestData.schedules.IstMorningShift],
-          credentials: [getGoogleCalendarCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-          destinationCalendar: {
-            integration: TestData.apps["google-calendar"].type,
-            externalId: "organizer@google-calendar.com",
-          },
-        });
-
-        const otherTeamMembers = [
-          {
-            name: "Other Team Member 1",
-            username: "other-team-member-1",
-            timeZone: Timezones["+5:30"],
-            // So, that it picks the first schedule from the list
-            defaultScheduleId: null,
-            email: "other-team-member-1@example.com",
-            id: 102,
-            // Has Evening shift
-            schedules: [TestData.schedules.IstMorningShift],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            destinationCalendar: {
-              integration: TestData.apps["google-calendar"].type,
-              externalId: "other-team-member-1@google-calendar.com",
-            },
-          },
-        ];
-
-        const recurrence = getRecurrence({
-          type: "weekly",
-          numberOfOccurrences: 3,
-        });
-        const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
-        const plus2DateString = getDate({ dateIncrement: 2 }).dateString;
-
-        await createBookingScenario(
-          getScenarioData({
-            webhooks: [
-              {
-                userId: organizer.id,
-                eventTriggers: ["BOOKING_CREATED"],
-                subscriberUrl: "http://my-webhook.example.com",
-                active: true,
-                eventTypeId: 1,
-                appId: null,
-              },
-            ],
-            eventTypes: [
-              {
-                id: 1,
-                slotInterval: 30,
-                schedulingType: SchedulingType.ROUND_ROBIN,
-                length: 30,
-                recurringEvent: recurrence,
-                users: [
-                  {
-                    id: 101,
-                  },
-                  {
-                    id: 102,
-                  },
-                ],
-                destinationCalendar: {
-                  integration: "google_calendar",
-                  externalId: "event-type-1@google-calendar.com",
-                },
-              },
-            ],
-            bookings: [
-              // Create a booking on our Collective Event Type
-              {
-                userId: 101,
-                attendees: [
-                  {
-                    email: "IntegrationTestUser102@example.com",
-                  },
-                ],
-                eventTypeId: 1,
-                status: "ACCEPTED",
-                startTime: `${plus2DateString}T04:00:00.000Z`,
-                endTime: `${plus2DateString}T04:30:00.000Z`,
-              },
-              {
-                userId: 101,
-                attendees: [
-                  {
-                    email: "IntegrationTestUser102@example.com",
-                  },
-                ],
-                eventTypeId: 1,
-                status: "ACCEPTED",
-                startTime: `${plus2DateString}T07:00:00.000Z`,
-                endTime: `${plus2DateString}T07:30:00.000Z`,
-              },
-            ],
-            organizer,
-            usersApartFromOrganizer: otherTeamMembers,
-            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-          })
-        );
-
-        mockSuccessfulVideoMeetingCreation({
-          metadataLookupKey: "dailyvideo",
-          videoMeetingData: {
-            id: "MOCK_ID",
-            password: "MOCK_PASS",
-            url: `http://mock-dailyvideo.example.com/meeting-1`,
-          },
-        });
-
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-          },
-        });
-
-        const recurringCountInRequest = 4;
-        const mockBookingData1 = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            start: `${plus1DateString}T04:00:00.000Z`,
-            end: `${plus1DateString}T04:30:00.000Z`,
-            recurringEventId: uuidv4(),
-            recurringCount: recurringCountInRequest,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
-            },
-          },
-        });
-
-        const mockBookingData2 = getMockRequestDataForBooking({
-          data: {
-            eventTypeId: 1,
-            start: `${plus1DateString}T07:00:00.000Z`,
-            end: `${plus1DateString}T07:30:00.000Z`,
-            recurringEventId: uuidv4(),
-            recurringCount: recurringCountInRequest,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: "integrations:daily" },
-            },
-          },
-        });
-        const numOfSlotsToBeBooked = 4;
-        const { req, res } = createMockNextJsRequest({
-          method: "POST",
-          body: Array(numOfSlotsToBeBooked)
-            .fill(mockBookingData1)
-            .map((mockBookingData, index) => {
-              return {
-                ...mockBookingData,
-                schedulingType: SchedulingType.ROUND_ROBIN,
-                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
-                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
-              };
-            }),
-        });
-
-        const { req: req1, res: res1 } = createMockNextJsRequest({
-          method: "POST",
-          body: Array(numOfSlotsToBeBooked)
-            .fill(mockBookingData2)
-            .map((mockBookingData, index) => {
-              return {
-                ...mockBookingData,
-                schedulingType: SchedulingType.ROUND_ROBIN,
-                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
-                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
-              };
-            }),
-        });
-
-        const createdBookings1 = await handleRecurringEventBooking(req, res);
-
-        const assignedUserIds1 = createdBookings1.map((booking) => booking.userId);
-
-        const createdBookings2 = await handleRecurringEventBooking(req1, res1);
-
-        const assignedUserIds2 = createdBookings2.map((booking) => booking.userId);
-
-        const allSameHosts = (assignedUserIds: (number | null | undefined)[]) =>
-          assignedUserIds.every((id) => id === assignedUserIds[0]);
-
-        expect(createdBookings1[0].userId).toBe(102); // user 101 is busy on the second recurring slot
-        expect(allSameHosts(assignedUserIds1)).toBe(true);
-        expect(allSameHosts(assignedUserIds2)).toBe(true);
-      });
-    });
     describe("User event type:", () => {
       test(
         `should create successful bookings for the number of slots requested
@@ -1221,6 +808,419 @@ describe("handleNewBooking", () => {
         },
         timeout
       );
+    });
+    describe("Round robin event type:", () => {
+      test("should create successfully bookings that are all assigned to the next available least recently booked user", async () => {
+        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
+          .handleRecurringEventBooking;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          // So, that it picks the first schedule from the list
+          defaultScheduleId: null,
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+              },
+            },
+          ],
+          // Has morning shift with some overlap with morning shift
+          schedules: [TestData.schedules.IstMorningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "organizer@google-calendar.com",
+          },
+        });
+
+        const otherTeamMembers = [
+          {
+            name: "Other Team Member 1",
+            username: "other-team-member-1",
+            timeZone: Timezones["+5:30"],
+            // So, that it picks the first schedule from the list
+            defaultScheduleId: null,
+            email: "other-team-member-1@example.com",
+            id: 102,
+            // Has Evening shift
+            schedules: [TestData.schedules.IstMorningShift],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: TestData.apps["google-calendar"].type,
+              externalId: "other-team-member-1@google-calendar.com",
+            },
+          },
+        ];
+
+        const recurrence = getRecurrence({
+          type: "weekly",
+          numberOfOccurrences: 3,
+        });
+        const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                length: 30,
+                recurringEvent: recurrence,
+                users: [
+                  {
+                    id: 101,
+                  },
+                  {
+                    id: 102,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: "google_calendar",
+                  externalId: "event-type-1@google-calendar.com",
+                },
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: otherTeamMembers,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          },
+        });
+
+        const recurringCountInRequest = 4;
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            start: `${plus1DateString}T04:00:00.000Z`,
+            end: `${plus1DateString}T04:30:00.000Z`,
+            recurringEventId: uuidv4(),
+            recurringCount: recurringCountInRequest,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            start: `${plus1DateString}T07:00:00.000Z`,
+            end: `${plus1DateString}T07:30:00.000Z`,
+            recurringEventId: uuidv4(),
+            recurringCount: recurringCountInRequest,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+        const numOfSlotsToBeBooked = 4;
+        const { req, res } = createMockNextJsRequest({
+          method: "POST",
+          body: Array(numOfSlotsToBeBooked)
+            .fill(mockBookingData1)
+            .map((mockBookingData, index) => {
+              return {
+                ...mockBookingData,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
+                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
+              };
+            }),
+        });
+
+        const { req: req1, res: res1 } = createMockNextJsRequest({
+          method: "POST",
+          body: Array(numOfSlotsToBeBooked)
+            .fill(mockBookingData2)
+            .map((mockBookingData, index) => {
+              return {
+                ...mockBookingData,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
+                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
+              };
+            }),
+        });
+
+        const createdBookings1 = await handleRecurringEventBooking(req, res);
+
+        const assignedUserIds1 = createdBookings1.map((booking) => booking.userId);
+
+        const createdBookings2 = await handleRecurringEventBooking(req1, res1);
+
+        const assignedUserIds2 = createdBookings2.map((booking) => booking.userId);
+
+        const allSameHosts = (assignedUserIds: (number | null | undefined)[]) =>
+          assignedUserIds.every((id) => id === assignedUserIds[0]);
+
+        expect(createdBookings1[0].userId).not.toBe(createdBookings2[0].userId);
+        expect(allSameHosts(assignedUserIds1)).toBe(true);
+        expect(allSameHosts(assignedUserIds2)).toBe(true);
+      });
+
+      test(`should create bookings that are all assigned to the least recently booked user that is available on the first two slots,
+            if the least recently booked user is not available on the second slot`, async () => {
+        const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
+          .handleRecurringEventBooking;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          // So, that it picks the first schedule from the list
+          defaultScheduleId: null,
+          teams: [
+            {
+              membership: {
+                accepted: true,
+              },
+              team: {
+                id: 1,
+                name: "Team 1",
+                slug: "team-1",
+              },
+            },
+          ],
+          // Has morning shift with some overlap with morning shift
+          schedules: [TestData.schedules.IstMorningShift],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "organizer@google-calendar.com",
+          },
+        });
+
+        const otherTeamMembers = [
+          {
+            name: "Other Team Member 1",
+            username: "other-team-member-1",
+            timeZone: Timezones["+5:30"],
+            // So, that it picks the first schedule from the list
+            defaultScheduleId: null,
+            email: "other-team-member-1@example.com",
+            id: 102,
+            // Has Evening shift
+            schedules: [TestData.schedules.IstMorningShift],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: TestData.apps["google-calendar"].type,
+              externalId: "other-team-member-1@google-calendar.com",
+            },
+          },
+        ];
+
+        const recurrence = getRecurrence({
+          type: "weekly",
+          numberOfOccurrences: 3,
+        });
+        const plus1DateString = getDate({ dateIncrement: 1 }).dateString;
+        const plus2DateString = getDate({ dateIncrement: 2 }).dateString;
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                length: 30,
+                recurringEvent: recurrence,
+                users: [
+                  {
+                    id: 101,
+                  },
+                  {
+                    id: 102,
+                  },
+                ],
+                destinationCalendar: {
+                  integration: "google_calendar",
+                  externalId: "event-type-1@google-calendar.com",
+                },
+              },
+            ],
+            bookings: [
+              // Create a booking on our Collective Event Type
+              {
+                userId: 101,
+                attendees: [
+                  {
+                    email: "IntegrationTestUser102@example.com",
+                  },
+                ],
+                eventTypeId: 1,
+                status: "ACCEPTED",
+                startTime: `${plus2DateString}T04:00:00.000Z`,
+                endTime: `${plus2DateString}T04:30:00.000Z`,
+              },
+              {
+                userId: 101,
+                attendees: [
+                  {
+                    email: "IntegrationTestUser102@example.com",
+                  },
+                ],
+                eventTypeId: 1,
+                status: "ACCEPTED",
+                startTime: `${plus2DateString}T07:00:00.000Z`,
+                endTime: `${plus2DateString}T07:30:00.000Z`,
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: otherTeamMembers,
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          },
+        });
+
+        const recurringCountInRequest = 4;
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            start: `${plus1DateString}T04:00:00.000Z`,
+            end: `${plus1DateString}T04:30:00.000Z`,
+            recurringEventId: uuidv4(),
+            recurringCount: recurringCountInRequest,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            start: `${plus1DateString}T07:00:00.000Z`,
+            end: `${plus1DateString}T07:30:00.000Z`,
+            recurringEventId: uuidv4(),
+            recurringCount: recurringCountInRequest,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: "integrations:daily" },
+            },
+          },
+        });
+        const numOfSlotsToBeBooked = 4;
+        const { req, res } = createMockNextJsRequest({
+          method: "POST",
+          body: Array(numOfSlotsToBeBooked)
+            .fill(mockBookingData1)
+            .map((mockBookingData, index) => {
+              return {
+                ...mockBookingData,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
+                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
+              };
+            }),
+        });
+
+        const { req: req1, res: res1 } = createMockNextJsRequest({
+          method: "POST",
+          body: Array(numOfSlotsToBeBooked)
+            .fill(mockBookingData2)
+            .map((mockBookingData, index) => {
+              return {
+                ...mockBookingData,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                start: getPlusDayDate(mockBookingData.start, index).toISOString(),
+                end: getPlusDayDate(mockBookingData.end, index).toISOString(),
+              };
+            }),
+        });
+
+        const createdBookings1 = await handleRecurringEventBooking(req, res);
+
+        const assignedUserIds1 = createdBookings1.map((booking) => booking.userId);
+
+        const createdBookings2 = await handleRecurringEventBooking(req1, res1);
+
+        const assignedUserIds2 = createdBookings2.map((booking) => booking.userId);
+
+        const allSameHosts = (assignedUserIds: (number | null | undefined)[]) =>
+          assignedUserIds.every((id) => id === assignedUserIds[0]);
+
+        expect(createdBookings1[0].userId).toBe(102); // user 101 is busy on the second recurring slot
+        expect(allSameHosts(assignedUserIds1)).toBe(true);
+        expect(allSameHosts(assignedUserIds2)).toBe(true);
+      });
     });
   });
 
