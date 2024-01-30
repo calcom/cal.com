@@ -189,14 +189,20 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
-      formMethods.setValue(
-        "children",
-        formMethods.getValues().children.map((child) => ({
-          ...child,
-          created: true,
-        }))
-      );
-      formMethods.setValue("assignAllTeamMembers", formMethods.getValues("assignAllTeamMembers") || false);
+      // Get current form values
+      const currentValues = formMethods.getValues();
+
+      // Optionally modify values if necessary
+      currentValues.children = currentValues.children.map((child) => ({
+        ...child,
+        created: true,
+      }));
+      currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
+
+      // Reset the form with these values as new default values
+      formMethods.reset(currentValues);
+
+      // Show success toast
       showToast(t("event_type_updated_successfully", { eventTypeTitle: eventType.title }), "success");
     },
     async onSettled() {
