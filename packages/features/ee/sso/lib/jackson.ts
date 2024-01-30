@@ -1,14 +1,14 @@
-import jackson from "@boxyhq/saml-jackson";
 import type {
   IConnectionAPIController,
   IOAuthController,
+  ISPSSOConfig,
   JacksonOption,
-  ISPSAMLConfig,
 } from "@boxyhq/saml-jackson";
+import jackson from "@boxyhq/saml-jackson";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { samlDatabaseUrl, samlAudience, samlPath, oidcPath, clientSecretVerifier } from "./saml";
+import { clientSecretVerifier, oidcPath, samlAudience, samlDatabaseUrl, samlPath } from "./saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
@@ -24,13 +24,17 @@ const opts: JacksonOption = {
   },
   idpEnabled: true,
   clientSecretVerifier,
+  ory: {
+    projectId: undefined,
+    sdkToken: undefined,
+  },
 };
 
 declare global {
   /* eslint-disable no-var */
   var connectionController: IConnectionAPIController | undefined;
   var oauthController: IOAuthController | undefined;
-  var samlSPConfig: ISPSAMLConfig | undefined;
+  var samlSPConfig: ISPSSOConfig | undefined;
   /* eslint-enable no-var */
 }
 
