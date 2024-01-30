@@ -22,6 +22,7 @@ export function processWorkingHours({
   dateTo: Dayjs;
 }) {
   const utcDateTo = dateTo.utc();
+  const dateToWithTz = dateTo.tz(timeZone);
   const results = [];
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
@@ -46,7 +47,7 @@ export function processWorkingHours({
     end = end.add(offsetDiff, "minute");
 
     const startResult = dayjs.max(start, dateFrom);
-    const endResult = dayjs.min(end, dateTo.tz(timeZone));
+    const endResult = dayjs.min(end, dateToWithTz);
 
     if (endResult.isBefore(startResult)) {
       // if an event ends before start, it's not a result.
