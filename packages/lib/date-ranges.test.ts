@@ -14,10 +14,10 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs.utc().startOf("day").day(2).add(1, "week");
+    const dateFromWithTz = dayjs.utc().startOf("day").day(2).add(1, "week").tz(timeZone);
     const dateTo = dayjs.utc().endOf("day").day(3).add(1, "week");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFromWithTz, dateTo });
 
     expect(results.length).toBe(2); // There should be two working days between the range
     // "America/New_York" day shifts -1, so we need to add a day to correct this shift.
@@ -39,10 +39,10 @@ describe("processWorkingHours", () => {
 
     const timeZone = "Europe/London";
 
-    const dateFrom = dayjs().month(9).date(24); // starts before DST change
+    const dateFromWithTz = dayjs().month(9).date(24).tz(timeZone); // starts before DST change
     const dateTo = dayjs().startOf("day").month(10).date(1); // first day of November
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFromWithTz, dateTo });
 
     const lastAvailableSlot = results[results.length - 1];
 
@@ -60,10 +60,10 @@ describe("processWorkingHours", () => {
 
     const timeZone = "America/New_York";
 
-    const dateFrom = dayjs();
+    const dateFromWithTz = dayjs().tz(timeZone);
     const dateTo = dayjs().endOf("month");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFromWithTz, dateTo });
 
     expect(results).toStrictEqual([
       {
@@ -164,10 +164,10 @@ describe("processWorkingHours", () => {
       firstSundayOfNovember = firstSundayOfNovember.add(1, "day");
     }
 
-    const dateFrom = dayjs().month(10).date(1).startOf("day");
+    const dateFromWithTz = dayjs().month(10).date(1).startOf("day").tz(timeZone);
     const dateTo = dayjs().month(10).endOf("month");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFromWithTz, dateTo });
 
     const allDSTStartAt12 = results
       .filter((res) => res.start.isBefore(firstSundayOfNovember))
@@ -188,10 +188,10 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
+    const dateFromWithTz = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
     const dateTo = dayjs("2023-11-08T00:00:00Z").tz(timeZone); // 2023-11-08T00:00:00 (America/New_York)
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFromWithTz, dateTo });
 
     expect(results).toEqual([]);
   });
@@ -204,10 +204,10 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
+    const dateFromWithTz = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
     const dateTo = dayjs("2023-11-07T23:59:59Z").tz(timeZone); // 2023-11-07T23:59:59 (America/New_York)
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFromWithTz, dateTo });
 
     expect(results).toEqual([]);
   });

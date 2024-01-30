@@ -13,19 +13,19 @@ export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 export function processWorkingHours({
   item,
   timeZone,
-  dateFrom,
+  dateFromWithTz,
   dateTo,
 }: {
   item: WorkingHours;
   timeZone: string;
-  dateFrom: Dayjs;
+  dateFromWithTz: Dayjs;
   dateTo: Dayjs;
 }) {
   const utcDateTo = dateTo.utc();
   const dateToWithTz = dateTo.tz(timeZone);
   const results = [];
-  const fromOffset = dateFrom.startOf("day").utcOffset();
-  for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
+  const fromOffset = dateFromWithTz.startOf("day").utcOffset();
+  for (let date = dateFromWithTz.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const offset = date.tz(timeZone).utcOffset();
 
     // it always has to be start of the day (midnight) even when DST changes
@@ -46,7 +46,7 @@ export function processWorkingHours({
     start = start.add(offsetDiff, "minute");
     end = end.add(offsetDiff, "minute");
 
-    const startResult = dayjs.max(start, dateFrom);
+    const startResult = dayjs.max(start, dateFromWithTz);
     const endResult = dayjs.min(end, dateToWithTz);
 
     if (endResult.isBefore(startResult)) {
@@ -99,7 +99,7 @@ export function buildDateRanges({
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
         processed = processed.concat(
-          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo })
+          processWorkingHours({ item, timeZone, dateFromWithTz: dateFromOrganizerTZ, dateTo })
         );
       }
       return processed;
