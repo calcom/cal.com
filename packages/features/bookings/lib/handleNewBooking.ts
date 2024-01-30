@@ -1351,7 +1351,7 @@ async function handler(
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
       luckyUserResponse = { luckyUsers };
-    } else if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
         ? luckyUserPool.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
