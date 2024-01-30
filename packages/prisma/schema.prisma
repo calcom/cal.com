@@ -500,13 +500,13 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       Int
-  integration  String
-  externalId   String
-  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId Int?
-  metadata     Json?
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  integration     String
+  externalId      String
+  credential      Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId    Int?
+  googleChannelId String?     @unique
 
   @@id([userId, integration, externalId])
   @@index([userId])

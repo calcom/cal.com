@@ -76,11 +76,11 @@ async function postHandler(req: CustomNextApiRequest) {
       integration,
       externalId,
       credentialId,
-      metadata: response,
+      googleChannelId: response?.id,
     },
     // already exists
     update: {
-      metadata: response,
+      googleChannelId: response?.id,
     },
   });
 

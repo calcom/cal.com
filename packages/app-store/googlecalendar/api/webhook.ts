@@ -17,12 +17,9 @@ async function postHandler(req: NextApiRequest) {
    * TODO: Handle resubscription when channel expires
     "x-goog-channel-expiration": "Tue, 24 Oct 2023 03:34:14 GMT",
    */
-  const selectedCalendar = await prisma.selectedCalendar.findFirst({
+  const selectedCalendar = await prisma.selectedCalendar.findUnique({
     where: {
-      metadata: {
-        path: ["id"],
-        equals: req.headers["x-goog-channel-id"],
-      },
+      googleChannelId: req.headers["x-goog-channel-id"],
     },
     select: {
       credential: {
