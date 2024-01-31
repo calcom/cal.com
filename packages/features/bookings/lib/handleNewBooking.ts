@@ -102,7 +102,7 @@ import type { BookingSeat } from "./handleSeats/types";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
-type UserType = Prisma.UserGetPayload<typeof userSelect>;
+type User = Prisma.UserGetPayload<typeof userSelect>;
 type BufferedBusyTimes = BufferedBusyTime[];
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
@@ -187,7 +187,7 @@ export async function refreshCredentials(
  *
  */
 const getAllCredentials = async (
-  user: UserType & { credentials: CredentialPayload[] },
+  user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
   const allCredentials = user.credentials;
@@ -397,7 +397,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = UserType & {
+type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
   organization: { slug: string };
@@ -2413,11 +2413,11 @@ export const findUsersByUsername = async ({
   orgSlug: string | null;
   usernameList: string[];
 }) => {
+  log.debug("findUsersByUsername", { usernameList, orgSlug });
   const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });
-  logger.debug("Querying User", { where });
   return (
     await prisma.user.findMany({
       where,

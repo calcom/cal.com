@@ -181,7 +181,6 @@ export const getPublicEvent = async (
     };
   }
 
-  console.log("getPublicEvent", { orgQuery });
   const usersOrTeamQuery = isTeamEvent
     ? {
         team: {
@@ -216,7 +215,7 @@ export const getPublicEvent = async (
     },
     select: publicEventSelect,
   });
-  console.log("getPublicEvent", JSON.stringify({ event, usersOrTeamQuery }));
+
   if (!event) return null;
 
   const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});

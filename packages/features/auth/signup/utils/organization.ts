@@ -1,8 +1,12 @@
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: number; orgId: number }) {
+import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
+
+export async function joinAnyChildTeamOnOrgInvite({ userId, org }: { userId: number; org: Team }) {
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -11,6 +15,12 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
   if (!user) {
     throw new Error("User not found");
   }
+
+  const orgMetadata = teamMetadataSchema.parse(org.metadata);
+
+  const orgUsername =
+    user.username || getOrgUsernameFromEmail(user.email, orgMetadata?.orgAutoAcceptEmail ?? null);
+
   await prisma.$transaction([
     // Simply remove this update when we remove the `organizationId` field from the user table
     prisma.user.update({
@@ -18,23 +28,23 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
         id: userId,
       },
       data: {
-        organizationId: orgId,
+        organizationId: org.id,
       },
     }),
     prisma.profile.upsert({
       create: {
         uid: ProfileRepository.generateProfileUid(),
         userId: userId,
-        organizationId: orgId,
-        username: user.username || user.email.split("@")[0],
+        organizationId: org.id,
+        username: orgUsername,
       },
       update: {
-        username: user.username || user.email.split("@")[0],
+        username: orgUsername,
       },
       where: {
         userId_organizationId: {
           userId: user.id,
-          organizationId: orgId,
+          organizationId: org.id,
         },
       },
     }),
@@ -42,7 +52,7 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
       where: {
         userId,
         team: {
-          id: orgId,
+          id: org.id,
         },
         accepted: false,
       },
@@ -54,7 +64,7 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
       where: {
         userId,
         team: {
-          parentId: orgId,
+          parentId: org.id,
         },
         accepted: false,
       },
@@ -64,5 +74,5 @@ export async function joinAnyChildTeamOnOrgInvite({ userId, orgId }: { userId: n
     }),
   ]);
 
-  await updateNewTeamMemberEventTypes(userId, orgId);
+  await updateNewTeamMemberEventTypes(userId, org.id);
 }

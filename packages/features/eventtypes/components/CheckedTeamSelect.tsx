@@ -24,6 +24,7 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
 
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+
   return (
     <>
       <Select

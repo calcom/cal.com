@@ -458,6 +458,25 @@ export class ProfileRepository {
       organization: null,
     };
   }
+
+  static _getPrismaWhereForProfilesOfOrg({ orgSlug }: { orgSlug: string | null }) {
+    return {
+      profiles: {
+        ...(orgSlug
+          ? {
+              some: {
+                organization: {
+                  slug: orgSlug,
+                },
+              },
+            }
+          : // If it's not orgSlug we want to ensure that no profile is there. Having a profile means that the user is a member of some organization.
+            {
+              none: {},
+            }),
+      },
+    };
+  }
 }
 
 export const normalizeProfile = <

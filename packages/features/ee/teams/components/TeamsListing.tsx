@@ -58,7 +58,7 @@ export function TeamsListing() {
       const isThereASubTeamOfTheOrganizationInInvites = teamInvites.find(
         (teamInvite) => teamInvite.parentId === orgInvite.id
       );
-      // Accepting a subteam invite automatically accepts the invite for the parent organization
+      // Accepting a subteam invite automatically accepts the invite for the parent organization. So, need to show such an organization's invite
       return !isThereASubTeamOfTheOrganizationInInvites;
     }
   );
