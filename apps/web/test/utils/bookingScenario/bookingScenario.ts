@@ -48,11 +48,15 @@ type InputWorkflow = {
   action: WorkflowActions;
   template: WorkflowTemplates;
 };
+
+type InputHost = {
+  userId: number;
+  isFixed: boolean;
+};
 /**
  * Data to be mocked
  */
 export type ScenarioData = {
-  // hosts: { id: number; eventTypeId?: number; userId?: number; isFixed?: boolean }[];
   /**
    * Prisma would return these eventTypes
    */
@@ -117,7 +121,7 @@ export type InputEventType = {
    * These user ids are `ScenarioData["users"]["id"]`
    */
   users?: { id: number }[];
-  hosts?: { id: number }[];
+  hosts?: InputHost[];
   schedulingType?: SchedulingType;
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
@@ -158,6 +162,22 @@ export const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
 };
+
+async function addHostsToDb(eventTypes: InputEventType[]) {
+  for (const eventType of eventTypes) {
+    if (eventType.hosts) {
+      if (eventType.hosts.length > 0) {
+        await prismock.host.createMany({
+          data: eventType.hosts.map((host) => ({
+            userId: host.userId,
+            eventTypeId: eventType.id,
+            isFixed: host.isFixed,
+          })),
+        });
+      }
+    }
+  }
+}
 
 async function addEventTypesToDb(
   eventTypes: (Omit<
@@ -575,6 +595,7 @@ export async function createBookingScenario(data: ScenarioData) {
     );
   }
   const eventTypes = await addEventTypes(data.eventTypes, data.users);
+  addHostsToDb(data.eventTypes);
 
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();
@@ -951,8 +972,7 @@ export function getScenarioData(
     webhooks,
     workflows,
     bookings,
-  }: // hosts = [],
-  {
+  }: {
     organizer: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
@@ -960,7 +980,6 @@ export function getScenarioData(
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
-    // hosts?: ScenarioData["hosts"];
   },
   org?: { id: number | null } | undefined | null
 ) {
@@ -981,7 +1000,6 @@ export function getScenarioData(
     }
   });
   return {
-    // hosts: [...hosts],
     eventTypes: eventTypes.map((eventType, index) => {
       return {
         ...eventType,

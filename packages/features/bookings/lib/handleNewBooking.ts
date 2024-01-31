@@ -1252,15 +1252,30 @@ async function handler(
         },
       }),
     };
-    if (req.body.allRecurringDates && eventType.schedulingType !== SchedulingType.ROUND_ROBIN) {
-      if (req.body.isFirstRecurringSlot) {
-        for (
-          let i = 0;
-          i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
-          i++
-        ) {
-          const start = req.body.allRecurringDates[i].start;
-          const end = req.body.allRecurringDates[i].end;
+    if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
+      for (
+        let i = 0;
+        i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+        i++
+      ) {
+        const start = req.body.allRecurringDates[i].start;
+        const end = req.body.allRecurringDates[i].end;
+        if (eventType.schedulingType == SchedulingType.ROUND_ROBIN) {
+          const fixedUsers = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
+          // each fixed user must be available
+          for (const key in fixedUsers) {
+            await ensureAvailableUsers(
+              { ...eventTypeWithUsers, users: [fixedUsers[key]] },
+              {
+                dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                timeZone: reqBody.timeZone,
+                originalRescheduledBooking,
+              },
+              loggerWithEventDetails
+            );
+          }
+        } else {
           await ensureAvailableUsers(
             eventTypeWithUsers,
             {
