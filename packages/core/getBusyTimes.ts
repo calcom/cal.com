@@ -2,7 +2,6 @@ import type { Booking, EventType } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { subtract } from "@calcom/lib/date-ranges";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
@@ -265,22 +264,20 @@ export async function getBusyTimes(params: {
 
 export async function getBusyTimesForLimitChecks(params: {
   userIds: number[];
-  // TODO: Fix this. Currently 2 places calling this function that use different data structures
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  eventType: any;
+  eventTypeId: number;
   startDate: string;
   endDate: string;
   rescheduleUid?: string | null;
+  bookingLimits?: IntervalLimit | null;
+  durationLimits?: IntervalLimit | null;
 }) {
-  const { userIds, eventType, startDate, endDate, rescheduleUid } = params;
+  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
   const startTimeAsDayJs = stringToDayjs(startDate);
   const endTimeAsDayJs = stringToDayjs(endDate);
 
   performance.mark("getBusyTimesForLimitChecksStart");
 
   let busyTimes: EventBusyDetails[] = [];
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
 
   if (!bookingLimits && !durationLimits) {
     return busyTimes;
@@ -300,7 +297,7 @@ export async function getBusyTimesForLimitChecks(params: {
   }
   logger.silly(
     `Fetch limit checks bookings in range ${limitDateFrom} to ${limitDateTo} for input ${JSON.stringify({
-      eventTypeId: eventType?.id,
+      eventTypeId,
       status: BookingStatus.ACCEPTED,
     })}`
   );
@@ -309,7 +306,7 @@ export async function getBusyTimesForLimitChecks(params: {
     userId: {
       in: userIds,
     },
-    eventTypeId: eventType.id,
+    eventTypeId,
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
@@ -350,7 +347,7 @@ export async function getBusyTimesForLimitChecks(params: {
     userId,
   }));
 
-  logger.silly(`Fetch limit checks bookings for eventId: ${eventType.id} ${JSON.stringify(busyTimes)}`);
+  logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
   performance.mark("getBusyTimesForLimitChecksEnd");
   performance.measure(
     `prisma booking get for limits took $1'`,

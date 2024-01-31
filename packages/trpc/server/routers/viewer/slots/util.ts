@@ -10,6 +10,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -389,12 +390,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+
   const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
     userIds: allUserIds,
-    eventType,
+    eventTypeId: eventType.id,
     startDate: startTime.format(),
     endDate: endTime.format(),
     rescheduleUid: input.rescheduleUid,
+    bookingLimits,
+    durationLimits,
   });
 
   /* We get all users working hours and busy slots */

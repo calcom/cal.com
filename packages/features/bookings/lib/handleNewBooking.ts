@@ -54,6 +54,7 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -463,12 +464,17 @@ export async function ensureAvailableUsers(
       )
     : undefined;
 
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+
   const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
     userIds: eventType.users.map((u) => u.id),
-    eventType,
+    eventTypeId: eventType.id,
     startDate: input.dateFrom,
     endDate: input.dateTo,
     rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+    bookingLimits,
+    durationLimits,
   });
 
   /** Let's start checking for availability */
