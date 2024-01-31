@@ -6,6 +6,7 @@ import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AppCategories } from "@calcom/prisma/enums";
 import { Button, StepCard } from "@calcom/ui";
 
 import useAppsData from "@lib/hooks/useAppsData";
@@ -15,12 +16,21 @@ export type ConfigureEventTypeProp = EventTypeAppSettingsComponentProps["eventTy
 
 type ConfigureStepCardProps = {
   slug: string;
+  categories: AppCategories[];
+  credentialId?: number;
   eventType: ConfigureEventTypeProp;
   onSave: (data: Record<string, unknown>) => void;
   loading?: boolean;
 };
 
-export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({ slug, eventType, onSave, loading }) => {
+export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({
+  slug,
+  categories,
+  credentialId,
+  eventType,
+  onSave,
+  loading,
+}) => {
   const { t } = useLocale();
   const { getAppDataGetter, getAppDataSetter } = useAppsData();
   const { shouldLockDisableProps } = useLockedFieldsManager(
@@ -37,7 +47,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = ({ slug, eventType,
         disabled={shouldLockDisableProps("apps").disabled}
         eventType={eventType}
         getAppData={getAppDataGetter(slug as EventTypeAppsList)}
-        setAppData={getAppDataSetter(slug as EventTypeAppsList)}
+        setAppData={getAppDataSetter(slug as EventTypeAppsList, categories, credentialId)}
       />
       <Button
         className="text-md mt-6 w-full justify-center"

@@ -84,6 +84,7 @@ type OnboardingPageProps = {
   userName: string;
   hasEventTypes: boolean;
   configureEventType: ConfigureEventTypeProp | null;
+  credentialId?: number;
 };
 
 const getRedirectUrl = (slug: string, step: StepType, teamId?: number, eventTypeId?: number) => {
@@ -103,6 +104,7 @@ const OnboardingPage = ({
   userName,
   hasEventTypes,
   configureEventType,
+  credentialId,
 }: OnboardingPageProps) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -234,6 +236,8 @@ const OnboardingPage = ({
               <FormProvider {...methods}>
                 <ConfigureStepCard
                   slug={appMetadata.slug}
+                  categories={appMetadata.categories}
+                  credentialId={credentialId}
                   eventType={configureEventType}
                   onSave={handleSaveSettings}
                   loading={isSaving}
@@ -478,6 +482,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         userName: user.username,
         hasEventTypes,
         configureEventType: eventType,
+        credentialId: parsedTeamIdParam ? teamsWithIsAppInstalled[0]?.id : appInstalls[0]?.id,
       } as OnboardingPageProps,
     };
   } catch (err) {
