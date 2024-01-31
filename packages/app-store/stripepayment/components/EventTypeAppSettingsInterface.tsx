@@ -65,7 +65,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         <>
           <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
             <TextField
-              data-testid="price-input-stripe"
+              data-testid="stripe-price-input"
               label={t("price")}
               className="h-[38px]"
               addOnLeading={
@@ -90,7 +90,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               {t("currency")}
             </label>
             <Select
-              data-testid="currency-select-stripe"
+              data-testid="stripe-currency-select"
               variant="default"
               options={currencyOptions}
               value={selectedCurrency}
@@ -109,6 +109,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               Payment option
             </label>
             <Select<Option>
+              data-testid="stripe-payment-option-select"
               defaultValue={
                 paymentOptionSelectValue
                   ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }

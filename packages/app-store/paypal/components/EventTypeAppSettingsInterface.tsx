@@ -6,6 +6,7 @@ import {
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
 import { PaypalPaymentOptions as paymentOptions } from "../zod";
@@ -68,6 +69,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           required
           className="block w-full rounded-sm pl-2 text-sm"
           placeholder="Price"
+          data-testid="paypal-price-input"
           onChange={(e) => {
             setAppData("price", Number(e.target.value) * 100);
             if (selectedCurrency) {
@@ -83,6 +85,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         </label>
         <Select
           variant="default"
+          data-testid="paypal-currency-select"
           options={currencyOptions}
           value={selectedCurrency}
           className="text-black"
@@ -102,6 +105,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           Payment option
         </label>
         <Select<Option>
+          data-testid="paypal-payment-option-select"
           defaultValue={
             paymentOptionSelectValue
               ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }
