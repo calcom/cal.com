@@ -4,7 +4,6 @@ import type {
   ISPSSOConfig,
   JacksonOption,
 } from "@boxyhq/saml-jackson";
-import jackson from "@boxyhq/saml-jackson";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -40,7 +39,7 @@ declare global {
 
 export default async function init() {
   if (!globalThis.connectionController || !globalThis.oauthController || !globalThis.samlSPConfig) {
-    const ret = await jackson(opts);
+    const ret = await (await import("@boxyhq/saml-jackson")).controllers(opts);
     globalThis.connectionController = ret.connectionAPIController;
     globalThis.oauthController = ret.oauthController;
     globalThis.samlSPConfig = ret.spConfig;
