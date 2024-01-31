@@ -51,7 +51,7 @@ type InputWorkflow = {
 
 type InputHost = {
   userId: number;
-  isFixed: boolean;
+  isFixed?: boolean;
 };
 /**
  * Data to be mocked
@@ -171,7 +171,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
           data: eventType.hosts.map((host) => ({
             userId: host.userId,
             eventTypeId: eventType.id,
-            isFixed: host.isFixed,
+            isFixed: host.isFixed ?? false,
           })),
         });
       }
