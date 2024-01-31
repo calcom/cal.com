@@ -26,4 +26,21 @@ export class EventTypesService {
 
     return this.eventTypesRepository.getUserEventTypeForAtom(user.id, isUserOrganizationAdmin, eventTypeId);
   }
+
+  async createUserDefaultEventTypes(userId: number) {
+    const thirtyMinutes = DEFAULT_EVENT_TYPES.thirtyMinutes;
+    const sixtyMinutes = DEFAULT_EVENT_TYPES.sixtyMinutes;
+
+    const defaultEventTypes = await Promise.all([
+      this.eventTypesRepository.createUserEventType(userId, thirtyMinutes),
+      this.eventTypesRepository.createUserEventType(userId, sixtyMinutes),
+    ]);
+
+    return defaultEventTypes;
+  }
 }
+
+export const DEFAULT_EVENT_TYPES = {
+  thirtyMinutes: { length: 30, slug: "thirty-minutes", title: "30 Minutes" },
+  sixtyMinutes: { length: 60, slug: "sixty-minutes", title: "60 Minutes" },
+};

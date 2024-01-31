@@ -13,6 +13,14 @@ export class EventTypesRepositoryFixture {
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
+  async getAllUserEventTypes(userId: number) {
+    return this.prismaWriteClient.eventType.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async create(data: CreateEventTypeInput, userId: number) {
     return this.prismaWriteClient.eventType.create({
       data: {

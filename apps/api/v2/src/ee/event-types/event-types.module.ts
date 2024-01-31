@@ -9,5 +9,6 @@ import { Module } from "@nestjs/common";
   imports: [PrismaModule, MembershipsModule],
   providers: [EventTypesRepository, EventTypesService],
   controllers: [EventTypesController],
+  exports: [EventTypesService],
 })
 export class EventTypesModule {}
