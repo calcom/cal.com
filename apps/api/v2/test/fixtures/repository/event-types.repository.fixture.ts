@@ -1,8 +1,8 @@
+import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
-import { CreateEventTypeInput } from "dist/ee/event-types/inputs/create-event-type.input";
 
 export class EventTypesRepositoryFixture {
   private primaReadClient: PrismaReadService["prisma"];

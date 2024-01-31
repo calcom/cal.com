@@ -1,34 +1,44 @@
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { User } from "@prisma/client";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 
 @Injectable()
 export class EventTypesRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly membershipsRepository: MembershipsRepository
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaReadService) {}
 
-  async getUserEventType(user: User, eventTypeId: number) {
+  async createUserEventType(userId: number, body: CreateEventTypeInput) {
+    return this.dbWrite.prisma.eventType.create({
+      data: {
+        ...body,
+        userId,
+        users: { connect: { id: userId } },
+      },
+    });
+  }
+
+  async getUserEventType(userId: number, eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        userId,
+      },
+    });
+  }
+
+  async getUserEventTypeForAtom(userId: number, isUserOrganizationAdmin: boolean, eventTypeId: number) {
     try {
-      const isUserOrganizationAdmin = user?.organizationId
-        ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, user.organizationId)
-        : false;
-
-      const eventType = await getEventTypeById({
+      return getEventTypeById({
         eventTypeId,
-        userId: user.id,
+        userId,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         prisma: this.dbRead.prisma,
         isUserOrganizationAdmin,
       });
-      return eventType;
     } catch (error) {
-      throw new NotFoundException(`User with id ${user.id} has no event type with id ${eventTypeId}`);
+      throw new NotFoundException(`User with id ${userId} has no event type with id ${eventTypeId}`);
     }
   }
 }
