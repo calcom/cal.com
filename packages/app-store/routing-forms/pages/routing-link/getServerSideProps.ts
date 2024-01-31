@@ -3,6 +3,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
+import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export function isAuthorizedToViewTheForm({
@@ -69,6 +70,11 @@ export const getServerSideProps = async function getServerSideProps(
           metadata: true,
         },
       },
+      team: {
+        select: {
+          metadata: true,
+        },
+      },
     },
   });
 
@@ -92,8 +98,7 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
-      isOrgDomain: isValidOrgDomain,
-      form: await getSerializableForm({ form }),
+      form: await getSerializableForm({ form: enrichFormWithMigrationData(form) }),
     },
   };
 };

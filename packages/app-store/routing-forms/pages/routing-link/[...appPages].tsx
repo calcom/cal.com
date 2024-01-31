@@ -9,7 +9,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
-import { CAL_URL } from "@calcom/lib/constants";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,6 +18,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
 import transformResponse from "../../lib/transformResponse";
@@ -40,7 +40,7 @@ const useBrandColors = ({
   useCalcomTheme(brandTheme);
 };
 
-function RoutingForm({ form, profile, isOrgDomain, ...restProps }: Props) {
+function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
@@ -98,12 +98,18 @@ function RoutingForm({ form, profile, isOrgDomain, ...restProps }: Props) {
       const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
       const decidedAction = decidedActionWithFormResponse.action;
 
+      form.migratedUserToOrgFrom;
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        // If not on org domain, always use absolute URL to link to event-types so that if any redirects are there, they work.
-        router.push(`${!isOrgDomain ? CAL_URL : ""}/${decidedAction.value}?${allURLSearchParams}`);
+        router.push(
+          getAbsoluteEventTypeRedirectUrl({
+            form,
+            eventTypeRedirectUrl: decidedAction.value,
+            allURLSearchParams,
+          })
+        );
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }

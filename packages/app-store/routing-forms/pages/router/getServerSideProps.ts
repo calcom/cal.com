@@ -2,11 +2,12 @@ import { stringify } from "querystring";
 import z from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { CAL_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { TRPCError } from "@calcom/trpc/server";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
+import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
@@ -54,6 +55,11 @@ export const getServerSideProps = async function getServerSideProps(
           },
         },
       },
+      team: {
+        select: {
+          metadata: true,
+        },
+      },
     },
   });
 
@@ -69,7 +75,7 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  const serializableForm = await getSerializableForm({ form });
+  const serializableForm = await getSerializableForm({ form: enrichFormWithMigrationData(form) });
 
   const response: Response = {};
   serializableForm.fields?.forEach((field) => {
@@ -121,7 +127,11 @@ export const getServerSideProps = async function getServerSideProps(
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
     return {
       redirect: {
-        destination: `${!currentOrgDomain ? CAL_URL : ""}/${decidedAction.value}?${stringify(context.query)}`,
+        destination: getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: decidedAction.value,
+          form: serializableForm,
+          allURLSearchParams: new URLSearchParams(stringify(context.query)),
+        }),
         permanent: false,
       },
     };
