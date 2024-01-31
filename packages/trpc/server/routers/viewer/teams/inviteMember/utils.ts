@@ -238,7 +238,7 @@ export async function createNewUsersConnectToOrgIfExists({
         const username =
           emailDomain === autoAcceptEmailDomain
             ? slugify(emailUser)
-            : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+            : `${slugify(emailUser)}@${emailDomain.split(".")[0]}`;
 
         const createdUser = await tx.user.create({
           data: {
