@@ -435,7 +435,7 @@ function FieldEditDialog({
                 if (!value) {
                   return;
                 }
-                fieldForm.setValue("type", value);
+                fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={fieldTypesConfigMap[fieldForm.getValues("type")]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
@@ -450,7 +450,9 @@ function FieldEditDialog({
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
                       onChange={(e) => {
-                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""), {
+                          shouldDirty: true,
+                        });
                       }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||

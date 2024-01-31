@@ -455,25 +455,61 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
+  const isObject = <t,>(value: T): boolean => {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  };
 
-  const isFieldDirty = (fieldName: keyof FormValues, prefix = ""): boolean => {
-    const fullFieldName = (prefix + fieldName) as keyof typeof formMethods.formState.dirtyFields;
+  const isArray = <T,>(value: T): boolean => {
+    return Array.isArray(value);
+  };
 
-    // Check if the field itself is dirty
-    if (formMethods.formState.dirtyFields[fullFieldName]) {
+  const isFieldDirty = (fieldName: keyof FormValues) => {
+    const dirtyFields = formMethods.formState.dirtyFields;
+    // If the field itself is directly marked as dirty
+
+    if (dirtyFields[fieldName] === true) {
       return true;
     }
 
-    // Recursively check for nested fields
-    for (const key in formMethods.formState.dirtyFields) {
-      if (key.startsWith(`${fullFieldName}.`)) {
-        // Extract the next level field name
-        const nextLevelFieldName = key.slice(fullFieldName.length + 1).split(".")[0] as keyof FormValues;
-        if (isFieldDirty(nextLevelFieldName, `${fullFieldName}.`)) {
+    // Check if the field is an object or an array
+    const fieldValue = dirtyFields[fieldName];
+    if (isObject(fieldValue)) {
+      for (const key in fieldValue) {
+        if (fieldValue[key] === true) {
+          return true;
+        }
+
+        if (isObject(fieldValue[key]) || isArray(fieldValue[key])) {
+          // Recursive call for nested objects or arrays
+          if (isFieldDirty(`${fieldName}.${key}`, dirtyFields)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    if (isArray(fieldValue)) {
+      for (const element of fieldValue) {
+        // If element is an object, check each property of the object
+        if (isObject(element)) {
+          for (const key in element) {
+            if (element[key] === true) {
+              return true;
+            }
+
+            if (isObject(element[key]) || isArray(element[key])) {
+              // Recursive call for nested objects or arrays within each element
+              if (isFieldDirty(`${fieldName}.${key}`, dirtyFields)) {
+                return true;
+              }
+            }
+          }
+        } else if (element === true) {
           return true;
         }
       }
     }
+
     return false;
   };
 

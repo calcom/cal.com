@@ -37,7 +37,7 @@ export default function RequiresConfirmationController({
 
   useEffect(() => {
     if (!requiresConfirmation) {
-      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined);
+      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, { shouldDirty: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
@@ -82,7 +82,7 @@ export default function RequiresConfirmationController({
               checked={requiresConfirmation}
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
-                formMethods.setValue("requiresConfirmation", val);
+                formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
                 onRequiresConfirmation(val);
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -96,16 +96,19 @@ export default function RequiresConfirmationController({
                   }
                   onValueChange={(val) => {
                     if (val === "always") {
-                      formMethods.setValue("requiresConfirmation", true);
+                      formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
-                      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined);
+                      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, {
+                        shouldDirty: true,
+                      });
                       setRequiresConfirmationSetup(undefined);
                     } else if (val === "notice") {
-                      formMethods.setValue("requiresConfirmation", true);
+                      formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
                       formMethods.setValue(
                         "metadata.requiresConfirmationThreshold",
-                        requiresConfirmationSetup || defaultRequiresConfirmationSetup
+                        requiresConfirmationSetup || defaultRequiresConfirmationSetup,
+                        { shouldDirty: true }
                       );
                     }
                   }}>
@@ -146,7 +149,8 @@ export default function RequiresConfirmationController({
                                         });
                                         formMethods.setValue(
                                           "metadata.requiresConfirmationThreshold.time",
-                                          val
+                                          val,
+                                          { shouldDirty: true }
                                         );
                                       }}
                                       className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
@@ -171,7 +175,8 @@ export default function RequiresConfirmationController({
                                           });
                                           formMethods.setValue(
                                             "metadata.requiresConfirmationThreshold.unit",
-                                            opt?.value as UnitTypeLongPlural
+                                            opt?.value as UnitTypeLongPlural,
+                                            { shouldDirty: true }
                                           );
                                         }}
                                         defaultValue={defaultValue}
