@@ -265,7 +265,7 @@ export async function getBusyTimes(params: {
 
 export async function getBusyTimesForLimitChecks(params: {
   userIds: number[];
-  eventType: EventType;
+  eventType: Partial<EventType>;
   startDate: string;
   endDate: string;
   rescheduleUid?: string | null;

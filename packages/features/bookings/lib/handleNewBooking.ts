@@ -470,7 +470,7 @@ export async function ensureAvailableUsers(
     },
     startDate: input.dateFrom,
     endDate: input.dateTo,
-    rescheduleUid: input.rescheduleUid,
+    rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
   });
 
   /** Let's start checking for availability */
