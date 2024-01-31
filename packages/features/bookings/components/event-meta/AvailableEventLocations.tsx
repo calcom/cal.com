@@ -73,20 +73,25 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       if (eventLocationType.variable === "hostDefault") {
         return null;
       }
+      if (!location.displayLocationPublicly) {
+        return null;
+      }
 
       const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 
       return (
-        <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
-          {eventLocationType.iconUrl === "/link.svg" ? (
-            <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
-          ) : (
-            <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
-          )}
-          <Tooltip content={translatedLocation}>
-            <p className="line-clamp-1">{translatedLocation}</p>
-          </Tooltip>
-        </div>
+        <a key={`${location.type}-${index}`} target="_blank" href={translatedLocation || ""}>
+          <div className="flex flex-row items-center text-sm font-medium">
+            {eventLocationType.iconUrl === "/link.svg" ? (
+              <Link className="text-default h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]" />
+            ) : (
+              <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
+            )}
+            <Tooltip content={translatedLocation}>
+              <p className="line-clamp-1">{t(eventLocationType.label)}</p>
+            </Tooltip>
+          </div>
+        </a>
       );
     }
   );
