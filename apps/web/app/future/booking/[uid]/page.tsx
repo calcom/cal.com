@@ -1,4 +1,3 @@
-import OldPage, { type PageProps } from "@pages/booking/[uid]";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { Params, SearchParams } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -8,8 +7,10 @@ import { cookies, headers } from "next/headers";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { getServerSideProps } from "@lib/booking/[uid]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import OldPage from "~/bookings/views/bookings-single-view";
+import { getServerSideProps, type PageProps } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
 export const generateMetadata = async ({
   params,

@@ -110,9 +110,9 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
+                    slotInterval: 15,
                     schedulingType: SchedulingType.COLLECTIVE,
-                    length: 45,
+                    length: 15,
                     users: [
                       {
                         id: 101,
@@ -296,9 +296,9 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
+                    slotInterval: 15,
                     schedulingType: SchedulingType.COLLECTIVE,
-                    length: 45,
+                    length: 15,
                     users: [
                       {
                         id: 101,
@@ -423,9 +423,9 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
+                    slotInterval: 15,
                     schedulingType: SchedulingType.COLLECTIVE,
-                    length: 45,
+                    length: 15,
                     users: [
                       {
                         id: 101,
@@ -609,9 +609,9 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
+                    slotInterval: 15,
                     schedulingType: SchedulingType.COLLECTIVE,
-                    length: 45,
+                    length: 15,
                     schedule: TestData.schedules.IstMorningShift,
                     users: [
                       {
@@ -731,9 +731,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 30,
                   schedulingType: SchedulingType.COLLECTIVE,
-                  length: 45,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -941,9 +941,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 30,
                   schedulingType: SchedulingType.COLLECTIVE,
-                  length: 45,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -1159,9 +1159,9 @@ describe("handleNewBooking", () => {
               eventTypes: [
                 {
                   id: 1,
-                  slotInterval: 45,
+                  slotInterval: 30,
                   schedulingType: SchedulingType.COLLECTIVE,
-                  length: 45,
+                  length: 30,
                   users: [
                     {
                       id: 101,
@@ -1376,9 +1376,9 @@ describe("handleNewBooking", () => {
                 eventTypes: [
                   {
                     id: 1,
-                    slotInterval: 45,
+                    slotInterval: 15,
                     schedulingType: SchedulingType.COLLECTIVE,
-                    length: 45,
+                    length: 15,
                     users: [
                       {
                         id: 101,
