@@ -23,6 +23,7 @@ import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
+import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
@@ -462,6 +463,14 @@ export async function ensureAvailableUsers(
       )
     : undefined;
 
+  const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+    userIds: eventType.users.map((u) => u.id),
+    eventType,
+    startDate: input.dateFrom,
+    endDate: input.dateTo,
+    rescheduleUid: input.rescheduleUid,
+  });
+
   /** Let's start checking for availability */
   for (const user of eventType.users) {
     const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
@@ -475,6 +484,7 @@ export async function ensureAvailableUsers(
         user,
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter((b) => b.userId === user.id),
       }
     );
 

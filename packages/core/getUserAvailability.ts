@@ -17,7 +17,7 @@ import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type {
   EventBusyDate,
   EventBusyDetails,
@@ -31,8 +31,8 @@ import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
   .object({
-    dateFrom: stringToDayjs,
-    dateTo: stringToDayjs,
+    dateFrom: stringToDayjsZod,
+    dateTo: stringToDayjsZod,
     eventTypeId: z.number().optional(),
     username: z.string().optional(),
     userId: z.number().optional(),

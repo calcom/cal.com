@@ -400,6 +400,12 @@ describe("handleNewBooking", () => {
             dateIncrement: -1,
           });
 
+          console.log(
+            "-----------firstDayOfMonthStartingWithPartialWeek",
+            firstDayOfMonthStartingWithPartialWeek
+          );
+          console.log("-----------lastDayOfMonthEndingWithPartialWeek", lastDayOfMonthEndingWithPartialWeek);
+
           await createBookingScenario(
             getScenarioData({
               eventTypes: [

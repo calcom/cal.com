@@ -2,13 +2,16 @@ import type { Booking, EventType } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
+import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { subtract } from "@calcom/lib/date-ranges";
+import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -262,32 +265,56 @@ export async function getBusyTimes(params: {
 
 export async function getBusyTimesForLimitChecks(params: {
   userIds: number[];
-  eventTypeId: number;
-  startDate: Date;
-  endDate: Date;
+  eventType: EventType;
+  startDate: string;
+  endDate: string;
   rescheduleUid?: string | null;
 }) {
-  const { userIds, eventTypeId, startDate, endDate, rescheduleUid } = params;
+  const { userIds, eventType, startDate, endDate, rescheduleUid } = params;
+  const startTimeAsDayJs = stringToDayjs(startDate);
+  const endTimeAsDayJs = stringToDayjs(endDate);
+
+  performance.mark("getBusyTimesForLimitChecksStart");
+
+  let busyTimes: EventBusyDetails[] = [];
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+
+  if (!bookingLimits && !durationLimits) {
+    return busyTimes;
+  }
+
+  let limitDateFrom = stringToDayjs(startDate);
+  let limitDateTo = stringToDayjs(endDate);
+
+  // expand date ranges by absolute minimum required to apply limits
+  // (yearly limits are handled separately for performance)
+  for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
+    if (bookingLimits?.[key] || durationLimits?.[key]) {
+      const unit = intervalLimitKeyToUnit(key);
+      limitDateFrom = dayjs.min(limitDateFrom, startTimeAsDayJs.startOf(unit));
+      limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
+    }
+  }
   logger.silly(
-    `Fetch limit checks bookings in range ${startDate} to ${endDate} for input ${JSON.stringify({
-      eventTypeId,
+    `Fetch limit checks bookings in range ${limitDateFrom} to ${limitDateTo} for input ${JSON.stringify({
+      eventTypeId: eventType?.id,
       status: BookingStatus.ACCEPTED,
     })}`
   );
-  performance.mark("getBusyTimesForLimitChecksStart");
 
   const where: Prisma.BookingWhereInput = {
     userId: {
       in: userIds,
     },
-    eventTypeId,
+    eventTypeId: eventType.id,
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
-      gte: startDate,
+      gte: limitDateFrom,
     },
     endTime: {
-      lte: endDate,
+      lte: limitDateTo,
     },
   };
 
@@ -309,18 +336,19 @@ export async function getBusyTimesForLimitChecks(params: {
         },
       },
       title: true,
-      userId: true,
     },
   });
 
-  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
+  console.log("----------------------------------------------BOOKINGS", bookings);
+
+  busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
     start: dayjs(startTime).toDate(),
     end: dayjs(endTime).toDate(),
     title,
     source: `eventType-${eventType?.id}-booking-${id}`,
   }));
 
-  logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
+  logger.silly(`Fetch limit checks bookings for eventId: ${eventType.id} ${JSON.stringify(busyTimes)}`);
   performance.mark("getBusyTimesForLimitChecksEnd");
   performance.measure(
     `prisma booking get for limits took $1'`,

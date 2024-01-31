@@ -10,9 +10,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -22,7 +20,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
+import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -391,36 +389,14 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     },
   });
 
-  let busyTimesFromLimitsBookingsAllUsers = [];
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+    userIds: allUserIds,
+    eventType,
+    startDate: startTime.format(),
+    endDate: endTime.format(),
+    rescheduleUid: input.rescheduleUid,
+  });
 
-  if (!!eventType && (bookingLimits || durationLimits)) {
-    const startTimeAsDayJs = dayjs(startTime.format());
-    const endTimeAsDayJs = dayjs(endTime.format());
-    let limitDateFrom = dayjs(startTime.format());
-    let limitDateTo = dayjs(endTime.format());
-
-    // expand date ranges by absolute minimum required to apply limits
-    // (yearly limits are handled separately for performance)
-    for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
-      if (bookingLimits?.[key] || durationLimits?.[key]) {
-        const unit = intervalLimitKeyToUnit(key);
-        limitDateFrom = dayjs.min(limitDateFrom, startTimeAsDayJs.startOf(unit));
-        limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
-      }
-    }
-
-    console.log("limitDateFrom", limitDateFrom);
-    console.log("limitDateTo", limitDateTo);
-    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
-      userIds: allUserIds,
-      eventTypeId: eventType.id,
-      startDate: limitDateFrom.toDate(),
-      endDate: limitDateTo.toDate(),
-      rescheduleUid: input.rescheduleUid,
-    });
-  }
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     usersWithCredentials.map(async (currentUser) => {
