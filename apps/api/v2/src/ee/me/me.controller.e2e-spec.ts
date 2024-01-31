@@ -1,10 +1,11 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { UserReturned } from "@/ee/me/me.controller";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
+import { UserResponse } from "@/modules/oauth-clients/controllers/oauth-client-users/zod/response/response";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -57,15 +58,54 @@ describe("Me Endpoints", () => {
         .get("/api/v2/me")
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<UserReturned> = response.body;
+          const responseBody: ApiSuccessResponse<{ user: UserResponse }> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
-          expect(responseBody.data?.id).toEqual(user.id);
-          expect(responseBody.data?.email).toEqual(user.email);
-          expect(responseBody.data?.timeFormat).toEqual(user.timeFormat);
-          expect(responseBody.data?.defaultScheduleId).toEqual(user.defaultScheduleId);
-          expect(responseBody.data?.weekStart).toEqual(user.weekStart);
+          expect(responseBody.data?.user?.id).toEqual(user.id);
+          expect(responseBody.data?.user?.email).toEqual(user.email);
+          expect(responseBody.data?.user?.timeFormat).toEqual(user.timeFormat);
+          expect(responseBody.data?.user?.defaultScheduleId).toEqual(user.defaultScheduleId);
+          expect(responseBody.data?.user?.weekStart).toEqual(user.weekStart);
+          expect(responseBody.data?.user?.timeZone).toEqual(user.timeZone);
         });
+    });
+
+    it("should update user associated with access token", async () => {
+      const body: UpdateUserInput = { timeZone: "Europe/Rome" };
+
+      return request(app.getHttpServer())
+        .put("/api/v2/me")
+        .send(body)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<{ user: UserResponse }> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data?.user?.id).toEqual(user.id);
+          expect(responseBody.data?.user?.email).toEqual(user.email);
+          expect(responseBody.data?.user?.timeFormat).toEqual(user.timeFormat);
+          expect(responseBody.data?.user?.defaultScheduleId).toEqual(user.defaultScheduleId);
+          expect(responseBody.data?.user?.weekStart).toEqual(user.weekStart);
+          expect(responseBody.data?.user?.timeZone).toEqual(body.timeZone);
+        });
+    });
+
+    it("should not update user associated with access token given invalid timezone", async () => {
+      const bodyWithIncorrectTimeZone: UpdateUserInput = { timeZone: "Narnia/Woods" };
+
+      return request(app.getHttpServer()).put("/api/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
+    });
+
+    it("should not update user associated with access token given invalid time format", async () => {
+      const bodyWithIncorrectTimeFormat: UpdateUserInput = { timeFormat: 100 };
+
+      return request(app.getHttpServer()).put("/api/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
+    });
+
+    it("should not update user associated with access token given invalid week start", async () => {
+      const bodyWithIncorrectWeekStart: UpdateUserInput = { weekStart: "waba luba dub dub" };
+
+      return request(app.getHttpServer()).put("/api/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
     afterAll(async () => {

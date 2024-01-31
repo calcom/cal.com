@@ -1,6 +1,12 @@
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
-import { Controller, UseGuards, Get } from "@nestjs/common";
+import {
+  UserResponse,
+  userSchemaResponse,
+} from "@/modules/oauth-clients/controllers/oauth-client-users/zod/response/response";
+import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
+import { UsersRepository } from "@/modules/users/users.repository";
+import { Controller, UseGuards, Get, Put, Body } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -10,27 +16,35 @@ import { ApiResponse } from "@calcom/platform-types";
   path: "me",
   version: "2",
 })
+@UseGuards(AccessTokenGuard)
 export class MeController {
+  constructor(private readonly usersRepository: UsersRepository) {}
+
   @Get("/")
-  @UseGuards(AccessTokenGuard)
-  async getMe(@GetUser() user: User): Promise<ApiResponse<UserReturned>> {
-    const TWELVE_HOUR_TIME_FORMAT = 12;
+  async getMe(@GetUser() user: User): Promise<ApiResponse<{ user: UserResponse }>> {
+    const me = userSchemaResponse.parse(user);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        id: user.id,
-        email: user.email,
-        timeFormat: user.timeFormat || TWELVE_HOUR_TIME_FORMAT,
-        defaultScheduleId: user.defaultScheduleId,
-        weekStart: user.weekStart,
-        timeZone: user.timeZone,
+        user: me,
+      },
+    };
+  }
+
+  @Put("/")
+  async updateMe(
+    @GetUser() user: User,
+    @Body() bodySchedule: UpdateUserInput
+  ): Promise<ApiResponse<{ user: UserResponse }>> {
+    const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
+    const me = userSchemaResponse.parse(updatedUser);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        user: me,
       },
     };
   }
 }
-
-export type UserReturned = Pick<
-  User,
-  "id" | "email" | "timeFormat" | "defaultScheduleId" | "weekStart" | "timeZone"
->;
