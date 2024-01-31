@@ -12,7 +12,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails } from "@calcom/types/Calendar";
+import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 export async function getBusyTimes(params: {
@@ -311,10 +311,10 @@ export async function getBusyTimesForLimitChecks(params: {
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
-      gte: limitDateFrom,
+      gte: limitDateFrom.toDate(),
     },
     endTime: {
-      lte: limitDateTo,
+      lte: limitDateTo.toDate(),
     },
   };
 
@@ -339,8 +339,6 @@ export async function getBusyTimesForLimitChecks(params: {
       userId: true,
     },
   });
-
-  console.log("----------------------------------------------BOOKINGS", bookings);
 
   busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
     start: dayjs(startTime).toDate(),
