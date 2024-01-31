@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import type { EventType } from "@prisma/client";
@@ -97,13 +98,19 @@ describe("handleChildrenEventTypes", () => {
     it("Adds new users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, requiresBookerEmailVerification, ...evType } =
-        mockFindFirstEventType({
-          id: 123,
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        ...evType
+      } = mockFindFirstEventType({
+        id: 123,
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -134,7 +141,6 @@ describe("handleChildrenEventTypes", () => {
     it("Updates old users", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // eslint-disable-next-line
       const {
         schedulingType,
         id,
@@ -145,6 +151,7 @@ describe("handleChildrenEventTypes", () => {
         userId,
         scheduleId,
         requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -229,13 +236,19 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for new users added", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // eslint-disable-next-line
-      const { schedulingType, id, teamId, timeZone, users, requiresBookerEmailVerification, ...evType } =
-        mockFindFirstEventType({
-          id: 123,
-          metadata: { managedEventConfig: {} },
-          locations: [],
-        });
+      const {
+        schedulingType,
+        id,
+        teamId,
+        timeZone,
+        requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
+        ...evType
+      } = mockFindFirstEventType({
+        id: 123,
+        metadata: { managedEventConfig: {} },
+        locations: [],
+      });
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -267,7 +280,6 @@ describe("handleChildrenEventTypes", () => {
     it("Deletes existent event types for old users updated", async () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // eslint-disable-next-line
       const {
         schedulingType,
         id,
@@ -277,6 +289,7 @@ describe("handleChildrenEventTypes", () => {
         parentId,
         userId,
         requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -327,6 +340,7 @@ describe("handleChildrenEventTypes", () => {
         userId: _userId,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         requiresBookerEmailVerification,
+        lockTimeZoneToggleOnBookingPage,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },

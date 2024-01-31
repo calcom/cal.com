@@ -1,6 +1,5 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -14,16 +13,24 @@ import { Calendar, Globe, User } from "@calcom/ui/components/icon";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
-import { useEvent } from "../utils/event";
+import type { useEventReturnType } from "../utils/event";
 
-const TimezoneSelect = dynamic(() => import("@calcom/ui").then((mod) => mod.TimezoneSelect), {
-  ssr: false,
-});
+const TimezoneSelect = dynamic(
+  () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
+  {
+    ssr: false,
+  }
+);
 
-export const EventMeta = () => {
+export const EventMeta = ({
+  event,
+  isPending,
+}: {
+  event: useEventReturnType["data"];
+  isPending: useEventReturnType["isPending"];
+}) => {
   const { setTimezone, timeFormat, timezone } = useTimePreferences();
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -33,17 +40,9 @@ export const EventMeta = () => {
     shallow
   );
   const { i18n, t } = useLocale();
-  const { data: event, isLoading } = useEvent();
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
   const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
-
-  useEffect(() => {
-    if (!selectedDuration && event?.length) {
-      setSelectedDuration(event.length);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.length, selectedDuration]);
 
   if (hideEventTypeDetails) {
     return null;
@@ -65,13 +64,13 @@ export const EventMeta = () => {
     : "text-bookinghighlight";
 
   return (
-    <div className="relative z-10 p-6">
-      {isLoading && (
+    <div className="relative z-10 p-6" data-testid="event-meta">
+      {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
         </m.div>
       )}
-      {!isLoading && !!event && (
+      {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
@@ -113,6 +112,7 @@ export const EventMeta = () => {
               </EventMetaBlock>
             )}
             <EventDetails event={event} />
+
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"
@@ -120,7 +120,10 @@ export const EventMeta = () => {
               {bookerState === "booking" ? (
                 <>{timezone}</>
               ) : (
-                <span className="min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity">
+                <span
+                  className={`min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                    event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
+                  }`}>
                   <TimezoneSelect
                     menuPosition="fixed"
                     classNames={{
@@ -132,6 +135,7 @@ export const EventMeta = () => {
                     }}
                     value={timezone}
                     onChange={(tz) => setTimezone(tz.value)}
+                    isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>
               )}

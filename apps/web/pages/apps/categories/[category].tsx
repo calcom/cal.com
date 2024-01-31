@@ -1,19 +1,23 @@
-import { Prisma } from "@prisma/client";
-import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+"use client";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { Prisma } from "@prisma/client";
+import type { InferGetStaticPropsType } from "next";
+import Link from "next/link";
+
 import Shell from "@calcom/features/shell/Shell";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
+import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
+
 import PageWrapper from "@components/PageWrapper";
 
-export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
-  const searchParams = useSearchParams();
+export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+export default function Apps({ apps }: PageProps) {
+  const searchParams = useCompatSearchParams();
   const { t, isLocaleReady } = useLocale();
   const category = searchParams?.get("category");
 
@@ -77,28 +81,4 @@ export const getStaticPaths = async () => {
   };
 };
 
-export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const category = context.params?.category as AppCategories;
-
-  const appQuery = await prisma.app.findMany({
-    where: {
-      categories: {
-        has: category,
-      },
-    },
-    select: {
-      slug: true,
-    },
-  });
-
-  const dbAppsSlugs = appQuery.map((category) => category.slug);
-
-  const appStore = await getAppRegistry();
-
-  const apps = appStore.filter((app) => dbAppsSlugs.includes(app.slug));
-  return {
-    props: {
-      apps,
-    },
-  };
-};
+export { getStaticProps };

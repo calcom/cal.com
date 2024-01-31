@@ -22,8 +22,13 @@ function getReturnToValueFromQueryState(req: NextApiRequest) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, error_description } = req.query;
+  const state = decodeOAuthState(req);
 
   if (error) {
+    // User cancels flow
+    if (error === "access_denied") {
+      state?.onErrorReturnTo ? res.redirect(state.onErrorReturnTo) : res.redirect("/apps/installed/payment");
+    }
     const query = stringify({ error, error_description });
     res.redirect(`/apps/installed?${query}`);
     return;
@@ -49,8 +54,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     data as unknown as Prisma.InputJsonObject,
     req
   );
-
-  const state = decodeOAuthState(req);
 
   if (state?.returnToOnboarding) {
     return res.redirect(getAppOnboardingRedirectUrl("stripe", state.teamId));

@@ -6,6 +6,7 @@ const subtleColor = "#E5E7EB";
 module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
+    "./modules/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
     "../../packages/app-store/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/**/*.{js,ts,jsx,tsx}",
@@ -104,6 +105,7 @@ module.exports = {
       },
       animation: {
         "fade-in-up": "fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards",
+        "fade-in-bottom": "fade-in-bottom cubic-bezier(.21,1.02,.73,1) forwards",
         spinning: "spinning 0.75s linear infinite",
       },
       boxShadow: {
@@ -149,6 +151,7 @@ module.exports = {
     },
   },
   plugins: [
+    require("@todesktop/tailwind-variants"),
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("tailwind-scrollbar")({ nocompatible: true }),

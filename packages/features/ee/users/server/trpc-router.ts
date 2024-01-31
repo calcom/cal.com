@@ -33,6 +33,9 @@ const userBodySchema = User.pick({
   avatar: true,
 });
 
+/**
+ * @deprecated in favour of @calcom/lib/getAvatarUrl
+ */
 /** This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url */
 export function getAvatarUrlFromUser(user: {
   avatar: string | null;
@@ -54,9 +57,9 @@ function exclude<UserType, Key extends keyof UserType>(user: UserType, keys: Key
 /** Reusable logic that checks for admin permissions and if the requested user exists */
 //const authedAdminWithUserMiddleware = middleware();
 
-const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(async ({ ctx, next, rawInput }) => {
+const authedAdminProcedureWithRequestedUser = authedAdminProcedure.use(async ({ ctx, next, getRawInput }) => {
   const { prisma } = ctx;
-  const parsed = userIdSchema.safeParse(rawInput);
+  const parsed = userIdSchema.safeParse(await getRawInput());
   if (!parsed.success) throw new TRPCError({ code: "BAD_REQUEST", message: "User id is required" });
   const { userId: id } = parsed.data;
   const user = await prisma.user.findUnique({ where: { id } });

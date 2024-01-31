@@ -30,6 +30,13 @@ type DynamicLinkBasedEventLocation = {
 
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
+type PaidAppData = {
+  priceInUsd: number;
+  priceId: string;
+  trial?: number;
+  mode?: "subscription" | "one_time";
+};
+
 type AppData = {
   /**
    * TODO: We must assert that if `location` is set in App config.json, then it must have atleast Messaging or Conferencing as a category.
@@ -56,7 +63,6 @@ export interface App {
     | `${string}_messaging`
     | `${string}_payment`
     | `${string}_video`
-    | `${string}_web3`
     | `${string}_other`
     | `${string}_automation`
     | `${string}_analytics`
@@ -73,15 +79,7 @@ export interface App {
   /** A brief description, usually found in the app's package.json */
   description: string;
   /** TODO determine if we should use this instead of category */
-  variant:
-    | "calendar"
-    | "payment"
-    | "conferencing"
-    | "video"
-    | "other"
-    | "other_calendar"
-    | "web3"
-    | "automation";
+  variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar" | "automation";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 
@@ -142,6 +140,9 @@ export interface App {
     upgradeUrl: string;
   };
   appData?: AppData;
+  /** Represents paid app data, such as price, trials, etc */
+  paid?: PaidAppData;
+
   /**
    * @deprecated
    * Used only by legacy apps which had slug different from their directory name.

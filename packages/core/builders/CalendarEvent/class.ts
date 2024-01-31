@@ -4,11 +4,13 @@ import type {
   AdditionalInformation,
   CalendarEvent,
   ConferenceData,
+  ExistingRecurringEvent,
   Person,
   VideoCallData,
 } from "@calcom/types/Calendar";
 
 class CalendarEventClass implements CalendarEvent {
+  bookerUrl?: string | undefined;
   type!: string;
   title!: string;
   startTime!: string;
@@ -16,11 +18,12 @@ class CalendarEventClass implements CalendarEvent {
   organizer!: Person;
   attendees!: Person[];
   description?: string | null;
-  team?: { name: string; members: Person[] };
+  team?: { name: string; members: Person[]; id: number };
   location?: string | null;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
   uid?: string | null;
+  existingRecurringEvent?: ExistingRecurringEvent | null;
   videoCallData?: VideoCallData;
   paymentInfo?: any;
   destinationCalendar?: DestinationCalendar[] | null;
@@ -29,6 +32,7 @@ class CalendarEventClass implements CalendarEvent {
   hideCalendarNotes?: boolean;
   additionalNotes?: string | null | undefined;
   recurrence?: string;
+  iCalUID?: string | null;
 
   constructor(initProps?: CalendarEvent) {
     // If more parameters are given we update this

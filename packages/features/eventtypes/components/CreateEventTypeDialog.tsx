@@ -79,6 +79,7 @@ export default function CreateEventTypeDialog({
     membershipRole: MembershipRole | null | undefined;
   }[];
 }) {
+  const utils = trpc.useContext();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
@@ -116,6 +117,7 @@ export default function CreateEventTypeDialog({
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
+      await utils.viewer.eventTypes.getByViewer.invalidate();
       await router.replace(`/event-types/${eventType.id}`);
       showToast(
         t("event_type_created_successfully", {
@@ -123,6 +125,7 @@ export default function CreateEventTypeDialog({
         }),
         "success"
       );
+      form.reset();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -180,6 +183,7 @@ export default function CreateEventTypeDialog({
             <TextField
               label={t("title")}
               placeholder={t("quick_chat")}
+              data-testid="event-type-quick-chat"
               {...register("title")}
               onChange={(e) => {
                 form.setValue("title", e?.target.value);
@@ -290,7 +294,8 @@ export default function CreateEventTypeDialog({
                         {...register("schedulingType")}
                         value={SchedulingType.MANAGED}
                         className={classNames("text-sm", !isAdmin && "w-1/2")}
-                        classNames={{ container: classNames(isAdmin && "w-full") }}>
+                        classNames={{ container: classNames(isAdmin && "w-full") }}
+                        data-testid="managed-event-type">
                         <strong className="mb-1 block">{t("managed_event")}</strong>
                         <p>{t("managed_event_description")}</p>
                       </RadioArea.Item>
@@ -302,7 +307,7 @@ export default function CreateEventTypeDialog({
           </div>
           <DialogFooter showDivider>
             <DialogClose />
-            <Button type="submit" loading={createMutation.isLoading}>
+            <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

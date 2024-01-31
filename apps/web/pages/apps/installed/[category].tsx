@@ -1,12 +1,12 @@
-import { useSearchParams } from "next/navigation";
+"use client";
+
 import { useReducer } from "react";
-import { z } from "zod";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Button, EmptyScreen, AppSkeletonLoader as SkeletonLoader, ShellSubHeading } from "@calcom/ui";
 import type { LucideIcon } from "@calcom/ui/components/icon";
 import {
@@ -22,6 +22,8 @@ import {
 } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
+import type { querySchemaType } from "@lib/apps/installed/[category]/getServerSideProps";
+import { getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 import { AppList } from "@components/apps/AppList";
@@ -54,8 +56,8 @@ const IntegrationsContainer = ({
     automation: Share2,
     analytics: BarChart,
     payment: CreditCard,
-    web3: BarChart, // deprecated
     other: Grid,
+    web3: CreditCard, // deprecated
     video: Video, // deprecated
     messaging: Mail,
     crm: Contact,
@@ -109,12 +111,6 @@ const IntegrationsContainer = ({
   );
 };
 
-const querySchema = z.object({
-  category: z.nativeEnum(AppCategories),
-});
-
-type querySchemaType = z.infer<typeof querySchema>;
-
 type ModalState = {
   isOpen: boolean;
   credentialId: null | number;
@@ -122,7 +118,7 @@ type ModalState = {
 };
 
 export default function InstalledApps() {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
@@ -171,31 +167,6 @@ export default function InstalledApps() {
   );
 }
 
-// Server side rendering
-export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
-  // get return-to cookie and redirect if needed
-  const { cookies } = ctx.req;
-  if (cookies && cookies["return-to"]) {
-    const returnTo = cookies["return-to"];
-    if (returnTo) {
-      ctx.res.setHeader("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-      return {
-        redirect: {
-          destination: `${returnTo}`,
-          permanent: false,
-        },
-      };
-    }
-  }
-  const params = querySchema.safeParse(ctx.params);
-
-  if (!params.success) return { notFound: true };
-
-  return {
-    props: {
-      category: params.data.category,
-    },
-  };
-}
+export { getServerSideProps };
 
 InstalledApps.PageWrapper = PageWrapper;

@@ -74,7 +74,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const debouncedApiCall = useMemo(
     () =>
       debounce(async (username: string) => {
-        const { data } = await fetchUsername(username);
+        // TODO: Support orgSlug
+        const { data } = await fetchUsername(username, null);
         setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
         setIsInputUsernamePremium(data.premium);
         setUsernameIsAvailable(data.available);
@@ -222,9 +223,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onChange={(event) => {
               event.preventDefault();
               // Reset payment status
-              const _searchParams = new URLSearchParams(searchParams);
+              const _searchParams = new URLSearchParams(searchParams ?? undefined);
               _searchParams.delete("paymentStatus");
-              if (searchParams.toString() !== _searchParams.toString()) {
+              if (searchParams?.toString() !== _searchParams.toString()) {
                 router.replace(`${pathname}?${_searchParams.toString()}`);
               }
               setInputUsernameValue(event.target.value);
@@ -292,7 +293,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
-                loading={updateUsername.isLoading}
+                loading={updateUsername.isPending}
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
@@ -304,7 +305,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             {usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
-                loading={updateUsername.isLoading}
+                loading={updateUsername.isPending}
                 data-testid="save-username"
                 onClick={() => {
                   saveUsername();

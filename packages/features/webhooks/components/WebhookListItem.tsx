@@ -42,17 +42,19 @@ export default function WebhookListItem(props: {
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
+      showToast(t("webhook_removed_successfully"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
-      showToast(t("webhook_removed_successfully"), "success");
+      await utils.viewer.eventTypes.get.invalidate();
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
-      await utils.viewer.webhook.getByViewer.invalidate();
-      await utils.viewer.webhook.list.invalidate();
       // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
+      await utils.viewer.webhook.getByViewer.invalidate();
+      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.eventTypes.get.invalidate();
     },
   });
 
@@ -73,7 +75,11 @@ export default function WebhookListItem(props: {
       )}>
       <div className="w-full truncate">
         <div className="flex">
-          <p className="text-emphasis truncate text-sm font-medium">{webhook.subscriberUrl}</p>
+          <Tooltip content={webhook.subscriberUrl}>
+            <p className="text-emphasis max-w-[600px] truncate text-sm font-medium">
+              {webhook.subscriberUrl}
+            </p>
+          </Tooltip>
           {!!props.readOnly && (
             <Badge variant="gray" className="ml-2 ">
               {t("readonly")}

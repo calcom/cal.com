@@ -59,18 +59,12 @@ export function getPiiFreeBooking(booking: {
 }
 
 export function getPiiFreeCredential(credential: Partial<Credential>) {
-  return {
-    id: credential.id,
-    invalid: credential.invalid,
-    appId: credential.appId,
-    userId: credential.userId,
-    type: credential.type,
-    teamId: credential.teamId,
-    /**
-     * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
-     */
-    key: getBooleanStatus(credential.key),
-  };
+  /**
+   * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
+   */
+  const booleanKeyStatus = getBooleanStatus(credential?.key);
+
+  return { ...credential, key: booleanKeyStatus };
 }
 
 export function getPiiFreeSelectedCalendar(selectedCalendar: Partial<SelectedCalendar>) {
@@ -111,7 +105,7 @@ export function getPiiFreeUser(user: {
   allowDynamicBooking?: boolean | null;
   defaultScheduleId?: number | null;
   organizationId?: number | null;
-  credentials?: Credential[];
+  credentials?: Partial<Credential>[];
   destinationCalendar?: DestinationCalendar | null;
 }) {
   return {

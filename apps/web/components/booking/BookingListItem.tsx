@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
+import {
+  getEventLocationType,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
@@ -14,6 +18,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ActionType } from "@calcom/ui";
@@ -32,8 +37,6 @@ import {
 } from "@calcom/ui";
 import { Ban, Check, Clock, CreditCard, MapPin, RefreshCcw, Send, X } from "@calcom/ui/components/icon";
 
-import useMeQuery from "@lib/hooks/useMeQuery";
-
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -45,14 +48,18 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
+  loggedInUser: {
+    userId: number | undefined;
+    userTimeZone: string | undefined;
+    userTimeFormat: number | null | undefined;
+    userEmail: string | undefined;
+  };
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
   const bookerUrl = useBookerUrl();
+  const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
 
-  const user = query.data;
   const {
     t,
     i18n: { language },
@@ -88,12 +95,18 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
-  const eventLocationType = getEventLocationType(booking.location);
-  const meetingLink = booking.references[0]?.meetingUrl
-    ? booking.references[0]?.meetingUrl
-    : booking.location;
 
   const paymentAppData = getPaymentAppData(booking.eventType);
+
+  const location = booking.location as ReturnType<typeof getEventLocationValue>;
+  const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
+
+  const locationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ? locationVideoCallUrl : location,
+    t,
+    booking.status
+  );
+  const provider = guessEventLocationType(location);
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
@@ -126,7 +139,7 @@ function BookingListItem(booking: BookingItemProps) {
         setRejectionDialogIsOpen(true);
       },
       icon: Ban,
-      disabled: mutation.isLoading,
+      disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
     ...((isPending && !paymentAppData.enabled) ||
@@ -134,26 +147,16 @@ function BookingListItem(booking: BookingItemProps) {
       ? [
           {
             id: "confirm",
+            bookingId: booking.id,
             label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
             onClick: () => {
               bookingConfirm(true);
             },
             icon: Check,
-            disabled: mutation.isLoading,
+            disabled: mutation.isPending,
           },
         ]
       : []),
-  ];
-
-  const showRecordingActions: ActionType[] = [
-    {
-      id: "view_recordings",
-      label: t("view_recordings"),
-      onClick: () => {
-        setViewRecordingsDialogIsOpen(true);
-      },
-      disabled: mutation.isLoading,
-    },
   ];
 
   let bookedActions: ActionType[] = [
@@ -230,6 +233,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const startTime = dayjs(booking.startTime)
+    .tz(userTimeZone)
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
@@ -273,11 +277,25 @@ function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
-  // To be used after we run query on legacy bookings
-  // const showRecordingsButtons = booking.isRecorded && isPast && isConfirmed;
 
-  const showRecordingsButtons =
-    (booking.location === "integrations:daily" || booking?.location?.trim() === "") && isPast && isConfirmed;
+  const showViewRecordingsButton = !!(booking.isRecorded && isPast && isConfirmed);
+  const showCheckRecordingButton =
+    isPast &&
+    isConfirmed &&
+    !booking.isRecorded &&
+    (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
+
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: showCheckRecordingButton ? t("check_for_recordings") : t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      color: showCheckRecordingButton ? "secondary" : "primary",
+      disabled: mutation.isPending,
+    },
+  ];
 
   return (
     <>
@@ -302,12 +320,12 @@ function BookingListItem(booking: BookingItemProps) {
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {showRecordingsButtons && (
+      {(showViewRecordingsButton || showCheckRecordingButton) && (
         <ViewRecordingsDialog
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
-          timeFormat={user?.timeFormat ?? null}
+          timeFormat={userTimeFormat ?? null}
         />
       )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
@@ -330,7 +348,7 @@ function BookingListItem(booking: BookingItemProps) {
           <DialogFooter>
             <DialogClose />
             <Button
-              disabled={mutation.isLoading}
+              disabled={mutation.isPending}
               data-testid="rejection-confirm"
               onClick={() => {
                 bookingConfirm(false);
@@ -347,37 +365,43 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="cursor-pointer py-4">
               <div className="text-emphasis text-sm leading-6">{startTime}</div>
               <div className="text-subtle text-sm">
-                {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-                {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+                {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
                 <MeetingTimeInTimezones
-                  timeFormat={user?.timeFormat}
-                  userTimezone={user?.timeZone}
+                  timeFormat={userTimeFormat}
+                  userTimezone={userTimeZone}
                   startTime={booking.startTime}
                   endTime={booking.endTime}
                   attendees={booking.attendees}
                 />
               </div>
-              {!isPending && (eventLocationType || booking.location?.startsWith("https://")) && (
-                <Link
-                  href={meetingLink ? meetingLink.toString() : ""}
-                  className="text-sm leading-6 text-blue-400 hover:underline">
-                  <div className="flex items-center gap-2">
-                    {eventLocationType ? (
-                      <>
-                        <img
-                          src={eventLocationType.iconUrl}
-                          className="h-4 w-4 rounded-sm"
-                          alt={`${eventLocationType.label} logo`}
-                        />
-                        {t("join_event_location", { eventLocationType: eventLocationType.label })}
-                      </>
-                    ) : (
-                      t("join_meeting")
+              {!isPending && (
+                <div>
+                  {(provider?.label || locationToDisplay?.startsWith("https://")) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
                     )}
-                  </div>
-                </Link>
+                </div>
               )}
-
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                   {t("unconfirmed")}
@@ -399,7 +423,12 @@ function BookingListItem(booking: BookingItemProps) {
               ) : null}
               {recurringDates !== undefined && (
                 <div className="text-muted mt-2 text-sm">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
                 </div>
               )}
             </div>
@@ -412,11 +441,11 @@ function BookingListItem(booking: BookingItemProps) {
               <div className="flex w-full items-center justify-between sm:hidden">
                 <div className="text-emphasis text-sm leading-6">{startTime}</div>
                 <div className="text-subtle pr-2 text-sm">
-                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
-                  {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
                   <MeetingTimeInTimezones
-                    timeFormat={user?.timeFormat}
-                    userTimezone={user?.timeZone}
+                    timeFormat={userTimeFormat}
+                    userTimezone={userTimeZone}
                     startTime={booking.startTime}
                     endTime={booking.endTime}
                     attendees={booking.attendees}
@@ -441,7 +470,12 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {recurringDates !== undefined && (
                 <div className="text-muted text-sm sm:hidden">
-                  <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
+                  />
                 </div>
               )}
             </div>
@@ -473,7 +507,7 @@ function BookingListItem(booking: BookingItemProps) {
                 <DisplayAttendees
                   attendees={booking.attendees}
                   user={booking.user}
-                  currentEmail={user?.email}
+                  currentEmail={userEmail}
                 />
               )}
               {isCancelled && booking.rescheduled && (
@@ -487,13 +521,15 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && userId === booking.user?.id && <TableActions actions={pendingActions} />}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
+          {(showViewRecordingsButton || showCheckRecordingButton) && (
+            <TableActions actions={showRecordingActions} />
+          )}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -513,12 +549,16 @@ function BookingListItem(booking: BookingItemProps) {
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
   recurringDates: Date[];
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
 }
 
-const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
+const RecurringBookingsTooltip = ({
+  booking,
+  recurringDates,
+  userTimeZone,
+  userTimeFormat,
+}: RecurringBookingsTooltipProps) => {
   const {
     t,
     i18n: { language },
@@ -528,8 +568,8 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
     return (
       recurringDate >= now &&
       !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-        .map((date) => date.toDateString())
-        .includes(recurringDate.toDateString())
+        .map((date) => date.toString())
+        .includes(recurringDate.toString())
     );
   }).length;
 
@@ -546,11 +586,11 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 const pastOrCancelled =
                   aDate < now ||
                   booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
-                    .map((date) => date.toDateString())
-                    .includes(aDate.toDateString());
+                    .map((date) => date.toString())
+                    .includes(aDate.toString());
                 return (
                   <p key={key} className={classNames(pastOrCancelled && "line-through")}>
-                    {formatTime(aDate, user?.timeFormat, user?.timeZone)}
+                    {formatTime(aDate, userTimeFormat, userTimeZone)}
                     {" - "}
                     {dayjs(aDate).locale(language).format("D MMMM YYYY")}
                   </p>
@@ -563,7 +603,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 />
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
-                    ? `${t("event_remaining", {
+                    ? `${t("event_remaining_other", {
                         count: recurringCount,
                       })}`
                     : getEveryFreqFor({

@@ -1,11 +1,15 @@
-import { useSearchParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
 import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
+
+export type useEventReturnType = ReturnType<typeof useEvent>;
+export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
 
 /**
  * Wrapper hook around the trpc query that fetches
@@ -46,6 +50,8 @@ export const useScheduleForEvent = ({
   month,
   duration,
   monthCount,
+  dayCount,
+  selectedDate,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -54,6 +60,8 @@ export const useScheduleForEvent = ({
   month?: string | null;
   duration?: number | null;
   monthCount?: number;
+  dayCount?: number | null;
+  selectedDate?: string | null;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
@@ -61,8 +69,8 @@ export const useScheduleForEvent = ({
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
-  const searchParams = useSearchParams();
-  const rescheduleUid = searchParams.get("rescheduleUid");
+  const searchParams = useCompatSearchParams();
+  const rescheduleUid = searchParams?.get("rescheduleUid");
 
   const pathname = usePathname();
 
@@ -73,11 +81,13 @@ export const useScheduleForEvent = ({
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId: event.data?.id ?? eventId,
     timezone,
+    selectedDate,
     prefetchNextMonth,
     monthCount,
+    dayCount,
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
-    isTeamEvent: pathname.indexOf("/team/") !== -1 || isTeam,
+    isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
   });
 };

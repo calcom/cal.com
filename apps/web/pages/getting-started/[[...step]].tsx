@@ -1,17 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+"use client";
+
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { z } from "zod";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc";
 import { Button, StepCard, Steps } from "@calcom/ui";
 import { Loader } from "@calcom/ui/components/icon";
@@ -23,7 +20,7 @@ import { SetupAvailability } from "@components/getting-started/steps-views/Setup
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-import { ssrInit } from "@server/lib/ssr";
+export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 const INITIAL_STEP = "user-settings";
 const steps = [
@@ -51,13 +48,18 @@ const stepRouteSchema = z.object({
 const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
-  const result = stepRouteSchema.safeParse(params);
+
+  const result = stepRouteSchema.safeParse({
+    ...params,
+    step: Array.isArray(params.step) ? params.step : [params.step],
+  });
+
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-
   const headers = [
     {
       title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
@@ -106,16 +108,13 @@ const OnboardingPage = () => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
+      className={classNames(
+        "dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+        "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
+        "[--cal-brand-subtle:#9CA3AF]",
+        "[--cal-brand-text:#FFFFFF]  dark:[--cal-brand-text:#000000]"
+      )}
       data-testid="onboarding"
-      style={
-        {
-          "--cal-brand": "#111827",
-          "--cal-brand-emphasis": "#101010",
-          "--cal-brand-text": "white",
-          "--cal-brand-subtle": "#9CA3AF",
-        } as CSSProperties
-      }
       key={pathname}>
       <Head>
         <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
@@ -179,59 +178,6 @@ const OnboardingPage = () => {
   );
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req, res });
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const ssr = await ssrInit(context);
-
-  await ssr.viewer.me.prefetch();
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      completedOnboarding: true,
-      teams: {
-        select: {
-          accepted: true,
-          team: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!user) {
-    throw new Error("User from session not found");
-  }
-
-  if (user.completedOnboarding) {
-    return { redirect: { permanent: false, destination: "/event-types" } };
-  }
-  const locale = await getLocale(context.req);
-
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ["common"])),
-      trpcState: ssr.dehydrate(),
-      hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
-    },
-  };
-};
-
-OnboardingPage.isThemeSupported = false;
 OnboardingPage.PageWrapper = PageWrapper;
 
 export default OnboardingPage;

@@ -33,7 +33,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *          type: boolean
  *        description: Delete all remaining bookings
  *      - in: query
- *        name: reason
+ *        name: cancellationReason
  *        required: false
  *        schema:
  *          type: string
@@ -54,10 +54,6 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *             <tr>
  *               <td>Booking not found</td>
  *               <td>The provided id didn't correspond to any existing booking.</td>
- *             </tr>
- *             <tr>
- *               <td>Cannot cancel past events</td>
- *               <td>The provided id matched an existing booking with a past startDate.</td>
  *             </tr>
  *             <tr>
  *               <td>User not found</td>

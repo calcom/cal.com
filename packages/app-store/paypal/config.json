@@ -3,7 +3,7 @@
   "slug": "paypal",
   "type": "paypal_payment",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://paypal.com",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "Cal.com",

@@ -31,6 +31,7 @@ const config = {
       "vi",
       "zh-CN",
       "zh-TW",
+      "km",
     ],
   },
   fallbackLng: {

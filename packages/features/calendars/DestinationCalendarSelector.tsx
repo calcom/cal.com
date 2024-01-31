@@ -11,12 +11,13 @@ import { Check } from "@calcom/ui/components/icon";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
   destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
+  hideAdvancedText?: boolean;
 }
 
 interface Option {
@@ -48,11 +49,11 @@ const OptionComponent = ({ ...props }: OptionProps<Option>) => {
 
 const DestinationCalendarSelector = ({
   onChange,
-  isLoading,
+  isPending,
   value,
   hidePlaceholder,
+  hideAdvancedText,
   maxWidth,
-  destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery();
@@ -126,7 +127,6 @@ const DestinationCalendarSelector = ({
 
   return (
     <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
-      <p className="text-sm font-medium leading-none">{t("add_events_to")}</p>
       <Select
         name="primarySelectedCalendar"
         placeholder={
@@ -172,12 +172,14 @@ const DestinationCalendarSelector = ({
             externalId,
           });
         }}
-        isLoading={isLoading}
+        isLoading={isPending}
         value={selectedOption}
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}
       />
-      <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
+      {hideAdvancedText ? null : (
+        <p className="text-sm leading-tight">{t("you_can_override_calendar_in_advanced_tab")}</p>
+      )}
     </div>
   );
 };

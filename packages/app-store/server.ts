@@ -88,7 +88,13 @@ export async function getLocationGroupedOptions(
         teamName: credential.team?.name,
       }))) {
         const label = `${app.locationOption.label} ${teamName ? `(${teamName})` : ""}`;
-        const option = { ...app.locationOption, label, icon: app.logo, slug: app.slug };
+        const option = {
+          ...app.locationOption,
+          label,
+          icon: app.logo,
+          slug: app.slug,
+          ...(app.credential ? { credentialId: app.credential.id, teamName: app.credential.team?.name } : {}),
+        };
         if (apps[groupByCategory]) {
           apps[groupByCategory] = [...apps[groupByCategory], option];
         } else {

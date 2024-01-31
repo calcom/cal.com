@@ -7,7 +7,7 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import type { appDataSchema } from "../zod";
 import EventTypeAppSettingsInterface from "./EventTypeAppSettingsInterface";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
 
@@ -20,6 +20,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}>
       <EventTypeAppSettingsInterface
         slug={app.slug}
+        eventType={eventType}
         disabled={disabled}
         getAppData={getAppData}
         setAppData={setAppData}

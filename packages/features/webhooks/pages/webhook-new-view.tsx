@@ -1,7 +1,8 @@
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -23,7 +24,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   );
 };
 const NewWebhookView = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
@@ -31,7 +32,7 @@ const NewWebhookView = () => {
 
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
 
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -82,7 +83,7 @@ const NewWebhookView = () => {
     });
   };
 
-  if (isLoading)
+  if (isPending)
     return (
       <SkeletonLoader
         title={t("add_webhook")}

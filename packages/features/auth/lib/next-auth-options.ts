@@ -8,7 +8,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { getOrgFullDomain, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -105,6 +105,7 @@ const providers: Provider[] = [
           email: credentials.email.toLowerCase(),
         },
         select: {
+          locked: true,
           role: true,
           id: true,
           username: true,
@@ -134,6 +135,11 @@ const providers: Provider[] = [
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
+
+      // Locked users cannot login
+      if (user.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
       }
 
       await checkRateLimitAndThrowError({
@@ -226,6 +232,12 @@ const providers: Provider[] = [
         if (role !== "ADMIN") return role;
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
+
+        if (process.env.NEXT_PUBLIC_IS_E2E) {
+          console.warn("E2E testing is enabled, skipping password and 2FA requirements for Admin");
+          return role;
+        }
+
         // User's password is valid and two-factor authentication is enabled
         if (isPasswordValid(credentials.password, false, true) && user.twoFactorEnabled) return role;
         // Code is running in a development environment
@@ -471,7 +483,7 @@ export const AUTH_OPTIONS: AuthOptions = {
                 id: organization.id,
                 name: organization.name,
                 slug: organization.slug ?? parsedOrgMetadata?.requestedSlug ?? "",
-                fullDomain: getOrgFullDomain(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
+                fullDomain: getOrgFullOrigin(organization.slug ?? parsedOrgMetadata?.requestedSlug ?? ""),
                 domainSuffix: subdomainSuffix(),
               }
             : undefined,
@@ -496,7 +508,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: user?.impersonatedByUID,
+          impersonatedBy: user.impersonatedBy,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           org: user?.org,
           locale: user?.locale,
@@ -535,7 +547,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
-          impersonatedByUID: token.impersonatedByUID as number,
+          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: existingUser.locale,
@@ -555,7 +567,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           name: token.name,
           username: token.username as string,
           role: token.role as UserPermissionRole,
-          impersonatedByUID: token.impersonatedByUID as number,
+          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,
@@ -776,6 +788,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
+            ...(user.image && { avatarUrl: user.image }),
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,

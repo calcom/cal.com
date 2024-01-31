@@ -16,7 +16,7 @@ const useAppsData = () => {
   };
 
   const getAppDataGetter = (appId: EventTypeAppsList): GetAppData => {
-    return function (key?: string) {
+    return function (key) {
       const appData = allAppsData[appId as keyof typeof allAppsData] || {};
       if (key) {
         return appData[key as keyof typeof appData];
@@ -25,7 +25,13 @@ const useAppsData = () => {
     };
   };
 
-  const getAppDataSetter = (appId: EventTypeAppsList): SetAppData => {
+  const eventTypeFormMetadata = methods.getValues("metadata");
+
+  const getAppDataSetter = (
+    appId: EventTypeAppsList,
+    appCategories: string[],
+    credentialId?: number
+  ): SetAppData => {
     return function (key, value) {
       // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
       const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
@@ -35,12 +41,14 @@ const useAppsData = () => {
         [appId]: {
           ...appData,
           [key]: value,
+          credentialId,
+          appCategories,
         },
       });
     };
   };
 
-  return { getAppDataGetter, getAppDataSetter };
+  return { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata };
 };
 
 export default useAppsData;
