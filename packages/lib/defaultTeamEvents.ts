@@ -39,7 +39,7 @@ export default async function createDefaultTeamEvents({ teamId, user }: CreateDe
     },
   ];
 
-  await defaultTeamEvents.forEach(async (teamEvent) => {
+  defaultTeamEvents.forEach(async (teamEvent) => {
     await createEventType({
       prisma,
       user,
