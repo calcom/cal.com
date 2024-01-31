@@ -13,50 +13,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    await renderEmail("MonthlyDigestEmail", {
+    await renderEmail("VerifyEmailChangeEmail", {
       language: t,
-      Created: 12,
-      Completed: 13,
-      Rescheduled: 14,
-      Cancelled: 16,
-      mostBookedEvents: [
-        {
-          eventTypeId: 3,
-          eventTypeName: "Test1",
-          count: 3,
-        },
-        {
-          eventTypeId: 4,
-          eventTypeName: "Test2",
-          count: 5,
-        },
-      ],
-      membersWithMostBookings: [
-        {
-          userId: 4,
-          user: {
-            id: 4,
-            name: "User1 name",
-            email: "email.com",
-            avatar: "none",
-            username: "User1",
-          },
-          count: 4,
-        },
-        {
-          userId: 6,
-          user: {
-            id: 6,
-            name: "User2 name",
-            email: "email2.com",
-            avatar: "none",
-            username: "User2",
-          },
-          count: 8,
-        },
-      ],
-      admin: { email: "admin.com", name: "admin" },
-      team: { name: "Team1", id: 4 },
+      user: {
+        name: "sean",
+        emailFrom: "X@cal.com",
+        emailTo: "sean@cal.com",
+      },
+      verificationEmailLink: "XXXX.com",
     })
   );
   res.end();

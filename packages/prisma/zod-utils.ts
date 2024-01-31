@@ -329,6 +329,7 @@ export const userMetadata = z
       })
       .optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
+    emailChangeWaitingForVerification: z.string().optional(),
   })
   .nullable();
 

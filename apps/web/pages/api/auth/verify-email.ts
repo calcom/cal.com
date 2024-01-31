@@ -4,6 +4,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 const verifySchema = z.object({
   token: z.string(),
@@ -26,14 +27,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "Token expired" });
   }
 
-  const user = await prisma.user.update({
+  const user = await prisma.user.findFirst({
     where: {
-      email: foundToken?.identifier,
-    },
-    data: {
-      emailVerified: new Date(),
+      OR: [
+        {
+          email: foundToken?.identifier,
+        },
+        {
+          metadata: {
+            path: ["emailChangeWaitingForVerifcaiton"],
+            equals: foundToken.identifier,
+          },
+        },
+      ],
     },
   });
+
+  if (!user) {
+    throw new Error("Cannot find a user attached to this token.");
+  }
+
+  const userMetadataParsed = userMetadata.parse(user);
+  console.log({
+    email: user.email,
+    metadata: user.metadata,
+    needsVerifying: userMetadataParsed?.emailChangeWaitingForVerification,
+  });
+
+  // Attach the new email and verify
+
+  if (userMetadataParsed?.emailChangeWaitingForVerification) {
+    // Ensure this email isnt in use
+    const existingUser = await prisma.user.findUnique({
+      where: { email: foundToken.identifier },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUser) {
+      console.log("User Exists");
+      throw Error("A User already exists with this email");
+    }
+
+    // Update and re-verify
+    const updated = await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        email: foundToken.identifier,
+        emailVerified: new Date(),
+      },
+    });
+    console.log({
+      updated,
+    });
+  } else {
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        emailVerified: new Date(),
+      },
+    });
+  }
 
   // Delete token from DB after it has been used
   await prisma.verificationToken.delete({

@@ -105,6 +105,10 @@ const ProfileView = () => {
         utils.viewer.shouldVerifyEmail.invalidate();
       }
 
+      if (res.hasEmailBeenChanged) {
+        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+      }
+
       setConfirmAuthEmailChangeWarningDialogOpen(false);
       setTempFormValues(null);
     },

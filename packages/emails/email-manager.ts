@@ -27,6 +27,8 @@ import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requ
 import BookingRedirectEmailNotification from "./templates/booking-redirect-notification";
 import type { IBookingRedirect } from "./templates/booking-redirect-notification";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
+import type { ChangeOfEmailVerifyLink } from "./templates/change-account-email-verify";
+import ChangeOfEmailVerifyEmail from "./templates/change-account-email-verify";
 import DisabledAppEmail from "./templates/disabled-app-email";
 import type { Feedback } from "./templates/feedback-email";
 import FeedbackEmail from "./templates/feedback-email";
@@ -335,6 +337,10 @@ export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLi
 
 export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
   await sendEmail(() => new AttendeeVerifyEmail(verificationInput));
+};
+
+export const sendChangeOfEmailVerificationLink = async (verificationInput: ChangeOfEmailVerifyLink) => {
+  await sendEmail(() => new ChangeOfEmailVerifyEmail(verificationInput));
 };
 
 export const sendRequestRescheduleEmail = async (
