@@ -465,9 +465,7 @@ export async function ensureAvailableUsers(
 
   const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
     userIds: eventType.users.map((u) => u.id),
-    eventType: {
-      ...eventType,
-    },
+    eventType,
     startDate: input.dateFrom,
     endDate: input.dateTo,
     rescheduleUid: input.originalRescheduledBooking?.uid ?? null,

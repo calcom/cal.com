@@ -265,7 +265,9 @@ export async function getBusyTimes(params: {
 
 export async function getBusyTimesForLimitChecks(params: {
   userIds: number[];
-  eventType: Partial<EventType>;
+  // TODO: Fix this. Currently 2 places calling this function that use different data structures
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventType: any;
   startDate: string;
   endDate: string;
   rescheduleUid?: string | null;
