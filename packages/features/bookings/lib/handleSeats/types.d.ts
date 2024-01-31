@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import type z from "zod";
 
 import type { AppsStatus } from "@calcom/types/Calendar";
 
@@ -34,6 +35,7 @@ export type NewSeatedBookingObject = {
   reqBodyMetadata: ReqBodyMetadata;
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: WebhookTriggerEvents;
+  responses: z.infer<ReturnType<typeof getBookingDataSchema>>["responses"] | null;
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };

@@ -34,6 +34,7 @@ const createNewSeat = async (
     organizerUser,
     fullName,
     bookerEmail,
+    responses,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   let resultBooking: HandleSeatsResultBooking;
@@ -82,6 +83,7 @@ const createNewSeat = async (
               referenceUid: attendeeUniqueId,
               data: {
                 description: additionalNotes,
+                responses,
               },
               booking: {
                 connect: {

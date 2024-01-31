@@ -27,8 +27,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     eventTypeId,
     subscriberOptions,
     eventTrigger,
+    evt,
   } = newSeatedBookingObject;
-  const { evt } = newSeatedBookingObject;
+
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;
