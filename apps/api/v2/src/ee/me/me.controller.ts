@@ -24,9 +24,13 @@ export class MeController {
         timeFormat: user.timeFormat || TWELVE_HOUR_TIME_FORMAT,
         defaultScheduleId: user.defaultScheduleId,
         weekStart: user.weekStart,
+        timeZone: user.timeZone,
       },
     };
   }
 }
 
-export type UserReturned = Pick<User, "id" | "email" | "timeFormat" | "defaultScheduleId" | "weekStart">;
+export type UserReturned = Pick<
+  User,
+  "id" | "email" | "timeFormat" | "defaultScheduleId" | "weekStart" | "timeZone"
+>;
