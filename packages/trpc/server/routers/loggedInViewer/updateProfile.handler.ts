@@ -65,8 +65,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const flags = await getFeatureFlagMap(prisma);
 
-  console.log({ flags });
-
   const data: Prisma.UserUpdateInput = {
     ...input,
     // DO NOT OVERWRITE AVATAR.
@@ -141,7 +139,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (hasEmailBeenChanged) {
     if (sendEmailVerification && hasEmailChangedOnCalProvider) {
-      console.log("Updating Metadata");
       // Set metadata of the user so we can set it to this updated email once it is confirmed
       data.metadata = {
         ...userMetadata,
@@ -271,7 +268,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (updatedUser && hasEmailChangedOnCalProvider) {
-    console.log("sending verification email");
     await sendChangeOfEmailVerification({
       user: {
         username: updatedUser.username ?? "Nameless User",
@@ -281,7 +277,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         emailTo: input.email!,
       },
     });
-    console.log("Sent verification email");
   }
 
   // don't return avatar, we don't need it anymore.

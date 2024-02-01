@@ -83,7 +83,7 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { update } = useSession();
+  const { update, data: session } = useSession();
   const { data: user, isPending } = trpc.viewer.me.useQuery();
 
   const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
@@ -92,7 +92,15 @@ const ProfileView = () => {
 
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
-      await update(res);
+      if (!res.signOutUser) {
+        // await update({
+        //   ...session,
+        //   username: res.username,
+        //   email: res.email,
+        //   name: res.name,
+        // });
+      }
+
       showToast(t("settings_updated_successfully"), "success");
 
       // signout user only in case of password reset
