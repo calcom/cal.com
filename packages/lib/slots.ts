@@ -170,7 +170,6 @@ function buildSlotsWithDateRanges({
 
     let slotStartTime = range.start.toUTC() > startTimeWithMinNotice ? range.start : startTimeWithMinNotice;
 
-    console.log("slotStartTime", slotStartTime);
     let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
 
     const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
@@ -198,7 +197,7 @@ function buildSlotsWithDateRanges({
 
     slotStartTime = slotStartTime.plus({ minutes: offsetStart ?? 0 }).setZone(timeZone);
 
-    while (!slotStartTime.plus({ minutes: eventLength }).minus({ seconds: 1 }).toUTC() > rangeEnd) {
+    while (slotStartTime.plus({ minutes: eventLength }).minus({ seconds: 1 }).toUTC() <= rangeEnd) {
       slots.push({
         time: slotStartTime,
       });

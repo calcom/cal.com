@@ -577,7 +577,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
       // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
       // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
-      const dateString = formatter.format(time.toDate());
+      const dateString = formatter.format(time);
 
       r[dateString] = r[dateString] || [];
       if (eventType.onlyShowFirstAvailableSlot && r[dateString].length > 0) {
@@ -585,7 +585,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       }
       r[dateString].push({
         ...passThroughProps,
-        time: time.toISOString(),
+        time: time.toISO(),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:
