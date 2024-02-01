@@ -67,6 +67,7 @@ export function processDateOverride({
   timeZone,
 }: {
   item: DateOverride;
+  itemDateAsUtc: Dayjs;
   timeZone: string;
 }) {
   const itemDateStartOfDay = itemDateAsUtc.startOf("day");
@@ -100,6 +101,7 @@ export function buildDateRanges({
   dateTo: Dayjs;
 }): DateRange[] {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
+  const start2 = performance.now();
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
@@ -115,7 +117,7 @@ export function buildDateRanges({
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
         const itemDateAsUtc = dayjs.utc(item.date);
-        if (itemDateAsUtc.isBetween(dateFrom, dateTo)) {
+        if (itemDateAsUtc >= dateFrom && itemDateAsUtc <= dateTo) {
           processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
         }
       }

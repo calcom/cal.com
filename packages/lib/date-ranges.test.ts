@@ -224,7 +224,7 @@ describe("processDateOverrides", () => {
     // 2023-06-12T20:00:00-04:00 (America/New_York)
     const timeZone = "America/New_York";
 
-    const result = processDateOverride({ item, timeZone });
+    const result = processDateOverride({ item, itemDateAsUtc: dayjs.utc(item.date), timeZone });
 
     expect(result.start.format()).toEqual(dayjs("2023-06-12T12:00:00Z").tz(timeZone).format());
     expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
