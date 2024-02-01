@@ -8,11 +8,16 @@ export const createEmbedsFixture = (page: Page) => {
     async addEmbedListeners(calNamespace: string) {
       await page.addInitScript(
         ({ calNamespace }: { calNamespace: string }) => {
-          console.log("PlaywrightTest:", "Adding listener for __iframeReady on namespace:", calNamespace);
+          console.log(
+            "PlaywrightTest - InitScript:",
+            "Adding listener for __iframeReady on namespace:",
+            calNamespace
+          );
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           window.eventsFiredStoreForPlaywright = window.eventsFiredStoreForPlaywright || {};
           document.addEventListener("DOMContentLoaded", function tryAddingListener() {
+            console.log("DOMContentLoaded");
             if (parent !== window) {
               // Firefox seems to execute this snippet for iframe as well. Avoid that. It must be executed only for parent frame.
 
@@ -43,14 +48,18 @@ export const createEmbedsFixture = (page: Page) => {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               //@ts-ignore
               api = window.Cal.ns[calNamespace];
+              console.log("Using api from namespace-", calNamespace, api, api.ns);
             }
             console.log("PlaywrightTest:", `Adding listener for __iframeReady on namespace:${calNamespace}`);
             if (!api) {
               throw new Error(`namespace "${calNamespace}" not found`);
             }
+            window.api = api;
             api("on", {
               action: "*",
               callback: (e) => {
+                debugger;
+                console.log("Received event", e);
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 window.iframeReady = true; // Technically if there are multiple cal embeds, it can be set due to some other iframe. But it works for now. Improve it when it doesn't work
