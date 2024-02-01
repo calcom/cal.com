@@ -10820,36 +10820,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:4.36.1":
-  version: 4.36.1
-  resolution: "@tanstack/query-core@npm:4.36.1"
-  checksum: 47672094da20d89402d9fe03bb7b0462be73a76ff9ca715169738bc600a719d064d106d083a8eedae22a2c22de22f87d5eb5d31ef447aba771d9190f2117ed10
-  languageName: node
-  linkType: hard
-
 "@tanstack/query-core@npm:5.17.19":
   version: 5.17.19
   resolution: "@tanstack/query-core@npm:5.17.19"
   checksum: ad09f1d64a169f8427225020b8b68328d64d1e671af28d47c33df31302106a05af4ed61587642704f70e1fe3861a8f00ea1722685a128dc6ee60fdf34b8dcc57
-  languageName: node
-  linkType: hard
-
-"@tanstack/react-query@npm:^4.3.9":
-  version: 4.36.1
-  resolution: "@tanstack/react-query@npm:4.36.1"
-  dependencies:
-    "@tanstack/query-core": 4.36.1
-    use-sync-external-store: ^1.2.0
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-native: "*"
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 1aff0a476859386f8d32253fa0d0bde7b81769a6d4d4d9cbd78778f0f955459a3bdb7ee27a0d2ee7373090f12998b45df80db0b5b313bd0a7a39d36c6e8e51c5
   languageName: node
   linkType: hard
 
@@ -10876,29 +10850,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-virtual@npm:^3.0.0-beta.60":
-  version: 3.0.2
-  resolution: "@tanstack/react-virtual@npm:3.0.2"
-  dependencies:
-    "@tanstack/virtual-core": 3.0.0
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: d8a370150582cf765a3e74e506cd1d95b65449a9b30c992865743d091b3953c03a6832f732439beef0a9c4f42bc211ea42a08d6b488122b32afd76b1cd7569bf
-  languageName: node
-  linkType: hard
-
 "@tanstack/table-core@npm:8.9.3":
   version: 8.9.3
   resolution: "@tanstack/table-core@npm:8.9.3"
   checksum: 52c7e57daaa3160450fb0bde702ec0b8aab159e2b19efd1012e03b3e167acc52839f5b39578cc8bf96e91346719f400d0435a5191384c168d9477da82f276c38
-  languageName: node
-  linkType: hard
-
-"@tanstack/virtual-core@npm:3.0.0":
-  version: 3.0.0
-  resolution: "@tanstack/virtual-core@npm:3.0.0"
-  checksum: 7283d50fc7b7a56608c37a8e94a93b85890ff7e39c6281633a19c4d6f6f4fbf25f8418f1eec302a008a8746a0d1d0cd00630137b55e6cf019818d68af8ed16b6
   languageName: node
   linkType: hard
 
@@ -11061,9 +11016,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/client@npm:^10.13.0":
-  version: 10.13.0
-  resolution: "@trpc/client@npm:10.13.0"
+"@trpc/client@npm:11.0.0-next-beta.222":
+  version: 11.0.0-next-beta.222
+  resolution: "@trpc/client@npm:11.0.0-next-beta.222"
+  peerDependencies:
+    "@trpc/server": 11.0.0-next-beta.222+3c3fb2a38
+  checksum: 984fbe81ffcf47e81296e332f300c4909b8c5d65f0da62a481e07f7a3b1b3fcdab454bdff5cc2a8fc8aaecd1ca0e18cfa3fe0fdf2e4d972305938ed0292ac2f3
+  languageName: node
+  linkType: hard
+
+"@trpc/next@npm:11.0.0-next-beta.222":
+  version: 11.0.0-next-beta.222
+  resolution: "@trpc/next@npm:11.0.0-next-beta.222"
   peerDependencies:
     "@tanstack/react-query": ^5.0.0
     "@trpc/client": 11.0.0-next-beta.222+3c3fb2a38
@@ -11098,13 +11062,6 @@ __metadata:
   version: 11.0.0-next-beta.222
   resolution: "@trpc/server@npm:11.0.0-next-beta.222"
   checksum: bf157b6ed6da0d4080cdfb089963e1da4527df87c2f19e159b74f4bf339e3c443061c800e39ec42bf79ccaf7800127d4426274492daf5059763ca248dd7df9fc
-  languageName: node
-  linkType: hard
-
-"@trpc/server@npm:^10.13.0":
-  version: 10.13.0
-  resolution: "@trpc/server@npm:10.13.0"
-  checksum: 952f6d1017be935bb65f85a34330be721193a5e8bd28a95d27951a74b2979d9e471f1e7d98a813f37ba8f7d7e672de9078f7d6060211bbc89e4cf6fcf5531d70
   languageName: node
   linkType: hard
 
@@ -19023,16 +18980,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.15.4":
-  version: 1.15.5
-  resolution: "follow-redirects@npm:1.15.5"
-  peerDependenciesMeta:
-    debug:
-      optional: true
-  checksum: 5ca49b5ce6f44338cbfc3546823357e7a70813cecc9b7b768158a1d32c1e62e7407c944402a918ea8c38ae2e78266312d617dc68783fac502cbb55e1047b34ec
-  languageName: node
-  linkType: hard
-
 "for-each@npm:^0.3.3":
   version: 0.3.3
   resolution: "for-each@npm:0.3.3"
@@ -23501,13 +23448,6 @@ __metadata:
   version: 4.6.0
   resolution: "lodash.reduce@npm:4.6.0"
   checksum: 81f2a1045440554f8427f895ef479f1de5c141edd7852dde85a894879312801efae0295116e5cf830c531c1a51cdab8f3628c3ad39fa21a9874bb9158d9ea075
-  languageName: node
-  linkType: hard
-
-"lodash.sortby@npm:^4.7.0":
-  version: 4.7.0
-  resolution: "lodash.sortby@npm:4.7.0"
-  checksum: db170c9396d29d11fe9a9f25668c4993e0c1331bcb941ddbd48fb76f492e732add7f2a47cfdf8e9d740fa59ac41bbfaf931d268bc72aab3ab49e9f89354d718c
   languageName: node
   linkType: hard
 
@@ -32966,7 +32906,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:1.2.0, use-sync-external-store@npm:^1.2.0":
+"use-sync-external-store@npm:1.2.0":
   version: 1.2.0
   resolution: "use-sync-external-store@npm:1.2.0"
   peerDependencies:
