@@ -6,7 +6,8 @@
       "~/*": ["/*"],
       "@/*": ["./src/*"]
     },
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "outDir": "./dist"
   },
   "include": [".", "../types/next-auth.d.ts"],
   "exclude": ["dist", "build", "node_modules"]

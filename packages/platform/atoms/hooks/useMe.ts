@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { BASE_URL, API_VERSION, ENDPOINTS } from "@calcom/platform-constants";
+import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
 
 export const useMe = (key: string) => {
   const endpoint = new URL(BASE_URL);
 
-  endpoint.pathname = `${API_VERSION}/${ENDPOINTS.me}`;
+  endpoint.pathname = `${API_VERSION}/${V2_ENDPOINTS.me}`;
   endpoint.searchParams.set("apiKey", key);
 
   const { data } = useQuery({
