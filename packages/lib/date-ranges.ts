@@ -1,4 +1,4 @@
-import { DateTime as LuxonDateTime, Duration } from "luxon";
+import { DateTime as LuxonDateTime } from "luxon";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -34,16 +34,14 @@ export function processWorkingHours({
 
     // it always has to be start of the day (midnight) even when DST changes
     const dateInTz = date.plus({ minutes: fromOffset - offset }).setZone(timeZone);
-    if (!item.days.includes(dateInTz.day)) {
+    if (!item.days.includes(dateInTz.weekday)) {
       continue;
     }
 
-    let start = dateInTz.plus(
-      Duration.fromObject({
-        hours: item.startTime.getUTCHours(),
-        minutes: item.startTime.getUTCMinutes() == 0 ? 1 : 0,
-      })
-    );
+    let start = dateInTz.plus({
+      hours: item.startTime.getUTCHours(),
+      minutes: item.startTime.getUTCMinutes(),
+    });
 
     let end = dateInTz.plus({ hours: item.endTime.getUTCHours(), minutes: item.endTime.getUTCMinutes() });
 
@@ -53,7 +51,6 @@ export function processWorkingHours({
     ).setZone(timeZone).offset;
 
     const offsetDiff = start.offset - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
-    console.log("offsetBeginningOfDay", offsetBeginningOfDay);
     start = start.plus({ minutes: offsetDiff });
     end = end.plus({ minutes: offsetDiff });
 
