@@ -28,13 +28,15 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const ctx = await createContext({ req, res }, sessionGetter);
   try {
     const caller = viewerTeamsRouter.createCaller(ctx);
-    return await caller.inviteMember({
+    await caller.inviteMember({
       role: data.role,
       language: data.language,
       teamId: data.teamId,
       usernameOrEmail: data.usernameOrEmail,
       isOrg: data.isOrg,
     });
+
+    return { success: true, message: `${data.usernameOrEmail} has been invited.` };
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);
