@@ -120,7 +120,7 @@ const AssignAllTeamMembers = ({
           description={t("including_people_who_join_in_future")}
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {
-            formMethods.setValue("assignAllTeamMembers", active);
+            formMethods.setValue("assignAllTeamMembers", active, { shouldDirty: true });
             setAssignAllTeamMembers(active);
             if (active) {
               onActive();
@@ -244,13 +244,16 @@ const RoundRobinHosts = ({
               onActive={() =>
                 formMethods.setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: false,
-                    userId: parseInt(teamMember.value, 10),
-                  }))
+                  teamMembers.map(
+                    (teamMember) => ({
+                      isFixed: false,
+                      userId: parseInt(teamMember.value, 10),
+                    }),
+                    { shouldDirty: true }
+                  )
                 )
               }
-              onInactive={() => formMethods.setValue("hosts", [])}
+              onInactive={() => formMethods.setValue("hosts", [], { shouldDirty: true })}
             />
           </div>
           {assignAllTeamMembers ? (
@@ -289,7 +292,7 @@ const ChildrenEventTypes = ({
         <AssignAllTeamMembers
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          onActive={() => formMethods.setValue("children", childrenEventTypeOptions)}
+          onActive={() => formMethods.setValue("children", childrenEventTypeOptions, { shouldDirty: true })}
         />
         {!assignAllTeamMembers ? (
           <Controller<FormValues>
@@ -363,13 +366,16 @@ const Hosts = ({
                   onActive={() =>
                     formMethods.setValue(
                       "hosts",
-                      teamMembers.map((teamMember) => ({
-                        isFixed: true,
-                        userId: parseInt(teamMember.value, 10),
-                      }))
+                      teamMembers.map(
+                        (teamMember) => ({
+                          isFixed: true,
+                          userId: parseInt(teamMember.value, 10),
+                        }),
+                        { shouldDirty: true }
+                      )
                     )
                   }
-                  onInactive={() => formMethods.setValue("hosts", [])}
+                  onInactive={() => formMethods.setValue("hosts", [], { shouldDirty: true })}
                 />
                 {assignAllTeamMembers ? (
                   <></>
@@ -469,7 +475,7 @@ export const EventTeamTab = ({
                   className="w-full"
                   onChange={(val) => {
                     onChange(val?.value);
-                    formMethods.setValue("assignAllTeamMembers", false);
+                    formMethods.setValue("assignAllTeamMembers", false, { shouldDirty: true });
                     setAssignAllTeamMembers(false);
                   }}
                 />
