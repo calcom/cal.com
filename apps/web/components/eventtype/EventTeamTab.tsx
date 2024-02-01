@@ -282,18 +282,18 @@ const AddMembersWithSwitch = ({
   return (
     <div className="rounded-md ">
       <div className="flex flex-col rounded-md px-6 pb-2 pt-6">
-        <div className="mb-2">
-          {automaticAddAllEnabled ? (
+        {automaticAddAllEnabled ? (
+          <div className="mb-2">
             <AssignAllTeamMembers
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               onActive={onActive}
               onInactive={() => formMethods.setValue("hosts", [])}
             />
-          ) : (
-            <></>
-          )}
-        </div>
+          </div>
+        ) : (
+          <></>
+        )}
         {assignAllTeamMembers && automaticAddAllEnabled ? (
           <div className="" />
         ) : (
