@@ -1,3 +1,5 @@
+import { DateTime as LuxonDateTime } from "luxon";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { Availability } from "@calcom/prisma/client";
@@ -21,41 +23,51 @@ export function processWorkingHours({
   dateFrom: Dayjs;
   dateTo: Dayjs;
 }) {
-  const utcDateTo = dateTo.utc();
+  const utcDateTo = LuxonDateTime.fromISO(dateTo.utc().toString());
   const results = [];
-  for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.startOf("day").utcOffset();
-    const offset = date.tz(timeZone).utcOffset();
+
+  for (
+    let date = LuxonDateTime.fromISO(dateFrom.startOf("day").toISOString());
+    utcDateTo > date;
+    date = date.plus(Duration.fromObject({ days: 1 }))
+  ) {
+    const fromOffset = dateFrom.startOf("day").offset;
+    const offset = date.setZone(timeZone).offset;
 
     // it always has to be start of the day (midnight) even when DST changes
-    const dateInTz = date.add(fromOffset - offset, "minutes").tz(timeZone);
-    if (!item.days.includes(dateInTz.day())) {
+    const dateInTz = date.plus({ minutes: fromOffset - offset }).setZone(timeZone);
+    if (!item.days.includes(dateInTz.day)) {
       continue;
     }
 
     let start = dateInTz
-      .add(item.startTime.getUTCHours(), "hours")
-      .add(item.startTime.getUTCMinutes(), "minutes");
+      .plus({ hours: item.startTime.getUTCHours() })
+      .plus({ minutes: item.startTime.getUTCMinutes() });
 
-    let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
+    let end = dateInTz
+      .plus({ hours: item.endTime.getUTCHours() })
+      .plus({ minutes: item.endTime.getUTCMinutes() });
 
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(timeZone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
+    const offsetBeginningOfDay = LuxonDateTime.fromFormat(
+      start.toString("YYYY-MM-DD hh:mm"),
+      "YYYY-MM-DD hh:mm"
+    ).setZone(timeZone).offset;
 
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
+    const offsetDiff = start.offset - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
 
-    const startResult = dayjs.max(start, dateFrom);
-    const endResult = dayjs.min(end, dateTo.tz(timeZone));
+    start = start.plus({ minutes: offsetDiff });
+    end = end.plus({ minutes: offsetDiff });
 
-    if (endResult.isBefore(startResult)) {
-      // if an event ends before start, it's not a result.
+    const startResult = LuxonDateTime.max(start, dateFrom);
+    const endResult = LuxonDateTime.min(end, dateTo.tz(timeZone));
+
+    if (endResult < startResult) {
       continue;
     }
 
     results.push({
-      start: startResult,
-      end: endResult,
+      start: dayjs(startResult.toISOString()),
+      end: dayjs(endResult.toISOString()),
     });
   }
   return results;
@@ -94,6 +106,7 @@ export function buildDateRanges({
   dateTo: Dayjs;
 }): DateRange[] {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
+  const start = performance.now();
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
@@ -104,6 +117,9 @@ export function buildDateRanges({
       return processed;
     }, [])
   );
+
+  const end = performance.now();
+  console.log("groupedWorkingHours", `${end - start}ms`, availability.length);
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
