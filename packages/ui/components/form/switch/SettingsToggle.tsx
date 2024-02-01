@@ -92,7 +92,8 @@ function SettingsToggle({
               />
 
               <div>
-                <Label className="text-emphasis text-sm font-semibold leading-none">
+                <Label
+                  className={classNames("text-emphasis text-sm font-semibold leading-none", labelClassName)}>
                   {title}
                   {LockedIcon}
                 </Label>

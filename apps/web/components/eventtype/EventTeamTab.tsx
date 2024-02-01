@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
+import type { UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
@@ -117,7 +118,7 @@ const AssignAllTeamMembers = ({
       render={() => (
         <SettingsToggle
           title={t("automatically_add_all_team_members")}
-          description={t("including_people_who_join_in_future")}
+          labelClassName="mt-0.5 font-normal"
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {
             formMethods.setValue("assignAllTeamMembers", active);
@@ -128,7 +129,6 @@ const AssignAllTeamMembers = ({
               onInactive();
             }
           }}
-          toggleSwitchAtTheEnd
         />
       )}
     />
@@ -154,7 +154,7 @@ const CheckedHostField = ({
   helperText?: React.ReactNode | string;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
-    <div className="bg-muted flex flex-col space-y-5 p-4">
+    <div className="flex flex-col rounded-md">
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
@@ -181,7 +181,6 @@ const CheckedHostField = ({
           placeholder={placeholder}
           {...rest}
         />
-        {helperText && <p className="text-subtle text-sm">{helperText}</p>}
       </div>
     </div>
   );
@@ -199,12 +198,14 @@ const FixedHostHelper = (
   </Trans>
 );
 
-const RoundRobinHosts = ({
+const FixedHosts = ({
   teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  automaticAddAllEnabled,
+  setValue,
 }: {
   value: { isFixed: boolean; userId: number }[];
   onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
@@ -216,58 +217,147 @@ const RoundRobinHosts = ({
   }[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  automaticAddAllEnabled: boolean;
+  setValue: UseFormSetValue<FormValues>;
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <div className="rounded-lg ">
+      <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
+        <Label className="mb-1 text-sm font-semibold">{t("fixed_hosts")}</Label>
+        <p className="text-subtle max-w-full break-words text-sm leading-tight">{FixedHostHelper}</p>
+      </div>
+      <div className="border-subtle rounded-b-md border border-t-0">
+        <AddMembersWithSwitch
+          teamMembers={teamMembers}
+          value={value}
+          onChange={onChange}
+          assignAllTeamMembers={assignAllTeamMembers}
+          setAssignAllTeamMembers={setAssignAllTeamMembers}
+          automaticAddAllEnabled={automaticAddAllEnabled}
+          isFixed={true}
+          onActive={() =>
+            setValue(
+              "hosts",
+              teamMembers.map((teamMember) => ({
+                isFixed: true,
+                userId: parseInt(teamMember.value, 10),
+              }))
+            )
+          }
+        />
+      </div>
+    </div>
+  );
+};
+
+const AddMembersWithSwitch = ({
+  teamMembers,
+  value,
+  onChange,
+  assignAllTeamMembers,
+  setAssignAllTeamMembers,
+  automaticAddAllEnabled,
+  onActive,
+  isFixed,
+}: {
+  value: { isFixed: boolean; userId: number }[];
+  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  teamMembers: {
+    value: string;
+    label: string;
+    avatar: string;
+    email: string;
+  }[];
+  assignAllTeamMembers: boolean;
+  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  automaticAddAllEnabled: boolean;
+  onActive: () => void;
+  isFixed: boolean;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
   return (
-    <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
-      <div className="flex flex-col gap-8">
-        <CheckedHostField
-          options={teamMembers.sort(sortByLabel)}
-          isFixed={true}
-          onChange={(changeValue) => {
-            onChange([...value.filter(({ isFixed }) => !isFixed), ...changeValue]);
-          }}
-          value={value}
-          placeholder={t("add_fixed_hosts")}
-          labelText={t("fixed_hosts")}
-          helperText={FixedHostHelper}
-        />
-
-        <div className="bg-muted flex flex-col">
-          <Label className="p-4">{t("round_robin_hosts")}</Label>
-          <div className="px-4 pb-2">
+    <div className="rounded-md ">
+      <div className="flex flex-col rounded-md px-6 pb-2 pt-6">
+        <div className="mb-2">
+          {automaticAddAllEnabled ? (
             <AssignAllTeamMembers
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
-              onActive={() =>
-                formMethods.setValue(
-                  "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: false,
-                    userId: parseInt(teamMember.value, 10),
-                  }))
-                )
-              }
+              onActive={onActive}
               onInactive={() => formMethods.setValue("hosts", [])}
             />
-          </div>
-          {assignAllTeamMembers ? (
-            <div className="mb-4" />
           ) : (
-            <CheckedHostField
-              options={teamMembers.sort(sortByLabel)}
-              onChange={(changeValue) =>
-                onChange([...value.filter(({ isFixed }) => isFixed), ...changeValue])
-              }
-              value={value}
-              isFixed={false}
-              placeholder={t("add_attendees")}
-              helperText={t("round_robin_helper")}
-            />
+            <></>
           )}
         </div>
+        {assignAllTeamMembers && automaticAddAllEnabled ? (
+          <div className="" />
+        ) : (
+          <CheckedHostField
+            value={value}
+            onChange={onChange}
+            isFixed={isFixed}
+            options={teamMembers.sort(sortByLabel)}
+            placeholder={t("add_attendees")}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+const RoundRobinHosts = ({
+  teamMembers,
+  value,
+  onChange,
+  assignAllTeamMembers,
+  setAssignAllTeamMembers,
+  setValue,
+}: {
+  value: { isFixed: boolean; userId: number }[];
+  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  teamMembers: {
+    value: string;
+    label: string;
+    avatar: string;
+    email: string;
+  }[];
+  assignAllTeamMembers: boolean;
+  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setValue: UseFormSetValue<FormValues>;
+}) => {
+  const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
+
+  return (
+    <div className="rounded-lg ">
+      <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
+        <Label className="mb-1 text-sm font-semibold">{t("round_robin_hosts")}</Label>
+        <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
+      </div>
+      <div className="border-subtle rounded-b-md border border-t-0">
+        <AddMembersWithSwitch
+          teamMembers={teamMembers}
+          value={value}
+          onChange={onChange}
+          assignAllTeamMembers={assignAllTeamMembers}
+          setAssignAllTeamMembers={setAssignAllTeamMembers}
+          automaticAddAllEnabled={true}
+          isFixed={false}
+          onActive={() =>
+            setValue(
+              "hosts",
+              teamMembers.map((teamMember) => ({
+                isFixed: false,
+                userId: parseInt(teamMember.value, 10),
+              }))
+            )
+          }
+        />
       </div>
     </div>
   );
@@ -355,54 +445,39 @@ const Hosts = ({
       render={({ field: { onChange, value } }) => {
         const schedulingTypeRender = {
           COLLECTIVE: (
-            <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
-              <div className="flex flex-col gap-4">
-                <AssignAllTeamMembers
-                  assignAllTeamMembers={assignAllTeamMembers}
-                  setAssignAllTeamMembers={setAssignAllTeamMembers}
-                  onActive={() =>
-                    formMethods.setValue(
-                      "hosts",
-                      teamMembers.map((teamMember) => ({
-                        isFixed: true,
-                        userId: parseInt(teamMember.value, 10),
-                      }))
-                    )
-                  }
-                  onInactive={() => formMethods.setValue("hosts", [])}
-                />
-                {assignAllTeamMembers ? (
-                  <></>
-                ) : (
-                  <CheckedHostField
-                    value={value}
-                    onChange={onChange}
-                    isFixed={true}
-                    options={teamMembers.sort(sortByLabel)}
-                    placeholder={t("add_attendees")}
-                    labelText={t("team")}
-                  />
-                )}
-              </div>
-            </div>
+            <FixedHosts
+              teamMembers={teamMembers}
+              value={value}
+              onChange={onChange}
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              automaticAddAllEnabled={true}
+              setValue={formMethods.setValue}
+            />
           ),
           ROUND_ROBIN: (
             <>
-              <RoundRobinHosts
+              <FixedHosts
+                teamMembers={teamMembers}
+                value={value}
+                onChange={(changeValue) => {
+                  onChange([...value.filter(({ isFixed }) => !isFixed), ...changeValue]);
+                }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
-                teamMembers={teamMembers}
-                onChange={onChange}
-                value={value}
+                automaticAddAllEnabled={false}
+                setValue={formMethods.setValue}
               />
-              {/*<TextField
-        required
-        type="number"
-        label={t("minimum_round_robin_hosts_count")}
-        defaultValue={1}
-        {...formMethods.register("minimumHostCount")}
-        addOnSuffix={<>{t("hosts")}</>}
-                />*/}
+              <RoundRobinHosts
+                teamMembers={teamMembers}
+                value={value}
+                onChange={(changeValue) => {
+                  onChange([...value.filter(({ isFixed }) => isFixed), ...changeValue]);
+                }}
+                assignAllTeamMembers={assignAllTeamMembers}
+                setAssignAllTeamMembers={setAssignAllTeamMembers}
+                setValue={formMethods.setValue}
+              />
             </>
           ),
           MANAGED: <></>,
@@ -457,31 +532,39 @@ export const EventTeamTab = ({
   return (
     <div>
       {team && !isManagedEventType && (
-        <div className="space-y-5">
-          <div className="flex flex-col">
-            <Label>{t("scheduling_type")}</Label>
-            <Controller<FormValues>
-              name="schedulingType"
-              render={({ field: { value, onChange } }) => (
-                <Select
-                  options={schedulingTypeOptions}
-                  value={schedulingTypeOptions.find((opt) => opt.value === value)}
-                  className="w-full"
-                  onChange={(val) => {
-                    onChange(val?.value);
-                    formMethods.setValue("assignAllTeamMembers", false);
-                    setAssignAllTeamMembers(false);
-                  }}
-                />
-              )}
-            />
+        <>
+          <div className="border-subtle flex flex-col rounded-md">
+            <div className="border-subtle rounded-t-md border p-6 pb-5">
+              <Label className="mb-1 text-sm font-semibold">{t("assignment")}</Label>
+              <p className="text-subtle max-w-full break-words text-sm leading-tight">
+                {t("assignment_description")}
+              </p>
+            </div>
+            <div className="border-subtle rounded-b-md border border-t-0 p-6">
+              <Label>{t("scheduling_type")}</Label>
+              <Controller<FormValues>
+                name="schedulingType"
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    options={schedulingTypeOptions}
+                    value={schedulingTypeOptions.find((opt) => opt.value === value)}
+                    className="w-full"
+                    onChange={(val) => {
+                      onChange(val?.value);
+                      formMethods.setValue("assignAllTeamMembers", false);
+                      setAssignAllTeamMembers(false);
+                    }}
+                  />
+                )}
+              />
+            </div>
           </div>
           <Hosts
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
           />
-        </div>
+        </>
       )}
       {team && isManagedEventType && (
         <ChildrenEventTypes
