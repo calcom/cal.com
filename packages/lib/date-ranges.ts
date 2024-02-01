@@ -106,7 +106,7 @@ export function buildDateRanges({
   );
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
-      if ("date" in item && !!item.date) {
+      if ("date" in item && !!item.date && item.date >= dateFrom && item.date <= dateTo) {
         processed.push(processDateOverride({ item, timeZone }));
       }
       return processed;
