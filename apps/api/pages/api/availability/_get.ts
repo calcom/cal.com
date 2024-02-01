@@ -197,6 +197,7 @@ async function handler(req: NextApiRequest) {
       dateTo,
       eventTypeId,
       userId,
+      returnDateOverrides: true,
     });
   const team = await prisma.team.findUnique({
     where: { id: teamId },
@@ -232,6 +233,7 @@ async function handler(req: NextApiRequest) {
         dateFrom,
         dateTo,
         eventTypeId,
+        returnDateOverrides: true,
       }),
     };
   });

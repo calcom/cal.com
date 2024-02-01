@@ -161,6 +161,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     afterEventBuffer?: number;
     beforeEventBuffer?: number;
     duration?: number;
+    returnDateOverrides: boolean;
   },
   initialData?: {
     user?: User;
@@ -178,8 +179,17 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })[];
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer, duration } =
-    availabilitySchema.parse(query);
+  const {
+    username,
+    userId,
+    dateFrom,
+    dateTo,
+    eventTypeId,
+    afterEventBuffer,
+    beforeEventBuffer,
+    duration,
+    returnDateOverrides,
+  } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
@@ -294,16 +304,24 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const endGetWorkingHours = performance.now();
 
-  const dateOverrides = availability
-    .filter((availability) => !!availability.date)
-    .map((override) => {
-      const startTime = dayjs.utc(override.startTime);
-      const endTime = dayjs.utc(override.endTime);
-      return {
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
-      };
-    });
+  let dateOverrides = undefined;
+  // NOTE: getSchedule is currently calling this function for every user in a team event
+  // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
+  // since other callers do using this data.
+  if (returnDateOverrides) {
+    dateOverrides = availability
+      .filter((availability) => !!availability.date)
+      .map((override) => {
+        const startTime = dayjs.utc(override.startTime);
+        const endTime = dayjs.utc(override.endTime);
+        if (startTime >= dateFrom && startTime <= dateTo && endTime >= dateFrom && endTime <= dateTo) {
+          return {
+            start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
+            end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
+          };
+        }
+      });
+  }
 
   const dateRanges = buildDateRanges({
     dateFrom,

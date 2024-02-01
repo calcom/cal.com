@@ -469,6 +469,7 @@ export async function ensureAvailableUsers(
         userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
+        returnDateOverrides: false,
         ...input,
       },
       {

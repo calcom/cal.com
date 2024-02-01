@@ -404,6 +404,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
           afterEventBuffer: eventType.afterEventBuffer,
           beforeEventBuffer: eventType.beforeEventBuffer,
           duration: input.duration || 0,
+          returnDateOverrides: false,
         },
         {
           user: currentUser,
