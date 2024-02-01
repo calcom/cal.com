@@ -53,14 +53,6 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     },
   });
 
-  // const parentOrg = membership.team.parentId
-  //   ? await prisma.team.findUnique({
-  //       where: {
-  //         id: membership.team.parentId,
-  //       },
-  //     })
-  //   : null;
-
   // remove user as host from team events associated with this membership
   await ctx.prisma.host.deleteMany({
     where: {

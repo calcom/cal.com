@@ -30,7 +30,7 @@ export class MembershipRepository {
   /**
    * TODO: Using a specific function for specific tasks so that we don't have to focus on TS magic at the moment. May be try to make it a a generic findAllByProfileId with various options.
    */
-  static async findAllByUpidIncludeTeamWithMembersAndEventTypes(
+  static async findAllByUpIdIncludeTeamWithMembersAndEventTypes(
     { upId }: { upId: string },
     { where }: { where?: Prisma.MembershipWhereInput } = {}
   ) {
@@ -41,7 +41,7 @@ export class MembershipRepository {
        * TODO: When we add profileId to membership, we lookup by profileId
        * If the profile is movedFromUser, we lookup all memberships without profileId as well.
        */
-      const profile = await ProfileRepository.find(lookupTarget.id);
+      const profile = await ProfileRepository.findById(lookupTarget.id);
       if (!profile) {
         return [];
       }
@@ -57,7 +57,7 @@ export class MembershipRepository {
     }
 
     log.debug(
-      "findAllByUpidIncludeTeamWithMembersAndEventTypes",
+      "findAllByUpIdIncludeTeamWithMembersAndEventTypes",
       safeStringify({
         prismaWhere,
       })

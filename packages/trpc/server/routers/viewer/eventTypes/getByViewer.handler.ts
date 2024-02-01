@@ -51,7 +51,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
   const isUpIdInFilter = input?.filters?.upIds?.includes(lightProfile.upId);
   const shouldListUserEvents = !isFilterSet || isUpIdInFilter;
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    MembershipRepository.findAllByUpidIncludeTeamWithMembersAndEventTypes(
+    MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
         upId: lightProfile.upId,
       },

@@ -158,14 +158,14 @@ export async function getTeamWithMembers(args: {
     });
   }
   const members = teamOrOrgMemberships.map((m) => {
-    const { credentials, ...restUser } = m.user;
+    const { credentials, profile, ...restUser } = m.user;
     return {
       ...restUser,
-      username: m.user.profile?.username ?? restUser.username,
+      username: profile?.username ?? restUser.username,
       role: m.role,
-      profile: m.user.profile,
-      organizationId: m.user.profile?.organizationId ?? null,
-      organization: m.user.profile?.organization,
+      profile: profile,
+      organizationId: profile?.organizationId ?? null,
+      organization: profile?.organization,
       accepted: m.accepted,
       disableImpersonation: m.disableImpersonation,
       subteams: orgSlug
@@ -174,7 +174,7 @@ export async function getTeamWithMembers(args: {
             .map((membership) => membership.team.slug)
         : null,
       avatar: `${WEBAPP_URL}/${m.user.username}/avatar.png`,
-      bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
+      bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
       connectedApps: !isTeamView
         ? credentials?.map((cred) => {
             const appSlug = cred.app?.slug;
@@ -204,7 +204,7 @@ export async function getTeamWithMembers(args: {
     for (const user of eventType.users) {
       usersWithUserProfile.push(
         await UserRepository.enrichUserWithItsProfile({
-          user: user,
+          user,
         })
       );
     }

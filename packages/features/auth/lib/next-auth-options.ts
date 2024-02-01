@@ -389,7 +389,6 @@ export const AUTH_OPTIONS: AuthOptions = {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
-  debug: true,
   session: {
     strategy: "jwt",
   },

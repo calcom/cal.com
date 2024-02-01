@@ -292,7 +292,7 @@ export class ProfileRepository {
       };
     }
 
-    const profile = await ProfileRepository.find(lookupTarget.id);
+    const profile = await ProfileRepository.findById(lookupTarget.id);
     if (!profile) {
       return null;
     }
@@ -303,7 +303,7 @@ export class ProfileRepository {
     };
   }
 
-  static async find(id: number | null) {
+  static async findById(id: number | null) {
     if (!id) {
       return null;
     }
