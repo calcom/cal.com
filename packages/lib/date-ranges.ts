@@ -34,7 +34,8 @@ export function processWorkingHours({
 
     // it always has to be start of the day (midnight) even when DST changes
     const dateInTz = date.plus({ minutes: fromOffset - offset }).setZone(timeZone);
-    if (!item.days.includes(dateInTz.weekday)) {
+    const weekday = dateInTz.weekday === 7 ? 0 : dateInTz.weekday; // TODO: Put this in a helper somewhere
+    if (!item.days.includes(weekday)) {
       continue;
     }
 
@@ -62,8 +63,8 @@ export function processWorkingHours({
     }
 
     results.push({
-      start: dayjs(startResult.toString()),
-      end: dayjs(endResult.toString()),
+      start: dayjs(startResult.toString()).tz(timeZone),
+      end: dayjs(endResult.toString()).tz(timeZone),
     });
   }
   return results;
