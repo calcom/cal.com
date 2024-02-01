@@ -165,16 +165,14 @@ export const Timezones = {
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
-    if (eventType.hosts) {
-      if (eventType.hosts.length > 0) {
-        await prismock.host.createMany({
-          data: eventType.hosts.map((host) => ({
-            userId: host.userId,
-            eventTypeId: eventType.id,
-            isFixed: host.isFixed ?? false,
-          })),
-        });
-      }
+    if (eventType.hosts && eventType.hosts.length > 0) {
+      await prismock.host.createMany({
+        data: eventType.hosts.map((host) => ({
+          userId: host.userId,
+          eventTypeId: eventType.id,
+          isFixed: host.isFixed ?? false,
+        })),
+      });
     }
   }
 }
@@ -595,7 +593,7 @@ export async function createBookingScenario(data: ScenarioData) {
     );
   }
   const eventTypes = await addEventTypes(data.eventTypes, data.users);
-  addHostsToDb(data.eventTypes);
+  await addHostsToDb(data.eventTypes);
 
   data.bookings = data.bookings || [];
   // allowSuccessfulBookingCreation();

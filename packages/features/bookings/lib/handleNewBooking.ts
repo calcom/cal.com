@@ -1253,6 +1253,14 @@ async function handler(
       }),
     };
     if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
+      const isTeamEvent =
+        eventType.schedulingType === SchedulingType.COLLECTIVE ||
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+      const fixedUsers = isTeamEvent
+        ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
+        : [];
+
       for (
         let i = 0;
         i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
@@ -1260,8 +1268,7 @@ async function handler(
       ) {
         const start = req.body.allRecurringDates[i].start;
         const end = req.body.allRecurringDates[i].end;
-        if (eventType.schedulingType == SchedulingType.ROUND_ROBIN) {
-          const fixedUsers = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
+        if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
             await ensureAvailableUsers(
@@ -1351,7 +1358,9 @@ async function handler(
             luckyUsers.push(newLuckyUser);
           } catch {
             notAvailableLuckyUsers.push(newLuckyUser);
-            log.info("Round robin host not available for the next slots");
+            loggerWithEventDetails.info(
+              `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+            );
           }
         } else {
           luckyUsers.push(newLuckyUser);

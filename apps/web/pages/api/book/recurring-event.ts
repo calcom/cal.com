@@ -6,6 +6,7 @@ import type { BookingResponse, RecurringBookingCreateBody } from "@calcom/featur
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
+import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
@@ -33,7 +34,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
 
   // for round robin, the first slot needs to be handled first to define the lucky user
   const firstBooking = data[0];
-  const isRoundRobin = firstBooking.schedulingType === "ROUND_ROBIN";
+  const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
 
   let luckyUsers = undefined;
 
