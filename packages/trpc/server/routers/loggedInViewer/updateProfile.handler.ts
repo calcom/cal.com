@@ -65,6 +65,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const locale = input.locale || user.locale;
   const flags = await getFeatureFlagMap(prisma);
 
+  console.log({ flags });
+
   const data: Prisma.UserUpdateInput = {
     ...input,
     // DO NOT OVERWRITE AVATAR.
@@ -138,7 +140,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const sendEmailVerification = flags["email-verification"];
 
   if (hasEmailBeenChanged) {
-    if (sendEmailVerification) {
+    if (sendEmailVerification && hasEmailChangedOnCalProvider) {
+      console.log("Updating Metadata");
       // Set metadata of the user so we can set it to this updated email once it is confirmed
       data.metadata = {
         ...userMetadata,
@@ -146,7 +149,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       };
 
       // Check to ensure this email isnt in use
-
       // Don't include email in the data payload if we need to verify
       delete data.email;
     } else {
@@ -159,9 +161,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     // Only validate if we're changing email
     data.identityProvider = IdentityProvider.CAL;
     data.identityProviderId = null;
-  } else if (hasEmailChangedOnCalProvider) {
-    // when the email changes, the user needs to sign in again.
-    signOutUser = true;
   }
 
   // if defined AND a base 64 string, upload and set the avatar URL
@@ -271,14 +270,18 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (updatedUser && hasEmailBeenChanged) {
+  if (updatedUser && hasEmailChangedOnCalProvider) {
+    console.log("sending verification email");
     await sendChangeOfEmailVerification({
       user: {
         username: updatedUser.username ?? "Nameless User",
         emailFrom: user.email,
-        emailTo: updatedUser.email,
+        // We know email has been changed here so we can use input
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        emailTo: input.email!,
       },
     });
+    console.log("Sent verification email");
   }
 
   // don't return avatar, we don't need it anymore.

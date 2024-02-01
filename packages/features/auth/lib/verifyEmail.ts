@@ -107,7 +107,7 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
 
   await prisma.verificationToken.create({
     data: {
-      identifier: user.emailTo,
+      identifier: user.emailFrom, // We use from as this is the email use to get the metadata from
       token,
       expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
     },
