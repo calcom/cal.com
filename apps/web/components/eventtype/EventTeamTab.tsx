@@ -148,7 +148,7 @@ const CheckedHostField = ({
   labelText?: string;
   placeholder: string;
   isFixed: boolean;
-  value: { isFixed: boolean; userId: number }[];
+  value: { isFixed: boolean; userId: number; priority: number }[];
   onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
@@ -243,6 +243,7 @@ const FixedHosts = ({
               teamMembers.map((teamMember) => ({
                 isFixed: true,
                 userId: parseInt(teamMember.value, 10),
+                priority: 2,
               }))
             )
           }
@@ -262,7 +263,7 @@ const AddMembersWithSwitch = ({
   onActive,
   isFixed,
 }: {
-  value: { isFixed: boolean; userId: number }[];
+  value: { isFixed: boolean; userId: number; priority?: number }[];
   onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
   teamMembers: {
     value: string;
@@ -318,7 +319,7 @@ const RoundRobinHosts = ({
   setAssignAllTeamMembers,
   setValue,
 }: {
-  value: { isFixed: boolean; userId: number }[];
+  value: { isFixed: boolean; userId: number; priority?: number }[];
   onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
   teamMembers: {
     value: string;
@@ -354,6 +355,7 @@ const RoundRobinHosts = ({
               teamMembers.map((teamMember) => ({
                 isFixed: false,
                 userId: parseInt(teamMember.value, 10),
+                priority: 2,
               }))
             )
           }

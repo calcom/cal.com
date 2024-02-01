@@ -139,7 +139,7 @@ export type FormValues = {
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
-  hosts: { userId: number; isFixed: boolean }[];
+  hosts: { userId: number; isFixed: boolean; priority?: number }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
@@ -424,7 +424,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
-
   const tabMap = {
     setup: (
       <EventSetupTab
