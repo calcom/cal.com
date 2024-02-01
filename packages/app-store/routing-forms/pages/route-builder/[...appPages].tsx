@@ -128,6 +128,11 @@ const Route = ({
     });
   });
 
+  const evenTypePrefix =
+    eventOptions.length !== 0
+      ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
+      : "";
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState(route.action.value.split("/").pop());
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
@@ -199,7 +204,7 @@ const Route = ({
           <div>
             <div className="text-emphasis flex w-full items-center text-sm">
               <div className="flex flex-grow-0 whitespace-nowrap">
-                <span>Send Booker to</span>
+                <span>Send Booker to</span> {/* todo: add translation */}
               </div>
               <Select
                 isDisabled={disabled}
@@ -257,15 +262,49 @@ const Route = ({
                     <Select
                       required
                       isDisabled={disabled}
-                      options={eventOptions}
+                      options={
+                        eventOptions.length !== 0
+                          ? eventOptions.concat({ label: "Custom", value: "custom" })
+                          : []
+                      }
                       onChange={(option) => {
                         if (!option) {
                           return;
                         }
-                        setRoute(route.id, { action: { ...route.action, value: option.value } });
+                        if (option.value !== "custom") {
+                          setRoute(route.id, { action: { ...route.action, value: option.value } });
+                        } else {
+                          setRoute(route.id, { action: { ...route.action, value: "" } });
+                          setCustomEventTypeSlug("");
+                        }
                       }}
-                      value={eventOptions.find((eventOption) => eventOption.value === route.action.value)}
+                      value={
+                        eventOptions.length !== 0
+                          ? eventOptions.find((eventOption) => eventOption.value === route.action.value) || {
+                              label: "Custom",
+                              value: "custom",
+                            }
+                          : undefined
+                      }
                     />
+                    {eventOptions.length !== 0 &&
+                      !eventOptions.find((eventOption) => eventOption.value === route.action.value) && (
+                        <TextField
+                          disabled={disabled}
+                          className="border-default flex w-full flex-grow text-sm"
+                          containerClassName="w-full mt-2"
+                          addOnLeading={evenTypePrefix}
+                          required
+                          value={customEventTypeSlug}
+                          onChange={(e) => {
+                            setCustomEventTypeSlug(e.target.value);
+                            setRoute(route.id, {
+                              action: { ...route.action, value: `${evenTypePrefix}${e.target.value}` },
+                            });
+                          }}
+                          placeholder="event-url"
+                        />
+                      )}
                   </div>
                 )
               ) : null}
