@@ -407,7 +407,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
-
+  console.log(formMethods.formState.dirtyFields);
   useEffect(() => {
     if (!formMethods.formState.isDirty) {
       //TODO: What's the best way to sync the form with backend
@@ -456,7 +456,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
   } as const;
-  const isObject = <t,>(value: T): boolean => {
+  const isObject = <T,>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
   };
 
@@ -473,7 +473,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     }
 
     // Check if the field is an object or an array
-    const fieldValue = dirtyFields[fieldName];
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const fieldValue: any = dirtyFields[fieldName];
     if (isObject(fieldValue)) {
       for (const key in fieldValue) {
         if (fieldValue[key] === true) {
@@ -481,8 +483,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         }
 
         if (isObject(fieldValue[key]) || isArray(fieldValue[key])) {
+          const nestedFieldName = `${fieldName}.${key}` as keyof FormValues;
           // Recursive call for nested objects or arrays
-          if (isFieldDirty(`${fieldName}.${key}`, dirtyFields)) {
+          if (isFieldDirty(nestedFieldName)) {
             return true;
           }
         }
@@ -499,8 +502,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }
 
             if (isObject(element[key]) || isArray(element[key])) {
+              const nestedFieldName = `${fieldName}.${key}` as keyof FormValues;
               // Recursive call for nested objects or arrays within each element
-              if (isFieldDirty(`${fieldName}.${key}`, dirtyFields)) {
+              if (isFieldDirty(nestedFieldName)) {
                 return true;
               }
             }
