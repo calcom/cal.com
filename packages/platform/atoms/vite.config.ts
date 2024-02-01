@@ -28,6 +28,7 @@ export default defineConfig({
       os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
       "@": path.resolve(__dirname, "./src"),
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
+      "@calcom/platform-constants": resolve("../constants/index.ts"),
     },
   },
 });
