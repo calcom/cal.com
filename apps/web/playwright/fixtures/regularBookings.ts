@@ -26,6 +26,8 @@ interface QuestionActions {
   [key: string]: () => Promise<void>;
 }
 
+type teamBookingtypes = { isManagedType?: boolean; isRoundRobinType?: boolean; isCollectiveType?: boolean };
+
 type customLocators = {
   shouldChangeSelectLocator: boolean;
   shouldUseLastRadioGroupLocator: boolean;
@@ -205,7 +207,12 @@ export function createBookingPageFixture(page: Page) {
     goToEventType: async (eventType: string) => {
       await page.getByRole("link", { name: eventType }).click();
     },
-
+    goToPage: async (pageName: string, page: Page) => {
+      await page.getByRole("link", { name: pageName }).click();
+    },
+    backToBookings: async (page: Page) => {
+      await page.getByTestId("back-to-bookings").click();
+    },
     goToTab: async (tabName: string) => {
       await page.getByTestId(`vertical-tab-${tabName}`).click();
     },
@@ -405,16 +412,101 @@ export function createBookingPageFixture(page: Page) {
       const confirmButton = options.isReschedule ? "confirm-reschedule-button" : "confirm-book-button";
       await fillAllQuestions(eventTypePage, questions, options);
       await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(400);
-      if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
-        await eventTypePage.getByTestId("back").click();
-        await eventTypePage.getByTestId("time").last().click();
-        await fillAllQuestions(eventTypePage, questions, options);
-        await eventTypePage.getByTestId(confirmButton).click();
-      }
       const scheduleSuccessfullyPage = eventTypePage.getByText(scheduleSuccessfullyText);
       await scheduleSuccessfullyPage.waitFor({ state: "visible" });
       await expect(scheduleSuccessfullyPage).toBeVisible();
+    },
+    addGuests: async (eventTypePage: Page, options: { guests: string[] }) => {
+      await eventTypePage.getByTestId("add-guests").click();
+      for (const guest of options.guests) {
+        await eventTypePage.getByPlaceholder("Email").fill(guest);
+      }
+    },
+    createTeam: async (name: string) => {
+      await page.getByTestId("teams-test").click();
+      await page.getByTestId("new-team-btn").click();
+      await page.getByPlaceholder("Acme Inc.").click();
+      await page.getByPlaceholder("Acme Inc.").fill(name);
+      await page.getByTestId("continue-button").click();
+      await page.getByTestId("publish-button").click();
+
+      await page.getByTestId("vertical-tab-Back").click();
+    },
+
+    createTeamEventType: async (name: string, options: teamBookingtypes) => {
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-0").click();
+
+      // We first simulate to create a default event type to check if managed option is not available
+
+      const managedEventDescription = (await localize("en"))("managed_event_description");
+      const roundRobinEventDescription = (await localize("en"))("round_robin_description");
+      const collectiveEventDescription = (await localize("en"))("collective_description");
+      const quickChatText = (await localize("en"))("quick_chat");
+      await expect(page.locator("div").filter({ hasText: managedEventDescription })).toBeHidden();
+      await page.getByTestId("dialog-rejection").click();
+
+      await page.getByTestId("new-event-type").click();
+      await page.getByTestId("option-team-1").click();
+      await page.getByPlaceholder(quickChatText).fill(name);
+      if (options.isCollectiveType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Collective${collectiveEventDescription}` })
+          .getByRole("radio")
+          .first()
+          .click();
+      }
+
+      if (options.isRoundRobinType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Round Robin${roundRobinEventDescription}` })
+          .getByRole("radio")
+          .nth(1)
+          .click();
+      }
+
+      if (options.isManagedType) {
+        await page
+          .locator("div")
+          .filter({ hasText: `Managed Event${managedEventDescription}` })
+          .getByRole("radio")
+          .last()
+          .click();
+
+        const managedEventClarification = (await localize("en"))("managed_event_url_clarification");
+        await expect(page.getByText(managedEventClarification)).toBeVisible();
+      }
+
+      const continueText = (await localize("en"))("continue");
+      const toast = page.getByTestId("toast-success");
+
+      await page.getByRole("button", { name: continueText }).click();
+      expect(toast).toBeTruthy();
+      await page.getByTestId("update-eventtype").click();
+    },
+    assertLabelWithCorrectTeamName: async (page: Page, teamName: string) => {
+      await expect(page.getByRole("link", { name: teamName }).first()).toBeVisible();
+    },
+    assertBookingWithCorrectTitleAndDescription: async (
+      page: Page,
+      options: { profileName: string; bookingName: string; teamName: string; aditionalGuestEmail?: string }
+    ) => {
+      options.aditionalGuestEmail
+        ? await expect(
+            page.getByRole("link", {
+              name: `${options.bookingName} between ${options.teamName} and ${options.profileName} You , ${options.profileName} and ${options.aditionalGuestEmail}`,
+            })
+          ).toBeVisible()
+        : await expect(
+            page.getByRole("link", {
+              name: `${options.bookingName} between ${options.teamName} and ${options.profileName} You and ${options.profileName}`,
+            })
+          ).toBeVisible();
+    },
+    clickOnBooking: async (page: Page, teamName: string) => {
+      await page.getByRole("link", { name: teamName }).first().click();
     },
 
     checkField: async (question: string, options?: { isOptional: boolean }) => {
@@ -634,6 +726,13 @@ export function createBookingPageFixture(page: Page) {
       await page.getByTestId("horizontal-tab-unconfirmed").click();
       await page.getByTestId("booking-item").first().getByText("Reject").click();
       await page.getByTestId("rejection-confirm").click();
+    },
+    fillEmailAndName: async (eventTypePage: Page) => {
+      const emailLabel = (await localize("en"))("email_address");
+      const nameLabel = (await localize("en"))("your_name");
+
+      await eventTypePage.getByLabel(emailLabel).fill(EMAIL);
+      await eventTypePage.getByLabel(nameLabel).fill("testuser");
     },
   };
 }
