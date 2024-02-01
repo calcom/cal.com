@@ -102,7 +102,6 @@ export function buildDateRanges({
   dateTo: Dayjs;
 }): DateRange[] {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
-  const start2 = performance.now();
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
@@ -113,10 +112,7 @@ export function buildDateRanges({
       return processed;
     }, [])
   );
-  const end2 = performance.now();
-  console.log("groupedWorkingHours", end2 - start2, availability.length);
 
-  const start = performance.now();
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
@@ -128,8 +124,6 @@ export function buildDateRanges({
       return processed;
     }, [])
   );
-  const end = performance.now();
-  console.log("groupedDateOverrides", end - start, availability.length);
 
   const dateRanges = Object.values({
     ...groupedWorkingHours,
