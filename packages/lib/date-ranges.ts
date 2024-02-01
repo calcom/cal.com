@@ -23,8 +23,6 @@ export function processWorkingHours({
 }) {
   const utcDateTo = dateTo.utc();
   const results = [];
-  console.log("dateFrom", dateFrom);
-  console.log("dateTo", dateTo);
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
     const offset = date.tz(timeZone).utcOffset();
@@ -133,8 +131,7 @@ export function buildDateRanges({
     (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
   );
 
-  const flattened = dateRanges.flat();
-  return flattened;
+  return dateRanges.flat();
 }
 
 export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
