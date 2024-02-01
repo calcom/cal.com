@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { BASE_URL, API_VERSION, ENDPOINTS } from "@calcom/platform-constants";
+import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
 
 import { useApiKey } from "../hooks/useApiKeys";
@@ -13,7 +13,7 @@ export const useUpdateUserTimezone = () => {
   const { key } = useApiKey();
   const endpoint = new URL(BASE_URL);
 
-  endpoint.pathname = `${API_VERSION}/${ENDPOINTS.me}`;
+  endpoint.pathname = `${API_VERSION}/${V2_ENDPOINTS.me}`;
   endpoint.searchParams.set("apiKey", key);
 
   const mutation = useMutation<ApiResponse<undefined>, unknown, updateTimezoneInput>({

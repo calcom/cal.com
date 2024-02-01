@@ -1,4 +1,3 @@
-import { useUpdateUserTimezone } from "hooks/useUpdateUserTimezone";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
@@ -6,6 +5,7 @@ import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
 import { useTimezone } from "../hooks/useTimezone";
+import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 
 type CalProviderProps = {
