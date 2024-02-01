@@ -1,3 +1,5 @@
+import { DateTime as LuxonDateTime } from "luxon";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
@@ -161,14 +163,14 @@ function buildSlotsWithDateRanges({
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
   const slots: { time: Dayjs; userIds?: number[] }[] = [];
+  const organizerTimeZoneOffset = LuxonDateTime.utc().setZone(organizerTimeZone).offset;
 
   dateRanges.forEach((range) => {
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
-      ? range.start
-      : startTimeWithMinNotice;
+    let slotStartTime = range.start.toUTC() > startTimeWithMinNotice ? range.start : startTimeWithMinNotice;
 
+    console.log("slotStartTime", slotStartTime);
     let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 15;
 
     const intervalsWithDefinedStartTimes = [60, 30, 20, 10];
@@ -181,24 +183,26 @@ function buildSlotsWithDateRanges({
     }
 
     slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+      slotStartTime.minute % interval !== 0
+        ? slotStartTime
+            .startOf("hour")
+            .plus({ minutes: Math.ceil(slotStartTime.minute / interval) * interval })
         : slotStartTime;
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
-    const rangeEnd = range.end
-      .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
-      .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")
-      ? range.end.add(1, "minute")
-      : range.end;
+    const rangeEnd =
+      range.end.plus({ minutes: organizerTimeZoneOffset }).minute ===
+      range.end.endOf("day").plus({ minutes: organizerTimeZoneOffset })
+        ? range.end.plus({ minutes: 1 })
+        : range.end;
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+    slotStartTime = slotStartTime.plus({ minutes: offsetStart ?? 0 }).setZone(timeZone);
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
+    while (!slotStartTime.plus({ minutes: eventLength }).minus({ seconds: 1 }).toUTC() > rangeEnd) {
       slots.push({
         time: slotStartTime,
       });
-      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+      slotStartTime = slotStartTime.plus({ minutes: frequency + (offsetStart ?? 0) });
     }
   });
 

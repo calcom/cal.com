@@ -5,8 +5,8 @@ import dayjs from "@calcom/dayjs";
 import type { Availability } from "@calcom/prisma/client";
 
 export type DateRange = {
-  start: Dayjs;
-  end: Dayjs;
+  start: LuxonDateTime;
+  end: LuxonDateTime;
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
@@ -63,8 +63,8 @@ export function processWorkingHours({
     }
 
     results.push({
-      start: dayjs(startResult.toString()).tz(timeZone),
-      end: dayjs(endResult.toString()).tz(timeZone),
+      start: startResult,
+      end: endResult,
     });
   }
   return results;
@@ -86,8 +86,8 @@ export function processDateOverride({ item, timeZone }: { item: DateOverride; ti
     .second(0)
     .tz(timeZone, true);
   return {
-    start: startDate,
-    end: endDate,
+    start: LuxonDateTime.fromISO(startDate.toISOString()).setZone(timeZone),
+    end: LuxonDateTime.fromISO(endDate.toISOString()).setZone(timeZone),
   };
 }
 
@@ -116,7 +116,7 @@ export function buildDateRanges({
   );
 
   const end = performance.now();
-  console.log("groupedWorkingHours", `${end - start}ms`, availability.length);
+  //console.log("groupedWorkingHours", `${end - start}ms`, availability.length);
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
@@ -145,8 +145,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = dayjs(currentValue.start).format("YYYY-MM-DD");
-
+      const dateString = LuxonDateTime.fromISO(currentValue.start).toFormat("yyyy-MM-dd");
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
           ? [currentValue]
@@ -167,14 +166,17 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
   // For each of the remaining users, find the intersection of their ranges with the current common availability
   for (let i = 1; i < ranges.length; i++) {
     const userRanges = ranges[i];
+    console.log("userRanges.length", userRanges.length);
 
     const intersectedRanges: {
-      start: Dayjs;
-      end: Dayjs;
+      start: LuxonDateTime;
+      end: LuxonDateTime;
     }[] = [];
 
     commonAvailability.forEach((commonRange) => {
       userRanges.forEach((userRange) => {
+        console.log(commonRange);
+        console.log(userRange);
         const intersection = getIntersection(commonRange, userRange);
         if (intersection !== null) {
           // If the current common range intersects with the user range, add the intersected time range to the new array
@@ -195,9 +197,9 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
 }
 
 function getIntersection(range1: DateRange, range2: DateRange) {
-  const start = range1.start.utc().isAfter(range2.start) ? range1.start : range2.start;
-  const end = range1.end.utc().isBefore(range2.end) ? range1.end : range2.end;
-  if (start.utc().isBefore(end)) {
+  const start = range1.start.toUTC() > range2.start ? range1.start : range2.start;
+  const end = range1.end.toUTC() < range2.end ? range1.end : range2.end;
+  if (start.toUTC() < end) {
     return { start, end };
   }
   return null;
@@ -213,19 +215,19 @@ export function subtract(
     let currentStart = sourceStart;
 
     const overlappingRanges = excludedRanges.filter(
-      ({ start, end }) => start.isBefore(sourceEnd) && end.isAfter(sourceStart)
+      ({ start, end }) => start < sourceEnd && end > sourceStart
     );
 
-    overlappingRanges.sort((a, b) => (a.start.isAfter(b.start) ? 1 : -1));
+    overlappingRanges.sort((a, b) => (a.start > b.start ? 1 : -1));
 
     for (const { start: excludedStart, end: excludedEnd } of overlappingRanges) {
-      if (excludedStart.isAfter(currentStart)) {
+      if (excludedStart > currentStart) {
         result.push({ start: currentStart, end: excludedStart });
       }
-      currentStart = excludedEnd.isAfter(currentStart) ? excludedEnd : currentStart;
+      currentStart = excludedEnd > currentStart ? excludedEnd : currentStart;
     }
 
-    if (sourceEnd.isAfter(currentStart)) {
+    if (sourceEnd > currentStart) {
       result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
