@@ -1,4 +1,4 @@
-import { DateTime as LuxonDateTime } from "luxon";
+import { DateTime as LuxonDateTime, Duration } from "luxon";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -23,15 +23,13 @@ export function processWorkingHours({
   dateFrom: Dayjs;
   dateTo: Dayjs;
 }) {
-  const utcDateTo = LuxonDateTime.fromISO(dateTo.utc().toString());
+  const utcDateTo = LuxonDateTime.fromISO(dateTo.toDate().toISOString()).toUTC();
+  const dateFromAsLuxon = LuxonDateTime.fromISO(dateFrom.toISOString());
+  const dateToAsLuxon = LuxonDateTime.fromISO(dateTo.toISOString());
   const results = [];
 
-  for (
-    let date = LuxonDateTime.fromISO(dateFrom.startOf("day").toISOString());
-    utcDateTo > date;
-    date = date.plus(Duration.fromObject({ days: 1 }))
-  ) {
-    const fromOffset = dateFrom.startOf("day").offset;
+  for (let date = dateFromAsLuxon.startOf("day"); utcDateTo > date; date = date.plus({ days: 1 })) {
+    const fromOffset = dateFromAsLuxon.startOf("day").offset;
     const offset = date.setZone(timeZone).offset;
 
     // it always has to be start of the day (midnight) even when DST changes
@@ -40,34 +38,35 @@ export function processWorkingHours({
       continue;
     }
 
-    let start = dateInTz
-      .plus({ hours: item.startTime.getUTCHours() })
-      .plus({ minutes: item.startTime.getUTCMinutes() });
+    let start = dateInTz.plus(
+      Duration.fromObject({
+        hours: item.startTime.getUTCHours(),
+        minutes: item.startTime.getUTCMinutes() == 0 ? 1 : 0,
+      })
+    );
 
-    let end = dateInTz
-      .plus({ hours: item.endTime.getUTCHours() })
-      .plus({ minutes: item.endTime.getUTCMinutes() });
+    let end = dateInTz.plus({ hours: item.endTime.getUTCHours(), minutes: item.endTime.getUTCMinutes() });
 
-    const offsetBeginningOfDay = LuxonDateTime.fromFormat(
+    const offsetBeginningOfDay = LuxonDateTime.fromISO(
       start.toString("YYYY-MM-DD hh:mm"),
       "YYYY-MM-DD hh:mm"
     ).setZone(timeZone).offset;
 
     const offsetDiff = start.offset - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
-
+    console.log("offsetBeginningOfDay", offsetBeginningOfDay);
     start = start.plus({ minutes: offsetDiff });
     end = end.plus({ minutes: offsetDiff });
 
-    const startResult = LuxonDateTime.max(start, dateFrom);
-    const endResult = LuxonDateTime.min(end, dateTo.tz(timeZone));
+    const startResult = LuxonDateTime.max(start, dateFromAsLuxon);
+    const endResult = LuxonDateTime.min(end, dateToAsLuxon.setZone(timeZone));
 
     if (endResult < startResult) {
       continue;
     }
 
     results.push({
-      start: dayjs(startResult.toISOString()),
-      end: dayjs(endResult.toISOString()),
+      start: dayjs(startResult.toString()),
+      end: dayjs(endResult.toString()),
     });
   }
   return results;
