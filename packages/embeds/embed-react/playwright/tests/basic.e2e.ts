@@ -5,7 +5,7 @@ import { test } from "@calcom/web/playwright/lib/fixtures";
 
 test.describe("React Embed", () => {
   test.describe("Inline", () => {
-    test.only("should verify that the iframe got created with correct URL - namespaced", async ({
+    test("should verify that the iframe got created with correct URL - namespaced", async ({
       page,
       embeds,
     }) => {
@@ -25,40 +25,38 @@ test.describe("React Embed", () => {
   test.describe("Floating button Popup", () => {
     test("should verify that the iframe got created with correct URL - namespaced", async ({
       page,
-      embeds: { getActionFiredDetails, addEmbedListeners },
+      embeds,
     }) => {
-      //TODO: Do it with page.goto automatically
-      await addEmbedListeners("");
-      await page.goto("/inline.html");
-      const calNamespace = "";
+      const calNamespace = "floating";
+      await embeds.gotoPlayground({ url: "/floating.html", calNamespace });
+      await page.click("text=Book my Cal");
+
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      expect(embedIframe).toBeEmbedCalLink("", getActionFiredDetails, {
+      expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
         pathname: "/pro",
         searchParams: {
           theme: "dark",
         },
       });
-      // expect(await page.screenshot()).toMatchSnapshot("react-component-inline.png");
     });
   });
 
   test.describe("Element Click Popup", () => {
     test("should verify that the iframe got created with correct URL - namespaced", async ({
       page,
-      embeds: { getActionFiredDetails, addEmbedListeners },
+      embeds,
     }) => {
-      //TODO: Do it with page.goto automatically
-      await addEmbedListeners("");
-      await page.goto("/inline.html");
-      const calNamespace = "";
+      const calNamespace = "element-click";
+      await embeds.gotoPlayground({ url: "/element-click.html", calNamespace });
+      await page.click("text=Click me");
+
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      expect(embedIframe).toBeEmbedCalLink("", getActionFiredDetails, {
+      expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
         pathname: "/pro",
         searchParams: {
           theme: "dark",
         },
       });
-      // expect(await page.screenshot()).toMatchSnapshot("react-component-inline.png");
     });
   });
 });

@@ -1,8 +1,9 @@
-import { type PageProps, getServerSideProps } from "@pages/booking/[uid]";
-import OldPage from "@pages/booking/[uid]/embed";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
+
+import OldPage from "~/bookings/views/bookings-single-view";
+import { getServerSideProps, type PageProps } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 

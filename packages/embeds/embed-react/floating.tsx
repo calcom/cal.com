@@ -14,9 +14,17 @@ import { getCalApi } from "./src/index";
 function App() {
   useEffect(() => {
     (async function () {
-      const cal = await getCalApi("http://localhost:3000/embed/embed.js", "floating");
-      debugger;
-      cal("floatingButton", { calLink: "pro/30min", calOrigin: "http://localhost:3000" });
+      const cal = await getCalApi({
+        namespace: "floating",
+        embedJsUrl: "http://localhost:3000/embed/embed.js",
+      });
+      cal("floatingButton", {
+        calLink: "pro",
+        calOrigin: "http://localhost:3000",
+        config: {
+          theme: "dark",
+        },
+      });
       cal("ui", { styles: { branding: { brandColor: "#000000" } }, hideEventTypeDetails: false });
     })();
   }, []);
