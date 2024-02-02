@@ -305,7 +305,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const endGetWorkingHours = performance.now();
 
-  let dateOverrides = undefined;
+  let dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
