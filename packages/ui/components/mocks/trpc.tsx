@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type PropsWithChildren } from "react";
-import superjson from "superjson";
 
 import { httpBatchLink } from "@calcom/trpc";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -14,7 +13,7 @@ export const StorybookTrpcProvider = ({ children }: PropsWithChildren) => {
 
   const [trpcClient] = useState(() =>
     mockedTrpc.createClient({
-      links: [httpBatchLink({ url: "", transformer: superjson })],
+      links: [httpBatchLink({ url: "" })],
     })
   );
 
