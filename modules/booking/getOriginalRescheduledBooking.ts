@@ -1,5 +1,5 @@
 import prisma from "@calcom/prisma";
-import { BookingStatus } from ".prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 export async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
     return prisma.booking.findFirst({
