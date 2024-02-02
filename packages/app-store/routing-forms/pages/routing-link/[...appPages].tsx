@@ -109,15 +109,9 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         let eventTypeUrl = decidedAction.value;
 
         variables.forEach((variable) => {
-          console.log("variable", variable);
           for (const key in response) {
-            console.log("response", JSON.stringify(response));
-
             const identifier = getFieldIdentifier(fields.find((field) => field.id === key));
-            console.log("identifier", identifier);
-
             if (identifier === variable) {
-              //swap variable with response
               eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].toString() || ""));
             }
           }
