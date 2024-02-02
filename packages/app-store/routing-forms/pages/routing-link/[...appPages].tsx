@@ -98,7 +98,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
       const decidedAction = decidedActionWithFormResponse.action;
 
-      form.migratedUserToOrgFrom;
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
