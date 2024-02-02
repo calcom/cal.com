@@ -40,6 +40,7 @@ const availabilitySchema = z
     beforeEventBuffer: z.number().optional(),
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
+    returnDateOverrides: z.boolean(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
