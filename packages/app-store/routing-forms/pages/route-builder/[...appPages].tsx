@@ -92,6 +92,8 @@ const Route = ({
   appUrl: string;
   disabled?: boolean;
 }) => {
+  const { t } = useLocale();
+
   const index = routes.indexOf(route);
 
   const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery({
@@ -128,13 +130,15 @@ const Route = ({
     });
   });
 
-  const evenTypePrefix =
+  const eventTypePrefix =
     eventOptions.length !== 0
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
+
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState(
     !isRouter(route) ? route.action.value.split("/").pop() : ""
   );
+
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
@@ -206,7 +210,7 @@ const Route = ({
           <div>
             <div className="text-emphasis flex w-full items-center text-sm">
               <div className="flex flex-grow-0 whitespace-nowrap">
-                <span>Send Booker to</span> {/* todo: add translation */}
+                <span>{t("send_booker_to")}</span>
               </div>
               <Select
                 isDisabled={disabled}
@@ -283,7 +287,7 @@ const Route = ({
                       value={
                         eventOptions.length !== 0 && route.action.value !== ""
                           ? eventOptions.find((eventOption) => eventOption.value === route.action.value) || {
-                              label: "Custom",
+                              label: t("custom"),
                               value: "custom",
                             }
                           : undefined
@@ -296,13 +300,13 @@ const Route = ({
                           disabled={disabled}
                           className="border-default flex w-full flex-grow text-sm"
                           containerClassName="w-full mt-2"
-                          addOnLeading={evenTypePrefix}
+                          addOnLeading={eventTypePrefix}
                           required
                           value={customEventTypeSlug}
                           onChange={(e) => {
                             setCustomEventTypeSlug(e.target.value);
                             setRoute(route.id, {
-                              action: { ...route.action, value: `${evenTypePrefix}${e.target.value}` },
+                              action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
                             });
                           }}
                           placeholder="event-url"
