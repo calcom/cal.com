@@ -1,7 +1,6 @@
 import { DateTime as LuxonDateTime } from "luxon";
 
 import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
 import type { Availability } from "@calcom/prisma/client";
 
 export type DateRange = {
@@ -71,20 +70,29 @@ export function processWorkingHours({
 }
 
 export function processDateOverride({ item, timeZone }: { item: DateOverride; timeZone: string }) {
-  const startDate = dayjs
-    .utc(item.date)
-    .startOf("day")
-    .add(item.startTime.getUTCHours(), "hours")
-    .add(item.startTime.getUTCMinutes(), "minutes")
-    .second(0)
-    .tz(timeZone, true);
-  const endDate = dayjs
-    .utc(item.date)
-    .startOf("day")
-    .add(item.endTime.getUTCHours(), "hours")
-    .add(item.endTime.getUTCMinutes(), "minutes")
-    .second(0)
-    .tz(timeZone, true);
+  const initialDate = LuxonDateTime.fromFormat(item.date, "yyyy-MM-dd").startOf("day").setZone(timeZone);
+  const newDate = LuxonDateTime.fromObject(
+    {
+      year: initialDate.year,
+      month: initialDate.month,
+      day: initialDate.day,
+      hour: initialDate.hour,
+      minute: initialDate.minute,
+      second: 0,
+    },
+    { zone: timeZone }
+  );
+
+  const startDate = newDate.plus({
+    hours: item.startTime.getUTCHours(),
+    minutes: item.startTime.getUTCMinutes(),
+  });
+
+  const endDate = newDate.plus({
+    hours: item.endTime.getUTCHours(),
+    minutes: item.endTime.getUTCMinutes(),
+  });
+
   return {
     start: LuxonDateTime.fromISO(startDate.toISOString()).setZone(timeZone),
     end: LuxonDateTime.fromISO(endDate.toISOString()).setZone(timeZone),
