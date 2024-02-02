@@ -119,7 +119,7 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
 
   await sendChangeOfEmailVerificationLink({
     language: translation,
-    verificationEmailLink: `${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`,
+    verificationEmailLink: `${WEBAPP_URL}/auth/verify-email-change?${params.toString()}`,
     user: {
       emailFrom: user.emailFrom,
       emailTo: user.emailTo,

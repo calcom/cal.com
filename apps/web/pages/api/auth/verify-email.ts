@@ -68,7 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await cleanUpVerificationTokens(foundToken.id);
 
-    res.redirect(`${WEBAPP_URL}/`);
+    res.status(200).json({
+      updatedEmail,
+    });
   } else {
     await prisma.user.update({
       where: {
