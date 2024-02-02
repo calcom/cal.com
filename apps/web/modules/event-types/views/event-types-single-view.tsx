@@ -405,6 +405,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
+  console.log("dirty", formMethods.formState.dirtyFields);
   useEffect(() => {
     if (!formMethods.formState.isDirty) {
       //TODO: What's the best way to sync the form with backend
