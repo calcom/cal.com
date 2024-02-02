@@ -83,7 +83,7 @@ const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
   return mounted ? (
     <Editor
       getText={() => md.render(formMethods.getValues("description") || "")}
-      setText={(value: string) => formMethods.setValue("description", turndown(value))}
+      setText={(value: string) => formMethods.setValue("description", turndown(value), { shouldDirty: true })}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
       editable={isEditable}

@@ -65,7 +65,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const selectedThemeIsDark =
     user?.theme === "dark" ||
     (!user?.theme && typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
-
   formMethods.getValues().bookingFields.forEach(({ name }) => {
     bookingFields[name] = `${name} input`;
   });

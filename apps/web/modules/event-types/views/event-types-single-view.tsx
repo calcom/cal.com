@@ -256,7 +256,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   eventType.bookingFields.forEach(({ name }) => {
     bookingFields[name] = name;
   });
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
     return {
@@ -318,7 +317,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       assignAllTeamMembers: eventType.assignAllTeamMembers,
     };
   }, [eventType, periodDates, metadata]);
-
   const formMethods = useForm<FormValues>({
     defaultValues,
     resolver: zodResolver(
@@ -407,7 +405,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         .passthrough()
     ),
   });
-  console.log(formMethods.formState.dirtyFields);
   useEffect(() => {
     if (!formMethods.formState.isDirty) {
       //TODO: What's the best way to sync the form with backend

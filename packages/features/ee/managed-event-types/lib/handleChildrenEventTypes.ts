@@ -120,8 +120,12 @@ export default async function handleChildrenEventTypes({
       message: "Missing event type",
     };
 
-  // Define what values are expected to be changed from a managed event type
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  // bookingFields is expected to be filled by the _EventTypeModel but is null at create event
+  const _ManagedEventTypeModel = _EventTypeModel.extend({
+    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  });
+
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps); //FIXME
   const managedEventTypeValues = allManagedEventTypePropsZod
     .omit(unlockedManagedEventTypeProps)
     .parse(eventType);
