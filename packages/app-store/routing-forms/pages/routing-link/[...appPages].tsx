@@ -13,7 +13,6 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { slugify } from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
@@ -21,6 +20,7 @@ import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 import FormInputFields from "../../components/FormInputFields";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
 import type { Response, Route } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
@@ -102,25 +102,9 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const regex = /\{([^\}]+)\}/g;
+        const eventTypeUrlWithVariables = substituteVariables(decidedAction.value, response, fields);
 
-        const variables: string[] =
-          decidedAction.value.match(regex)?.map((match: string) => match.slice(1, -1)) || [];
-
-        let eventTypeUrl = decidedAction.value;
-
-        variables.forEach((variable) => {
-          for (const key in response) {
-            const identifier = getFieldIdentifier(fields.find((field) => field.id === key));
-            if (identifier.toLowerCase() === variable.toLowerCase()) {
-              eventTypeUrl = eventTypeUrl.replace(
-                `{${variable}}`,
-                slugify(response[key].value.toString() || "")
-              );
-            }
-          }
-        });
-        await router.push(`/${eventTypeUrl}?${allURLSearchParams}`);
+        await router.push(`/${eventTypeUrlWithVariables}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
