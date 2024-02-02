@@ -112,7 +112,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         variables.forEach((variable) => {
           for (const key in response) {
             const identifier = getFieldIdentifier(fields.find((field) => field.id === key));
-            if (identifier === variable) {
+            if (identifier.toLowerCase() === variable.toLowerCase()) {
               eventTypeUrl = eventTypeUrl.replace(
                 `{${variable}}`,
                 slugify(response[key].value.toString() || "")
