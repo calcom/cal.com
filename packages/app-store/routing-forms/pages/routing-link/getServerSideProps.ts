@@ -19,19 +19,16 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
+  const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const isEmbed = params.appPages[1] === "embed";
+  const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
       user: {
-        organization: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
+        ...ProfileRepository._getPrismaWhereForProfilesOfOrg({ orgSlug: currentOrgDomain }),
       },
     },
     include: {

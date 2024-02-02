@@ -1490,6 +1490,7 @@
   "password_updated": "Password updated!",
   "pending_payment": "Pending payment",
   "pending_invites": "Pending Invites",
+  "pending_organization_invites": "Pending Organization Invites",
   "not_on_cal": "Not on {{appName}}",
   "no_calendar_installed": "No calendar installed",
   "no_calendar_installed_description": "You have not yet connected any of your calendars",
