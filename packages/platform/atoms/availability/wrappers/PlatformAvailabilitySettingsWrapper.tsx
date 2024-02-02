@@ -1,24 +1,26 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
 import { showToast } from "@calcom/ui";
 
-import { useApiKey } from "../../hooks/useApiKeys";
+import { useMe } from "../../hooks/useMe";
 import useClientSchedule from "../hooks/useClientSchedule";
 import useDeleteSchedule from "../hooks/useDeleteSchedule";
-import { useProfileInfo } from "../hooks/useProfileInfo";
-import { Availability } from "../index";
+import { daysInAWeek } from "../lib/daysInAWeek";
+import { AvailabilitySettings } from "../settings/index";
+import type { AvailabilityFormValues } from "../types";
 
-type PlatformAvailabilityWrapperProps = {
+type PlatformAvailabilitySettingsWrapperProps = {
   id?: string;
 };
 
-export const PlatformAvailabilityWrapper = ({ id }: PlatformAvailabilityWrapperProps) => {
-  const { key, error } = useApiKey();
+export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailabilitySettingsWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(key, id);
-  const user = useProfileInfo(key);
+  const user = useMe();
 
-  const displayOptions = {
-    hour12: user.data?.timeFormat ? user.data.timeFormat === 12 : undefined,
-    timeZone: user.data?.timeZone,
-  };
+  const userWeekStart = daysInAWeek.indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const { timeFormat } = user.data || { timeFormat: null };
+  const [openSidebar, setOpenSidebar] = useState(false);
 
   const { mutateAsync, isLoading: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: () => {
@@ -38,11 +40,17 @@ export const PlatformAvailabilityWrapper = ({ id }: PlatformAvailabilityWrapperP
     // duplication function goes here
   };
 
+  const form = useForm<AvailabilityFormValues>({
+    values: schedule && {
+      ...schedule,
+      schedule: schedule?.availability || [],
+    },
+  });
+
   if (error === "no_key") return <>You havent entered a key</>;
 
   if (error === "invalid_key") return <>This is not a valid key, please enter a valid key</>;
 
   if (isLoading) return <>Loading...</>;
-
-  return <Availability />;
+  return <AvailabilitySettings />;
 };
