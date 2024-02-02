@@ -80,7 +80,10 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext>({
             const links = Object.fromEntries(
               ENDPOINTS.map((endpoint) => [
                 endpoint,
-                httpLink({ url: `${url}/${endpoint}`, transformer: superjson })(runtime),
+                httpLink({
+                  url: `${url}/${endpoint}`,
+                  transformer: superjson,
+                })(runtime),
               ])
             );
             return resolveEndpoint(links);
@@ -90,7 +93,10 @@ export const trpc = createTRPCNext<AppRouter, NextPageContext>({
             const links = Object.fromEntries(
               ENDPOINTS.map((endpoint) => [
                 endpoint,
-                httpBatchLink({ url: `${url}/${endpoint}`, transformer: superjson })(runtime),
+                httpBatchLink({
+                  url: `${url}/${endpoint}`,
+                  transformer: superjson,
+                })(runtime),
               ])
             );
             return resolveEndpoint(links);

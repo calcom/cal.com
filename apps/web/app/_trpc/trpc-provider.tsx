@@ -2,6 +2,7 @@ import { type DehydratedState, QueryClient, QueryClientProvider } from "@tanstac
 import { HydrateClient } from "app/_trpc/HydrateClient";
 import { trpc } from "app/_trpc/client";
 import { useState } from "react";
+import superjson from "superjson";
 
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@calcom/trpc/client";
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
@@ -66,6 +67,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
                 endpoint,
                 httpLink({
                   url: `${url}/${endpoint}`,
+                  transformer: superjson,
                 })(runtime),
               ])
             );
@@ -78,6 +80,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode; dehydratedState
                 endpoint,
                 httpBatchLink({
                   url: `${url}/${endpoint}`,
+                  transformer: superjson,
                 })(runtime),
               ])
             );
