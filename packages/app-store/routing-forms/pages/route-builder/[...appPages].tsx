@@ -270,7 +270,7 @@ const Route = ({
                       isDisabled={disabled}
                       options={
                         eventOptions.length !== 0
-                          ? eventOptions.concat({ label: "Custom", value: "custom" })
+                          ? eventOptions.concat({ label: t("Custom"), value: "custom" })
                           : []
                       }
                       onChange={(option) => {
