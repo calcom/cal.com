@@ -104,7 +104,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
         const regex = /\{([^\}]+)\}/g;
 
-        const variables = decidedAction.value.match(regex)?.map((match) => match.slice(1, -1)) || [];
+        const variables: string[] =
+          decidedAction.value.match(regex)?.map((match: string) => match.slice(1, -1)) || [];
 
         let eventTypeUrl = decidedAction.value;
 
