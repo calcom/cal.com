@@ -13,6 +13,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { slugify } from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
@@ -101,7 +102,27 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        await router.push(`/${decidedAction.value}?${allURLSearchParams}`);
+        const regex = /\{([^\}]+)\}/g;
+
+        const variables = decidedAction.value.match(regex)?.map((match) => match.slice(1, -1)) || [];
+
+        let eventTypeUrl = decidedAction.value;
+
+        variables.forEach((variable) => {
+          console.log("variable", variable);
+          for (const key in response) {
+            console.log("response", JSON.stringify(response));
+
+            const identifier = getFieldIdentifier(fields.find((field) => field.id === key));
+            console.log("identifier", identifier);
+
+            if (identifier === variable) {
+              //swap variable with response
+              eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].toString() || ""));
+            }
+          }
+        });
+        await router.push(`/${eventTypeUrl}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
@@ -142,7 +163,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal text-emphasis  mb-1 text-xl font-bold tracking-wide">
+                      <h1 className="font-cal text-emphasis mb-1 text-xl font-bold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (
