@@ -140,14 +140,19 @@ export default async function handleChildrenEventTypes({
   const unlockedEventTypeValues = allManagedEventTypePropsZod
     .pick(unlockedManagedEventTypeProps)
     .parse(eventType);
-
-  // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
-  const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
-  const currentUserIds = children?.map((ch) => ch.owner.id);
-  const deletedUserIds = previousUserIds?.filter((id) => !currentUserIds?.includes(id));
-  const newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
-  const oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
-
+  // Check to confirm if member assignment has been updated
+  const childrenUpdated = children !== undefined;
+  let deletedUserIds: number[] | undefined = [];
+  let newUserIds: number[] = [];
+  let oldUserIds: number[] = [];
+  if (childrenUpdated) {
+    // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
+    const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
+    const currentUserIds = children?.map((ch) => ch.owner.id);
+    deletedUserIds = previousUserIds?.filter((id) => !currentUserIds?.includes(id));
+    newUserIds = currentUserIds?.filter((id) => !previousUserIds?.includes(id));
+    oldUserIds = currentUserIds?.filter((id) => previousUserIds?.includes(id));
+  }
   // Calculate if there are new workflows for which assigned members will get too
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
