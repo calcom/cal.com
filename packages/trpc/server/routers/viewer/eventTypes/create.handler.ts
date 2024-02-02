@@ -23,7 +23,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, ...rest } = input;
+  const { schedulingType, teamId, slug, metadata, ...rest } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -58,6 +58,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     // Only connecting the current user for non-managed event type
     users: isManagedEventType ? undefined : { connect: { id: userId } },
     locations,
+    slug,
   };
 
   if (teamId && schedulingType) {
@@ -83,7 +84,20 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     };
     data.schedulingType = schedulingType;
   }
-
+  try {
+    const updateWhere: Prisma.EventTypeWhereUniqueInput = teamId
+      ? { teamId_previousSlug: { teamId, previousSlug: slug } }
+      : { userId_previousSlug: { userId, previousSlug: slug } };
+    // if the slug is present as previousSlug in any event type, remove it
+    await ctx.prisma.eventType.update({
+      where: updateWhere,
+      data: { previousSlug: null },
+    });
+  } catch (e) {
+    if (!(e instanceof PrismaClientKnownRequestError && e.code === "P2025")) {
+      throw new TRPCError({ code: "BAD_REQUEST" });
+    }
+  }
   try {
     const eventType = await ctx.prisma.eventType.create({ data });
     return { eventType };
