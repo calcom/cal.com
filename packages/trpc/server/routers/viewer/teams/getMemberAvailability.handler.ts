@@ -30,11 +30,6 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
             select: credentialForCalendarServiceSelect,
           }, // needed for getUserAvailability
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },

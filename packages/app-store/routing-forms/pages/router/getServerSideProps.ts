@@ -1,7 +1,6 @@
 import { stringify } from "querystring";
 import z from "zod";
 
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { TRPCError } from "@calcom/trpc/server";
@@ -34,15 +33,16 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
+  const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
+  const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
       user: {
-        organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
+        ...ProfileRepository._getPrismaWhereForProfilesOfOrg({ orgSlug: currentOrgDomain }),
       },
     },
   });
