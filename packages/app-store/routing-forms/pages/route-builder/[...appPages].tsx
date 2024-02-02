@@ -130,7 +130,7 @@ const Route = ({
     });
   });
 
- // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
+  // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
     eventOptions.length !== 0
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
