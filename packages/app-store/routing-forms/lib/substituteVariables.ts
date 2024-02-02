@@ -1,7 +1,6 @@
 import slugify from "@calcom/lib/slugify";
 
-import type { Field } from "../types/types";
-import type { Response, Route } from "../types/types";
+import type { Response, Route, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
 
 export const substituteVariables = (
