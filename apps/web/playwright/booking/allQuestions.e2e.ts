@@ -91,7 +91,7 @@ test.describe("Booking With All Questions", () => {
       } else {
         await bookingPage.addQuestion(question, `${question}-test`, `${question} test`, false);
       }
-      await bookingPage.checkField(question);
+      await bookingPage.checkField(question, { isOptional: true });
     }
 
     await bookingPage.updateEventType();
