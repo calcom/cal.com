@@ -242,7 +242,10 @@ const ProfileView = () => {
 
   const defaultValues = {
     username: user.username || "",
-    avatar: getUserAvatarUrl(user),
+    avatar: getUserAvatarUrl({
+      ...user,
+      profile: user.profile,
+    }),
     name: user.name || "",
     email: user.email || "",
     bio: user.bio || "",
@@ -469,20 +472,14 @@ const ProfileForm = ({
               const organization =
                 userOrganization && userOrganization.id
                   ? {
-                      ...(userOrganization as Ensure<typeof user.organization, "id">),
+                      ...(userOrganization as Ensure<NonNullable<typeof user.organization>, "id">),
                       slug: userOrganization.slug || null,
                       requestedSlug: userOrganization.metadata?.requestedSlug || null,
                     }
                   : null;
               return (
                 <>
-                  <UserAvatar
-                    data-testid="profile-upload-avatar"
-                    previewSrc={value}
-                    size="lg"
-                    user={user}
-                    organization={organization}
-                  />
+                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
                   <div className="ms-4">
                     <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
