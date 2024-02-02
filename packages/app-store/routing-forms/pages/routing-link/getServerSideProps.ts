@@ -19,7 +19,11 @@ export function isAuthorizedToViewTheForm({
   };
 
   if (!currentOrgDomain) {
-    // On non org domain, see if the form owner has been migrated to an org. If yes, then still allow access on non-org domain
+    // If the form doesn't belong to an org user and we are on non-org domain, then obviously allow access
+    if (!formUser.organization) {
+      return true;
+    }
+    // Check if the form owner has been migrated to an org. If yes, then still allow access on non-org domain
     if (!formUser.metadata?.migratedToOrgFrom) {
       return false;
     }
