@@ -29,12 +29,20 @@ import AdminPasswordBanner, {
 import CalendarCredentialBanner, {
   type CalendarCredentialBannerProps,
 } from "@calcom/features/users/components/CalendarCredentialBanner";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
 import classNames from "@calcom/lib/classNames";
-import { TOP_BANNER_HEIGHT } from "@calcom/lib/constants";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_DISCORD, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_DISCORD,
+  ROADMAP,
+  WEBAPP_URL,
+  IS_VISUAL_REGRESSION_TESTING,
+  TOP_BANNER_HEIGHT,
+} from "@calcom/lib/constants";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -88,7 +96,6 @@ import {
   Zap,
 } from "@calcom/ui/components/icon";
 import { Discord } from "@calcom/ui/components/icon/Discord";
-import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/web/constants";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -194,10 +201,10 @@ function useRedirectToOnboardingIfNeeded() {
 type allBannerProps = { [Key in BannerType]: BannerTypeProps[Key]["data"] };
 
 const useBanners = () => {
-  const { data: getUserTopBanners, isLoading } = trpc.viewer.getUserTopBanners.useQuery();
+  const { data: getUserTopBanners, isPending } = trpc.viewer.getUserTopBanners.useQuery();
   const { data: userSession } = useSession();
 
-  if (isLoading || !userSession) return null;
+  if (isPending || !userSession) return null;
 
   const isUserInactiveAdmin = userSession?.user.role === "INACTIVE_ADMIN";
   const userImpersonatedByUID = userSession?.user.impersonatedBy?.id;
@@ -243,6 +250,7 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
+            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
@@ -736,7 +744,7 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex">
+            <span className="hidden w-full justify-between lg:flex" data-testid={`${item.name}-test`}>
               <div className="flex">{t(item.name)}</div>
               {item.badge && item.badge}
             </span>

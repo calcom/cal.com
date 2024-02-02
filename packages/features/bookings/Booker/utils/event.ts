@@ -50,6 +50,8 @@ export const useScheduleForEvent = ({
   month,
   duration,
   monthCount,
+  dayCount,
+  selectedDate,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -58,6 +60,8 @@ export const useScheduleForEvent = ({
   month?: string | null;
   duration?: number | null;
   monthCount?: number;
+  dayCount?: number | null;
+  selectedDate?: string | null;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
@@ -77,8 +81,10 @@ export const useScheduleForEvent = ({
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId: event.data?.id ?? eventId,
     timezone,
+    selectedDate,
     prefetchNextMonth,
     monthCount,
+    dayCount,
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
