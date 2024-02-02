@@ -1202,9 +1202,7 @@ function ProfileDropdown() {
                   setMenuOpen(false);
                   if (isSelected) return;
                   update({
-                    user: {
-                      upId: option.value,
-                    },
+                    upId: option.value,
                   }).then(() => {
                     window.location.reload();
                   });
