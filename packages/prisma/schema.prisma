@@ -52,6 +52,7 @@ model EventType {
   title                           String
   /// @zod.custom(imports.eventTypeSlug)
   slug                            String
+  previousSlug                    String?
   description                     String?
   position                        Int                     @default(0)
   /// @zod.custom(imports.eventTypeLocations)
@@ -123,6 +124,8 @@ model EventType {
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
+  @@unique([userId, previousSlug])
+  @@unique([teamId, previousSlug])
   @@unique([userId, parentId])
   @@index([userId])
   @@index([teamId])
