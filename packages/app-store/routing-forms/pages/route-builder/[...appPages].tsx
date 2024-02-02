@@ -132,7 +132,9 @@ const Route = ({
     eventOptions.length !== 0
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
-  const [customEventTypeSlug, setCustomEventTypeSlug] = useState(route.action.value.split("/").pop());
+  const [customEventTypeSlug, setCustomEventTypeSlug] = useState(
+    !isRouter(route) ? route.action.value.split("/").pop() : ""
+  );
   const onChange = (route: Route, immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
@@ -274,12 +276,12 @@ const Route = ({
                         if (option.value !== "custom") {
                           setRoute(route.id, { action: { ...route.action, value: option.value } });
                         } else {
-                          setRoute(route.id, { action: { ...route.action, value: "" } });
+                          setRoute(route.id, { action: { ...route.action, value: "custom" } });
                           setCustomEventTypeSlug("");
                         }
                       }}
                       value={
-                        eventOptions.length !== 0
+                        eventOptions.length !== 0 && route.action.value !== ""
                           ? eventOptions.find((eventOption) => eventOption.value === route.action.value) || {
                               label: "Custom",
                               value: "custom",
@@ -288,6 +290,7 @@ const Route = ({
                       }
                     />
                     {eventOptions.length !== 0 &&
+                      route.action.value !== "" &&
                       !eventOptions.find((eventOption) => eventOption.value === route.action.value) && (
                         <TextField
                           disabled={disabled}
