@@ -31,10 +31,14 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const allAppsData = formMethods.watch("metadata")?.apps || {};
 
   const setAllAppsData = (_allAppsData: typeof allAppsData) => {
-    formMethods.setValue("metadata", {
-      ...formMethods.getValues("metadata"),
-      apps: _allAppsData,
-    });
+    formMethods.setValue(
+      "metadata",
+      {
+        ...formMethods.getValues("metadata"),
+        apps: _allAppsData,
+      },
+      { shouldDirty: true }
+    );
   };
 
   const getAppDataGetter = (appId: EventTypeAppsList): GetAppData => {
