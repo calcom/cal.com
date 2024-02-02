@@ -47,10 +47,6 @@ export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailability
     },
   });
 
-  if (error === "no_key") return <>You havent entered a key</>;
-
-  if (error === "invalid_key") return <>This is not a valid key, please enter a valid key</>;
-
   if (isLoading) return <>Loading...</>;
   return <AvailabilitySettings />;
 };
