@@ -11,7 +11,10 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
 
-import timeZone from "./timezone";
+// IMPORTANT: This is a custom implementation of the timezone plugin that incorporates
+// the changes suggested in https://github.com/iamkun/dayjs/pull/2019. The PR was opened August
+// 8, 2022 and has not been merged. Using the change from this PR improves perf by orders of magnitude.
+import timeZone from "./plugins/timezone";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(dayjsBusinessTime);
