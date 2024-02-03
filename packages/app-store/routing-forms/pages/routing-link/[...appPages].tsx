@@ -103,14 +103,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-          form,
-          eventTypeRedirectUrl: decidedAction.value,
-          allURLSearchParams,
-        });
-        const eventTypeUrlWithVariables = substituteVariables(eventTypeRedirectUrl, response, fields);
-
-        router.push(`/${eventTypeUrlWithVariables}?${allURLSearchParams}`);
+        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
+        router.push(
+          getAbsoluteEventTypeRedirectUrl({
+            form,
+            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+            allURLSearchParams,
+          })
+        );
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }

@@ -1,7 +1,4 @@
-import type z from "zod";
-
 import { CAL_URL } from "@calcom/lib/constants";
-import type { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 function getUserAndEventTypeSlug(eventTypeRedirectUrl: string) {
   if (eventTypeRedirectUrl.startsWith("/")) {
@@ -22,10 +19,8 @@ export function getAbsoluteEventTypeRedirectUrl({
 }: {
   eventTypeRedirectUrl: string;
   form: {
-    migratedTeamToOrgFrom: Partial<
-      NonNullable<z.infer<typeof teamMetadataSchema>>["migratedToOrgFrom"]
-    > | null;
-    migratedUserToOrgFrom: Partial<NonNullable<z.infer<typeof userMetadata>>["migratedToOrgFrom"]> | null;
+    nonOrgUsername: string | null;
+    nonOrgTeamslug: string | null;
     origin: string;
   };
   allURLSearchParams: URLSearchParams;
@@ -41,12 +36,12 @@ export function getAbsoluteEventTypeRedirectUrl({
   }
 
   if (teamSlug) {
-    const isEventTypeRedirectToOldTeamSlug = teamSlug === form.migratedTeamToOrgFrom?.teamSlug;
+    const isEventTypeRedirectToOldTeamSlug = teamSlug === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
       return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   } else {
-    const isEventTypeRedirectToOldUser = username === form.migratedUserToOrgFrom?.username;
+    const isEventTypeRedirectToOldUser = username === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
       return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }

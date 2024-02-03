@@ -1,5 +1,5 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { Prisma, Profile } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
@@ -10,7 +10,12 @@ export async function isAuthorizedToViewTheForm({
   user,
   currentOrgDomain,
 }: {
-  user: { metadata: Prisma.JsonValue; organization: { slug: string | null } | null; profiles: Profile[] };
+  user: {
+    metadata: Prisma.JsonValue;
+    movedToProfileId: number | null;
+    organization: { slug: string | null } | null;
+    id: number;
+  };
   currentOrgDomain: string | null;
 }) {
   const formUser = {
@@ -18,14 +23,17 @@ export async function isAuthorizedToViewTheForm({
     metadata: userMetadata.parse(user.metadata),
   };
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
-
+  console.log("isAuthorizedToViewTheForm", formUser, currentOrgDomain);
   if (!currentOrgDomain) {
     // If the form doesn't belong to an org user and we are on non-org domain, then obviously allow access
-    if (!UserRepository.isAMemberOfAnyOrganization({ user: formUser })) {
+    if (!(await UserRepository.findIfAMemberOfSomeOrganization({ user: formUser }))) {
       return true;
     }
     // Check if the form owner has been migrated to an org. If not(i.e. user is a new user that was directly added to an organization), then we can't allow access to his form on non-org domain
-    if (!formUser.metadata?.migratedToOrgFrom) {
+    if (
+      !UserRepository.isMigratedToOrganization({ user: formUser }) &&
+      !UserRepository.isMovedToAProfile({ user: formUser })
+    ) {
       return false;
     }
   } else if (currentOrgDomain !== formUser.organization?.slug) {
@@ -63,12 +71,13 @@ export const getServerSideProps = async function getServerSideProps(
     include: {
       user: {
         select: {
+          id: true,
+          movedToProfileId: true,
           organization: {
             select: {
               slug: true,
             },
           },
-          profiles: true,
           username: true,
           theme: true,
           brandColor: true,

@@ -5,7 +5,9 @@ import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 export const enrichFormWithMigrationData = <
   T extends {
     user: {
+      movedToProfileId: number | null;
       metadata?: unknown;
+      username: string | null;
       organization: {
         slug: string | null;
       } | null;
@@ -20,6 +22,11 @@ export const enrichFormWithMigrationData = <
   const parsedUserMetadata = userMetadata.parse(form.user.metadata ?? null);
   const parsedTeamMetadata = teamMetadataSchema.parse(form.team?.metadata ?? null);
   const formOwnerOrgSlug = form.user.organization?.slug ?? null;
+  const nonOrgUsername = form.user.movedToProfileId
+    ? form.user.username
+    : parsedUserMetadata?.migratedToOrgFrom?.username ?? null;
+  const nonOrgTeamslug = parsedTeamMetadata?.migratedToOrgFrom?.teamSlug ?? null;
+
   return {
     ...form,
     user: {
@@ -35,7 +42,7 @@ export const enrichFormWithMigrationData = <
           protocol: true,
         })
       : CAL_URL,
-    migratedUserToOrgFrom: parsedUserMetadata?.migratedToOrgFrom ?? null,
-    migratedTeamToOrgFrom: parsedTeamMetadata?.migratedToOrgFrom ?? null,
+    nonOrgUsername,
+    nonOrgTeamslug,
   };
 };

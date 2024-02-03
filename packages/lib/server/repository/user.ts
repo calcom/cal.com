@@ -1,5 +1,6 @@
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma from "@calcom/prisma";
+import type { User as UserType, Prisma } from "@calcom/prisma/client";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { isOrganization } from "../../entityPermissionUtils";
@@ -7,7 +8,6 @@ import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
-import type { User as UserType, Prisma } from ".prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
@@ -200,6 +200,30 @@ export class UserRepository {
     organizationId: number;
   }) {
     return user.profiles.some((profile) => profile.organizationId === organizationId);
+  }
+
+  static async findIfAMemberOfSomeOrganization({ user }: { user: { id: number } }) {
+    return !!(
+      await ProfileRepository.findManyForUser({
+        id: user.id,
+      })
+    ).length;
+  }
+
+  static isMigratedToOrganization({
+    user,
+  }: {
+    user: {
+      metadata?: {
+        migratedToOrgFrom?: unknown;
+      } | null;
+    };
+  }) {
+    return !!user.metadata?.migratedToOrgFrom;
+  }
+
+  static async isMovedToAProfile({ user }: { user: Pick<UserType, "movedToProfileId"> }) {
+    return !!user.movedToProfileId;
   }
 
   static async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({

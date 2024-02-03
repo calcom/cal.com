@@ -11,6 +11,7 @@ import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
@@ -47,8 +48,10 @@ export const getServerSideProps = async function getServerSideProps(
     include: {
       user: {
         select: {
+          id: true,
+          username: true,
+          movedToProfileId: true,
           metadata: true,
-          profiles: true,
           organization: {
             select: {
               slug: true,
@@ -79,7 +82,10 @@ export const getServerSideProps = async function getServerSideProps(
   const serializableForm = await getSerializableForm({ form: enrichFormWithMigrationData(form) });
 
   const response: Response = {};
-  serializableForm.fields?.forEach((field) => {
+  if (!serializableForm.fields) {
+    throw new Error("Form has no fields");
+  }
+  serializableForm.fields.forEach((field) => {
     const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
 
     response[field.id] = {
@@ -126,10 +132,15 @@ export const getServerSideProps = async function getServerSideProps(
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
+    const eventTypeUrlWithResolvedVariables = substituteVariables(
+      decidedAction.value,
+      response,
+      serializableForm.fields
+    );
     return {
       redirect: {
         destination: getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: decidedAction.value,
+          eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
           form: serializableForm,
           allURLSearchParams: new URLSearchParams(stringify(context.query)),
         }),
