@@ -44,6 +44,7 @@ interface handleChildrenEventTypesProps {
       }[]
     | undefined;
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
+  updatedValues: Prisma.EventTypeUpdateInput;
 }
 
 const sendAllSlugReplacementEmails = async (
@@ -103,7 +104,10 @@ export default async function handleChildrenEventTypes({
   children,
   prisma,
   profileId,
+  updatedValues,
 }: handleChildrenEventTypesProps) {
+  console.log({ updatedValues });
+  console.log({ children });
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
     return {
