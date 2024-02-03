@@ -48,12 +48,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     userId,
     bookingFields,
     offsetStart,
+    slug,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      slug: true,
+      previousSlug: true,
       children: {
         select: {
           userId: true,
@@ -108,6 +111,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
+    slug,
+    previousSlug: slug === eventType.slug ? eventType.previousSlug : eventType.slug,
     bookingFields,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
@@ -314,7 +319,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
-
+  if (slug) {
+    try {
+      const updateWhere: Prisma.EventTypeWhereUniqueInput = teamId
+        ? { teamId_previousSlug: { teamId, previousSlug: slug } }
+        : { userId_previousSlug: { userId: ctx.user.id, previousSlug: slug } };
+      // if the slug is present as previousSlug in any event type, remove it
+      await ctx.prisma.eventType.update({
+        where: updateWhere,
+        data: { previousSlug: null },
+      });
+    } catch (e) {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+    }
+  }
   data.assignAllTeamMembers = assignAllTeamMembers ?? false;
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
