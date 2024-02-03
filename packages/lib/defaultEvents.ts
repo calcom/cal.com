@@ -104,7 +104,7 @@ const commons = {
 };
 
 const dynamicEvent = {
-  length: 30,
+  length: [15, 30, 60, 90],
   slug: "dynamic",
   title: "Group Meeting",
   eventName: "Group Meeting",
