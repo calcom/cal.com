@@ -119,6 +119,7 @@ export class EventTypeRepository {
     );
 
     if (!profileId) {
+      // Lookup is by userId
       return await prisma.eventType.findMany({
         where: {
           userId: lookupTarget.id,
@@ -131,16 +132,19 @@ export class EventTypeRepository {
 
     const profile = await ProfileRepository.findById(profileId);
     if (profile?.movedFromUser) {
-      // Get all user events except those that belong to some other profile
+      // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
+      // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
       return await prisma.eventType.findMany({
         where: {
           OR: [
+            // Existing events
             {
               userId: profile.movedFromUser.id,
               profileId: null,
             },
+            // New events
             {
-              profileId: profileId,
+              profileId,
             },
           ],
           ...where,
