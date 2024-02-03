@@ -1,26 +1,27 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, Profile } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
-export function isAuthorizedToViewTheForm({
+export async function isAuthorizedToViewTheForm({
   user,
   currentOrgDomain,
 }: {
-  user: { metadata: Prisma.JsonValue; organization: { slug: string | null } | null };
+  user: { metadata: Prisma.JsonValue; organization: { slug: string | null } | null; profiles: Profile[] };
   currentOrgDomain: string | null;
 }) {
   const formUser = {
     ...user,
     metadata: userMetadata.parse(user.metadata),
   };
+  const { UserRepository } = await import("@calcom/lib/server/repository/user");
 
   if (!currentOrgDomain) {
     // If the form doesn't belong to an org user and we are on non-org domain, then obviously allow access
-    if (!formUser.organization) {
+    if (!UserRepository.isAMemberOfAnyOrganization({ user: formUser })) {
       return true;
     }
     // Check if the form owner has been migrated to an org. If not(i.e. user is a new user that was directly added to an organization), then we can't allow access to his form on non-org domain
@@ -51,7 +52,7 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
+  const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const isEmbed = params.appPages[1] === "embed";
 
@@ -67,6 +68,7 @@ export const getServerSideProps = async function getServerSideProps(
               slug: true,
             },
           },
+          profiles: true,
           username: true,
           theme: true,
           brandColor: true,
@@ -88,7 +90,7 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  if (!isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain })) {
+  if (!(await isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain }))) {
     return {
       notFound: true,
     };

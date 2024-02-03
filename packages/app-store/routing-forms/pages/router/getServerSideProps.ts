@@ -48,6 +48,7 @@ export const getServerSideProps = async function getServerSideProps(
       user: {
         select: {
           metadata: true,
+          profiles: true,
           organization: {
             select: {
               slug: true,
@@ -69,7 +70,7 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  if (!isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain })) {
+  if (!(await isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain }))) {
     return {
       notFound: true,
     };

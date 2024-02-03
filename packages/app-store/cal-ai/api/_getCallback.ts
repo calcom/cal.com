@@ -33,7 +33,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     await checkInstalled(slug, session.user.id);
     await createDefaultInstallation({
       appType,
-      userId: session.user.id,
+      user: session.user,
       slug,
       key: {
         apiKey,

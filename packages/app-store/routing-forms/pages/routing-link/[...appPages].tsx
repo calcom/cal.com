@@ -21,6 +21,7 @@ import FormInputFields from "../../components/FormInputFields";
 import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
 import type { Response, Route } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
@@ -102,13 +103,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        router.push(
-          getAbsoluteEventTypeRedirectUrl({
-            form,
-            eventTypeRedirectUrl: decidedAction.value,
-            allURLSearchParams,
-          })
-        );
+        const eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+          form,
+          eventTypeRedirectUrl: decidedAction.value,
+          allURLSearchParams,
+        });
+        const eventTypeUrlWithVariables = substituteVariables(eventTypeRedirectUrl, response, fields);
+
+        router.push(`/${eventTypeUrlWithVariables}?${allURLSearchParams}`);
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
@@ -149,7 +151,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal text-emphasis  mb-1 text-xl font-bold tracking-wide">
+                      <h1 className="font-cal text-emphasis mb-1 text-xl font-bold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (

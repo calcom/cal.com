@@ -14,7 +14,7 @@ const handler: AppDeclarativeHandler = {
     url: "https://cron.com",
   },
   createCredential: ({ appType, user, slug, teamId }) =>
-    createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),
+    createDefaultInstallation({ appType, user, slug, key: {}, teamId }),
 };
 
 export default handler;
