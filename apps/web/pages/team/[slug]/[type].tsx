@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { Booker } from "@calcom/atoms";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
@@ -25,6 +28,12 @@ export default function Type({
   duration,
   isInstantMeeting,
 }: PageProps) {
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
+  useEffect(() => {
+    if (!!duration) {
+      setSelectedDuration(duration);
+    }
+  });
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
