@@ -144,7 +144,7 @@ export default async function handleChildrenEventTypes({
   const childrenUpdated = children !== undefined;
   let deletedUserIds: number[] | undefined = [];
   let newUserIds: number[] = [];
-  let oldUserIds: number[] = [];
+  let oldUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
   if (childrenUpdated) {
     // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
     const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
