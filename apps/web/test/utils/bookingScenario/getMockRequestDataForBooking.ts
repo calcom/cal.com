@@ -19,6 +19,7 @@ export function getMockRequestDataForBooking({
 }: {
   data: Partial<ReturnType<typeof getBasicMockRequestDataForBooking>> & {
     eventTypeId: number;
+    user?: string;
     rescheduleUid?: string;
     bookingUid?: string;
     recurringEventId?: string;

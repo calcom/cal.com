@@ -6,6 +6,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -44,7 +45,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(ctx.user.id);
+    const credentials = await getUsersCredentials(ctx.user);
     const foundApp = getApps(credentials, true).filter(
       (app) => app.slug === defaultConferencingData.appSlug
     )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
@@ -87,10 +88,15 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
   await removePreviousSlug({ userId, teamId, previousSlug: slug });
 
+  const profile = ctx.user.profile;
   try {
-    const eventType = await ctx.prisma.eventType.create({ data });
+    const eventType = await EventTypeRepository.create({
+      ...data,
+      profileId: profile.id,
+    });
     return { eventType };
   } catch (e) {
+    console.warn(e);
     if (e instanceof PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
