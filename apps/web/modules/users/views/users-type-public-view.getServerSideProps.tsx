@@ -176,6 +176,23 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   });
 
   if (!eventData) {
+    const eventTypeByPreviousSlug = await prisma.eventType.findUnique({
+      where: {
+        userId_previousSlug: {
+          userId: user.id,
+          previousSlug: slug,
+        },
+      },
+    });
+    if (eventTypeByPreviousSlug) {
+      console.log("redirecting to", `/${username}/${eventTypeByPreviousSlug.slug}`);
+      return {
+        redirect: {
+          destination: `/${username}/${eventTypeByPreviousSlug.slug}`,
+          perfObserver: true,
+        },
+      };
+    }
     return {
       notFound: true,
     } as const;
