@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -84,20 +85,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     };
     data.schedulingType = schedulingType;
   }
-  try {
-    const updateWhere: Prisma.EventTypeWhereUniqueInput = teamId
-      ? { teamId_previousSlug: { teamId, previousSlug: slug } }
-      : { userId_previousSlug: { userId, previousSlug: slug } };
-    // if the slug is present as previousSlug in any event type, remove it
-    await ctx.prisma.eventType.update({
-      where: updateWhere,
-      data: { previousSlug: null },
-    });
-  } catch (e) {
-    if (!(e instanceof PrismaClientKnownRequestError && e.code === "P2025")) {
-      throw new TRPCError({ code: "BAD_REQUEST" });
-    }
-  }
+  await removePreviousSlug({ userId, teamId, previousSlug: slug });
+
   try {
     const eventType = await ctx.prisma.eventType.create({ data });
     return { eventType };

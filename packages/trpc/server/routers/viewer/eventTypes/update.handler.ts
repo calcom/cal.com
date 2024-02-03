@@ -3,6 +3,7 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -319,22 +320,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
   }
-  if (slug) {
-    try {
-      const updateWhere: Prisma.EventTypeWhereUniqueInput = teamId
-        ? { teamId_previousSlug: { teamId, previousSlug: slug } }
-        : { userId_previousSlug: { userId: ctx.user.id, previousSlug: slug } };
-      // if the slug is present as previousSlug in any event type, remove it
-      await ctx.prisma.eventType.update({
-        where: updateWhere,
-        data: { previousSlug: null },
-      });
-    } catch (e) {
-      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025")) {
-        throw new TRPCError({ code: "BAD_REQUEST" });
-      }
-    }
-  }
+  if (slug) await removePreviousSlug({ userId: ctx.user.id, teamId, previousSlug: slug });
+
   data.assignAllTeamMembers = assignAllTeamMembers ?? false;
 
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({

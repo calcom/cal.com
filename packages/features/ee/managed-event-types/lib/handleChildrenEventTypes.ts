@@ -4,6 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { sendSlugReplacementEmail } from "@calcom/emails/email-manager";
+import { removePreviousSlug } from "@calcom/features/eventtypes/lib/previousSlugManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -159,21 +160,11 @@ export default async function handleChildrenEventTypes({
       ? { delete: true }
       : undefined;
   };
-  try {
-    //if the slug is present as previousSlug in any event-type for the users for which managed event type is being created/updated, remove it
-    await prisma.eventType.updateMany({
-      where: {
-        userId: {
-          in: [...(newUserIds ?? []), ...(oldUserIds ?? [])],
-        },
-        previousSlug: managedEventTypeValues.slug,
-      },
-      data: { previousSlug: null },
-    });
-  } catch (e) {
-    throw new Error("Failed to create event types");
-  }
-  // Store result for existent event types deletion process
+  await removePreviousSlug({
+    userId: [...(newUserIds ?? []), ...(oldUserIds ?? [])],
+    previousSlug: managedEventTypeValues.slug,
+  });
+
   let deletedExistentEventTypes = undefined;
 
   // New users added
