@@ -25,6 +25,8 @@ interface handleChildrenEventTypesProps {
   };
   currentUserId: number;
   oldEventType: {
+    slug: string;
+    previousSlug: string | null;
     children?: { userId: number | null }[] | null | undefined;
     team: { name: string } | null;
     workflows?: { workflowId: number }[];
@@ -157,7 +159,20 @@ export default async function handleChildrenEventTypes({
       ? { delete: true }
       : undefined;
   };
-
+  try {
+    //if the slug is present as previousSlug in any event-type for the users for which managed event type is being created/updated, remove it
+    await prisma.eventType.updateMany({
+      where: {
+        userId: {
+          in: [...(newUserIds ?? []), ...(oldUserIds ?? [])],
+        },
+        previousSlug: managedEventTypeValues.slug,
+      },
+      data: { previousSlug: null },
+    });
+  } catch (e) {
+    throw new Error("Failed to create event types");
+  }
   // Store result for existent event types deletion process
   let deletedExistentEventTypes = undefined;
 
@@ -233,6 +248,8 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...managedEventTypeValues,
+            previousSlug:
+              updatedEventType.slug === oldEventType.slug ? oldEventType.previousSlug : oldEventType.slug,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
