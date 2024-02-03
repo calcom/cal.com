@@ -92,14 +92,7 @@ const ProfileView = () => {
 
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
-      if (!res.signOutUser) {
-        // await update({
-        //   ...session,
-        //   username: res.username,
-        //   email: res.email,
-        //   name: res.name,
-        // });
-      }
+      await update(res);
 
       showToast(t("settings_updated_successfully"), "success");
 

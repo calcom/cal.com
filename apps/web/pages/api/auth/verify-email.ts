@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await cleanUpVerificationTokens(foundToken.id);
 
-    res.status(200).json({
+    return res.status(200).json({
       updatedEmail,
     });
   } else {
@@ -80,12 +80,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         emailVerified: new Date(),
       },
     });
+
+    await cleanUpVerificationTokens(foundToken.id);
   }
 
   const hasCompletedOnboarding = user.completedOnboarding;
 
-  await cleanUpVerificationTokens(foundToken.id);
-  res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
+  return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }
 
 async function cleanUpVerificationTokens(id: number) {
