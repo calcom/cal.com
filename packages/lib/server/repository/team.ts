@@ -6,6 +6,8 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getParsedTeam } from "./teamUtils";
+
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata"> & {
       metadata: z.infer<typeof teamMetadataSchema>;
@@ -145,4 +147,17 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
     isOrg: true,
     teamSelect,
   });
+}
+export class TeamRepository {
+  static async findById({ id }: { id: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
 }
