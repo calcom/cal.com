@@ -267,7 +267,12 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
   });
 
   const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
-
+  if (eventTypesToAdd.length > 0) {
+    await prisma.eventType.updateMany({
+      where: { userId, previousSlug: { in: eventTypesToAdd.map((e) => e.slug) } },
+      data: { previousSlug: null },
+    });
+  }
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
