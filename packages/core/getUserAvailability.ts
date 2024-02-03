@@ -223,6 +223,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           initialData?.rescheduleUid
         )
       : [];
+  console.log("🚀 ~ busyTimesFromLimits:", busyTimesFromLimits);
 
   // TODO: only query what we need after applying limits (shrink date range)
   const getBusyTimesStart = dateFrom.toISOString();
@@ -255,6 +256,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })),
     ...busyTimesFromLimits,
   ];
+  console.log("🚀 ~ detailedBusyTimes:", detailedBusyTimes);
 
   const userSchedule = user.schedules.filter(
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
@@ -438,6 +440,7 @@ const _getBusyTimesFromLimits = async (
 
   // shared amongst limiters to prevent processing known busy periods
   const limitManager = new LimitManager();
+  const busyTimesForSeatedEvent: EventBusyDate[] = [];
 
   let limitDateFrom = dayjs(dateFrom);
   let limitDateTo = dayjs(dateTo);
@@ -464,30 +467,53 @@ const _getBusyTimesFromLimits = async (
   // run this first, as counting bookings should always run faster..
   if (bookingLimits) {
     performance.mark("bookingLimitsStart");
-    await getBusyTimesFromBookingLimits(
-      bookings,
-      bookingLimits,
-      dateFrom,
-      dateTo,
-      eventType.id,
-      limitManager
-    );
+    if (eventType.seatsPerTimeSlot) {
+      busyTimesForSeatedEvent.push(
+        ...(await getBusyTimesFromBookingLimitsForSeatedEvent(
+          bookings,
+          bookingLimits,
+          dateFrom,
+          dateTo,
+          eventType
+        ))
+      );
+    } else {
+      await getBusyTimesFromBookingLimits(
+        bookings,
+        bookingLimits,
+        dateFrom,
+        dateTo,
+        eventType.id,
+        limitManager
+      );
+    }
     performance.mark("bookingLimitsEnd");
     performance.measure(`checking booking limits took $1'`, "bookingLimitsStart", "bookingLimitsEnd");
   }
-
   // ..than adding up durations (especially for the whole year)
   if (durationLimits) {
     performance.mark("durationLimitsStart");
-    await getBusyTimesFromDurationLimits(
-      bookings,
-      durationLimits,
-      dateFrom,
-      dateTo,
-      duration,
-      eventType,
-      limitManager
-    );
+    if (eventType.seatsPerTimeSlot) {
+      busyTimesForSeatedEvent.push(
+        ...(await getBusyTimesFromDurationLimitsForSeatedEvent(
+          bookings,
+          durationLimits,
+          dateFrom,
+          dateTo,
+          eventType
+        ))
+      );
+    } else {
+      await getBusyTimesFromDurationLimits(
+        bookings,
+        durationLimits,
+        dateFrom,
+        dateTo,
+        duration,
+        eventType,
+        limitManager
+      );
+    }
     performance.mark("durationLimitsEnd");
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
@@ -495,6 +521,7 @@ const _getBusyTimesFromLimits = async (
   performance.mark("limitsEnd");
   performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
 
+  if (eventType.seatsPerTimeSlot) return busyTimesForSeatedEvent;
   return limitManager.getBusyTimes();
 };
 
@@ -622,4 +649,144 @@ const _getBusyTimesFromDurationLimits = async (
       }
     }
   }
+};
+
+const getBusyTimesFromBookingLimitsForSeatedEvent = (
+  bookings: EventBusyDetails[],
+  bookingLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  eventType: NonNullable<EventType>
+) => {
+  const busyTime = [];
+  for (const key of descendingLimitKeys) {
+    const limit = bookingLimits?.[key];
+    if (!limit) continue;
+
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+    for (const periodStart of periodStartDates) {
+      const periodEnd = periodStart.endOf(unit);
+      const BookingWithRemainingSeats = [];
+      let totalBookings = 0;
+
+      for (const booking of bookings) {
+        // consider booking part of period independent of end date
+        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+          continue;
+        }
+
+        totalBookings++;
+
+        if (
+          eventType.seatsPerTimeSlot &&
+          booking.attendeesCount &&
+          booking.attendeesCount < eventType.seatsPerTimeSlot
+        ) {
+          BookingWithRemainingSeats.push({
+            startTime: booking.start,
+            endTime: booking.end,
+          });
+        }
+
+        if (totalBookings >= limit && eventType.seatsPerTimeSlot) {
+          BookingWithRemainingSeats.sort((a, b) =>
+            dayjs(a.startTime).isBefore(dayjs(b.startTime)) ? -1 : 1
+          );
+
+          for (let i = 0; i < BookingWithRemainingSeats.length - 1; i++) {
+            if (BookingWithRemainingSeats[i].endTime < BookingWithRemainingSeats[i + 1].startTime) {
+              busyTime.push({
+                start: BookingWithRemainingSeats[i].endTime,
+                end: BookingWithRemainingSeats[i + 1].startTime,
+              });
+            }
+          }
+
+          busyTime.push(
+            {
+              start: periodStart.toISOString(),
+              end: BookingWithRemainingSeats[0].startTime,
+            },
+            {
+              start: BookingWithRemainingSeats[BookingWithRemainingSeats.length - 1].endTime,
+              end: periodEnd.toISOString(),
+            }
+          );
+        }
+      }
+    }
+  }
+  return busyTime;
+};
+
+const getBusyTimesFromDurationLimitsForSeatedEvent = (
+  bookings: EventBusyDetails[],
+  durationLimits: IntervalLimit,
+  dateFrom: Dayjs,
+  dateTo: Dayjs,
+  eventType: NonNullable<EventType>
+) => {
+  const busyTime = [];
+  for (const key of descendingLimitKeys) {
+    const limit = durationLimits?.[key];
+    if (!limit) continue;
+
+    const unit = intervalLimitKeyToUnit(key);
+    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+
+    for (const periodStart of periodStartDates) {
+      const periodEnd = periodStart.endOf(unit);
+      const BookingWithRemainingSeats = [];
+      let totalDuration = 0;
+
+      for (const booking of bookings) {
+        // consider booking part of period independent of end date
+        if (!dayjs(booking.start).isBetween(periodStart, periodEnd)) {
+          continue;
+        }
+
+        totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+
+        if (
+          eventType.seatsPerTimeSlot &&
+          booking.attendeesCount &&
+          booking.attendeesCount < eventType.seatsPerTimeSlot
+        ) {
+          BookingWithRemainingSeats.push({
+            startTime: booking.start,
+            endTime: booking.end,
+          });
+        }
+
+        if (totalDuration >= limit && eventType.seatsPerTimeSlot) {
+          BookingWithRemainingSeats.sort((a, b) =>
+            dayjs(a.startTime).isBefore(dayjs(b.startTime)) ? -1 : 1
+          );
+
+          for (let i = 0; i < BookingWithRemainingSeats.length - 1; i++) {
+            if (BookingWithRemainingSeats[i].endTime < BookingWithRemainingSeats[i + 1].startTime) {
+              busyTime.push({
+                start: BookingWithRemainingSeats[i].endTime,
+                end: BookingWithRemainingSeats[i + 1].startTime,
+              });
+            }
+          }
+
+          busyTime.push(
+            {
+              start: periodStart.toISOString(),
+              end: BookingWithRemainingSeats[0].startTime,
+            },
+            {
+              start: BookingWithRemainingSeats[BookingWithRemainingSeats.length - 1].endTime,
+              end: periodEnd.toISOString(),
+            }
+          );
+        }
+      }
+    }
+  }
+  return busyTime;
 };

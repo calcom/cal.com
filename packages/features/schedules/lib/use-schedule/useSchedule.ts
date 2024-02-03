@@ -56,7 +56,7 @@ export const useSchedule = ({
     endTime = (prefetchNextMonth ? nextMonthDayjs : monthDayjs).endOf("month").toISOString();
   }
 
-  return trpc.viewer.public.slots.getSchedule.useQuery(
+  const getSchedule = trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
       usernameList: getUsernameList(username ?? ""),
@@ -88,4 +88,6 @@ export const useSchedule = ({
         (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
     }
   );
+  console.log("🚀 ~ getSchedule:", getSchedule.data?.slots);
+  return getSchedule;
 };
