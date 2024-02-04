@@ -996,6 +996,14 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
+
+  if (eventType.slug === "dynamic" && !eventType.metadata?.multipleDuration?.length) {
+    eventType.metadata = {
+      ...eventType.metadata,
+      multipleDuration: [15, 30, 60, 90],
+    };
+  }
+
   const {
     recurringCount,
     noEmail,
@@ -1095,7 +1103,7 @@ async function handler(
   const reqEventLength = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes");
   const validEventLengths = eventType.metadata?.multipleDuration?.length
     ? eventType.metadata.multipleDuration
-    : eventType.length;
+    : [eventType.length];
   if (!validEventLengths.includes(reqEventLength)) {
     loggerWithEventDetails.warn({ message: "NewBooking: Invalid event length" });
     throw new HttpError({ statusCode: 400, message: "Invalid event length" });
