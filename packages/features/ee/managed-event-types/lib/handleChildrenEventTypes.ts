@@ -189,6 +189,7 @@ export default async function handleChildrenEventTypes({
             profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
+            previousSlug: null,
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
             recurringEvent:

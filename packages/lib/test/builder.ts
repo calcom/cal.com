@@ -72,7 +72,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     id: faker.datatype.number(),
     title: faker.lorem.sentence(),
     slug: faker.lorem.slug(),
-    previousSlug: eventType?.previousSlug ?? null,
+    previousSlug: null,
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
