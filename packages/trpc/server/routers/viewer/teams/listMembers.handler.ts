@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -52,7 +53,9 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
       {} as UserMap
     );
 
-  return Object.values(users);
+  return await Promise.all(
+    Object.values(users).map(async (u) => UserRepository.enrichUserWithItsProfile({ user: u }))
+  );
 };
 
 export default listMembersHandler;

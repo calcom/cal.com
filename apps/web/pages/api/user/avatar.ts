@@ -42,14 +42,30 @@ async function getIdentityData(req: NextApiRequest) {
     : null;
 
   if (username) {
-    const user = await prisma.user.findFirst({
+    const users = await prisma.user.findMany({
       where: {
-        username,
-        organization: orgQuery,
+        ...(orgQuery
+          ? {
+              profiles: {
+                some: {
+                  username,
+                  organization: orgQuery,
+                },
+              },
+            }
+          : {
+              username,
+              // If a user is moved, it isn't actually available outside of the organization. So, for non-org domain check for movedToProfileId
+              movedToProfileId: null,
+            }),
       },
       select: { avatar: true, email: true },
     });
 
+    if (users.length > 1) {
+      throw new Error(`More than one user found for username "${username}"`);
+    }
+    const [user] = users;
     return {
       name: username,
       email: user?.email,
