@@ -24,6 +24,8 @@ interface getEventTypeByIdProps {
   isUserOrganizationAdmin: boolean;
 }
 
+export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
+
 export const getEventTypeById = async ({
   eventTypeId,
   userId,
