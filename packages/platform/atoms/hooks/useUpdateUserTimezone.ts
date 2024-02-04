@@ -10,10 +10,10 @@ type updateTimezoneInput = {
 };
 
 export const useUpdateUserTimezone = () => {
+  const { accessToken } = useAtomsContext();
   const endpoint = new URL(BASE_URL);
 
-  endpoint.pathname = `${API_VERSION}/${V2_ENDPOINTS.me}`;
-  const { accessToken } = useAtomsContext();
+  endpoint.pathname = `api/${API_VERSION}/${V2_ENDPOINTS.me}`;
 
   const mutation = useMutation<ApiResponse<undefined>, unknown, updateTimezoneInput>({
     mutationFn: (data) => {
