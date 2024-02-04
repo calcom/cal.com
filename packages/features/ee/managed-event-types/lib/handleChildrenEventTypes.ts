@@ -167,6 +167,7 @@ export default async function handleChildrenEventTypes({
     previousSlug: managedEventTypeValues.slug,
   });
 
+  // Store result for existent event types deletion process
   let deletedExistentEventTypes = undefined;
 
   // New users added

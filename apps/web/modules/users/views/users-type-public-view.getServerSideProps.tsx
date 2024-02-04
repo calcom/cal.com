@@ -169,7 +169,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       },
     });
     if (eventTypeByPreviousSlug) {
-      console.log("redirecting to", `/${username}/${eventTypeByPreviousSlug.slug}`);
       return {
         redirect: {
           destination: `/${username}/${eventTypeByPreviousSlug.slug}`,
