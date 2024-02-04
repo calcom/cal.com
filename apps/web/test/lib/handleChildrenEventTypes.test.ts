@@ -34,7 +34,7 @@ describe("handleChildrenEventTypes", () => {
 
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" }, slug: "", previousSlug: "" },
         children: [],
         updatedEventType: { schedulingType: null, slug: "something" },
         currentUserId: 1,
@@ -54,7 +54,7 @@ describe("handleChildrenEventTypes", () => {
       mockFindFirstEventType();
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" }, slug: "", previousSlug: "" },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -80,7 +80,7 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" }, slug: "", previousSlug: "" },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -116,7 +116,7 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" }, slug: "something", previousSlug: null },
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -163,7 +163,12 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        oldEventType: {
+          children: [{ userId: 4 }],
+          team: { name: "" },
+          slug: "something",
+          previousSlug: null,
+        },
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -197,7 +202,12 @@ describe("handleChildrenEventTypes", () => {
       mockFindFirstEventType({ users: [], metadata: { managedEventConfig: {} }, locations: [] });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        oldEventType: {
+          children: [{ userId: 4 }],
+          team: { name: "" },
+          slug: "something",
+          previousSlug: null,
+        },
         children: [],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -219,7 +229,12 @@ describe("handleChildrenEventTypes", () => {
       });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [{ userId: 4 }, { userId: 1 }], team: { name: "" } },
+        oldEventType: {
+          children: [{ userId: 4 }, { userId: 1 }],
+          team: { name: "" },
+          slug: "something",
+          previousSlug: null,
+        },
         children: [
           { hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } },
           { hidden: false, owner: { id: 5, name: "", email: "", eventTypeSlugs: [] } },
@@ -259,7 +274,7 @@ describe("handleChildrenEventTypes", () => {
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [], team: { name: "" } },
+        oldEventType: { children: [], team: { name: "" }, slug: "something", previousSlug: null },
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: ["something"] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -306,7 +321,12 @@ describe("handleChildrenEventTypes", () => {
       prismaMock.eventType.deleteMany.mockResolvedValue([123] as unknown as Prisma.BatchPayload);
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        oldEventType: {
+          children: [{ userId: 4 }],
+          team: { name: "" },
+          slug: "something",
+          previousSlug: null,
+        },
         children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: ["something"] } }],
         updatedEventType: { schedulingType: "MANAGED", slug: "something" },
         currentUserId: 1,
@@ -363,7 +383,12 @@ describe("handleChildrenEventTypes", () => {
       prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
       await updateChildrenEventTypes({
         eventTypeId: 1,
-        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        oldEventType: {
+          children: [{ userId: 4 }],
+          team: { name: "" },
+          slug: "something",
+          previousSlug: null,
+        },
         children: [
           { hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } },
           { hidden: false, owner: { id: 5, name: "", email: "", eventTypeSlugs: [] } },
