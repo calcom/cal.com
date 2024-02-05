@@ -308,16 +308,14 @@ export async function getBusyTimesForLimitChecks(params: {
         },
       },
       title: true,
-      attendees: true,
     },
   });
 
-  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, attendees }) => ({
+  const busyTimes = bookings.map(({ id, startTime, endTime, eventType, title }) => ({
     start: dayjs(startTime).toDate(),
     end: dayjs(endTime).toDate(),
     title,
     source: `eventType-${eventType?.id}-booking-${id}`,
-    attendeesCount: attendees.length,
   }));
 
   logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
