@@ -16,7 +16,7 @@ services:
 
 
   calcom:
-    image: horizonclient/calkube:v3.7.10-alpha.43
+    image: calcom/cal.com
     ports:
       - 3000:3000
     env_file: .env
