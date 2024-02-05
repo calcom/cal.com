@@ -1,0 +1,28 @@
+volumes:
+ database-data:
+
+services:
+  database:
+    image: postgres
+    volumes:
+     - database-data:/var/lib/postgresql/data/
+    environment:
+       POSTGRES_USER: postgres
+       POSTGRES_PASSWORD: postgres
+  
+
+  calcom:
+    image: "${TESTING_IMAGE}"
+    ports:
+      - 3000:3000
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@database:5432/calcom
+    depends_on:
+      - database
+  
+
+
+      
+      
+      
+         
