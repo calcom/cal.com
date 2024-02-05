@@ -16,11 +16,13 @@ type TeamsAndUserProfileOptions = {
 export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOptions) => {
   const { prisma } = ctx;
 
+  const profile = ctx.user.profile;
   const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },
     select: {
+      avatarUrl: true,
       id: true,
       username: true,
       name: true,
@@ -47,7 +49,6 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
           },
         },
       },
-      organizationId: true,
     },
   });
   if (!user) {
@@ -69,7 +70,10 @@ export const teamsAndUserProfilesQuery = async ({ ctx }: TeamsAndUserProfileOpti
       teamId: null,
       name: user.name,
       slug: user.username,
-      image: getUserAvatarUrl(user),
+      image: getUserAvatarUrl({
+        ...user,
+        profile: profile,
+      }),
       readOnly: false,
     },
     ...nonOrgTeams.map((membership) => ({

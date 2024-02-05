@@ -1,0 +1,4 @@
+Contact: security@cal.com
+Preferred-Languages: en
+Canonical: https://cal.com/.well-known/security.txt
+Policy: https://github.com/calcom/cal.com/security/policy
