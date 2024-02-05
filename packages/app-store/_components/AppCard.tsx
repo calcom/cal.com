@@ -33,7 +33,7 @@ export default function AppCard({
   LockedIcon?: React.ReactNode;
   disableSwitch?: boolean;
   switchTooltip?: string;
-  hideSettingsIcon: boolean;
+  hideSettingsIcon?: boolean;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
