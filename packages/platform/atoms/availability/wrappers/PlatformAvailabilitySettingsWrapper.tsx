@@ -7,7 +7,7 @@ import { useMe } from "../../hooks/useMe";
 import useClientSchedule from "../hooks/useClientSchedule";
 import useDeleteSchedule from "../hooks/useDeleteSchedule";
 import { daysInAWeek } from "../lib/daysInAWeek";
-import { AvailabilitySettings } from "../settings/index";
+// import { AvailabilitySettings } from "../settings/index";
 import type { AvailabilityFormValues } from "../types";
 
 type PlatformAvailabilitySettingsWrapperProps = {
@@ -15,14 +15,14 @@ type PlatformAvailabilitySettingsWrapperProps = {
 };
 
 export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailabilitySettingsWrapperProps) => {
-  const { isLoading, data: schedule } = useClientSchedule(key, id);
+  const { isLoading, data: schedule } = useClientSchedule(id);
   const user = useMe();
 
   const userWeekStart = daysInAWeek.indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
   const { timeFormat } = user.data || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
 
-  const { mutateAsync, isLoading: isDeletionInProgress } = useDeleteSchedule({
+  const { mutateAsync, isPending: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: () => {
       showToast("Scheduled deleted successfully", "success");
     },
@@ -32,7 +32,7 @@ export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailability
     if (schedule.id === user.defaultScheduleId) {
       showToast("You are required to have at least one schedule", "error");
     } else {
-      await mutateAsync({ id, key });
+      await mutateAsync({ id });
     }
   };
 
@@ -48,5 +48,7 @@ export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailability
   });
 
   if (isLoading) return <>Loading...</>;
-  return <AvailabilitySettings />;
+
+  // return <AvailabilitySettings />;
+  return <>This is the Availability Settings atom</>;
 };
