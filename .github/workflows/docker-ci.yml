@@ -1,0 +1,371 @@
+---
+name:  Docker CI
+
+on:
+# # enable when merged to upstream repo
+#   push:
+#     branches:
+#       - main
+    
+#   pull_request:
+#     branches:
+#       - main
+  
+  workflow_dispatch:
+
+
+jobs:
+# # FIRST JOB ####################################################################### 
+# builds a test image and push to GHCR which will subequently be pulled by integration-test
+# and trivy scan jobs for their respective actions  
+  build-test-image:
+    name: Build Image for Testing
+    runs-on: ubuntu-latest
+    permissions:
+     contents: read
+     packages: write 
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to ghcr.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password:  ${{ secrets.GITHUB_TOKEN }}
+          
+
+      - name: Extract metadata for the Docker image
+        id: docker_meta  
+        uses: docker/metadata-action@v5
+        with:
+         images: ghcr.io/${{ github.repository }}
+         tags: |
+            ${{ github.run_id }}
+
+      - name: Build and Push to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          file: infra/docker/web/Dockerfile
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          cache-to: |
+            type=gha,scope=base,mode=max
+          cache-from: |
+            type=gha,scope=base
+          platforms: linux/amd64
+          
+
+ # # # # # NEXT JOB #######################################################################  
+#  builds and runs unit test specified in the repo by targeting unit-test layer of multistage docker build
+#  however uses the cache from test image to increase speed
+  unit-test:
+    name: unit test in docker
+    needs: [build-test-image]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: read
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+       
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Login to ghcr.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password:  ${{ secrets.GITHUB_TOKEN }}
+          
+     
+      - name: Build and unit-test
+        uses: docker/build-push-action@v5
+        with:
+          file: infra/docker/web/Dockerfile
+          target: unit-test
+          push: false
+          cache-to: |
+            type=gha,scope=test,mode=max
+          cache-from: |
+            type=gha,scope=base
+            type=gha,scope=test
+          platforms: linux/amd64
+        
+        
+  
+  # # # # # NEXT JOB #######################################################################   
+  # pulls test image from GHCR and run integration test in docker compose testing ability of the built app 
+  # to succesfully connect to postgres db
+  integration-test:
+    name: Integration test in Compose
+    needs: [build-test-image]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: read
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+       
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Login to ghcr.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password:  ${{ secrets.GITHUB_TOKEN }}
+          
+
+      - name: Downcase repo name
+        run: |
+              echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+            
+      - name: Test healthcheck in Docker Compose
+        run: |
+          export TESTING_IMAGE=ghcr.io/${REPO}:"$GITHUB_RUN_ID"
+          echo Testing image: "$TESTING_IMAGE"
+          
+          docker compose -f ./infra/docker/web/integration-test/compose.yml up -d calcom 
+
+          echo "Waiting for the server to be healthy..."
+          sleep 60s
+
+          curl --fail http://localhost:3000 || exit 1
+          
+         
+# # # # # NEXT JOB #######################################################################  
+# pulls test image from GHCR and run a trivy vulnerability scan for high and crtical CVEs (non-blocking) 
+# and uploads the sarif result to github security tab
+  scan-image:
+    name: Scan Image with Trivy
+    needs: [build-test-image]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read 
+      packages: read 
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Login to ghcr.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password:  ${{ secrets.GITHUB_TOKEN }}
+          
+
+      - name: Downcase repo name
+        run: |
+              echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
+
+      - name:  Run Trivy for HIGH,CRITICAL CVEs and report (non-blocking)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{env.REPO}}:${{ github.run_id }}
+          exit-code: 0
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'HIGH,CRITICAL'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+# NEXT JOB ####################################################################### 
+#  generates changelog.MD  or add to an existing one and create releases using conventional commits.
+#  creates prelease when a pull request is made to main branch if a succesful test image 
+#  was built, with succesful unit and integration test.
+# creates a release when a merge is made to the main branch
+#  and adds either the prelease or released version to github output
+# to be used by final image published to docker hub
+  changelog:
+    name: automated changelog using conventional commit
+    needs: [build-test-image, unit-test, integration-test, scan-image]
+    runs-on: ubuntu-latest
+    outputs:
+      TAG: ${{ steps.docker_tag.outputs.TAG }}
+    permissions:
+      contents: write
+     
+
+    steps:
+      - name: check out the repository with all releases
+        uses: actions/checkout@v4
+        with:
+          # fetch-depth: 0
+          persist-credentials: 'false'
+          ref: ${{github.event.repository.default_branch}}
+
+      
+
+      - name: conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v5.1.0
+        with:
+          github-token: ${{ secrets.RELEASE_MAIN }}
+          version-file: "./apps/web/package.json"
+          git-branch: ${{github.event.repository.default_branch}}
+          preset: "conventionalcommits"
+          input-file: "./apps/web/CHANGELOG.md"
+          output-file: "./apps/web/CHANGELOG.md"
+          tag-prefix: "v"
+          pre-release: ${{github.event_name == 'pull_request'}}
+          pre-release-identifier: "alpha"
+          skip-on-empty: 'false'
+          # release-count: 20
+          skip-git-pull: true
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+         GITHUB_TOKEN: ${{ secrets.RELEASE_MAIN }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          release_name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+
+      - name: export tag for final build
+        id: docker_tag
+        run: |
+          echo "TAG=${{ steps.changelog.outputs.tag }}" >> $GITHUB_OUTPUT
+         
+         
+
+# NEXT JOB #######################################################################  
+# builds the final image and adds latest tag and image:V*.*.* semantic versioning tag to merge request
+# and image:v*.*.*-alpha.* tag to pull requests made to main branch before pushing to dockerhub
+  build-final-image:
+    name: Build Final Image
+    needs: [unit-test, integration-test, scan-image,changelog]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write 
+      pull-requests: write # needed to create and update comments in PRs
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to ghcr.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password:  ${{ secrets.GITHUB_TOKEN }}
+          
+
+      - name: Docker Metadata for Final Image Build
+        id: docker_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: calcom/cal.com
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+            type=raw,value=${{needs.changelog.outputs.TAG}}
+
+    #  adds the Docker image tag(s)/labels pushed to docker hub,to the pull request comment section for reference purpose    
+      - name: Find comment for image tags
+        uses: peter-evans/find-comment@v1
+        if: github.event_name == 'pull_request'
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Docker image tag(s) pushed
+     
+      - name: Create or update comment for image tags
+        uses: peter-evans/create-or-update-comment@v1
+        if: github.event_name == 'pull_request'
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Docker image tag(s) pushed:
+            ```text
+            ${{ steps.docker_meta.outputs.tags }}
+            ```
+
+            Labels added to images:
+            ```text
+            ${{ steps.docker_meta.outputs.labels }}
+            ```
+          edit-mode: replace
+
+# needed for argocd pull request generator: yet to be implemented
+# adds a "preview" label to pull reguest to main branch
+      - name: add labels 
+        uses: actions-ecosystem/action-add-labels@v1
+        if: github.event_name == 'pull_request'
+        with:
+          labels: |
+            preview
+
+      - name: Docker Build and Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          file: infra/docker/web/Dockerfile
+          push: true
+          tags: |
+             ${{ steps.docker_meta.outputs.tags }} , 
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          cache-from: |
+            type=gha,scope=base
+          platforms: linux/amd64
+
+      
+
