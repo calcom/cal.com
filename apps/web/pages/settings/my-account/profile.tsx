@@ -83,7 +83,7 @@ type FormValues = {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { update, data: session } = useSession();
+  const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.useQuery();
 
   const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
@@ -106,7 +106,7 @@ const ProfileView = () => {
         utils.viewer.shouldVerifyEmail.invalidate();
       }
 
-      if (res.hasEmailBeenChanged) {
+      if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
       }
 
