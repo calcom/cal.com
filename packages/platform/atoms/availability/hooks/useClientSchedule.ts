@@ -1,13 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 
-const useClientSchedule = (key: string, id?: string) => {
+import { BASE_URL, API_VERSION, V2_ENDPOINTS } from "@calcom/platform-constants";
+
+import http from "../../lib/http";
+
+const useClientSchedule = (id?: string) => {
+  const endpoint = new URL(BASE_URL);
+
+  endpoint.pathname = id
+    ? `api/${API_VERSION}/${V2_ENDPOINTS.availability}/${id}`
+    : `api/${API_VERSION}/${V2_ENDPOINTS.availability}/default`;
+
   const { isLoading, error, data } = useQuery({
-    queryKey: ["schedule"],
+    queryKey: ["user-schedule"],
     queryFn: () => {
-      return fetch(id ? `/v2/schedules/${id}?apiKey=${key}` : `/v2/schedules/default?apiKey=${key}`, {
-        method: "get",
-        headers: { "Content-type": "application/json" },
-      }).then((res) => res.json());
+      return http?.get(endpoint.toString()).then((res) => res.data);
     },
   });
 
