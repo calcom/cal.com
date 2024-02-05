@@ -8,13 +8,9 @@ import isToday from "dayjs/plugin/isToday";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import minmax from "dayjs/plugin/minMax";
 import relativeTime from "dayjs/plugin/relativeTime";
+import timeZone from "dayjs/plugin/timeZone";
 import toArray from "dayjs/plugin/toArray";
 import utc from "dayjs/plugin/utc";
-
-// IMPORTANT: This is a custom implementation of the timezone plugin that incorporates
-// the changes suggested in https://github.com/iamkun/dayjs/pull/2019. The PR was opened August
-// 8, 2022 and has not been merged. Using the change from this PR improves perf by orders of magnitude.
-import timeZone from "./plugins/timezone";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(dayjsBusinessTime);
