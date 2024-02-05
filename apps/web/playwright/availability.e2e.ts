@@ -116,7 +116,6 @@ test.describe("Availablity tests", () => {
       .locator("svg")
       .click();
 
-    await page.getByTestId("timeZone-label").click();
     await page.locator("[id=timeZone-lg-viewport]").fill("bras");
     await page.getByTestId("select-option-America/Sao_Paulo").click();
     await page.getByRole("button", { name: save }).click();
