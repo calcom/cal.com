@@ -5,7 +5,7 @@ import { TIMEZONES } from "@calcom/platform-constants";
 @ValidatorConstraint({ name: "isTimeZone", async: false })
 export class IsTimeZone implements ValidatorConstraintInterface {
   validate(timeZone: string) {
-    if (!timeZone) return true;
+    if (!timeZone) return false;
     const lowerCaseTimeZone = timeZone.toLowerCase();
     const timeZones = TIMEZONES.map((tz) => tz.toLowerCase());
 

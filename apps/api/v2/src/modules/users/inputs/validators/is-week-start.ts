@@ -3,7 +3,7 @@ import { ValidatorConstraint, ValidatorConstraintInterface } from "class-validat
 @ValidatorConstraint({ name: "isWeekStart", async: false })
 export class IsWeekStart implements ValidatorConstraintInterface {
   validate(weekStart: string) {
-    if (!weekStart) return true;
+    if (!weekStart) return false;
 
     const lowerCaseWeekStart = weekStart.toLowerCase();
     return (
