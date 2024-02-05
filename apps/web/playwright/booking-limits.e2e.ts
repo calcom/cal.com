@@ -37,12 +37,15 @@ const BOOKING_LIMITS_MULTIPLE = {
   PER_YEAR: 4,
 };
 
-// If we wanted to use browser date we should look into using sinon or another browser date mocking lib.
-// Mock the current day - we dont need to do this based on the browsers date - this is how we get flaky tests
-const mockedDate = dayjs().add(2, "year").month(6);
+// prevent tests from crossing year boundaries - if currently in Oct or later, start booking in Jan instead of Nov
+// (we increment months twice when checking multiple limits)
+const firstDayInBookingMonth =
+  dayjs().month() >= 9 ? dayjs().add(1, "year").month(0).date(1) : dayjs().add(1, "month").date(1);
 
 // avoid weekly edge cases
-const firstMondayInBookingMonth = mockedDate.startOf("months").day(1);
+const firstMondayInBookingMonth = firstDayInBookingMonth.day(
+  firstDayInBookingMonth.date() === firstDayInBookingMonth.startOf("week").date() ? 1 : 8
+);
 
 // ensure we land on the same weekday when incrementing month
 const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
