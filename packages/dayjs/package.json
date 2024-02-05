@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "dayjs": "1.11.2",
+    "@calcom/dayjs-fork": "1.11.11",
     "dayjs-business-days2": "1.1.0"
   }
 }

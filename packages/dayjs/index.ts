@@ -1,16 +1,17 @@
 /* eslint-disable @calcom/eslint/deprecated-imports */
-import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import duration from "dayjs/plugin/duration";
-import isBetween from "dayjs/plugin/isBetween";
-import isToday from "dayjs/plugin/isToday";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import minmax from "dayjs/plugin/minMax";
-import relativeTime from "dayjs/plugin/relativeTime";
-import timeZone from "dayjs/plugin/timezone";
-import toArray from "dayjs/plugin/toArray";
-import utc from "dayjs/plugin/utc";
+
+import dayjs from "@calcom/dayjs";
+import customParseFormat from "@calcom/dayjs/plugin/customParseFormat";
+import duration from "@calcom/dayjs/plugin/duration";
+import isBetween from "@calcom/dayjs/plugin/isBetween";
+import isToday from "@calcom/dayjs/plugin/isToday";
+import localizedFormat from "@calcom/dayjs/plugin/localizedFormat";
+import minmax from "@calcom/dayjs/plugin/minMax";
+import relativeTime from "@calcom/dayjs/plugin/relativeTime";
+import timeZone from "@calcom/dayjs/plugin/timezone";
+import toArray from "@calcom/dayjs/plugin/toArray";
+import utc from "@calcom/dayjs/plugin/utc";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(dayjsBusinessTime);
