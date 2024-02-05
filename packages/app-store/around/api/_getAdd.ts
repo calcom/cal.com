@@ -17,7 +17,7 @@ export async function getHandler(req: NextApiRequest) {
   await checkInstalled(slug, session.user.id);
   await createDefaultInstallation({
     appType,
-    userId: session.user.id,
+    user: session.user,
     slug,
     key: {},
     teamId,
