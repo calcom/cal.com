@@ -61,6 +61,13 @@ export const getServerSideProps = async function getServerSideProps(
       },
       team: {
         select: {
+          parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          slug: true,
           metadata: true,
         },
       },
@@ -73,13 +80,21 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  if (!(await isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain }))) {
+  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const formWithUserProfile = {
+    ...form,
+    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+  };
+
+  if (!(await isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain }))) {
     return {
       notFound: true,
     };
   }
 
-  const serializableForm = await getSerializableForm({ form: enrichFormWithMigrationData(form) });
+  const serializableForm = await getSerializableForm({
+    form: enrichFormWithMigrationData(formWithUserProfile),
+  });
 
   const response: Response = {};
   if (!serializableForm.fields) {

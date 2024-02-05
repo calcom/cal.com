@@ -11,9 +11,12 @@ export async function isAuthorizedToViewTheForm({
   currentOrgDomain,
 }: {
   user: {
+    username: string | null;
     metadata: Prisma.JsonValue;
     movedToProfileId: number | null;
-    organization: { slug: string | null } | null;
+    profile: {
+      organization: { slug: string | null } | null;
+    };
     id: number;
   };
   currentOrgDomain: string | null;
@@ -22,21 +25,11 @@ export async function isAuthorizedToViewTheForm({
     ...user,
     metadata: userMetadata.parse(user.metadata),
   };
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
-  console.log("isAuthorizedToViewTheForm", formUser, currentOrgDomain);
+
   if (!currentOrgDomain) {
-    // If the form doesn't belong to an org user and we are on non-org domain, then obviously allow access
-    if (!(await UserRepository.findIfAMemberOfSomeOrganization({ user: formUser }))) {
-      return true;
-    }
-    // Check if the form owner has been migrated to an org. If not(i.e. user is a new user that was directly added to an organization), then we can't allow access to his form on non-org domain
-    if (
-      !UserRepository.isMigratedToOrganization({ user: formUser }) &&
-      !UserRepository.isMovedToAProfile({ user: formUser })
-    ) {
-      return false;
-    }
-  } else if (currentOrgDomain !== formUser.organization?.slug) {
+    // If not on org domain, let's allow serving any form belong to any organization so that even if the form owner is migrate to an organization, old links for the form keep working
+    return true;
+  } else if (currentOrgDomain !== formUser.profile.organization?.slug) {
     // If on org domain,
     // We don't serve the form that is of another org
     // We don't serve the form that doesn't belong to any org
@@ -44,6 +37,7 @@ export async function isAuthorizedToViewTheForm({
   }
   return true;
 }
+
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
@@ -87,6 +81,11 @@ export const getServerSideProps = async function getServerSideProps(
       },
       team: {
         select: {
+          slug: true,
+          parent: {
+            select: { slug: true },
+          },
+          parentId: true,
           metadata: true,
         },
       },
@@ -99,7 +98,13 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
 
-  if (!(await isAuthorizedToViewTheForm({ user: form.user, currentOrgDomain }))) {
+  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const formWithUserProfile = {
+    ...form,
+    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+  };
+
+  if (!(await isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain }))) {
     return {
       notFound: true,
     };
@@ -113,7 +118,7 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
-      form: await getSerializableForm({ form: enrichFormWithMigrationData(form) }),
+      form: await getSerializableForm({ form: enrichFormWithMigrationData(formWithUserProfile) }),
     },
   };
 };

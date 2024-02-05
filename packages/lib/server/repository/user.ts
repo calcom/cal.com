@@ -257,13 +257,19 @@ export class UserRepository {
     user,
   }: {
     user: T;
-  }): Promise<T & { profile: UserProfile }> {
+  }): Promise<
+    T & {
+      nonProfileUsername: string | null;
+      profile: UserProfile;
+    }
+  > {
     const profiles = await ProfileRepository.findManyForUser({ id: user.id });
     if (profiles.length) {
       const profile = profiles[0];
       return {
         ...user,
         username: profile.username,
+        nonProfileUsername: user.username,
         profile,
       };
     }
@@ -271,6 +277,7 @@ export class UserRepository {
     // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
     return {
       ...user,
+      nonProfileUsername: user.username,
       profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
     };
   }
