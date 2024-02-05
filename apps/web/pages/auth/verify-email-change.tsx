@@ -8,7 +8,8 @@ import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { Loader, showToast } from "@calcom/ui";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -20,6 +21,7 @@ interface PageProps {
 
 function VerifyEmailChange(props: PageProps) {
   const { update } = useSession();
+  const { t } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,16 +31,15 @@ function VerifyEmailChange(props: PageProps) {
     }
     if (props.updateSession) {
       updateSession();
-      showToast(`Updating email to ${props.updatedEmail}.`, "success");
+      showToast(t("verify_email_change_success_toast", { email: props.updatedEmail }), "success");
     }
-    // We only need this to run on inital mount.
+    // We only need this to run on inital mount. These props can't and won't change due to it being fetched serveside.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="flex h-screen w-full items-center justify-center">
       <Toaster position="bottom-right" />
-      <Loader />
     </div>
   );
 }
@@ -61,7 +62,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   // Fetch data based on `slug` from your API or any data source
-  const response = await fetch(`${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`);
+  const response = await fetch(`${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`, {
+    method: "POST",
+  });
   const data = await response.json();
 
   if (!response.ok) {
@@ -73,14 +76,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
-
-  console.log({
-    data: {
-      updateSession: true,
-      token,
-      updatedEmail: data.updatedEmail ?? null,
-    },
-  });
 
   return {
     props: {
