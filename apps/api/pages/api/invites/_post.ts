@@ -6,6 +6,7 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
 import { ZInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -19,9 +20,17 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       user: {
         id: req.userId,
         username: "",
+        profile: {
+          id: null,
+          organizationId: null,
+          organization: null,
+          username: "",
+          upId: "",
+        } satisfies UserProfile,
       },
       hasValidLicense: true,
       expires: "",
+      upId: "",
     };
   }
 
