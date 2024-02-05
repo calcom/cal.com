@@ -1,6 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/services/event-types.service";
+import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import {
