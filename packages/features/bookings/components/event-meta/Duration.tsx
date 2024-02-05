@@ -53,7 +53,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
     return <>{getDurationFormatted(event.length, t)}</>;
 
-  const durations = event?.metadata?.multipleDuration || [15, 30, 60];
+  const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
 
   return (
     <div className="flex flex-wrap gap-2">

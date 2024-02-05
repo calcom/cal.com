@@ -336,7 +336,7 @@ export type userMetadataType = z.infer<typeof userMetadata>;
 
 export const teamMetadataSchema = z
   .object({
-    requestedSlug: z.string(),
+    requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),
@@ -611,6 +611,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   workflows: true,
   bookingFields: true,
   durationLimits: true,
+  assignAllTeamMembers: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
@@ -661,3 +662,8 @@ export type ZVerifyCodeInputSchema = z.infer<typeof ZVerifyCodeInputSchema>;
 export const coerceToDate = z.coerce.date();
 export const getStringAsNumberRequiredSchema = (t: TFunction) =>
   z.string().min(1, t("error_required_field")).pipe(z.coerce.number());
+
+export const bookingSeatDataSchema = z.object({
+  description: z.string().optional(),
+  responses: bookingResponses,
+});
