@@ -6,7 +6,7 @@ export const userSchemaResponse = z.object({
   timeFormat: z.number().int().default(12),
   defaultScheduleId: z.number().int().nullable(),
   weekStart: z.string(),
-  timeZone: z.string(),
+  timeZone: z.string().default("Europe/London"),
 });
 
 export type UserResponse = z.infer<typeof userSchemaResponse>;
