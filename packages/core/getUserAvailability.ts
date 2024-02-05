@@ -491,11 +491,42 @@ const _getBusyTimesFromLimits = async (
     performance.mark("durationLimitsEnd");
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
+  const busyTimes = limitManager.getBusyTimes();
+  if (eventType.seatsPerTimeSlot) {
+    const bookingsWithRemainingSeats = bookings.filter(
+      (booking) =>
+        eventType.seatsPerTimeSlot &&
+        booking.attendeesCount < eventType.seatsPerTimeSlot &&
+        dayjs(booking.start).isBetween(dateFrom, dateTo)
+    );
+
+    for (let i = 0; i < bookingsWithRemainingSeats.length; i++) {
+      for (let j = i; j < busyTimes.length; j++) {
+        const booking = bookingsWithRemainingSeats[i];
+        const busyTime = busyTimes[j];
+        if (dayjs(booking.start).add(1, "ms").isBetween(busyTime.start, busyTime.end)) {
+          busyTimes.splice(
+            j,
+            1,
+            {
+              start: busyTime.start,
+              end: dayjs(booking.start).subtract(1, "ms").toISOString(),
+            },
+            {
+              start: booking.end,
+              end: busyTime.end,
+            }
+          );
+          break;
+        }
+      }
+    }
+  }
 
   performance.mark("limitsEnd");
   performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
 
-  return limitManager.getBusyTimes();
+  return busyTimes;
 };
 
 const getBusyTimesFromBookingLimits = async (
