@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
-import type { FC } from "react";
+import { type FC } from "react";
 
 import { Button } from "@calcom/ui";
 import { CalendarDays } from "@calcom/ui/components/icon";
 
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useGcal } from "../hooks/useGcal";
+import { useMe } from "../hooks/useMe";
 
 interface GcalConnectProps {
   className?: string;
@@ -20,18 +21,26 @@ export const GcalConnect: FC<GcalConnectProps> = ({
 }) => {
   const { isAuth } = useAtomsContext();
 
+  const user = useMe();
+
+  console.log("this is our user", user, user?.data);
+
   const { allowConnect, checked, redirectToGcalOAuth } = useGcal({ isAuth });
 
   if (!isAuth || !checked) return <></>;
 
+  if (!user) return <>Loading...</>;
+
   return (
-    <Button
-      StartIcon={CalendarDays}
-      color="primary"
-      disabled={!allowConnect}
-      className={cn("", className)}
-      onClick={() => redirectToGcalOAuth()}>
-      {allowConnect ? label : alreadyConnectedLabel}
-    </Button>
+    user && (
+      <Button
+        StartIcon={CalendarDays}
+        color="primary"
+        disabled={!allowConnect}
+        className={cn("", className)}
+        onClick={() => redirectToGcalOAuth()}>
+        {allowConnect ? label : alreadyConnectedLabel}
+      </Button>
+    )
   );
 };
