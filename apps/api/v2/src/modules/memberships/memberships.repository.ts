@@ -17,4 +17,17 @@ export class MembershipsRepository {
 
     return membership;
   }
+
+  async isUserOrganizationAdmin(userId: number, organizationId: number) {
+    const adminMembership = await this.dbRead.prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: organizationId,
+        accepted: true,
+        OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+      },
+    });
+
+    return !!adminMembership;
+  }
 }
