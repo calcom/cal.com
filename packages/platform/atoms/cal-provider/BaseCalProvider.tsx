@@ -1,26 +1,26 @@
 import type { CalProviderProps } from "cal-provider/CalProvider";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
-import { useTimezone } from "../hooks/useTimezone";
-import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
+// import { useTimezone } from "../hooks/useTimezone";
+// import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 
 export function BaseCalProvider({ clientId, accessToken, options, children }: CalProviderProps) {
   const [error, setError] = useState<string>("");
 
-  const { mutateAsync } = useUpdateUserTimezone();
+  // const { mutateAsync } = useUpdateUserTimezone();
 
-  const handleTimezoneChange = useCallback(
-    async (currentTimezone: string) => {
-      await mutateAsync({ timeZone: currentTimezone });
-    },
-    [mutateAsync]
-  );
+  // const handleTimezoneChange = useCallback(
+  //   async (currentTimezone: string) => {
+  //     await mutateAsync({ timeZone: currentTimezone });
+  //   },
+  //   [mutateAsync]
+  // );
 
-  useTimezone(handleTimezoneChange);
+  // useTimezone(handleTimezoneChange);
 
   const { isInit } = useOAuthClient({
     clientId,
