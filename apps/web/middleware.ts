@@ -60,6 +60,18 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
   }
 
+  if (url.pathname.startsWith("/api/auth/signup")) {
+    try {
+      const isSignupDisabled = await get<boolean>("isSignupDisabled");
+      // If is in maintenance mode, point the url pathname to the maintenance page
+      if (isSignupDisabled) {
+        return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
+      }
+    } catch (error) {
+      // Don't crash if EDGE_CONFIG env var is missing
+    }
+  }
+
   if (url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login")) {
     // Use this header to actually enforce CSP, otherwise it is running in Report Only mode on all pages.
     requestHeaders.set("x-csp-enforce", "true");
@@ -114,6 +126,7 @@ export const config = {
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
     "/:path*/embed",
+    "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
     "/auth/login",

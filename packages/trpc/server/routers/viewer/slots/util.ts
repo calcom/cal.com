@@ -13,6 +13,7 @@ import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -226,17 +227,16 @@ export async function getDynamicEventType(
     });
   }
   const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
+  const { where } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+    usernameList: Array.isArray(input.usernameList)
+      ? input.usernameList
+      : input.usernameList
+      ? [input.usernameList]
+      : [],
+  });
   const users = await prisma.user.findMany({
-    where: {
-      username: {
-        in: Array.isArray(input.usernameList)
-          ? input.usernameList
-          : input.usernameList
-          ? [input.usernameList]
-          : [],
-      },
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
+    where,
     select: {
       allowDynamicBooking: true,
       ...availabilityUserSelect,
@@ -620,14 +620,10 @@ async function getUserIdFromUsername(
   organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
 ) {
   const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-  const user = await prisma.user.findFirst({
-    where: {
-      username,
-      organization: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
-    },
-    select: {
-      id: true,
-    },
+
+  const [user] = await UserRepository.findUsersByUsername({
+    usernameList: [username],
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
   return user?.id;
 }

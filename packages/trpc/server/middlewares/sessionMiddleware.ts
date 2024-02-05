@@ -2,7 +2,9 @@ import type { Session } from "next-auth";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -14,11 +16,15 @@ type Maybe<T> = T | null | undefined;
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
   const { prisma } = ctx;
-  if (!session?.user?.id) {
+  if (!session) {
     return null;
   }
 
-  const user = await prisma.user.findUnique({
+  if (!session.user?.id) {
+    return null;
+  }
+
+  const userFromDb = await prisma.user.findUnique({
     where: {
       id: session.user.id,
       // Locked users can't login
@@ -47,6 +53,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       brandColor: true,
       darkBrandColor: true,
       away: true,
+      movedToProfileId: true,
       selectedCalendars: {
         select: {
           externalId: true,
@@ -60,32 +67,28 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
       trialEndsAt: true,
       metadata: true,
       role: true,
-      organizationId: true,
       allowDynamicBooking: true,
       allowSEOIndexing: true,
       receiveMonthlyDigestEmail: true,
-      organization: {
-        select: {
-          id: true,
-          slug: true,
-          metadata: true,
-          name: true,
-          members: {
-            select: { userId: true },
-            where: {
-              userId: session.user.id,
-              OR: [{ role: MembershipRole.ADMIN }, { role: MembershipRole.OWNER }],
-            },
-          },
-        },
-      },
     },
   });
 
   // some hacks to make sure `username` and `email` are never inferred as `null`
-  if (!user) {
+  if (!userFromDb) {
     return null;
   }
+
+  const upId = session.upId;
+
+  const user = await UserRepository.enrichUserWithTheProfile({
+    user: userFromDb,
+    upId,
+  });
+
+  logger.debug(
+    `getUserFromSession: enriched user with profile - ${ctx.req?.url}`,
+    safeStringify({ user, userFromDb, upId })
+  );
 
   const { email, username, id } = user;
   if (!email || !id) {
@@ -93,25 +96,39 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
   }
 
   const userMetaData = userMetadata.parse(user.metadata || {});
-  const orgMetadata = teamMetadataSchema.parse(user.organization?.metadata || {});
+  const orgMetadata = teamMetadataSchema.parse(user.profile?.organization?.metadata || {});
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
 
   const locale = user?.locale ?? ctx.locale;
 
-  const isOrgAdmin = !!user.organization?.members.length;
-  // Want to reduce the amount of data being sent
-  if (isOrgAdmin && user.organization?.members) {
-    user.organization.members = [];
+  const isOrgAdmin = !!user.profile?.organization?.members.filter(
+    (member) => (member.role === "ADMIN" || member.role === "OWNER") && member.userId === user.id
+  ).length;
+
+  if (isOrgAdmin) {
+    logger.debug("User is an org admin", safeStringify({ userId: user.id }));
+  } else {
+    logger.debug("User is not an org admin", safeStringify({ userId: user.id }));
   }
+  // Want to reduce the amount of data being sent
+  if (isOrgAdmin && user.profile?.organization?.members) {
+    user.profile.organization.members = [];
+  }
+
+  const organization = {
+    ...user.profile?.organization,
+    id: user.profile?.organization?.id ?? null,
+    isOrgAdmin,
+    metadata: orgMetadata,
+    requestedSlug: orgMetadata?.requestedSlug ?? null,
+  };
+
   return {
     ...user,
-    avatar:
-      `${WEBAPP_URL}/${user.username}/avatar.png?${user.organizationId}` && `orgId=${user.organizationId}`,
-    organization: {
-      ...user.organization,
-      isOrgAdmin,
-      metadata: orgMetadata,
-    },
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png?${organization.id}` && `orgId=${organization.id}`,
+    // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
+    organization,
+    organizationId: organization.id,
     id,
     email,
     username,
@@ -135,8 +152,39 @@ const getUserSession = async (ctx: TRPCContextInner) => {
    */
   const session = ctx.session || (await getSession(ctx));
   const user = session ? await getUserFromSession(ctx, session) : null;
+  let foundProfile = null;
+  // Check authorization for profile
+  if (session?.profileId && user?.id) {
+    foundProfile = await ProfileRepository.findByUserIdAndProfileId({
+      userId: user.id,
+      profileId: session.profileId,
+    });
+    if (!foundProfile) {
+      logger.error(
+        "Profile not found or not authorized",
+        safeStringify({ profileId: session.profileId, userId: user?.id })
+      );
+      // TODO: Test that logout should happen automatically
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Profile not found or not authorized" });
+    }
+  }
 
-  return { user, session };
+  let sessionWithUpId = null;
+  if (session) {
+    let upId = session.upId;
+    if (!upId) {
+      upId = foundProfile?.upId ?? `usr-${user?.id}`;
+    }
+
+    if (!upId) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No upId found for session" });
+    }
+    sessionWithUpId = {
+      ...session,
+      upId,
+    };
+  }
+  return { user, session: sessionWithUpId };
 };
 
 const sessionMiddleware = middleware(async ({ ctx, next }) => {

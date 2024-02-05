@@ -58,9 +58,10 @@ const getUserAdminTeams = async ({
         },
       }),
     },
-    orderBy: {
-      orgUsers: { _count: "desc" },
-    },
+    // FIXME - OrgNewSchema: Fix this orderBy
+    // orderBy: {
+    //   orgUsers: { _count: "desc" },
+    // },
   });
 
   if (teams.length && getUserInfo) {

@@ -269,7 +269,7 @@ export default function Availability() {
                   name="name"
                   render={({ field }) => (
                     <input
-                      className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
+                      className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
                       {...field}
                     />
                   )}
@@ -295,7 +295,10 @@ export default function Availability() {
               <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
                 <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                   <div>
-                    <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
+                    <Skeleton
+                      as={Label}
+                      htmlFor="timeZone-sm-viewport"
+                      className="mb-0 inline-block leading-none">
                       {t("timezone")}
                     </Skeleton>
                     <Controller
@@ -304,6 +307,7 @@ export default function Availability() {
                       render={({ field: { onChange, value } }) =>
                         value ? (
                           <TimezoneSelect
+                            inputId="timeZone-sm-viewport"
                             value={value}
                             className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
                             onChange={(timezone) => onChange(timezone.value)}
@@ -382,7 +386,10 @@ export default function Availability() {
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
               <div>
-                <Skeleton as={Label} htmlFor="timeZone" className="mb-0 inline-block leading-none">
+                <Skeleton
+                  as={Label}
+                  htmlFor="timeZone-lg-viewport"
+                  className="mb-0 inline-block leading-none">
                   {t("timezone")}
                 </Skeleton>
                 <Controller
@@ -390,6 +397,7 @@ export default function Availability() {
                   render={({ field: { onChange, value } }) =>
                     value ? (
                       <TimezoneSelect
+                        inputId="timeZone-lg-viewport"
                         value={value}
                         className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
                         onChange={(timezone) => onChange(timezone.value)}

@@ -16,13 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Check that user is authenticated
   req.session = await getServerSession({ req, res });
   const { teamId } = req.query;
-  const userId = req.session?.user.id;
-  if (!userId) {
+  const user = req.session?.user;
+  if (!user) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
+  const userId = user.id;
   await createDefaultInstallation({
     appType: `${appConfig.slug}_other_calendar`,
-    userId: userId,
+    user,
     slug: appConfig.slug,
     key: {},
     teamId: Number(teamId),

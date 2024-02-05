@@ -1,10 +1,13 @@
 import type z from "zod";
 
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+import { getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
 
 export const createOrUpdateMemberships = async ({
   teamMetadata,
@@ -17,12 +20,38 @@ export const createOrUpdateMemberships = async ({
 }) => {
   return await prisma.$transaction(async (tx) => {
     if (teamMetadata?.isOrganization) {
-      await tx.user.update({
+      const dbUser = await tx.user.update({
         where: {
           id: user.id,
         },
         data: {
           organizationId: team.id,
+        },
+        select: {
+          username: true,
+          email: true,
+        },
+      });
+
+      // Ideally dbUser.username should never be null, but just in case.
+      // This method being called only during signup means that dbUser.username should be the correct org username
+      const orgUsername =
+        dbUser.username || getOrgUsernameFromEmail(dbUser.email, teamMetadata?.orgAutoAcceptEmail ?? null);
+      await tx.profile.upsert({
+        create: {
+          uid: ProfileRepository.generateProfileUid(),
+          userId: user.id,
+          organizationId: team.id,
+          username: orgUsername,
+        },
+        update: {
+          username: orgUsername,
+        },
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId: team.id,
+          },
         },
       });
     }
