@@ -1,4 +1,6 @@
-import { EventCalendarView } from "event-type/components/event-calendar-view";
+import { HideCalendarNotes } from "event-type/components/hide-calendar-notes";
+import { LockTimeZoneToggleOnBookingPage } from "event-type/components/lock-timezone-on-booking-page";
+import { RedirectOnBooking } from "event-type/components/redirect-on-booking";
 import { Edit } from "lucide-react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -11,6 +13,8 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import type { Prisma } from "@calcom/prisma/client";
 import { Button, Label, TextField } from "@calcom/ui";
 
+import { EventCalendarView } from "../../components/event-calendar-view/index";
+import { RequiresBookerEmailVerification } from "../../components/require-booker-email-verification/index";
 import type { FormValues } from "../../types";
 import type { EventTypeSetupProps } from "../event-setup/index";
 
@@ -32,6 +36,7 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
     "Members will not be able to edit this",
     "This option was locked by the team admin"
   );
+  const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
@@ -93,7 +98,12 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
           />
         </div>
       </div>
-      <EventCalendarView />
+      <EventCalendarView
+        formMethods={formMethods}
+        team={team}
+        userConnectedCalendars={userConnectedCalendars}
+        shouldLockDisableProps={shouldLockDisableProps}
+      />
 
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
 
@@ -111,6 +121,37 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
           }}
         />
       </div>
+
+      {/* Requires confirmation controller comes here */}
+
+      {/* Requires booker email verification controller comes here */}
+      <RequiresBookerEmailVerification
+        formMethods={formMethods}
+        shouldLockDisableProps={shouldLockDisableProps}
+        defaultValue={eventType.requiresBookerEmailVerification}
+      />
+
+      {/* Hide calendar notes controller comes here */}
+      <HideCalendarNotes
+        formMethods={formMethods}
+        shouldLockDisableProps={shouldLockDisableProps}
+        defaultValue={eventType.hideCalendarNotes}
+      />
+
+      {/* Redirect on booking controller comes here */}
+      <RedirectOnBooking
+        formMethods={formMethods}
+        defaultValue={eventType.successRedirectUrl}
+        isRedirectUrlVisible={!!eventType.successRedirectUrl}
+        successRedirectUrlLocked={successRedirectUrlLocked}
+      />
+
+      {/* Lock timezone on booking page controller comes here */}
+      <LockTimeZoneToggleOnBookingPage
+        formMethods={formMethods}
+        defaultValue={eventType.lockTimeZoneToggleOnBookingPage}
+        shouldLockDisableProps={shouldLockDisableProps}
+      />
     </div>
   );
 }
