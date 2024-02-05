@@ -61,10 +61,16 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/api/auth/signup")) {
-    const isSignupDisabled = await get<boolean>("isSignupDisabled");
-    // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isSignupDisabled) {
-      return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
+    try {
+      const isSignupDisabled = await get<boolean>("isSignupDisabled");
+      // If is in maintenance mode, point the url pathname to the maintenance page
+      if (isSignupDisabled) {
+        return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
+      }
+    } catch (error) {
+      // show the default page if EDGE_CONFIG env var is missing,
+      // but log the error to the console
+      console.error(error);
     }
   }
 
