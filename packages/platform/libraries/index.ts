@@ -7,3 +7,4 @@ export { getUsernameList } from "@calcom/lib/defaultEvents";
 const handleNewBooking = newBookingMethods.default;
 export { handleNewBooking };
 export { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+export type { EventType } from "@calcom/lib/getEventTypeById";

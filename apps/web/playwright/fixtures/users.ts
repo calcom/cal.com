@@ -4,10 +4,12 @@ import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
+import { v4 } from "uuid";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -137,7 +139,21 @@ const createTeamAndAddUser = async (
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
-  data.orgUsers = isOrg ? { connect: [{ id: user.id }] } : undefined;
+  data.orgProfiles = isOrg
+    ? {
+        create: [
+          {
+            uid: ProfileRepository.generateProfileUid(),
+            username: user.username ?? user.email.split("@")[0],
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        ],
+      }
+    : undefined;
   data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
   const team = await prisma.team.create({
     data,
@@ -181,7 +197,11 @@ export const createUsersFixture = (
       };
     },
     create: async (
-      opts?: CustomUserOpts | null,
+      opts?:
+        | (CustomUserOpts & {
+            organizationId?: number | null;
+          })
+        | null,
       scenario: {
         seedRoutingForms?: boolean;
         hasTeam?: true;
@@ -199,6 +219,9 @@ export const createUsersFixture = (
     ) => {
       const _user = await prisma.user.create({
         data: createUser(workerInfo, opts),
+        include: {
+          profiles: true,
+        },
       });
 
       let defaultEventTypes: SupportedTestEventTypes[] = [
@@ -212,6 +235,9 @@ export const createUsersFixture = (
       for (const eventTypeData of defaultEventTypes) {
         eventTypeData.owner = { connect: { id: _user.id } };
         eventTypeData.users = { connect: { id: _user.id } };
+        if (_user.profiles[0]) {
+          eventTypeData.profile = { connect: { id: _user.profiles[0].id } };
+        }
         await prisma.eventType.create({
           data: eventTypeData,
         });
@@ -370,7 +396,7 @@ export const createUsersFixture = (
         const teamEvent = await createTeamEventType(user, team, scenario);
         if (scenario.teammates) {
           // Create Teammate users
-          const teamMatesIds = [];
+          const teamMates = [];
           for (const teammateObj of scenario.teammates) {
             const teamUser = await prisma.user.create({
               data: createUser(workerInfo, teammateObj),
@@ -402,19 +428,49 @@ export const createUsersFixture = (
               }),
               store.page
             );
-            teamMatesIds.push(teamUser.id);
+            teamMates.push(teamUser);
             store.users.push(teammateFixture);
           }
           // Add Teammates to OrgUsers
           if (scenario.isOrg) {
+            const orgProfilesCreate = teamMates
+              .map((teamUser) => ({
+                user: {
+                  connect: {
+                    id: teamUser.id,
+                  },
+                },
+                uid: v4(),
+                username: teamUser.username || teamUser.email.split("@")[0],
+              }))
+              .concat([
+                {
+                  user: { connect: { id: user.id } },
+                  uid: v4(),
+                  username: user.username || user.email.split("@")[0],
+                },
+              ]);
+
+            const existingProfiles = await prisma.profile.findMany({
+              where: {
+                userId: _user.id,
+              },
+            });
+
             await prisma.team.update({
               where: {
                 id: team.id,
               },
               data: {
-                orgUsers: {
-                  connect: teamMatesIds.map((userId) => ({ id: userId })).concat([{ id: user.id }]),
-                },
+                orgProfiles: _user.profiles.length
+                  ? {
+                      connect: _user.profiles.map((profile) => ({ id: profile.id })),
+                    }
+                  : {
+                      create: orgProfilesCreate.filter(
+                        (profile) => !existingProfiles.map((p) => p.userId).includes(profile.user.connect.id)
+                      ),
+                    },
               },
             });
           }
@@ -615,7 +671,11 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
 // creates the actual user in the db.
 const createUser = (
   workerInfo: WorkerInfo,
-  opts?: CustomUserOpts | null
+  opts?:
+    | (CustomUserOpts & {
+        organizationId?: number | null;
+      })
+    | null
 ): PrismaType.UserUncheckedCreateInput => {
   // build a unique name for our user
   const uname =
@@ -666,25 +726,31 @@ const createUser = (
       throw new Error("Missing role for user in organization");
     }
     return {
-      organizationId: organizationId || null,
-      ...(organizationId
-        ? {
-            teams: {
-              // Create membership
-              create: [
-                {
-                  team: {
-                    connect: {
-                      id: organizationId,
-                    },
-                  },
-                  accepted: true,
-                  role: MembershipRole.ADMIN,
-                },
-              ],
+      profiles: {
+        create: {
+          uid: ProfileRepository.generateProfileUid(),
+          username: uname,
+          organization: {
+            connect: {
+              id: organizationId,
             },
-          }
-        : null),
+          },
+        },
+      },
+      teams: {
+        // Create membership
+        create: [
+          {
+            team: {
+              connect: {
+                id: organizationId,
+              },
+            },
+            accepted: true,
+            role: MembershipRole.ADMIN,
+          },
+        ],
+      },
     };
   }
 };

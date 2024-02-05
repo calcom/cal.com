@@ -71,18 +71,14 @@ export const publicEventSelector = Prisma.validator<Prisma.EventTypeSelect>()({
     select: {
       user: {
         select: {
+          id: true,
+          avatarUrl: true,
           username: true,
           name: true,
           weekStart: true,
           brandColor: true,
           darkBrandColor: true,
           theme: true,
-          organizationId: true,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
           metadata: true,
         },
       },
@@ -90,6 +86,8 @@ export const publicEventSelector = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   owner: {
     select: {
+      id: true,
+      avatarUrl: true,
       weekStart: true,
       username: true,
       name: true,
@@ -97,16 +95,10 @@ export const publicEventSelector = Prisma.validator<Prisma.EventTypeSelect>()({
       metadata: true,
       brandColor: true,
       darkBrandColor: true,
-      organizationId: true,
-      organization: {
-        select: {
-          name: true,
-          slug: true,
-        },
-      },
     },
   },
   hidden: true,
+  assignAllTeamMembers: true,
 });
 
 export const eventDataSelector = Prisma.validator<Prisma.EventTypeArgs>()({

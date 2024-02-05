@@ -1,8 +1,8 @@
 import { CAL_URL } from "../constants";
 import { getBrand } from "../server/getBrand";
 
-export const getBookerBaseUrl = async (user: { organizationId: number | null }) => {
-  const orgBrand = await getBrand(user.organizationId);
+export const getBookerBaseUrl = async (organizationId: number | null) => {
+  const orgBrand = await getBrand(organizationId);
   return orgBrand?.fullDomain ?? CAL_URL;
 };
 

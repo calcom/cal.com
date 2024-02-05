@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/services/event-types.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import {
@@ -14,6 +15,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -70,6 +72,7 @@ describe("OAuth Client Users Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     let postResponseData: CreateUserResponse;
 
@@ -85,6 +88,7 @@ describe("OAuth Client Users Endpoints", () => {
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -112,7 +116,7 @@ describe("OAuth Client Users Endpoints", () => {
 
     it(`/POST`, async () => {
       const requestBody: CreateUserInput = {
-        email: "user-e2e-spec@gmail.com",
+        email: "oauth-client-user@gmail.com",
       };
 
       const response = await request(app.getHttpServer())
@@ -136,6 +140,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(responseBody.data.user.email);
+      await userHasDefaultEventTypes(responseBody.data.user.id);
     });
 
     async function userConnectedToOAuth(userEmail: string) {
@@ -144,6 +149,18 @@ describe("OAuth Client Users Endpoints", () => {
 
       expect(oAuthUsers?.length).toEqual(1);
       expect(newOAuthUser?.email).toEqual(userEmail);
+    }
+
+    async function userHasDefaultEventTypes(userId: number) {
+      const defaultEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+
+      expect(defaultEventTypes?.length).toEqual(2);
+      expect(
+        defaultEventTypes?.find((eventType) => eventType.length === DEFAULT_EVENT_TYPES.thirtyMinutes.length)
+      ).toBeTruthy();
+      expect(
+        defaultEventTypes?.find((eventType) => eventType.length === DEFAULT_EVENT_TYPES.sixtyMinutes.length)
+      ).toBeTruthy();
     }
 
     it(`/GET/:id`, async () => {

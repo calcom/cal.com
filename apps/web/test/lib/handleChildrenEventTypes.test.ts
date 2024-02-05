@@ -41,6 +41,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -60,6 +61,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -85,6 +87,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
@@ -120,6 +123,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
@@ -166,6 +170,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: "somestring",
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
@@ -199,6 +204,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([]);
@@ -223,6 +229,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       // Have been called
       expect(result.newUserIds).toEqual([5]);
@@ -259,6 +266,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
@@ -305,6 +313,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
@@ -364,6 +373,7 @@ describe("handleChildrenEventTypes", () => {
         hashedLink: undefined,
         connectedLink: null,
         prisma: prismaMock,
+        profileId: null,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {

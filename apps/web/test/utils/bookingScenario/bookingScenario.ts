@@ -16,6 +16,7 @@ import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
 import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -104,6 +105,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   }[];
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
+  profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
 };
 
 export type InputEventType = {
@@ -455,6 +457,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
         include: {
           credentials: true,
           teams: true,
+          profiles: true,
           schedules: {
             include: {
               availability: true,
@@ -542,6 +545,15 @@ async function addUsers(users: InputUser[]) {
         //@ts-ignore
         createMany: {
           data: user.selectedCalendars,
+        },
+      };
+    }
+    if (user.profiles) {
+      newUser.profiles = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error Not sure why this is not working
+        createMany: {
+          data: user.profiles,
         },
       };
     }
@@ -937,6 +949,7 @@ export function getOrganizer({
     weekStart,
     teams,
     organizationId,
+    profiles: [],
     metadata,
   };
 }
@@ -965,8 +978,18 @@ export function getScenarioData(
 ) {
   const users = [organizer, ...usersApartFromOrganizer];
   if (org) {
+    const orgId = org.id;
+    if (!orgId) {
+      throw new Error("If org is specified org.id is required");
+    }
     users.forEach((user) => {
-      user.organizationId = org.id;
+      user.profiles = [
+        {
+          organizationId: orgId,
+          username: user.username || "",
+          uid: ProfileRepository.generateProfileUid(),
+        },
+      ];
     });
   }
 
