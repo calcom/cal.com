@@ -115,7 +115,7 @@ test.describe("Availablity tests", () => {
       .filter({ hasText: "TimezoneEurope/London" })
       .locator("svg")
       .click();
-    a;
+
     await page.getByTestId("timeZone-label").click();
     await page.locator("[id=timeZone-lg-viewport]").fill("bras");
     await page.getByTestId("select-option-America/Sao_Paulo").click();
