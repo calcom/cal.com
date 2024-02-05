@@ -6,11 +6,15 @@ import logger from "@calcom/lib/logger";
 import { TRPCError } from "@calcom/trpc/server";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
+import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
+import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 
@@ -33,7 +37,6 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
   const { currentOrgDomain } = orgDomainConfig(context.req);
@@ -41,8 +44,32 @@ export const getServerSideProps = async function getServerSideProps(
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {
       id: formId,
+    },
+    include: {
       user: {
-        ...ProfileRepository._getPrismaWhereForProfilesOfOrg({ orgSlug: currentOrgDomain }),
+        select: {
+          id: true,
+          username: true,
+          movedToProfileId: true,
+          metadata: true,
+          organization: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
+      team: {
+        select: {
+          parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          slug: true,
+          metadata: true,
+        },
       },
     },
   });
@@ -52,10 +79,28 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const serializableForm = await getSerializableForm({ form });
+
+  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const formWithUserProfile = {
+    ...form,
+    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+  };
+
+  if (!(await isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain }))) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const serializableForm = await getSerializableForm({
+    form: enrichFormWithMigrationData(formWithUserProfile),
+  });
 
   const response: Response = {};
-  serializableForm.fields?.forEach((field) => {
+  if (!serializableForm.fields) {
+    throw new Error("Form has no fields");
+  }
+  serializableForm.fields.forEach((field) => {
     const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
 
     response[field.id] = {
@@ -102,9 +147,18 @@ export const getServerSideProps = async function getServerSideProps(
       },
     };
   } else if (decidedAction.type === "eventTypeRedirectUrl") {
+    const eventTypeUrlWithResolvedVariables = substituteVariables(
+      decidedAction.value,
+      response,
+      serializableForm.fields
+    );
     return {
       redirect: {
-        destination: `/${decidedAction.value}?${stringify(context.query)}`,
+        destination: getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+          form: serializableForm,
+          allURLSearchParams: new URLSearchParams(stringify(context.query)),
+        }),
         permanent: false,
       },
     };
