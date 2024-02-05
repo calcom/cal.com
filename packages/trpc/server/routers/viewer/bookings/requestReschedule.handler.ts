@@ -187,8 +187,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   builder.init({
     title: bookingToReschedule.title,
     bookerUrl: eventType?.team
-      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
-      : await getBookerBaseUrl(user),
+      ? await getBookerBaseUrl(eventType.team.parentId)
+      : await getBookerBaseUrl(user.profile?.organizationId ?? null),
     type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
@@ -213,7 +213,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentials(user.id);
+  const credentials = await getUsersCredentials(user);
   const credentialsMap = new Map();
   credentials.forEach((credential) => {
     credentialsMap.set(credential.type, credential);

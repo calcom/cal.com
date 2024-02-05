@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -68,10 +69,10 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NoOrganizationSlugError();
   }
 
-  const [teamSlugs, userSlugs] = await prisma.$transaction([
-    prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
-    prisma.user.findMany({ where: { organizationId: orgId }, select: { username: true } }),
-  ]);
+  const [teamSlugs, userSlugs] = [
+    await prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
+    await UserRepository.findManyByOrganization({ organizationId: orgId }),
+  ];
 
   const existingSlugs = teamSlugs
     .flatMap((ts) => ts.slug ?? [])
