@@ -19,9 +19,24 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
   const { user } = ctx;
   const onboarding = input?.onboarding || false;
 
+  const { connectedCalendars, destinationCalendar } = await getConnectedDestinationCalendars(
+    user,
+    onboarding
+  );
+
+  return {
+    connectedCalendars,
+    destinationCalendar,
+  };
+};
+
+export async function getConnectedDestinationCalendars(
+  user: Pick<NonNullable<TrpcSessionUser>, "id" | "selectedCalendars" | "destinationCalendar">,
+  onboarding: boolean
+) {
   const userCredentials = await prisma.credential.findMany({
     where: {
-      userId: ctx.user.id,
+      userId: user.id,
       app: {
         categories: { has: AppCategories.calendar },
         enabled: true,
@@ -165,4 +180,4 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       ...destinationCalendar,
     },
   };
-};
+}
