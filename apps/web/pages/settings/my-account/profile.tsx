@@ -375,6 +375,7 @@ const ProfileView = () => {
           </div>
           <DialogFooter showDivider>
             <Button
+              data-testId="profile-update-email-submit-button"
               color="primary"
               loading={confirmPasswordMutation.isPending}
               onClick={(e) => onConfirmPassword(e)}>
@@ -508,7 +509,12 @@ const ProfileForm = ({
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
-          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+          <TextField
+            label={t("email")}
+            hint={t("change_email_hint")}
+            data-testId="profile-form-email"
+            {...formMethods.register("email")}
+          />
         </div>
         <div className="mt-6">
           <Label>{t("about")}</Label>
@@ -525,7 +531,12 @@ const ProfileForm = ({
         </div>
       </div>
       <SectionBottomActions align="end">
-        <Button loading={isPending} disabled={isDisabled} color="primary" type="submit">
+        <Button
+          loading={isPending}
+          disabled={isDisabled}
+          color="primary"
+          type="submit"
+          data-testId="profile-submit-button">
           {t("update")}
         </Button>
       </SectionBottomActions>
