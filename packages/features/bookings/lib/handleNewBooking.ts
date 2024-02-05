@@ -996,14 +996,6 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
-
-  if (eventType.slug === "dynamic" && !eventType.metadata?.multipleDuration?.length) {
-    eventType.metadata = {
-      ...eventType.metadata,
-      multipleDuration: [15, 30, 60, 90],
-    };
-  }
-
   const {
     recurringCount,
     noEmail,
