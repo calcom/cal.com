@@ -6,7 +6,7 @@ import {
 } from "@/modules/oauth-clients/controllers/oauth-client-users/zod/response/response";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Put, Body } from "@nestjs/common";
+import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
 import { User } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -32,7 +32,7 @@ export class MeController {
     };
   }
 
-  @Put("/")
+  @Patch("/")
   async updateMe(
     @GetUser() user: User,
     @Body() bodySchedule: UpdateUserInput

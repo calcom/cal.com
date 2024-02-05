@@ -52,7 +52,7 @@ describe("OAuth Client Users Endpoints", () => {
         return request(app.getHttpServer()).get("/api/v2/oauth-clients/100/users/200").expect(401);
       });
       it(`/PUT/:id`, () => {
-        return request(app.getHttpServer()).put("/api/v2/oauth-clients/100/users/200").expect(401);
+        return request(app.getHttpServer()).patch("/api/v2/oauth-clients/100/users/200").expect(401);
       });
       it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete("/api/v2/oauth-clients/100/users/200").expect(401);
@@ -181,7 +181,7 @@ describe("OAuth Client Users Endpoints", () => {
       const body: UpdateUserInput = { email: userUpdatedEmail };
 
       const response = await request(app.getHttpServer())
-        .put(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
+        .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
         .set("Authorization", `Bearer ${postResponseData.accessToken}`)
         .send(body)
         .expect(200);

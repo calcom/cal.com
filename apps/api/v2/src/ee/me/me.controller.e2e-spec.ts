@@ -74,7 +74,7 @@ describe("Me Endpoints", () => {
       const body: UpdateUserInput = { timeZone: "Europe/Rome" };
 
       return request(app.getHttpServer())
-        .put("/api/v2/me")
+        .patch("/api/v2/me")
         .send(body)
         .expect(200)
         .then((response) => {
@@ -93,19 +93,19 @@ describe("Me Endpoints", () => {
     it("should not update user associated with access token given invalid timezone", async () => {
       const bodyWithIncorrectTimeZone: UpdateUserInput = { timeZone: "Narnia/Woods" };
 
-      return request(app.getHttpServer()).put("/api/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
+      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
       const bodyWithIncorrectTimeFormat: UpdateUserInput = { timeFormat: 100 };
 
-      return request(app.getHttpServer()).put("/api/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
+      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
       const bodyWithIncorrectWeekStart: UpdateUserInput = { weekStart: "waba luba dub dub" };
 
-      return request(app.getHttpServer()).put("/api/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
+      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
     afterAll(async () => {
