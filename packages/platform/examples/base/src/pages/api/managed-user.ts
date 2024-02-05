@@ -52,9 +52,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     },
     where: { id: localUser.id },
   });
+  await createDefaultSchedule(body.data?.accessToken as string);
   return res.status(200).json({
     id: body?.data?.user?.id,
     email: (body.data?.user.email as string) ?? "",
     accessToken: (body.data?.accessToken as string) ?? "",
   });
+}
+
+async function createDefaultSchedule(accessToken: string) {
+  const name = "Default Schedule";
+  const timeZone = "Europe/London";
+
+  const response = await fetch(
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
+    `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/schedules`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // eslint-disable-next-line turbo/no-undeclared-env-vars
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        name,
+        timeZone,
+      }),
+    }
+  );
+
+  const schedule = await response.json();
+  return schedule;
 }
