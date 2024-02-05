@@ -68,9 +68,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
         return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
       }
     } catch (error) {
-      // show the default page if EDGE_CONFIG env var is missing,
-      // but log the error to the console
-      console.error(error);
+      // Don't crash if EDGE_CONFIG env var is missing
     }
   }
 
