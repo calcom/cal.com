@@ -94,8 +94,6 @@ const ProfileView = () => {
     onSuccess: async (res) => {
       await update(res);
 
-      showToast(t("settings_updated_successfully"), "success");
-
       // signout user only in case of password reset
       if (res.signOutUser && tempFormValues && res.passwordReset) {
         showToast(t("password_reset_email", { email: tempFormValues.email }), "success");
@@ -108,6 +106,8 @@ const ProfileView = () => {
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
         showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+      } else {
+        showToast(t("settings_updated_successfully"), "success");
       }
 
       setConfirmAuthEmailChangeWarningDialogOpen(false);
