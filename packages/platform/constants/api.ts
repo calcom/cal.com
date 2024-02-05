@@ -3,6 +3,7 @@ export const API_VERSION = "v2";
 export const V2_ENDPOINTS = {
   me: "me",
   eventTypes: "event-types",
+  availability: "schedules",
 };
 
 export const SUCCESS_STATUS = "success";
