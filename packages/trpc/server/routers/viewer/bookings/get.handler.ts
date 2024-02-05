@@ -147,18 +147,35 @@ async function getBookings({
     userIds: {
       AND: [
         {
-          eventType: {
-            hosts: {
-              some: {
-                userId: {
-                  in: filters?.userIds,
+          OR: [
+            {
+              eventType: {
+                hosts: {
+                  some: {
+                    userId: {
+                      in: filters?.userIds,
+                    },
+                  },
                 },
               },
             },
-          },
-          userId: {
-            in: filters?.userIds,
-          },
+            {
+              userId: {
+                in: filters?.userIds,
+              },
+            },
+            {
+              eventType: {
+                users: {
+                  some: {
+                    id: {
+                      in: filters?.userIds,
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
       ],
     },
