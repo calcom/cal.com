@@ -435,16 +435,7 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <div className="relative">
-                <HavingTroubleFindingTime
-                  dayCount={dayCount}
-                  isScheduleLoading={schedule.isLoading}
-                  onButtonClick={() => {
-                    setDayCount(null);
-                  }}
-                />
-                <DatePicker event={event} schedule={schedule} />
-              </div>
+              <DatePicker event={event} schedule={schedule} />
             </BookerSection>
 
             <BookerSection
@@ -482,6 +473,15 @@ const BookerComponent = ({
             </BookerSection>
           </AnimatePresence>
         </div>
+
+        <HavingTroubleFindingTime
+          visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW && !isMobile}
+          dayCount={dayCount}
+          isScheduleLoading={schedule.isLoading}
+          onButtonClick={() => {
+            setDayCount(null);
+          }}
+        />
 
         <m.span
           key="logo"

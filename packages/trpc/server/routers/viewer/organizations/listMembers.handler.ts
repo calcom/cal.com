@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -71,28 +72,31 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
     nextCursor = nextItem?.id;
   }
 
-  const members = teamMembers?.map((member) => {
-    return {
-      id: member.user.id,
-      username: member.user.username,
-      email: member.user.email,
-      timeZone: member.user.timeZone,
-      role: member.role,
-      accepted: member.accepted,
-      disableImpersonation: member.user.disableImpersonation,
-      completedOnboarding: member.user.completedOnboarding,
-      teams: member.user.teams
-        .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
-        .map((team) => {
-          if (team.team.id === organizationId) return;
-          return {
-            id: team.team.id,
-            name: team.team.name,
-            slug: team.team.slug,
-          };
-        }),
-    };
-  });
+  const members = await Promise.all(
+    teamMembers?.map(async (membership) => {
+      const user = await UserRepository.enrichUserWithItsProfile({ user: membership.user });
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        timeZone: user.timeZone,
+        role: membership.role,
+        accepted: membership.accepted,
+        disableImpersonation: user.disableImpersonation,
+        completedOnboarding: user.completedOnboarding,
+        teams: user.teams
+          .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
+          .map((team) => {
+            if (team.team.id === organizationId) return;
+            return {
+              id: team.team.id,
+              name: team.team.name,
+              slug: team.team.slug,
+            };
+          }),
+      };
+    }) || []
+  );
 
   return {
     rows: members || [],
