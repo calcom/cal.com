@@ -276,7 +276,7 @@ export class ProfileRepository {
 
   static async findByUpId(upId: string) {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
-    log.debug("findById", safeStringify({ upId, lookupTarget }));
+    log.debug("findByUpId", safeStringify({ upId, lookupTarget }));
     if (lookupTarget.type === LookupTarget.User) {
       const user = await UserRepository.findById({ id: lookupTarget.id });
       if (!user) {
@@ -314,6 +314,7 @@ export class ProfileRepository {
       },
       include: {
         user: true,
+        movedFromUser: true,
         organization: {
           include: {
             members: true,
