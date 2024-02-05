@@ -44,7 +44,7 @@ export const FilterType = () => {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="hover:border-emphasis border-default text-default hover:text-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
+        <div className="hover:border-emphasis border-default text-default hover:text-emphasis focus:border-subtle mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
           <Plus className="mr-2 h-4 w-4" />
           <Tooltip content={t("add_filter")}>
             <div>{t("add_filter")}</div>

@@ -2,7 +2,10 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -57,6 +60,22 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     };
   }
 
+  const team = await prisma.team.findUnique({
+    where: {
+      id: input.teamId,
+    },
+    select: {
+      parentId: true,
+    },
+  });
+
+  if (!team) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Team not found",
+    });
+  }
+
   const members = await prisma.membership.findMany({
     where: whereConditional,
     select: {
@@ -71,8 +90,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
           name: true,
           email: true,
           avatar: true,
-          organization: true,
-          organizationId: true,
+          avatarUrl: true,
         },
       },
     },
@@ -87,11 +105,20 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
     nextCursor = nextItem?.id || null;
   }
 
+  const enrichedMemberships = [];
+  for (const membership of members) {
+    enrichedMemberships.push({
+      ...membership,
+      user: await UserRepository.enrichUserWithItsProfile({
+        user: membership.user,
+      }),
+    });
+  }
   return {
-    rows: members.map((m) => {
+    rows: enrichedMemberships.map((m) => {
       return {
         ...m,
-        bookerUrl: getBookerBaseUrlSync(m.user.organization?.slug || ""),
+        bookerUrl: getBookerBaseUrlSync(m.user.profile?.organization?.slug || ""),
       };
     }),
     nextCursor,
