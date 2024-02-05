@@ -11,6 +11,14 @@ import { csp } from "@lib/csp";
 
 import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
 
+const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
+  try {
+    return get<T>(key);
+  } catch (error) {
+    // Don't crash if EDGE_CONFIG env var is missing
+  }
+};
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
@@ -24,18 +32,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //
     //     - For this reason our matchers are sufficient for an app-wide maintenance page.
     //
-    try {
-      // Check whether the maintenance page should be shown
-      const isInMaintenanceMode = await get<boolean>("isInMaintenanceMode");
-      // If is in maintenance mode, point the url pathname to the maintenance page
-      if (isInMaintenanceMode) {
-        req.nextUrl.pathname = `/maintenance`;
-        return NextResponse.rewrite(req.nextUrl);
-      }
-    } catch (error) {
-      // show the default page if EDGE_CONFIG env var is missing,
-      // but log the error to the console
-      // console.error(error);
+    // Check whether the maintenance page should be shown
+    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
+    // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isInMaintenanceMode) {
+      req.nextUrl.pathname = `/maintenance`;
+      return NextResponse.rewrite(req.nextUrl);
     }
   }
 
@@ -61,14 +63,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/api/auth/signup")) {
-    try {
-      const isSignupDisabled = await get<boolean>("isSignupDisabled");
-      // If is in maintenance mode, point the url pathname to the maintenance page
-      if (isSignupDisabled) {
-        return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
-      }
-    } catch (error) {
-      // Don't crash if EDGE_CONFIG env var is missing
+    const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
+    // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isSignupDisabled) {
+      return NextResponse.json({ error: "Signup is disabled" }, { status: 503 });
     }
   }
 
