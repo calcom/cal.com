@@ -14,7 +14,6 @@ import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-    // If is in maintenance mode, point the url pathname to the maintenance page
   } catch (error) {
     // Don't crash if EDGE_CONFIG env var is missing
   }
