@@ -3,7 +3,6 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -182,7 +181,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    if (!booking || !(booking.location === DailyLocationType || booking?.location?.trim() === "")) {
+    if (!booking) {
       log.error(
         "Booking:",
         safeStringify({

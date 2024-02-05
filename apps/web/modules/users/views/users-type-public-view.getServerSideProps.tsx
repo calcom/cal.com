@@ -5,10 +5,10 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { handleTypeRedirection } from "@calcom/features/booking-redirect/handle-type";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig, userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -39,21 +39,12 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const users = await prisma.user.findMany({
-    where: {
-      username: {
-        in: usernames,
-      },
-      organization: isValidOrgDomain
-        ? {
-            slug: currentOrgDomain,
-          }
-        : null,
-    },
-    select: {
-      allowDynamicBooking: true,
-    },
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
+    usernameList: usernames,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
+
+  const users = usersInOrgContext;
 
   if (!users.length) {
     return {
@@ -129,16 +120,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
-  const user = await prisma.user.findFirst({
-    where: {
-      username,
-      organization: userOrgQuery(context.req, context.params?.orgSlug),
-    },
-    select: {
-      id: true,
-      hideBranding: true,
-      allowSEOIndexing: true,
-    },
+  const [user] = await UserRepository.findUsersByUsername({
+    usernameList: [username],
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
 
   if (!user) {

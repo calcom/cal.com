@@ -5,6 +5,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 import getCalLink from "./_utils/getCalLink";
@@ -22,6 +23,12 @@ import getCalLink from "./_utils/getCalLink";
  *          type: string
  *        required: true
  *        description: Your API Key
+ *      - in: query
+ *        name: slug
+ *        schema:
+ *          type: string
+ *        required: false
+ *        description: Slug to filter event types by
  *     tags:
  *     - event-types
  *     externalDocs:
@@ -35,11 +42,16 @@ import getCalLink from "./_utils/getCalLink";
  *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, prisma } = req;
+  const { userId, prisma, isAdmin } = req;
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
+  const { slug } = schemaQuerySlug.parse(req.query);
+  const shouldUseUserId = !isAdmin || !slug || !!req.query.userId;
+  // When user is admin and no query params are provided we should return all event types.
+  // But currently we return only the event types of the user. Not changing this for backwards compatibility.
   const data = await prisma.eventType.findMany({
     where: {
-      userId: { in: userIds },
+      userId: shouldUseUserId ? { in: userIds } : undefined,
+      slug: slug, // slug will be undefined if not provided in query
     },
     include: {
       customInputs: true,

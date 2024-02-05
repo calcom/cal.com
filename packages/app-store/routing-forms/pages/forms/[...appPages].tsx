@@ -247,7 +247,7 @@ export default function RoutingForms({
                               actions={
                                 <>
                                   {form.team?.name && (
-                                    <div className="border-r-2 border-neutral-300">
+                                    <div className="border-subtle border-r-2">
                                       <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                                         {form.team.name}
                                       </Badge>
