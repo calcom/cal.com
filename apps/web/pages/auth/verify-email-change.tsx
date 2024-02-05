@@ -21,7 +21,7 @@ interface PageProps {
 
 function VerifyEmailChange(props: PageProps) {
   const { update } = useSession();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +31,9 @@ function VerifyEmailChange(props: PageProps) {
     }
     if (props.updateSession) {
       updateSession();
-      showToast(t("verify_email_change_success_toast", { email: props.updatedEmail }), "success");
+      if (isLocaleReady) {
+        showToast(t("verify_email_change_success_toast", { email: props.updatedEmail }), "success");
+      }
     }
     // We only need this to run on inital mount. These props can't and won't change due to it being fetched serveside.
     // eslint-disable-next-line react-hooks/exhaustive-deps
