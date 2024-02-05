@@ -13,7 +13,6 @@ import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
-    // Check whether the maintenance page should be shown
     return get<T>(key);
     // If is in maintenance mode, point the url pathname to the maintenance page
   } catch (error) {
