@@ -11,7 +11,7 @@ import type { FormValues } from "../../types";
 type EventCalendarViewProps = {
   team: Pick<EventTypeSetupProps, "eventType" | "team">;
   userConnectedCalendars: [];
-  formMethods: UseFormReturn<FormValues, any, undefined>;
+  formMethods: UseFormReturn<FormValues, any>;
   destinationCalendarValue: {
     id: number;
     userId: number | null;
