@@ -175,9 +175,8 @@ const CheckedHostField = ({
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .map((host) => {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               const option = options.find((member) => member.value === host.userId.toString());
-              return option ? { ...option, priority: host.priority ?? 2 } : null;
+              return option ? { ...option, priority: host.priority ?? 2, isFixed } : options[0];
             })
             .filter(Boolean)}
           controlShouldRenderValue={false}
@@ -273,8 +272,9 @@ const FixedHosts = ({
           descriptionClassName=" text-sm text-subtle"
           onCheckedChange={(checked) => {
             if (!checked) {
-              //remove all fixed hosts with setValue
-              const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+              const rrHosts = getValues("hosts")
+                .filter((host) => !host.isFixed)
+                .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
               setValue("hosts", rrHosts);
             }
             setIsDisabled(checked);
@@ -412,11 +412,13 @@ const RoundRobinHosts = ({
           onActive={() =>
             setValue(
               "hosts",
-              teamMembers.map((teamMember) => ({
-                isFixed: false,
-                userId: parseInt(teamMember.value, 10),
-                priority: 2,
-              }))
+              teamMembers
+                .map((teamMember) => ({
+                  isFixed: false,
+                  userId: parseInt(teamMember.value, 10),
+                  priority: 2,
+                }))
+                .sort((a, b) => b.priority - a.priority)
             )
           }
         />
@@ -535,7 +537,11 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange([...value.filter(({ isFixed }) => isFixed), ...changeValue]);
+                  onChange(
+                    [...value.filter(({ isFixed }) => isFixed), ...changeValue].sort(
+                      (a, b) => b.priority - a.priority
+                    )
+                  );
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}

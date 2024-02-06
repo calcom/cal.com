@@ -22,9 +22,10 @@ import type { FormValues } from "@calcom/web/pages/event-types/[type]";
 
 export type CheckedSelectOption = {
   avatar: string;
-  priority: number;
   label: string;
   value: string;
+  priority?: number;
+  isFixed?: boolean;
   disabled?: boolean;
 };
 
@@ -50,7 +51,6 @@ export const CheckedTeamSelect = ({
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
 
   const { t } = useLocale();
-
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
@@ -77,20 +77,25 @@ export const CheckedTeamSelect = ({
               <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
               <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
               <div className="ml-auto flex items-center">
-                <Tooltip content={t("change_priority")}>
-                  <Button
-                    color="minimal"
-                    onClick={() => {
-                      setPriorityDialogOpen(true);
-                      setCurrentOption(option);
-                    }}
-                    className={classNames(
-                      "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                      getPriorityTextAndColor(option.priority).color
-                    )}>
-                    {t(getPriorityTextAndColor(option.priority).text)}
-                  </Button>
-                </Tooltip>
+                {option && !option.isFixed ? (
+                  <Tooltip content={t("change_priority")}>
+                    <Button
+                      color="minimal"
+                      onClick={() => {
+                        setPriorityDialogOpen(true);
+                        setCurrentOption(option);
+                      }}
+                      className={classNames(
+                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        getPriorityTextAndColor(option.priority).color
+                      )}>
+                      {t(getPriorityTextAndColor(option.priority).text)}
+                    </Button>
+                  </Tooltip>
+                ) : (
+                  <></>
+                )}
+
                 <X
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
                   className="my-auto h-4 w-4"
@@ -100,7 +105,7 @@ export const CheckedTeamSelect = ({
           </>
         ))}
       </ul>
-      {currentOption ? (
+      {currentOption && !currentOption.isFixed ? (
         <PriorityDialog
           isOpenDialog={priorityDialogOpen}
           setIsOpenDialog={setPriorityDialogOpen}
@@ -131,12 +136,15 @@ const PriorityDialog = (props: IPriiorityDialog) => {
   const setPriority = () => {
     if (!!newPriority) {
       const hosts = getValues("hosts");
-      const updatedHosts = hosts.map((host) => {
-        return {
-          value: host.userId,
-          priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
-        };
-      });
+      const updatedHosts = hosts
+        .filter((host) => !host.isFixed)
+        .map((host) => {
+          return {
+            value: host.userId,
+            priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+          };
+        })
+        .sort((a, b) => b.priority - a.priority);
       onChange(updatedHosts);
     }
     setIsOpenDialog(false);
