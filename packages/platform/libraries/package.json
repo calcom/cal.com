@@ -1,18 +1,20 @@
 {
   "name": "@calcom/platform-libraries",
   "version": "0.0.0",
-  "main": "./dist/calcom-lib.umd.cjs",
-  "module": "./dist/calcom-lib.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "yarn vite build",
+    "build": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
     "build:watch": "yarn vite build --watch"
   },
   "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/features": "*",
     "@calcom/lib": "*"
   },
   "devDependencies": {
