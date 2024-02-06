@@ -1,3 +1,4 @@
+import { DisableStandardEmailsConfirmation } from "event-type/components/disable-standard-emails-confirmation";
 import { Edit } from "lucide-react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -5,6 +6,10 @@ import { Controller, useFormContext } from "react-hook-form";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import type { Prisma } from "@calcom/prisma/client";
@@ -38,6 +43,7 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
     "This option was locked by the team admin"
   );
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
+  const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
@@ -156,6 +162,27 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
         defaultValue={eventType.lockTimeZoneToggleOnBookingPage}
         shouldLockDisableProps={shouldLockDisableProps}
       />
+
+      {/* allow disabling attendee confirmation emails controller comes here */}
+      {allowDisablingAttendeeConfirmationEmails(workflows) && (
+        <DisableStandardEmailsConfirmation
+          formMethods={formMethods}
+          name="metadata.disableStandardEmails.confirmation.attendee"
+          title="Disable default confirmation emails for attendees"
+          description="At least one workflow is active on this event type that sends an email to the attendees when the event is booked."
+        />
+      )}
+
+      {/* allow disabling host confirmation emails controller comes here */}
+      {allowDisablingHostConfirmationEmails(workflows) && (
+        <DisableStandardEmailsConfirmation
+          formMethods={formMethods}
+          defaultValue={!!eventType.seatsPerTimeSlot}
+          name="metadata.disableStandardEmails.confirmation.host"
+          title="Disable default confirmation emails for host"
+          description="At least one workflow is active on this event type that sends an email to the host when the event is booked."
+        />
+      )}
     </div>
   );
 }
