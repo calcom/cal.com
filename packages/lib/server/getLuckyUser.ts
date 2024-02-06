@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User, Host } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
@@ -102,9 +102,21 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
   return leastRecentlyBookedUser;
 }
 
+function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & Pick<Host, "priority">>({
+  availableUsers,
+}: {
+  availableUsers: T[];
+}) {
+  const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
+
+  return availableUsers.filter(
+    (user) => user.priority === highestPriority || (!user.priority && highestPriority === 2)
+  );
+}
+
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
-export async function getLuckyUser<T extends Pick<User, "id" | "email">>(
+export async function getLuckyUser<T extends Pick<User, "id" | "email"> & Pick<Host, "priority">>(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   { availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }
 ) {
@@ -113,6 +125,7 @@ export async function getLuckyUser<T extends Pick<User, "id" | "email">>(
   }
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
-      return leastRecentlyBookedUser<T>({ availableUsers, eventTypeId });
+      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+      return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId });
   }
 }
