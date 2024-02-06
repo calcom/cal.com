@@ -80,7 +80,7 @@ test.describe("Update Profile", () => {
     expect(await successLocator.textContent()).toContain(email);
     await page.goto("/settings/my-account/profile");
     const emailInputUpdated = page.getByTestId("profile-form-email");
-    expect(emailInputUpdated.inputValue()).toEqual(email);
+    expect(await emailInputUpdated.inputValue()).toEqual(email);
   });
   test("Can update a users email (verification disabled)", async ({ page, users, prisma, features }) => {
     const emailVerificationEnabled = features.get("email-verification");
