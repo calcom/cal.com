@@ -286,7 +286,7 @@ export const EventLimitsTab = () => {
       />
       <Controller
         name="onlyShowFirstAvailableSlot"
-        render={({ field: { value } }) => {
+        render={({ field: { onChange, value } }) => {
           const isChecked = value;
           return (
             <SettingsToggle
@@ -296,7 +296,7 @@ export const EventLimitsTab = () => {
               description={t("limit_booking_only_first_slot_description")}
               checked={isChecked}
               onCheckedChange={(active) => {
-                formMethods.setValue("onlyShowFirstAvailableSlot", active ?? false, { shouldDirty: true });
+                onChange(active ?? false);
               }}
               switchContainerClassName={classNames(
                 "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -308,7 +308,7 @@ export const EventLimitsTab = () => {
       />
       <Controller
         name="durationLimits"
-        render={({ field: { value } }) => {
+        render={({ field: { onChange, value } }) => {
           const isChecked = Object.keys(value ?? {}).length > 0;
           return (
             <SettingsToggle
@@ -324,15 +324,11 @@ export const EventLimitsTab = () => {
               checked={isChecked}
               onCheckedChange={(active) => {
                 if (active) {
-                  formMethods.setValue(
-                    "durationLimits",
-                    {
-                      PER_DAY: 60,
-                    },
-                    { shouldDirty: true }
-                  );
+                  onChange({
+                    PER_DAY: 60,
+                  });
                 } else {
-                  formMethods.setValue("durationLimits", {}, { shouldDirty: true });
+                  onChange({});
                 }
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -349,7 +345,7 @@ export const EventLimitsTab = () => {
       />
       <Controller
         name="periodType"
-        render={({ field: { value } }) => {
+        render={({ field: { onChange, value } }) => {
           const isChecked = value && value !== "UNLIMITED";
 
           return (
@@ -365,12 +361,15 @@ export const EventLimitsTab = () => {
               description={t("limit_future_bookings_description")}
               checked={isChecked}
               onCheckedChange={(bool) =>
-                formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED", { shouldDirty: true })
+                // formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED", { shouldDirty: true })
+                onChange(bool ? "ROLLING" : "UNLIMITED")
               }>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
                   value={watchPeriodType}
-                  onValueChange={(val) => formMethods.setValue("periodType", val as PeriodType)}>
+                  onValueChange={(val) =>
+                    formMethods.setValue("periodType", val as PeriodType, { shouldDirty: true })
+                  }>
                   {PERIOD_TYPES.map((period) => {
                     if (period.type === "UNLIMITED") return null;
                     return (
@@ -403,19 +402,19 @@ export const EventLimitsTab = () => {
                               onChange={(opt) =>
                                 formMethods.setValue(
                                   "periodCountCalendarDays",
-                                  opt?.value === 1 ? "1" : "0",
+                                  opt?.value === 1 ? true : false,
                                   { shouldDirty: true }
                                 )
                               }
                               name="periodCoundCalendarDays"
                               value={optionsPeriod.find((opt) => {
                                 opt.value ===
-                                  (formMethods.getValues("periodCountCalendarDays") === "1" ? 1 : 0);
+                                  (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0);
                               })}
                               defaultValue={optionsPeriod.find(
                                 (opt) =>
                                   opt.value ===
-                                  (formMethods.getValues("periodCountCalendarDays") === "1" ? 1 : 0)
+                                  (formMethods.getValues("periodCountCalendarDays") === true ? 1 : 0)
                               )}
                             />
                           </div>
@@ -424,19 +423,15 @@ export const EventLimitsTab = () => {
                           <div className="me-2 ms-2 inline-flex space-x-2 rtl:space-x-reverse">
                             <Controller
                               name="periodDates"
-                              render={() => (
+                              render={({ field: { onChange } }) => (
                                 <DateRangePicker
                                   startDate={formMethods.getValues("periodDates").startDate}
                                   endDate={formMethods.getValues("periodDates").endDate}
                                   onDatesChange={({ startDate, endDate }) => {
-                                    formMethods.setValue(
-                                      "periodDates",
-                                      {
-                                        startDate,
-                                        endDate,
-                                      },
-                                      { shouldDirty: true }
-                                    );
+                                    onChange({
+                                      startDate,
+                                      endDate,
+                                    });
                                   }}
                                 />
                               )}
@@ -606,7 +601,7 @@ const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimits">({
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,
             },
-            { shouldDirty: true } // This only works when per-day, per-month dropdown is updated. Need to ensure even toggling settings adds it to dirtyFields, and obviously, changing value of number
+            { shouldDirty: true }
           );
         };
 

@@ -541,7 +541,7 @@ export const EventSetupTab = (
                     setDefaultDuration(
                       selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                     );
-                    if (option) formMethods.setValue("length", option.value);
+                    if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
                   }}
                 />
               </div>

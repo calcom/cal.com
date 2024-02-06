@@ -117,7 +117,7 @@ export type FormValues = {
   schedule: number | null;
   periodType: PeriodType;
   periodDays: number;
-  periodCountCalendarDays: "1" | "0";
+  periodCountCalendarDays: boolean;
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
@@ -292,7 +292,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
       periodType: eventType.periodType,
-      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
+      periodCountCalendarDays: eventType.periodCountCalendarDays,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       slotInterval: eventType.slotInterval,
@@ -610,7 +610,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       recurringEvent,
       periodStartDate: periodDates?.startDate,
       periodEndDate: periodDates?.endDate,
-      periodCountCalendarDays: periodCountCalendarDays === "1",
+      periodCountCalendarDays,
       id: eventType.id,
       beforeEventBuffer,
       afterEventBuffer,
@@ -751,7 +751,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
               recurringEvent,
               periodStartDate: periodDates?.startDate,
               periodEndDate: periodDates?.endDate,
-              periodCountCalendarDays: periodCountCalendarDays === "1",
+              periodCountCalendarDays,
               id: eventType.id,
               beforeEventBuffer,
               afterEventBuffer,
