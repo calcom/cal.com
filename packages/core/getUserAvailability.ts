@@ -310,21 +310,21 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
-  if (returnDateOverrides) {
-    const availabilityWithDates = availability.filter((availability) => !!availability.date);
+  //if (returnDateOverrides) {
+  const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
-    for (let i = 0; i < availabilityWithDates.length; i++) {
-      const override = availabilityWithDates[i];
-      const startTime = dayjs.utc(override.startTime);
-      const endTime = dayjs.utc(override.endTime);
-      if (startTime >= dateFrom && startTime <= dateTo && endTime >= dateFrom && endTime <= dateTo) {
-        dateOverrides.push({
-          start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-          end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
-        });
-      }
+  for (let i = 0; i < availabilityWithDates.length; i++) {
+    const override = availabilityWithDates[i];
+    const startTime = dayjs.utc(override.startTime);
+    const endTime = dayjs.utc(override.endTime);
+    if (startTime >= dateFrom && startTime <= dateTo && endTime >= dateFrom && endTime <= dateTo) {
+      dateOverrides.push({
+        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
+        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
+      });
     }
   }
+  //}
 
   const dateRanges = buildDateRanges({
     dateFrom,
