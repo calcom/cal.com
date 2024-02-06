@@ -127,7 +127,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     event = await prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
-        users: true,
         schedulingType: true,
         recurringEvent: true,
       },
