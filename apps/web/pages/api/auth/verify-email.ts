@@ -71,18 +71,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       updatedEmail,
     });
-  } else {
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        emailVerified: new Date(),
-      },
-    });
-
-    await cleanUpVerificationTokens(foundToken.id);
   }
+
+  await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      emailVerified: new Date(),
+    },
+  });
 
   const hasCompletedOnboarding = user.completedOnboarding;
 
