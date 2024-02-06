@@ -37,9 +37,7 @@ export function useInitialFormValues({
         return {};
       }
       const querySchema = getBookingResponsesPartialSchema({
-        eventType: {
-          bookingFields: eventType.bookingFields,
-        },
+        bookingFields: eventType.bookingFields,
         view: rescheduleUid ? "reschedule" : "booking",
       });
 

@@ -990,25 +990,23 @@ describe("getBookingResponsesSchema", () => {
 describe("getBookingResponsesPartialSchema - Prefill validation", () => {
   test(`should be able to get fields prefilled even when name is empty string`, async ({}) => {
     const schema = getBookingResponsesPartialSchema({
-      eventType: {
-        bookingFields: [
-          {
-            name: "name",
-            type: "name",
-            required: true,
-          },
-          {
-            name: "email",
-            type: "email",
-            required: true,
-          },
-          {
-            name: "testField",
-            type: "text",
-            required: true,
-          },
-        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
-      },
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testField",
+          type: "text",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
     const parsedResponses = await schema.parseAsync({

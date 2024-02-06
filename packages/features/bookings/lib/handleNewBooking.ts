@@ -571,19 +571,16 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
-export async function getBookingData({
+export async function getBookingData<T extends z.ZodType>({
   req,
-  isNotAnApiCall,
   eventType,
+  schema,
 }: {
   req: NextApiRequest;
-  isNotAnApiCall: boolean;
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+  schema: T;
 }) {
-  const bookingDataSchema = getBookingDataSchema(req.body?.rescheduleUid, isNotAnApiCall, eventType);
-
-  const reqBody = await bookingDataSchema.parseAsync(req.body);
-
+  const reqBody = await schema.parseAsync(req.body);
   const reqBodyWithEnd = (reqBody: ReqBodyWithoutEnd): reqBody is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
     if (!Object.prototype.hasOwnProperty.call(reqBody, "end")) {
@@ -974,15 +971,13 @@ export const findBookingQuery = async (bookingId: number) => {
   return foundBooking;
 };
 
+type BookingDataSchemaGetter =
+  | typeof getBookingDataSchema
+  | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
+
 async function handler(
   req: NextApiRequest & { userId?: number | undefined },
-  {
-    isNotAnApiCall = false,
-  }: {
-    isNotAnApiCall?: boolean;
-  } = {
-    isNotAnApiCall: false,
-  }
+  bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const { userId } = req;
 
@@ -996,6 +991,17 @@ async function handler(
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
   };
+
+  const bookingDataSchema = bookingDataSchemaGetter({
+    view: req.body?.rescheduleUid ? "reschedule" : "booking",
+    bookingFields: eventType.bookingFields,
+  });
+  const bookingData = await getBookingData({
+    req,
+    eventType,
+    schema: bookingDataSchema,
+  });
+
   const {
     recurringCount,
     noEmail,
@@ -1013,11 +1019,7 @@ async function handler(
     rescheduleReason,
     luckyUsers,
     ...reqBody
-  } = await getBookingData({
-    req,
-    isNotAnApiCall,
-    eventType,
-  });
+  } = bookingData;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 

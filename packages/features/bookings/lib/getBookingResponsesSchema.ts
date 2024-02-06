@@ -1,64 +1,55 @@
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
-import { fieldTypesSchemaMap, dbReadResponseSchema } from "@calcom/features/form-builder/schema";
+import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-type EventType = Parameters<typeof preprocess>[0]["eventType"];
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
+type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
+type CommonParams = { bookingFields: BookingFields; view: View };
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
-export const getBookingResponsesPartialSchema = ({
-  eventType,
-  view,
-}: {
-  eventType: EventType;
-  view: View;
-}) => {
+export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
-  return preprocess({ schema, eventType, isPartialSchema: true, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: true, view });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ eventType, view }: { eventType: EventType; view: View }) {
+export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, eventType, isPartialSchema: false, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
 // It allows anyone using FormBuilder to get the same preprocessing automatically
 function preprocess<T extends z.ZodType>({
   schema,
-  eventType,
+  bookingFields,
   isPartialSchema,
   view: currentView,
-}: {
+}: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
   // - Not all required fields are need to be provided for prefill.
   // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
-  eventType: {
-    bookingFields: (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-  };
-  view: View;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
-      if (!eventType.bookingFields) return parsedResponses;
-      eventType.bookingFields.forEach((field) => {
+      if (!bookingFields) return parsedResponses;
+      bookingFields.forEach((field) => {
         const value = parsedResponses[field.name];
         if (value === undefined) {
           // If there is no response for the field, then we don't need to do any processing
@@ -110,11 +101,11 @@ function preprocess<T extends z.ZodType>({
       };
     },
     schema.superRefine(async (responses, ctx) => {
-      if (!eventType.bookingFields) {
+      if (!bookingFields) {
         // if eventType has been deleted, we won't have bookingFields and thus we can't validate the responses.
         return;
       }
-      for (const bookingField of eventType.bookingFields) {
+      for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         const stringSchema = z.string();
         const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);

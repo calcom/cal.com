@@ -2,8 +2,6 @@ import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-
-/* eslint-disable no-underscore-dangle */
 import type {
   AnyZodObject,
   objectInputType,
@@ -272,6 +270,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       )
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
+    customInputs: z.undefined().optional(),
   })
 );
 
