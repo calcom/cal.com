@@ -3,8 +3,6 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
@@ -22,6 +20,7 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -40,13 +39,6 @@ import { Copy, Edit, Info } from "@calcom/ui/components/icon";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
-
-const generateHashedLink = (id: number) => {
-  const translator = short();
-  const seed = `${id}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-  return uid;
-};
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();

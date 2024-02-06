@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
 
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { prisma } from "@calcom/prisma";
 
@@ -16,13 +15,6 @@ type DuplicateOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TDuplicateInputSchema;
-};
-
-export const generateHashedLink = (id: number) => {
-  const translator = short();
-  const seed = `${id}:${new Date().getTime()}`;
-  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
-  return uid;
 };
 
 export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
