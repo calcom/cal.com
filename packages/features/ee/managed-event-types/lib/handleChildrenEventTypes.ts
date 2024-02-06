@@ -33,6 +33,7 @@ interface handleChildrenEventTypesProps {
     team: { name: string } | null;
     workflows?: { workflowId: number }[];
   } | null;
+  shouldRedirectFromPreviousSlug?: boolean;
   hashedLink: string | undefined;
   connectedLink: { id: number } | null;
   children:
@@ -101,6 +102,7 @@ export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
   updatedEventType,
+  shouldRedirectFromPreviousSlug = true,
   hashedLink,
   connectedLink,
   children,
@@ -244,8 +246,11 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...managedEventTypeValues,
-            previousSlug:
-              updatedEventType.slug === oldEventType.slug ? oldEventType.previousSlug : oldEventType.slug,
+            previousSlug: shouldRedirectFromPreviousSlug
+              ? updatedEventType.slug === oldEventType.slug
+                ? oldEventType.previousSlug
+                : oldEventType.slug
+              : null,
             profileId: profileId ?? null,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             bookingLimits:

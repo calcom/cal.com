@@ -50,6 +50,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingFields,
     offsetStart,
     slug,
+    shouldRedirectFromPreviousSlug,
     ...rest
   } = input;
 
@@ -113,7 +114,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     slug,
-    previousSlug: slug === eventType.slug ? eventType.previousSlug : eventType.slug,
+    previousSlug: shouldRedirectFromPreviousSlug
+      ? slug === eventType.slug
+        ? eventType.previousSlug
+        : eventType.slug
+      : null,
     bookingFields,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
@@ -353,6 +358,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
+    shouldRedirectFromPreviousSlug,
     hashedLink,
     connectedLink,
     updatedEventType,
