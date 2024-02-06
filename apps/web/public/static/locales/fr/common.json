@@ -88,7 +88,7 @@
   "password_reset_instructions": "Si vous n'en avez pas fait la demande, vous pouvez ignorer cet e-mail en toute sécurité et votre mot de passe ne sera pas modifié.",
   "event_awaiting_approval_subject": "En attente de validation : {{title}} le {{date}}",
   "event_still_awaiting_approval": "Un événement est toujours en attente de votre validation",
-  "booking_submitted_subject": "Réservation confirmée : {{title}} le {{date}}",
+  "booking_submitted_subject": "En attente de validation: {{title}} le {{date}}",
   "download_recording_subject": "Télécharger l'enregistrement : {{title}} le {{date}}",
   "download_your_recording": "Télécharger votre enregistrement",
   "your_meeting_has_been_booked": "Votre rendez-vous a été réservé",
