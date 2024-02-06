@@ -607,31 +607,36 @@ export async function getBookingData<T extends z.ZodType>({
       smsReminderNumber: reqBodyWithLegacyProps.smsReminderNumber,
       notes: reqBodyWithLegacyProps.notes,
       rescheduleReason: reqBodyWithLegacyProps.rescheduleReason,
-    };
-  } else {
-    if (!reqBody.responses) {
-      throw new Error("`responses` must not be nullish");
-    }
-    const responses = reqBody.responses;
-
-    const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
-      getCalEventResponses({
-        bookingFields: eventType.bookingFields,
-        responses,
-      });
-    return {
-      ...reqBody,
-      name: responses.name,
-      email: responses.email,
-      guests: responses.guests ? responses.guests : [],
-      location: responses.location?.optionValue || responses.location?.value || "",
-      smsReminderNumber: responses.smsReminderNumber,
-      notes: responses.notes || "",
-      calEventUserFieldsResponses,
-      rescheduleReason: responses.rescheduleReason,
-      calEventResponses,
+      // So TS doesn't complain about unknown properties
+      calEventUserFieldsResponses: undefined,
+      calEventResponses: undefined,
+      customInputs: undefined,
     };
   }
+  if (!reqBody.responses) {
+    throw new Error("`responses` must not be nullish");
+  }
+  const responses = reqBody.responses;
+
+  const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
+    getCalEventResponses({
+      bookingFields: eventType.bookingFields,
+      responses,
+    });
+  return {
+    ...reqBody,
+    name: responses.name,
+    email: responses.email,
+    guests: responses.guests ? responses.guests : [],
+    location: responses.location?.optionValue || responses.location?.value || "",
+    smsReminderNumber: responses.smsReminderNumber,
+    notes: responses.notes || "",
+    calEventUserFieldsResponses,
+    rescheduleReason: responses.rescheduleReason,
+    calEventResponses,
+    // So TS doesn't complain about unknown properties
+    customInputs: undefined,
+  };
 }
 
 async function createBooking({
