@@ -5,8 +5,12 @@ import { getToken } from "next-auth/jwt";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { CAL_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
+const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
  * Stores the session in memory using the stringified token as the key.
  *
@@ -29,6 +33,7 @@ export async function getServerSession(options: {
   res?: NextApiResponse | GetServerSidePropsContext["res"];
   authOptions?: AuthOptions;
 }) {
+  log.debug("Getting server session");
   const { req, authOptions: { secret } = {} } = options;
 
   const token = await getToken({
@@ -37,6 +42,7 @@ export async function getServerSession(options: {
   });
 
   if (!token || !token.email || !token.sub) {
+    log.debug("Couldnt get token");
     return null;
   }
 
@@ -46,7 +52,7 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const user = await prisma.user.findUnique({
+  const userFromDb = await prisma.user.findUnique({
     where: {
       email: token.email.toLowerCase(),
     },
@@ -54,11 +60,28 @@ export async function getServerSession(options: {
     // cacheStrategy: { ttl: 60, swr: 1 },
   });
 
-  if (!user) {
+  if (!userFromDb) {
+    log.debug("No user found");
     return null;
   }
 
   const hasValidLicense = await checkLicense(prisma);
+
+  let upId = token.upId;
+
+  if (!upId) {
+    upId = `usr-${userFromDb.id}`;
+  }
+
+  if (!upId) {
+    log.error("No upId found for session", { userId: userFromDb.id });
+    return null;
+  }
+
+  const user = await UserRepository.enrichUserWithTheProfile({
+    user: userFromDb,
+    upId,
+  });
 
   const session: Session = {
     hasValidLicense,
@@ -75,7 +98,10 @@ export async function getServerSession(options: {
       belongsToActiveTeam: token.belongsToActiveTeam,
       org: token.org,
       locale: user.locale ?? undefined,
+      profile: user.profile,
     },
+    profileId: token.profileId,
+    upId,
   };
 
   if (token?.impersonatedBy?.id) {
@@ -98,5 +124,6 @@ export async function getServerSession(options: {
 
   CACHE.set(JSON.stringify(token), session);
 
+  log.debug("Returned session", safeStringify(session));
   return session;
 }

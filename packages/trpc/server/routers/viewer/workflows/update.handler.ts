@@ -84,7 +84,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
-  const hasOrgsPlan = IS_SELF_HOSTED || ctx.user.organizationId;
+  const hasOrgsPlan = IS_SELF_HOSTED || (ctx.user.profile?.organizationId ?? null);
 
   const where: Prisma.EventTypeWhereInput = {};
   where.id = {
@@ -147,7 +147,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         id: newEventTypeId,
       },
       include: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
         team: {
           include: {
             members: true,

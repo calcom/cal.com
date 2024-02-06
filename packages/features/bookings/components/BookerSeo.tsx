@@ -35,8 +35,8 @@ export const BookerSeo = (props: BookerSeoProps) => {
     { refetchOnWindowFocus: false }
   );
 
-  const profileName = event?.profile?.name ?? "";
-  const profileImage = event?.profile?.image;
+  const profileName = event?.profile.name ?? "";
+  const profileImage = event?.profile.image;
   const title = event?.title ?? "";
   return (
     <HeadSeo

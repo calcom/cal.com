@@ -9,6 +9,7 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { Button, ButtonGroup, DataTable } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
 
@@ -22,11 +23,13 @@ export interface SliderUser {
   username: string | null;
   name: string | null;
   organizationId: number;
+  avatarUrl: string | null;
   email: string;
   timeZone: string;
   role: MembershipRole;
   defaultScheduleId: number | null;
   dateRanges: DateRange[];
+  profile: UserProfile;
 }
 
 function UpgradeTeamTip() {
@@ -57,7 +60,6 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable() {
-  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
@@ -83,7 +85,7 @@ export function AvailabilitySliderTable() {
         accessorFn: (data) => data.email,
         header: "Member",
         cell: ({ row }) => {
-          const { username, email, timeZone, name, organizationId } = row.original;
+          const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
               <UserAvatar
@@ -91,7 +93,8 @@ export function AvailabilitySliderTable() {
                 user={{
                   username,
                   name,
-                  organizationId,
+                  avatarUrl,
+                  profile,
                 }}
               />
               <div className="">

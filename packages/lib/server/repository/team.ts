@@ -1,10 +1,12 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata"> & {
@@ -145,4 +147,28 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
     isOrg: true,
     teamSelect,
   });
+}
+
+const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+  parentId: true,
+  metadata: true,
+});
+
+export class TeamRepository {
+  static async findById({ id }: { id: number }) {
+    const team = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: teamSelect,
+    });
+    if (!team) {
+      return null;
+    }
+    return getParsedTeam(team);
+  }
 }

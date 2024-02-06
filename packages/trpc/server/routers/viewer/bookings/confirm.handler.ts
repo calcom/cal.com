@@ -100,7 +100,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         schedulingType: SchedulingType.COLLECTIVE,
       },
       select: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -219,7 +223,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user.id);
+    const credentials = await getUsersCredentials(user);
     const userWithCredentials = {
       ...user,
       credentials,
