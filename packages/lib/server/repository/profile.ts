@@ -4,12 +4,35 @@ import { v4 as uuidv4 } from "uuid";
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  name: true,
+  avatarUrl: true,
+  username: true,
+  id: true,
+  email: true,
+  locale: true,
+  defaultScheduleId: true,
+  startTime: true,
+  endTime: true,
+  bufferTime: true,
+});
+
+const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+  id: true,
+  teamId: true,
+  userId: true,
+  accepted: true,
+  role: true,
+  disableImpersonation: true,
+});
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
 const organizationSelect = {
@@ -30,14 +53,17 @@ export class ProfileRepository {
     return uuidv4();
   }
 
-  private static getInheritedDataFromUser({ user }: { user: PrismaUser }) {
+  private static getInheritedDataFromUser({
+    user,
+  }: {
+    user: Pick<PrismaUser, "name" | "avatarUrl" | "startTime" | "endTime" | "bufferTime">;
+  }) {
     return {
       name: user.name,
       avatarUrl: user.avatarUrl,
       startTime: user.startTime,
       endTime: user.endTime,
       bufferTime: user.bufferTime,
-      avatar: user.avatar,
     };
   }
 
@@ -233,7 +259,9 @@ export class ProfileRepository {
         organization: {
           select: organizationSelect,
         },
-        user: true,
+        user: {
+          select: userSelect,
+        },
       },
     });
 
@@ -268,7 +296,9 @@ export class ProfileRepository {
         organization: {
           select: organizationSelect,
         },
-        user: true,
+        user: {
+          select: userSelect,
+        },
       },
     });
     return profile;
@@ -313,11 +343,15 @@ export class ProfileRepository {
         id,
       },
       include: {
-        user: true,
+        user: {
+          select: userSelect,
+        },
         movedFromUser: true,
         organization: {
           include: {
-            members: true,
+            members: {
+              select: membershipSelect,
+            },
           },
         },
       },
@@ -346,7 +380,9 @@ export class ProfileRepository {
         organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
       },
       include: {
-        user: true,
+        user: {
+          select: userSelect,
+        },
         organization: {
           select: organizationSelect,
         },
@@ -416,7 +452,9 @@ export class ProfileRepository {
         organizationId,
       },
       include: {
-        user: true,
+        user: {
+          select: userSelect,
+        },
         organization: {
           select: organizationSelect,
         },
@@ -434,7 +472,9 @@ export class ProfileRepository {
         organization: {
           select: organizationSelect,
         },
-        user: true,
+        user: {
+          select: userSelect,
+        },
       },
     });
     if (!profile) {
