@@ -1,6 +1,7 @@
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma from "@calcom/prisma";
-import type { User as UserType, Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+import type { User as UserType } from "@calcom/prisma/client";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { isOrganization } from "../../entityPermissionUtils";
@@ -12,6 +13,54 @@ import { getParsedTeam } from "./teamUtils";
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
+
+const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+  id: true,
+  name: true,
+  slug: true,
+  metadata: true,
+  logoUrl: true,
+});
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  id: true,
+  username: true,
+  name: true,
+  email: true,
+  emailVerified: true,
+  bio: true,
+  avatar: true,
+  avatarUrl: true,
+  timeZone: true,
+  startTime: true,
+  endTime: true,
+  weekStart: true,
+  bufferTime: true,
+  hideBranding: true,
+  theme: true,
+  createdDate: true,
+  trialEndsAt: true,
+  completedOnboarding: true,
+  locale: true,
+  timeFormat: true,
+  twoFactorSecret: true,
+  twoFactorEnabled: true,
+  backupCodes: true,
+  identityProviderId: true,
+  invitedTo: true,
+  brandColor: true,
+  darkBrandColor: true,
+  away: true,
+  allowDynamicBooking: true,
+  allowSEOIndexing: true,
+  receiveMonthlyDigestEmail: true,
+  verified: true,
+  disableImpersonation: true,
+  locked: true,
+  movedToProfileId: true,
+  metadata: true,
+});
+
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await prisma.membership.findMany({
@@ -19,7 +68,9 @@ export class UserRepository {
         userId: userId,
       },
       include: {
-        team: true,
+        team: {
+          select: teamSelect,
+        },
       },
     });
 
@@ -69,6 +120,7 @@ export class UserRepository {
 
     return (
       await prisma.user.findMany({
+        select: userSelect,
         where,
       })
     ).map((user) => {
@@ -136,7 +188,7 @@ export class UserRepository {
     return { where, profiles };
   }
 
-  static async findByEmailAndIncludeProfiles({ email }: { email: string }) {
+  static async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await prisma.user.findUnique({
       where: {
         email: email.toLowerCase(),
@@ -157,7 +209,9 @@ export class UserRepository {
         locale: true,
         teams: {
           include: {
-            team: true,
+            team: {
+              select: teamSelect,
+            },
           },
         },
       },
@@ -179,6 +233,7 @@ export class UserRepository {
       where: {
         id,
       },
+      select: userSelect,
     });
 
     if (!user) {

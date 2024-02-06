@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
@@ -148,12 +148,23 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
     teamSelect,
   });
 }
+
+const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+  parentId: true,
+  metadata: true,
+});
+
 export class TeamRepository {
   static async findById({ id }: { id: number }) {
     const team = await prisma.team.findUnique({
       where: {
         id,
       },
+      select: teamSelect,
     });
     if (!team) {
       return null;
