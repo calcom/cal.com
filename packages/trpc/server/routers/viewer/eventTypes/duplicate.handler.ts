@@ -125,7 +125,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     if (hashedLink) {
       await prisma.hashedLink.create({
         data: {
-          link: generateHashedLink(users[0].id ?? newEventType.teamId),
+          link: generateHashedLink(users[0]?.id ?? newEventType.teamId),
           eventType: {
             connect: { id: newEventType.id },
           },
