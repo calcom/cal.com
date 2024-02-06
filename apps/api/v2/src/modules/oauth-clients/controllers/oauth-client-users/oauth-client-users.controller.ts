@@ -16,7 +16,7 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
-  Put,
+  Patch,
   BadRequestException,
   Delete,
 } from "@nestjs/common";
@@ -93,7 +93,7 @@ export class OAuthClientUsersController {
     };
   }
 
-  @Put("/:userId")
+  @Patch("/:userId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
   async updateUser(
