@@ -466,16 +466,19 @@ export async function ensureAvailableUsers(
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
-  const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
-    userIds: eventType.users.map((u) => u.id),
-    eventTypeId: eventType.id,
-    startDate: input.dateFrom,
-    endDate: input.dateTo,
-    rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-    bookingLimits,
-    durationLimits,
-  });
+  if (eventType && (bookingLimits || durationLimits)) {
+    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+      userIds: eventType.users.map((u) => u.id),
+      eventTypeId: eventType.id,
+      startDate: input.dateFrom,
+      endDate: input.dateTo,
+      rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+      bookingLimits,
+      durationLimits,
+    });
+  }
 
   /** Let's start checking for availability */
   for (const user of eventType.users) {

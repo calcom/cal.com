@@ -392,16 +392,19 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
-  const busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
-    userIds: allUserIds,
-    eventTypeId: eventType.id,
-    startDate: startTime.format(),
-    endDate: endTime.format(),
-    rescheduleUid: input.rescheduleUid,
-    bookingLimits,
-    durationLimits,
-  });
+  if (eventType && (bookingLimits || durationLimits)) {
+    busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
+      userIds: allUserIds,
+      eventTypeId: eventType.id,
+      startDate: startTime.format(),
+      endDate: endTime.format(),
+      rescheduleUid: input.rescheduleUid,
+      bookingLimits,
+      durationLimits,
+    });
+  }
 
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
