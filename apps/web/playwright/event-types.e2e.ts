@@ -187,7 +187,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
         await gotoFirstEventType(page);
 
-        await page.locator("#location-select").click();
+        await page.getByTestId("location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
@@ -206,7 +206,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       test("Can add Cal video location and book with it", async ({ page }) => {
         await gotoFirstEventType(page);
 
-        await page.locator("#location-select").click();
+        await page.getByTestId("location-select").click();
         await page.locator(`text="Cal Video (Global)"`).click();
 
         await saveEventType(page);
@@ -223,7 +223,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       test("Can add Link Meeting as location and book with it", async ({ page }) => {
         await gotoFirstEventType(page);
 
-        await page.locator("#location-select").click();
+        await page.getByTestId("location-select").click();
         await page.locator(`text="Link meeting"`).click();
 
         const locationInputName = `locations[0].link`;
@@ -305,7 +305,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       }) => {
         await gotoFirstEventType(page);
 
-        await page.locator("#location-select").click();
+        await page.getByTestId("location-select").click();
         await page.locator(`text="Link meeting"`).click();
 
         const locationInputName = (idx: number) => `locations[${idx}].link`;
@@ -331,7 +331,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
         await page.getByTestId(removeButtomId).click();
 
         // Add Multiple Organizer Phone Number options
-        await page.locator("#location-select").click();
+        await page.getByTestId("location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
 
         const organizerPhoneNumberInputName = (idx: number) => `locations[${idx}].hostPhoneNumber`;
@@ -357,7 +357,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
 const selectAttendeePhoneNumber = async (page: Page) => {
   const locationOptionText = "Attendee Phone Number";
-  await page.locator("#location-select").click();
+  await page.getByTestId("location-select").click();
   await page.locator(`text=${locationOptionText}`).click();
 };
 
@@ -393,7 +393,7 @@ async function addAnotherLocation(page: Page, locationOptionText: string) {
 const fillLocation = async (page: Page, inputText: string, index: number, selectDisplayLocation = true) => {
   // Except the first location, dropdown automatically opens when adding another location
   if (index == 0) {
-    await page.locator("#location-select").last().click();
+    await page.getByTestId("location-select").last().click();
   }
   await page.locator("text=In Person (Organizer Address)").last().click();
 
