@@ -245,7 +245,7 @@ describe("Schedules Endpoints", () => {
       };
 
       return request(app.getHttpServer())
-        .put(`/api/v2/schedules/${createdSchedule.id}`)
+        .patch(`/api/v2/schedules/${createdSchedule.id}`)
         .send(body)
         .expect(200)
         .then((response) => {
@@ -292,7 +292,7 @@ describe("Schedules Endpoints", () => {
       };
 
       return request(app.getHttpServer())
-        .put(`/api/v2/schedules/${createdSchedule.id}`)
+        .patch(`/api/v2/schedules/${createdSchedule.id}`)
         .send(body)
         .expect(200)
         .then((response) => {

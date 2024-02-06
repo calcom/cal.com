@@ -10,7 +10,7 @@ import config from "@calcom/web/next-i18next.config";
 
 import { preparePageMetadata } from "@lib/metadata";
 
-export const create = async (locale: string, ns: string) => {
+const create = async (locale: string, ns: string) => {
   const { _nextI18Next } = await serverSideTranslations(locale, [ns], config);
 
   const _i18n = i18next.createInstance();
@@ -22,7 +22,7 @@ export const create = async (locale: string, ns: string) => {
   return _i18n;
 };
 
-export const getFixedT = async (locale: string, ns: string) => {
+const getFixedT = async (locale: string, ns: string) => {
   const i18n = await create(locale, ns);
 
   return i18n.getFixedT(locale, ns);

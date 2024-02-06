@@ -10,6 +10,8 @@ export class UsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async create(user: CreateUserInput, oAuthClientId: string) {
+    this.formatInput(user);
+
     const newUser = await this.dbRead.prisma.user.create({
       data: {
         ...user,
@@ -51,6 +53,8 @@ export class UsersRepository {
   }
 
   async update(userId: number, updateData: UpdateUserInput) {
+    this.formatInput(updateData);
+
     const updatedUser = await this.dbWrite.prisma.user.update({
       where: { id: userId },
       data: updateData,
@@ -74,6 +78,16 @@ export class UsersRepository {
     return sanitizedUser;
   }
 
+  formatInput(userInput: CreateUserInput | UpdateUserInput) {
+    if (userInput.weekStart) {
+      userInput.weekStart = capitalize(userInput.weekStart);
+    }
+
+    if (userInput.timeZone) {
+      userInput.timeZone = capitalizeTimezone(userInput.timeZone);
+    }
+  }
+
   setDefaultSchedule(userId: number, scheduleId: number) {
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
@@ -82,4 +96,18 @@ export class UsersRepository {
       },
     });
   }
+}
+
+function capitalizeTimezone(timezone: string) {
+  const segments = timezone.split("/");
+
+  const capitalizedSegments = segments.map((segment) => {
+    return capitalize(segment);
+  });
+
+  return capitalizedSegments.join("/");
+}
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }

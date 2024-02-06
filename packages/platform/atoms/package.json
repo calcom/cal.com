@@ -39,9 +39,11 @@
     "./dist/index.ts": "./index.ts"
   },
   "dependencies": {
+    "@calcom/platform-constants": "*",
     "@calcom/ui": "*",
     "@radix-ui/react-radio-group": "^1.1.3",
     "@radix-ui/react-slot": "^1.0.2",
+    "@tanstack/react-query": "^5.17.19",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "lucide-react": "^0.293.0",

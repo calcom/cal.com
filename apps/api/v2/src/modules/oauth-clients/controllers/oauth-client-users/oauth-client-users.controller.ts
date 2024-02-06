@@ -1,7 +1,7 @@
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -16,7 +16,7 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
-  Put,
+  Patch,
   BadRequestException,
   Delete,
 } from "@nestjs/common";
@@ -34,7 +34,7 @@ export class OAuthClientUsersController {
 
   constructor(
     private readonly userRepository: UsersRepository,
-    private readonly tokensRepository: TokensRepository
+    private readonly oAuthClientUsersService: OAuthClientUsersService
   ) {}
 
   @Post("/")
@@ -53,11 +53,7 @@ export class OAuthClientUsersController {
       throw new BadRequestException("A user with the provided email already exists.");
     }
 
-    const user = await this.userRepository.create(body, oAuthClientId);
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
-      oAuthClientId,
-      user.id
-    );
+    const { user, tokens } = await this.oAuthClientUsersService.createOauthClientUser(oAuthClientId, body);
 
     return {
       status: SUCCESS_STATUS,
@@ -66,8 +62,8 @@ export class OAuthClientUsersController {
           id: user.id,
           email: user.email,
         },
-        accessToken,
-        refreshToken,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       },
     };
   }
@@ -97,7 +93,7 @@ export class OAuthClientUsersController {
     };
   }
 
-  @Put("/:userId")
+  @Patch("/:userId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
   async updateUser(

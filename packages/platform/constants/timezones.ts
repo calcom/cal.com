@@ -1,6 +1,6 @@
 export type TimeZone = (typeof TIMEZONES)[number];
 
-const TIMEZONES = [
+export const TIMEZONES = [
   "Asia/Kabul",
   "Europe/Tirane",
   "Africa/Algiers",

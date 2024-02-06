@@ -25,7 +25,9 @@ export class SchedulesService {
       availabilities
     );
 
-    await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
+    if (schedule.isDefault) {
+      await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
+    }
 
     return createdSchedule;
   }
@@ -67,6 +69,10 @@ export class SchedulesService {
       scheduleId,
       schedule
     );
+
+    if (schedule.isDefault) {
+      await this.usersRepository.setDefaultSchedule(userId, updatedSchedule.id);
+    }
 
     return updatedSchedule;
   }

@@ -7,6 +7,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -22,7 +23,10 @@ interface getEventTypeByIdProps {
   prisma: PrismaClient;
   isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
+  currentOrganizationId: number | null;
 }
+
+export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
 
 export const getEventTypeById = async ({
   eventTypeId,
@@ -33,10 +37,10 @@ export const getEventTypeById = async ({
 }: getEventTypeByIdProps) => {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
+    avatarUrl: true,
     username: true,
     id: true,
     email: true,
-    organizationId: true,
     locale: true,
     defaultScheduleId: true,
   });
@@ -105,12 +109,13 @@ export const getEventTypeById = async ({
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      assignAllTeamMembers: true,
       successRedirectUrl: true,
       currency: true,
       bookingFields: true,
       owner: {
         select: {
-          organizationId: true,
+          id: true,
         },
       },
       parent: {
@@ -170,11 +175,11 @@ export const getEventTypeById = async ({
         select: {
           owner: {
             select: {
+              avatarUrl: true,
               name: true,
               username: true,
               email: true,
               id: true,
-              organizationId: true,
             },
           },
           hidden: true,
@@ -244,6 +249,36 @@ export const getEventTypeById = async ({
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  const eventTeamMembershipsWithUserProfile = [];
+  for (const eventTeamMembership of rawEventType.team?.members || []) {
+    eventTeamMembershipsWithUserProfile.push({
+      ...eventTeamMembership,
+      user: await UserRepository.enrichUserWithItsProfile({
+        user: eventTeamMembership.user,
+      }),
+    });
+  }
+
+  const childrenWithUserProfile = [];
+  for (const child of rawEventType.children || []) {
+    childrenWithUserProfile.push({
+      ...child,
+      owner: child.owner
+        ? await UserRepository.enrichUserWithItsProfile({
+            user: child.owner,
+          })
+        : null,
+    });
+  }
+
+  const eventTypeUsersWithUserProfile = [];
+  for (const eventTypeUser of rawEventType.users) {
+    eventTypeUsersWithUserProfile.push(
+      await UserRepository.enrichUserWithItsProfile({
+        user: eventTypeUser,
+      })
+    );
+  }
 
   newMetadata.apps = {
     ...apps,
@@ -266,11 +301,11 @@ export const getEventTypeById = async ({
     customInputs: parsedCustomInputs,
     users: rawEventType.users,
     bookerUrl: restEventType.team
-      ? await getBookerBaseUrl({ organizationId: restEventType.team.parentId })
+      ? await getBookerBaseUrl(restEventType.team.parentId)
       : restEventType.owner
-      ? await getBookerBaseUrl(restEventType.owner)
+      ? await getBookerBaseUrl(currentOrganizationId)
       : CAL_URL,
-    children: restEventType.children.flatMap((ch) =>
+    children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
             ...ch,
@@ -311,12 +346,11 @@ export const getEventTypeById = async ({
     eventType.users.push(fallbackUser);
   }
 
-  const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] = eventType.users.map(
-    (user) => ({
+  const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] =
+    eventTypeUsersWithUserProfile.map((user) => ({
       ...user,
       avatar: getUserAvatarUrl(user),
-    })
-  );
+    }));
 
   const currentUser = eventType.users.find((u) => u.id === userId);
 
@@ -355,7 +389,7 @@ export const getEventTypeById = async ({
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
-    ? eventTypeObject.team.members
+    ? eventTeamMembershipsWithUserProfile
         .filter((member) => member.accepted || isOrgEventType)
         .map((member) => {
           const user: typeof member.user & { avatar: string } = {
@@ -364,6 +398,7 @@ export const getEventTypeById = async ({
           };
           return {
             ...user,
+            profileId: user.profile.id,
             eventTypes: user.eventTypes.map((evTy) => evTy.slug),
             membership: member.role,
           };
