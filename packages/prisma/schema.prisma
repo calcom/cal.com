@@ -124,6 +124,7 @@ model EventType {
   durationLimits                  Json?
   isInstantEvent                  Boolean                 @default(false)
   assignAllTeamMembers            Boolean                 @default(false)
+  useConnectedCalendarEmail       Boolean                 @default(false)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -296,9 +297,9 @@ model Profile {
   organization   Team        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   username       String
   eventTypes     EventType[]
-  movedFromUser User?    @relation("moved_to_profile")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  movedFromUser  User?       @relation("moved_to_profile")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@unique([userId, organizationId])
   @@index([uid])
@@ -452,6 +453,9 @@ model Booking {
   uid                   String               @unique
   user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
+  // User's email at the time of booking
+  /// @zod.email()
+  userPrimaryEmail      String?
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
   eventTypeId           Int?

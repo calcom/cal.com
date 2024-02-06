@@ -719,6 +719,7 @@ async function createBooking({
 
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
+    userPrimaryEmail: organizerUser.email,
     responses: responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : responses,
     title: evt.title,
     startTime: dayjs.utc(evt.startTime).toDate(),
