@@ -24,6 +24,7 @@ import type {
   IntervalLimit,
   IntervalLimitUnit,
 } from "@calcom/types/Calendar";
+import type { TimeRange } from "@calcom/types/schedule";
 
 import { getBusyTimes, getBusyTimesForLimitChecks } from "./getBusyTimes";
 import monitorCallbackAsync, { monitorCallbackSync } from "./sentryWrapper";
@@ -305,7 +306,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const endGetWorkingHours = performance.now();
 
-  let dateOverrides: TimeRange[] = [];
+  let dateOverrides: (TimeRange | undefined)[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
   // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
   // since other callers do using this data.
