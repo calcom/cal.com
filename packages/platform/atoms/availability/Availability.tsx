@@ -6,7 +6,7 @@ import { Globe } from "@calcom/ui/components/icon";
 
 import { AvailabilityDropdown } from "./components/availability-dropdown/index";
 import { availabilityAsString } from "./lib/availabilityAsString";
-import type { Schedule } from "./settings/index";
+import type { Schedule } from "./settings/AvailabilitySettings";
 
 type AvailabilityProps = {
   id?: string;

@@ -11,8 +11,8 @@ import { VerticalDivider, Button, Form, SkeletonText } from "@calcom/ui";
 import { MoreVertical } from "@calcom/ui/components/icon";
 import EditableHeading from "@calcom/web/components/ui/EditableHeading";
 
-import { SmallScreenCTA } from "..//components/cta/small-screen/index";
 import { LargeScreenCTA } from "../components/cta/large-screen/index";
+import { SmallScreenCTA } from "../components/cta/small-screen/index";
 import { DateOverride } from "../components/date-overrides/index";
 import { Timezone } from "../components/timezone/index";
 import { Troubleshooter } from "../components/troubleshooter/index";
