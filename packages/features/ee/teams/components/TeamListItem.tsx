@@ -58,6 +58,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+  const user = trpc.viewer.me.useQuery().data;
   const team = props.team;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
@@ -68,12 +69,19 @@ export default function TeamListItem(props: Props) {
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
       utils.viewer.teams.list.invalidate();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
+      const userOrganizationId = user?.profile?.organization?.id;
+      const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
+      const isDifferentOrg = isOrganization({ team }) && team.id !== userOrganizationId;
+      // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
+      if (variables.accept && (isSubTeamOfDifferentOrg || isDifferentOrg)) {
+        window.location.reload();
+      }
     },
   });
 
