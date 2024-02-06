@@ -226,6 +226,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         return {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2, // default to medium priority
         };
       }),
     };
