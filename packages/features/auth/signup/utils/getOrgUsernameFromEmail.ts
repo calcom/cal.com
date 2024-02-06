@@ -1,6 +1,6 @@
 import slugify from "@calcom/lib/slugify";
 
-export const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string) => {
+export const getOrgUsernameFromEmail = (email: string, autoAcceptEmailDomain: string | null) => {
   const [emailUser, emailDomain = ""] = email.split("@");
   const username =
     emailDomain === autoAcceptEmailDomain

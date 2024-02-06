@@ -118,16 +118,7 @@ const MembersView = () => {
         router.push("/settings");
       }
     },
-    [otherMembersError, otherTeamError]
-  );
-
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (data) {
-        router.push("/settings");
-      }
-    },
-    [data]
+    [router, otherMembersError, otherTeamError]
   );
 
   const isPending = isTeamLoading || isOrgListLoading;
@@ -192,7 +183,12 @@ const MembersView = () => {
             {team && (
               <>
                 <hr className="border-subtle my-8" />
-                <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={false} />
+                <MakeTeamPrivateSwitch
+                  teamId={team.id}
+                  isPrivate={team.isPrivate}
+                  disabled={false}
+                  isOrg={false}
+                />
               </>
             )}
           </div>

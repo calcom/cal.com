@@ -1,3 +1,4 @@
+import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -39,8 +40,3 @@ export class EventTypesService {
     return defaultEventTypes;
   }
 }
-
-export const DEFAULT_EVENT_TYPES = {
-  thirtyMinutes: { length: 30, slug: "thirty-minutes", title: "30 Minutes" },
-  sixtyMinutes: { length: 60, slug: "sixty-minutes", title: "60 Minutes" },
-};
