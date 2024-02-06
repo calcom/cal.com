@@ -38,14 +38,22 @@ test.describe("Booking with Seats", () => {
       where: { bookingId: booking.id },
       select: {
         id: true,
+        name: true,
+        email: true,
       },
     });
 
-    const bookingSeats = [
-      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[2].id, referenceUid: uuidv4() },
-    ];
+    const bookingSeats = bookingAttendees.map((attendee) => ({
+      bookingId: booking.id,
+      attendeeId: attendee.id,
+      referenceUid: uuidv4(),
+      data: {
+        responses: {
+          name: attendee.name,
+          email: attendee.email,
+        },
+      },
+    }));
 
     await prisma.bookingSeat.createMany({
       data: bookingSeats,
@@ -122,13 +130,22 @@ test.describe("Reschedule for booking with seats", () => {
       where: { bookingId: booking.id },
       select: {
         id: true,
+        name: true,
+        email: true,
       },
     });
 
-    const bookingSeats = [
-      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
-    ];
+    const bookingSeats = bookingAttendees.map((attendee) => ({
+      bookingId: booking.id,
+      attendeeId: attendee.id,
+      referenceUid: uuidv4(),
+      data: {
+        responses: {
+          name: attendee.name,
+          email: attendee.email,
+        },
+      },
+    }));
 
     await prisma.bookingSeat.createMany({
       data: bookingSeats,
@@ -181,13 +198,22 @@ test.describe("Reschedule for booking with seats", () => {
       where: { bookingId: booking.id },
       select: {
         id: true,
+        name: true,
+        email: true,
       },
     });
 
-    const bookingSeats = [
-      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
-    ];
+    const bookingSeats = bookingAttendees.map((attendee) => ({
+      bookingId: booking.id,
+      attendeeId: attendee.id,
+      referenceUid: uuidv4(),
+      data: {
+        responses: {
+          name: attendee.name,
+          email: attendee.email,
+        },
+      },
+    }));
 
     await prisma.bookingSeat.createMany({
       data: bookingSeats,
@@ -248,13 +274,22 @@ test.describe("Reschedule for booking with seats", () => {
       where: { bookingId: booking.id },
       select: {
         id: true,
+        name: true,
+        email: true,
       },
     });
 
-    const bookingSeats = [
-      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUid: uuidv4() },
-      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUid: uuidv4() },
-    ];
+    const bookingSeats = bookingAttendees.map((attendee) => ({
+      bookingId: booking.id,
+      attendeeId: attendee.id,
+      referenceUid: uuidv4(),
+      data: {
+        responses: {
+          name: attendee.name,
+          email: attendee.email,
+        },
+      },
+    }));
 
     await prisma.bookingSeat.createMany({
       data: bookingSeats,
@@ -350,7 +385,7 @@ test.describe("Reschedule for booking with seats", () => {
     // data displayed in form should be user owner
     const nameElement = await page.locator("input[name=name]");
     const name = await nameElement.inputValue();
-    expect(name).toBe(user.username);
+    expect(name).toBe(user.name);
 
     //same for email
     const emailElement = await page.locator("input[name=email]");
