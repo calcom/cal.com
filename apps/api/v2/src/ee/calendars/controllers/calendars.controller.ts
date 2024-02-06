@@ -3,8 +3,8 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { Controller, Get, UseGuards } from "@nestjs/common";
 
-import { Calendars } from "@calcom/lib";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Calendars } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
