@@ -8,7 +8,6 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import type { Ensure } from "@calcom/types/utils";
 import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
 import { ArrowRight } from "@calcom/ui/components/icon";
@@ -97,18 +96,10 @@ const UserProfile = () => {
     },
   ];
 
-  const organization =
-    user.organization && user.organization.id
-      ? {
-          ...(user.organization as Ensure<typeof user.organization, "id">),
-          slug: user.organization.slug || null,
-          requestedSlug: user.organization.metadata?.requestedSlug || null,
-        }
-      : null;
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} organization={organization} />}
+        {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} />}
         <input
           ref={avatarRef}
           type="hidden"
