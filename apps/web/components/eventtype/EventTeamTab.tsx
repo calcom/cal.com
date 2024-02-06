@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
-import type { UseFormSetValue } from "react-hook-form";
+import type { UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 
@@ -143,15 +143,17 @@ const CheckedHostField = ({
   value,
   onChange,
   helperText,
+  getValues,
   ...rest
 }: {
   labelText?: string;
   placeholder: string;
   isFixed: boolean;
   value: { isFixed: boolean; userId: number; priority: number }[];
-  onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
+  onChange?: (options: { isFixed: boolean; userId: number; priority: number }[]) => void;
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
+  getValues: UseFormGetValues<FormValues>;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -159,22 +161,24 @@ const CheckedHostField = ({
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
           isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          getValues={getValues}
           onChange={(options) => {
             onChange &&
               onChange(
                 options.map((option) => ({
                   isFixed,
                   userId: parseInt(option.value, 10),
+                  priority: option.priority ?? 2,
                 }))
               );
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
-            .map(
-              (host) =>
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                options.find((member) => member.value === host.userId.toString())!
-            )
+            .map((host) => {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              const option = options.find((member) => member.value === host.userId.toString());
+              return option ? { ...option, priority: host.priority ?? 2 } : null;
+            })
             .filter(Boolean)}
           controlShouldRenderValue={false}
           options={options}
@@ -206,9 +210,10 @@ const FixedHosts = ({
   setAssignAllTeamMembers,
   automaticAddAllEnabled,
   setValue,
+  getValues,
 }: {
-  value: { isFixed: boolean; userId: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  value: { isFixed: boolean; userId: number; priority: number }[];
+  onChange: (hosts: { isFixed: boolean; userId: number; priority: number }[]) => void;
   teamMembers: {
     value: string;
     label: string;
@@ -219,6 +224,7 @@ const FixedHosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   automaticAddAllEnabled: boolean;
   setValue: UseFormSetValue<FormValues>;
+  getValues: UseFormGetValues<FormValues>;
 }) => {
   const { t } = useLocale();
 
@@ -237,6 +243,7 @@ const FixedHosts = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={automaticAddAllEnabled}
           isFixed={true}
+          getValues={getValues}
           onActive={() =>
             setValue(
               "hosts",
@@ -262,9 +269,10 @@ const AddMembersWithSwitch = ({
   automaticAddAllEnabled,
   onActive,
   isFixed,
+  getValues,
 }: {
-  value: { isFixed: boolean; userId: number; priority?: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  value: { isFixed: boolean; userId: number; priority: number }[];
+  onChange: (hosts: { isFixed: boolean; userId: number; priority: number }[]) => void;
   teamMembers: {
     value: string;
     label: string;
@@ -276,6 +284,7 @@ const AddMembersWithSwitch = ({
   automaticAddAllEnabled: boolean;
   onActive: () => void;
   isFixed: boolean;
+  getValues: UseFormGetValues<FormValues>;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -300,6 +309,7 @@ const AddMembersWithSwitch = ({
         ) : (
           <CheckedHostField
             value={value}
+            getValues={getValues}
             onChange={onChange}
             isFixed={isFixed}
             options={teamMembers.sort(sortByLabel)}
@@ -318,9 +328,10 @@ const RoundRobinHosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   setValue,
+  getValues,
 }: {
-  value: { isFixed: boolean; userId: number; priority?: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  value: { isFixed: boolean; userId: number; priority: number }[];
+  onChange: (hosts: { isFixed: boolean; userId: number; priority: number }[]) => void;
   teamMembers: {
     value: string;
     label: string;
@@ -330,6 +341,7 @@ const RoundRobinHosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   setValue: UseFormSetValue<FormValues>;
+  getValues: UseFormGetValues<FormValues>;
 }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -349,6 +361,7 @@ const RoundRobinHosts = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={true}
           isFixed={false}
+          getValues={getValues}
           onActive={() =>
             setValue(
               "hosts",
@@ -455,6 +468,7 @@ const Hosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={true}
               setValue={formMethods.setValue}
+              getValues={formMethods.getValues}
             />
           ),
           ROUND_ROBIN: (
@@ -469,6 +483,7 @@ const Hosts = ({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 automaticAddAllEnabled={false}
                 setValue={formMethods.setValue}
+                getValues={formMethods.getValues}
               />
               <RoundRobinHosts
                 teamMembers={teamMembers}
@@ -479,6 +494,7 @@ const Hosts = ({
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 setValue={formMethods.setValue}
+                getValues={formMethods.getValues}
               />
             </>
           ),
