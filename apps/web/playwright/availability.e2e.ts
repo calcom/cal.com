@@ -25,8 +25,7 @@ test.describe("Availablity tests", () => {
       await page.getByTestId("schedules").first().click();
       await page.getByTestId("add-override").click();
       await page.locator('[id="modal-title"]').waitFor();
-      // TEST: The troubleshooter doesn't seem to support going ahead of the current month
-      //await page.getByTestId("incrementMonth").click();
+      await page.getByTestId("incrementMonth").click();
       await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
       await page.getByTestId("date-override-mark-unavailable").click();
       await page.getByTestId("add-override-submit-btn").click();
