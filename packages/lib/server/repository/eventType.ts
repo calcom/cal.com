@@ -99,7 +99,7 @@ export class EventTypeRepository {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
-    const select = {
+    const include = {
       // TODO:  As required by getByViewHandler - Make it configurable
       team: {
         include: {
@@ -140,7 +140,7 @@ export class EventTypeRepository {
           userId: lookupTarget.id,
           ...where,
         },
-        select,
+        include,
         orderBy,
       });
     }
