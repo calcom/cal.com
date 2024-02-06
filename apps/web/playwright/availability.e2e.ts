@@ -30,13 +30,13 @@ test.describe("Availablity tests", () => {
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
     await page.locator('[form="availability-form"][type="submit"]').click();
     const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
-    // const json = await response.json();
-    // // @ts-expect-error trust me bro
-    // const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
-    // const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
-    // await page.goto(troubleshooterURL);
-    // await page.waitForLoadState("networkidle");
-    // await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
+    const json = await response.json();
+    // @ts-expect-error trust me bro
+    const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
+    const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
+    await page.goto(troubleshooterURL);
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 
   test("Schedule listing", async ({ page }) => {
