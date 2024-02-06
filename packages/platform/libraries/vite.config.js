@@ -170,34 +170,6 @@ export default defineConfig({
       },
     },
   },
-  optimizeDeps: {
-    exclude: ["dayjs-business-days2"], // Exclude dayjs-business-days2 from optimization
-  },
-  rollupInputOptions: {
-    external: ["dayjs-business-days2"], // Specify dayjs-business-days2 as external
-    plugins: [
-      {
-        name: "resolve-dayjs-business-days2",
-        resolveId(importee) {
-          if (importee === "dayjs-business-days2") {
-            return importee;
-          }
-          return null;
-        },
-        load(id) {
-          if (id === "dayjs-business-days2") {
-            const code = require(id);
-            return `export default ${JSON.stringify(code)};`;
-          }
-          return null;
-        },
-      },
-    ],
-  },
-  // Specify the global name for the external module
-  define: {
-    __VITE_DAYJS_BUSINESS_DAYS_2__: "dayjsBusinessTime",
-  },
   plugins: [react(), dts()],
   resolve: {
     alias: {

@@ -9,10 +9,11 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn vite build",
+    "build": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
     "build:watch": "yarn vite build --watch"
   },
   "dependencies": {
+    "@calcom/core": "*",
     "@calcom/features": "*",
     "@calcom/lib": "*"
   },
