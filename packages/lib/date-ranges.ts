@@ -101,7 +101,6 @@ export function buildDateRanges({
   dateTo: Dayjs;
 }): DateRange[] {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
-  const start2 = performance.now();
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
