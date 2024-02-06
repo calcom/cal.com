@@ -116,9 +116,9 @@ export function buildDateRanges({
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
         const itemDateAsUtc = dayjs.utc(item.date);
-        if (itemDateAsUtc.isBetween(dateFrom, dateTo, null, "[]")) {
-          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
-        }
+        //if (itemDateAsUtc.isBetween(dateFrom, dateTo, null, "[]")) {
+        processed.push(processDateOverride({ item, itemDateAsUtc, timeZone }));
+        //}
       }
       return processed;
     }, [])
