@@ -1490,6 +1490,7 @@
   "password_updated": "הסיסמה עודכנה!",
   "pending_payment": "המתנה לתשלום",
   "pending_invites": "הזמנות ממתינות",
+  "pending_organization_invites": "הזמנות ממתינות לארגון",
   "not_on_cal": "לא ב-{{appName}}",
   "no_calendar_installed": "לא מותקן לוח שנה",
   "no_calendar_installed_description": "לא קישרת אף אחד מלוחות השנה שלך",
@@ -2241,5 +2242,6 @@
   "redirect_to": "הפניה אל",
   "having_trouble_finding_time": "לא הצלחת למצוא חלון זמן פנוי?",
   "show_more": "הצג עוד",
+  "send_booker_to": "שליחת מזמן אל",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
