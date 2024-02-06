@@ -11,6 +11,7 @@ import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTea
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
 
 interface IUserToValue {
@@ -19,13 +20,18 @@ interface IUserToValue {
   username: string | null;
   avatar: string;
   email: string;
+  disabled: boolean;
 }
 
-const mapUserToValue = ({ id, name, username, avatar, email }: IUserToValue, pendingString: string) => ({
+const mapUserToValue = (
+  { id, name, username, avatar, email, disabled }: IUserToValue,
+  pendingString: string
+) => ({
   value: `${id || ""}`,
   label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
   avatar,
   email,
+  disabled: disabled,
 });
 
 export const mapMemberToChildrenOption = (
@@ -142,11 +148,15 @@ const CheckedHostField = ({
   isFixed,
   value,
   onChange,
+  teamId,
+  isOrg,
   helperText,
   ...rest
 }: {
   labelText?: string;
   placeholder: string;
+  teamId: number | undefined;
+  isOrg: boolean;
   isFixed: boolean;
   value: { isFixed: boolean; userId: number }[];
   onChange?: (options: { isFixed: boolean; userId: number }[]) => void;
@@ -158,7 +168,9 @@ const CheckedHostField = ({
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          isOptionDisabled={(option) =>
+            option.disabled || !!value.find((host) => host.userId.toString() === option.value)
+          }
           onChange={(options) => {
             onChange &&
               onChange(
@@ -179,6 +191,8 @@ const CheckedHostField = ({
           controlShouldRenderValue={false}
           options={options}
           placeholder={placeholder}
+          teamId={teamId}
+          isOrg={isOrg}
           {...rest}
         />
         {helperText && <p className="text-subtle text-sm">{helperText}</p>}
@@ -205,14 +219,19 @@ const RoundRobinHosts = ({
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  teamId,
+  isOrg,
 }: {
   value: { isFixed: boolean; userId: number }[];
   onChange: (hosts: { isFixed: boolean; userId: number }[]) => void;
+  teamId: number | undefined;
+  isOrg: boolean;
   teamMembers: {
     value: string;
     label: string;
     avatar: string;
     email: string;
+    disabled: boolean;
   }[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
@@ -233,6 +252,8 @@ const RoundRobinHosts = ({
           placeholder={t("add_fixed_hosts")}
           labelText={t("fixed_hosts")}
           helperText={FixedHostHelper}
+          teamId={teamId}
+          isOrg={isOrg}
         />
 
         <div className="bg-muted flex flex-col">
@@ -265,6 +286,8 @@ const RoundRobinHosts = ({
               isFixed={false}
               placeholder={t("add_attendees")}
               helperText={t("round_robin_helper")}
+              teamId={teamId}
+              isOrg={isOrg}
             />
           )}
         </div>
@@ -310,13 +333,18 @@ const Hosts = ({
   teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
+  teamId,
+  isOrg,
 }: {
   teamMembers: {
     value: string;
     label: string;
     avatar: string;
     email: string;
+    disabled: boolean;
   }[];
+  teamId: number | undefined;
+  isOrg: boolean;
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
@@ -381,6 +409,8 @@ const Hosts = ({
                     options={teamMembers.sort(sortByLabel)}
                     placeholder={t("add_attendees")}
                     labelText={t("team")}
+                    teamId={teamId}
+                    isOrg={isOrg}
                   />
                 )}
               </div>
@@ -394,6 +424,8 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 onChange={onChange}
                 value={value}
+                teamId={teamId}
+                isOrg={isOrg}
               />
               {/*<TextField
         required
@@ -453,6 +485,11 @@ export const EventTeamTab = ({
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     formMethods.getValues("assignAllTeamMembers") ?? false
   );
+  const checkIsOrg = (team: EventTypeSetupProps["team"]) => {
+    const metadata = teamMetadataSchema.safeParse(team?.metadata || {});
+    if (metadata.success && metadata.data?.isOrganization) return true;
+    return false;
+  };
 
   return (
     <div>
@@ -480,6 +517,8 @@ export const EventTeamTab = ({
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
+            teamId={team.id}
+            isOrg={checkIsOrg(team)}
           />
         </div>
       )}
