@@ -1,4 +1,3 @@
-import { DisableStandardEmailsConfirmation } from "event-type/components/disable-standard-emails-confirmation";
 import { Edit } from "lucide-react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -15,6 +14,7 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import type { Prisma } from "@calcom/prisma/client";
 import { Button, Label, TextField } from "@calcom/ui";
 
+import { DisableStandardEmailsConfirmation } from "../../components/disable-standard-emails-confirmation/index";
 import { EnablePrivateURL } from "../../components/enable-private-url/index";
 import { EventCalendarView } from "../../components/event-calendar-view/index";
 import { HideCalendarNotes } from "../../components/hide-calendar-notes/index";
