@@ -592,11 +592,9 @@ export async function getBookingData<T extends z.ZodType>({
     throw new Error(ErrorCode.RequestBodyWithouEnd);
   }
   // reqBody.end is no longer an optional property.
-  if ("customInputs" in reqBody) {
-    if (reqBody.customInputs) {
-      // Check if required custom inputs exist
-      handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
-    }
+  if (reqBody.customInputs) {
+    // Check if required custom inputs exist
+    handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
     const reqBodyWithLegacyProps = bookingCreateSchemaLegacyPropsForApi.parse(reqBody);
     return {
       ...reqBody,
@@ -823,13 +821,10 @@ export function getCustomInputsResponses(
   eventTypeCustomInputs: Awaited<ReturnType<typeof getEventTypesFromDB>>["customInputs"]
 ) {
   const customInputsResponses = {} as NonNullable<CalendarEvent["customInputs"]>;
-  if ("customInputs" in reqBody) {
-    const reqCustomInputsResponses = reqBody.customInputs || [];
-    if (reqCustomInputsResponses?.length > 0) {
-      reqCustomInputsResponses.forEach(({ label, value }) => {
-        customInputsResponses[label] = value;
-      });
-    }
+  if (reqBody.customInputs && (reqBody.customInputs.length || 0) > 0) {
+    reqBody.customInputs.forEach(({ label, value }) => {
+      customInputsResponses[label] = value;
+    });
   } else {
     const responses = reqBody.responses || {};
     // Backward Compatibility: Map new `responses` to old `customInputs` format so that webhooks can still receive same values.
@@ -1186,7 +1181,10 @@ async function handler(
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
   ) {
     const startAsDate = dayjs(reqBody.start).toDate();
-    if (eventType.bookingLimits) {
+    if (
+      eventType.bookingLimits &&
+      /* Empty object is truthy */ Object.keys(eventType.bookingLimits).length > 0
+    ) {
       await checkBookingLimits(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
@@ -1494,7 +1492,7 @@ async function handler(
 
   const attendeesList = [...invitee, ...guests];
 
-  const responses = "responses" in reqBody ? reqBody.responses : null;
+  const responses = reqBody.responses || null;
 
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
   const eventNameObject = {
@@ -1510,9 +1508,6 @@ async function handler(
     bookingFields: { ...responses },
     t: tOrganizer,
   };
-
-  const calEventUserFieldsResponses =
-    "calEventUserFieldsResponses" in reqBody ? reqBody.calEventUserFieldsResponses : null;
 
   const iCalUID = getICalUID({
     event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },
@@ -1550,8 +1545,8 @@ async function handler(
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     },
-    responses: "calEventResponses" in reqBody ? reqBody.calEventResponses : null,
-    userFieldsResponses: calEventUserFieldsResponses,
+    responses: reqBody.calEventResponses || null,
+    userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
     location: bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
