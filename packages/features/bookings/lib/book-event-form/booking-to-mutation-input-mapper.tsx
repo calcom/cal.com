@@ -85,6 +85,7 @@ export const mapRecurringBookingToMutationInput = (
       .add(booking.duration || booking.event.length, "minute")
       .format(),
     recurringEventId,
+    schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
   }));
 };

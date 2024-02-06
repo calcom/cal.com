@@ -798,10 +798,10 @@ describe("getSchedule", () => {
             schedulingType: "COLLECTIVE",
             hosts: [
               {
-                id: 101,
+                userId: 101,
               },
               {
-                id: 102,
+                userId: 102,
               },
             ],
           },
