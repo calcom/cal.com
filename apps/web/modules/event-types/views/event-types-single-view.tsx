@@ -88,6 +88,7 @@ export type FormValues = {
   eventTitle: string;
   eventName: string;
   slug: string;
+  shouldRedirectFromPreviousSlug: boolean;
   isInstantEvent: boolean;
   length: number;
   offsetStart: number;
@@ -257,6 +258,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       title: eventType.title,
       id: eventType.id,
       slug: eventType.slug,
+      shouldRedirectFromPreviousSlug: true,
       afterEventBuffer: eventType.afterEventBuffer,
       beforeEventBuffer: eventType.beforeEventBuffer,
       eventName: eventType.eventName || "",

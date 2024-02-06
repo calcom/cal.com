@@ -484,6 +484,20 @@ export const EventSetupTab = (
               setValueAs: (v) => slugify(v),
             })}
           />
+          {formMethods.getValues("slug") !== eventType.slug && (
+            <Controller
+              name="shouldRedirectFromPreviousSlug"
+              render={({ field: { value, onChange } }) => (
+                <CheckboxField
+                  description={`${t("create_a_redirect_for")} ${eventType.slug} -> ${formMethods.getValues(
+                    "slug"
+                  )}`}
+                  onChange={(e) => onChange(e)}
+                  checked={value}
+                />
+              )}
+            />
+          )}
         </div>
         <div className="border-subtle rounded-lg border p-6">
           {multipleDuration ? (
