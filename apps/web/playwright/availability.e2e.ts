@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 
+import dayjs from "@calcom/dayjs";
+
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/testUtils";
 
@@ -36,6 +38,10 @@ test.describe("Availablity tests", () => {
     const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);
     await page.waitForLoadState("networkidle");
+
+    // Testing to see if waiting will allow the view to change after the render issue we have
+    // with differences between client/server
+    await page.waitForTimeout(1000);
     await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 
