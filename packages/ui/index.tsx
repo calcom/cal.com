@@ -112,6 +112,7 @@ export {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  SelectSkeletonLoader,
   Loader,
 } from "./components/skeleton";
 export { HorizontalTabs, HorizontalTabItem, VerticalTabs, VerticalTabItem } from "./components/navigation";
