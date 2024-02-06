@@ -12,7 +12,7 @@ import {
   HttpStatus,
   Param,
   Post,
-  Put,
+  Patch,
   UseGuards,
 } from "@nestjs/common";
 
@@ -89,7 +89,7 @@ export class SchedulesController {
     };
   }
 
-  @Put("/:scheduleId")
+  @Patch("/:scheduleId")
   async updateSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number,

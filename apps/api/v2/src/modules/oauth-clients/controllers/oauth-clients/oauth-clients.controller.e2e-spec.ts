@@ -47,7 +47,7 @@ describe("OAuth Clients Endpoints", () => {
       return request(appWithoutAuth.getHttpServer()).post("/api/v2/oauth-clients").expect(401);
     });
     it(`/PUT/:id`, () => {
-      return request(appWithoutAuth.getHttpServer()).put("/api/v2/oauth-clients/1234").expect(401);
+      return request(appWithoutAuth.getHttpServer()).patch("/api/v2/oauth-clients/1234").expect(401);
     });
     it(`/DELETE/:id`, () => {
       return request(appWithoutAuth.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(401);
@@ -108,7 +108,7 @@ describe("OAuth Clients Endpoints", () => {
         return request(app.getHttpServer()).post("/api/v2/oauth-clients").expect(403);
       });
       it(`/PUT/:id`, () => {
-        return request(app.getHttpServer()).put("/api/v2/oauth-clients/1234").expect(403);
+        return request(app.getHttpServer()).patch("/api/v2/oauth-clients/1234").expect(403);
       });
       it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(403);
@@ -131,7 +131,7 @@ describe("OAuth Clients Endpoints", () => {
         return request(app.getHttpServer()).post("/api/v2/oauth-clients").expect(403);
       });
       it(`/PUT/:id`, () => {
-        return request(app.getHttpServer()).put("/api/v2/oauth-clients/1234").expect(403);
+        return request(app.getHttpServer()).patch("/api/v2/oauth-clients/1234").expect(403);
       });
       it(`/DELETE/:id`, () => {
         return request(app.getHttpServer()).delete("/api/v2/oauth-clients/1234").expect(403);
@@ -201,7 +201,7 @@ describe("OAuth Clients Endpoints", () => {
         const clientUpdatedName = "test-oauth-client-updated";
         const body: UpdateOAuthClientInput = { name: clientUpdatedName };
         return request(app.getHttpServer())
-          .put(`/api/v2/oauth-clients/${client.clientId}`)
+          .patch(`/api/v2/oauth-clients/${client.clientId}`)
           .send(body)
           .expect(200)
           .then((response) => {
@@ -283,7 +283,7 @@ describe("OAuth Clients Endpoints", () => {
         const clientUpdatedName = "test-oauth-client-updated";
         const body: UpdateOAuthClientInput = { name: clientUpdatedName };
         return request(app.getHttpServer())
-          .put(`/api/v2/oauth-clients/${client.clientId}`)
+          .patch(`/api/v2/oauth-clients/${client.clientId}`)
           .send(body)
           .expect(200)
           .then((response) => {

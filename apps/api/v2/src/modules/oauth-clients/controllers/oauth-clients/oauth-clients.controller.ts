@@ -9,7 +9,7 @@ import {
   Controller,
   Get,
   Post,
-  Put,
+  Patch,
   Delete,
   Param,
   HttpCode,
@@ -75,7 +75,7 @@ export class OAuthClientsController {
     return { status: SUCCESS_STATUS, data: client };
   }
 
-  @Put("/:clientId")
+  @Patch("/:clientId")
   @HttpCode(HttpStatus.OK)
   @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async updateOAuthClient(
