@@ -1,5 +1,6 @@
 import { prisma } from "@calcom/prisma";
-import type { Prisma, MembershipRole } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
@@ -13,6 +14,16 @@ type IMembership = {
   accepted: boolean;
   role: MembershipRole;
 };
+
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  name: true,
+  avatarUrl: true,
+  username: true,
+  id: true,
+  email: true,
+  locale: true,
+  defaultScheduleId: true,
+});
 
 export class MembershipRepository {
   static async create(data: IMembership) {
@@ -74,19 +85,23 @@ export class MembershipRepository {
               include: {
                 team: {
                   include: {
-                    eventTypes: true,
+                    eventTypes: {
+                      include: {
+                        users: { select: userSelect },
+                      },
+                    },
                   },
                 },
                 hashedLink: true,
-                users: true,
-                hosts: {
-                  include: {
-                    user: true,
-                  },
-                },
+                users: { select: userSelect },
                 children: {
                   include: {
-                    users: true,
+                    users: { select: userSelect },
+                  },
+                },
+                hosts: {
+                  include: {
+                    user: { select: userSelect },
                   },
                 },
               },
