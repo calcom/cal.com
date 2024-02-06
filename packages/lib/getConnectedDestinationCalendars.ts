@@ -1,4 +1,4 @@
-import { getCalendarCredentials } from "@calcom/core/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
