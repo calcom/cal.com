@@ -77,7 +77,7 @@ export const CheckedTeamSelect = ({
               <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
               <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
               <div className="ml-auto flex items-center">
-                <Tooltip content="change priority">
+                <Tooltip content={t("change_priority")}>
                   <Button
                     color="minimal"
                     onClick={() => {
@@ -127,43 +127,42 @@ const PriorityDialog = (props: IPriiorityDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, getValues, onChange } = props;
 
-  const [newPriority, setNewPriority] = useState(priorityOptions[2]);
-
+  const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
-    const hosts = getValues("hosts");
-    const updatedHosts = hosts.map((host) => {
-      return {
-        value: host.userId,
-        priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
-      };
-    });
-    onChange(updatedHosts);
+    if (!!newPriority) {
+      const hosts = getValues("hosts");
+      const updatedHosts = hosts.map((host) => {
+        return {
+          value: host.userId,
+          priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+        };
+      });
+      onChange(updatedHosts);
+    }
     setIsOpenDialog(false);
   };
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title="Set Priority">
+      <DialogContent title={t("set_priority")}>
         <div className="mb-4">
-          <Label>Priority for {option.label}</Label>
+          <Label>{t("priority_for_user", { userName: option.label })}</Label>
           <Select
-            defaultValue={priorityOptions[2]}
+            defaultValue={priorityOptions[option.priority ?? 2]}
             value={newPriority}
             onChange={(value) => setNewPriority(value ?? priorityOptions[2])}
             options={[
-              { label: "Lowest", value: 0 },
-              { label: "Low", value: 1 },
-              { label: "Medium", value: 2 },
-              { label: "High", value: 3 },
-              { label: "Highest", value: 4 },
+              { label: t("Lowest"), value: 0 },
+              { label: t("low"), value: 1 },
+              { label: t("medium"), value: 2 },
+              { label: t("high"), value: 3 },
+              { label: t("highest"), value: 4 },
             ]}
           />
         </div>
 
         <DialogFooter>
           <DialogClose />
-          <Button data-testid="send_request" onClick={setPriority}>
-            {t("confirm")}
-          </Button>
+          <Button onClick={setPriority}>{t("confirm")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
