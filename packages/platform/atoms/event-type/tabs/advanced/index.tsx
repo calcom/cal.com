@@ -1,6 +1,3 @@
-import { HideCalendarNotes } from "event-type/components/hide-calendar-notes";
-import { LockTimeZoneToggleOnBookingPage } from "event-type/components/lock-timezone-on-booking-page";
-import { RedirectOnBooking } from "event-type/components/redirect-on-booking";
 import { Edit } from "lucide-react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -13,7 +10,11 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import type { Prisma } from "@calcom/prisma/client";
 import { Button, Label, TextField } from "@calcom/ui";
 
+import { EnablePrivateURL } from "../../components/enable-private-url/index";
 import { EventCalendarView } from "../../components/event-calendar-view/index";
+import { HideCalendarNotes } from "../../components/hide-calendar-notes/index";
+import { LockTimeZoneToggleOnBookingPage } from "../../components/lock-timezone-on-booking-page/index";
+import { RedirectOnBooking } from "../../components/redirect-on-booking/index";
 import { RequiresBookerEmailVerification } from "../../components/require-booker-email-verification/index";
 import type { FormValues } from "../../types";
 import type { EventTypeSetupProps } from "../event-setup/index";
@@ -145,6 +146,9 @@ export function Advanced({ eventType, team, userTheme, userConnectedCalendars }:
         isRedirectUrlVisible={!!eventType.successRedirectUrl}
         successRedirectUrlLocked={successRedirectUrlLocked}
       />
+
+      {/* Enable private URL controller comes here */}
+      <EnablePrivateURL />
 
       {/* Lock timezone on booking page controller comes here */}
       <LockTimeZoneToggleOnBookingPage
