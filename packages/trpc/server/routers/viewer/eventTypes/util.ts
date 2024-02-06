@@ -20,7 +20,11 @@ export const eventOwnerProcedure = authedProcedure
     const event = await ctx.prisma.eventType.findUnique({
       where: { id: input.id },
       include: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
         team: {
           select: {
             members: {
