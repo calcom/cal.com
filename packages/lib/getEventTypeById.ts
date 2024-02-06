@@ -29,6 +29,7 @@ interface getEventTypeByIdProps {
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
 
 export const getEventTypeById = async ({
+  currentOrganizationId,
   eventTypeId,
   userId,
   prisma,
