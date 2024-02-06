@@ -15,6 +15,23 @@ type IMembership = {
   role: MembershipRole;
 };
 
+const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+  id: true,
+  teamId: true,
+  userId: true,
+  accepted: true,
+  role: true,
+  disableImpersonation: true,
+});
+
+const teamParentSelect = Prisma.validator<Prisma.TeamSelect>()({
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+  parentId: true,
+});
+
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
   avatarUrl: true,
@@ -79,8 +96,12 @@ export class MembershipRepository {
       include: {
         team: {
           include: {
-            members: true,
-            parent: true,
+            members: {
+              select: membershipSelect,
+            },
+            parent: {
+              select: teamParentSelect,
+            },
             eventTypes: {
               include: {
                 team: {

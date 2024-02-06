@@ -164,7 +164,7 @@ export class EventTypeRepository {
           ],
           ...where,
         },
-        select,
+        include,
         orderBy,
       });
     } else {
@@ -172,7 +172,7 @@ export class EventTypeRepository {
         where: {
           profileId,
         },
-        select,
+        include,
         orderBy,
       });
     }
