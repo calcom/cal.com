@@ -8,6 +8,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -46,7 +47,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
         id: userId,
         username: "" /* Not used in this context */,
         role: UserPermissionRole.USER,
+        /* Not used in this context */
+        profile: {
+          id: null,
+          organizationId: null,
+          organization: null,
+          username: "",
+          upId: "",
+        } satisfies UserProfile,
       },
+      upId: "",
       hasValidLicense: true,
       expires: "" /* Not used in this context */,
     };

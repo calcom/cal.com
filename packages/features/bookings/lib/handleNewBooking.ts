@@ -40,7 +40,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { userOrgQuery } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -69,6 +69,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@c
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -185,7 +186,7 @@ export async function refreshCredentials(
  * Gets credentials from the user, team, and org if applicable
  *
  */
-export const getAllCredentials = async (
+const getAllCredentials = async (
   user: User & { credentials: CredentialPayload[] },
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>
 ) => {
@@ -223,11 +224,15 @@ export const getAllCredentials = async (
     }
   }
 
+  const { profile } = await UserRepository.enrichUserWithItsProfile({
+    user: user,
+  });
+
   // If the user is a part of an organization, query for the organization's credentials
-  if (user?.organizationId) {
+  if (profile?.organizationId) {
     const org = await prisma.team.findUnique({
       where: {
-        id: user.organizationId,
+        id: profile.organizationId,
       },
       select: {
         credentials: {
@@ -366,11 +371,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
                 select: credentialForCalendarServiceSelect,
               },
               ...userSelect.select,
-              organization: {
-                select: {
-                  slug: true,
-                },
-              },
             },
           },
         },
@@ -409,18 +409,10 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
         throw new Error("dynamicUserList is not properly defined or empty.");
       }
-      const users = await prisma.user.findMany({
-        where: {
-          username: { in: dynamicUserList },
-          organization: userOrgQuery(req),
-        },
-        select: {
-          ...userSelect.select,
-          credentials: {
-            select: credentialForCalendarServiceSelect,
-          },
-          metadata: true,
-        },
+      const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(req);
+      const users = await findUsersByUsername({
+        usernameList: dynamicUserList,
+        orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
 
       return users;
@@ -1320,7 +1312,6 @@ async function handler(
   const [organizerUser] = users;
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
-
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
   const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
@@ -1449,11 +1440,20 @@ async function handler(
   });
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = getICalSequence(originalRescheduledBooking);
+  const organizerOrganizationProfile = await prisma.profile.findFirst({
+    where: {
+      userId: organizerUser.id,
+      username: dynamicUserList[0],
+    },
+  });
+
+  const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+  const bookerUrl = eventType.team
+    ? await getBookerBaseUrl(eventType.team.parentId)
+    : await getBookerBaseUrl(organizerOrganizationId ?? null);
 
   let evt: CalendarEvent = {
-    bookerUrl: eventType.team
-      ? await getBookerBaseUrl({ organizationId: eventType.team.parentId })
-      : await getBookerBaseUrl(organizerUser),
+    bookerUrl,
     type: eventType.slug,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
@@ -2401,3 +2401,40 @@ function handleCustomInputs(
     }
   });
 }
+
+/**
+ * This method is mostly same as the one in UserRepository but it includes a lot more relations which are specific requirement here
+ * TODO: Figure out how to keep it in UserRepository and use it here
+ */
+export const findUsersByUsername = async ({
+  usernameList,
+  orgSlug,
+}: {
+  orgSlug: string | null;
+  usernameList: string[];
+}) => {
+  log.debug("findUsersByUsername", { usernameList, orgSlug });
+  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+    orgSlug,
+    usernameList,
+  });
+  return (
+    await prisma.user.findMany({
+      where,
+      select: {
+        ...userSelect.select,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        metadata: true,
+      },
+    })
+  ).map((user) => {
+    const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
+    return {
+      ...user,
+      organizationId: profile?.organizationId ?? null,
+      profile,
+    };
+  });
+};

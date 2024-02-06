@@ -111,19 +111,11 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
             <UserAvatar
               size="xl"
               user={{
-                organizationId: profile.organization?.id,
+                avatarUrl: user.avatarUrl,
+                profile: user.profile,
                 name: profile.name,
                 username: profile.username,
               }}
-              organization={
-                profile.organization?.id
-                  ? {
-                      id: profile.organization.id,
-                      slug: profile.organization.slug,
-                      requestedSlug: null,
-                    }
-                  : null
-              }
             />
             <h1 className="font-cal text-emphasis my-1 text-3xl" data-testid="name-title">
               {profile.name}

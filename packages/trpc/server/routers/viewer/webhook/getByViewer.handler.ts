@@ -58,7 +58,6 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
       avatar: true,
       name: true,
       webhooks: true,
-      organizationId: true,
       teams: {
         where: {
           accepted: true,
@@ -92,7 +91,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
   let userWebhooks = user.webhooks;
   userWebhooks = userWebhooks.filter(filterWebhooks);
   let webhookGroups: WebhookGroup[] = [];
-  const bookerUrl = await getBookerBaseUrl(user);
+  const bookerUrl = await getBookerBaseUrl(ctx.user.profile?.organizationId ?? null);
 
   const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
   webhookGroups.push({

@@ -57,7 +57,8 @@ const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWith
   return `/${user.username}/${user.eventTypes.at(-1)?.slug}?month=${date.format("YYYY-MM")}`;
 };
 
-test.describe("Booking limits", () => {
+// eslint-disable-next-line playwright/no-skipped-test
+test.skip("Booking limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
 

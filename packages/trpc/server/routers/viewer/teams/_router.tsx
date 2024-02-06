@@ -12,6 +12,7 @@ import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
+import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
@@ -31,7 +32,7 @@ export const viewerTeamsRouter = router({
     return handler(opts);
   }),
   // Returns teams I a member of
-  list: authedProcedure.query(async (opts) => {
+  list: authedProcedure.input(ZGetListSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
     return handler(opts);
   }),

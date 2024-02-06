@@ -133,7 +133,7 @@
   "engines": {
     "node": ">=18.x",
     "npm": ">=7.0.0",
-    "yarn": ">=1.19.0 < 2.0.0"
+    "yarn": "3.4.1"
   },
   "prisma": {
     "schema": "packages/prisma/schema.prisma",
