@@ -1,6 +1,7 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { User } from "@prisma/client";
 
 import { getEventTypeById } from "@calcom/platform-libraries";
 
@@ -27,18 +28,19 @@ export class EventTypesRepository {
     });
   }
 
-  async getUserEventTypeForAtom(userId: number, isUserOrganizationAdmin: boolean, eventTypeId: number) {
+  async getUserEventTypeForAtom(user: User, isUserOrganizationAdmin: boolean, eventTypeId: number) {
     try {
       return getEventTypeById({
+        currentOrganizationId: user.organizationId,
         eventTypeId,
-        userId,
+        userId: user.id,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         prisma: this.dbRead.prisma,
         isUserOrganizationAdmin,
       });
     } catch (error) {
-      throw new NotFoundException(`User with id ${userId} has no event type with id ${eventTypeId}`);
+      throw new NotFoundException(`User with id ${user.id} has no event type with id ${eventTypeId}`);
     }
   }
 }

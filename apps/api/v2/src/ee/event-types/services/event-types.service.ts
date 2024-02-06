@@ -25,7 +25,7 @@ export class EventTypesService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, user.organizationId)
       : false;
 
-    return this.eventTypesRepository.getUserEventTypeForAtom(user.id, isUserOrganizationAdmin, eventTypeId);
+    return this.eventTypesRepository.getUserEventTypeForAtom(user, isUserOrganizationAdmin, eventTypeId);
   }
 
   async createUserDefaultEventTypes(userId: number) {
