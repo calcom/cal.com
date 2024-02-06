@@ -1011,6 +1011,7 @@ async function handler(
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
+    luckyUsers,
     ...reqBody
   } = await getBookingData({
     req,
@@ -1227,6 +1228,8 @@ async function handler(
     }
   }
 
+  let luckyUserResponse;
+
   //checks what users are available
   if (!eventType.seatsPerTimeSlot) {
     const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
@@ -1241,15 +1244,37 @@ async function handler(
         },
       }),
     };
-    if (req.body.allRecurringDates) {
-      if (req.body.isFirstRecurringSlot) {
-        for (
-          let i = 0;
-          i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
-          i++
-        ) {
-          const start = req.body.allRecurringDates[i].start;
-          const end = req.body.allRecurringDates[i].end;
+    if (req.body.allRecurringDates && req.body.isFirstRecurringSlot) {
+      const isTeamEvent =
+        eventType.schedulingType === SchedulingType.COLLECTIVE ||
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+
+      const fixedUsers = isTeamEvent
+        ? eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed)
+        : [];
+
+      for (
+        let i = 0;
+        i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+        i++
+      ) {
+        const start = req.body.allRecurringDates[i].start;
+        const end = req.body.allRecurringDates[i].end;
+        if (isTeamEvent) {
+          // each fixed user must be available
+          for (const key in fixedUsers) {
+            await ensureAvailableUsers(
+              { ...eventTypeWithUsers, users: [fixedUsers[key]] },
+              {
+                dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                timeZone: reqBody.timeZone,
+                originalRescheduledBooking,
+              },
+              loggerWithEventDetails
+            );
+          }
+        } else {
           await ensureAvailableUsers(
             eventTypeWithUsers,
             {
@@ -1263,6 +1288,7 @@ async function handler(
         }
       }
     }
+
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
       const availableUsers = await ensureAvailableUsers(
         eventTypeWithUsers,
@@ -1277,6 +1303,8 @@ async function handler(
 
       const luckyUsers: typeof users = [];
       const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      const notAvailableLuckyUsers: typeof users = [];
+
       loggerWithEventDetails.debug(
         "Computed available users",
         safeStringify({
@@ -1289,14 +1317,46 @@ async function handler(
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
           // find a lucky user that is not already in the luckyUsers array
           availableUsers: luckyUserPool.filter(
-            (user) => !luckyUsers.find((existing) => existing.id === user.id)
+            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           ),
           eventTypeId: eventType.id,
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }
-        luckyUsers.push(newLuckyUser);
+        if (req.body.isFirstRecurringSlot && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+          // for recurring round robin events check if lucky user is available for next slots
+          try {
+            for (
+              let i = 0;
+              i < req.body.allRecurringDates.length && i < req.body.numSlotsToCheckForAvailability;
+              i++
+            ) {
+              const start = req.body.allRecurringDates[i].start;
+              const end = req.body.allRecurringDates[i].end;
+
+              await ensureAvailableUsers(
+                { ...eventTypeWithUsers, users: [newLuckyUser] },
+                {
+                  dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                  dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                  timeZone: reqBody.timeZone,
+                  originalRescheduledBooking,
+                },
+                loggerWithEventDetails
+              );
+            }
+            // if no error, then lucky user is available for the next slots
+            luckyUsers.push(newLuckyUser);
+          } catch {
+            notAvailableLuckyUsers.push(newLuckyUser);
+            loggerWithEventDetails.info(
+              `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
+            );
+          }
+        } else {
+          luckyUsers.push(newLuckyUser);
+        }
       }
       // ALL fixed users must be available
       if (
@@ -1306,7 +1366,20 @@ async function handler(
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
+      luckyUserResponse = { luckyUsers };
+    } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      // all recurring slots except the first one
+      const luckyUsersFromFirstBooking = luckyUsers
+        ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
+        : [];
+      const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
+      users = [...fixedHosts, ...luckyUsersFromFirstBooking];
     }
+  }
+
+  if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    loggerWithEventDetails.error(`No available users found for round robin event.`);
+    throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
   const [organizerUser] = users;
@@ -1577,7 +1650,7 @@ async function handler(
     });
     if (newBooking) {
       req.statusCode = 201;
-      return newBooking;
+      return { ...newBooking, ...luckyUserResponse };
     }
   }
   if (isTeamEventType) {
@@ -2171,7 +2244,13 @@ async function handler(
     });
 
     req.statusCode = 201;
-    return { ...booking, message: "Payment required", paymentUid: payment?.uid, paymentId: payment?.id };
+    return {
+      ...booking,
+      ...luckyUserResponse,
+      message: "Payment required",
+      paymentUid: payment?.uid,
+      paymentId: payment?.id,
+    };
   }
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
@@ -2296,6 +2375,7 @@ async function handler(
   req.statusCode = 201;
   return {
     ...booking,
+    ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
   };
