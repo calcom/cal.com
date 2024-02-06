@@ -208,7 +208,7 @@ const FixedHosts = ({
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
-  automaticAddAllEnabled,
+  isRoundRobinEvent = false,
   setValue,
   getValues,
 }: {
@@ -222,40 +222,88 @@ const FixedHosts = ({
   }[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
-  automaticAddAllEnabled: boolean;
   setValue: UseFormSetValue<FormValues>;
   getValues: UseFormGetValues<FormValues>;
+  isRoundRobinEvent?: boolean;
 }) => {
   const { t } = useLocale();
 
+  const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
+
+  const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
+
   return (
-    <div className="rounded-lg ">
-      <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
-        <Label className="mb-1 text-sm font-semibold">{t("fixed_hosts")}</Label>
-        <p className="text-subtle max-w-full break-words text-sm leading-tight">{FixedHostHelper}</p>
-      </div>
-      <div className="border-subtle rounded-b-md border border-t-0">
-        <AddMembersWithSwitch
-          teamMembers={teamMembers}
-          value={value}
-          onChange={onChange}
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          automaticAddAllEnabled={automaticAddAllEnabled}
-          isFixed={true}
-          getValues={getValues}
-          onActive={() =>
-            setValue(
-              "hosts",
-              teamMembers.map((teamMember) => ({
-                isFixed: true,
-                userId: parseInt(teamMember.value, 10),
-                priority: 2,
-              }))
-            )
-          }
-        />
-      </div>
+    <div className="mt-5 rounded-lg">
+      {!isRoundRobinEvent ? (
+        <>
+          <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
+            <Label className="mb-1 text-sm font-semibold">{t("fixed_hosts")}</Label>
+            <p className="text-subtle max-w-full break-words text-sm leading-tight">{FixedHostHelper}</p>
+          </div>
+          <div className="border-subtle rounded-b-md border border-t-0">
+            <AddMembersWithSwitch
+              teamMembers={teamMembers}
+              value={value}
+              onChange={onChange}
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              automaticAddAllEnabled={!isRoundRobinEvent}
+              isFixed={true}
+              getValues={getValues}
+              onActive={() =>
+                setValue(
+                  "hosts",
+                  teamMembers.map((teamMember) => ({
+                    isFixed: true,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: 2,
+                  }))
+                )
+              }
+            />
+          </div>
+        </>
+      ) : (
+        <SettingsToggle
+          toggleSwitchAtTheEnd={true}
+          title={t("fixed_hosts")}
+          description={FixedHostHelper}
+          checked={isDisabled}
+          labelClassName="text-sm"
+          descriptionClassName=" text-sm text-subtle"
+          onCheckedChange={(checked) => {
+            if (!checked) {
+              //remove all fixed hosts with setValue
+              const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+              setValue("hosts", rrHosts);
+            }
+            setIsDisabled(checked);
+          }}
+          childrenClassName="lg:ml-0">
+          <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0">
+            <AddMembersWithSwitch
+              teamMembers={teamMembers}
+              value={value}
+              onChange={onChange}
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              automaticAddAllEnabled={!isRoundRobinEvent}
+              isFixed={true}
+              getValues={getValues}
+              onActive={() =>
+                setValue(
+                  "hosts",
+                  teamMembers.map((teamMember) => ({
+                    isFixed: true,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: 2,
+                  }))
+                )
+              }
+            />
+          </div>
+        </SettingsToggle>
+      )}
     </div>
   );
 };
@@ -344,7 +392,6 @@ const RoundRobinHosts = ({
   getValues: UseFormGetValues<FormValues>;
 }) => {
   const { t } = useLocale();
-  const formMethods = useFormContext<FormValues>();
 
   return (
     <div className="rounded-lg ">
@@ -466,7 +513,6 @@ const Hosts = ({
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
-              automaticAddAllEnabled={true}
               setValue={formMethods.setValue}
               getValues={formMethods.getValues}
             />
@@ -481,7 +527,7 @@ const Hosts = ({
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
-                automaticAddAllEnabled={false}
+                isRoundRobinEvent={true}
                 setValue={formMethods.setValue}
                 getValues={formMethods.getValues}
               />
