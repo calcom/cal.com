@@ -23,6 +23,14 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       where: {
         id: formId,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
     });
     if (!form) {
       throw new TRPCError({
