@@ -32,7 +32,11 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       include: {
         customInputs: true,
         schedule: true,
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
         team: true,
         workflows: true,
         webhooks: true,
