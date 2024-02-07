@@ -117,7 +117,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   // Users ALWAYS have an image (albeit a gray empty person avatar), so this mainly filters out
   // any non existing images for dynamic collectives, while at the same time removing them from
   // the names list, because the profile name of that event is a concatenation of all names.
-  const attendees = (profile?.image ? [profile, ...users] : users).filter(
+  const attendees = (profile.image ? [profile, ...users] : users).filter(
     (value, index, self) => self.findIndex((v) => v.name === value.name) == index
   );
 

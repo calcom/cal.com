@@ -19,6 +19,7 @@ const generateHashedLink = (id: number) => {
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
+  profileId: number | null;
   updatedEventType: {
     schedulingType: SchedulingType | null;
     slug: string;
@@ -101,6 +102,7 @@ export default async function handleChildrenEventTypes({
   connectedLink,
   children,
   prisma,
+  profileId,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -177,6 +179,7 @@ export default async function handleChildrenEventTypes({
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
+            profileId: profileId ?? null,
             ...managedEventTypeValues,
             ...unlockedEventTypeValues,
             bookingLimits:
@@ -233,6 +236,7 @@ export default async function handleChildrenEventTypes({
           },
           data: {
             ...managedEventTypeValues,
+            profileId: profileId ?? null,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
             bookingLimits:
               (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,

@@ -206,11 +206,13 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => {
+export const stringToDayjs = (val: string) => {
   const matches = val.match(/([+-]\d{2}:\d{2})$/);
   const timezone = matches ? matches[1] : "+00:00";
   return dayjs(val).utcOffset(timezone);
-});
+};
+
+export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -271,6 +273,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         })
       )
       .optional(),
+    luckyUsers: z.array(z.number()).optional(),
   })
 );
 
@@ -329,6 +332,14 @@ export const userMetadata = z
       })
       .optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
+    migratedToOrgFrom: z
+      .object({
+        username: z.string().or(z.null()).optional(),
+        lastMigrationTime: z.string().optional(),
+        reverted: z.boolean().optional(),
+        revertTime: z.string().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
@@ -336,7 +347,7 @@ export type userMetadataType = z.infer<typeof userMetadata>;
 
 export const teamMetadataSchema = z
   .object({
-    requestedSlug: z.string(),
+    requestedSlug: z.string().or(z.null()),
     paymentId: z.string(),
     subscriptionId: z.string().nullable(),
     subscriptionItemId: z.string().nullable(),

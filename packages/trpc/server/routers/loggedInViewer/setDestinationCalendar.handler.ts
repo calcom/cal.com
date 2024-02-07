@@ -17,7 +17,7 @@ type SetDestinationCalendarOptions = {
 export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinationCalendarOptions) => {
   const { user } = ctx;
   const { integration, externalId, eventTypeId } = input;
-  const credentials = await getUsersCredentials(user.id);
+  const credentials = await getUsersCredentials(user);
   const calendarCredentials = getCalendarCredentials(credentials);
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
