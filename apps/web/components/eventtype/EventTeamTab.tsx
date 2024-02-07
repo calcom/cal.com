@@ -338,9 +338,7 @@ const AddMembersWithSwitch = ({
         ) : (
           <></>
         )}
-        {assignAllTeamMembers && automaticAddAllEnabled ? (
-          <div className="" />
-        ) : (
+        {!assignAllTeamMembers || !automaticAddAllEnabled ? (
           <CheckedHostField
             value={value}
             onChange={onChange}
@@ -348,6 +346,8 @@ const AddMembersWithSwitch = ({
             options={teamMembers.sort(sortByLabel)}
             placeholder={t("add_attendees")}
           />
+        ) : (
+          <></>
         )}
       </div>
     </div>

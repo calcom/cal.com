@@ -29,14 +29,6 @@ export type CheckedSelectOption = {
   disabled?: boolean;
 };
 
-const priorityOptions = [
-  { label: "Lowest", value: 0 },
-  { label: "Low", value: 1 },
-  { label: "Medium", value: 2 },
-  { label: "High", value: 3 },
-  { label: "Highest", value: 4 },
-];
-
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
@@ -129,6 +121,14 @@ const PriorityDialog = (props: IPriiorityDialog) => {
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
   const { getValues } = useFormContext<FormValues>();
 
+  const priorityOptions = [
+    { label: t("lowest"), value: 0 },
+    { label: t("low"), value: 1 },
+    { label: t("medium"), value: 2 },
+    { label: t("high"), value: 3 },
+    { label: t("highest"), value: 4 },
+  ];
+
   const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
     if (!!newPriority) {
@@ -157,13 +157,7 @@ const PriorityDialog = (props: IPriiorityDialog) => {
             defaultValue={priorityOptions[option.priority ?? 2]}
             value={newPriority}
             onChange={(value) => setNewPriority(value ?? priorityOptions[2])}
-            options={[
-              { label: t("Lowest"), value: 0 },
-              { label: t("low"), value: 1 },
-              { label: t("medium"), value: 2 },
-              { label: t("high"), value: 3 },
-              { label: t("highest"), value: 4 },
-            ]}
+            options={priorityOptions}
           />
         </div>
 
