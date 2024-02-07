@@ -7,11 +7,12 @@ import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 export type ScheduleWithAvailabilities = ScheduleModel & { availability: AvailabilityModel[] };
 
-export type ScheduleWithAvailabilitiesForWeb = Pick<ScheduleModel, "id" | "name" | "timeZone"> & {
+export type ScheduleWithAvailabilitiesForWeb = Pick<ScheduleModel, "id" | "name"> & {
   isManaged: boolean;
   workingHours: ReturnType<typeof transformWorkingHoursForClient>;
   schedule: AvailabilityModel[];
   availability: ReturnType<typeof transformAvailabilityForClient>;
+  timeZone: string;
   dateOverrides: ReturnType<typeof transformDateOverridesForClient>;
   isDefault: boolean;
   isLastSchedule: boolean;
