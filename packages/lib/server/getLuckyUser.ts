@@ -110,7 +110,7 @@ function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & { pr
   const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
 
   return availableUsers.filter(
-    (user) => user.priority === highestPriority || (user.priority === null && highestPriority === 2)
+    (user) => user.priority === highestPriority || (user.priority == null && highestPriority === 2)
   );
 }
 
