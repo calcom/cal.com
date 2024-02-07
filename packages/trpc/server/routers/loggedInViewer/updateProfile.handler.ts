@@ -284,6 +284,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   return {
     ...input,
+    email: sendEmailVerification && hasEmailChangedOnCalProvider ? user.email : input.email,
     signOutUser,
     passwordReset,
     avatarUrl: updatedUser.avatarUrl,
