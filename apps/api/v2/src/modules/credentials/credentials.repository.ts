@@ -4,7 +4,6 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import { ValueType } from "@calcom/platform-types";
 
 @Injectable()
 export class CredentialsRepository {
@@ -50,6 +49,6 @@ export class CredentialsRepository {
   }
 }
 
-export type CredentialsWithUserEmail = ValueType<
+export type CredentialsWithUserEmail = Awaited<
   ReturnType<typeof CredentialsRepository.prototype.getUserCredentialsByIds>
 >;
