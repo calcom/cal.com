@@ -21,29 +21,23 @@ test.describe("Availablity tests", () => {
   });
 
   test("Date Overrides", async ({ page }) => {
-    await test.step("Can add a date override", async () => {
-      await page.getByTestId("schedules").first().click();
-      await page.getByTestId("add-override").click();
-      await page.locator('[id="modal-title"]').waitFor();
-      await page.getByTestId("incrementMonth").click();
-      await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
-      await page.getByTestId("date-override-mark-unavailable").click();
-      await page.getByTestId("add-override-submit-btn").click();
-      await page.getByTestId("dialog-rejection").click();
-      await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
-      await page.locator('[form="availability-form"][type="submit"]').click();
-    });
-
-    await test.step("Date override is displayed in troubleshooter", async () => {
-      const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
-      const json = await response.json();
-      // @ts-expect-error trust me bro
-      const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
-      const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
-      await page.goto(troubleshooterURL);
-      await page.waitForLoadState("networkidle");
-      await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
-    });
+    await page.getByTestId("schedules").first().click();
+    await page.getByTestId("add-override").click();
+    await page.locator('[id="modal-title"]').waitFor();
+    await page.getByTestId("incrementMonth").click();
+    await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
+    await page.getByTestId("date-override-mark-unavailable").click();
+    await page.getByTestId("add-override-submit-btn").click();
+    await page.getByTestId("dialog-rejection").click();
+    await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
+    await page.locator('[form="availability-form"][type="submit"]').click();
+    const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
+    const json = await response.json();
+    const nextMonth = dayjs().add(1, "month").startOf("month");
+    const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
+    await page.goto(troubleshooterURL);
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 
   test("Schedule listing", async ({ page }) => {

@@ -37,8 +37,16 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+  const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
   // only OWNER can update the role to OWNER
-  if (input.role === MembershipRole.OWNER && !(await isOrganisationOwner(userId, organizationId))) {
+  if (input.role === MembershipRole.OWNER && !isUpdaterAnOwner) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const isUserBeingUpdatedOwner = await isOrganisationOwner(input.userId, organizationId);
+
+  // only owner can update the role of another owner
+  if (isUserBeingUpdatedOwner && !isUpdaterAnOwner) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
