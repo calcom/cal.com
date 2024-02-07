@@ -2,8 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_DIRECT_URL")
 }
 
 generator client {
@@ -294,9 +295,9 @@ model Profile {
   organization   Team        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   username       String
   eventTypes     EventType[]
-  movedFromUser User?    @relation("moved_to_profile")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  movedFromUser  User?       @relation("moved_to_profile")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@unique([userId, organizationId])
   @@index([uid])
