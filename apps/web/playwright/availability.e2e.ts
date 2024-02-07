@@ -33,7 +33,6 @@ test.describe("Availablity tests", () => {
     await page.locator('[form="availability-form"][type="submit"]').click();
     const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
     const json = await response.json();
-    // @ts-expect-error trust me bro
     const nextMonth = dayjs().add(1, "month").startOf("month");
     const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);

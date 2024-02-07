@@ -318,7 +318,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       const startTime = dayjs.utc(override.startTime);
       const endTime = dayjs.utc(override.endTime);
       if (
-        startTime.isBetween(dateFrom, dateTo, null, "[]") &&
+        startTime.isBetween(dateFrom, dateTo, null, "[]") ||
         endTime.isBetween(dateFrom, dateTo, null, "[]")
       ) {
         dateOverrides.push({
