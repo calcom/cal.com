@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -11,6 +10,9 @@ import TeamListItem from "./TeamListItem";
 
 interface Props {
   teams: RouterOutputs["viewer"]["teams"]["list"];
+  /**
+   * True for teams that are pending invite acceptance
+   */
   pending?: boolean;
 }
 
@@ -18,6 +20,7 @@ export default function TeamList(props: Props) {
   const utils = trpc.useContext();
 
   const { t } = useLocale();
+  const { data: user } = trpc.viewer.me.useQuery();
 
   const [hideDropdown, setHideDropdown] = useState(false);
 
@@ -43,12 +46,13 @@ export default function TeamList(props: Props) {
     deleteTeamMutation.mutate({ teamId });
   }
 
+  if (!user) return null;
   const hasOrgPlan = false;
-
+  const isUserAlreadyInAnOrganization = user.profile.organization;
   return (
     <ul className="bg-default divide-subtle border-subtle mb-2 divide-y overflow-hidden rounded-md border">
       {!props.pending &&
-        !IS_CALCOM &&
+        !isUserAlreadyInAnOrganization &&
         props.teams.length > 2 &&
         props.teams.map(
           (team, i) =>

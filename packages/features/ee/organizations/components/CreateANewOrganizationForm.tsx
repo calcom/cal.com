@@ -103,7 +103,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
           <Controller
             name="adminEmail"
             control={newOrganizationFormMethods.control}
-            defaultValue=""
+            defaultValue={session.data?.user.email ?? ""}
             rules={{
               required: t("must_enter_organization_admin_email"),
             }}
@@ -113,6 +113,7 @@ export const CreateANewOrganizationForm = ({ slug }: { slug?: string }) => {
                   containerClassName="w-full"
                   placeholder="john@acme.com"
                   name="adminEmail"
+                  disabled={!isAdmin && !isImpersonated}
                   label={t("admin_email")}
                   defaultValue={value}
                   onChange={(e) => {

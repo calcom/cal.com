@@ -17,7 +17,7 @@ export const createAProfileForAnExistingUser = async ({
   user: {
     email: string;
     id: number;
-    username: string | null;
+    currentUsername: string | null;
   };
   organizationId: number;
 }) => {
@@ -43,7 +43,7 @@ export const createAProfileForAnExistingUser = async ({
 
   log.debug(
     "Created profile for user",
-    safeStringify({ userId: user.id, profileId: profile.id, usernameInOrg, username: user.username })
+    safeStringify({ userId: user.id, profileId: profile.id, usernameInOrg, username: user.currentUsername })
   );
 
   const orgSlug = org.slug || org.requestedSlug;
@@ -54,25 +54,25 @@ export const createAProfileForAnExistingUser = async ({
 
   const orgUrl = getOrgFullOrigin(orgSlug);
 
-  if (user.username) {
-    log.debug(`Creating redirect for user ${user.username} to ${orgUrl}/${usernameInOrg}`);
+  if (user.currentUsername) {
+    log.debug(`Creating redirect for user ${user.currentUsername} to ${orgUrl}/${usernameInOrg}`);
     await prisma.tempOrgRedirect.upsert({
       where: {
         from_type_fromOrgId: {
-          from: user.username,
+          from: user.currentUsername,
           type: RedirectType.User,
           fromOrgId: 0,
         },
       },
       update: {
         type: RedirectType.User,
-        from: user.username,
+        from: user.currentUsername,
         fromOrgId: 0,
         toUrl: `${orgUrl}/${usernameInOrg}`,
       },
       create: {
         type: RedirectType.User,
-        from: user.username,
+        from: user.currentUsername,
         fromOrgId: 0,
         toUrl: `${orgUrl}/${usernameInOrg}`,
       },
