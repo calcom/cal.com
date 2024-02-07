@@ -47,7 +47,7 @@ const loginWithTotp = async (user: { email: string }) =>
 
 type UserTeams = {
   teams: (Membership & {
-    team: Team;
+    team: Pick<Team, "metadata">;
   })[];
 };
 
@@ -106,7 +106,9 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await UserRepository.findByEmailAndIncludeProfiles({ email: credentials.email });
+      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+        email: credentials.email,
+      });
       // Don't leak information about it being username or password that is invalid
       if (!user) {
         throw new Error(ErrorCode.IncorrectEmailPassword);
@@ -273,7 +275,9 @@ if (isSAMLLoginEnabled) {
       email?: string;
       locale?: string;
     }) => {
-      const user = await UserRepository.findByEmailAndIncludeProfiles({ email: profile.email || "" });
+      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+        email: profile.email || "",
+      });
       if (!user) {
         throw new Error(ErrorCode.UserNotFound);
       }
@@ -339,7 +343,7 @@ if (isSAMLLoginEnabled) {
         }
 
         const { id, firstName, lastName, email } = userInfo;
-        const user = await UserRepository.findByEmailAndIncludeProfiles({ email });
+        const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
         if (!user) {
           throw new Error(ErrorCode.UserNotFound);
         }
