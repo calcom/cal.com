@@ -2251,6 +2251,6 @@
   "send_booker_to": "Send Booker to",
   "set_priority": "Set Priority",
   "priority_for_user": "Priority for {{userName}}",
-  "change priority": "change priority",
+  "change_priority": "change priority",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
