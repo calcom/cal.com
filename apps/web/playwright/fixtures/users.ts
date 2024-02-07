@@ -197,7 +197,7 @@ export const createUsersFixture = (
       };
     },
     /**
-     * In case organizationId is passed, it adds a user to the organization but it simulates a scenario where a nonexistent user is added to an organization directly.
+     * In case organizationId is passed, it simulates a scenario where a nonexistent user is added to an organization.
      */
     create: async (
       opts?:

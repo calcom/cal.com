@@ -1,6 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
@@ -11,7 +13,8 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   testName,
 } from "../lib/testUtils";
-import { inviteUserToOrganization } from "./lib/inviteUser";
+import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
+import { acceptTeamOrOrgInvite, inviteExistingUserToOrganization } from "./lib/inviteUser";
 
 test.describe("Bookings", () => {
   test.afterEach(({ orgs, users }) => {
@@ -315,8 +318,8 @@ test.describe("Bookings", () => {
     });
   });
 
-  test.describe("Inviting an existing user first", () => {
-    test("Can create a booking", async ({ page, users, orgs }) => {
+  test.describe("Inviting an existing user and then", () => {
+    test("create a booking on new link", async ({ page, browser, users, orgs, emails }) => {
       const org = await orgs.create({
         name: "TestOrg",
       });
@@ -328,30 +331,63 @@ test.describe("Bookings", () => {
         roleInOrganization: MembershipRole.OWNER,
       });
 
+      const userOutsideOrganization = await users.create({
+        username: "john",
+        name: "John Outside Organization",
+      });
+
       await owner.apiLogin();
 
-      const { invitedUserEmail } = await inviteUserToOrganization({
+      const { invitedUserEmail } = await inviteExistingUserToOrganization({
         page,
         organizationId: org.id,
-        email: "member1@example.com",
+        user: userOutsideOrganization,
         usersFixture: users,
       });
 
-      const event = await user.getFirstEventAsOwner();
-      await page.goto(`/${user.username}/${event.slug}`);
-
-      // Shouldn't be servable on the non-org domain
-      await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
-
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async () => {
-          await bookUserEvent({ page, user, event });
-        }
+      const inviteLink = await expectExistingUserToBeInvitedToOrganization(page, emails, invitedUserEmail);
+      if (!inviteLink) {
+        throw new Error("Invite link not found");
+      }
+      const usernameInOrg = getOrgUsernameFromEmail(
+        invitedUserEmail,
+        org.metadata?.orgAutoAcceptEmail ?? null
       );
+
+      const usernameOutsideOrg = userOutsideOrganization.username;
+      // Before invite is accepted the booking page isn't available
+      await expectPageToBeNotFound({ page, url: `/${usernameInOrg}` });
+      await userOutsideOrganization.apiLogin();
+      await acceptTeamOrOrgInvite(page);
+      await test.step("Book through new link", async () => {
+        await doOnOrgDomain(
+          {
+            orgSlug: org.slug,
+            page,
+          },
+          async () => {
+            await bookUserEvent({
+              page,
+              user: {
+                username: usernameInOrg,
+                name: userOutsideOrganization.name,
+              },
+              event: await userOutsideOrganization.getFirstEventAsOwner(),
+            });
+          }
+        );
+      });
+
+      await test.step("Booking through old link redirects to new link on org domain", async () => {
+        const event = await userOutsideOrganization.getFirstEventAsOwner();
+        await expectRedirectToOrgDomain({
+          page,
+          org,
+          eventSlug: `/${usernameOutsideOrg}/${event.slug}`,
+          expectedEventSlug: `/${usernameInOrg}/${event.slug}`,
+        });
+        // As the redirection correctly happens, the booking would work too which we have verified in previous step. But we can't test that with org domain as that domain doesn't exist.
+      });
     });
   });
 });
@@ -413,4 +449,40 @@ async function bookTeamEvent({
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+}
+
+async function expectRedirectToOrgDomain({
+  page,
+  org,
+  eventSlug,
+  expectedEventSlug,
+}: {
+  page: Page;
+  org: { slug: string | null };
+  eventSlug: string;
+  expectedEventSlug: string;
+}) {
+  if (!org.slug) {
+    throw new Error("Org slug is not defined");
+  }
+  page.goto(eventSlug).catch((e) => {
+    console.log("Expected navigation error to happen");
+  });
+
+  const orgSlug = org.slug;
+
+  const orgRedirectUrl = await new Promise(async (resolve) => {
+    page.on("request", (request) => {
+      if (request.isNavigationRequest()) {
+        const requestedUrl = request.url();
+        console.log("Requested navigation to", requestedUrl);
+        // Resolve on redirection to org domain
+        if (requestedUrl.includes(orgSlug)) {
+          resolve(requestedUrl);
+        }
+      }
+    });
+  });
+
+  expect(orgRedirectUrl).toContain(`${getOrgFullOrigin(org.slug)}${expectedEventSlug}`);
 }

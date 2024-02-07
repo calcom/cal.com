@@ -22,6 +22,33 @@ export const inviteUserToOrganization = async ({
   return { invitedUserEmail };
 };
 
+export const inviteExistingUserToOrganization = async ({
+  page,
+  organizationId,
+  user,
+  usersFixture,
+}: {
+  page: Page;
+  organizationId: number;
+  user: {
+    email: string;
+  };
+  usersFixture: ReturnType<typeof createUsersFixture>;
+}) => {
+  await page.goto("/settings/organizations/members");
+  await page.waitForLoadState("networkidle");
+
+  await inviteAnEmail(page, user.email);
+  await page.waitForSelector('[data-testid="toast-success"]');
+  return { invitedUserEmail: user.email };
+};
+
+export async function acceptTeamOrOrgInvite(page: Page) {
+  await page.goto("/settings/teams");
+  await page.click('[data-testid^="accept-invitation"]');
+  await page.waitForLoadState("networkidle");
+}
+
 async function inviteAnEmail(page: Page, invitedUserEmail: string) {
   await page.locator('button:text("Add")').click();
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
