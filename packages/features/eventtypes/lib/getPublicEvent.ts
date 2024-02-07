@@ -196,6 +196,7 @@ export const getPublicEvent = async (
                   profiles: {
                     some: {
                       organization: orgQuery,
+                      username: username,
                     },
                   },
                 }

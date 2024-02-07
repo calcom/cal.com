@@ -2,8 +2,6 @@ import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
-
-/* eslint-disable no-underscore-dangle */
 import type {
   AnyZodObject,
   objectInputType,
@@ -206,11 +204,13 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => {
+export const stringToDayjs = (val: string) => {
   const matches = val.match(/([+-]\d{2}:\d{2})$/);
   const timezone = matches ? matches[1] : "+00:00";
   return dayjs(val).utcOffset(timezone);
-});
+};
+
+export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
@@ -271,6 +271,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
         })
       )
       .optional(),
+    luckyUsers: z.array(z.number()).optional(),
+    customInputs: z.undefined().optional(),
   })
 );
 
@@ -329,6 +331,7 @@ export const userMetadata = z
       })
       .optional(),
     defaultBookerLayouts: bookerLayouts.optional(),
+    emailChangeWaitingForVerification: z.string().optional(),
     migratedToOrgFrom: z
       .object({
         username: z.string().or(z.null()).optional(),
