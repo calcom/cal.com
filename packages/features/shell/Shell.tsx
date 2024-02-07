@@ -44,6 +44,7 @@ import {
   TOP_BANNER_HEIGHT,
   ENABLE_PROFILE_SWITCHER,
 } from "@calcom/lib/constants";
+import { useFormbricks } from "@calcom/lib/formbricks-client";
 import getBrandColours from "@calcom/lib/getBrandColours";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -236,6 +237,8 @@ const Layout = (props: LayoutProps) => {
       });
     return (activeBanners?.length ?? 0) * TOP_BANNER_HEIGHT;
   }, [banners]);
+
+  useFormbricks();
 
   return (
     <>

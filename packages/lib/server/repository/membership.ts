@@ -4,6 +4,7 @@ import { Prisma } from "@calcom/prisma/client";
 
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
@@ -103,11 +104,14 @@ export class MembershipRepository {
               select: teamParentSelect,
             },
             eventTypes: {
-              include: {
+              select: {
+                ...eventTypeSelect,
                 team: {
-                  include: {
+                  select: {
+                    id: true,
                     eventTypes: {
-                      include: {
+                      select: {
+                        id: true,
                         users: { select: userSelect },
                       },
                     },

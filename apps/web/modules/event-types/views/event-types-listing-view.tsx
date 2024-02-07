@@ -166,11 +166,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return readOnly ? (
     <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
-      <EventTypeDescription
-        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
-        eventType={type}
-        shortenDescription
-      />
+      <EventTypeDescription eventType={type} shortenDescription />
     </div>
   ) : (
     <Link
@@ -197,7 +193,6 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
         )}
       </div>
       <EventTypeDescription
-        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
         shortenDescription
       />
