@@ -323,8 +323,7 @@ export function createBookingPageFixture(page: Page) {
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).click();
       await eventTypePage.getByPlaceholder(reschedulePlaceholderText).fill("Test reschedule");
       await eventTypePage.getByTestId("confirm-reschedule-button").click();
-      await eventTypePage.waitForTimeout(600);
-
+      await eventTypePage.waitForTimeout(400);
       if (
         await eventTypePage.getByRole("heading", { name: "Could not reschedule the meeting." }).isVisible()
       ) {
@@ -396,7 +395,7 @@ export function createBookingPageFixture(page: Page) {
       options.isRequired && (await fillQuestion(eventTypePage, secondQuestion, customLocators));
 
       await eventTypePage.getByTestId(confirmButton).click();
-      await eventTypePage.waitForTimeout(600);
+      await eventTypePage.waitForTimeout(400);
       if (await eventTypePage.getByRole("heading", { name: "Could not book the meeting." }).isVisible()) {
         await eventTypePage.getByTestId("back").click();
         await eventTypePage.getByTestId("time").last().click();
