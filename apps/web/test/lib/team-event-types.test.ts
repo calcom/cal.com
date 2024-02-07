@@ -8,8 +8,8 @@ import { buildUser } from "@calcom/lib/test/builder";
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
     id: 1,
-    username: "test",
-    name: "Test User",
+    username: "test1",
+    name: "Test User 1",
     email: "test@example.com",
     bookings: [
       {
@@ -47,8 +47,8 @@ it("can find lucky user with maximize availability", async () => {
 it("can find lucky user with maximize availability and priority ranking", async () => {
   const user1 = buildUser({
     id: 1,
-    username: "test",
-    name: "Test User",
+    username: "test1",
+    name: "Test User 1",
     email: "test@example.com",
     priority: 2,
     bookings: [
@@ -91,8 +91,8 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
   const userLowest = buildUser({
     id: 1,
-    username: "test",
-    name: "Test User",
+    username: "test1",
+    name: "Test User 1",
     email: "test@example.com",
     priority: 0,
     bookings: [
@@ -142,8 +142,8 @@ it("can find lucky user with maximize availability and priority ranking", async 
 
   const userLow = buildUser({
     id: 1,
-    username: "test",
-    name: "Test User",
+    username: "test1",
+    name: "Test User 1",
     email: "test@example.com",
     priority: 0,
     bookings: [
@@ -166,10 +166,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
   });
 
   const userHighRecentBooking = buildUser({
-    id: 2,
-    username: "test2",
-    name: "Test User 2",
-    email: "tes2t@example.com",
+    id: 3,
+    username: "test3",
+    name: "Test User 3",
+    email: "test3t@example.com",
     priority: 3,
     bookings: [
       {
