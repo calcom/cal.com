@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { UseFormGetValues } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import type { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
@@ -18,7 +18,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 import { X } from "@calcom/ui/components/icon";
-import type { FormValues } from "@calcom/web/pages/event-types/[type]";
+import type { FormValues, Host } from "@calcom/web/pages/event-types/[type]";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -40,12 +40,10 @@ const priorityOptions = [
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
-  getValues,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
-  getValues: UseFormGetValues<FormValues>;
 }) => {
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
@@ -109,7 +107,6 @@ export const CheckedTeamSelect = ({
         <PriorityDialog
           isOpenDialog={priorityDialogOpen}
           setIsOpenDialog={setPriorityDialogOpen}
-          getValues={getValues}
           option={currentOption}
           onChange={props.onChange}
         />
@@ -123,28 +120,30 @@ export const CheckedTeamSelect = ({
 interface IPriiorityDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  getValues: UseFormGetValues<FormValues>;
   option: CheckedSelectOption;
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }
 
 const PriorityDialog = (props: IPriiorityDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, getValues, onChange } = props;
+  const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
+  const { getValues } = useFormContext<FormValues>();
 
   const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
     if (!!newPriority) {
-      const hosts = getValues("hosts");
+      const hosts: Host[] = getValues("hosts");
       const updatedHosts = hosts
         .filter((host) => !host.isFixed)
         .map((host) => {
           return {
-            value: host.userId,
+            ...option,
+            value: host.userId.toString(),
             priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+            isFixed: false,
           };
         })
-        .sort((a, b) => b.priority - a.priority);
+        .sort((a, b) => b.priority ?? 2 - a.priority ?? 2);
       onChange(updatedHosts);
     }
     setIsOpenDialog(false);

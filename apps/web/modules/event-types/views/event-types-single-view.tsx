@@ -82,6 +82,8 @@ const EventWebhooksTab = dynamic(() =>
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
+export type Host = { isFixed: boolean; userId: number; priority: number };
+
 export type FormValues = {
   id: number;
   title: string;
@@ -139,7 +141,7 @@ export type FormValues = {
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
   children: ChildrenEventType[];
-  hosts: { userId: number; isFixed: boolean; priority?: number }[];
+  hosts: Host[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;

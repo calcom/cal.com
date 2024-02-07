@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues, Host } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -20,8 +20,6 @@ interface IUserToValue {
   avatar: string;
   email: string;
 }
-
-type Host = { isFixed: boolean; userId: number; priority: number };
 
 type TeamMember = {
   value: string;
@@ -476,7 +474,6 @@ const Hosts = ({
     });
   }, [schedulingType, resetField, getValues, submitCount]);
 
-  const formMethods = useFormContext<FormValues>();
   return (
     <Controller<FormValues>
       name="hosts"
