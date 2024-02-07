@@ -34,14 +34,13 @@ test.describe("Availablity tests", () => {
     const response = await page.waitForResponse("**/api/trpc/availability/schedule.update?batch=1");
     const json = await response.json();
     // @ts-expect-error trust me bro
-    const date = json[0].result.data.json.schedule.availability.find((a) => !!a.date);
-    const troubleshooterURL = `/availability/troubleshoot?date=${dayjs(date.date).format("YYYY-MM-DD")}`;
+    const nextMonth = dayjs().add(1, "month").startOf("month");
+    const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);
     await page.waitForLoadState("networkidle");
 
     // Testing to see if waiting will allow the view to change after the render issue we have
     // with differences between client/server
-    await page.waitForTimeout(1000);
     await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 

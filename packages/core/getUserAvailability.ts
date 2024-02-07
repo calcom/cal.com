@@ -317,15 +317,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       const override = availabilityWithDates[i];
       const startTime = dayjs.utc(override.startTime);
       const endTime = dayjs.utc(override.endTime);
-      // if (
-      //   startTime.isBetween(dateFrom, dateTo, null, "[]") &&
-      //   endTime.isBetween(dateFrom, dateTo, null, "[]")
-      // ) {
-      dateOverrides.push({
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
-      });
-      //}
+      if (
+        startTime.isBetween(dateFrom, dateTo, null, "[]") &&
+        endTime.isBetween(dateFrom, dateTo, null, "[]")
+      ) {
+        dateOverrides.push({
+          start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
+          end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
+        });
+      }
     }
   }
 
