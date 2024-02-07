@@ -63,7 +63,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     token,
   });
 
-  // Fetch data based on `slug` from your API or any data source
   const response = await fetch(`${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`, {
     method: "POST",
   });
