@@ -354,6 +354,9 @@ function BookingListItem(booking: BookingItemProps) {
             ? [booking.user.email || ""].concat(booking.attendees.map((attendee) => attendee.email))
             : []
         }
+        eventTypeId={booking.eventType?.id}
+        teamId={booking.eventType?.team?.id}
+        bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog

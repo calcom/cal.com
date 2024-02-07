@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import type { Host } from "@calcom/ee/teams/components/TeamAssignList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Label, Select } from "@calcom/ui";
 import { RadioGroup as RadioArea } from "@calcom/ui";
 
@@ -11,6 +12,9 @@ type ReassignDialog = {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   hosts?: Host[];
   assignedHosts: string[];
+  eventTypeId: number;
+  teamId: number;
+  bookingId: number;
 };
 
 const MemberReassignStep = ({
@@ -60,10 +64,20 @@ const MemberReassignStep = ({
   );
 };
 
-export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, hosts, assignedHosts }: ReassignDialog) => {
+export const ReassignDialog = ({
+  isOpenDialog,
+  setIsOpenDialog,
+  hosts,
+  assignedHosts,
+  eventTypeId,
+  teamId,
+  bookingId,
+}: ReassignDialog) => {
   const { t } = useLocale();
   const [reassignTarget, setReassignTarget] = useState<"round-robin" | "choose-member">("round-robin");
   const [selectedHost, setSelectedHost] = useState(0);
+
+  const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation();
 
   return (
     <Dialog
@@ -106,11 +120,12 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, hosts, assignedH
             data-testid="rejection-confirm"
             onClick={() => {
               if (reassignTarget === "round-robin") {
+                roundRobinReassignMutation.mutate({ teamId, eventTypeId, bookingId });
                 //assign to the least recently booked available rr host, backend work needed
               } else {
                 // assign to selected host, backend work needed
               }
-              setIsOpenDialog(false);
+              // setIsOpenDialog(false);
             }}>
             {t("reassign")}
           </Button>
