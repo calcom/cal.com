@@ -245,7 +245,7 @@ const Layout = (props: LayoutProps) => {
       {!props.withoutSeo && (
         <HeadSeo
           title={pageTitle ?? APP_NAME}
-          description={props.subtitle ? props.subtitle?.toString() : ""}
+          description={props.description ?? props.subtitle?.toString() ?? ""}
         />
       )}
       <div>
@@ -302,6 +302,7 @@ type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<bool
 type LayoutProps = {
   centered?: boolean;
   title?: string;
+  description?: string;
   heading?: ReactNode;
   subtitle?: ReactNode;
   headerClassName?: string;

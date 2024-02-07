@@ -1,6 +1,5 @@
 "use client";
 
-import { getLayout } from "@calcom/features/MainLayout";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -11,7 +10,7 @@ import {
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -47,7 +46,12 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+      <Shell
+        withoutMain={false}
+        heading="Insights"
+        subtitle={t("insights_subtitle")}
+        title="Insights"
+        description="View booking insights across your events.">
         <UpgradeTip
           plan="team"
           title={t("make_informed_decisions")}
@@ -99,12 +103,11 @@ export default function InsightsPage() {
             </FiltersProvider>
           )}
         </UpgradeTip>
-      </ShellMain>
+      </Shell>
     </div>
   );
 }
 
 InsightsPage.PageWrapper = PageWrapper;
-InsightsPage.getLayout = getLayout;
 
 export { getServerSideProps };
