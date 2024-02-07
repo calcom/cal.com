@@ -4229,6 +4229,7 @@ __metadata:
     "@calcom/types": "*"
     "@faker-js/faker": ^7.3.0
     "@formbricks/api": ^1.1.0
+    "@formbricks/js": ^1.5.0
     "@sendgrid/client": ^7.7.0
     "@vercel/og": ^0.5.0
     bcryptjs: ^2.4.3
@@ -6304,6 +6305,13 @@ __metadata:
   version: 1.4.0
   resolution: "@formbricks/api@npm:1.4.0"
   checksum: 2fabf27f7a1013d7e327e1c1d3d99d4860451a51ce7775968d62e9cd6149b62fce4e736b4a5c21800040b257bff82733a28c3409d8d0ae48cb59d61ca1738c6a
+  languageName: node
+  linkType: hard
+
+"@formbricks/js@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@formbricks/js@npm:1.5.0"
+  checksum: b9ba81484f205888f6db81b48b0e5178458b4de8fa3dd76a6f95378656d739204adab502356181fce08fcb65a3b324047ffeb977d8bf556b3e95f652b67aee4d
   languageName: node
   linkType: hard
 
