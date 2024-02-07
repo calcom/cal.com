@@ -42,6 +42,9 @@ jobs:
     services:
       postgres:
         image: postgres:12.1
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_DB: calendso
