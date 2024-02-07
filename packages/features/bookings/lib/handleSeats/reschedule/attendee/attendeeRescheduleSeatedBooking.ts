@@ -6,7 +6,7 @@ import { sendRescheduledSeatEmail } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
 
-import { findBookingQuery } from "../../../handleNewBooking";
+import { findBookingQuery } from "../../../../../../../modules/bookingQueries/findBookingQuery";
 import lastAttendeeDeleteBooking from "../../lib/lastAttendeeDeleteBooking";
 import type { RescheduleSeatedBookingObject, SeatAttendee, NewTimeSlotBooking } from "../../types";
 

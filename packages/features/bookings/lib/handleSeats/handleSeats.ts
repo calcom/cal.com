@@ -7,7 +7,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { createLoggerWithEventDetails } from "../handleNewBooking";
+import { createLoggerWithEventDetails } from "../../../../../modules/logger/createLoggerWithEventDetails";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";

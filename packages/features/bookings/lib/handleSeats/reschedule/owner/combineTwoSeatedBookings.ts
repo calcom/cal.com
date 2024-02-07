@@ -9,8 +9,9 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
-import { addVideoCallDataToEvent, findBookingQuery } from "../../../handleNewBooking";
+import { findBookingQuery } from "../../../../../../../modules/bookingQueries/findBookingQuery";
+import type { createLoggerWithEventDetails } from "../../../../../../../modules/logger/createLoggerWithEventDetails";
+import { addVideoCallDataToEvent } from "../../../../../../../modules/videoCall/addVideoCallDataToEvent";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
