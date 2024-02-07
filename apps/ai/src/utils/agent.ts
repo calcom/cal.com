@@ -13,7 +13,7 @@ import type { User, UserList } from "../types/user";
 import type { WorkingHours } from "../types/workingHours";
 import now from "./now";
 
-const gptModel = "gpt-4-0613";
+const gptModel = "gpt-4-0125-preview";
 
 /**
  * Core of the Cal.ai booking agent: a LangChain Agent Executor.
