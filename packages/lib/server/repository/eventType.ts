@@ -99,14 +99,6 @@ export class EventTypeRepository {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
-    const userSelect = {
-      id: true,
-      username: true,
-      email: true,
-      name: true,
-      avatarUrl: true,
-    };
-
     const include = {
       // TODO:  As required by getByViewHandler - Make it configurable
       team: {

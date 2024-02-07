@@ -196,6 +196,9 @@ export const createUsersFixture = (
         password: opts?.password ?? uname,
       };
     },
+    /**
+     * In case organizationId is passed, it adds a user to the organization but it simulates a scenario where a nonexistent user is added to an organization directly.
+     */
     create: async (
       opts?:
         | (CustomUserOpts & {
@@ -726,6 +729,7 @@ const createUser = (
       throw new Error("Missing role for user in organization");
     }
     return {
+      organizationId,
       profiles: {
         create: {
           uid: ProfileRepository.generateProfileUid(),
