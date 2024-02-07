@@ -43,6 +43,7 @@ test.describe("2FA Tests", async () => {
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
 
       await removeOtpInput(page);
+      await page.getByTestId("toast-success").waitFor();
 
       await fillOtp({
         page,
@@ -165,7 +166,7 @@ test.describe("2FA Tests", async () => {
 });
 
 async function removeOtpInput(page: Page) {
-  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 60_000 });
+  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 30_000 });
 
   // Remove one OTP input
   await page.locator('input[name="2fa6"]').focus();
