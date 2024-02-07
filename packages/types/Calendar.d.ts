@@ -267,4 +267,7 @@ type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 
 export type CalendarClass = Class<Calendar, [CredentialPayload]>;
 
-export type SelectedCalendar = Omit<_SelectedCalendar, "metadata">;
+export type SelectedCalendar = Pick<
+  _SelectedCalendar,
+  "userId" | "integration" | "externalId" | "credentialId"
+>;
