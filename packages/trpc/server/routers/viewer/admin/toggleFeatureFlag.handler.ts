@@ -36,10 +36,7 @@ async function handleFeatureToggle({ ctx, input }: GetOptions) {
     /**
     const watchedCalendars = await prisma.selectedCalendar.findMany({
       where: {
-        metadata: {
-          path: ["kind"],
-          equals: "api#channel",
-        },
+        googleChannelKind: "api#channel",
       },
     });
      */

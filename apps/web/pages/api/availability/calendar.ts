@@ -63,6 +63,7 @@ async function postHandler(req: CustomNextApiRequest) {
   const { credentials: _, ...user } = req.userWithCredentials;
   const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
   const response = await handleWatchCalendar(req);
+
   await prisma.selectedCalendar.upsert({
     where: {
       userId_integration_externalId: {
@@ -77,10 +78,18 @@ async function postHandler(req: CustomNextApiRequest) {
       externalId,
       credentialId,
       googleChannelId: response?.id,
+      googleChannelKind: response?.kind,
+      googleChannelResourceId: response?.resourceId,
+      googleChannelResourceUri: response?.resourceUri,
+      googleChannelExpiration: response?.expiration,
     },
     // already exists
     update: {
       googleChannelId: response?.id,
+      googleChannelKind: response?.kind,
+      googleChannelResourceId: response?.resourceId,
+      googleChannelResourceUri: response?.resourceUri,
+      googleChannelExpiration: response?.expiration,
     },
   });
 

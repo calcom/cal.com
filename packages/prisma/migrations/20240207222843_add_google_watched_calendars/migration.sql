@@ -5,7 +5,11 @@
 
 */
 -- AlterTable
-ALTER TABLE "SelectedCalendar" ADD COLUMN     "googleChannelId" TEXT;
+ALTER TABLE "SelectedCalendar" ADD COLUMN     "googleChannelExpiration" TEXT,
+ADD COLUMN     "googleChannelId" TEXT,
+ADD COLUMN     "googleChannelKind" TEXT,
+ADD COLUMN     "googleChannelResourceId" TEXT,
+ADD COLUMN     "googleChannelResourceUri" TEXT;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SelectedCalendar_googleChannelId_key" ON "SelectedCalendar"("googleChannelId");

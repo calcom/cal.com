@@ -4,7 +4,6 @@ import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -111,14 +110,6 @@ function parseArgsForCache(args: FreeBusyArgs): FreeBusyArgs {
   const { timeMin, timeMax } = handleMinMax(args.timeMin, args.timeMax);
   return { timeMin, timeMax, items };
 }
-
-const watchCalendarSchema = z.object({
-  kind: z.literal("api#channel"),
-  id: z.string(),
-  resourceId: z.string(),
-  resourceUri: z.string(),
-  expiration: z.string(),
-});
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -681,17 +672,12 @@ export default class GoogleCalendarService implements Calendar {
     });
     // Delete the calendar cache to force a fresh cache
     await prisma.calendarCache.deleteMany({ where: { credentialId } });
-    const parsedData = watchCalendarSchema.safeParse(sc?.metadata);
-    if (!parsedData.success) {
-      logger.info("Skipped unwatchCalendar due to missing metadata");
-      return;
-    }
     const calendar = await this.authedCalendar();
     await calendar.channels
       .stop({
         requestBody: {
-          resourceId: parsedData.data.resourceId,
-          id: parsedData.data.id,
+          resourceId: sc?.googleChannelResourceId,
+          id: sc?.googleChannelId,
         },
       })
       .catch((err) => {

@@ -1,19 +1,16 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL_FOR_OAUTH, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 import { scopes } from "./add";
-
-let client_id = "";
-let client_secret = "";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -35,12 +32,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
 
-  const appKeys = await getAppKeysFromSlug("google-calendar");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) throw new HttpError({ statusCode: 400, message: "Google client_id missing." });
-  if (!client_secret) throw new HttpError({ statusCode: 400, message: "Google client_secret missing." });
-
+  const { client_id, client_secret } = await getGoogleAppKeys();
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
@@ -97,6 +89,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const primaryCal = cals.data.items?.find((cal) => cal.primary);
 
     if (primaryCal?.id) {
+      // TODO: Watch Google Calendar for changes and sync with our system
       await prisma.selectedCalendar.create({
         data: {
           userId: req.session.user.id,
