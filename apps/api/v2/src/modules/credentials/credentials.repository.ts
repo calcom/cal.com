@@ -22,4 +22,29 @@ export class CredentialsRepository {
   getByTypeAndUserId(type: string, userId: number) {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, userId } });
   }
+
+  getUserCredentialsByIds(userId: number, credentialIds: number[]) {
+    return this.dbRead.prisma.credential.findMany({
+      where: {
+        id: {
+          in: credentialIds,
+        },
+        userId: userId,
+      },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        userId: true,
+        teamId: true,
+        appId: true,
+        invalid: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }
