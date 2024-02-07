@@ -4,6 +4,7 @@ import { Prisma } from "@calcom/prisma/client";
 
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
@@ -40,19 +41,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   email: true,
   locale: true,
   defaultScheduleId: true,
-});
-
-const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  id: true,
-  teamId: true,
-  schedulingType: true,
-  userId: true,
-  metadata: true,
-  description: true,
-  hidden: true,
-  slug: true,
-  length: true,
-  title: true,
 });
 
 export class MembershipRepository {

@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 import type { Ensure } from "@calcom/types/utils";
 
 import { safeStringify } from "../../safeStringify";
+import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
@@ -33,19 +34,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
-// We might need to relax it more in future as per requirements
-const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  id: true,
-  teamId: true,
-  schedulingType: true,
-  userId: true,
-  metadata: true,
-  description: true,
-  hidden: true,
-  slug: true,
-  length: true,
-  title: true,
-});
 export class EventTypeRepository {
   static async create(data: IEventType) {
     const {
