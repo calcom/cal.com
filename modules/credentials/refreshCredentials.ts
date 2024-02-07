@@ -8,7 +8,7 @@ import async from "async";
  * @param credentials
  */
 export async function refreshCredentials(
-    credentials: Array<CredentialPayload>
-  ): Promise<Array<CredentialPayload>> {
-    return await async.mapLimit(credentials, 5, refreshCredential);
-  }
+  credentials: Array<CredentialPayload>
+): Promise<Array<CredentialPayload>> {
+  return await async.mapLimit(credentials, 5, refreshCredential);
+}

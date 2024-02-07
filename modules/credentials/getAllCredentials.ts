@@ -6,6 +6,7 @@ import { getEventTypesFromDB } from "../eventTypes/getEventTypesFromDB";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
+
 /**
  * Gets credentials from the user, team, and org if applicable
  *
