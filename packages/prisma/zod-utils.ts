@@ -206,11 +206,13 @@ export const stringOrNumber = z.union([
   z.number().int(),
 ]);
 
-export const stringToDayjs = z.string().transform((val) => {
+export const stringToDayjs = (val: string) => {
   const matches = val.match(/([+-]\d{2}:\d{2})$/);
   const timezone = matches ? matches[1] : "+00:00";
   return dayjs(val).utcOffset(timezone);
-});
+};
+
+export const stringToDayjsZod = z.string().transform(stringToDayjs);
 
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),

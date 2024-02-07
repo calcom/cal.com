@@ -3,13 +3,16 @@ import type {
     AdditionalInformation,
     AppsStatus,
 } from "@calcom/types/Calendar";
-
 import { getBookingData } from "../booking/getBookingData";
-type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
 import { Prisma } from "@calcom/prisma/client";
 import { createBooking } from "@calcom/features/bookings/lib";
+import { getOriginalRescheduledBooking } from "../booking/getOriginalRescheduledBooking";
+
+
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type ReqAppsStatus = AwaitedBookingData["appsStatus"];
+type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+type AwaitedBookingData = Awaited<ReturnType<typeof getBookingData>>;
 
 export function handleAppsStatus(
     results: EventResult<AdditionalInformation>[],
@@ -46,4 +49,19 @@ export function handleAppsStatus(
         return prev;
     }, {} as { [key: string]: AppsStatus });
     return Object.values(calcAppsStatus);
+}
+
+function getICalSequence(originalRescheduledBooking: BookingType | null) {
+    // If new booking set the sequence to 0
+    if (!originalRescheduledBooking) {
+        return 0;
+    }
+
+    // If rescheduling and there is no sequence set, assume sequence should be 1
+    if (!originalRescheduledBooking.iCalSequence) {
+        return 1;
+    }
+
+    // If rescheduling then increment sequence by 1
+    return originalRescheduledBooking.iCalSequence + 1;
 }
