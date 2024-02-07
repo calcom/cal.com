@@ -18,8 +18,8 @@ export const PlatformAvailabilitySettingsWrapper = ({ id }: PlatformAvailability
   const { isLoading, data: schedule } = useClientSchedule(id);
   const user = useMe();
 
-  const userWeekStart = daysInAWeek.indexOf(user.data?.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  const { timeFormat } = user.data || { timeFormat: null };
+  const userWeekStart = daysInAWeek.indexOf(user?.data.user.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const { timeFormat } = user?.data.user || { timeFormat: null };
   const [openSidebar, setOpenSidebar] = useState(false);
 
   const { mutateAsync, isPending: isDeletionInProgress } = useDeleteSchedule({
