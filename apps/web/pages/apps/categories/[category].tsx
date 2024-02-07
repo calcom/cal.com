@@ -26,6 +26,8 @@ export default function Apps({ apps }: PageProps) {
       <Shell
         isPublic
         backPath="/apps"
+        title="Apps Store"
+        description="Connecting people, technology and the workplace."
         smallHeading
         heading={
           <>
