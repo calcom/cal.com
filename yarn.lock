@@ -18348,17 +18348,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:1.11.2, dayjs@npm:^1":
-  version: 1.11.2
-  resolution: "dayjs@npm:1.11.2"
-  checksum: 78f8bd04a9e5f5554aa06eacda65a7d59e162d39f621a46fd34fb3b51367c3662426d86b4e2f4ac535f81e0c4d5af3e8a83b37e672412eb556267d726c61f8f3
-  languageName: node
-  linkType: hard
-
-"dayjs@npm:^1.8.29":
+"dayjs@npm:1.11.4":
   version: 1.11.4
   resolution: "dayjs@npm:1.11.4"
   checksum: 478c8a2db9e3fc752db9f02ef23f00e12308eebbeb85569913731ea78e8d5616f2335e14f25af48e9f16bbcbd796653092eca4d2f42c0218a948402c31735f59
+  languageName: node
+  linkType: hard
+
+"dayjs@patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 1.11.4
+  resolution: "dayjs@patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch::version=1.11.4&hash=24cc20&locator=calcom-monorepo%40workspace%3A."
+  checksum: b22998d65e6d4371e912ab5999fa4cb60e32638740d410642246fc2bff06b42b0f7ad27c9e594097fdbc79e296c584550ff5f4ee6e56337c84291346f573a6b6
   languageName: node
   linkType: hard
 

@@ -100,7 +100,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         schedulingType: SchedulingType.COLLECTIVE,
       },
       select: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
