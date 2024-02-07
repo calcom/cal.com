@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/nextjs";
+import { captureException as SentryCaptureException } from "@sentry/nextjs";
 import type { NextMiddleware } from "next-api-middleware";
 
 import { redactError } from "@calcom/lib/redactError";
@@ -9,7 +9,7 @@ export const captureErrors: NextMiddleware = async (_req, res, next) => {
     // middleware and the API route handler
     await next();
   } catch (error) {
-    Sentry.captureException(error);
+    SentryCaptureException(error);
     const redactedError = redactError(error);
     if (redactedError instanceof Error) {
       res.status(400).json({ message: redactedError.message, error: redactedError });
