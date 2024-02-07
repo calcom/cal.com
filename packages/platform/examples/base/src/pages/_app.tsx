@@ -44,7 +44,6 @@ export default function App({ Component, pageProps }: AppProps) {
         options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
         {email ? (
           <>
-            <p className="m-12 text-lg">{email}</p>
             <Component {...pageProps} />
           </>
         ) : (
