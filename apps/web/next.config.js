@@ -209,7 +209,7 @@ const nextConfig = {
   },
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
-      // Module not found
+      // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
           resourceRegExp:
