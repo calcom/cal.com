@@ -22,6 +22,15 @@ interface IUserToValue {
   email: string;
 }
 
+type Host = { isFixed: boolean; userId: number; priority: number };
+
+type TeamMember = {
+  value: string;
+  label: string;
+  avatar: string;
+  email: string;
+};
+
 const mapUserToValue = ({ id, name, username, avatar, email }: IUserToValue, pendingString: string) => ({
   value: `${id || ""}`,
   label: `${name || email || ""}${!username ? ` (${pendingString})` : ""}`,
@@ -149,8 +158,8 @@ const CheckedHostField = ({
   labelText?: string;
   placeholder: string;
   isFixed: boolean;
-  value: { isFixed: boolean; userId: number; priority: number }[];
-  onChange?: (options: { isFixed: boolean; userId: number; priority: number }[]) => void;
+  value: Host[];
+  onChange?: (options: Host[]) => void;
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
   getValues: UseFormGetValues<FormValues>;
@@ -211,14 +220,9 @@ const FixedHosts = ({
   setValue,
   getValues,
 }: {
-  value: { isFixed: boolean; userId: number; priority: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number; priority: number }[]) => void;
-  teamMembers: {
-    value: string;
-    label: string;
-    avatar: string;
-    email: string;
-  }[];
+  value: Host[];
+  onChange: (hosts: Host[]) => void;
+  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   setValue: UseFormSetValue<FormValues>;
@@ -319,14 +323,9 @@ const AddMembersWithSwitch = ({
   isFixed,
   getValues,
 }: {
-  value: { isFixed: boolean; userId: number; priority: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number; priority: number }[]) => void;
-  teamMembers: {
-    value: string;
-    label: string;
-    avatar: string;
-    email: string;
-  }[];
+  value: Host[];
+  onChange: (hosts: Host[]) => void;
+  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   automaticAddAllEnabled: boolean;
@@ -378,14 +377,9 @@ const RoundRobinHosts = ({
   setValue,
   getValues,
 }: {
-  value: { isFixed: boolean; userId: number; priority: number }[];
-  onChange: (hosts: { isFixed: boolean; userId: number; priority: number }[]) => void;
-  teamMembers: {
-    value: string;
-    label: string;
-    avatar: string;
-    email: string;
-  }[];
+  value: Host[];
+  onChange: (hosts: Host[]) => void;
+  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   setValue: UseFormSetValue<FormValues>;
@@ -465,12 +459,7 @@ const Hosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
 }: {
-  teamMembers: {
-    value: string;
-    label: string;
-    avatar: string;
-    email: string;
-  }[];
+  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
 }) => {
@@ -525,7 +514,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange([...value.filter(({ isFixed }) => !isFixed), ...changeValue]);
+                  onChange([...value.filter((host: Host) => !host.isFixed), ...changeValue]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
