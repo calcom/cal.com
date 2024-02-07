@@ -10,6 +10,7 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import { scopes } from "./add";
 
 let client_id = "";
 let client_secret = "";
@@ -19,6 +20,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
+    if (state?.onErrorReturnTo || state?.returnTo) {
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
+      return;
+    }
     throw new HttpError({ statusCode: 400, message: "`code` must be a string" });
   }
 
@@ -36,11 +45,31 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 
-  let key = "";
+  let key;
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
     key = token.res?.data;
+
+    // Check that the has granted all permissions
+    const grantedScopes = key.scope;
+    for (const scope of scopes) {
+      if (!grantedScopes.includes(scope)) {
+        if (!state?.fromApp) {
+          throw new HttpError({
+            statusCode: 400,
+            message: "You must grant all permissions to use this integration",
+          });
+        } else {
+          res.redirect(
+            getSafeRedirectUrl(state.onErrorReturnTo) ??
+              getSafeRedirectUrl(state?.returnTo) ??
+              `${WEBAPP_URL}/apps/installed`
+          );
+          return;
+        }
+      }
+    }
 
     const credential = await prisma.credential.create({
       data: {

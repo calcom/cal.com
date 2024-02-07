@@ -45,7 +45,7 @@
   "invite_team_individual_segment": "Invitar individualmente",
   "invite_team_bulk_segment": "Importar en masa",
   "invite_team_notifcation_badge": "Inv.",
-  "your_event_has_been_scheduled": "Tu evento ha sido reprogramado",
+  "your_event_has_been_scheduled": "Tu evento ha sido programado",
   "your_event_has_been_scheduled_recurring": "Su evento recurrente se ha programado",
   "accept_our_license": "Acepte nuestra licencia cambiando la variable .env <1>NEXT_PUBLIC_LICENSE_CONSENT</1> a '{{agree}}'.",
   "remove_banner_instructions": "Para eliminar este banner, abra su archivo .env y cambie la variable <1>NEXT_PUBLIC_LICENSE_CONSENT</1> a '{{agree}}'.",

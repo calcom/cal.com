@@ -30,7 +30,7 @@ export const createOrgsFixture = (page: Page) => {
   };
 };
 
-async function createOrgInDb({
+export async function createOrgInDb({
   name,
   slug,
   requestedSlug,

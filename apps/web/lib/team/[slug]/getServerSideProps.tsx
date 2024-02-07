@@ -121,7 +121,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         return {
           name: member.name,
           id: member.id,
+          avatarUrl: member.avatarUrl,
           bio: member.bio,
+          profile: member.profile,
           subteams: member.subteams,
           username: member.username,
           accepted: member.accepted,

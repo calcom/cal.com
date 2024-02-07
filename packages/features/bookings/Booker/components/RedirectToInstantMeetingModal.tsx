@@ -5,6 +5,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dialog, DialogContent } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  const message = "/o";
+  event.returnValue = message; // Standard for most browsers
+  return message; // For some older browsers
+};
+
 export const RedirectToInstantMeetingModal = ({
   hasInstantMeetingTokenExpired,
   bookingId,
@@ -47,19 +53,16 @@ export const RedirectToInstantMeetingModal = ({
   };
 
   useEffect(() => {
-    if (hasInstantMeetingTokenExpired) return;
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      const message = "/o";
-      event.returnValue = message; // Standard for most browsers
-      return message; // For some older browsers
-    };
+    if (!expiryTime || hasInstantMeetingTokenExpired) {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      return;
+    }
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [hasInstantMeetingTokenExpired]);
+  }, [expiryTime, hasInstantMeetingTokenExpired]);
 
   return (
     <Dialog open={!!bookingId && !!expiryTime}>

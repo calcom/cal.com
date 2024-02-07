@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { isOrganization } from "@calcom/lib/entityPermissionUtils";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -21,9 +22,14 @@ export function TeamsListing() {
 
   const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
 
-  const { data, isPending, error } = trpc.viewer.teams.list.useQuery(undefined, {
-    enabled: inviteTokenChecked,
-  });
+  const { data, isPending, error } = trpc.viewer.teams.list.useQuery(
+    {
+      includeOrgs: true,
+    },
+    {
+      enabled: inviteTokenChecked,
+    }
+  );
 
   const { data: user } = trpc.viewer.me.useQuery();
 
@@ -40,8 +46,22 @@ export function TeamsListing() {
     },
   });
 
-  const teams = useMemo(() => data?.filter((m) => m.accepted) || [], [data]);
-  const invites = useMemo(() => data?.filter((m) => !m.accepted) || [], [data]);
+  const teams = useMemo(() => data?.filter((m) => m.accepted && !isOrganization({ team: m })) || [], [data]);
+
+  const teamInvites = useMemo(
+    () => data?.filter((m) => !m.accepted && !isOrganization({ team: m })) || [],
+    [data]
+  );
+
+  const organizationInvites = (data?.filter((m) => !m.accepted && isOrganization({ team: m })) || []).filter(
+    (orgInvite) => {
+      const isThereASubTeamOfTheOrganizationInInvites = teamInvites.find(
+        (teamInvite) => teamInvite.parentId === orgInvite.id
+      );
+      // Accepting a subteam invite automatically accepts the invite for the parent organization. So, need to show such an organization's invite
+      return !isThereASubTeamOfTheOrganizationInInvites;
+    }
+  );
 
   const isCreateTeamButtonDisabled = !!(user?.organizationId && !user?.organization?.isOrgAdmin);
 
@@ -92,12 +112,20 @@ export function TeamsListing() {
     <>
       {!!error && <Alert severity="error" title={error.message} />}
 
-      {invites.length > 0 && (
+      {organizationInvites.length > 0 && (
         <div className="bg-subtle mb-6 rounded-md p-5">
-          <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
-          <TeamList teams={invites} pending />
+          <Label className="text-emphasis pb-2  font-semibold">{t("pending_organization_invites")}</Label>
+          <TeamList teams={organizationInvites} pending />
         </div>
       )}
+
+      {teamInvites.length > 0 && (
+        <div className="bg-subtle mb-6 rounded-md p-5">
+          <Label className="text-emphasis pb-2  font-semibold">{t("pending_invites")}</Label>
+          <TeamList teams={teamInvites} pending />
+        </div>
+      )}
+
       <UpgradeTip
         plan="team"
         title={t("calcom_is_better_with_team", { appName: APP_NAME })}

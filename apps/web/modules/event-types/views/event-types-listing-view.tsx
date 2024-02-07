@@ -166,11 +166,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return readOnly ? (
     <div className="flex-1 overflow-hidden pr-4 text-sm">
       {content()}
-      <EventTypeDescription
-        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
-        eventType={type}
-        shortenDescription
-      />
+      <EventTypeDescription eventType={type} shortenDescription />
     </div>
   ) : (
     <Link
@@ -197,7 +193,6 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
         )}
       </div>
       <EventTypeDescription
-        // @ts-expect-error FIXME: We have a type mismatch here @hariombalhara @sean-brydon
         eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
         shortenDescription
       />
@@ -729,9 +724,9 @@ const EventTypeListHeading = ({
   return (
     <div className="mb-4 flex items-center space-x-2">
       <Avatar
-        alt={profile?.name || ""}
+        alt={profile.name || ""}
         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={`${bookerUrl}${teamId ? "/team" : ""}/${profile.slug}/avatar.png`}
+        imageSrc={profile.image}
         size="md"
         className="mt-1 inline-flex justify-center"
       />
@@ -739,7 +734,7 @@ const EventTypeListHeading = ({
         <Link
           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
           className="text-emphasis font-bold">
-          {profile?.name || ""}
+          {profile.name || ""}
         </Link>
         {membershipCount && teamId && (
           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
@@ -751,13 +746,13 @@ const EventTypeListHeading = ({
             </Link>
           </span>
         )}
-        {profile?.slug && (
+        {profile.slug && (
           <Link href={`${bookerUrl}/${profile.slug}`} className="text-subtle block text-xs">
             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
           </Link>
         )}
       </div>
-      {!profile?.slug && !!teamId && (
+      {!profile.slug && !!teamId && (
         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
           <Badge variant="gray" className="-ml-2 mb-1">
             {t("upgrade")}
@@ -816,7 +811,7 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
@@ -853,7 +848,6 @@ const Main = ({
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
-  const orgBranding = useOrgBranding();
 
   if (!data || status === "pending") {
     return <SkeletonLoader />;

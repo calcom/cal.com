@@ -4,6 +4,7 @@ import { stringify } from "querystring";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import type { StripeData } from "../lib/server";
 import stripe from "../lib/server";
 
@@ -19,8 +20,13 @@ function getReturnToValueFromQueryState(req: NextApiRequest) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, error_description } = req.query;
+  const state = decodeOAuthState(req);
 
   if (error) {
+    // User cancels flow
+    if (error === "access_denied") {
+      state?.onErrorReturnTo ? res.redirect(state.onErrorReturnTo) : res.redirect("/apps/installed/payment");
+    }
     const query = stringify({ error, error_description });
     res.redirect(`/apps/installed?${query}`);
     return;
