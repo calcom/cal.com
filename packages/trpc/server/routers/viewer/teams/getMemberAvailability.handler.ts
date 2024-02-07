@@ -45,8 +45,9 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
       username: member.user.username,
       dateFrom: input.dateFrom,
       dateTo: input.dateTo,
+      returnDateOverrides: true,
     },
-    { user: member.user }
+    { user: member.user, busyTimesFromLimitsBookings: [] }
   );
 };
 

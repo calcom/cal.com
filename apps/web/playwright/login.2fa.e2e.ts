@@ -169,6 +169,7 @@ async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; 
     // Maybe token was just about to expire, try again just once more
     token = authenticator.generate(secret);
   }
+  await page.locator('input[name="2fa1"]').waitFor({ state: "visible", timeout: 60_000 });
   await page.fill('input[name="2fa1"]', token[0]);
   await page.fill('input[name="2fa2"]', token[1]);
   await page.fill('input[name="2fa3"]', token[2]);
