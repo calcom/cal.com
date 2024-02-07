@@ -1,5 +1,5 @@
-import { GetOverlayCalendarsBusyTimesInput } from "@/ee/overlay-calendars/inputs/get-overlay-calendars-busy-times.input";
-import { OverlayCalendarsService } from "@/ee/overlay-calendars/services/overlay-calendars.service";
+import { CalendarBusyTimesInput } from "@/ee/calendars/inputs/calendar-busy-times.input";
+import { CalendarsService } from "@/ee/calendars/services/calendars";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { Controller, Get, Logger, UseGuards, Body } from "@nestjs/common";
@@ -14,14 +14,14 @@ import { EventBusyDate } from "@calcom/types/Calendar";
   version: "2",
 })
 @UseGuards(AccessTokenGuard)
-export class OverlayCalendarController {
+export class CalendarController {
   private readonly logger = new Logger("ee overlay calendars controller");
 
-  constructor(private readonly overlayCalendarsService: OverlayCalendarsService) {}
+  constructor(private readonly overlayCalendarsService: CalendarsService) {}
 
   @Get("/busy-times")
   async getBusyTimes(
-    @Body() body: GetOverlayCalendarsBusyTimesInput,
+    @Body() body: CalendarBusyTimesInput,
     @GetUser() user: User
   ): Promise<ApiResponse<EventBusyDate[]>> {
     const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = body;
@@ -32,18 +32,9 @@ export class OverlayCalendarController {
       };
     }
 
-    const credentials = await this.overlayCalendarsService.getUniqCalendarCredentials(
-      calendarsToLoad,
-      user.id
-    );
-    const composedSelectedCalendars = await this.overlayCalendarsService.getCalendarsWithCredentials(
-      credentials,
-      calendarsToLoad,
-      user.id
-    );
     const busyTimes = await this.overlayCalendarsService.getBusyTimes(
-      credentials,
-      composedSelectedCalendars,
+      calendarsToLoad,
+      user.id,
       dateFrom,
       dateTo,
       loggedInUsersTz

@@ -1,4 +1,4 @@
-import { Calendar } from "@/ee/overlay-calendars/inputs/get-overlay-calendars-busy-times.input";
+import { Calendar } from "@/ee/calendars/inputs/calendar-busy-times.input";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { User } from "@prisma/client";
@@ -8,7 +8,7 @@ import { getBusyCalendarTimes } from "@calcom/platform-libraries";
 import { ValueType } from "@calcom/platform-types";
 
 @Injectable()
-export class OverlayCalendarsService {
+export class CalendarsService {
   constructor(private readonly credentialsRepository: CredentialsRepository) {}
 
   async getUniqCalendarCredentials(calendarsToLoad: Calendar[], userId: User["id"]) {
@@ -42,12 +42,18 @@ export class OverlayCalendarsService {
   }
 
   async getBusyTimes(
-    credentials: ValueType<ReturnType<typeof this.credentialsRepository.getUserCredentialsByIds>>,
-    composedSelectedCalendars: ValueType<ReturnType<typeof this.getCalendarsWithCredentials>>,
+    calendarsToLoad: Calendar[],
+    userId: User["id"],
     dateFrom: string,
     dateTo: string,
     timezone: string
   ) {
+    const credentials = await this.getUniqCalendarCredentials(calendarsToLoad, userId);
+    const composedSelectedCalendars = await this.getCalendarsWithCredentials(
+      credentials,
+      calendarsToLoad,
+      userId
+    );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
         "",
