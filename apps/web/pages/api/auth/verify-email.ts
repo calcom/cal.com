@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!user) {
-    throw new Error("Cannot find a user attached to this token.");
+    return res.status(401).json({ message: "Cannot find a user attached to this token" });
   }
 
   const userMetadataParsed = userMetadata.parse(user.metadata);
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (existingUser) {
-      throw Error("A User already exists with this email");
+      return res.status(401).json({ message: "A User already exists with this email" });
     }
 
     const updatedEmail = userMetadataParsed.emailChangeWaitingForVerification;

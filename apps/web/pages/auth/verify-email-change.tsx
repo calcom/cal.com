@@ -34,6 +34,10 @@ function VerifyEmailChange(props: PageProps) {
       if (isLocaleReady) {
         showToast(t("verify_email_change_success_toast", { email: props.updatedEmail }), "success");
       }
+    } else {
+      if (isLocaleReady) {
+        showToast(t("verify_email_change_failure_toast"), "error");
+      }
     }
     // We only need this to run on inital mount. These props can't and won't change due to it being fetched serveside.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +70,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const response = await fetch(`${WEBAPP_URL}/api/auth/verify-email?${params.toString()}`, {
     method: "POST",
   });
-  const data = await response.json();
 
   if (!response.ok) {
     return {
@@ -77,6 +80,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
+
+  const data = await response.json();
 
   return {
     props: {

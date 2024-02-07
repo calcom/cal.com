@@ -21,6 +21,7 @@
   "verify_email_email_button": "Verify email",
   "verify_email_change_description":"You have recently requested to change the email address you use to log into your {{appName}} account. Please click the button below to confirm your new email address.",
   "verify_email_change_success_toast":"Updated your email to {{email}}",
+  "verify_email_change_failure_toast":"Failed to update email.",
   "change_of_email":"Verify your new {{appName}} email address",
   "change_of_email_toast":"We have sent a verification link to {{email}}. We will update your email address once you click this link.",
   "copy_somewhere_safe": "Save this API key somewhere safe. You will not be able to view it again.",
