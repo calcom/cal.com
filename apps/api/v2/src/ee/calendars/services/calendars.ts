@@ -1,11 +1,13 @@
 import { Calendar } from "@/ee/calendars/inputs/calendar-busy-times.input";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import {
+  CredentialsRepository,
+  CredentialsWithUserEmail,
+} from "@/modules/credentials/credentials.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 
 import { getBusyCalendarTimes } from "@calcom/platform-libraries";
-import { ValueType } from "@calcom/platform-types";
 
 @Injectable()
 export class CalendarsService {
@@ -23,7 +25,7 @@ export class CalendarsService {
   }
 
   async getCalendarsWithCredentials(
-    credentials: ValueType<ReturnType<typeof this.credentialsRepository.getUserCredentialsByIds>>,
+    credentials: CredentialsWithUserEmail,
     calendarsToLoad: Calendar[],
     userId: User["id"]
   ) {
