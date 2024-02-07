@@ -12,6 +12,9 @@ async function postHandler(req: NextApiRequest) {
   if (req.headers["x-goog-channel-token"] !== process.env.CRON_API_KEY) {
     throw new HttpError({ statusCode: 403, message: "Invalid API key" });
   }
+  if (typeof req.headers["x-goog-channel-id"] !== "string") {
+    throw new HttpError({ statusCode: 403, message: "Missing Channel ID" });
+  }
 
   /**
    * TODO: Handle resubscription when channel expires
