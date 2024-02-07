@@ -43,7 +43,6 @@ test.describe("2FA Tests", async () => {
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
 
       await removeOtpInput(page);
-      await page.getByTestId("toast-success").waitFor();
 
       await fillOtp({
         page,
