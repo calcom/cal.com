@@ -42,6 +42,19 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
+const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  id: true,
+  teamId: true,
+  schedulingType: true,
+  userId: true,
+  metadata: true,
+  description: true,
+  hidden: true,
+  slug: true,
+  length: true,
+  title: true,
+});
+
 export class MembershipRepository {
   static async create(data: IMembership) {
     return await prisma.membership.create({
@@ -103,11 +116,14 @@ export class MembershipRepository {
               select: teamParentSelect,
             },
             eventTypes: {
-              include: {
+              select: {
+                ...eventTypeSelect,
                 team: {
-                  include: {
+                  select: {
+                    id: true,
                     eventTypes: {
-                      include: {
+                      select: {
+                        id: true,
                         users: { select: userSelect },
                       },
                     },

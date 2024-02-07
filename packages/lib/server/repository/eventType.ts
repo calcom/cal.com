@@ -33,6 +33,19 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
+// We might need to relax it more in future as per requirements
+const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  id: true,
+  teamId: true,
+  schedulingType: true,
+  userId: true,
+  metadata: true,
+  description: true,
+  hidden: true,
+  slug: true,
+  length: true,
+  title: true,
+});
 export class EventTypeRepository {
   static async create(data: IEventType) {
     const {
@@ -99,20 +112,15 @@ export class EventTypeRepository {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
-    const userSelect = {
-      id: true,
-      username: true,
-      email: true,
-      name: true,
-      avatarUrl: true,
-    };
-
-    const include = {
+    const select = {
+      ...eventTypeSelect,
       // TODO:  As required by getByViewHandler - Make it configurable
       team: {
-        include: {
+        select: {
+          id: true,
           eventTypes: {
-            include: {
+            select: {
+              id: true,
               users: { select: userSelect },
             },
           },
@@ -148,7 +156,7 @@ export class EventTypeRepository {
           userId: lookupTarget.id,
           ...where,
         },
-        include,
+        select,
         orderBy,
       });
     }
@@ -172,7 +180,7 @@ export class EventTypeRepository {
           ],
           ...where,
         },
-        include,
+        select,
         orderBy,
       });
     } else {
@@ -180,7 +188,7 @@ export class EventTypeRepository {
         where: {
           profileId,
         },
-        include,
+        select,
         orderBy,
       });
     }
