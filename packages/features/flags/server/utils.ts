@@ -15,6 +15,6 @@ export async function getFeatureFlagMap(prisma: PrismaClient) {
   TEMP_CACHE = flags.reduce((acc, flag) => {
     acc[flag.slug as keyof AppFlags] = flag.enabled;
     return acc;
-  }, {} as Partial<AppFlags>);
+  }, {} as AppFlags);
   return TEMP_CACHE;
 }

@@ -534,6 +534,7 @@ model SelectedCalendar {
   externalId      String
   credential      Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId    Int?
+  // The calendar where the events will be created
   googleChannelId String?     @unique
 
   @@id([userId, integration, externalId])
