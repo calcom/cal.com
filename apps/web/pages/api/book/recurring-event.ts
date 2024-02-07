@@ -6,6 +6,7 @@ import type { BookingResponse, RecurringBookingCreateBody } from "@calcom/featur
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
+import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
@@ -30,7 +31,34 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const numSlotsToCheckForAvailability = 2;
 
   let thirdPartyRecurringEventId = null;
-  for (let key = 0; key < data.length; key++) {
+
+  // for round robin, the first slot needs to be handled first to define the lucky user
+  const firstBooking = data[0];
+  const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
+
+  let luckyUsers = undefined;
+
+  if (isRoundRobin) {
+    const recurringEventReq: NextApiRequest & { userId?: number } = req;
+
+    recurringEventReq.body = {
+      ...firstBooking,
+      appsStatus,
+      allRecurringDates,
+      isFirstRecurringSlot: true,
+      thirdPartyRecurringEventId,
+      numSlotsToCheckForAvailability,
+      currentRecurringIndex: 0,
+      noEmail: false,
+    };
+
+    const firstBookingResult = await handleNewBooking(recurringEventReq, {
+      isNotAnApiCall: true,
+    });
+    luckyUsers = firstBookingResult.luckyUsers?.map((user) => user.id);
+  }
+
+  for (let key = isRoundRobin ? 1 : 0; key < data.length; key++) {
     const booking = data[key];
     // Disable AppStatus in Recurring Booking Email as it requires us to iterate backwards to be able to compute the AppsStatus for all the bookings except the very first slot and then send that slot's email with statuses
     // It is also doubtful that how useful is to have the AppsStatus of all the bookings in the email.
@@ -61,6 +89,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
       noEmail: key !== 0,
+      luckyUsers,
     };
 
     const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking(
