@@ -18,6 +18,7 @@ runs:
         key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
         key-2: ${{ github.event.pull_request.number || github.ref }}
         DATABASE_URL: ${{ inputs.DATABASE_URL }}
+        DATABASE_DIRECT_URL: ${{ inputs.DATABASE_URL }}
         E2E_TEST_CALCOM_QA_EMAIL: ${{ inputs.E2E_TEST_CALCOM_QA_EMAIL }}
         E2E_TEST_CALCOM_QA_PASSWORD: ${{ inputs.E2E_TEST_CALCOM_QA_PASSWORD }}
         E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ inputs.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
