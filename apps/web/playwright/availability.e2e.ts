@@ -37,9 +37,6 @@ test.describe("Availablity tests", () => {
     const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);
     await page.waitForLoadState("networkidle");
-
-    // Testing to see if waiting will allow the view to change after the render issue we have
-    // with differences between client/server
     await expect(page.locator('[data-testid="troubleshooter-busy-time"]')).toHaveCount(1);
   });
 
