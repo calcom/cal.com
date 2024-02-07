@@ -16,6 +16,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ScheduleWithAvailabilities, ScheduleWithAvailabilitiesForWeb } from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Schedules Endpoints", () => {
@@ -187,6 +188,7 @@ describe("Schedules Endpoints", () => {
 
           expect(responseBody.data.schedule).toBeDefined();
           expect(responseBody.data.schedule.id).toBeDefined();
+          expect((responseBody.data.schedule as ScheduleWithAvailabilitiesForWeb).dateOverrides).toBeFalsy();
           expect(responseBody.data.schedule.userId).toEqual(createdSchedule.userId);
           expect(responseBody.data.schedule.name).toEqual(createdSchedule.name);
           expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
@@ -203,6 +205,45 @@ describe("Schedules Endpoints", () => {
           expect(responseBody.data.schedule.availability?.[0]?.endTime).toEqual(
             createdSchedule.availability?.[0]?.endTime
           );
+        });
+    });
+
+    it("should get schedule for atom", async () => {
+      const forAtomQueryParam = "?for=atom";
+      return request(app.getHttpServer())
+        .get(`/api/v2/schedules/${createdSchedule.id}${forAtomQueryParam}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<{ schedule: ScheduleWithAvailabilitiesForWeb }> =
+            response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          expect(responseBody.data.schedule).toBeDefined();
+          expect(responseBody.data.schedule.id).toBeDefined();
+          expect(responseBody.data.schedule.dateOverrides).toBeDefined();
+          expect((responseBody.data.schedule as ScheduleWithAvailabilities).userId).toBeFalsy();
+          expect(responseBody.data.schedule.name).toEqual(createdSchedule.name);
+          expect(responseBody.data.schedule.timeZone).toEqual(createdSchedule.timeZone);
+
+          expect(responseBody.data.schedule.availability).toBeDefined();
+          expect(responseBody.data.schedule.availability?.length).toEqual(7);
+
+          const dateStart = new Date(responseBody.data.schedule.availability?.[1]?.[0]?.start);
+          const dateEnd = new Date(responseBody.data.schedule.availability?.[1]?.[0]?.end);
+
+          const dateStartHours = dateStart.getUTCHours().toString().padStart(2, "0");
+          const dateStartMinutes = dateStart.getUTCMinutes().toString().padStart(2, "0");
+          const dateStartSeconds = dateStart.getUTCSeconds().toString().padStart(2, "0");
+          const dateEndHours = dateEnd.getUTCHours().toString().padStart(2, "0");
+          const dateEndMinutes = dateEnd.getUTCMinutes().toString().padStart(2, "0");
+          const dateEndSeconds = dateEnd.getUTCSeconds().toString().padStart(2, "0");
+
+          const expectedStart = `${dateStartHours}:${dateStartMinutes}:${dateStartSeconds}`;
+          const expectedEnd = `${dateEndHours}:${dateEndMinutes}:${dateEndSeconds}`;
+
+          expect(expectedStart).toEqual(createdSchedule.availability?.[0]?.startTime);
+          expect(expectedEnd).toEqual(createdSchedule.availability?.[0]?.endTime);
         });
     });
 
