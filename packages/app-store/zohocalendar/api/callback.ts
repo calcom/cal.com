@@ -3,12 +3,11 @@ import { stringify } from "querystring";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
-import { checkDuplicateCalendar } from "../../_utils/checkDuplicateCalendar";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -75,16 +74,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   });
   const data = await calendarResponse.json();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
-    const existingCalendar = await checkDuplicateCalendar(
-      req.session.user.id,
-      primaryCalendar.id,
-      config.type
-    );
-    if (existingCalendar) throw new HttpError({ statusCode: 409, message: "Account is already linked." });
-
     const credential = await prisma.credential.create({
       data: {
         type: config.type,
@@ -93,14 +86,31 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         appId: config.slug,
       },
     });
-    await prisma.selectedCalendar.create({
-      data: {
-        userId: req.session.user.id,
-        integration: config.type,
-        externalId: primaryCalendar.uid,
-        credentialId: credential.id,
-      },
-    });
+    // Wrapping in a try/catch to reduce chance of race conditions-
+    // also this improves performance for most of the happy-paths.
+    try {
+      await prisma.selectedCalendar.create({
+        data: {
+          userId: req.session.user.id,
+          integration: config.type,
+          externalId: primaryCalendar.uid,
+          credentialId: credential.id,
+        },
+      });
+    } catch (error) {
+      await prisma.credential.delete({ where: { id: credential.id } });
+      let errorMessage = "something_went_wrong";
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        errorMessage = "account_already_linked";
+      }
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: config.variant, slug: config.slug })
+        }?error=${errorMessage}`
+      );
+      return;
+    }
   }
 
   res.redirect(

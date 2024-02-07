@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -7,6 +6,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";

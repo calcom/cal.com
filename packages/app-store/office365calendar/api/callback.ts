@@ -4,10 +4,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
-import { checkDuplicateCalendar } from "../../_utils/checkDuplicateCalendar";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -112,13 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    const existingCalendar = await checkDuplicateCalendar(
-      req.session.user.id,
-      defaultCalendar.id,
-      "office365_calendar"
-    );
-    if (existingCalendar) throw new HttpError({ statusCode: 409, message: "Account is already linked." });
-
     const credential = await prisma.credential.create({
       data: {
         type: "office365_calendar",
@@ -127,14 +119,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         appId: "office365-calendar",
       },
     });
-    await prisma.selectedCalendar.create({
-      data: {
-        userId: req.session?.user.id,
-        integration: "office365_calendar",
-        externalId: defaultCalendar.id,
-        credentialId: credential.id,
-      },
-    });
+    // Wrapping in a try/catch to reduce chance of race conditions-
+    // also this improves performance for most of the happy-paths.
+    try {
+      await prisma.selectedCalendar.create({
+        data: {
+          userId: req.session?.user.id,
+          integration: "office365_calendar",
+          externalId: defaultCalendar.id,
+          credentialId: credential.id,
+        },
+      });
+    } catch (error) {
+      await prisma.credential.delete({ where: { id: credential.id } });
+      let errorMessage = "something_went_wrong";
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        errorMessage = "account_already_linked";
+      }
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+        }?error=${errorMessage}`
+      );
+      return;
+    }
   }
 
   return res.redirect(
