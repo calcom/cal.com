@@ -15,8 +15,8 @@ export const PlatformAvailabilityWrapper = ({ id }: PlatformAvailabilityWrapperP
   const user = useMe();
 
   const displayOptions = {
-    hour12: user.data?.timeFormat ? user.data.timeFormat === 12 : undefined,
-    timeZone: user.data?.timeZone,
+    hour12: user?.data.user.timeFormat ? user.data.user.timeFormat === 12 : undefined,
+    timeZone: user?.data.user.timeZone,
   };
 
   const { mutateAsync, isPending: isDeletionInProgress } = useDeleteSchedule({
