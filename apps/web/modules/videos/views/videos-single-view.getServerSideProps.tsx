@@ -3,6 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 import { type inferSSRProps } from "@lib/types/inferSSRProps";
@@ -33,11 +34,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           timeZone: true,
           name: true,
           email: true,
-          organization: {
-            select: {
-              calVideoLogo: true,
-            },
-          },
+          username: true,
         },
       },
       references: {
@@ -62,6 +59,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
+
+  const profile = booking.user
+    ? (
+        await UserRepository.enrichUserWithItsProfile({
+          user: booking.user,
+        })
+      ).profile
+    : null;
 
   //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
@@ -102,6 +107,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       booking: {
         ...bookingObj,
         ...(bookingObj.description && { description: md.render(bookingObj.description) }),
+        user: bookingObj.user
+          ? {
+              ...bookingObj.user,
+              organization: profile?.organization,
+            }
+          : bookingObj.user,
       },
       trpcState: ssr.dehydrate(),
     },
