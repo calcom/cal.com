@@ -51,7 +51,6 @@ export async function getHandler(req: NextApiRequest) {
     include: {
       customInputs: true,
       team: { select: { slug: true } },
-      users: true,
       hosts: { select: { userId: true, isFixed: true } },
       owner: { select: { username: true, id: true } },
       children: { select: { id: true, userId: true } },
