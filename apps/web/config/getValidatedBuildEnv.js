@@ -1,5 +1,3 @@
-const { exitOrThrowError, printValidatedEnv } = require("./utils");
-
 /**
  * Return a validated / transformed environment object from a zodSchema
  *
@@ -12,11 +10,11 @@ const getValidatedBuildEnv = (zodSchema, options = {}) => {
   const parsedEnv = zodSchema.safeParse(env);
   if (parsedEnv.success) {
     if (displayConsole) {
-      printValidatedEnv('Build env(s)', parsedEnv);
+      console.log('Build env(s)', parsedEnv);
     }
     return parsedEnv.data;
   }
-  exitOrThrowError(parsedEnv);
+  console.error(parsedEnv);
 };
 
 module.exports = { getValidatedBuildEnv };
