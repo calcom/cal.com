@@ -500,6 +500,32 @@ export class ProfileRepository {
     };
   }
 
+  /**
+   * Personal profile should come from Profile table only
+   */
+  static buildPersonalProfileFromOldSchema({
+    user,
+  }: {
+    user: {
+      username: string | null;
+      organizationId: number | null;
+      organization:
+        | (Pick<Team, "name" | "id" | "slug" | "calVideoLogo"> & {
+            requestedSlug: string | null;
+          })
+        | null;
+      id: number;
+    };
+  }) {
+    return {
+      id: null,
+      upId: `usr-${user.id}`,
+      username: user.username || "",
+      organizationId: user.organizationId,
+      organization: user.organization,
+    };
+  }
+
   static _getPrismaWhereForProfilesOfOrg({ orgSlug }: { orgSlug: string | null }) {
     return {
       profiles: {

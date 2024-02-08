@@ -1,7 +1,7 @@
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { User as UserType } from "@calcom/prisma/client";
+import type { Team, User as UserType } from "@calcom/prisma/client";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { isOrganization } from "../../entityPermissionUtils";
@@ -337,19 +337,22 @@ export class UserRepository {
     };
   }
 
-  static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
-    user,
-  }: {
-    user: T;
-  }): T & {
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  } {
-    // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
+  static enrichUserWithItsProfileBuiltFromUser<
+    T extends {
+      id: number;
+      username: string | null;
+      organizationId: number | null;
+      organization: Pick<Team, "name" | "id" | "slug" | "calVideoLogo" | "metadata"> | null;
+    }
+  >({ user }: { user: T }) {
+    const userWithOrganizationParsed = {
+      ...user,
+      organization: user.organization ? getParsedTeam(user.organization) : null,
+    };
     return {
       ...user,
       nonProfileUsername: user.username,
-      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+      profile: ProfileRepository.buildPersonalProfileFromOldSchema({ user: userWithOrganizationParsed }),
     };
   }
 

@@ -33,6 +33,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   username: true,
   name: true,
   organizationId: true,
+  organization: true,
   avatarUrl: true,
 });
 
@@ -107,6 +108,7 @@ export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => 
       avatar: true,
       avatarUrl: true,
       organizationId: true,
+      organization: true,
       teams: {
         where: {
           accepted: true,

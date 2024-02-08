@@ -192,6 +192,19 @@ async function createOrganizationAndAddMembersAndTeams({
     },
   });
 
+  await Promise.all(
+    orgMembersInDb.map(async (member) => {
+      await prisma.user.update({
+        where: {
+          id: member.id,
+        },
+        data: {
+          organizationId: orgInDb.id,
+        },
+      });
+    })
+  );
+
   const orgMembersInDBWithProfileId = await Promise.all(
     orgMembersInDb.map(async (member) => ({
       ...member,
@@ -807,7 +820,7 @@ async function main() {
           memberData: {
             email: "owner1-acme@example.com",
             password: "owner1-acme",
-            username: "owner1-acme",
+            username: "owner1",
             name: "Owner 1",
           },
           orgMembership: {
@@ -866,7 +879,7 @@ async function main() {
           memberData: {
             email: "owner1-dunder@example.com",
             password: "owner1-dunder",
-            username: "owner1-dunder",
+            username: "owner1",
             name: "Owner 1",
           },
           orgMembership: {
