@@ -1,5 +1,4 @@
 import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
-import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { ResponseService } from "@/ee/schedules/services/response/response.service";
 import { ScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
@@ -34,7 +33,6 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,
-    private readonly schedulesRepository: SchedulesRepository,
     private readonly schedulesResponseService: ResponseService
   ) {}
 
