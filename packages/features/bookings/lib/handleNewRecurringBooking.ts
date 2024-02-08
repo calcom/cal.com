@@ -5,7 +5,7 @@ import type { NextApiRequest } from "next";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-export const handleNewReccuringBooking = async (req: NextApiRequest & { userId?: number }) => {
+export const handleNewRecurringBooking = async (req: NextApiRequest & { userId?: number }) => {
   const data: RecurringBookingCreateBody[] = req.body;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
