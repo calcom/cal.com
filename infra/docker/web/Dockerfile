@@ -15,6 +15,8 @@ WORKDIR /app
 ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true \
     HUSKY=0
 
+ENV NEXT_BUILD_ENV_OUTPUT=standalone
+
 ENV NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000 \
     NEXTAUTH_URL=${NEXT_PUBLIC_WEBAPP_URL}/api/auth \
     NEXTAUTH_SECRET=auth_secret \
@@ -87,6 +89,8 @@ ENTRYPOINT ["/bin/bash", "./replace-placeholder.sh"]
 # enables standalone access to api route endpoints by changing the inline "localhost"
 # in server.js to "0.0.0.0"
 ENV HOSTNAME=0.0.0.0
+ENV PORT=${NEXTJS_PORT:-3000}
+EXPOSE ${PORT}
 
 CMD ["yarn", "workspace", "@calcom/web", "docker-start-web"]
 

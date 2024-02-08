@@ -13,6 +13,8 @@ const {
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
 
+const { buildEnv } = require ("./config/build-env.config");
+
 const path = require ('node:path') ;
 const url = require  ('node:url');
 
@@ -165,11 +167,18 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  outputFileTracing: true ,
+
+ ...(buildEnv.NEXT_BUILD_ENV_OUTPUT === 'standalone'
+      ? { output: 'standalone', outputFileTracing: true }
+      : {}),
+
   swcMinify: true,
   experimental: {
-    outputFileTracingRoot: workspaceRoot ,
+
+    ...(buildEnv.NEXT_BUILD_ENV_OUTPUT === 'standalone'
+      ? { outputFileTracingRoot: workspaceRoot }
+      : {}),
+ 
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
   },
