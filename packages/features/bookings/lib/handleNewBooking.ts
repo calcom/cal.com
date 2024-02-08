@@ -1550,14 +1550,11 @@ async function handler(
     ? await getBookerBaseUrl(eventType.team.parentId)
     : await getBookerBaseUrl(organizerOrganizationId ?? null);
 
-  const destinationCalendar =
-    eventType.useEventTypeDestinationCalendarEmail && !eventType.team
-      ? eventType.destinationCalendar
-        ? [eventType.destinationCalendar]
-        : organizerUser.destinationCalendar
-        ? [organizerUser.destinationCalendar]
-        : null
-      : null;
+  const destinationCalendar = eventType.destinationCalendar
+    ? [eventType.destinationCalendar]
+    : organizerUser.destinationCalendar
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let evt: CalendarEvent = {
     bookerUrl,
@@ -1571,7 +1568,10 @@ async function handler(
     organizer: {
       id: organizerUser.id,
       name: organizerUser.name || "Nameless",
-      email: destinationCalendar?.[0]?.primaryEmail || organizerUser.email || "Email-less",
+      email:
+        eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail
+          ? destinationCalendar[0].primaryEmail
+          : organizerUser.email || "Email-less",
       username: organizerUser.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },

@@ -126,6 +126,7 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 30,
                   length: 30,
+                  useEventTypeDestinationCalendarEmail: true,
                   users: [
                     {
                       id: 101,
