@@ -19,5 +19,10 @@ export type {
   ScheduleWithAvailabilities,
   ScheduleWithAvailabilitiesForWeb,
 } from "@calcom/lib/schedules/client/transformers";
-export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+export type {
+  BookingCreateBody,
+  BookingResponse,
+  RecurringBookingCreateBody,
+} from "@calcom/features/bookings/types";
 export { HttpError } from "@calcom/lib/http-error";
+export type { AppsStatus } from "@calcom/types/Calendar";
