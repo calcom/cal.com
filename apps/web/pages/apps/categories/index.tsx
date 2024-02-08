@@ -16,7 +16,12 @@ export default function Apps({ categories }: Omit<inferSSRProps<typeof getServer
   const { t, isLocaleReady } = useLocale();
 
   return (
-    <Shell isPublic large hideHeadingOnMobile>
+    <Shell
+      isPublic
+      large
+      hideHeadingOnMobile
+      title="Apps Store"
+      description="Connecting people, technology and the workplace.">
       <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-normal md:px-8 lg:px-0 lg:pt-0">
         <Link
           href="/apps"
