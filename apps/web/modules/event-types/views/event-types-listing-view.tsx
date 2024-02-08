@@ -811,7 +811,7 @@ const CTA = ({ data }: { data: GetByViewerResponse }) => {
 const Actions = () => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
     </div>
   );
 };
