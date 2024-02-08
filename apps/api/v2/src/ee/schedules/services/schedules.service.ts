@@ -4,17 +4,7 @@ import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
 import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { Schedule, User } from "@prisma/client";
-
-import {
-  transformWorkingHoursForClient,
-  transformAvailabilityForClient,
-  transformDateOverridesForClient,
-} from "@calcom/platform-libraries";
-import type {
-  ScheduleWithAvailabilities,
-  ScheduleWithAvailabilitiesForWeb,
-} from "@calcom/platform-libraries";
+import { Schedule } from "@prisma/client";
 
 @Injectable()
 export class SchedulesService {
@@ -60,28 +50,6 @@ export class SchedulesService {
     this.checkUserOwnsSchedule(userId, existingSchedule);
 
     return existingSchedule;
-  }
-
-  async transformScheduleForAtom(
-    schedule: ScheduleWithAvailabilities,
-    userSchedulesCount: number,
-    user: Pick<User, "id" | "defaultScheduleId" | "timeZone">
-  ): Promise<ScheduleWithAvailabilitiesForWeb> {
-    const timeZone = schedule.timeZone || user.timeZone;
-
-    return {
-      id: schedule.id,
-      name: schedule.name,
-      isManaged: schedule.userId !== user.id,
-      workingHours: transformWorkingHoursForClient(schedule),
-      schedule: schedule.availability,
-      availability: transformAvailabilityForClient(schedule),
-      timeZone,
-      dateOverrides: transformDateOverridesForClient(schedule, timeZone),
-      isDefault: user.defaultScheduleId === schedule.id,
-      isLastSchedule: userSchedulesCount <= 1,
-      readOnly: schedule.userId !== user.id,
-    };
   }
 
   async getUserSchedules(userId: number) {

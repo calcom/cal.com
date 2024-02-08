@@ -1,8 +1,8 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
+import { ScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { ScheduleResponse } from "@/ee/schedules/zod/response/response";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";

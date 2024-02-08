@@ -1,7 +1,8 @@
 import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
+import { ResponseService } from "@/ee/schedules/services/response/response.service";
+import { ScheduleResponse } from "@/ee/schedules/services/response/zod/response";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { ScheduleResponse, schemaScheduleResponse } from "@/ee/schedules/zod/response/response";
 import { ForAtom } from "@/lib/atoms/decorators/for-atom.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -33,7 +34,8 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,
-    private readonly schedulesRepository: SchedulesRepository
+    private readonly schedulesRepository: SchedulesRepository,
+    private readonly schedulesResponseService: ResponseService
   ) {}
 
   @Post("/")
@@ -43,23 +45,12 @@ export class SchedulesController {
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
-    let scheduleResponse: ScheduleResponse | ScheduleWithAvailabilitiesForWeb;
-
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      scheduleResponse = await this.schedulesService.transformScheduleForAtom(
-        schedule,
-        usersSchedulesCount,
-        user
-      );
-    } else {
-      scheduleResponse = schemaScheduleResponse.parse(schedule);
-    }
+    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        schedule: scheduleResponse,
+        schedule: scheduleFormatted,
       },
     };
   }
@@ -70,24 +61,12 @@ export class SchedulesController {
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
-
-    let scheduleResponse: ScheduleResponse | ScheduleWithAvailabilitiesForWeb;
-
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      scheduleResponse = await this.schedulesService.transformScheduleForAtom(
-        schedule,
-        usersSchedulesCount,
-        user
-      );
-    } else {
-      scheduleResponse = schemaScheduleResponse.parse(schedule);
-    }
+    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        schedule: scheduleResponse,
+        schedule: scheduleFormatted,
       },
     };
   }
@@ -99,23 +78,12 @@ export class SchedulesController {
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
-    let scheduleResponse: ScheduleResponse | ScheduleWithAvailabilitiesForWeb;
-
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      scheduleResponse = await this.schedulesService.transformScheduleForAtom(
-        schedule,
-        usersSchedulesCount,
-        user
-      );
-    } else {
-      scheduleResponse = schemaScheduleResponse.parse(schedule);
-    }
+    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        schedule: scheduleResponse,
+        schedule: scheduleFormatted,
       },
     };
   }
@@ -126,22 +94,12 @@ export class SchedulesController {
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<{ schedules: ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[] }>> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
-    let schedulesResponse: ScheduleResponse[] | ScheduleWithAvailabilitiesForWeb[];
-
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      schedulesResponse = schedules.map(
-        async (schedule) =>
-          await this.schedulesService.transformScheduleForAtom(schedule, usersSchedulesCount, user)
-      );
-    } else {
-      schedulesResponse = schedules.map((schedule) => schemaScheduleResponse.parse(schedule));
-    }
+    const schedulesFormatted = await this.schedulesResponseService.formatSchedules(forAtom, user, schedules);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        schedules: schedulesResponse,
+        schedules: schedulesFormatted,
       },
     };
   }
@@ -154,23 +112,12 @@ export class SchedulesController {
     @ForAtom() forAtom: boolean
   ): Promise<ApiResponse<{ schedule: ScheduleResponse | ScheduleWithAvailabilitiesForWeb }>> {
     const schedule = await this.schedulesService.updateUserSchedule(user.id, scheduleId, bodySchedule);
-    let scheduleResponse: ScheduleResponse | ScheduleWithAvailabilitiesForWeb;
-
-    if (forAtom) {
-      const usersSchedulesCount = await this.schedulesRepository.getUserSchedulesCount(user.id);
-      scheduleResponse = await this.schedulesService.transformScheduleForAtom(
-        schedule,
-        usersSchedulesCount,
-        user
-      );
-    } else {
-      scheduleResponse = schemaScheduleResponse.parse(schedule);
-    }
+    const scheduleFormatted = await this.schedulesResponseService.formatSchedule(forAtom, user, schedule);
 
     return {
       status: SUCCESS_STATUS,
       data: {
-        schedule: scheduleResponse,
+        schedule: scheduleFormatted,
       },
     };
   }
